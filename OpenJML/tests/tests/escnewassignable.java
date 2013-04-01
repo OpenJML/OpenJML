@@ -351,11 +351,45 @@ public class escnewassignable extends EscBase {
                 +"  public void mas() {\n"
                 +"  }\n"
 
+                +"  //@ requires a == this; assignable x; \n"
+                +"  public void m1z1(TestJava a) {\n"
+                +"    a.m();\n"
+                +"  }\n"
+
+                +"  //@ requires a != null; assignable x; \n"
+                +"  public void m1z1bad(TestJava a) {\n"
+                +"    a.m();\n"
+                +"  }\n"
+
+                +"  //@ requires a != null; assignable a.x; \n"
+                +"  public void m1z2(TestJava a) {\n"
+                +"    a.m();\n"
+                +"  }\n"
+
+                +"  //@ requires a == this; assignable a.x; \n"
+                +"  public void m1z3(TestJava a) {\n"
+                +"    m();\n"
+                +"  }\n"
+
+                +"  //@ requires a == this; assignable a.x; \n"
+                +"  public void m1z4(TestJava a) {\n"
+                +"    this.m();\n"
+                +"  }\n"
+
+                +"  //@ requires a != null; assignable a.x; \n"
+                +"  public void m1z4bad(TestJava a) {\n"
+                +"    this.m();\n"
+                +"  }\n"
+
                 +"}"
                 ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1bad",18
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7 // FIXME - position is confused
+                ,"/tt/TestJava.java:4: warning: Associated declaration",39
                 ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3bad",18
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:71: warning: Associated declaration",7
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:75: warning: Associated declaration",7
                 
                 );
     }

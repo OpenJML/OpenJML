@@ -123,6 +123,9 @@ public class JmlEsc extends JmlTreeScanner {
     /** The tool to log problem reports */ 
     @NonNull Log log;
     
+    /** The OpenJML utilities object */
+    @NonNull Utils utils;
+    
     /** true if compiler options are set to a verbose mode */
     boolean verbose;
     
@@ -147,6 +150,9 @@ public class JmlEsc extends JmlTreeScanner {
     /** If true, then cross reference information is generated. */ // FIXME - should this just always be on? - need to fix tests
     public boolean cfInfo = false;
     
+    /** The assertion adder instance used to translate */
+    public JmlAssertionAdder assertionAdder;
+    
     /** A map that stores all the proof results of proofs initiated through this JmlEsc object. */
     public Map<MethodSymbol,IProverResult> proverResults = new HashMap<MethodSymbol,IProverResult>();
     
@@ -161,15 +167,26 @@ public class JmlEsc extends JmlTreeScanner {
         this.log = Log.instance(context);
         this.names = Names.instance(context);
         this.factory = JmlTree.Maker.instance(context);
-        escdebug = escdebug || Utils.instance(context).jmlverbose >= Utils.JMLDEBUG;
+        this.utils = Utils.instance(context);
+        
+        escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
-            || Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
+            || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
         this.showTrace = verbose || this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.checkAssumptions = !JmlOption.isOption(context,JmlOption.NO_RAC_CHECK_ASSUMPTIONS);
         this.cfInfo = JmlOption.isOption(context,JmlOption.ASSOCINFO);
         this.showBBTrace = verbose;
+    }
+    
+    public void check(JCTree tree) {
+        if (!JmlOption.isOption(context,"-custom")) {
+            this.assertionAdder = new JmlAssertionAdder(context, true,false);
+            tree.accept(assertionAdder);
+        }
+        proverToUse = pickProver();
+        tree.accept(this); 
     }
     
     /** Returns the prover specified by the options. */
@@ -204,48 +221,37 @@ public class JmlEsc extends JmlTreeScanner {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
+        progress(1,1,"Proving methods in " + node.sym.getQualifiedName() ); //$NON-NLS-1$
         super.visitClassDef(node);
     }
-
+    
     /** When we visit a method declaration, we translate and prove the method;
      * we do not walk into the method any further from this call, only through
      * the translation mechanism.  
-     */  // FIXME - what about local classes or anonymous classes
-    public void visitMethodDef(@NonNull JCMethodDecl node) {
-        if (!(node instanceof JmlMethodDecl)) {
-            log.warning(node.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + node.sym); //$NON-NLS-2$
+     */
+    public void visitMethodDef(@NonNull JCMethodDecl methodDecl) {
+        if (!(methodDecl instanceof JmlMethodDecl)) {
+            log.warning(methodDecl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + methodDecl.sym); //$NON-NLS-2$
             return;
         }
-        
-        // The code in this method decides whether to attempt a proof of this method.
-        // If so, it sets some parameters and then calls proveMethod
-        // We don't check abstract or native methods (no source)
-        // nor synthetic methods.
-        
-        boolean isConstructor = node.sym.isConstructor();
-        boolean doEsc = ((node.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
-            // TODO: Could check that abstract or native methods have consistent specs
-        
-        // Don't do ESC on the constructor of Object
-        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
-        if (node.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
-        if (!doEsc) return;
 
-        String fully_qualified_name = node.sym.owner.getQualifiedName() + "." + node.sym.getQualifiedName(); //$NON-NLS-1$
+        super.visitMethodDef(methodDecl);
+
+        String fully_qualified_name = utils.qualifiedMethodName(methodDecl.sym) ;
 
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
         if (methodsToDo != null) {
             match: {
                 for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$
                     if (fully_qualified_name.equals(methodToDo) ||
-                            methodToDo.equals(node.name.toString()) ||
+                            methodToDo.equals(methodDecl.name.toString()) ||
                             Pattern.matches(methodToDo,fully_qualified_name)) {
                         break match;
                     }
                 }
                 if (Utils.instance(context).jmlverbose > Utils.QUIET) {
                     log.noticeWriter.println("Skipping " + fully_qualified_name + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
-                    return ;
+                    return;
                 }
             }
         }
@@ -254,15 +260,17 @@ public class JmlEsc extends JmlTreeScanner {
         if (excludes != null) {
             for (String exclude: excludes.split(",")) { //$NON-NLS-1$
                 if (fully_qualified_name.equals(exclude) ||
-                        exclude.equals(node.name.toString()) ||
+                        exclude.equals(methodDecl.name.toString()) ||
                         Pattern.matches(exclude,fully_qualified_name)) {
                     if (Utils.instance(context).jmlverbose > Utils.QUIET)
                         log.noticeWriter.println("Skipping " + fully_qualified_name + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return ;
+                    return;
                 }
             }
         }
-        
+
+        doMethod(methodDecl);
+                
 
 //        Pattern doPattern = 
 //            null; 
@@ -300,15 +308,46 @@ public class JmlEsc extends JmlTreeScanner {
 //        for (Pattern avoid: avoids) {
 //            if (avoid.matcher(fully_qualified_name).matches()) {log.noticeWriter.println("skipping " + fully_qualified_name); return; }
 //        }
+
+    }
+    
+    protected void doMethod(@NonNull JCMethodDecl methodDecl) {
+        boolean print = this.verbose;
+        boolean printPrograms = print || JmlOption.isOption(context, JmlOption.SHOW);
+
+        progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + proverToUse); //$NON-NLS-1$ //$NON-NLS-2$
         
-        proverToUse = pickProver();
+        // print the body of the method to be proved
+        if (printPrograms) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(methodDecl.body));
+        }
+        
+        // The code in this method decides whether to attempt a proof of this method.
+        // If so, it sets some parameters and then calls proveMethod
+        // We don't check abstract or native methods (no source)
+        // nor synthetic methods.
+        
+        boolean isConstructor = methodDecl.sym.isConstructor();
+        boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
+            // TODO: Could check that abstract or native methods have consistent specs
+        
+        // Don't do ESC on the constructor of Object
+        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
+        if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
+        if (!doEsc) return;
+
+        
 
         if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
-            proveWithBoogie(node,proverToUse);
+            proveWithBoogie(methodDecl,proverToUse);
             return;
         }
         if (!JmlOption.isOption(context, JmlOption.CUSTOM)) {
-            proveWithSMT(node,proverToUse);
+            proveWithSMT(methodDecl,proverToUse);
             return;
         }
         
@@ -317,13 +356,13 @@ public class JmlEsc extends JmlTreeScanner {
         
         boolean doTimingTests = false;
         
-        if (escdebug) log.noticeWriter.println(node.toString()); // print the method
+        if (escdebug) log.noticeWriter.println(methodDecl.toString()); // print the method
 
         if (!doTimingTests) {
             timingTest = 0;
-            proveMethodOld(node,proverToUse);
+            proveMethodOld(methodDecl,proverToUse);
         } else {
-            log.noticeWriter.println("METHOD: " + fully_qualified_name);
+            log.noticeWriter.println("METHOD: " + utils.qualifiedMethodName(methodDecl.sym));
             //int[] timingTests = { 3,  1,2,3,4,5,6,7, 8, 1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8};
             //int[] timingTests = {1, 9,10,11,15,16,17,12,13,14,9,10,11,15,16,17,12,13,14,9,10,11,15,16,17,12,13,14 };
             //int[] timingTests = {1, 9,10,11,9,10,11,9,10,11 };
@@ -376,7 +415,7 @@ public class JmlEsc extends JmlTreeScanner {
                 
                 BasicBlocker.useCountedAssumeCheck = timingTest < 13;
                 
-                proveMethodOld(node,proverToUse);
+                proveMethodOld(methodDecl,proverToUse);
             }
         }
     }
@@ -405,13 +444,13 @@ public class JmlEsc extends JmlTreeScanner {
             return true;
         }
 
-        progress(1,2,"Starting proof of " + decl.sym.owner.flatName() + "." + decl.sym + " with prover " + proverToUse);
+        progress(1,2,"Starting proof of " + decl.sym.owner.getQualifiedName() + "." + decl.sym + " with prover " + proverToUse);
         
         if (print) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------");
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING PROOF OF " + decl.name);
+            log.noticeWriter.println("STARTING PROOF OF " + decl.sym.owner.getQualifiedName() + "." + decl.sym);
             log.noticeWriter.println(JmlPretty.write(decl.body));
         }
         
@@ -537,65 +576,36 @@ public class JmlEsc extends JmlTreeScanner {
         return true;
     }
     
+    protected JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
+        return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
+    }
+    
     /** Perform an ESC check of the method using the SMT translation */
     public IProverResult proveWithSMT(JCMethodDecl decl, String proverToUse) {
         boolean print = this.verbose;
         boolean printPrograms = print || JmlOption.isOption(context, JmlOption.SHOW);
         
-        // FIXME - implement proving constructors
-        if (decl.sym.isConstructor()) {
-            log.noticeWriter.println("(NOT IMPLEMENTED) SKIPPING PROOF OF CONSTRUCTOR FOR " + decl.sym.flatName()); //$NON-NLS-1$
-            return new ProverResult(proverToUse,IProverResult.SKIPPED);
-        }
+//        // FIXME - implement proving constructors
+//        if (decl.sym.isConstructor()) {
+//            log.noticeWriter.println("(NOT IMPLEMENTED) SKIPPING PROOF OF CONSTRUCTOR FOR " + decl.sym); //$NON-NLS-1$
+//            return new ProverResult(proverToUse,IProverResult.SKIPPED);
+//        }
         
-        progress(1,2,"Starting proof of " + decl.sym.flatName() + " with prover " + proverToUse); //$NON-NLS-1$ //$NON-NLS-2$
+        JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
+
+        JmlClassDecl currentClassDecl = getOwner(methodDecl);
         
-        // print the body of the method to be proved
+        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : specs.getDenestedSpecs(methodDecl.sym);
+
+        JCBlock newblock = assertionAdder.methodBiMap.getf(decl).getBody();
         if (printPrograms) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING SMT PROOF OF " + decl.name); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(decl.body));
+            log.noticeWriter.println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(newblock));
         }
-        
-        JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
-        JmlClassDecl currentClassDecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)decl.sym.owner).tree;
-        
-        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : specs.getDenestedSpecs(methodDecl.sym);
 
-        // Convert the JML to assertions
-        JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
-        JCBlock newblock = assertionAdder.convertMethodBody(methodDecl,currentClassDecl);
-        if (newblock == null) {
-            IProverResult pr =  new ProverResult(proverToUse,IProverResult.ERROR);
-            pr.setOtherInfo("Aborting proof attempt because of internal error");
-            return pr;
-        }
-        if (printPrograms) log.noticeWriter.println(JmlPretty.write(newblock));
-        
-        // now convert to basic block form
-        BasicBlocker2 basicBlocker = new BasicBlocker2(context);
-        BasicProgram program = basicBlocker.convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
-        if (printPrograms) log.noticeWriter.println(program.toString());
-        
-        // create an SMT object, adding any options
-        SMT smt = new SMT();
-        smt.processCommandLine(new String[]{}, smt.smtConfig);
-
-        // convert the basic block form to SMT
-        SMTTranslator smttrans = new SMTTranslator(context);
-        ICommand.IScript script = smttrans.convert(program,smt);
-        if (printPrograms) {
-            try {
-                org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
-                log.noticeWriter.println();
-                log.noticeWriter.println();
-            } catch (VisitorException e) {
-                log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
-            }
-        }
-        
         // determine the executable
         String exec = pickProverExec(proverToUse);
         if (exec == null) {
@@ -603,33 +613,94 @@ public class JmlEsc extends JmlTreeScanner {
             return new ProverResult(proverToUse,IProverResult.SKIPPED);
         }
         
+        // create an SMT object, adding any options
+        SMT smt = new SMT();
+        smt.processCommandLine(new String[]{}, smt.smtConfig);
+
         // Add a listener for errors and start the solver.
         // The listener is set to use the defaultPrinter for printing 
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        ISolver solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
+        SMTTranslator smttrans = new SMTTranslator(context);
+
+        ISolver solver;
+        IResponse solverResponse ;
+        BasicBlocker2 basicBlocker;
+        BasicProgram program;
+        {
+            // now convert to basic block form
+            basicBlocker = new BasicBlocker2(context);
+            program = basicBlocker.convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
+            if (printPrograms) log.noticeWriter.println(program.toString());
+
+            // convert the basic block form to SMT
+            ICommand.IScript script = smttrans.convert(program,smt);
+            if (printPrograms) {
+                try {
+                    org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
+                    log.noticeWriter.println();
+                    log.noticeWriter.println();
+                } catch (VisitorException e) {
+                    log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+                }
+            }
+
+            solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
+
+            // Try the prover
+            if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+            solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+
+        }
         
-        // Try the prover
-        if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
-        IResponse r = script.execute(solver); // Note - the solver knows the smt configuration
+        
+    
         IProverResult proofResult = null;
 
         {
-            if (r.isError()) {
-                log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(r)); //$NON-NLS-1$
+            if (solverResponse.isError()) {
+                solver.exit();
+                log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                 return new ProverResult(proverToUse,IProverResult.ERROR);
             }
-            if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(r));
-            if (r.toString().equals("unsat")) {// FIXME - should have a better means of checking this
+            if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(solverResponse));
+            if (solverResponse.toString().equals("unsat")) {// FIXME - should have a better means of checking this
                 if (verbose) log.noticeWriter.println("Method checked OK");
-                if (proofResult == null) proofResult = new ProverResult(proverToUse,IProverResult.UNSAT);
+                proofResult = new ProverResult(proverToUse,IProverResult.UNSAT);
+                
+                java.util.List<JCTree.JCParens> a = assertionAdder.assumptionChecks.get(methodDecl.sym);
+                if (a != null) { // FIXME - warn if a null? perhaps just an artifact of assertig a constructor
+                    a.get(0).expr = JmlTreeUtils.instance(context).falseLit;
+                    BasicBlocker2 basicBlocker2 = new BasicBlocker2(context);
+                    BasicProgram program2 = basicBlocker2.convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
+                    if (true||printPrograms) log.noticeWriter.println(program2.toString());
+
+                    // create an SMT object, adding any options
+                    smt.processCommandLine(new String[]{}, smt.smtConfig);
+
+                    // convert the basic block form to SMT
+                    SMTTranslator smttrans2 = new SMTTranslator(context);
+                    ICommand.IScript script2 = smttrans2.convert(program2,smt);
+
+
+                    ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
+
+                    // Try the prover
+                    if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+                    solverResponse = script2.execute(solver2); // Note - the solver knows the smt configuration
+                    if (solverResponse.toString().equals("unsat")) {
+                        log.warning(decl.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                    }
+                    solver2.exit();
+                }
+                
                 // TODO - optional checking that the method is actually feasible
             } else {
                 int count = Utils.instance(context).maxWarnings;
                 while (true) {
                     if (proofResult == null) proofResult = new ProverResult(proverToUse,
-                            r.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
+                            solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
                     if (print) log.noticeWriter.println("Some assertion not valid");
 
                     if (showCounterexample) {
@@ -663,17 +734,18 @@ public class JmlEsc extends JmlTreeScanner {
                     solver.pop(1);
                     solver.assertExpr(smttrans.convertExpr(pathCondition));
                     solver.push(1);
-                    r = solver.check_sat();
+                    solverResponse = solver.check_sat();
 
-                    if (r.isError()) {
-                        log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(r)); //$NON-NLS-1$
+                    if (solverResponse.isError()) {
+                        log.error("jml.esc.badscript", decl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                         return new ProverResult(proverToUse,IProverResult.ERROR);
                     }
-                    if (r.toString().equals("unsat")) break;
+                    if (solverResponse.toString().equals("unsat")) break;
                     // TODO -  checking each assertion separately
                 }
             }
         }
+        solver.exit();
         proverResults.put(methodDecl.sym,proofResult);
         mostRecentProgram = program;
         return proofResult;
@@ -778,8 +850,14 @@ public class JmlEsc extends JmlTreeScanner {
             if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
-                id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
-                value = getBoolValue(id,smt,solver);
+                if (e instanceof JCTree.JCLiteral) {
+                    value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
+                } else if (e instanceof JCTree.JCParens) {
+                        value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
+                } else {
+                    id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
+                    value = getBoolValue(id,smt,solver);
+                }
                 if (!value) {
                     pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     if (terminationPos == 0) terminationPos = decl.pos;
@@ -1656,7 +1734,7 @@ public class JmlEsc extends JmlTreeScanner {
                             proofResult = p.check(true);
                             if (escdebug) log.noticeWriter.println("CHECKING " + assumptionCheck + " " + assertionNumber);
                             if (!proofResult.isSat() && timingTest == 0) {
-                                reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                                reportAssumptionProblem(label,pos,utils.qualifiedMethodSig(methodDecl.sym));
                                 if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
                                 proofResult.result(IProverResult.INCONSISTENT);
                             } else {
@@ -1732,7 +1810,7 @@ public class JmlEsc extends JmlTreeScanner {
                     int ps = Integer.parseInt(nm.substring(k+1,kk));
                     if (list.contains(ps)) continue;
                     if (timingTest == 0) {
-                        reportAssumptionProblem(nm.substring(kk+1),ps,methodDecl.sym.toString());
+                        reportAssumptionProblem(nm.substring(kk+1),ps,utils.qualifiedMethodSig(methodDecl.sym));
                         log.noticeWriter.println(nm.substring(kk+1) + " " + proofResult.coreIds());
                         proofResult.result(IProverResult.INCONSISTENT);
                     }
@@ -1778,7 +1856,7 @@ public class JmlEsc extends JmlTreeScanner {
                             numbad++;
                             //                            if (escdebug || timingTest > 0) log.noticeWriter.println("ALREADY NOT IN MINIMAL CORE: " + pos + " " + label);
                             if (timingTest == 0) {
-                                reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                                reportAssumptionProblem(label,pos,utils.qualifiedMethodSig(methodDecl.sym));
                                 if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
                                 proofResult.result(IProverResult.INCONSISTENT);
                                 if (escdebug) minimize(p,defexpr, proofResult.coreIds().coreIds(), assumptionCheck);
@@ -1873,7 +1951,7 @@ public class JmlEsc extends JmlTreeScanner {
 //                                              }
                         //                  }
                         if (!proofResult.isSat() && timingTest == 0) {
-                            reportAssumptionProblem(label,pos,methodDecl.sym.toString());
+                            reportAssumptionProblem(label,pos,utils.qualifiedMethodSig(methodDecl.sym));
                             if (escdebug) log.noticeWriter.println(label + " " + proofResult.coreIds());
                             proofResult.result(IProverResult.INCONSISTENT);
                             minimize(p, defexpr, proofResult.coreIds().coreIds(), assumptionCheck);

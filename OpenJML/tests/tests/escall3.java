@@ -19,17 +19,6 @@ public class escall3 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
-
-        //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        //options.put("-show",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-showce",   "");
-        //options.put("-trace",   "");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
     }
     
@@ -288,15 +277,17 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires i>0;\n"
                 +"  //@ requires i<0;\n"
-                +"  //@ ensures false;\n"  // FIXME - this should eventually warn about infeasible preconditions
+                +"  //@ ensures false;\n"
                 +"  public void m1b(int i) {\n"
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m1b(int)",-15
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",15
                 );
     }
+
+// FIXME - a lot of commented out tests - are these duplicated elsewhere?
     
 //    @Test
 //    public void testPrecondition3() {

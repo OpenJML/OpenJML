@@ -46,8 +46,7 @@ public class esclocation extends EscBase {
                 +"}"  // FIXME - are the following the best error messages we can make?
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",7
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
-                // FIXME - test for infeasible preconditions
-                ,!option.equals("-custom") ? null : "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method mm()",15
+                ,"/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm()",15
                 );
     }
     
@@ -124,8 +123,9 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 // FIXME - check constructor
-                ,!option.equals("-custom") ? null : "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,!option.equals("-custom") ? null : "/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                ,!option.equals("-custom") ? "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>"
+                                           : "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
                 ,!option.equals("-custom") ? "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m"
                                            : "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m"
                                                ,13
@@ -147,9 +147,8 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                // FIXME - check constructor
-                ,!option.equals("-custom") ? null : "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
                 );
     }
     

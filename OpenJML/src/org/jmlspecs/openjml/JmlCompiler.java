@@ -528,11 +528,13 @@ public class JmlCompiler extends JavaCompiler {
      * @param env the env for a class
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
-        if (Options.instance(context).get("-custom") != null) new JmlTranslator(context).translate(env);
+        if (Options.instance(context).get("-custom") != null) {
+            new JmlTranslator(context).translate(env);
+        }
         //log.noticeWriter.println(JmlPretty.write(env.tree));
 
         JmlEsc esc = JmlEsc.instance(context);
-        env.tree.accept(esc);
+        esc.check(env.tree);
 
         return;
     }

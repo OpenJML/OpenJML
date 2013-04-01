@@ -21,12 +21,11 @@ public class escnew2 extends EscBase {
     
     @Override
     public void setUp() throws Exception {
-        noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-show",   "");
+        main.addOptions("-show");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-counterexample",   "");
@@ -52,8 +51,10 @@ public class escnew2 extends EscBase {
                 +"      }\n"
                 +"  }\n"
                 
-                +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullReference) in method mm1",7
+                +"}" // TODO: These messages will not necessarily be in this order
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",15
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",15
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",15
                 );
     }
     
@@ -87,6 +88,270 @@ public class escnew2 extends EscBase {
                 );
     }
     
+    @Test public void testReceiver1good() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = a.m(2); \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver1bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n"
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = a.m(1); \n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",8
+                ,"/tt/A.java:4: warning: Associated declaration",5
+                );
+    }
+
+    @Test public void testReceiver2good() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = m(1); \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver2bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n"
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = m(2); \n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",6
+                ,"/tt/A.java:4: warning: Associated declaration",5
+                );
+    }
+
+    @Test public void testReceiver3good() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = this.m(1); \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver3bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i;\n"
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = this.m(2); \n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",11
+                ,"/tt/A.java:4: warning: Associated declaration",5
+                );
+    }
+
+    @Test public void testReceiver4() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) {  \n"
+                +"A a = new A(1);\n"
+                +"//@ assert a.i == 1;\n"
+                
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver4a() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) {  \n"
+                +"A a = new A(1);\n"
+                +"//@ assert a != null;\n"
+                
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver4bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) { \n"
+                +"A a = new A(1);\n"
+                +"//@ assert a.i == 2;\n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Assert) in method main",5
+                );
+    }
+
+     @Test public void testReceiver5() { 
+         main.addOptions("-show");
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) {  \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(2);\n"
+                +"//@ assert a.i == 1;\n"
+                +"//@ assert b.i == 2;\n"
+                +"}}"
+                );
+    }
+
+    @Test public void testReceiver6() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) { \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(1);\n" // FIXME - needs alloc counter
+                +"//@ assert a != b; \n"
+                +"//@ assert a != this; \n"
+                +"}}"
+                );
+    }
+
+
+
+    @Test public void testReturn1good() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = a.m(2); \n"
+                +"//@ assert z; \n"
+                +"}}"
+                );
+    }
+
+    @Test public void testReturn1bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public void mm(A a) { boolean z; \n"
+                +"//@ assume i == 1 && a.i == 2;\n"
+                +"z = a.m(2); \n"
+                +"//@ assert !z; \n"
+                +"}}"
+                ,"/tt/A.java:8: warning: The prover cannot establish an assertion (Assert) in method mm",5
+                );
+    }
+
+    @Test public void testSuper() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n "
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                +"static class B extends A {\n"
+                +"   //@ ensures i == 3;\n"
+                +"   public B() { super(3); }\n"
+                +"}}"
+                );
+    }
+
+    @Test public void testSuperbad2() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n "
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                +"static class B extends A {\n"
+                +"   //@ ensures i == 2;\n"
+                +"   public B() { super(3); }\n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Postcondition) in method <init>",11
+                ,"/tt/A.java:6: warning: Associated declaration",8
+                );
+    }
+
+    @Test public void testSuperbad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n "
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                +"static class B extends A {\n"
+                +"   //@ ensures i == 3;\n"
+                +"   public B() { super(0); }\n"
+                +"}}"
+                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method <init>",22
+                ,"/tt/A.java:3: warning: Associated declaration",6
+                );
+    }
+    
+    @Test public void testThis() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n "
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                +"//@ ensures i == 1; \n "
+                +"public A() { this(1); } \n"
+                +"}"
+                );
+    }
+
+    @Test public void testThisBad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n"
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                +"//@ ensures i == 2; \n"
+                +"public A() { this(1); } \n"
+                +"}"
+                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Postcondition) in method <init>",8
+                ,"/tt/A.java:5: warning: Associated declaration",5
+                );
+    }
+
+    @Test public void testThisBad2() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"static int i; \n"
+                +"//@ requires k > 0; ensures i == k; \n "
+                +"public A(int k) { i = k; }\n"
+                +"//@ ensures i == 0; \n"
+                +"public A() { this(0); }\n"
+                +"}"
+                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Precondition) in method <init>",18
+                ,"/tt/A.java:3: warning: Associated declaration",5
+                );
+    }
+
+
+
     
     @Test
     public void testBreak() {

@@ -16,14 +16,13 @@ public class escm extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
         
-//        options.put("-jmlverbose",   "");
-//        options.put("-show","");
+//        main.addOptions("-progress");
+//        main.addOptions("-show");
 //        options.put("-method","me");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
- //       options.put("-trace",   "");
+//        main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }
@@ -55,11 +54,19 @@ public class escm extends EscBase {
 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
+                , !option.equals("-custom") ?
+                new Object[] {"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",38
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m1",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",12
-                
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",12 }
+                :  new Object[] {"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
+                        ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",38
+                        // FIXME _ why duplicated?
+                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
+                        ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",38
+                        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                        ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",12 }
+
                 );
     }
    
@@ -92,7 +99,8 @@ public class escm extends EscBase {
 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
+                , !option.equals("-custom") ?
+                new Object[] {"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
                 ,"/tt/TestJava.java:8: warning: Associated declaration",22
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
                 ,"/tt/TestJava.java:11: warning: Associated declaration",28
@@ -101,7 +109,26 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30
                 ,"/tt/TestJava.java:12: warning: Associated declaration",22
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",18
-                ,"/tt/TestJava.java:16: warning: Associated declaration",12
+                ,"/tt/TestJava.java:16: warning: Associated declaration",12 }
+                : new Object[] {"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
+                        ,"/tt/TestJava.java:8: warning: Associated declaration",22
+                        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
+                        ,"/tt/TestJava.java:11: warning: Associated declaration",28
+                        ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method me",44
+                        ,"/tt/TestJava.java:12: warning: Associated declaration",22
+                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30
+                        ,"/tt/TestJava.java:12: warning: Associated declaration",22
+                        // FIXME - why duplicated
+                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
+                        ,"/tt/TestJava.java:8: warning: Associated declaration",22
+                        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method md",51
+                        ,"/tt/TestJava.java:11: warning: Associated declaration",28
+                        ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Postcondition) in method me",44
+                        ,"/tt/TestJava.java:12: warning: Associated declaration",22
+                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method me",30
+                        ,"/tt/TestJava.java:12: warning: Associated declaration",22
+                        ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m2",18
+                        ,"/tt/TestJava.java:16: warning: Associated declaration",12 }
                 
                 );
     }
@@ -109,6 +136,7 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
+       // main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -137,19 +165,47 @@ public class escm extends EscBase {
 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/tt/TestJava.java:9: warning: Associated declaration",26
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m()",17
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method <init>",22
-                ,"/tt/TestJava.java:13: warning: Associated declaration",38
-                ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method m()",52
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/tt/TestJava.java:14: warning: Associated declaration",32
-                ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method m()",45
-                ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method m()",30
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method <init>",17
-                ,"/tt/TestJava.java:18: warning: Associated declaration",20
-                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method m2()",18
+                , !option.equals("-custom") ?
+                new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/tt/TestJava.java:9: warning: Associated declaration",16
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22
+                ,"/tt/TestJava.java:13: warning: Associated declaration",28
+                ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method .m()",52
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/tt/TestJava.java:14: warning: Associated declaration",22
+                ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.m()",45
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22
+                ,"/tt/TestJava.java:14: warning: Associated declaration",22
+                ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method .m()",30
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",17
+                ,"/tt/TestJava.java:18: warning: Associated declaration",10
+                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18 }
+        :       new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                        ,"/tt/TestJava.java:9: warning: Associated declaration",26
+                        ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17
+                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method <init>",22
+                        ,"/tt/TestJava.java:13: warning: Associated declaration",38
+                        ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method .m()",52
+                        ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                        ,"/tt/TestJava.java:14: warning: Associated declaration",32
+                        ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.m()",45
+                        ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method .m()",30 // FIXME - this one is extra
+                        // FIXME - why duplicated
+                        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                        ,"/tt/TestJava.java:9: warning: Associated declaration",26
+                        ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17
+                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method <init>",22
+                        ,"/tt/TestJava.java:13: warning: Associated declaration",38
+                        ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method .m()",52
+                        ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
+                        ,"/tt/TestJava.java:14: warning: Associated declaration",32
+                        ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.m()",45
+                        ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method .m()",30 // FIXME - this one is extra
+
+                        ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method <init>",17
+                        ,"/tt/TestJava.java:18: warning: Associated declaration",20
+                        ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18 }
 
                 );
     }
@@ -233,9 +289,15 @@ public class escm extends EscBase {
                 +"       return 0;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method <init>",34
-                ,"/tt/TestJava.java:5: warning: Associated declaration",47
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                , !option.equals("-custom") ?
+                new Object[]{"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",34
+                ,"/tt/TestJava.java:5: warning: Associated declaration",37
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12 }
+                : new Object[]{"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method <init>",34
+                        ,"/tt/TestJava.java:5: warning: Associated declaration",47
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method <init>",34
+                        ,"/tt/TestJava.java:5: warning: Associated declaration",47 // FIXME - why is the warning duplicated?
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12 }
 
 
         );

@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -27,6 +29,7 @@ import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
@@ -105,7 +108,7 @@ public class Utils {
     public boolean doc = false;
     
     /** Max number of ESC warnings per method (set from an option) */
-    public int maxWarnings = 0; // <= 0 means no limit
+    public int maxWarnings = 1;
 
     /** The set of keys that control the use of optional comments, set from options */
     public Set<String> commentKeys = new HashSet<String>();
@@ -516,6 +519,21 @@ public class Utils {
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+    }
+
+    /** Returns the owning class declaration of a method declaration */
+    public JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
+        return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
+    }
+    
+    /** Returns a method signature with a full-qualified method name */
+    public String qualifiedMethodSig(MethodSymbol sym) {
+        return sym.owner.getQualifiedName() + "." + sym;
+    }
+
+    /** Returns a fully-qualified name for a method symbol, without the signature */
+    public String qualifiedMethodName(MethodSymbol sym) {
+        return sym.owner.getQualifiedName() + "." + sym.name;
     }
 
 
