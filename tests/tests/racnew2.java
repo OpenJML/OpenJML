@@ -190,7 +190,7 @@ public class racnew2 extends RacBase {
                 ,"/tt/TestJava.java:3: Associated declaration"
                 ,"/tt/TestJava.java:11: JML assertion is false"
                 ,"TestJava - 0"
-                ,"/tt/TestJava.java:13: JML precondition is false"
+                ,"/tt/TestJava.java:13: JML a method called in a JML expression is undefined because its precondition is false"
                 ,"/tt/TestJava.java:3: Associated declaration"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"END"
@@ -611,7 +611,6 @@ public class racnew2 extends RacBase {
     }
     
     /** Tests the JML lbl expression when the argument is a literal */
-    // FIXME - This is failing to print many cases at present 
     @Test public void testLblConst() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
@@ -900,6 +899,102 @@ public class racnew2 extends RacBase {
                 +"new A().m(1); //@ nowarn InvariantExit; \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
+                ,"END"
+                );
+    }
+
+    @Test public void testReceiver1() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public static void main(String[] args) { boolean z; \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(2);\n"
+                +"z = a.m(1); \n"
+                +"z = b.m(2) && z; \n"
+                +"z = a.m(2) && z; \n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:10: JML precondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: JML precondition is false"
+                ,"END"
+                );
+    }
+
+    @Test public void testReceiver2() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"static int i;  \n "
+                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public static void main(String[] args) { boolean z; \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(2);\n"
+                +"a.m(1); \n"
+                +"b.m(2); \n"
+                +"a.m(2); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:8: JML precondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: JML precondition is false"
+                ,"END"
+                );
+    }
+
+    @Test public void testReceiver3() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public A(int k) { i = k; } \n "
+                +"static int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ static boolean m(int j) { return true; }\n "
+                +"public static void main(String[] args) { boolean z; \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(2);\n"
+                +"z = A.m(1); \n"
+                +"z = A.m(2); \n"
+                +"z = A.m(2); \n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:8: JML precondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:4: JML precondition is false"
+                ,"END"
+                );
+    }
+
+
+    @Test public void testReceiver4() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == k; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) { boolean z; \n"
+                +"A a = new A(1);\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"END"
+                );
+    }
+
+    @Test public void testReceiver4bad() { 
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures i == 1; \n "
+                +"public A(int k) { i = k; } \n"
+                
+                +" int i; \n"
+                
+                +"public static void main(String[] args) { boolean z; \n"
+                +"A a = new A(1);\n"
+                +"A b = new A(2);\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:3: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:7: JML postcondition is false"
+                ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );
     }

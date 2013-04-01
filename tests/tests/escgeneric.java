@@ -1,6 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.esc.JmlEsc;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,17 +22,16 @@ public class escgeneric extends EscBase {
         //print = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
 //        options.put("-show",   "");
 //        options.put("-jmlverbose",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        JmlEsc.escdebug = false;
+        //JmlEsc.escdebug = false;
     }
     
     // FIXME - disabled until we get generic types implemented better
-    @Test
+    @Test @Ignore
     public void testConstructor() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

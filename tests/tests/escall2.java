@@ -3,6 +3,7 @@ package tests;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,20 +22,7 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-//        main.addUndocOption(option);
-//        main.addOptions("-nullableByDefault","-noPurityCheck");
-        main.addOptions("-nullableByDefault");
-        main.addOptions("-noPurityCheck");
-        //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        //options.put("-showbb",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-showce",   "");
-        //options.put("-trace",   "");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
+        main.addOptions("-nullableByDefault"); // Tests were written this way
     }
 
     @Test
@@ -1162,9 +1150,9 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 
-                +"}" // Warning is duplicated because it can occur through either specification case
+                +"}" // Warning is duplicated because it can occur through either specification case - but not for custom option
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    
@@ -1203,11 +1191,19 @@ public class escall2 extends EscBase {
         
         
                 +"}"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
-                ,"/tt/TestJava.java:7: warning: Associated declaration",30
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
-                ,"/tt/TestJava.java:7: warning: Associated declaration",30
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                ,!JmlOption.isOption(context,  JmlOption.CUSTOM)?
+                        new Object[] {
+                        "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
+                        ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                        ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
+                        ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                        ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                        }
+                        : new Object[] {  // FIXME - could enhance the custom version to check undefinedness
+                                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",9
+                                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                        }
                 );
     }
    

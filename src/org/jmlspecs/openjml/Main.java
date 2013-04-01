@@ -194,7 +194,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         @Override
         public boolean report(int ticks, int level, String message) {
-            if (level <= 1 || (context != null && JmlOption.isOption(context,JmlOption.JMLVERBOSE))) {
+            if (level <= 1 || (context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE)) {
                 pw.println(message);
                 pw.flush();
             }

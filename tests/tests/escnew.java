@@ -89,13 +89,13 @@ public class escnew extends EscBase {
                 
                 +"  //@ requires i>0;\n"
                 +"  //@ requires i<0;\n"
-                +"  //@ ensures false;\n"  // FIXME - this should eventually warn about infeasible preconditions
+                +"  //@ ensures false;\n"
                 +"  public void m1b(int i) {\n"
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m1a",15
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method m1b(int)",-15
+                ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",-15
                 );
     }
     
@@ -436,7 +436,6 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
-       // options.put("-method", "m2bad");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -529,18 +528,6 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ assignable kk;\n"
-                +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
-                +"  public int m4agood(int i ) throws Exception {\n"
-                +"       try {\n"
-                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
-                +"       } catch (Exception e) {\n"
-                +"           kk = 2;\n"
-                +"        } \n"
-                +"       kk = 3;\n"
-                +"       return kk; \n"
-                +"  }\n"
-                
-                +"  //@ assignable kk;\n"
                 +"  //@ ensures \\result == 3; signals (Exception e)  kk == 1; \n"
                 +"  public int m5good(int i) throws Exception {\n"
                 +"       try {\n"
@@ -589,6 +576,30 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",11
                 ,"/tt/TestJava.java:21: warning: Associated declaration",7
                 
+                );
+    }
+    
+    @Test // FIXME _ needs type relationships
+    public void testTry2() {
+        main.addOptions("-method", "m4agood","-show","-trace","-ce");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static int kk;\n"
+                
+                +"  //@ assignable kk;\n"
+                +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
+                +"  public int m4agood(int i ) throws Exception {\n"
+                +"       try {\n"
+                +"        kk=1; if (i == 0) throw new RuntimeException();\n"
+                +"       } catch (Exception e) {\n"
+                +"           kk = 2;\n"
+                +"        } \n"
+                +"       kk = 3;\n"
+                +"       return kk; \n"
+                +"  }\n"
+                
+                
+                +"}"
                 );
     }
     
@@ -943,8 +954,9 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                // custom mode finds only the first error in a method
+                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 

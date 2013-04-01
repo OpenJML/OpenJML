@@ -70,11 +70,11 @@ public abstract class EscBase extends JmlTestCase {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
-        options.put("-specspath",   testspecpath);
-        options.put("-command","esc");
-        Utils.instance(context).jmlverbose = 4;
-        main.setupOptions();
-        //main.register(context);
+        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("-command","esc");
+        main.addOptions("-noPurityCheck");
+        setOption(option,solver);
+        //main.setupOptions();
         specs = JmlSpecs.instance(context);
         Log.instance(context).multipleErrors = true;
         expectedExit = 0;
@@ -82,7 +82,6 @@ public abstract class EscBase extends JmlTestCase {
         noAssociatedDeclaration = false;
         print = false;
         args = new String[]{};
-        setOption(option,solver);
     }
     
 
@@ -178,20 +177,18 @@ public abstract class EscBase extends JmlTestCase {
                 } else {
                     if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
                         // OK - skip
-                    } else if (j >= collector.getDiagnostics().size()) {
-                        assertEquals("Errors seen",j,collector.getDiagnostics().size());
                     } else {
-                        assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
-                        assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                        if (j < collector.getDiagnostics().size()) {
+                            assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
+                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                        }
                         j++;
                     }
                 }
                 i += 2;
             }
             expectedErrors = j;
-            if (expectedErrors < collector.getDiagnostics().size()) {
-                assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
-            }
+            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
         } catch (Exception e) {

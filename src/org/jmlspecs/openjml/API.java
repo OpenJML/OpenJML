@@ -773,7 +773,7 @@ public class API implements IAPI {
     public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getJavaDecl(msym);
         JmlEsc esc = JmlEsc.instance(main.context);
-        esc.visitMethodDef(decl);
+        esc.check(decl);
         mostRecentProofMethod = msym;
         mostRecentProgram = esc.mostRecentProgram;
         mostRecentProver = esc.mostRecentProver;
@@ -790,7 +790,7 @@ public class API implements IAPI {
     public void doESC(ClassSymbol csym) {
         mostRecentProofMethod = null;
         JmlClassDecl decl = getJavaDecl(csym);
-        JmlEsc.instance(main.context).visitClassDef(decl);
+        JmlEsc.instance(main.context).check(decl);
     }
     
     /* (non-Javadoc)

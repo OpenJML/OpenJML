@@ -1622,8 +1622,8 @@ public class esc extends EscBase {
                 +"}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Invariant) in method <init>",10,
                 "/tt/TestJava.java:10: warning: Associated declaration",24,
-                "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method bf(boolean)",25,
-                "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method bq(boolean)",25);
+                "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bf(boolean)",25,
+                "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bq(boolean)",25);
     }
 
     @Test
@@ -1673,7 +1673,7 @@ public class esc extends EscBase {
                 //,"/tt/TestJava.java:9: warning: Associated declaration",16
                 //,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8 // nothing sets binstance2 true
                 //,"/tt/TestJava.java:10: warning: Associated declaration",16
-                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method i(int)",21 // precondition is false
+                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55
                 ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Invariant) in method insy",64 // binstance is false
                 ,"/tt/TestJava.java:9: warning: Associated declaration",16
@@ -1721,19 +1721,19 @@ public class esc extends EscBase {
                 +"  public static void bassumeMULT(boolean bb, boolean b) { if (bb) { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */ } else { /*@assume bb; assume !bb; */ b = true; /* @ assert false; */} }\n" 
                 +"  public TestJava() {}\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: An assumption appears to be infeasible in method bassumeBADASSUMP(boolean)",56,
+                "/tt/TestJava.java:5: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeBADASSUMP(boolean)",56,
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method bifOK",113,
-                "/tt/TestJava.java:9: warning: An assumption appears to be infeasible in method bifBAD(boolean,boolean)",84,
-                "/tt/TestJava.java:12: warning: An assumption appears to be infeasible in method bassumeBADASSUMP2(boolean)",57,
+                "/tt/TestJava.java:9: warning: An assumption appears to be infeasible in method tt.TestJava.bifBAD(boolean,boolean)",84,
+                "/tt/TestJava.java:12: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeBADASSUMP2(boolean)",57,
                         // The following error is required, but can occur before or after the error on the same line
-                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",-87,
-                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",75,
-                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method bassumeCHAIN1(boolean,boolean)",-87,
-                "/tt/TestJava.java:14: warning: An assumption appears to be infeasible in method bassumeCHAIN2(boolean,boolean)",85,
+                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",-87,
+                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",75,
+                "/tt/TestJava.java:13: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeCHAIN1(boolean,boolean)",-87,
+                "/tt/TestJava.java:14: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeCHAIN2(boolean,boolean)",85,
                 // The following error is required, but can occur before or after the error on the same line
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",83,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",142,
-                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method bassumeMULT(boolean,boolean)",153
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeMULT(boolean,boolean)",83,
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeMULT(boolean,boolean)",142,
+                "/tt/TestJava.java:15: warning: An assumption appears to be infeasible in method tt.TestJava.bassumeMULT(boolean,boolean)",153
         );
     }
 
@@ -1747,8 +1747,8 @@ public class esc extends EscBase {
                 +"  public static void bdead(boolean b, int i) { /*@ assume b; */ if (b) i = 7; else i = 9; }\n" 
                 +"  public static void bdeadelse(boolean b, int i) { /*@ assume !b; */ if (b) i = 7; else i = 9; }\n" 
                 +"}",
-                "/tt/TestJava.java:6: warning: else branch apparently never taken in method bdead(boolean,int)", 69,
-                "/tt/TestJava.java:7: warning: then branch apparently never taken in method bdeadelse(boolean,int)", 73
+                "/tt/TestJava.java:6: warning: else branch apparently never taken in method tt.TestJava.bdead(boolean,int)", 69,
+                "/tt/TestJava.java:7: warning: then branch apparently never taken in method tt.TestJava.bdeadelse(boolean,int)", 73
         );
     }
 
@@ -1774,9 +1774,9 @@ public class esc extends EscBase {
                 +"}",
                 "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method bnotok",106,
                     // The following error is required, but the order is arbitrary
-                "/tt/TestJava.java:4: warning: else branch apparently never taken in method bifok(boolean)", -75,
-                "/tt/TestJava.java:4: warning: then branch apparently never taken in method bifok(boolean)", 120,
-                "/tt/TestJava.java:4: warning: else branch apparently never taken in method bifok(boolean)", -75,
+                "/tt/TestJava.java:4: warning: else branch apparently never taken in method tt.TestJava.bifok(boolean)", -75,
+                "/tt/TestJava.java:4: warning: then branch apparently never taken in method tt.TestJava.bifok(boolean)", 120,
+                "/tt/TestJava.java:4: warning: else branch apparently never taken in method tt.TestJava.bifok(boolean)", -75,
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bifbad",150,
                 "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method bifbad2",140
         );
@@ -3643,8 +3643,8 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method ma",9
-                ,"/tt/TestJava.java:42: warning: else branch apparently never taken in method m1(int)",14
-                ,"/tt/TestJava.java:59: warning: else branch apparently never taken in method m11(int)",14
+                ,"/tt/TestJava.java:42: warning: else branch apparently never taken in method tt.TestJava.m1(int)",14
+                ,"/tt/TestJava.java:59: warning: else branch apparently never taken in method tt.TestJava.m11(int)",14
                 );
     }
     

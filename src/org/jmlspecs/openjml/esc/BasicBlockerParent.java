@@ -939,16 +939,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             catchBlock.statements.addAll(assumptions);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
-            //if (catcher.param != null) {
-                JCVariableDecl d = treeutils.makeVarDef(catcher.param.vartype, 
-                    catcher.param.name, 
-                    catcher.param.sym);
+            JCVariableDecl d = treeutils.makeSameVarDef(catcher.param.sym, null);
                 d.pos = catcher.param.pos;
                 d.init = ex;
                 catchBlock.statements.add(d);
-            //}
             JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
-            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nulllit));
+            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nulllit)); // FIXME - seems to duplicate an item in catcher.body.stats
             JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
             catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,term,treeutils.zero));
             catchBlock.statements.addAll(catcher.body.stats);

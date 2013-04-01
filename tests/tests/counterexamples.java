@@ -1,8 +1,13 @@
 package tests;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.jmlspecs.openjml.JmlOption;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 // FIXME - there is nothing checking that these give correct results
 
@@ -17,18 +22,19 @@ public class counterexamples extends EscBase {
     public counterexamples(String option, String solver) {
         super(option,solver);
     }
-    
+
+    @Parameters // FIXME add back solver, boogie and custom tests
+    static public  Collection<String[]> datax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.add(new String[]{"-newesc",null}); 
+        return data;
+    }
+
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
-        //options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        main.addOptions("-trace","-counterexample","-show");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 2;
+        main.addOptions("-trace","-counterexample");
     }
     
     /** Tests an explicit assertion */
@@ -299,6 +305,7 @@ public class counterexamples extends EscBase {
     /** Tests called method return */
     @Test
     public void testCE10() {
+        main.addOptions(JmlOption.MAXWARNINGS.optionName() + "=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -435,7 +442,8 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
-        //options.put("-show",""); options.put("-method","m3"); 
+        main.addOptions(JmlOption.MAXWARNINGS.optionName()+"=1");
+        //main.addOptions("-show","-method","m3"); 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -505,7 +513,7 @@ public class counterexamples extends EscBase {
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
                 ,"/tt/TestJava.java:19: warning: Associated declaration",24
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (Postcondition) in method m3",26
+                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (Postcondition) in method m3",10
                 ,"/tt/TestJava.java:40: warning: Associated declaration",24
                 );
     }

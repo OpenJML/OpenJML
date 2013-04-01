@@ -1826,7 +1826,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
         } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
             scan(that.expression);
-            that.expression = result;
+            //that.expression = result;
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,result);
             st.id = that.id;
             scan(that.optionalExpression);

@@ -6,9 +6,11 @@ package org.jmlspecs.openjml.esc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
@@ -37,6 +39,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.tree.JCTree;
@@ -100,7 +103,7 @@ public class SMTTranslator extends JmlTreeScanner {
     protected List<ICommand> commands;
     
     /** A list that accumulates all the Java type constants used */
-    protected List<Type.ClassType> javaTypes = new ArrayList<Type.ClassType>();
+    protected Set<Type.ClassType> javaTypes = new HashSet<Type.ClassType>();
     
     // Strings used in our use of SMT. Strings that are part of SMTLIB itself
     // are used verbatim in the code.
@@ -277,22 +280,20 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // Insert type relationships
         int len = javaTypes.size();
-        List<ICommand> tcommands = new ArrayList<ICommand>(len*(len+1)/2);
-        for (int i=0; i<len; ++i) {
-            Type.ClassType ti = javaTypes.get(i);
+        List<ICommand> tcommands = new ArrayList<ICommand>(len*len);
+        for (Type.ClassType ti: javaTypes) {
             tcommands.add(new C_declare_fun(
                     typeSymbol(ti),
                     new LinkedList<ISort>(),
                     javaTypeSort));
 
         }
-        for (int i=0; i<len; ++i) {
-                Type.ClassType ti = javaTypes.get(i);
+        for (Type.ClassType ti: javaTypes) {
+            for (Type.ClassType tj: javaTypes) {
                 IExpr.ISymbol si = typeSymbol(ti);
-            for (int j=0; j<len; ++j) {
-                Type.ClassType tj = javaTypes.get(j);
+                IExpr.ISymbol sj = typeSymbol(tj);
                 boolean b = types.isSubtype(ti,tj);
-                IExpr comp = F.fcn(F.symbol("javaSubType"), si, typeSymbol(tj));
+                IExpr comp = F.fcn(F.symbol("javaSubType"), si, sj);
                 if (!b) comp = F.fcn(F.symbol("not"),comp);
                 tcommands.add(new C_assert(comp));
             }
@@ -636,6 +637,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //        notImpl(tree); // TODO
 //        super.visitTypeTest(tree);
         
+        javaTypes.add((ClassType)tree.clazz.type);
         result = F.fcn(F.symbol("javaSubType"),
                 F.fcn(F.symbol("javaTypeOf"), convertExpr(tree.expr)),
                 typeSymbol(tree.clazz.type));
