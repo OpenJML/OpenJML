@@ -4153,6 +4153,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             nonnull);
             var = true;
         }
+        if (that.sym.owner instanceof ClassSymbol) {
+            if (specs.isNonNull(that.sym,classDecl.sym) && that.sym instanceof VarSymbol) {
+                JCFieldAccess e = M.at(that.pos()).Select(selected,that.name);
+                e.sym = that.sym;
+                e.type = that.type;
+                JCExpression nonnull = treeutils.makeNeqObject(that.pos, e, 
+                        treeutils.nulllit);
+                addAssume(that.pos(),Label.IMPLICIT_ASSUME,nonnull);
+            }
+        }
         JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
         result = eresult = (translatingJML || !var) ? fa : newTemp(fa);
     }

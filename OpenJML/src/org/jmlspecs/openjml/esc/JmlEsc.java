@@ -978,11 +978,11 @@ public class JmlEsc extends JmlTreeScanner {
         if (verbose) {
             log.noticeWriter.println("ORIGINAL <==> TRANSLATED");
             for (JCExpression e: assertionAdder.bimap.forward.keySet()) {
-                log.noticeWriter.println(e.toString() + " <==> " + assertionAdder.bimap.getf(e).toString());
+                log.noticeWriter.println(e.toString() + " <==> " + assertionAdder.bimap.getf(e));
             }
             log.noticeWriter.println("BB <==> SMT");
             for (JCExpression e: smttrans.bimap.forward.keySet()) {
-                log.noticeWriter.println(e.toString() + " <==> " + smttrans.bimap.getf(e).toString());
+                log.noticeWriter.println(e.toString() + " <==> " + smttrans.bimap.getf(e));
             }
             log.noticeWriter.println("ORIGINAL <==> SMT");
         }
