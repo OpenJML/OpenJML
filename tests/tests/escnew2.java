@@ -2,6 +2,7 @@ package tests;
 
 import java.util.Collection;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -349,6 +350,89 @@ public class escnew2 extends EscBase {
                 ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
+
+    @Test public void testNullField() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@NonNull static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"@Nullable Integer k = a.i; \n"
+                +"//@ assert k != null; \n"
+                +"}\n"
+                +"}"
+                );
+    }
+
+    @Test public void testNullField2() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@NonNull static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"mm(); \n"
+                +"@Nullable Integer k = a.i; \n"
+                +"//@ assert k != null; \n"
+                +"}\n"
+                +"/*@ assignable \\everything; */ public void mm(){}\n"
+                +"}"
+                );
+    }
+
+    @Test public void testNullFieldBad() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@Nullable static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"@Nullable Integer k = a.i; \n"
+                +"//@ assert k != null; \n"
+                +"}\n"
+                +"}"
+                ,"/tt/A.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5
+                );
+    }
+
+    @Test public void testNullFieldBad2() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@Nullable static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"@NonNull Integer k = a.i; \n"
+                +"}\n"
+                +"}"
+                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m",18
+                );
+    }
+
+    @Test public void testNullFieldAssign() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@NonNull static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"@NonNull Integer k = 1; \n"
+                +"a.i = k; \n"
+                +"}\n"
+                +"}"
+                );
+    }
+
+    @Test public void testNullFieldAssignBad2() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@NonNull static Integer i; \n"
+                +"public void m(@NonNull A a) { \n"
+                +"@NonNull Integer k = 1; \n"
+                +"a.i = k; \n"
+                +"a.i = null; \n"
+                +"}\n"
+                +"}"
+                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
+                );
+    }
+
+    @Test public void testNullFieldAssignBad() { 
+        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+                +"@NonNull static Integer i; \n"
+                +"public void m(@NonNull A a, @Nullable Integer k) { \n"
+                +"a.i = k; \n"
+                +"}\n"
+                +"}"
+                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
+                );
+    }
+
 
 
 
