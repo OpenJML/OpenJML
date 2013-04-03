@@ -2236,6 +2236,7 @@ public class racnew extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}} class B { \n}"
                 ,"/tt/A.java:3: JML null initialization of non_null field ooo"
+                ,"/tt/A.java:6: JML non-null field is null"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
                 );

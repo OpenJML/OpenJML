@@ -135,6 +135,9 @@ public class Label {
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
     
+    /** Used for assume or assert statements generated from non-null designations */
+    /*@ non_null*/ public final static Label NULL_FIELD = new Label("NullField");
+    
     /** Used for assert statements generated from postcondition checks */
     /*@ non_null*/ public final static Label POSTCONDITION = new Label("Postcondition");
     
