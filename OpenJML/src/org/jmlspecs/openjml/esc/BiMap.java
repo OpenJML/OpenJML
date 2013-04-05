@@ -13,6 +13,10 @@ public class BiMap<T1,T2> {
         reverse.put(t2, t1);
     }
     
+    public void putf(T1 t1, T2 t2) {
+        forward.put(t1, t2);
+    }
+    
     public T2 getf(T1 t) {
         return forward.get(t);
     }

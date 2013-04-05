@@ -496,7 +496,11 @@ public class OpenJMLInterface {
             					IProverResult.ICounterexample ce = res.counterexample();
             					if (ce != null && ce.getPath() != null) {
             						for (IProverResult.Span span: ce.getPath()) {
-            							utils.highlight(je.getResource(), span.start, span.end, span.type);
+            							if (span.end > span.start) { // The test is just defensive
+            								utils.highlight(je.getResource(), span.start, span.end, span.type);
+            							} else {
+                        					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end);
+            							}
             						}
             					}
             				}

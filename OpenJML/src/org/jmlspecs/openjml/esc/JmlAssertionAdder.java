@@ -742,7 +742,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public @Nullable <T extends JCTree> T convert(@Nullable T tree) {
         if (tree == null) { result = null; return null; }
         scan(tree);
-        if (tree instanceof JCExpression) bimap.put((JCExpression)tree, eresult);
+        if (tree instanceof JCExpression) {
+            if (eresult == null) bimap.putf((JCExpression)tree,null);
+            else bimap.put((JCExpression)tree, eresult);
+        }
         return (T)result;
     }
     
@@ -1023,6 +1026,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.associatedSource = associatedSource;
             st.optionalExpression = info;
             st.id = assertID;
+            treeutils.copyEndPosition(st.expression, expr);
+            treeutils.copyEndPosition(st, expr);
             currentStatements.add(st);
             return st;
         } 
@@ -2197,7 +2202,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCBlock elsepart = that.elsepart == null ? null :
             convertIntoBlock(that.elsepart.pos(), that.elsepart);
 
-        result = addStat( M.at(that.pos()).If(cond,thenpart,elsepart).setType(that.type) );
+        JCStatement st = M.at(that.pos()).If(cond,thenpart,elsepart).setType(that.type);
+        result = addStat( st );
     }
 
     @Override
@@ -2939,7 +2945,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (esc && newclass != null) {
                 addAssume(that.pos(),Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(that.pos, convertCopy(resultId), treeutils.nulllit));
-                JCExpression tt = M.at(that.pos()).TypeTest(convertCopy(resultId), newclass.clazz);
+                JCExpression tt = M.at(that.pos()).TypeTest(convertCopy(resultId), treeutils.makeType(newclass.pos, newclass.clazz.type));
                 addAssume(that.pos(),Label.IMPLICIT_ASSUME,tt);
                 
                 JmlMethodInvocation typeof = M.at(that.pos()).JmlMethodInvocation(JmlToken.BSTYPEOF, convertCopy(resultId));
@@ -3542,6 +3548,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitParens(JCParens that) {
         JCExpression arg = convertExpr(that.getExpression());
         result = eresult = M.at(that.pos()).Parens(arg).setType(that.type);
+        treeutils.copyEndPosition(eresult,that);
     }
     
     // FIXME - need endpos in the above, and presumably nearly everywhere else???
@@ -3938,6 +3945,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Exit because we are replacing the == operator with a 
                     // function call
                     nodeTranslation.put(that, eresult);
+                    eresult.pos = that.getStartPosition();
+                    treeutils.copyEndPosition(eresult, that);
                     return;
                 } else {
                     rhs = convertExpr(rhs);
@@ -3955,6 +3964,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 cond.setType(that.type);
                 visitConditional(cond);
                 nodeTranslation.put(that, eresult);
+                // FIXME _ positions?
                 return;
             }
             if (tag == JCTree.AND) {
@@ -3962,6 +3972,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 cond.setType(that.type);
                 visitConditional(cond);
                 nodeTranslation.put(that, eresult);
+                // FIXME - positions?
                 return;
             }
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -3971,6 +3982,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = newTemp(bin);
             nodeTranslation.put(that, eresult);
         }
+        eresult.pos = that.getStartPosition(); // Need to make the start of the temporary Ident the same as the start of the expression it represents
+        treeutils.copyEndPosition(eresult, that);
     }
 
     @Override
@@ -4188,6 +4201,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (pureCopy) {
             result = eresult = treeutils.makeIdent(that.pos, that.sym);
             nodeTranslation.put(that, eresult);
+            treeutils.copyEndPosition(eresult, that);
             return;
         }
         // If we are translating the postcondition then parameters
@@ -4198,6 +4212,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isPostcondition && preparams != null && (decl=preparams.get(that.sym)) != null) {
                 result = eresult = treeutils.makeIdent(that.pos,decl.sym);
                 nodeTranslation.put(that, eresult);
+                treeutils.copyEndPosition(eresult, that);
                 return;
             }
         }
@@ -4214,6 +4229,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCMethodInvocation app = treeutils.makeMethodInvocation(that.pos(),null,md.sym);
                     result = eresult = app;
                     nodeTranslation.put(that, eresult);
+                    treeutils.copyEndPosition(eresult, that);
                     return;
                 }
             }
@@ -4275,12 +4291,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = fa;
         }
         nodeTranslation.put(that, eresult);
+        treeutils.copyEndPosition(eresult, that);
     }
 
     // OK
     @Override
     public void visitLiteral(JCLiteral that) {
-        result = eresult = fullTranslation ? treeutils.makeDuplicateLiteral(that.pos, that) : that;
+        result = eresult = that;
+        if (fullTranslation) {
+            result = eresult = treeutils.makeDuplicateLiteral(that.pos, that);
+            treeutils.copyEndPosition(eresult, that);
+        }
+        
     }
 
     // OK
@@ -4453,6 +4475,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             condition = saved;
         }
         result = eresult;
+        eresult.pos = that.getStartPosition();
+        treeutils.copyEndPosition(eresult, that);
         nodeTranslation.put(that, eresult);
     }
 
@@ -6210,6 +6234,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs review
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+        if (!pureCopy) {
+            if (currentStatements != null) addStat(comment(that));
+        }
         // Called during translation of model methods
         if (JmlAttr.instance(context).isGhost(that.mods)) {
             try {

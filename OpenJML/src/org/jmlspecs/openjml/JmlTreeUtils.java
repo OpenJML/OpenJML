@@ -297,7 +297,18 @@ public class JmlTreeUtils {
     }
     
 
-    
+    // FIXME _ document; does this work correctly for this and super?
+    public boolean isATypeTree(JCExpression tree) {
+        if (tree instanceof JCIdent) {
+            return !(((JCIdent)tree).sym instanceof VarSymbol);
+        }
+        if (tree instanceof JCFieldAccess) {
+            return !(((JCFieldAccess)tree).sym instanceof VarSymbol);
+        }
+        return false;
+    }
+
+
     /** Makes an attributed JCTree for a class literal corresponding to the given type. */
     public JCExpression makeType(int pos, Type type) {
         // factory.Type does produce an attributed tree - after all we start knowing the type
