@@ -350,6 +350,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected int unique;
     
+    // FIXME - document
+    @NonNull BiMap<JCExpression,JCExpression> bimap = new BiMap<JCExpression,JCExpression>();
+    
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
@@ -576,6 +579,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     // METHODS
+    
+    @Override
+    public void scan(JCTree tree) {
+        super.scan(tree);
+        if (tree instanceof JCExpression && !(tree instanceof JCAssign)
+                ) bimap.put((JCExpression)tree, result);
+    }
 
     public void scanList(com.sun.tools.javac.util.List<JCExpression> trees) {
         if (trees != null)
@@ -987,7 +997,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         st.associatedPos = declpos;
         st.associatedSource = null; // OK - always same as source
         st.type = null; // no type for a statement
-        copyEndPosition(st,statement);
+        copyEndPosition(st,that);
         statements.add(st);
     }
     
@@ -1836,6 +1846,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.line = that.line;
             st.source = that.source;
             st.type = that.type;
+            copyEndPosition(st,that);
             currentBlock.statements.add(st);
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
@@ -1991,10 +2002,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review
     public void visitAssign(JCAssign that) {
         //scan(that.lhs);
-        scan(that.rhs);
         JCExpression left = that.lhs;
-        JCExpression right = that.rhs;
+        scan(that.rhs);
+        JCExpression right = result;
         result = doAssignment(that.type,left,right,that.pos,that);
+        bimap.put(left, result);
+        bimap.putf(that, result);
         copyEndPosition(result,that);
     }
 //    

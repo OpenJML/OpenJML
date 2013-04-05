@@ -8,16 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,12 +22,15 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicBlocker.Counter;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICoreIds;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.provers.AbstractProver;
@@ -65,6 +60,7 @@ import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -158,6 +154,9 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** The prover to use  - initialized here and then used in visitMethods */
     protected /*@NonNull*/ String proverToUse;
+    
+    // FIXME DOCUMENT
+    protected Tracer tracer;
     
     /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
@@ -718,13 +717,20 @@ public class JmlEsc extends JmlTreeScanner {
                         }
                         log.noticeWriter.println(Strings.empty);
                     }
+                    
+                    Map<JCExpression,String> cemap = constructCounterexample(assertionAdder,basicBlocker,smttrans,smt,solver);
+                    BiMap<JCExpression,JCExpression> jmap = assertionAdder.bimap.compose(basicBlocker.bimap);
+                    tracer = new Tracer(context,smt,solver,cemap,jmap);
+                    mostRecentCEMap = cemap;
 
-
+                    
                     // Report JML-labeled values and the path to the failed invariant
                     if (showTrace) log.noticeWriter.println("\nTRACE\n");
-                    JCExpression pathCondition = reportInvalidAssertion(program,smt,solver,decl);
-
-                    mostRecentCEMap = constructCounterexample(assertionAdder,basicBlocker,smttrans,smt,solver);
+                    JCExpression pathCondition = reportInvalidAssertion(program,smt,solver,decl,cemap,jmap);
+                    IProverResult.ICounterexample item = new Counterexample();
+                    item.putPath(path);
+                    
+                    ((ProverResult)proofResult).add(item);
                     //                if (showCounterexample) {
                     //                    log.noticeWriter.println("\nTRACE with respect to ORIGINAL PROGRAM\n");
                     //                }
@@ -753,15 +759,22 @@ public class JmlEsc extends JmlTreeScanner {
     
     static public Map<JCExpression,String> mostRecentCEMap = null;
     
+    protected List<IProverResult.Span> path = new ArrayList<IProverResult.Span>();
+    
     /** Iterates through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover.
      */
-    public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl) {
+    public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
+            Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
         exprValues = new HashMap<JCTree,String>();
-        JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit);
+        JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap);
         if (pathCondition == null) {
             log.warning("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
         }
+//        path.add(new IProverResult.Span(0, 10, IProverResult.Span.NORMAL));
+//        path.add(new IProverResult.Span(20, 30, IProverResult.Span.TRUE));
+//        path.add(new IProverResult.Span(40, 50, IProverResult.Span.FALSE));
+//        path.add(new IProverResult.Span(60, 70, IProverResult.Span.EXCEPTION));
         return pathCondition;
     }
     
@@ -776,7 +789,7 @@ public class JmlEsc extends JmlTreeScanner {
         // The BasicBlocker2 implementation creates special RETURN and 
         // THROWS blocks that just hold those statements. Thus we can 
         // identify terminating statements. This is relevant in the situations
-        // in which the invalid assertion is a postcondtion - then we want
+        // in which the invalid assertion is a postcondition - then we want
         // to know which path through the method (ending at a return or
         // throws statement) causes the bad postcondition. Note also that
         // a return or throws statement might be overridden by a subsequent
@@ -802,10 +815,13 @@ public class JmlEsc extends JmlTreeScanner {
     // Thus if there is an invalid assertion the start block is false and there is
     // a path of false blocks to the invalid assertion. There could possibly be
     // other blocks with false ids as well.
-    public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl, int terminationPos, JCExpression pathCondition) {
+    public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl, int terminationPos, JCExpression pathCondition,
+            Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
         String id = block.id.name.toString();
         boolean value = getBoolValue(id,smt,solver);
-        if (showTrace) log.noticeWriter.println("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
+        if (utils.jmlverbose >= Utils.JMLVERBOSE || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE)) {
+            log.noticeWriter.println("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
+        }
         if (value) {
             // The value of the block id is true, so we don't pursue it
             return null;
@@ -835,19 +851,43 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             }
             
-            if (showBBTrace) {
+            if (showTrace) {
                 log.noticeWriter.println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
-                    traceSubExpr(x.expression,smt,solver);
+                    traceSubExpr(x.expression);
                 } else if (stat instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)stat;
                 	Name n = vd.name;
                 	log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
-                    if (vd.init != null) traceSubExpr(vd.init,smt,solver);
+                    if (vd.init != null) traceSubExpr(vd.init);
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
+            if (stat instanceof JmlVariableDecl) {
+                int sp = TreeInfo.getStartPos(stat);
+                int ep = TreeInfo.getEndPos(stat, log.currentSource().getEndPosTable());
+                if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + stat);
+                else path.add(new Span(sp,ep,Span.NORMAL));
+            } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
+                JmlStatementExpr assumeStat = (JmlStatementExpr)stat;
+                JCExpression e = assumeStat.expression;
+                int sp = e.getStartPosition();
+                int ep = e.getEndPosition(log.currentSource().getEndPosTable());
+                Label label = assumeStat.label;
+                if (label == Label.ASSIGNMENT) {
+                    if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    else path.add(new Span(sp,ep,Span.NORMAL));
+                } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.SWITCH_VALUE || label == Label.CASECONDITION) {
+                    if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    else path.add(new Span(sp,ep,
+                    		label == Label.BRANCHT ? Span.TRUE : 
+                    		label == Label.BRANCHE? Span.FALSE : Span.NORMAL));
+                } else if (label == Label.DSA || label == Label.NULL_CHECK) {
+                    // Ignore
+                } else {
+                	log.noticeWriter.println("UNHANDLED LABEL " + label);
+                }
+            } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
                 if (e instanceof JCTree.JCLiteral) {
@@ -858,6 +898,11 @@ public class JmlEsc extends JmlTreeScanner {
                     id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);
                 }
+                int sp = TreeInfo.getStartPos(e);
+                int ep = TreeInfo.getEndPos(e, log.currentSource().getEndPosTable());
+                if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                else path.add(new Span(sp,ep,
+                        value ? Span.TRUE : Span.FALSE));
                 if (!value) {
                     pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     if (terminationPos == 0) terminationPos = decl.pos;
@@ -872,8 +917,14 @@ public class JmlEsc extends JmlTreeScanner {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
-                    //JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), assertStat.pos(), "esc.empty",Strings.empty);
+                    int epos = TreeInfo.getEndPos(assertStat, log.currentSource().getEndPosTable());
+                    if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + TreeInfo.getStartPos(assertStat) + " " + ep + " " + assertStat);
+                    if (epos == Position.NOPOS || pos != assertStat.pos) {
+                        log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
+                    } else {
+                        // FIXME - migrate to using pos() for terminationPos as well 
+                        log.warning(assertStat.pos(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
+                    }
                     JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new JCDiagnostic.SimpleDiagnosticPosition(pos), "esc.empty",Strings.empty); //$NON-NLS-1$
                     String msg = diag.toString();
                     msg = msg.substring(0,msg.indexOf("Note")); //$NON-NLS-1$
@@ -898,26 +949,109 @@ public class JmlEsc extends JmlTreeScanner {
         // inspect each follower. Since the blocks form a DAG, this will
         // terminate.
         for (BasicBlock b: block.followers()) {
-            JCExpression p = reportInvalidAssertion(b,smt,solver,decl,terminationPos,pathCondition);
+            JCExpression p = reportInvalidAssertion(b,smt,solver,decl,terminationPos,pathCondition,cemap,jmap);
             if (p != null) return p;
         }
         return null; // DId not find anything in this block or its followers
     }
     
     /** Write out (through log.noticeWriter) the values of the given expression
-     * and, recursively, of any subextressions.
+     * and, recursively, of any subexpressions.
      */
-    public void traceSubExpr(JCExpression e, SMT smt, ISolver solver) {
-        if (e instanceof JCIdent) {
-            Name n = ((JCIdent)e).name;
-            log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
-        } else if (e instanceof JCBinary) {
-            traceSubExpr(((JCBinary)e).lhs,smt,solver);
-            traceSubExpr(((JCBinary)e).rhs,smt,solver);
-        } else if (e instanceof JCUnary) {
-            traceSubExpr(((JCUnary)e).arg,smt,solver);
+    public void traceSubExpr(JCExpression e) {
+        e.accept(tracer);
+    }
+
+    
+//    /** Write out (through log.noticeWriter) the values of the given expression
+//     * and, recursively, of any subexpressions.
+//     */
+//    public void traceSubExpr(JCExpression e, SMT smt, ISolver solver, Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
+//        e.accept(tracer);if (e instanceof JCIdent) {
+//            Name n = ((JCIdent)e).name;
+//            String value = getValue(n.toString(),smt,solver);
+//            log.noticeWriter.println("VALUE: " + n + " = " + value);
+//            String sv = cemap.get(e);
+//            log.noticeWriter.println("V " + n + " : " + jmap.getr(e) + " = " + sv + " :: " + value);
+//            return;
+//        } else if (e instanceof JCBinary) {
+//        } else if (e instanceof JCUnary) {
+//            traceSubExpr(((JCUnary)e).arg,smt,solver,cemap,jmap);
+//            String sv = cemap.get(e);
+//            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+//        } else if (e instanceof JCConditional) {
+//            traceSubExpr(((JCConditional)e).arg,smt,solver,cemap,jmap);
+//            String sv = cemap.get(e);
+//            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+//        }
+//        // FIXME - this should be expanded to more kinds of expressions, but only those that might be in a basic program - actually should do this in relation to the original program
+//    }
+    
+    // FIXME - document
+    // Not static so we have access to getValue
+    public class Tracer extends JmlTreeScanner {
+        SMT smt;
+        ISolver solver;
+        Map<JCExpression,String> cemap;
+        BiMap<JCExpression,JCExpression> jmap;
+        Log log;
+        String result;
+        
+        public Tracer(Context context, SMT smt, ISolver solver, Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
+            this.smt = smt;
+            this.solver = solver;
+            this.cemap = cemap;
+            this.jmap = jmap;
+            this.log = Log.instance(context);
         }
-        // FIXME - this should be expanded to more kinds of expressions, but only those that might be in a basic program - actually should do this in relation to the original program
+        
+        @Override
+        public void visitIdent(JCIdent e) {
+            Name n = e.name;
+            String value = getValue(n.toString(),smt,solver);
+            log.noticeWriter.println("VALUE: " + n + " = " + value);
+            String sv = cemap.get(e);
+            log.noticeWriter.println("V " + n + " : " + jmap.getr(e) + " = " + sv + " :: " + value);
+            result = sv;
+        }
+        
+        @Override
+        public void visitBinary(JCBinary e) {
+            e.lhs.accept(this);
+            e.rhs.accept(this);
+            String sv = cemap.get(e);
+            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            result = sv;
+        }
+        
+        @Override
+        public void visitUnary(JCUnary e) {
+            e.arg.accept(this);
+            String sv = cemap.get(e);
+            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            result = sv;
+        }
+        
+        @Override
+        public void visitConditional(JCConditional e) {
+            e.cond.accept(this);
+            if (result.equals("true")) {
+                e.truepart.accept(this);
+            } else {
+                e.falsepart.accept(this);
+            }
+            String sv = cemap.get(e);
+            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            result = sv;
+        }
+        
+        @Override
+        public void visitSelect(JCFieldAccess tree) {
+            if (!JmlTreeUtils.instance(context).isATypeTree(tree)) scan(tree.selected);
+        }
+
+
+        
     }
     
     /** Query the solver for the (boolean) value of an id in the current model */
@@ -975,29 +1109,60 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public Map<JCExpression,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
+        boolean verbose = false;
         if (verbose) {
             log.noticeWriter.println("ORIGINAL <==> TRANSLATED");
             for (JCExpression e: assertionAdder.bimap.forward.keySet()) {
-                log.noticeWriter.println(e.toString() + " <==> " + assertionAdder.bimap.getf(e));
+                JCExpression v = assertionAdder.bimap.getf(e);
+                if (v != null && assertionAdder.bimap.getr(v) == e) {
+                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                } else {
+                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                }
             }
-            log.noticeWriter.println("BB <==> SMT");
+            log.noticeWriter.println("\nTRANSLATED <==> BB");
+            for (JCExpression e: basicBlocker.bimap.forward.keySet()) {
+                JCExpression v = basicBlocker.bimap.getf(e);
+                if (v != null && basicBlocker.bimap.getr(v) == e) {
+                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                } else {
+                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                }
+            }
+            log.noticeWriter.println("\nBB <==> SMT");
             for (JCExpression e: smttrans.bimap.forward.keySet()) {
-                log.noticeWriter.println(e.toString() + " <==> " + smttrans.bimap.getf(e));
+                IExpr v = smttrans.bimap.getf(e);
+                if (v != null && smttrans.bimap.getr(v) == e) {
+                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                } else {
+                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                }
             }
-            log.noticeWriter.println("ORIGINAL <==> SMT");
+            log.noticeWriter.println("\nORIGINAL <==> SMT");
         }
-        BiMap<JCExpression,IExpr> cb = assertionAdder.bimap.compose(smttrans.bimap);
+        BiMap<JCExpression,IExpr> cb = assertionAdder.bimap.compose(basicBlocker.bimap).compose(smttrans.bimap);
         if (verbose) {
             for (JCExpression e: cb.forward.keySet()) {
-                log.noticeWriter.println(e + " <==> " + cb.getf(e)); // FIXME - should use proper printers, not toString()
+                IExpr v = cb.getf(e);
+                if (v != null && cb.getr(v) == e) {
+                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                } else {
+                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                }
+                // FIXME - should use proper printers, not toString()
             }
-            log.noticeWriter.println("ORIGINAL <==> VALUE");
+            log.noticeWriter.println("\nORIGINAL <==> VALUE");
         }
         Map<IExpr,String> ce = constructSMTCounterexample(smttrans,solver);
         Map<JCExpression,String> values = cb.compose(ce);
-        if (verbose) {
+        if (true || verbose) {
+            SortedSet<String> set = new TreeSet<String>();
             for (JCExpression e: values.keySet()) {
-                log.noticeWriter.println(e + " <==> " + values.get(e)); // FIXME - should use proper printers, not toString()
+                int line = log.currentSource().getLineNumber(e.pos);
+                set.add("line " + String.format("%1$3d",line) + ": " + e.type + " " + JmlPretty.write(e) + " = " + values.get(e));
+            }
+            for (String s: set) {
+                log.noticeWriter.println(s);
             }
         }
         return values;
@@ -1045,12 +1210,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
     }
-    
-    public static class Tracer extends JmlTreeScanner {
-        // FIXME
-    }
-    
-    
+        
     
     // FIXME: REVIEW THIS - everything following is for proveMethodOld
 

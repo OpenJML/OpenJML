@@ -154,93 +154,93 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     // Names for various basic blocks
     
     /** The prefix used for names of blocks */
-    public static final @NonNull String blockPrefix = "BL_";
+    public static final @NonNull String blockPrefix = "BL_"; //$NON-NLS-1$
     
     /** Standard name for the block that starts the body */
-    public static final @NonNull String BODY_BLOCK_NAME = "bodyBegin";
+    public static final @NonNull String BODY_BLOCK_NAME = "bodyBegin"; //$NON-NLS-1$
     
     /** Standard name for the starting block of the program (just has the preconditions) */
-    public static final @NonNull String START_BLOCK_NAME = "Start";
+    public static final @NonNull String START_BLOCK_NAME = "Start"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for a finally block */
-    public static final String FINALLY = "_finally";
+    public static final String FINALLY = "_finally"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block which is the target for return and 
      * throw statements in the try statement body */
-    public static final String TRYTARGET = "tryTarget";
+    public static final String TRYTARGET = "tryTarget"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block which is the no exception path
      * upon exit from the try statement body */
-    public static final String TRYNOEXCEPTION = "noException";
+    public static final String TRYNOEXCEPTION = "noException"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block which is the normal exit path
      * after a finally block */
-    public static final String TRYFINALLYNORMAL = "finallyNormal";
+    public static final String TRYFINALLYNORMAL = "finallyNormal"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block which is the exit path after a
      * finally block when there is an outstanding return or exception */
-    public static final String TRYFINALLYEXIT = "finallyExit";
+    public static final String TRYFINALLYEXIT = "finallyExit"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block which holds the body of a catch clause */
-    public static final String CATCH = "catch";
+    public static final String CATCH = "catch"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block representing the case where an
      * exception is not caught by any catch clause */
-    public static final String NOCATCH = "nocatch";
+    public static final String NOCATCH = "nocatch"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for a finally block */
-    public static final String AFTERTRY = "_AfterTry";
+    public static final String AFTERTRY = "_AfterTry"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block that comes after a switch statement */
-    public static final String AFTERLABEL = "_AfterLabel";
+    public static final String AFTERLABEL = "_AfterLabel"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block that comes after a switch statement */
-    public static final String AFTERSWITCH = "_AfterSwitch";
+    public static final String AFTERSWITCH = "_AfterSwitch"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block holding the body of a loop */
-    public static final String LOOPBODY = "_LoopBody";
+    public static final String LOOPBODY = "_LoopBody"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block holding the code after a loop */
-    public static final String LOOPAFTER = "_LoopAfter";
+    public static final String LOOPAFTER = "_LoopAfter"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block holding the code after a loop */
-    public static final String LOOPAFTERDO = "_LoopAfterDo";
+    public static final String LOOPAFTERDO = "_LoopAfterDo"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block holding the code where continue statements go */
-    public static final String LOOPCONTINUE = "_LoopContinue";
+    public static final String LOOPCONTINUE = "_LoopContinue"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block holding the code where break statements go */
-    public static final String LOOPBREAK = "_LoopBreak";
+    public static final String LOOPBREAK = "_LoopBreak"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block to which control transfers if the loop condition fails */
-    public static final String LOOPEND = "_LoopEnd";
+    public static final String LOOPEND = "_LoopEnd"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for the then branch of an if statement */
-    public static final String THENSUFFIX = "_then";
+    public static final String THENSUFFIX = "_then"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for the else branch of an if statement */
-    public static final String ELSESUFFIX = "_else";
+    public static final String ELSESUFFIX = "_else"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block after an if statement */
-    public static final String AFTERIF = "_afterIf";
+    public static final String AFTERIF = "_afterIf"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block after a return statement */
-    public static final String RETURN = "_return";
+    public static final String RETURN = "_return"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block after a throw statement */
-    public static final String THROW = "_throw";
+    public static final String THROW = "_throw"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for the body of a switch case */
-    public static final String CASEBODY = "_caseBody_";
+    public static final String CASEBODY = "_caseBody_"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for the case expression test */
-    public static final String CASETEST = "_caseTest";
+    public static final String CASETEST = "_caseTest"; //$NON-NLS-1$
     
     /** Suffix for the name of a basic block for the switch default case */
-    public static final String CASEDEFAULT = "_switchDefault";
+    public static final String CASEDEFAULT = "_switchDefault"; //$NON-NLS-1$
     
     /** Part of the name for switch expressions */
-    public static final String SWITCHEXPR = "_switchExpression_";
+    public static final String SWITCHEXPR = "_switchExpression_"; //$NON-NLS-1$
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
     // They are either initialized in the constructor or initialized on first use
@@ -448,7 +448,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             for (T pb: b.preceders()) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
                 if (!program.blocks.contains(pb)) {
-                    log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it");
+                    log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it"); //$NON-NLS-1$ //$NON-NLS-2$
                     processBlock(pb);
                     continue loop; // the list of preceding blocks might have changed - check it over again
                 }
@@ -467,7 +467,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
      */
     protected void setCurrentBlock(T b) {
         if (currentBlock != null) {
-            log.warning("jml.internal.notsobad","Starting block " + b.id + " when " + currentBlock.id + " is not completed");
+            log.warning("jml.internal.notsobad","Starting block " + b.id + " when " + currentBlock.id + " is not completed"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         }
         currentBlock = b;
         remainingStatements = currentBlock.statements;
@@ -776,13 +776,15 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 
                 // create a block for this case test
                 T blockForTest = newBlock(caseValue == null ? CASEDEFAULT : CASETEST ,
-                        caseValue == null ? casepos: caseStatement.getStartPosition());
+                        caseValue == null ? casepos: caseStatement.getStartPosition()); // FIXME - this is a meaningless distinction, goiven the assignment to casepos
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
                 
                 // create the case test, or null if this is the default case
-                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.EQ,vd,(caseValue));
-                JmlStatementExpr asm = addAssume(caseStatement.pos,Label.CASECONDITION,eq,blockForTest.statements);
+                JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
+                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.EQ,vdd,(caseValue));
+                JmlStatementExpr asm = addAssume(vdd.pos,
+                		Label.CASECONDITION,eq,blockForTest.statements);
                 
                 // continue to build up the default case test
                 if (caseValue == null) defaultAsm = asm; // remember the assumption for the default case
@@ -1068,7 +1070,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 // the logic in handling JCSwitch has taken care of everything.
                 T b = breakBlocks.get(names.empty);
                 if (b == null) {
-                    log.error(that.pos(),"jml.internal","Corresponding break target is not found");
+                    log.error(that.pos(),"jml.internal","Corresponding break target is not found"); //$NON-NLS-1$ //$NON-NLS-2$
                 } else {
                     replaceFollows(currentBlock,b);
                 }
@@ -1076,14 +1078,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             } else {
                 T b = breakBlocks.get(names.empty);
                 if (b == null) {
-                    log.error(that.pos(),"jml.internal","Corresponding break target is not found");
+                    log.error(that.pos(),"jml.internal","Corresponding break target is not found");  //$NON-NLS-1$//$NON-NLS-2$
                 } else {
                     replaceFollows(currentBlock,b);
                 }
             }
         }
         if (!remainingStatements.isEmpty()) {
-            log.warning(remainingStatements.get(0).pos(),"jml.internal.notsobad","Statements after a break statement are unreachable and are ignored");
+            log.warning(remainingStatements.get(0).pos(),"jml.internal.notsobad","Statements after a break statement are unreachable and are ignored"); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
     
@@ -1091,22 +1093,22 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     public void visitContinue(JCContinue that) {
         currentBlock.statements.add(comment(that));
         if (loopStack.isEmpty()) {
-            log.error(that.pos(),"jml.internal","Empty loop stack for continue statement");
+            log.error(that.pos(),"jml.internal","Empty loop stack for continue statement"); //$NON-NLS-1$ //$NON-NLS-2$
         } else if (that.label == null) {
             JCTree t = loopStack.get(0);
             String blockName = blockNamePrefix(t.pos,LOOPCONTINUE);
             T b = blockLookup.get(blockName);
-            if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement");
+            if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement");  //$NON-NLS-1$//$NON-NLS-2$
             else replaceFollows(currentBlock,b);
         } else {
             JCTree t = continueMap.get(that.label);
             String blockName = blockNamePrefix(t.pos,LOOPCONTINUE);
             T b = blockLookup.get(blockName);
-            if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement, with label ", that.label);
+            if (b == null) log.error(that.pos(),"jml.internal","No continue block found to match this continue statement, with label ", that.label); //$NON-NLS-1$ //$NON-NLS-2$
             else replaceFollows(currentBlock,b);
         }
         if (!remainingStatements.isEmpty()) {
-            log.warning(remainingStatements.get(0).pos(),"jml.internal.notsobad","Statements after a continue statement are unreachable and are ignored");
+            log.warning(remainingStatements.get(0).pos(),"jml.internal.notsobad","Statements after a continue statement are unreachable and are ignored"); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
     
@@ -1118,8 +1120,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // Not fatal, but does indicate a problem with the original
             // program, which the compiler may have already identified
             log.warning(remainingStatements.get(0).pos,
-                    "esc.internal.error",
-                    "Unexpected statements following a return statement are ignored");
+                    "esc.internal.error", //$NON-NLS-1$
+                    "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
             remainingStatements.clear();
         }
         
@@ -1136,7 +1138,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // a return statement only because
             // JmlAssertionAdder wraps everything in a try-finally statement
             // TODO - generalize this
-            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");
+            log.warning(that.pos(),"esc.internal.error","finally stack is unexpectedly empty");  //$NON-NLS-1$//$NON-NLS-2$
         } else {
             T finallyBlock = finallyStack.get(0);
             replaceFollows(afterReturn,finallyBlock);

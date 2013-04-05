@@ -443,15 +443,14 @@ public class counterexamples extends EscBase {
     @Test
     public void testCE15() {
         main.addOptions(JmlOption.MAXWARNINGS.optionName()+"=1");
-        //main.addOptions("-show","-method","m3"); 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures false; \n"
                 +"  public void m1(int i) {\n"
-                +"    int k = 0;\n"
+                +"    int k = 9 - 9;\n"
                 +"    try {\n"
-                +"      k = 5;\n"
+                +"      k = 1 + 2 + 3 - 1;\n"
                 +"      try {\n"
                 +"         k = 7;\n"
                 +"         return;\n"
@@ -517,6 +516,24 @@ public class counterexamples extends EscBase {
                 ,"/tt/TestJava.java:40: warning: Associated declaration",24
                 );
     }
-    
+
+    /** Tests try/catch/finally */
+    @Test
+    public void testCE16() {
+        main.addOptions("-show","-subexpressions","-method=m1"); 
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures \\result != 10; \n"
+                +"  public int m1(int i) {\n"
+                +"    int k = i + 2 - 1;\n"
+                +"    return k + 5;\n"
+                +"    }\n"
+                +"  }\n"
+                
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
+    }
 }
 

@@ -735,7 +735,7 @@ public class API implements IAPI {
         if (!JmlOption.isOption(context(), JmlOption.CUSTOM)) {
             if (JmlEsc.mostRecentCEMap != null) {
                 String value = JmlEsc.mostRecentCEMap.get(node);
-                out = out + value;
+                out = out + "Value " + node.type + " : " + value;
                 return out;
             }
             return "No counterexample information available";
