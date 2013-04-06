@@ -422,16 +422,17 @@ public class JmlParser extends EndPosParser {
                     S.nextToken();
                     JCExpression t = null;
                     t = parseExpression();
-                    JmlTree.JmlStatementExpr ste = to(jmlF
+                    JmlTree.JmlStatementExpr ste = jmlF
                             .at(pos)
                             .JmlExpressionStatement(
                                     jtoken,
                                     jtoken == JmlToken.ASSUME ? Label.EXPLICIT_ASSUME
-                                            : Label.EXPLICIT_ASSERT, t));
+                                            : Label.EXPLICIT_ASSERT, t);
                     if (S.token() == Token.COLON) {
                         S.nextToken();
                         ste.optionalExpression = parseExpression();
                     }
+                    toP(ste);
                     ste.source = log.currentSourceFile();
                     ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;

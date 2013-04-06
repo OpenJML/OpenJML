@@ -2113,7 +2113,7 @@ public class rac extends RacBase {
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom",5
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration expression",22
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration expression",12
-                ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
+                ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",18 // FIXME - would prefer this point to the hence_by keyword
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration expression",9
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration expression",9
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: Variable declaration containing \\duration expression",24

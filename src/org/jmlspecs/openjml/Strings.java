@@ -191,4 +191,10 @@ public class Strings {
      * combined with name of the model field.
      */
     public final static String modelFieldMethodPrefix = "_JML$model$";
+    
+    /** Name used for the array of allocation ids */
+    public final static String allocName = "_alloc__";
+    
+    /** Name used for the array of allocation state */
+    public final static String isAllocName = "_isalloc__";
 }

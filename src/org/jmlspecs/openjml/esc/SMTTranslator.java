@@ -134,7 +134,7 @@ public class SMTTranslator extends JmlTreeScanner {
         result = null;
         if (t != null) {
             super.scan(t);
-            if (result != null && t instanceof JCExpression && !(t instanceof JCLiteral)) bimap.put((JCExpression)t, result);
+            if (result != null && t instanceof JCExpression) bimap.put((JCExpression)t, result);
         }
     }
     

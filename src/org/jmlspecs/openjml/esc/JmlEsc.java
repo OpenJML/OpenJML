@@ -181,8 +181,11 @@ public class JmlEsc extends JmlTreeScanner {
     
     public void check(JCTree tree) {
         if (!JmlOption.isOption(context,"-custom")) {
+            //new JmlAssertionAdder.PositionChecker().check(log,tree);
             this.assertionAdder = new JmlAssertionAdder(context, true,false);
-            tree.accept(assertionAdder);
+            assertionAdder.convert(tree); // get at the converted tree through the map
+            //log.noticeWriter.println("TRANSLATED CHECK");
+            //new JmlAssertionAdder.PositionChecker().check(log,assertionAdder.bimap.getf(tree));
         }
         proverToUse = pickProver();
         tree.accept(this); 
@@ -718,8 +721,8 @@ public class JmlEsc extends JmlTreeScanner {
                         log.noticeWriter.println(Strings.empty);
                     }
                     
-                    Map<JCExpression,String> cemap = constructCounterexample(assertionAdder,basicBlocker,smttrans,smt,solver);
-                    BiMap<JCExpression,JCExpression> jmap = assertionAdder.bimap.compose(basicBlocker.bimap);
+                    Map<JCTree,String> cemap = constructCounterexample(assertionAdder,basicBlocker,smttrans,smt,solver);
+                    BiMap<JCTree,JCExpression> jmap = assertionAdder.bimap.compose(basicBlocker.bimap);
                     tracer = new Tracer(context,smt,solver,cemap,jmap);
                     mostRecentCEMap = cemap;
 
@@ -757,7 +760,7 @@ public class JmlEsc extends JmlTreeScanner {
         return proofResult;
     }
     
-    static public Map<JCExpression,String> mostRecentCEMap = null;
+    static public Map<JCTree,String> mostRecentCEMap = null;
     
     protected List<IProverResult.Span> path = new ArrayList<IProverResult.Span>();
     
@@ -765,16 +768,12 @@ public class JmlEsc extends JmlTreeScanner {
      * that caused the SAT result from the prover.
      */
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
-            Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
+            Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
         exprValues = new HashMap<JCTree,String>();
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap);
         if (pathCondition == null) {
             log.warning("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
         }
-//        path.add(new IProverResult.Span(0, 10, IProverResult.Span.NORMAL));
-//        path.add(new IProverResult.Span(20, 30, IProverResult.Span.TRUE));
-//        path.add(new IProverResult.Span(40, 50, IProverResult.Span.FALSE));
-//        path.add(new IProverResult.Span(60, 70, IProverResult.Span.EXCEPTION));
         return pathCondition;
     }
     
@@ -816,7 +815,7 @@ public class JmlEsc extends JmlTreeScanner {
     // a path of false blocks to the invalid assertion. There could possibly be
     // other blocks with false ids as well.
     public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, SMT smt, ISolver solver, JCMethodDecl decl, int terminationPos, JCExpression pathCondition,
-            Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
+            Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
         String id = block.id.name.toString();
         boolean value = getBoolValue(id,smt,solver);
         if (utils.jmlverbose >= Utils.JMLVERBOSE || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE)) {
@@ -829,9 +828,10 @@ public class JmlEsc extends JmlTreeScanner {
         terminationPos = checkTerminationPosition(id,terminationPos);
         pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS,pathCondition,block.id);
         
+        //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
-                
+        boolean printspans = false;        
         for (JCStatement stat: block.statements()) {
             // Report any statements that are JML-labeled
             if (stat instanceof JCVariableDecl) {
@@ -864,10 +864,15 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             }
             if (stat instanceof JmlVariableDecl) {
-                int sp = TreeInfo.getStartPos(stat);
-                int ep = TreeInfo.getEndPos(stat, log.currentSource().getEndPosTable());
-                if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + stat);
-                else path.add(new Span(sp,ep,Span.NORMAL));
+                if (!((JmlVariableDecl)stat).name.toString().startsWith(Strings.tmpVarString)) {
+                    int sp = stat.getStartPosition();
+                    int ep = stat.getEndPosition(log.currentSource().getEndPosTable());
+                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + stat);
+                    if (ep <= sp) {
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + stat);
+                    }
+                    else path.add(new Span(sp,ep,Span.NORMAL));
+                }
             } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
                 JmlStatementExpr assumeStat = (JmlStatementExpr)stat;
                 JCExpression e = assumeStat.expression;
@@ -875,14 +880,36 @@ public class JmlEsc extends JmlTreeScanner {
                 int ep = e.getEndPosition(log.currentSource().getEndPosTable());
                 Label label = assumeStat.label;
                 if (label == Label.ASSIGNMENT) {
-                    if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                    if (ep <= sp) {
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    }
                     else path.add(new Span(sp,ep,Span.NORMAL));
+                } else if (label == Label.EXPLICIT_ASSUME) {
+                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + stat);
+                    if (ep <= sp) {
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    }
+                    else {
+//                        if (e instanceof JCTree.JCLiteral) {
+//                            value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
+//                        } else if (e instanceof JCTree.JCParens) {
+//                                value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
+//                        } else {
+//                            id = ((JCIdent)e).name.toString(); // FIXME _ assumes are not necessarily IDENTS?
+//                            value = getBoolValue(id,smt,solver);
+//                        }
+                        path.add(new Span(sp,ep,Span.NORMAL)); //value ? Span.TRUE : Span.FALSE));
+                    }
                 } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.SWITCH_VALUE || label == Label.CASECONDITION) {
-                    if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                    if (ep <= sp) {
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                    }
                     else path.add(new Span(sp,ep,
                     		label == Label.BRANCHT ? Span.TRUE : 
                     		label == Label.BRANCHE? Span.FALSE : Span.NORMAL));
-                } else if (label == Label.DSA || label == Label.NULL_CHECK) {
+                } else if (label == Label.DSA || label == Label.NULL_CHECK || label == Label.IMPLICIT_ASSUME) {
                     // Ignore
                 } else {
                 	log.noticeWriter.println("UNHANDLED LABEL " + label);
@@ -898,9 +925,12 @@ public class JmlEsc extends JmlTreeScanner {
                     id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);
                 }
-                int sp = TreeInfo.getStartPos(e);
-                int ep = TreeInfo.getEndPos(e, log.currentSource().getEndPosTable());
-                if (ep <= sp) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                int sp = e.getStartPosition();
+                int ep = e.getEndPosition(log.currentSource().getEndPosTable());
+                //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                if (ep <= sp) {
+                    if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                }
                 else path.add(new Span(sp,ep,
                         value ? Span.TRUE : Span.FALSE));
                 if (!value) {
@@ -917,8 +947,8 @@ public class JmlEsc extends JmlTreeScanner {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
-                    int epos = TreeInfo.getEndPos(assertStat, log.currentSource().getEndPosTable());
-                    if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + TreeInfo.getStartPos(assertStat) + " " + ep + " " + assertStat);
+                    int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
+                    if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                     } else {
@@ -992,12 +1022,12 @@ public class JmlEsc extends JmlTreeScanner {
     public class Tracer extends JmlTreeScanner {
         SMT smt;
         ISolver solver;
-        Map<JCExpression,String> cemap;
-        BiMap<JCExpression,JCExpression> jmap;
+        Map<JCTree,String> cemap;
+        BiMap<JCTree,JCExpression> jmap;
         Log log;
         String result;
         
-        public Tracer(Context context, SMT smt, ISolver solver, Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
+        public Tracer(Context context, SMT smt, ISolver solver, Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
             this.smt = smt;
             this.solver = solver;
             this.cemap = cemap;
@@ -1108,12 +1138,12 @@ public class JmlEsc extends JmlTreeScanner {
         return ce;
     }
     
-    public Map<JCExpression,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
+    public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
         boolean verbose = false;
         if (verbose) {
             log.noticeWriter.println("ORIGINAL <==> TRANSLATED");
-            for (JCExpression e: assertionAdder.bimap.forward.keySet()) {
-                JCExpression v = assertionAdder.bimap.getf(e);
+            for (JCTree e: assertionAdder.bimap.forward.keySet()) {
+                JCTree v = assertionAdder.bimap.getf(e);
                 if (v != null && assertionAdder.bimap.getr(v) == e) {
                     log.noticeWriter.println(e.toString() + " <==> " + v);
                 } else {
@@ -1121,7 +1151,7 @@ public class JmlEsc extends JmlTreeScanner {
                 }
             }
             log.noticeWriter.println("\nTRANSLATED <==> BB");
-            for (JCExpression e: basicBlocker.bimap.forward.keySet()) {
+            for (JCTree e: basicBlocker.bimap.forward.keySet()) {
                 JCExpression v = basicBlocker.bimap.getf(e);
                 if (v != null && basicBlocker.bimap.getr(v) == e) {
                     log.noticeWriter.println(e.toString() + " <==> " + v);
@@ -1140,9 +1170,9 @@ public class JmlEsc extends JmlTreeScanner {
             }
             log.noticeWriter.println("\nORIGINAL <==> SMT");
         }
-        BiMap<JCExpression,IExpr> cb = assertionAdder.bimap.compose(basicBlocker.bimap).compose(smttrans.bimap);
+        BiMap<JCTree,IExpr> cb = assertionAdder.bimap.compose(basicBlocker.bimap).compose(smttrans.bimap);
         if (verbose) {
-            for (JCExpression e: cb.forward.keySet()) {
+            for (JCTree e: cb.forward.keySet()) {
                 IExpr v = cb.getf(e);
                 if (v != null && cb.getr(v) == e) {
                     log.noticeWriter.println(e.toString() + " <==> " + v);
@@ -1154,10 +1184,10 @@ public class JmlEsc extends JmlTreeScanner {
             log.noticeWriter.println("\nORIGINAL <==> VALUE");
         }
         Map<IExpr,String> ce = constructSMTCounterexample(smttrans,solver);
-        Map<JCExpression,String> values = cb.compose(ce);
-        if (true || verbose) {
+        Map<JCTree,String> values = cb.compose(ce);
+        if (verbose) {
             SortedSet<String> set = new TreeSet<String>();
-            for (JCExpression e: values.keySet()) {
+            for (JCTree e: values.keySet()) {
                 int line = log.currentSource().getLineNumber(e.pos);
                 set.add("line " + String.format("%1$3d",line) + ": " + e.type + " " + JmlPretty.write(e) + " = " + values.get(e));
             }

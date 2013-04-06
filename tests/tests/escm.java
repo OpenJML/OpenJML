@@ -18,7 +18,7 @@ public class escm extends EscBase {
         super.setUp();
         
 //        main.addOptions("-progress");
-//        main.addOptions("-show");
+        main.addOptions("-show");
 //        options.put("-method","me");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
@@ -30,6 +30,7 @@ public class escm extends EscBase {
     /** This test checks that nested, local and anonymous classes are handled */
     @Test
     public void testNestedClass() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

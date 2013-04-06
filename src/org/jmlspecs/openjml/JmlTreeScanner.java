@@ -76,7 +76,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         if (scanMode == AST_JML_MODE) {
             JmlSpecs.TypeSpecs ms = that.typeSpecs;
             // already done - scan(ms.modifiers);
-            scan(ms.clauses);
+            if (ms != null) scan(ms.clauses);
         }
     }
 

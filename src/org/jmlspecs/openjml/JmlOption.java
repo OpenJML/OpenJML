@@ -30,7 +30,7 @@ public enum JmlOption implements IOption {
     KEYS("-keys",true,"Identifiers for optional JML comments",null),
     COMMAND("-command",true,"The command to execute (check,esc,rac,compile)",null),
     CHECK("-check",false,"Does a JML syntax check","-command=check"),
-    COMPILE("-compile",false,"Does a Java-only compiler","-command=compile"),
+    COMPILE("-compile",false,"Does a Java-only compile","-command=compile"),
     RAC("-rac",false,"Enables generating code instrumented with runtime assertion checks","-command=rac"),
     ESC("-esc",false,"Enables static checking","-command=esc"),
     BOOGIE("-boogie",false,"Enables static checking with boogie",null),
