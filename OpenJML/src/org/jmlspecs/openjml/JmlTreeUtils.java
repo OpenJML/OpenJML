@@ -506,7 +506,7 @@ public class JmlTreeUtils {
     public JCAssign makeAssign(int pos, JCExpression lhs, JCExpression rhs) {
         JCAssign tree = factory.at(pos).Assign(lhs, rhs);
         tree.type = lhs.type;
-        copyEndPosition(tree,rhs);
+        //copyEndPosition(tree,rhs);
         return tree;
     }
     
@@ -514,7 +514,7 @@ public class JmlTreeUtils {
     public JCExpressionStatement makeAssignStat(int pos, JCExpression lhs, JCExpression rhs) {
         JCAssign tree = factory.at(pos).Assign(lhs, rhs);
         tree.type = lhs.type;
-        copyEndPosition(tree,rhs);
+        //copyEndPosition(tree,rhs);
         return factory.Exec(tree);
     }
     
@@ -523,7 +523,7 @@ public class JmlTreeUtils {
         JCAssignOp asn = factory.at(pos).Assignop(op, lhs, rhs);
         asn.setType(lhs.type);
         asn.operator = findOpSymbol(op - JCTree.ASGOffset,asn.lhs.type);
-        copyEndPosition(asn,rhs);
+        //copyEndPosition(asn,rhs);
         return asn;
     }
     
@@ -540,7 +540,7 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
         tree.type = optag == JCTree.EQ ? syms.booleanType : tree.operator.type.getReturnType();
-        copyEndPosition(tree,rhs);
+        //copyEndPosition(tree,rhs);
         return tree;
     }
     
@@ -748,6 +748,7 @@ public class JmlTreeUtils {
         JCVariableDecl d = factory.VarDef(mods,name,type,null);
         VarSymbol v =
             new VarSymbol(flags, d.name, d.vartype.type, owner);
+        v.pos = 0;
         d.pos = Position.NOPOS;
         d.sym = v;
         d.type = type.type;
@@ -762,14 +763,14 @@ public class JmlTreeUtils {
      * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
      * @return the AST for the declaration
      */
-    public JCVariableDecl makeVarDefZeroInit(JCExpression type, Name name, Symbol owner) {
+    public JCVariableDecl makeVarDefZeroInit(JCExpression type, Name name, Symbol owner) { // FIXME - fix position
         int flags = 0;
-        factory.at(Position.NOPOS);
         JCModifiers mods = factory.at(Position.NOPOS).Modifiers(0);
         JCExpression zeroEquiv = makeZeroEquivalentLit(Position.NOPOS,type.type);
         JCVariableDecl d = factory.VarDef(mods,name,type,zeroEquiv);
         VarSymbol v =
             new VarSymbol(flags, d.name, d.vartype.type, owner);
+        v.pos = Position.NOPOS;
         d.pos = Position.NOPOS;
         d.sym = v;
         d.type = type.type;
@@ -809,6 +810,7 @@ public class JmlTreeUtils {
         // TODO - figure out why - something in code generation
         // TODO - where else should we be using baseType()?
         VarSymbol v = new VarSymbol(modifierFlags, name, type.baseType(), owner);
+        v.pos = init.pos;
         JCVariableDecl d = factory.VarDef(v,init);
         d.pos = init.pos;
         return d;
@@ -825,6 +827,7 @@ public class JmlTreeUtils {
     public JCVariableDecl makeVarDef(Type type, Name name, Symbol owner, int pos) {
         int modifierFlags = 0;
         VarSymbol v = new VarSymbol(modifierFlags, name, type, owner);
+        v.pos = pos;
         JCVariableDecl d = factory.VarDef(v,null);
         d.pos = pos;
         return d;

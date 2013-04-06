@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 
 import java.io.StringWriter;
+import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
@@ -2483,7 +2484,7 @@ public class JmlTree implements IJmlTree {
      * that take an expression, such as assert, assume, unreachable
      */
     public static class JmlStatementExpr extends JmlAbstractStatement {
-        /** The kind of statement - e.g. ASSSERT, ASSUME, COMMENT, ... */
+        /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... */
         public JmlToken token;
         
         /** The associated expression (e.g. the asserted condition) */
@@ -2528,6 +2529,15 @@ public class JmlTree implements IJmlTree {
         @Override
         public int getTag() {
             return JMLSTATEMENTEXPR;
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return expression != null ? expression.getStartPosition() : this.pos;
+        }
+        @Override
+        public int getEndPosition(Map<JCTree,Integer> table) {
+            return optionalExpression != null ? optionalExpression.getEndPosition(table) : expression != null ? expression.getEndPosition(table) : this.pos;
         }
         
         @Override
@@ -3309,6 +3319,17 @@ public class JmlTree implements IJmlTree {
             list.append(rhs);
             args = list.toList();
         }
+        
+        
+        @Override
+        public int getStartPosition() {
+            return args.get(0).getStartPosition(); // newarrs
+        }
+        
+        @Override
+        public int getEndPosition(Map<JCTree,Integer> table) {
+            return args.get(4).getEndPosition(table); // rhs
+        }        
     }
     
     public static class JmlBBArrayHavoc extends JCMethodInvocation {
@@ -3336,6 +3357,16 @@ public class JmlTree implements IJmlTree {
             list.append(selected);
             list.append(rhs);
             args = list.toList();
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return args.get(0).getStartPosition(); // newfield
+        }
+        
+        @Override
+        public int getEndPosition(Map<JCTree,Integer> table) {
+            return args.get(3).getEndPosition(table); // rhs
         }
     }
     

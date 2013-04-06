@@ -499,7 +499,7 @@ public class OpenJMLInterface {
             							if (span.end > span.start) { // The test is just defensive
             								utils.highlight(je.getResource(), span.start, span.end, span.type);
             							} else {
-                        					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end);
+                        					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end + " " + span.type);
             							}
             						}
             					}

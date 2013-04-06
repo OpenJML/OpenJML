@@ -313,11 +313,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Holds an AST node for a boolean false literal, initialized in the constructor */
     @NonNull final protected JCLiteral falseLiteral;
     
-    /** Identifier of a synthesized object field holding the allocation time of the object, initialized in the constructor */
-    @NonNull protected JCIdent allocIdent;
-
-    /** Symbol of a synthesized object field holding the allocation time of the object, initialized in the constructor */
-    @NonNull protected VarSymbol allocSym;
+//    /** Identifier of a synthesized object field holding the allocation time of the object, initialized in the constructor */
+//    @NonNull protected JCIdent allocIdent;
+//
+//    /** Symbol of a synthesized object field holding the allocation time of the object, initialized in the constructor */
+//    @NonNull protected VarSymbol allocSym;
 
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
     @NonNull protected JCIdent lengthIdent;
@@ -351,7 +351,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected int unique;
     
     // FIXME - document
-    @NonNull BiMap<JCExpression,JCExpression> bimap = new BiMap<JCExpression,JCExpression>();
+    @NonNull BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
     
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
@@ -395,9 +395,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         trueLiteral = treeutils.trueLit;
         falseLiteral = treeutils.falseLit;
         
-        // This is the field name used to access the allocation time of an object
-        allocSym = newVarSymbol(0,ALLOC_VAR,syms.intType,0);
-        allocIdent = newAuxIdent(allocSym,0);
+//        // This is the field name used to access the allocation time of an object
+//        allocSym = newVarSymbol(0,ALLOC_VAR,syms.intType,0);
+//        allocIdent = newAuxIdent(allocSym,0);
 
         // This is the symbol to access the length of an array 
         lengthSym = syms.lengthVar;
@@ -950,7 +950,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         // FIXME - these no longer belong here, I think
         newIdentIncarnation(heapVar,0);
-        newIdentIncarnation(allocSym,0);
+//        newIdentIncarnation(allocSym,0);
         currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), 0); // TODO: Some places use 'length' without encoding, so we store an unencoded name
 
         for (JCVariableDecl d: methodDecl.params) {
@@ -1472,22 +1472,22 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //        addAssume(pos,Label.SYN,eee,currentBlock.statements);
 //    }
     
-    // Generate a (translated) alloc comparison // FIXME - check this out and use it and docuiment
-    protected JCExpression allocCompare(int pos, JCExpression e) {
-        JCExpression eee = new JmlBBFieldAccess(allocIdent,e);
-        eee.pos = pos;
-        eee.type = syms.intType;
-        eee = treeutils.makeBinary(pos,JCTree.LE,eee,newIdentUse(allocSym,pos));
-        return eee;
-    }
-
-    // Generate a (translated) alloc selection // FIXME - check this out and use it and document
-    protected JCExpression allocSelect(int pos, JCExpression e) {
-        JCExpression eee = new JmlBBFieldAccess(allocIdent,e);
-        eee.pos = pos;
-        eee.type = syms.intType;
-        return eee;
-    }
+//    // Generate a (translated) alloc comparison // FIXME - check this out and use it and docuiment
+//    protected JCExpression allocCompare(int pos, JCExpression e) {
+//        JCExpression eee = new JmlBBFieldAccess(allocIdent,e);
+//        eee.pos = pos;
+//        eee.type = syms.intType;
+//        eee = treeutils.makeBinary(pos,JCTree.LE,eee,newIdentUse(allocSym,pos));
+//        return eee;
+//    }
+//
+//    // Generate a (translated) alloc selection // FIXME - check this out and use it and document
+//    protected JCExpression allocSelect(int pos, JCExpression e) {
+//        JCExpression eee = new JmlBBFieldAccess(allocIdent,e);
+//        eee.pos = pos;
+//        eee.type = syms.intType;
+//        return eee;
+//    }
 
     
     // FIXME - review and document
@@ -1949,8 +1949,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
 
     // OK
-    public void visitLiteral(JCLiteral tree) {
-        result = tree;
+    public void visitLiteral(JCLiteral that) {
+        result = that;
     }
 
 
@@ -2015,49 +2015,48 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - is all implicit casting handled
     // Note that only the right expression is translated.
     protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
+        int sp = left.getStartPosition();
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
-            JCIdent newid = newIdentIncarnation(id,left.pos);
+            JCIdent newid = newIdentIncarnation(id,sp);
             //currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
             JCBinary expr = treeutils.makeEquality(pos,newid,right);
-            copyEndPosition(expr,right);
-            addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
+            //copyEndPosition(expr,right);
+            addAssume(sp,Label.ASSIGNMENT,expr);
             return newid;
         } else if (left instanceof JCArrayAccess) {
             JCIdent arr = getArrayIdent(right.type);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
-            JCIdent nid = newArrayIncarnation(right.type,left.pos);
+            JCIdent nid = newArrayIncarnation(right.type,sp);
             
             //JCExpression rhs = makeStore(ex,index,right);
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,((JCArrayAccess)left).index,right);
+            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right);
             expr.pos = pos;
             expr.type = restype;
 
             // FIXME - set line and source
-//            JCBinary bin = treeutils.makeEquality(Position.NOPOS,nid,expr);
-//            copyEndPosition(bin,expr);
-            addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+            addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
             //newIdentIncarnation(heapVar,pos);
-            return right;
+            return left;
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
             if (sym.isStatic()) {
-                JCIdent id = newIdentUse(sym,left.pos);
-                JCIdent newid = newIdentIncarnation(id,left.pos);
+                JCIdent id = newIdentUse(sym,sp);
+                JCIdent newid = newIdentIncarnation(id,sp);
                 // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
                 JCBinary expr = treeutils.makeEquality(pos,newid,right);
-                copyEndPosition(expr,right);
-                addAssume(TreeInfo.getStartPos(statement),Label.ASSIGNMENT,expr);
+                //copyEndPosition(expr,right);
+                addAssume(statement.getStartPosition(),Label.ASSIGNMENT,expr);
                 return newid;
             } else {
                 JCFieldAccess fa = (JCFieldAccess)left;
-                JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,pos);
+                JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                 if (isDefined.add(oldfield.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
                     addDeclaration(oldfield);
                 }
-                JCIdent newfield = newIdentIncarnation(oldfield,pos);
+                JCIdent newfield = newIdentIncarnation(oldfield,sp);
                 if (isDefined.add(newfield.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
                     addDeclaration(newfield);
@@ -2067,7 +2066,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 expr.type = restype;
 
                 // FIXME - set line and source
-                addAssume(TreeInfo.getStartPos(left),Label.ASSIGNMENT,expr,currentBlock.statements);
+                addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
                 newIdentIncarnation(heapVar,pos);
             }
             return left;

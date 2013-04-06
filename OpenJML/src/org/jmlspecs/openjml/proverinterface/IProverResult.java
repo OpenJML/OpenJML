@@ -95,7 +95,9 @@ public interface IProverResult {
         public int start;
         public int end;
         public int type; // Fake enum
-        public Span(int start, int end, int type) { this.start = start; this.end = end; this.type = type;}
+        public Span(int start, int end, int type) { 
+            this.start = start; this.end = end; this.type = type;
+        }
         public String toString() { return "[" + start + ":" + end + " " + type + "]"; }
     }
 

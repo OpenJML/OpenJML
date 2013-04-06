@@ -243,7 +243,7 @@ public class TreeCopier<P> implements TreeVisitor<JCTree,P> {
         List<JCExpression> thrown = copy(t.thrown, p);
         JCBlock body = copy(t.body, p);
         JCExpression defaultValue = copy(t.defaultValue, p);
-        return M.at(t.pos).MethodDef(mods, t.name, restype, typarams, params, thrown, body, defaultValue);
+        return M.at(t.pos).MethodDef(mods, t.name, restype, typarams, params, thrown, body, defaultValue); // FIXME _ needs end position set
     }
 
     public JCTree visitMethodInvocation(MethodInvocationTree node, P p) {

@@ -235,13 +235,39 @@ public class escnew2 extends EscBase {
                 +"public A(int k) { i = k; } \n"
                 
                 +" int i; \n"
+                +" static A x; \n"
                 
                 +"public static void main(String[] args) { \n"
-                +"A a = new A(1);\n"
-                +"A b = new A(1);\n" // FIXME - needs alloc counter
-                +"//@ assert a != b; \n"
-                +"//@ assert a != this; \n"
-                +"}}"
+                +"  A a = new A(1);\n"
+                +"  A b = new A(1);\n"
+                +"  //@ assert a != b; \n"
+                +"}\n"
+                
+                +"public void m() { \n"
+                +"  A a = new A(1);\n"
+                +"  //@ assert a != this; \n"
+                +"}\n"
+                
+                +"public void m1(A z) { \n"
+                +"  A a = new A(1);\n"
+                +"  //@ assert a != z; \n" // FIXME - I don't believe the axioms support proving this
+                +"}\n"
+                
+                +"public void m2(A z) { \n"
+                +"  A a = new A(1);\n"
+                +"  //@ assert a != x; \n" // FIXME - I don't believe the axioms support proving this
+                +"}\n"
+                
+                +"public void m2bad(A z) { \n"
+                +"  //@ assert this != z; \n" // Not necessarily
+                +"}\n"
+                
+                +"public void m3bad(A z) { \n"
+                +"  //@ assert x != z; \n" // Not necessarily
+                +"}\n"
+                +"}"
+                ,"/tt/A.java:24: warning: The prover cannot establish an assertion (Assert) in method m2bad",7
+                ,"/tt/A.java:27: warning: The prover cannot establish an assertion (Assert) in method m3bad",7
                 );
     }
 
