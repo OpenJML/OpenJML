@@ -192,7 +192,7 @@ public class escall3 extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1bad",17
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",!option.equals("-custom")?8:6
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
                 );
     }

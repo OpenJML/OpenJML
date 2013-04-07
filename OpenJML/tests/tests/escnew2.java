@@ -250,7 +250,7 @@ public class escnew2 extends EscBase {
                 
                 +"public void m1(A z) { \n"
                 +"  A a = new A(1);\n"
-                +"  //@ assert a != z; \n" // FIXME - I don't believe the axioms support proving this
+                +"  //@ assert a != z; \n"
                 +"}\n"
                 
                 +"public void m2(A z) { \n"
