@@ -634,12 +634,17 @@ public class JmlEsc extends JmlTreeScanner {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
             program = basicBlocker.convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
-            if (printPrograms) log.noticeWriter.println(program.toString());
+            if (printPrograms) {
+                log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym) + JmlTree.eol +
+                		program.toString());
+            }
 
             // convert the basic block form to SMT
             ICommand.IScript script = smttrans.convert(program,smt);
             if (printPrograms) {
                 try {
+                    log.noticeWriter.println();
+                    log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
                     org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
                     log.noticeWriter.println();
                     log.noticeWriter.println();
@@ -676,7 +681,13 @@ public class JmlEsc extends JmlTreeScanner {
                     a.get(0).expr = JmlTreeUtils.instance(context).falseLit;
                     BasicBlocker2 basicBlocker2 = new BasicBlocker2(context);
                     BasicProgram program2 = basicBlocker2.convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
-                    if (true||printPrograms) log.noticeWriter.println(program2.toString());
+                    if (printPrograms) {
+                        log.noticeWriter.println("BASIC BLOCK FORM OF " 
+                                + utils.qualifiedMethodSig(methodDecl.sym)
+                                + " FOR CHECKING FEASIBILITY"
+                                + JmlTree.eol
+                                + program2.toString());
+                    }
 
                     // create an SMT object, adding any options
                     smt.processCommandLine(new String[]{}, smt.smtConfig);
@@ -912,7 +923,8 @@ public class JmlEsc extends JmlTreeScanner {
                 } else if (label == Label.DSA || label == Label.NULL_CHECK || label == Label.IMPLICIT_ASSUME) {
                     // Ignore
                 } else {
-                	log.noticeWriter.println("UNHANDLED LABEL " + label);
+                    // FIXME - at least PRECONDITION
+                	//log.noticeWriter.println("UNHANDLED LABEL " + label);
                 }
             } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
@@ -948,7 +960,7 @@ public class JmlEsc extends JmlTreeScanner {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
-                    if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
+                    // FIXME: if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                     } else {

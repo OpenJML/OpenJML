@@ -1019,7 +1019,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",6
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",!option.equals("-custom")? 5 : 6
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",16
                 );
     }

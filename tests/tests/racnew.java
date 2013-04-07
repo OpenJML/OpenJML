@@ -500,6 +500,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
                 "}"
@@ -536,7 +537,7 @@ public class racnew extends RacBase {
         );        
     }
     
-    @Test public void testOld3() {
+    @Test public void testOld3() {  // FIXME - \old at a label not working for RAC
         //print = true; main.addUndocOption("-showrac");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 + "public static void main(String[] args) { \n"
@@ -553,14 +554,15 @@ public class racnew extends RacBase {
                 + "  //@ set kk = (\\lbl AST4 \\old(k,lab)); \n "
                 + "  return i; } "
                 + "}"
-                ,"LABEL AST = 0"
-                ,"LABEL AST2 = 0"
-                ,"LABEL AST3 = 10"
-                ,"LABEL AST4 = 1"
-                ,"LABEL AST = 10"
-                ,"LABEL AST2 = 10"
-                ,"LABEL AST3 = 9"
-                ,"LABEL AST4 = 0"
+                ,"LABEL AST = 0"  // k==0 at beginning of m(1)
+                ,"LABEL AST2 = 0" // k==0 at beginning of m(1)
+                ,"LABEL AST3 = 10" // k currently 10 in m(1)
+                ,"LABEL AST4 = 1" // k was 1 at lab
+                                  // k is 10 at exit of m(1)
+                ,"LABEL AST = 10"  // so k is 10 at beginning of m(0) 
+                ,"LABEL AST2 = 10" //  k is 10 at beginning of m(0)
+                ,"LABEL AST3 = 9"  // k is 9 just after lab
+                ,"LABEL AST4 = 0" // k was 0 (== i) at lab
                 ,"END"
         );        
     }
