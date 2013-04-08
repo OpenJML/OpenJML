@@ -660,15 +660,6 @@ public class api {
     // API(), nodeFactory(), context(), node building, prettyPrint(...,false), enterAndCheck(jcu)
     @Test
     public void testAPI3() {
-//      String out =
-//          "package org.test;"+eol+
-//          eol+
-//          "import java.io.File;"+eol+
-//          "import java.math.*;"+eol+
-//          eol+
-//          "public class A {"+eol+
-//          "  protected int field = true;"+eol+
-//          "}"+eol;
       String out =
           "/A.java:1: incompatible types"+eol+
           "-------------"+eol+

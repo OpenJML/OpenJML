@@ -1879,7 +1879,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     public void translateTypelc(JmlMethodInvocation that) {
         // Presumes this is indeed a \type invocation and
         // that the one argument is a Type
-        JCTree type = that.args.get(0);
+        JCExpression type = that.args.get(0);
         result = treeutils.trType(that.pos, type);
     }
 

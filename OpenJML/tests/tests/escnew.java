@@ -1120,7 +1120,7 @@ public class escnew extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test @Ignore // FIXME - work on autoboxing
     public void testBoxing() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1146,8 +1146,7 @@ public class escnew extends EscBase {
                 );
     }
 
-    // FIXME
-    @Test @Ignore
+    @Test @Ignore // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
     public void testSelect() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

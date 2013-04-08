@@ -4,6 +4,7 @@ import java.net.URI;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.tools.javac.comp.JmlAttr;
@@ -36,14 +37,14 @@ public abstract class TCBase extends JmlTestCase {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
-        options.put("-specspath",   testspecpath);
-        options.put("-sourcepath",   testspecpath);
-        if (!useSystemSpecs) options.put("-noInternalSpecs","");
-        //main.register(context);
+        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("-sourcepath",   testspecpath);
+        if (!useSystemSpecs) main.addOptions("-noInternalSpecs","");
+        main.addOptions(JmlOption.NOPURITYCHECK.optionName());
+
         JmlAttr.instance(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         specs = JmlSpecs.instance(context);
-        Log.instance(context).multipleErrors = true;
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false;

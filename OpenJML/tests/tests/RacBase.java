@@ -86,7 +86,6 @@ public abstract class RacBase extends JmlTestCase {
             }
         }
         specs = JmlSpecs.instance(context);
-        Log.instance(context).multipleErrors = true;
         expectedExit = 0;
         expectedRACExit = 0;
         expectedNotes = 2; // Two lines to ignore

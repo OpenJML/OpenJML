@@ -16,7 +16,6 @@ public class bugs extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        JmlOption.putOption(context,JmlOption.NOPURITYCHECK);
     }
 
     

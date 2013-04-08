@@ -357,7 +357,7 @@ public class rac extends RacBase {
                 );
     }
 
-    @Ignore
+    @Ignore // FIXME _ default signals_only clause is not correct or implemented
     @Test public void testSignalsOnlyDefault2() {
         helpTCX("tt.TestJava","package tt; public class TestJava {\n"
                 +" public static void main(String[] args) { \n"
@@ -768,7 +768,7 @@ public class rac extends RacBase {
         
     }
     
-    @Ignore
+    @Ignore // FIXME - needs work on types
     @Test public void testLblX() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
@@ -827,7 +827,8 @@ public class rac extends RacBase {
         
     }
 
-    @Ignore @Test
+    @Ignore // FIXME - needs work on types
+    @Test
     public void testTypelc() { 
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
@@ -886,7 +887,7 @@ public class rac extends RacBase {
         
     }
 
-    @Ignore
+    @Ignore // FIXME - needs work on types
     @Test
     public void testSubtype() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
@@ -1151,7 +1152,7 @@ public class rac extends RacBase {
         
     }
 
-    @Ignore @Test
+    @Test
     public void testSpecModelClass() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
@@ -2291,7 +2292,6 @@ public class rac extends RacBase {
                 );
     }
     
-    @Ignore
     @Test public void testInheritedMethod() {
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C implements I { \n"
                 +"//@ also ensures i == 2; \n"
@@ -2339,7 +2339,6 @@ public class rac extends RacBase {
                 );
     }
     
-    @Ignore
     @Test public void testInheritedMethod2() {
         addMockFile("$A/tt/B.java","package tt; public class B extends ttt.C implements I { \n"
                 +"//@ also private behavior ensures i == 2; \n"
@@ -2383,7 +2382,6 @@ public class rac extends RacBase {
                 );
     }
     
-    @Ignore
     @Test public void testInheritedMethod3() {
         addMockFile("$A/tt/C.java","package tt; public class C { \n"
                 +"static public int i=0;  \n"
@@ -2450,7 +2448,6 @@ public class rac extends RacBase {
 
     }
     
-    @Ignore
     @Test public void testAssignable2() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"
@@ -2473,7 +2470,6 @@ public class rac extends RacBase {
         );
     }
     
-    @Ignore
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"

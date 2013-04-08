@@ -47,7 +47,6 @@ abstract public class ParseBase extends JmlTestCase {
         //main.register(context);
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
-        Log.instance(context).multipleErrors = true;
         sfac = ScannerFactory.instance(context);
         fac = ParserFactory.instance(context);
         print = false;

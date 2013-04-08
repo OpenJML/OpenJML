@@ -1677,7 +1677,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             break;
                         case CONSTRAINT:
                             // FIXME - need to check the list of method signatures
-                            if (!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) {
+                            if ((!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) ||
+                                    (isConstructor && utils.hasAny(clause.modifiers,Flags.STATIC))) {
                                 pushBlock();
                                 JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
                                 addAssert(methodDecl.pos(),Label.CONSTRAINT,

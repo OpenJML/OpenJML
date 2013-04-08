@@ -72,7 +72,7 @@ public class racsystem extends RacBase {
     }
 
     /** Testing with getting a stack trace - Exception does not catch it */
-    @Test @Ignore
+    @Test
     public void testFile2a() {
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
@@ -93,7 +93,7 @@ public class racsystem extends RacBase {
     }
 
     /** Testing with getting a stack trace - Error does catch it */
-    @Test @Ignore
+    @Test
     public void testFile2c() {
         expectedRACExit = 0;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"

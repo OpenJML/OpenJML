@@ -30,6 +30,7 @@ import org.junit.rules.TestName;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
 
@@ -193,6 +194,7 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
         }
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();
+        Log.instance(context).multipleErrors = true;
         //System.out.println("JUnit: Testing " + getName());
     }
 
