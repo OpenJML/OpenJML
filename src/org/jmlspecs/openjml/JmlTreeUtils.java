@@ -51,6 +51,7 @@ import com.sun.tools.javac.tree.JCTree.JCThrow;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWildcard;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -925,6 +926,7 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         for (JCExpression e: args) list.append(e);
         JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(),meth,list.toList());
+        call.type = meth.type;
         return call;
     }
 
@@ -1017,12 +1019,26 @@ public class JmlTreeUtils {
             JCExpression headType = (JCPrimitiveTypeTree)type;
             headType = makeDotClass(type.pos,headType.type);
             result = makeUtilsMethodCall(pos,"makeTYPE0",headType);
+        } else if (type instanceof JCWildcard) {
+            result = (JCWildcard)type; // FIXME - is this right?
         } else {
             log.noticeWriter.println("NOT IMPLEMENTED (JmlTreeUtils) - " + type.getClass());
             //result = type;
             // Unknown - FIXME - error
         }
         return result;
+    }
+    
+    public JCExpression makeBox(JCExpression e) {
+        if (!e.type.isPrimitive()) return e;
+        if (e.type.equals(syms.intType)) {
+        }
+        return e;
+    }
+
+    public JCExpression makeUnBox(JCExpression e) {
+        if (e.type.isPrimitive()) return e;
+        return e;
     }
 
 }

@@ -31,7 +31,6 @@ public class scanner extends JmlTestCase {
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
         fac = ScannerFactory.instance(context);
-        Log.instance(context).multipleErrors = true;
         keys = null;
     }
 

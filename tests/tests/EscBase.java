@@ -22,6 +22,7 @@ public abstract class EscBase extends JmlTestCase {
 
     static public String[] solvers = {}; // { "z3_4_3" , "yices", "simplify" };
     static public String[] oldsolvers = {}; // { "yices", "simplify" };
+    static public boolean isCustom = false;
     
     @Parameters
     static public  Collection<String[]> datax() {
@@ -55,6 +56,7 @@ public abstract class EscBase extends JmlTestCase {
     public EscBase(String option, String solver) {
         this.option = option;
         this.solver = solver;
+        isCustom = option.equals("-custom");
     }
 
     static String z = java.io.File.pathSeparator;
@@ -76,7 +78,6 @@ public abstract class EscBase extends JmlTestCase {
         setOption(option,solver);
         //main.setupOptions();
         specs = JmlSpecs.instance(context);
-        Log.instance(context).multipleErrors = true;
         expectedExit = 0;
         expectedErrors = 0;
         noAssociatedDeclaration = false;

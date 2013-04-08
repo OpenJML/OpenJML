@@ -318,7 +318,7 @@ public class QuerySecret extends TCBase {
     }
     
     /** A default existent datagroup */
-    @Test @Ignore
+    @Test
     public void testSOK3() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
@@ -331,7 +331,7 @@ public class QuerySecret extends TCBase {
     }
     
     /** A default non-existent datagroup */
-    @Test @Ignore
+    @Test
     public void testSOK4() {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +

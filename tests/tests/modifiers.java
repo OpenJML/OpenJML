@@ -1081,7 +1081,7 @@ public class modifiers extends TCBase {
     }
 
     // TODO - the next two could use better error messages
-    @Test @Ignore
+    @Test
     public void testBadModifiers() {
         helpTCF("A.java","package tt; \n"
                 +"/*@ nonnull_by_default*/ public class A { \n"
@@ -1101,7 +1101,7 @@ public class modifiers extends TCBase {
                 );
     }
     
-    @Test @Ignore
+    @Test
     public void testBadModifiers2() {
         helpTCF("A.java","package tt; \n"
                 +"public class A { \n"
@@ -1125,7 +1125,7 @@ public class modifiers extends TCBase {
 
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
     // FIXME - these need implementing - error for the different in annotations
-    @Test @Ignore
+    @Test 
     public void testAnnotations2() {
         addMockFile("$A/A.jml","public class A { Object f; }");
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
@@ -1133,7 +1133,7 @@ public class modifiers extends TCBase {
                 "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @Pure", 2);
     }
      
-    @Test @Ignore
+    @Test
     public void testAnnotations3() {
         addMockFile("$A/A.jml","public class A { Object m(); }");
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
