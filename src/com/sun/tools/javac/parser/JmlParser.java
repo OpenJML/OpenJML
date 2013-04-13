@@ -221,7 +221,8 @@ public class JmlParser extends EndPosParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            if (S.token() == IMPORT && !isNone(mods)) {
+            Token token = S.token();
+            if (token == IMPORT && !isNone(mods)) {
                 JCAnnotation a = utils
                         .findMod(
                                 mods,
@@ -241,8 +242,22 @@ public class JmlParser extends EndPosParser {
                 }
                 mods.flags = 0;
                 mods.annotations = List.<JCAnnotation> nil();
-            } else {
+            } else if (!inJmlDeclaration || token == Token.CLASS || token == Token.INTERFACE || token == Token.ENUM) {
+                // The guard above is used because if it is false, we want to produce
+                // a better error message than we otherwise get, for misspelled
+                // JML modifiers. However, the test above replicates tests in
+                // the super method and may become obsolete.
                 s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
+            } else {
+                int p = S.pos();
+                jmlerror(S.pos(),
+                        S.endPos(),
+                        "jml.unexpected.or.misspelled.jml.token",
+                            token == null ? S.jmlToken().internedName() : S.stringVal() );
+                
+                setErrorEndPos(S.pos());
+                s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
+                //S.nextToken();
             }
             // Can also be a JCErroneous
             if (s instanceof JmlClassDecl)
@@ -2929,6 +2944,28 @@ public class JmlParser extends EndPosParser {
                 new JmlScanner.DiagnosticPositionSE(begin, preferred, end - 1),
                 key, args);// TODO - not unicode friendly
     }
+    
+//    /** If next input token matches given token, skip it, otherwise report
+//     *  an error; this method is overridden in order to give a slightly better
+//     *  error message on misspelled JML tokens.
+//     */
+//    public void accept(Token token) {
+//        if (!inJmlDeclaration) {
+//            super.accept(token);
+//        } else {
+//            if (S.token() == token) {
+//                S.nextToken();
+//            } else if (S.token() == null) {
+//                setErrorEndPos(S.pos());
+//                reportSyntaxError(S.prevEndPos(), "expected, not a misspelled or unexpected JML token", token);
+//            } else {
+//                setErrorEndPos(S.pos());
+//                reportSyntaxError(S.prevEndPos(), "expected", token);
+//            }
+//        }
+//    }
+
+
 
     // FIXME - check the use of Token.CUSTOM vs. null
     // FIXME - review the remaining uses of log.error vs. jmlerror

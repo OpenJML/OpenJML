@@ -110,7 +110,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String store = "store";
     public static final String select = "select";
     public static final String NULL = "NULL";
-    public static final String this_ = "this";
+    public static final String this_ = "THIS"; // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF";
     public static final String JAVATYPESORT = "JavaTypeSort";
     public static final String length = "length";

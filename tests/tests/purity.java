@@ -10,6 +10,7 @@ public class purity extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
+        main.addOptions("-noPurityCheck=false");
     }
 
     /** Test scanning something very simple */

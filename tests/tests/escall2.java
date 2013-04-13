@@ -929,9 +929,8 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test // FIXME - constraints are not being proven correctly
+    @Test
     public void testConstraint1() {
-        main.addOptions("-show","-method=m1good","-trace");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -975,14 +974,11 @@ public class escall2 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:6: warning: Associated declaration",!isCustom?7:18
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
-                // FIXME - why the duplicate
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",!isCustom?14:25
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",!isCustom?14:25
                 );
     }
     
