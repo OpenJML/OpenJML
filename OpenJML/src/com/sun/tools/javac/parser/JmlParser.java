@@ -449,7 +449,7 @@ public class JmlParser extends EndPosParser {
                     }
                     toP(ste);
                     ste.source = log.currentSourceFile();
-                    ste.line = log.currentSource().getLineNumber(pos);
+                    //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
                 } else if (jtoken == HENCE_BY || jtoken == UNREACHABLE) {
                     S.setJmlKeyword(false);
@@ -460,7 +460,7 @@ public class JmlParser extends EndPosParser {
                             .JmlExpressionStatement(jtoken, Label.UNREACHABLE,
                                     t));
                     ste.source = log.currentSourceFile();
-                    ste.line = log.currentSource().getLineNumber(pos);
+                    //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
                 } else if (jtoken == DECREASES || jtoken == LOOP_INVARIANT) {
                     S.setJmlKeyword(false);

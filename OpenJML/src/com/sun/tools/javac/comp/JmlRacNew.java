@@ -230,7 +230,7 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
         this.factory = JmlTree.Maker.instance(context);
         this.specs = JmlSpecs.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
-        this.treeutils.setEnv(env);
+        //this.treeutils.setEnv(env);
         this.utils = Utils.instance(context);
         this.attr = JmlAttr.instance(context);
         this.log = Log.instance(context);
@@ -244,8 +244,8 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
         
-        booleqSymbol = treeutils.findOpSymbol("==",syms.booleanType);
-        boolneSymbol = treeutils.findOpSymbol("!=",syms.booleanType);
+        booleqSymbol = treeutils.findOpSymbol(JCTree.EQ,syms.booleanType);
+        boolneSymbol = treeutils.findOpSymbol(JCTree.NE,syms.booleanType);
         trueLit = treeutils.trueLit;
         falseLit = treeutils.falseLit;
 
@@ -795,7 +795,7 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
     // TODO - document
     public JCStatement methodCallCheckInvariant(JmlClassDecl tree, ClassSymbol csym, String classname) {
         Type currentType = csym.type;
-        JCExpression lit = treeutils.makeStringLiteral(classname,tree.pos);
+        JCExpression lit = treeutils.makeStringLiteral(tree.pos,classname);
         JCFieldAccess m = findUtilsMethod("callClassInvariant");
 //        Symbol psym = currentClassInfo.invariantDecl.params.head.sym;
 //        JCIdent id = factory.at(tree.pos()).Ident(psym);
@@ -958,8 +958,10 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
                 tree.label == Label.EXPLICIT_ASSUME ? "assumption is false" :
                     tree.label == Label.UNREACHABLE ? "unreachable statement reached" :
                         tree.label.toString();
-        s = tree.source.getName() + ":" + tree.line + ": JML " + s;   // FIXME - line number?
-        JCExpression lit = treeutils.makeStringLiteral(s,tree.pos);
+        JavaFileObject prev = log.useSource(tree.source);
+        s = tree.source.getName() + ":" + log.currentSource().getLineNumber(tree.pos) + ": JML " + s;
+        log.useSource(prev);
+        JCExpression lit = treeutils.makeStringLiteral(tree.pos,s);
         // FIXME - I don't think we need the conditioning
         JCFieldAccess m = findUtilsMethod(translatedOptionalExpr == null ? "assertionFailure" : "assertionFailure2");
         JCExpression c = translatedOptionalExpr == null ? factory.Apply(null,m,List.<JCExpression>of(lit)) :
@@ -1617,7 +1619,7 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
     }
 
     public void visitJmlLblExpression(JmlLblExpression that) {
-        JCExpression lit = treeutils.makeStringLiteral(that.label.toString(),that.pos);
+        JCExpression lit = treeutils.makeStringLiteral(that.pos,that.label.toString());
         JCFieldAccess m = null;
         int tag = that.expression.type.tag;
         switch (tag) {

@@ -921,7 +921,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         //       value for terminationSym == 0 ==> no return or throw executed
         
         JCIdent ex = treeutils.makeIdent(pos, exceptionSym);
-        JCExpression noex = treeutils.makeEqObject(pos,ex,treeutils.nulllit);
+        JCExpression noex = treeutils.makeEqObject(pos,ex,treeutils.nullLit);
         T noexceptionBlock = newBlock(TRYNOEXCEPTION,pos);
         addAssume(pos,Label.IMPLICIT_ASSUME,noex,noexceptionBlock.statements);
         follows(targetBlock,noexceptionBlock);
@@ -930,7 +930,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         
         // Now create the paths for each case statement
         List<JCStatement> assumptions = new LinkedList<JCStatement>();
-        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nulllit),assumptions);
+        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),assumptions);
         for (JCCatch catcher: that.catchers) {
             JCExpression ty = catcher.param != null ? catcher.param.vartype : treeutils.makeType(catcher.pos, syms.exceptionType);
             JCExpression tt = M.at(catcher.pos).TypeTest(ex,ty).setType(syms.booleanType);
@@ -946,7 +946,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
                 d.init = ex;
                 catchBlock.statements.add(d);
             JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
-            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nulllit)); // FIXME - seems to duplicate an item in catcher.body.stats
+            catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nullLit)); // FIXME - seems to duplicate an item in catcher.body.stats
             JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
             catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,term,treeutils.zero));
             catchBlock.statements.addAll(catcher.body.stats);

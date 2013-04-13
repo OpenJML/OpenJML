@@ -2495,9 +2495,9 @@ public class JmlTree implements IJmlTree {
          */
         public JCTree.JCExpression optionalExpression = null;
         
-        /** The line number corresponding to pos */
-        public int line; 
-        
+//        /** The line number corresponding to pos */
+//        public int line; 
+//        
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
         public JavaFileObject source;
         
