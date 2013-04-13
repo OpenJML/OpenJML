@@ -483,6 +483,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected boolean isPostcondition;
     
+    /** Used to note the environment (i.e., \old label) under which we are currently
+     * evaluating; null indicates the current state; an empty string indicates
+     * the pre-state.
+     */
+    @Nullable protected JCIdent oldenv;
+    
+    /** The \old label to use for the pre-state */
+    final protected JCIdent preLabel;
+    
     /** Used to hold the result of non-expression AST nodes */
     protected JCTree result;
     
@@ -530,6 +539,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.reader = ClassReader.instance(context);
         this.reader.init(syms);
         this.utilsClass = reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
+        this.preLabel = treeutils.makeIdent(Position.NOPOS,Strings.empty,syms.intType); // Type does not matter
         initialize();
     }
     
@@ -547,6 +557,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.pureCopy = !(esc||rac);
         this.treeMap.clear();
         this.nodeTranslation = new HashMap<JCExpression, JCExpression>();
+        this.oldenv = null;
         racMessages.clear();
         escMessages.clear();
     }
@@ -4301,6 +4312,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
             result = eresult = (translatingJML || !var) ? fa : newTemp(fa);
+            if (oldenv != null) {
+                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
+            }
         }
         treeutils.copyEndPosition(result, that);
     }
@@ -4410,8 +4424,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             result = eresult = fa;
         }
-        nodeTranslation.put(that, eresult);
         treeutils.copyEndPosition(eresult, that);
+        if (oldenv != null) {
+            result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
+            treeutils.copyEndPosition(eresult, that);
+        }
+        nodeTranslation.put(that, eresult);
     }
 
     // OK
@@ -5732,64 +5750,75 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case BSOLD:
             case BSPRE:
             {
+                JCIdent savedEnv = oldenv;
                 // FIXME _ this implementation is not adequate for checking postconditions with \old from callers
                 // FIXME - also it does not work for rac at labelled locations
-                if (rac) {
-                    ListBuffer<JCStatement> saved = currentStatements;
-                    try {
-                        if (that.args.size() == 2) {
-                            currentStatements = new ListBuffer<JCStatement>();
-                        } else {
-                            currentStatements = oldStatements;
-                        }
-                        JCExpression arg = convertExpr(that.args.get(0));
-                        String s = "_JML___old_" + (++count); // FIXME - Put string in Strings
-                        Name nm = names.fromString(s);
-                        JCVariableDecl v = treeutils.makeVarDef(arg.type,nm,methodDecl.sym,arg);
-                        v.mods.flags |= Flags.FINAL;
-                        addStat(v);
-                        if (that.args.size() == 2) {
-                            JCExpression e = that.args.get(1);
-                            Name label = ((JCIdent)e).name;
-                            ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
-                            if (list != null) {
-                                list.add(v);
+                try {
+                    if (rac) {
+                        ListBuffer<JCStatement> saved = currentStatements;
+                        try {
+                            if (that.args.size() == 2) {
+                                currentStatements = new ListBuffer<JCStatement>();
                             } else {
-                                ListBuffer<JCStatement> stlist = labelOldLists.get(label);
-                                ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
-                                for (JCStatement st: stlist) {
-                                    if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label)) {
-                                        newlist.addAll(currentStatements);
-                                    }
-                                    newlist.add(st);
-                                }
-                                stlist.clear();
-                                stlist.addAll(newlist);
+                                currentStatements = oldStatements;
                             }
+                            JCExpression arg = convertExpr(that.args.get(0));
+                            String s = "_JML___old_" + (++count); // FIXME - Put string in Strings
+                            Name nm = names.fromString(s);
+                            JCVariableDecl v = treeutils.makeVarDef(arg.type,nm,methodDecl.sym,arg);
+                            v.mods.flags |= Flags.FINAL;
+                            addStat(v);
+                            if (that.args.size() == 2) {
+                                JCExpression e = that.args.get(1);
+                                Name label = ((JCIdent)e).name;
+                                ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
+                                if (list != null) {
+                                    list.add(v);
+                                } else {
+                                    ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                                    ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
+                                    for (JCStatement st: stlist) {
+                                        if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label)) {
+                                            newlist.addAll(currentStatements);
+                                        }
+                                        newlist.add(st);
+                                    }
+                                    stlist.clear();
+                                    stlist.addAll(newlist);
+                                }
+                            }
+                            JCIdent id = treeutils.makeIdent(arg.pos,v.sym);
+                            eresult = id;
+                        } finally {
+                            currentStatements = saved;
                         }
-                        JCIdent id = treeutils.makeIdent(arg.pos,v.sym);
-                        eresult = id;
-                    } finally {
-                        currentStatements = saved;
+                    } else { // esc
+                        if (that.args.size() == 1) {
+                            oldenv = preLabel; // FIXME - could have a constant name for this
+                        } else {
+                            // The second argument is a label, held as a JCIdent
+                            oldenv = (JCIdent)that.args.get(1);
+                        }
+                        JCExpression m = convertExpr(that.meth);
+                        JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
+                        JmlMethodInvocation meth;
+                        if (that.args.size() == 1) {
+                            meth = M.at(that.pos()).JmlMethodInvocation(that.token,arg);
+                        } else {
+                            // The second argument is a label, held as a JCIdent
+                            meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
+                        }
+                        meth.setType(that.type);
+                        meth.pos = that.pos;
+                        meth.startpos = that.startpos;
+                        meth.varargsElement = that.varargsElement;
+                        meth.meth = m;
+                        meth.label = that.label;
+                        meth.typeargs = that.typeargs; // FIXME - do these need translating?
+                        eresult = meth;
                     }
-                } else { // esc
-                    JCExpression m = convertExpr(that.meth);
-                    JCExpression arg = convertExpr(that.args.get(0));
-                    JmlMethodInvocation meth;
-                    if (that.args.size() == 1) {
-                        meth = M.at(that.pos()).JmlMethodInvocation(that.token,arg);
-                    } else {
-                        // The second argument is a label, held as a JCIdent
-                        meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
-                    }
-                    meth.setType(that.type);
-                    meth.pos = that.pos;
-                    meth.startpos = that.startpos;
-                    meth.varargsElement = that.varargsElement;
-                    meth.meth = m;
-                    meth.label = that.label;
-                    meth.typeargs = that.typeargs; // FIXME - do these need translating?
-                    eresult = meth;
+                } finally {
+                    oldenv = savedEnv;
                 }
             }
             break;

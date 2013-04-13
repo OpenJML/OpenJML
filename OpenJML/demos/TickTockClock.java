@@ -37,6 +37,7 @@ protected int second; //@ in _time_state;
  @ also
  @ requires getSecond() == 59;
  @ assignable _time_state;
+ @ assignable hour, minute, second; // NB for expository purposes only
  @ ensures getSecond() == 0;
  @*/
  public void tick() {
