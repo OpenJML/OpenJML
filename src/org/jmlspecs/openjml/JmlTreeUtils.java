@@ -438,6 +438,11 @@ public class JmlTreeUtils {
     }
     
     public JCIdent makeIdent(int pos, String name, Type type) {
+        VarSymbol sym = makeVarSymbol(0,names.fromString(name),type,pos);
+        return makeIdent(pos,sym);
+    }
+    
+    public JCIdent makeIdent(int pos, Name name, Type type) {
         VarSymbol sym = makeVarSymbol(0,name,type,pos);
         return makeIdent(pos,sym);
     }
@@ -726,8 +731,8 @@ public class JmlTreeUtils {
     /** Creates a new VarSymbol with the given name and type and modifier flags 
      * (and no owner);
      * the declaration position is 'pos'. */
-    public VarSymbol makeVarSymbol(long flags, @NonNull String name, @NonNull Type type, int pos) {
-        VarSymbol v = new VarSymbol(flags,names.fromString(name),type,null);
+    public VarSymbol makeVarSymbol(long flags, @NonNull Name name, @NonNull Type type, int pos) {
+        VarSymbol v = new VarSymbol(flags,name,type,null);
         v.pos = pos;
         return v;
     }
@@ -832,6 +837,19 @@ public class JmlTreeUtils {
         JCVariableDecl d = factory.VarDef(v,null);
         d.pos = pos;
         return d;
+    }
+    
+    /** Makes an \old expression */
+    public JCMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label) {
+        JCMethodInvocation m;
+        if (label.toString().isEmpty()) {
+            m = factory.JmlMethodInvocation(JmlToken.BSOLD, List.<JCExpression>of(arg));
+        } else {
+            JCIdent id = makeIdent(pos,label.name, label.type);
+            m = factory.JmlMethodInvocation(JmlToken.BSOLD, List.<JCExpression>of(arg, id));
+        }
+        m.type = arg.type;
+        return m;
     }
 
     // TODO _ document

@@ -225,6 +225,7 @@ public class JmlEsc extends JmlTreeScanner {
         // The super class takes care of visiting all the methods
         progress(1,1,"Proving methods in " + node.sym.getQualifiedName() ); //$NON-NLS-1$
         super.visitClassDef(node);
+        progress(1,1,"Completed proving methods in " + node.sym.getQualifiedName() ); //$NON-NLS-1$
     }
     
     /** When we visit a method declaration, we translate and prove the method;
@@ -870,8 +871,8 @@ public class JmlEsc extends JmlTreeScanner {
                 } else if (stat instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)stat;
                 	Name n = vd.name;
-                	log.noticeWriter.println("VALUE: " + n + " = " + getValue(n.toString(),smt,solver));
                     if (vd.init != null) traceSubExpr(vd.init);
+                	log.noticeWriter.println("DECL: " + n + " === " + getValue(n.toString(),smt,solver));
                 }
             }
             if (stat instanceof JmlVariableDecl) {
@@ -1050,10 +1051,19 @@ public class JmlEsc extends JmlTreeScanner {
         @Override
         public void visitIdent(JCIdent e) {
             Name n = e.name;
-            String value = getValue(n.toString(),smt,solver);
-            log.noticeWriter.println("VALUE: " + n + " = " + value);
             String sv = cemap.get(e);
-            log.noticeWriter.println("V " + n + " : " + jmap.getr(e) + " = " + sv + " :: " + value);
+            //log.noticeWriter.println("VALUE: " + n + " = " + value);
+            if (sv == null) {
+                sv = getValue(n.toString(),smt,solver);
+                //log.noticeWriter.println("VALUE Retrieved: " + n + " = " + sv);
+                cemap.put(e, sv);
+            }
+            JCTree ex = jmap.getr(e);
+            if (ex != null) {
+                log.noticeWriter.println(ex + " === " + sv);
+            } else {
+                //log.noticeWriter.println("VALUE unknown: " + n );
+            }
             result = sv;
         }
         
@@ -1062,7 +1072,10 @@ public class JmlEsc extends JmlTreeScanner {
             e.lhs.accept(this);
             e.rhs.accept(this);
             String sv = cemap.get(e);
-            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            JCTree ex = jmap.getr(e);
+            if (sv != null && ex != null) {
+                log.noticeWriter.println(ex + " === " + sv);
+            }
             result = sv;
         }
         
@@ -1070,7 +1083,10 @@ public class JmlEsc extends JmlTreeScanner {
         public void visitUnary(JCUnary e) {
             e.arg.accept(this);
             String sv = cemap.get(e);
-            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            JCTree ex = jmap.getr(e);
+            if (sv != null && ex != null) {
+                log.noticeWriter.println(ex + " === " + sv);
+            }
             result = sv;
         }
         
@@ -1083,7 +1099,10 @@ public class JmlEsc extends JmlTreeScanner {
                 e.falsepart.accept(this);
             }
             String sv = cemap.get(e);
-            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
+            JCTree ex = jmap.getr(e);
+            if (sv != null && ex != null) {
+                log.noticeWriter.println(ex + " === " + sv);
+            }
             result = sv;
         }
         
