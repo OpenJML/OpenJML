@@ -263,7 +263,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression makeNullCheck(int pos, JCExpression expr, String msg, Label label) {
         String posDescription = position(source,pos);
         
-        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCLiteral message = treeutils.makeStringLiteral(pos,posDescription + msg); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"nonNullCheck");
         JCExpression trans = translate(expr);  // Caution - translate resets the factory position
         JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,trans));
@@ -276,7 +276,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression makeTrueCheck(int pos, JCExpression condition, JCExpression that, String msg, Label label) {
         String posDescription = position(source,pos);
         
-        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCLiteral message = treeutils.makeStringLiteral(pos,posDescription + msg); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"trueCheck");
         JCExpression tcond = translate(condition);// Caution - translate resets the factory position
         JCExpression trans = that;  
@@ -292,7 +292,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     protected JCExpression makeEqCheck(int pos, JCExpression obj, JCExpression that, String msg, Label label) {
         String posDescription = position(source,pos);
         
-        JCLiteral message = treeutils.makeStringLiteral(posDescription + msg,pos); // end -position ??? FIXME
+        JCLiteral message = treeutils.makeStringLiteral(pos,posDescription + msg); // end -position ??? FIXME
         JCFieldAccess m = treeutils.findUtilsMethod(pos,"eqCheck");
         JmlMethodInvocation newv = factory.at(pos).JmlMethodInvocation(m,List.<JCExpression>of(message,obj,that));
         newv.type = that.type;
@@ -303,7 +303,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     /** Inserts a check that 'that' does not equal 0 for the appropriate in type;
      * 'that' is presumed untranslated */ 
     protected JCExpression makeZeroCheck(int pos, JCExpression that, Label label) {
-        JCLiteral message = treeutils.makeStringLiteral("Divide by zero",pos); // end -position ??? FIXME
+        JCLiteral message = treeutils.makeStringLiteral(pos,"Divide by zero"); // end -position ??? FIXME
         JCExpression newv = translate(that);
         JCFieldAccess m = null;
         int tag = that.type.tag;
@@ -1165,7 +1165,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             if (e == null) e = treeutils.makeBooleanLiteral(that.pos,false);
             JmlStatementExpr r = factory.at(that.pos).JmlExpressionStatement(JmlToken.ASSERT,Label.UNREACHABLE,e);
             r.source = that.source;
-            r.line = that.line;
+            //r.line = that.line;
             result = r;
         } else if (that.token == JmlToken.ASSERT || that.token == JmlToken.ASSUME){ // assert, assume
             // We translate the expression but leave the assert and assume statements

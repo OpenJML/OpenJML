@@ -996,7 +996,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(JmlToken.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
-        st.line = -1; // ????? FIXME
+        //st.line = -1; 
         st.associatedPos = declpos;
         st.associatedSource = null; // OK - always same as source
         st.type = null; // no type for a statement
@@ -1239,7 +1239,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
-        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nulllit);
+        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nullLit);
         JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,treeutils.makeTypeof(e),makeTypeLiteral(type,typepos));
         JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
         return ee;
@@ -1847,7 +1847,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.optionalExpression = result;
             st.associatedPos = that.associatedPos;
             st.associatedSource = that.associatedSource;
-            st.line = that.line;
+            //st.line = that.line;
             st.source = that.source;
             st.type = that.type;
             copyEndPosition(st,that);

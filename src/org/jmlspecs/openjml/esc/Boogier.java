@@ -753,7 +753,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review and document
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
-        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nulllit);
+        JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nullLit);
         JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
         JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
