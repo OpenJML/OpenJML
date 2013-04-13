@@ -389,6 +389,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
+        main.addOptions("-show","-method=m");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"

@@ -2082,6 +2082,7 @@ public class rac extends RacBase {
     // check other expression types
     // what about assignable
     // check any problems with grouped clauses
+    @Ignore // Not implemented in old RAC
     @Test public void testNotImplemented() {
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
@@ -2292,6 +2293,7 @@ public class rac extends RacBase {
                 );
     }
     
+    @Ignore // Not implemented in old RAC
     @Test public void testInheritedMethod() {
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C implements I { \n"
                 +"//@ also ensures i == 2; \n"
@@ -2339,6 +2341,7 @@ public class rac extends RacBase {
                 );
     }
     
+    @Ignore // Not implemented in old RAC
     @Test public void testInheritedMethod2() {
         addMockFile("$A/tt/B.java","package tt; public class B extends ttt.C implements I { \n"
                 +"//@ also private behavior ensures i == 2; \n"
@@ -2382,6 +2385,7 @@ public class rac extends RacBase {
                 );
     }
     
+    @Ignore // Not implemented in old RAC
     @Test public void testInheritedMethod3() {
         addMockFile("$A/tt/C.java","package tt; public class C { \n"
                 +"static public int i=0;  \n"
@@ -2448,6 +2452,7 @@ public class rac extends RacBase {
 
     }
     
+    @Ignore // Not implemented in old RAC
     @Test public void testAssignable2() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"
@@ -2470,6 +2475,7 @@ public class rac extends RacBase {
         );
     }
     
+    @Ignore // Not implemented in old RAC
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static int j=0,k;\n"

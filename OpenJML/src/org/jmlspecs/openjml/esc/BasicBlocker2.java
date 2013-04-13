@@ -620,7 +620,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, int incarnationPosition) {
-        if (incarnationPosition == 0 || sym.owner == null) {
+        if (incarnationPosition == 0 || sym.owner == null || sym.name.toString().equals("THIS")) { // FIXME _ can we avoid the explicit test for THIS?
             Name n = sym.getQualifiedName();
             return n;
         } else
@@ -744,7 +744,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
-        currentMap.putSAVersion(vsym,n.name,unique);
+        currentMap.putSAVersion(vsym,n.name,unique); // FIXME - should unique be incremented
         if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
@@ -911,7 +911,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         
-        Set<VarSymbol> vsyms = GetSymbols.collectSymbols(methodDecl);
+        Set<VarSymbol> vsyms = GetSymbols.collectSymbols(methodDecl,classDecl);
 //        for (VarSymbol v: vsyms) System.out.print(" " + v.toString());
 //        System.out.println("  ENDSYMS");
         
@@ -942,8 +942,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         // Define the thisId
         if (this.methodDecl._this != null) {
-            currentMap.putSAVersion(this.methodDecl._this, this.methodDecl._this.name, 0);
-            thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
+//            currentMap.putSAVersion(this.methodDecl._this, this.methodDecl._this.name, 0);
+//            thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
+            JCIdent thisId = assertionAdder.thisIds.get(classDecl.sym);
+            currentMap.putSAVersion((VarSymbol)thisId.sym, names.fromString("THIS"), 0);
+            thisId = newAuxIdent(thisId.name.toString(),methodDecl.sym.owner.type,pos,false);
             currentThisId = thisId;
         }
 
@@ -1209,6 +1212,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         }
+        //log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
         return newMap;
     }
     
@@ -2269,9 +2273,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     static class GetSymbols extends JmlTreeScanner {
         
-        public static Set<VarSymbol> collectSymbols(JCMethodDecl method) {
+        boolean noMethods = false;
+        
+        public static Set<VarSymbol> collectSymbols(JCMethodDecl method, JCClassDecl classDecl) {
             GetSymbols gs = new GetSymbols();
+            gs.noMethods = false;
             method.accept(gs);
+            gs.noMethods = true;
+            classDecl.accept(gs);
             return gs.syms;
         }
         
@@ -2279,6 +2288,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         public GetSymbols() {
             scanMode = this.AST_SPEC_MODE;
+        }
+        
+        public void visitClassDef(JCClassDecl that) {
+            scan(that.mods);
+            scan(that.typarams);
+            scan(that.extending);
+            scan(that.implementing);
+            for (JCTree def: that.defs) {
+                if (!noMethods || !(def instanceof JCMethodDecl)) scan(def);
+            }
         }
         
         public void visitIdent(JCIdent that) {

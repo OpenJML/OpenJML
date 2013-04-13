@@ -39,7 +39,7 @@ public abstract class TCBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-sourcepath",   testspecpath);
-        if (!useSystemSpecs) main.addOptions("-noInternalSpecs","");
+        if (!useSystemSpecs) main.addOptions("-noInternalSpecs");
         main.addOptions(JmlOption.NOPURITYCHECK.optionName());
 
         JmlAttr.instance(context);

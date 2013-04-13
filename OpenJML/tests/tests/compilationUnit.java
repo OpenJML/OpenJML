@@ -41,7 +41,7 @@ public class compilationUnit extends ParseBase {
                 JCErroneous.class, 4,
                 JmlClassDecl.class, 24,
                 JCModifiers.class, -1);
-        checkMessages("/TEST.java:1: class, interface, or enum expected",5);
+        checkMessages("/TEST.java:1: Unexpected or misspelled JML token: refines",5);
     }
 
 

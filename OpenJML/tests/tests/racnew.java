@@ -439,6 +439,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testResult() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
                 "}"
