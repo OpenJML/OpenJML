@@ -29,7 +29,6 @@ public class racnew2 extends RacBase {
         options.put("-showNotImplemented", "");
         options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
         options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
-        options.put("-showrac", "");
         options.put("-noRacSource", "");
         //options.put("-verboseness",   "4");
         expectedNotes = 0;

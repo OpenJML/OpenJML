@@ -685,7 +685,7 @@ public class API implements IAPI {
     
     protected BasicProgram mostRecentProgram = null; // FIXME - document
     
-    protected IProver mostRecentProver = null; // FIXME
+    //protected IProver mostRecentProver = null; // FIXME
     
     // TODO: document
     /* (non-Javadoc)
@@ -744,25 +744,25 @@ public class API implements IAPI {
         
         // OLD style
         
-        ICounterexample ce = getProofResult(mostRecentProofMethod).counterexample();
-        if (ce == null) {
-        	out = "There is no counterexample information";
-        } else {
-        	JCTree logical = mostRecentProgram.toLogicalForm.get(node);
-        	if (logical == null) {
-        		out = out + "No corresponding logical form";
-        	} else {
-        		//out = out + "Logical form: " + logical.toString() + "\n";
-        		String value = ce.get(logical);
-        		if (value == null) value = ce.get(logical.toString());
-        		if (value == null) {
-        			out = out + "No value found";
-        		} else {
-        			out = out + "Value: " + value;
-        		}
-        	}
-        }
-        return out;
+//        ICounterexample ce = getProofResult(mostRecentProofMethod).counterexample();
+//        if (ce == null) {
+//        	out = "There is no counterexample information";
+//        } else {
+//        	JCTree logical = mostRecentProgram.toLogicalForm.get(node);
+//        	if (logical == null) {
+//        		out = out + "No corresponding logical form";
+//        	} else {
+//        		//out = out + "Logical form: " + logical.toString() + "\n";
+//        		String value = ce.get(logical);
+//        		if (value == null) value = ce.get(logical.toString());
+//        		if (value == null) {
+//        			out = out + "No value found";
+//        		} else {
+//        			out = out + "Value: " + value;
+//        		}
+//        	}
+//        }
+        return "Counterexample information not implemented"; //out;
     }
     
     /* (non-Javadoc)
@@ -777,7 +777,7 @@ public class API implements IAPI {
         esc.check(decl);
         mostRecentProofMethod = msym;
         mostRecentProgram = esc.mostRecentProgram;
-        mostRecentProver = esc.mostRecentProver;
+        //mostRecentProver = esc.mostRecentProver;
         
         return getProofResult(msym);
     }

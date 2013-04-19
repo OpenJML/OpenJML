@@ -147,6 +147,9 @@ public class Strings {
     /** The prefix for names of assertions that are to be specifically checked */
     final static public String assertPrefix =  "ASSERT_"; //$NON-NLS-1$
 
+    /** The prefix for names of assumptions */
+    final static public String assumePrefix =  "ASSUME_"; //$NON-NLS-1$
+
     /** TODO: ??? */
     final static public String prePrefix = "Pre_"; //$NON-NLS-1$
     
@@ -197,4 +200,8 @@ public class Strings {
     
     /** Name used for the array of allocation state */
     public final static String isAllocName = "_isalloc__";
+    
+    /** Name used to represent the 'this' object for non-static methods */
+    public final static String thisName = "THIS";
+    
 }

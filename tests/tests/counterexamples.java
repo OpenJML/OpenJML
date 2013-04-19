@@ -181,7 +181,6 @@ public class counterexamples extends EscBase {
     /** Tests pure methods */
     @Test
     public void testCE7() {
-        //options.put("-show",""); options.put("-method","m2"); options.put("-showds","");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -520,7 +519,7 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE16() {
-        main.addOptions("-show","-subexpressions","-method=m1"); 
+        //main.addOptions("-show","-subexpressions","-method=m1"); 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

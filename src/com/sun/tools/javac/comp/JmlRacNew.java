@@ -734,7 +734,7 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
     
     // TODO - document
     JCStatement undefinedCheck(Symbol owner, String prefix, List<JCStatement> stats) {
-        JCCatch ct = treeutils.makeCatcher(owner);
+        JCCatch ct = treeutils.makeCatcher(owner,syms.exceptionType);
         ct.body.stats = List.<JCStatement>of(methodCallUndefined(prefix));
         JCStatement s = factory.Try(factory.Block(0,stats), // FIXME - pos
                 List.<JCCatch>of(ct),

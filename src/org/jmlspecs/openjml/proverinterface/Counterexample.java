@@ -24,27 +24,22 @@ public class Counterexample implements IProverResult.ICounterexample {
     protected Map<JCTree,String> mapv = new HashMap<JCTree,String>();
     private List<IProverResult.Span> path;
     
-    @Override
     public void put(String key,String value) {
         map.put(key,value);
     }
     
-    @Override
     public void putMap(Map<String,String> map) {
         this.map.putAll(map);
     }
     
-    @Override
     public Map<String,String> getMap() {
         return this.map;
     }
 
-    @Override
     public void put(JCTree expr,String value) {
         mapv.put(expr,value);
     }
 
-    @Override
     public String get(String key) {
         return map.get(key);
     }

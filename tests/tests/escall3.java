@@ -76,7 +76,6 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        //main.addOptions("-show","-method=m1good");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  

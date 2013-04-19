@@ -81,6 +81,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.proverinterface.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProver;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
@@ -2666,7 +2667,7 @@ public class BasicBlocker extends JmlTreeScanner {
             JCIdent baseId = newIdentUse(base.sym, pos);
             JCIdent newId = newIdentIncarnation(newp, 0);
             JCExpression eq = trSpecExpr(
-                    treeutils.makeEquality(pos, newId, baseId),
+                    treeutils.makeBinary(pos, JCTree.EQ, newId, baseId),
                     ((ClassSymbol) baseMethod.sym.owner).sourcefile);
             addAssume(pos, Label.SYN, eq, b.statements);
         }
@@ -7995,7 +7996,7 @@ public class BasicBlocker extends JmlTreeScanner {
 
         /** The counterexample information */
         @NonNull
-        ICounterexample ce;
+        Counterexample ce;
 
         /** The log for output */
         @NonNull
@@ -8031,7 +8032,7 @@ public class BasicBlocker extends JmlTreeScanner {
          *            the counterexample information to translate
          */
         public String trace(@NonNull Context context,
-                @NonNull JCMethodDecl decl, @NonNull ICounterexample s) {
+                @NonNull JCMethodDecl decl, @NonNull Counterexample s) {
             Tracer t = new Tracer(context, s);
             try {
                 try {
@@ -8075,7 +8076,7 @@ public class BasicBlocker extends JmlTreeScanner {
          * @param s
          *            the counterexample information
          */
-        protected Tracer(@NonNull Context context, @NonNull ICounterexample s) {
+        protected Tracer(@NonNull Context context, @NonNull Counterexample s) {
             this.context = context;
             ce = s;
             log = Log.instance(context);
@@ -8227,7 +8228,7 @@ public class BasicBlocker extends JmlTreeScanner {
      *            the prover from which the counterexample information came
      */
     public static String trace(@NonNull Context context,
-            @NonNull BasicProgram program, @NonNull ICounterexample ce,
+            @NonNull BasicProgram program, @NonNull Counterexample ce,
             IProver prover) {
         String s = null;
         try {
@@ -8253,7 +8254,7 @@ public class BasicBlocker extends JmlTreeScanner {
     public static class TracerBB extends JmlTreeScanner {
 
         /** The counterexample information */
-        ICounterexample          ce;
+        Counterexample          ce;
 
         boolean                  showSubexpressions;
 
@@ -8312,7 +8313,7 @@ public class BasicBlocker extends JmlTreeScanner {
 
         // FIXME - DOCUMENT
         public static String trace(@NonNull Context context,
-                @NonNull BasicProgram program, ICounterexample ce,
+                @NonNull BasicProgram program, Counterexample ce,
                 IProver prover) {
             try {
                 return new TracerBB(context).trace(program, ce, prover);
@@ -8323,7 +8324,7 @@ public class BasicBlocker extends JmlTreeScanner {
 
         // @ ensures this.program != null && this.ce != null;
         // @ ensures this.program != program && this.ce != ce;
-        public String trace(@NonNull BasicProgram program, ICounterexample ce,
+        public String trace(@NonNull BasicProgram program, Counterexample ce,
                 IProver prover) throws IOException {
             this.ce = ce;
             this.program = program;
@@ -8374,7 +8375,7 @@ public class BasicBlocker extends JmlTreeScanner {
         // information in these methods.
 
         // FIXME - Review
-        protected boolean traceBlockStatements(BasicBlock b, ICounterexample ce)
+        protected boolean traceBlockStatements(BasicBlock b, Counterexample ce)
                 throws IOException {
             w.append(" [ block " + b.id() + " ]\n");
             boolean sawFalseAssert = false;
@@ -9052,7 +9053,7 @@ public class BasicBlocker extends JmlTreeScanner {
             } else if (!res.isSat()) {
                 throw new RuntimeException("ERROR: no longer satisfiable");
             } else {
-                ICounterexample nce = res.counterexample();
+                Counterexample nce = (Counterexample)res.counterexample();
                 for (JCBinary bin : exprs) {
                     JCIdent id = (JCIdent) bin.lhs;
                     String value = nce.get(id.toString());
@@ -9096,7 +9097,7 @@ public class BasicBlocker extends JmlTreeScanner {
             } else if (!res.isSat()) {
                 w.append("ERROR: no longer satisfiable\n");
             } else {
-                ICounterexample nce = res.counterexample();
+                Counterexample nce = (Counterexample)res.counterexample();
                 List<String> out = new LinkedList<String>();
                 int k = 0;
                 for (JCIdent id : ids) {
@@ -9143,7 +9144,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 } else if (!res.isSat()) {
                     w.append("ERROR: no longer satisfiable\n");
                 } else {
-                    ICounterexample nce = res.counterexample();
+                    Counterexample nce = (Counterexample)res.counterexample();
                     String value = nce.get(id.name.toString());
                     return value;
                 }

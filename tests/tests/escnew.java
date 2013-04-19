@@ -32,7 +32,6 @@ public class escnew extends EscBase {
         //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
-        //options.put("-showce",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -581,7 +580,6 @@ public class escnew extends EscBase {
     
     @Test // FIXME _ needs type relationships
     public void testTry2() {
-        main.addOptions("-method", "m4agood","-show","-trace","-ce");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int kk;\n"

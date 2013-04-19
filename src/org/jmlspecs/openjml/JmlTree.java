@@ -201,19 +201,6 @@ public class JmlTree implements IJmlTree {
             return t;
         }
         
-        /** Overridden because super.Literal(value) appears to have forgotten
-         * the boolean case.
-         */
-        @Override 
-        public JCLiteral Literal(Object value) {
-            if (value instanceof Boolean) {
-                return super.Literal(TypeTags.BOOLEAN,(Boolean)value ? 1 : 0)
-                    .setType(Symtab.instance(context).booleanType.constType(value));
-            } else {
-                return super.Literal(value);
-            }
-        }
-        
         /** Convenience method to create a qualified identifier - either a 
          * JCIdent or a JCFieldAccess; this is used for field names and
          * for qualified type names.
@@ -329,7 +316,7 @@ public class JmlTree implements IJmlTree {
         }
 
         /** Creates a variable declaration with symbol and type filled in from its components;
-         * does not fill in the sourcefile */  // FIXME - it does fill in the sourcefile - is that what we want?
+         * sourcefile set from current log */
         @Override
         public JmlVariableDecl VarDef(VarSymbol v, /*@Nullable*/ JCExpression init) {
             JmlVariableDecl tree = new JmlVariableDecl(
@@ -341,12 +328,13 @@ public class JmlTree implements IJmlTree {
             tree.pos = pos;
             tree.setType(v.type);
             tree.sourcefile = Log.instance(context).currentSourceFile();
+            // Not filled in: docComment, fieldSpecs, fieldSpecsCombined, specsDecl
             return tree;
         }
 
         
         /** Creates a variable declaration from its components; captures the sourcefile
-         * from the current value in the log */
+         * from the current value in the log; no symbol created. */
         @Override
         public JmlVariableDecl VarDef(JCModifiers mods,
                 Name name,
@@ -356,6 +344,7 @@ public class JmlTree implements IJmlTree {
             tree.pos = pos;
             tree.type = vartype.type; // attribute if the type is known
             tree.sourcefile = Log.instance(context).currentSourceFile();
+            // Not filled in: symbol, docComment, fieldSpecs, fieldSpecsCombined, specsDecl
             return tree;
         }
 

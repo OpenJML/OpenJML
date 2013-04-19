@@ -76,10 +76,6 @@ public class esc extends EscBase {
 
     @Test  @Ignore // FIXME - needs more builtin invariants to accomplish the proofs
     public void testForEachA() {
-//        options.put("-method", "m1");
-//        //options.put("-ce", "");
-//        options.put("-show", "");
-//        //options.put("-trace", "");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

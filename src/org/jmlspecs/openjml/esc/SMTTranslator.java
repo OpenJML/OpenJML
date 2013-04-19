@@ -14,12 +14,14 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
 import org.smtlib.IExpr.IDeclaration;
+import org.smtlib.IExpr.ISymbol;
 import org.smtlib.IParser;
 import org.smtlib.ISort;
 import org.smtlib.SMT;
@@ -80,6 +82,8 @@ public class SMTTranslator extends JmlTreeScanner {
     
     protected javax.lang.model.util.Types types;
     
+    protected JmlTreeUtils treeutils;
+    
     /** The factory for creating SMTLIB expressions */
     protected Factory F;
     
@@ -122,6 +126,8 @@ public class SMTTranslator extends JmlTreeScanner {
         syms = Symtab.instance(context);
         names = Names.instance(context);
         types = JavacTypes.instance(context);
+        treeutils = JmlTreeUtils.instance(context);
+        
         F = new org.smtlib.impl.Factory();
         nullRef = F.symbol(NULL);
         thisRef = F.symbol(this_);
@@ -135,6 +141,10 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t != null) {
             super.scan(t);
             if (result != null && t instanceof JCExpression) bimap.put((JCExpression)t, result);
+            if (result != null && t instanceof JCVariableDecl) {
+                JCIdent id = treeutils.makeIdent(t.pos,((JCVariableDecl)t).sym);
+                bimap.put(id, result);
+            }
         }
     }
     
@@ -230,10 +240,12 @@ public class SMTTranslator extends JmlTreeScanner {
                         sort = F.createSortExpression(F.symbol("Array"),intSort,sort); 
                         sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
                     }
-                    c = new C_declare_fun(F.symbol(nm),
+                    ISymbol sym = F.symbol(nm);
+                    c = new C_declare_fun(sym,
                             new LinkedList<ISort>(),
                             sort);
                     commands.add(c);
+                    bimap.put(id,sym);
                 } catch (RuntimeException ee) {
                     // skip - error already issued// FIXME - better error recovery?
                 }
@@ -244,11 +256,13 @@ public class SMTTranslator extends JmlTreeScanner {
         for (BasicProgram.Definition e: program.definitions()) {
             try {
                 scan(e.value);
-                c = new C_define_fun(F.symbol(e.id.toString()),
+                ISymbol sym = F.symbol(e.id.toString());
+                c = new C_define_fun(sym,
                         new LinkedList<IDeclaration>(),
                         convertSort(e.id.type),
                         result);
                 commands.add(c);
+                bimap.put(e.id,sym);
             } catch (RuntimeException ee) {
                 // skip - error already issued // FIXME - better error recovery?
             }
@@ -348,17 +362,19 @@ public class SMTTranslator extends JmlTreeScanner {
                 // convert to a declaration or definition
                 IExpr init = decl.init == null ? null : convertExpr(decl.init);
                 
+                ISymbol sym = F.symbol(decl.name.toString());
                 ICommand c = init == null ?
                         new C_declare_fun(
-                                F.symbol(decl.name.toString()),
+                                sym,
                                 new LinkedList<ISort>(),
                                 convertSort(decl.type))
                 : new C_define_fun(
-                        F.symbol(decl.name.toString()),
+                        sym,
                         new LinkedList<IDeclaration>(),
                         convertSort(decl.type),
                         init);
                  commands.add(c);
+                 bimap.put(treeutils.makeIdent(0, decl.name.toString(), decl.type), sym);
                  return convert(iter,tail);
             } else if (stat instanceof JmlStatementExpr) {
                 IExpr ex = convert(iter,tail);
