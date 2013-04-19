@@ -71,6 +71,7 @@ public enum JmlOption implements IOption {
     MAXWARNINGS("-escMaxWarnings",true,"ESC: Maximum number of warnings to find per method",null),
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
+    FEASIBILITY("-checkFeasibility",true,"ESC: Check feasibility of assumptions",null),
     ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     ASSOCINFO("-crossRefAssociatedInfo",false,">...",null),
     

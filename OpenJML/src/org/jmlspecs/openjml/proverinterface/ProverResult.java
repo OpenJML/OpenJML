@@ -109,11 +109,11 @@ public class ProverResult implements IProverResult {
     /** Returns the counterexample information, if any available and if the
      * prover supports it
      */
-    public Counterexample counterexample() {
+    public ICounterexample counterexample() {
         if (details == null) return null;
         for (IProverResult.Item i: details) {
-            if (i instanceof Counterexample) {
-                return (Counterexample)i;
+            if (i instanceof ICounterexample) {
+                return (ICounterexample)i;
             }
         }
         return null;

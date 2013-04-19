@@ -186,6 +186,15 @@ IWorkbenchPreferencePage {
         		    },
                 getFieldEditorParent()));
         
+        addField(new ComboFieldEditor(Options.feasibilityKey, Messages.OpenJMLUI_PreferencesPage_Feasibility,
+        		new String[][]{ 
+        			{"all", "all" },  //$NON-NLS-1$
+        			{"preconditions","preconditions"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"exit", "exit"},   //$NON-NLS-1$ //$NON-NLS-2$
+        			{"none", "none"},   //$NON-NLS-1$ //$NON-NLS-2$
+        		    },
+                getFieldEditorParent()));
+        
         // RAC
         
 		addField(new LabelFieldEditor("zzzzz.RAC","",SWT.NONE, //$NON-NLS-1$ //$NON-NLS-2$

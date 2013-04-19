@@ -1033,8 +1033,8 @@ public class OpenJMLInterface {
         List<String> opts = new LinkedList<String>();
         if (cmd != null) {
             opts.add(JmlOption.COMMAND.optionName() +"="+ cmd);
-            if (Options.isOption(Options.noCheckPurityKey)) opts.add(JmlOption.NOPURITYCHECK.optionName());
-            if (Options.isOption(Options.showKey)) opts.add(JmlOption.SHOW.optionName());
+            opts.add(JmlOption.NOPURITYCHECK.optionName() +"="+ Options.isOption(Options.noCheckPurityKey));
+            opts.add(JmlOption.SHOW.optionName() +"="+ Options.isOption(Options.showKey));
         }
         if (cmd == Main.Cmd.ESC) {
             opts.add(JmlOption.ASSOCINFO.optionName());
@@ -1042,6 +1042,7 @@ public class OpenJMLInterface {
             opts.add(JmlOption.PROVER.optionName() +"="+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
             opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
+            opts.add(JmlOption.FEASIBILITY.optionName() +"="+ Options.value(Options.feasibilityKey));
         }
         
         if (cmd == Main.Cmd.RAC) {

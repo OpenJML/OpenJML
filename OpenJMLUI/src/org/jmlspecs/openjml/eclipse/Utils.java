@@ -80,6 +80,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -337,6 +338,19 @@ public class Utils {
 		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
 	}
+	
+	/** Checks for dirty editors; pops up a dialog to ask the user what
+	 * to do. Returns true if the operation is to be canceled.
+	 * @return
+	 */
+	public boolean checkForDirtyEditors(@Nullable final Shell shell, @Nullable final IWorkbenchWindow  window) {
+		if (window != null) for (IWorkbenchPage page: window.getPages()) {
+			if (page.getDirtyEditors().length != 0) {
+				showMessage(shell, "ESC", "Some editors are not saved. Proceed anyway?");
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * This routine initiates (as a Job) executing ESC on all the Java files in
@@ -360,6 +374,7 @@ public class Utils {
 			showMessage(shell, "ESC", "Nothing applicable to check");
 			return;
 		}
+		if (checkForDirtyEditors(shell, window)) return;
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
 			deleteMarkers(res, shell);
@@ -1159,6 +1174,7 @@ public class Utils {
 	 */
 	public void showCEValueForTextSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, Shell shell) {
+		if (checkForDirtyEditors(shell,window)) return;
 		ITextSelection selectedText = getSelectedText(selection);
 		if (selectedText == null) {
 			showMessage(shell, "JML", "No text is selected");
@@ -1166,12 +1182,7 @@ public class Utils {
 		}
 		int pos = selectedText.getOffset();
 		int end = pos + selectedText.getLength() - 1;
-		if (end < pos) {
-			showMessage(shell, "JML", "No text is selected");
-			return;
-		}
 		String s = selectedText.getText();
-		// showMessage(shell,"JML",pos + " " + end + " " + "Selected " + s);
 		IResource r = getSelectedResources(selection, window, shell).get(0);
 		// FIXME - need to do this in another thread. ?
 		String result = getInterface(JavaCore.create(r.getProject()))
@@ -1259,7 +1270,7 @@ public class Utils {
 
 	// TODO - document
 	public ITextSelection getSelectedText(@NonNull ISelection selection) {
-		if (!selection.isEmpty() && selection instanceof ITextSelection) {
+		if (selection instanceof ITextSelection) {
 			return (ITextSelection) selection;
 		} else {
 			return null;

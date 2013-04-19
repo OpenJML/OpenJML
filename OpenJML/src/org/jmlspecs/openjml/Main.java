@@ -694,7 +694,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
         
-        String limit = options.get(JmlOption.MAXWARNINGS.optionName());
+        String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
         if (limit == null || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {
@@ -706,6 +706,18 @@ public class Main extends com.sun.tools.javac.main.Main {
                 Log.instance(context).noticeWriter.println("Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
                 utils.maxWarnings = Integer.MAX_VALUE;
             }
+        }
+        
+        String check = JmlOption.value(context,JmlOption.FEASIBILITY);
+        if (check == null) {
+            options.put(JmlOption.FEASIBILITY.optionName(),"all");
+        } else if (check.equals("all") || 
+                check.equals("preconditions") || 
+                check.equals("exit") || 
+                check.equals("none")) {
+            // continue
+        } else {
+            Log.instance(context).noticeWriter.println("Expected 'all' or 'none' or 'preconditions' as argument for -checkFeasibility: " + check);
         }
         return true;
 }

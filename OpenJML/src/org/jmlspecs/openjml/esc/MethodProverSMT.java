@@ -90,7 +90,7 @@ public class MethodProverSMT {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
-        this.showSubexpressions = true || this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
         this.showTrace = verbose || this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = verbose;
@@ -139,6 +139,9 @@ public class MethodProverSMT {
             basicBlocker = new BasicBlocker2(context);
             program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
             if (printPrograms) {
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                log.noticeWriter.println(Strings.empty);
                 log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym) + JmlTree.eol +
                         program.toString());
             }
@@ -147,7 +150,9 @@ public class MethodProverSMT {
             ICommand.IScript script = smttrans.convert(program,smt);
             if (printPrograms) {
                 try {
-                    log.noticeWriter.println();
+                    log.noticeWriter.println(Strings.empty);
+                    log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                    log.noticeWriter.println(Strings.empty);
                     log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
                     org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
                     log.noticeWriter.println();
@@ -180,37 +185,57 @@ public class MethodProverSMT {
                 if (jmlesc.verbose) log.noticeWriter.println("Method checked OK");
                 proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.UNSAT);
                 
-                java.util.List<JCTree.JCParens> a = jmlesc.assertionAdder.assumptionChecks.get(methodDecl.sym);
-                if (a != null) { // FIXME - warn if a null? perhaps just an artifact of assertig a constructor
-                    a.get(0).expr = JmlTreeUtils.instance(context).falseLit;
-                    BasicBlocker2 basicBlocker2 = new BasicBlocker2(context);
-                    BasicProgram program2 = basicBlocker2.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
-                    if (printPrograms) {
-                        log.noticeWriter.println("BASIC BLOCK FORM OF " 
-                                + utils.qualifiedMethodSig(methodDecl.sym)
-                                + " FOR CHECKING FEASIBILITY"
-                                + JmlTree.eol
-                                + program2.toString());
+                if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
+                    java.util.List<JCTree.JCParens> a = jmlesc.assertionAdder.assumptionChecks.get(methodDecl.sym);
+                    boolean first = true;
+                    if (a != null) for (JCParens assumptionExpr: a) { // FIXME - warn if a null? perhaps just an artifact of assertig a constructor
+                        JCExpression prevExpr = assumptionExpr.expr;
+                        assumptionExpr.expr = JmlTreeUtils.instance(context).falseLit;
+                        try {
+                            BasicBlocker2 basicBlocker2 = new BasicBlocker2(context);
+                            BasicProgram program2 = basicBlocker2.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
+                            if (printPrograms) {
+                                log.noticeWriter.println(Strings.empty);
+                                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                                log.noticeWriter.println(Strings.empty);
+                                log.noticeWriter.println("BASIC BLOCK FORM OF " 
+                                        + utils.qualifiedMethodSig(methodDecl.sym)
+                                        + " FOR CHECKING FEASIBILITY"
+                                        + JmlTree.eol
+                                        + program2.toString());
+                            }
+
+                            // create an SMT object, adding any options
+                            smt.processCommandLine(new String[]{}, smt.smtConfig);
+
+                            // convert the basic block form to SMT
+                            SMTTranslator smttrans2 = new SMTTranslator(context);
+                            ICommand.IScript script2 = smttrans2.convert(program2,smt);
+
+
+                            ISolver solver2 = smt.startSolver(smt.smtConfig,jmlesc.proverToUse,exec);
+
+                            // Try the prover
+                            if (jmlesc.verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+                            solverResponse = script2.execute(solver2); // Note - the solver knows the smt configuration
+                            solver2.exit();
+                            if (solverResponse.toString().equals("unsat")) {
+                                if (first) {
+                                	log.warning(assumptionExpr.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                                    proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
+                                    // If the preconditions are inconsistent, all subsequent paths will be infeasible as well
+                                    break;
+                                } else {
+                                	log.warning(assumptionExpr.pos(), "esc.infeasible.assumption", utils.qualifiedMethodSig(methodDecl.sym));
+                                    proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
+                                }
+                            }
+                        } finally {
+                        	first = false;
+                            assumptionExpr.expr = prevExpr;
+                        }
+                        if (!JmlOption.value(context, JmlOption.FEASIBILITY).equals("all")) break;
                     }
-
-                    // create an SMT object, adding any options
-                    smt.processCommandLine(new String[]{}, smt.smtConfig);
-
-                    // convert the basic block form to SMT
-                    SMTTranslator smttrans2 = new SMTTranslator(context);
-                    ICommand.IScript script2 = smttrans2.convert(program2,smt);
-
-
-                    ISolver solver2 = smt.startSolver(smt.smtConfig,jmlesc.proverToUse,exec);
-
-                    // Try the prover
-                    if (jmlesc.verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
-                    solverResponse = script2.execute(solver2); // Note - the solver knows the smt configuration
-                    if (solverResponse.toString().equals("unsat")) {
-                        log.warning(methodDecl.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
-                        proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
-                    }
-                    solver2.exit();
                 }
             } else {
                 int count = Utils.instance(context).maxWarnings;
@@ -658,10 +683,6 @@ public class MethodProverSMT {
                 e.falsepart.accept(this);
             }
             String sv = cemap.get(e);
-//            JCTree ex = jmap.getr(e);
-//            if (sv != null && ex != null) {
-//                log.noticeWriter.println(ex + " === " + sv);
-//            }
             result = sv;
         }
         
@@ -696,34 +717,25 @@ public class MethodProverSMT {
         
     }
     
+    /** Fetch values for all expressions that are targets of the mapping in smttrans. */
     public Map<String,String> constructSMTCounterexample(SMTTranslator smttrans, ISolver solver) {
-//        IExpr[] e = smttrans.bimap.reverse.keySet().toArray(new IExpr[0]);
-//        IResponse resp = solver.get_value(e);
-//        if (resp instanceof ISexpr.ISeq) {
-//            ISexpr.ISeq seq = (ISexpr.ISeq)resp;
-//            for (ISexpr s: seq.sexprs()) {
-//                // This is not helpful unless the result is in the same order as the input
-//            }
-//        }
-        
         Map<String,String> ce = new HashMap<String,String>();
         IExpr[] ee = new IExpr[1];
         for (IExpr e: smttrans.bimap.forward.values()) {
             String key = smttrans.bimap.getr(e).toString();
+            if (ce.get(key) != null) continue;
             ee[0] = e;
             IResponse resp = solver.get_value(ee);
             if (resp instanceof ISexpr.ISeq) {
                 ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
                 ISexpr value = ((ISexpr.ISeq)pair).sexprs().get(1);
                 ce.put(key, value.toString());
-                log.noticeWriter.println("GOT " + key + " ::::: " + value);
-            } else {
-                log.noticeWriter.println("GOT " + key + " : FAILED");
             }
         }
         return ce;
     }
     
+    /** Construct the mapping from original source subexpressions to values in the current solver model. */
     public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
         boolean verbose = false;
         if (verbose) {
@@ -757,20 +769,6 @@ public class MethodProverSMT {
             }
             log.noticeWriter.println("\nORIGINAL <==> SMT");
         }
-        //BiMap<JCTree,IExpr> cb = assertionAdder.exprBiMap.compose(basicBlocker.bimap).compose(smttrans.bimap);
-        
-//        if (verbose) {
-//            for (JCTree e: cb.forward.keySet()) {
-//                IExpr v = cb.getf(e);
-//                if (v != null && cb.getr(v) == e) {
-//                    log.noticeWriter.println(e.toString() + " <==> " + v);
-//                } else {
-//                    log.noticeWriter.println(e.toString() + " ===> " + v);
-//                }
-//                // FIXME - should use proper printers, not toString()
-//            }
-//            log.noticeWriter.println("\nORIGINAL <==> VALUE");
-//        }
         Map<String,String> ce = constructSMTCounterexample(smttrans,solver);
         Map<JCTree,String> values = new HashMap<JCTree,String>();
         for (JCTree t : assertionAdder.exprBiMap.forward.keySet() ) {
@@ -783,20 +781,8 @@ public class MethodProverSMT {
             if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as wtih field or array assignments)
             String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + t3);
+            //log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + t3);
         }
-
-//        Map<JCTree,String> values = cb.compose(ce);
-//        if (verbose) {
-//            SortedSet<String> set = new TreeSet<String>();
-//            for (JCTree e: values.keySet()) {
-//                int line = log.currentSource().getLineNumber(e.pos);
-//                set.add("line " + String.format("%1$3d",line) + ": " + e.type + " " + JmlPretty.write(e) + " = " + values.get(e));
-//            }
-//            for (String s: set) {
-//                log.noticeWriter.println(s);
-//            }
-//        }
         return values;
     }
 

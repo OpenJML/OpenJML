@@ -693,8 +693,6 @@ public class API implements IAPI {
      */
     @Override
     public String getCEValue(int pos, int end, String text, String fileLocation) {
-        //String msg = "Seeking character range " + pos + " to " + end + " in " + fileLocation.toString()
-        //    + "\n";
         fileLocation = fileLocation.replace('\\','/');
         if (mostRecentProofMethod == null) {
             return "No proof in which to evaluate the selection";
