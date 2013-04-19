@@ -25,7 +25,6 @@ public class racnew extends RacBase {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         main.addUndocOption("-newesc");
-        main.addUndocOption("-showrac");
         main.addOptions("-showNotImplemented");
         main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
@@ -439,7 +438,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testResult() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  m(1); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
                 "}"
@@ -501,7 +499,6 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static int m(int i) { k=i; return i; } " +
                 "}"
@@ -539,7 +536,6 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld3() {  // FIXME - \old at a label not working for RAC
-        //print = true; main.addUndocOption("-showrac");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 + "public static void main(String[] args) { \n"
                 + "  m(1); m(0); \n"
@@ -2336,7 +2332,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuperInvariant() {
-        //print = true; main.addUndocOption("-showrac");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"

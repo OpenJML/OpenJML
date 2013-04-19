@@ -2200,7 +2200,6 @@ public class rac extends RacBase {
 
     // FIXME - does not do inherited invariant checking
     @Test public void testSuperInvariantB() {
-        //print = true; options.put("-showrac","");
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@  invariant i == 2; \n"
                 +"}\n"

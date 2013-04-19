@@ -23,10 +23,6 @@ public class escgeneric extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
-//        options.put("-show",   "");
-//        options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
         //JmlEsc.escdebug = false;
     }
     
@@ -76,10 +72,6 @@ public class escgeneric extends EscBase {
     
     @Test @Ignore
     public void testGenericType() {
-//        options.put("-show","");
-//        options.put("-trace","");
-//        options.put("-method","m");
-//        JmlEsc.escdebug= true;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
@@ -158,9 +150,6 @@ public class escgeneric extends EscBase {
     
     @Test  @Ignore
     public void testTypeParameter2() {
-//        options.put("-show","");
-//        options.put("-trace","");
-//              options.put("-method","mb");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -185,9 +174,6 @@ public class escgeneric extends EscBase {
     // FIXME - autoboxing not working for ESC
     @Ignore @Test
     public void testForEach3() {
-      options.put("-show","");
-      options.put("-trace","");
-            options.put("-method","m");
         helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"

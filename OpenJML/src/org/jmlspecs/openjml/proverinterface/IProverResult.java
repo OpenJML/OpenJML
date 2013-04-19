@@ -47,8 +47,11 @@ public interface IProverResult {
     /** Category of result produced by the prover */
     public Kind result();
 
+    //@ model public Kind _result;
+    
     /** Sets the category of result produced by the prover */
-    //@ ensures r == result();  // FIXME - needs an assignable statement
+    //@ assignable _result;
+    //@ ensures r == result();
     public void result(@NonNull Kind r);
 
     /** True if the prover was able to produce a satisfying assignment 
@@ -108,24 +111,24 @@ public interface IProverResult {
      */
     public static interface ICounterexample extends Item {
 
-        /** Adds a variable - value pair to the counterexample 
-         * @param variable the String name of the variable
-         * @param value    the String representation of the value
-         */
-        public void put(String variable,String value);
-
-        /** Retrieves the String representation of the value for a given
-         * variable; returns null if none present in this counterexample.
-         * @param variable
-         * @return the corresponding value, in String form, or null if none available
-         */
-        public String get(String variable);
-
-        // TODO - needs more documentation
-        
-        public void put(JCTree expr,String value);
-        public void putMap(Map<String,String> map);
-        public Map<String,String> getMap();
+//        /** Adds a variable - value pair to the counterexample 
+//         * @param variable the String name of the variable
+//         * @param value    the String representation of the value
+//         */
+//        public void put(String variable,String value);
+//
+//        /** Retrieves the String representation of the value for a given
+//         * variable; returns null if none present in this counterexample.
+//         * @param variable
+//         * @return the corresponding value, in String form, or null if none available
+//         */
+//        public String get(String variable);
+//
+//        // TODO - needs more documentation
+//        
+//        public void put(JCTree expr,String value);
+//        public void putMap(Map<String,String> map);
+//        public Map<String,String> getMap();
         
         public String get(JCTree expr);
 

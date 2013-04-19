@@ -132,4 +132,9 @@ public class ProverResult implements IProverResult {
         }
         return null;
     }
+    
+    /** Informational string */
+    public String toString() {
+        return result() + " [" + prover() + "]";
+    }
 }

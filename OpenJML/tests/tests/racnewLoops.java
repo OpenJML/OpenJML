@@ -24,7 +24,6 @@ public class racnewLoops extends RacBase {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         main.addUndocOption("-newesc");
-        main.addUndocOption("-showrac");
         main.addOptions("-showNotImplemented");
         main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way

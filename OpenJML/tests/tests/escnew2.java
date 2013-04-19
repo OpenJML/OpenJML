@@ -25,8 +25,6 @@ public class escnew2 extends EscBase {
         super.setUp();
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        main.addOptions("-show");
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //options.put("-counterexample",   "");
@@ -213,7 +211,6 @@ public class escnew2 extends EscBase {
     }
 
      @Test public void testReceiver5() { 
-         main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -389,7 +386,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
-        main.addOptions("-show","-method=m");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"

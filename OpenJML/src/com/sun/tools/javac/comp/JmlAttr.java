@@ -4587,9 +4587,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         
         Name value = names.fromString(name);
-        JCExpression s = factory.Select(e,value);
-        s = factory.Apply(null,s,List.<JCExpression>nil());
-        return s;
+        JCFieldAccess s = factory.Select(e,value);
+        s.type = vartype;  // FIXME - no sym set? or is this a method type?
+        JCMethodInvocation ss = factory.Apply(null,s,List.<JCExpression>nil());
+        ss.type = vartype; // FIXME - typeargs, varargselement ?
+        return ss;
     }
     
     /** Translates an enhanced for loop into a traditional for loop so that

@@ -514,7 +514,7 @@ public class JmlCompiler extends JavaCompiler {
             JCCompilationUnit newtree = new JmlAssertionAdder(context,false,true).convert(env.toplevel);
             env.toplevel = newtree;
         }
-        if (JmlOption.isOption(context,"-showrac")) {
+        if (JmlOption.isOption(context,"-show")) {
             log.noticeWriter.println("TRANSLATED RAC");
             log.noticeWriter.println(JmlPretty.write(env.tree,true));
         }

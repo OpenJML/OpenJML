@@ -1291,6 +1291,7 @@ public class api {
                     diags,
                     null,
                     option,
+                    "-show",
                     "-noPurityCheck");
             if (option.equals("-custom")) {
                 
@@ -1305,10 +1306,8 @@ public class api {
             ClassSymbol csym = m.getClassSymbol("A");
             MethodSymbol mmsym = m.getMethodSymbol(csym,"mm");
             MethodSymbol msym = m.getMethodSymbol(csym,"m");
-            IProverResult res = m.getProofResult(mmsym);
-            assertTrue(res == null);
 
-            m.doESC(msym);
+            IProverResult res = m.doESC(msym);
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = diags.getDiagnostics();
             if (dlist.size() != 0) { // Should be none
                 // Print out observed errors for debugging
@@ -1317,17 +1316,15 @@ public class api {
                     System.out.println(d.getMessage(null));
                 }
             }
-            assertEquals(null,res);
-            res = m.getProofResult(msym);
+            //res = m.getProofResult(msym);
             assertTrue(res != null);
             assertEquals(0,dlist.size());
             assertEquals(IProverResult.UNSAT,res.result());
 
-            IProverResult pres = m.doESC(mmsym);
+            res = m.doESC(mmsym);
             endCapture();
-            res = m.getProofResult(mmsym);
+            //res = m.getProofResult(mmsym);
             assertTrue(res != null);
-            assertTrue(pres == res);
             assertEquals(2,dlist.size());
             assertTrue(res.result() == IProverResult.POSSIBLY_SAT || res.result() == IProverResult.SAT);
             

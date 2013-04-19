@@ -941,7 +941,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             catchBlock.statements.addAll(assumptions);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
-            JCVariableDecl d = treeutils.makeSameVarDef(catcher.param.sym, null);
+            JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, null);
                 d.pos = catcher.param.pos;
                 d.init = ex;
                 catchBlock.statements.add(d);

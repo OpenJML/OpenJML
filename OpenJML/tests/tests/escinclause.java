@@ -29,8 +29,6 @@ public class escinclause extends EscBase {
         //options.put("-method",   "m2bad");
         //options.put("-show",   "");
         //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-showce",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;

@@ -126,7 +126,6 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-       // main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
