@@ -120,7 +120,7 @@ public class JmlEsc extends JmlTreeScanner {
             //new JmlAssertionAdder.PositionChecker().check(log,assertionAdder.bimap.getf(tree));
         }
         proverToUse = pickProver();
-        tree.accept(this); 
+        tree.accept(this);
     }
     
     /** Returns the prover specified by the options. */
