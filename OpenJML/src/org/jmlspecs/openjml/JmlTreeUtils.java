@@ -721,9 +721,9 @@ public class JmlTreeUtils {
         // in making the racnew2.testLblConst test work.
         // TODO - figure out why - something in code generation
         VarSymbol v = new VarSymbol(modifierFlags, name, type.baseType(), owner);
-        v.pos = init.pos;
+        v.pos = init.getStartPosition();
         JCVariableDecl d = factory.VarDef(v,init);
-        d.pos = init.pos;
+        d.pos = v.pos;
         return d;
     }
 

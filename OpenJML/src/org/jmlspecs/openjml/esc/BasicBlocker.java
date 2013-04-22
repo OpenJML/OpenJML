@@ -8881,20 +8881,21 @@ public class BasicBlocker extends JmlTreeScanner {
 
         public int doExpr(JCExpression expr, boolean show) {
             int sp = TreeInfo.getStartPos(expr);
-            int ep = TreeInfo.getEndPos(expr, log.currentSource()
-                    .getEndPosTable());
+            int ep = TreeInfo.getEndPos(expr, log.currentSource().getEndPosTable());
             int type = IProverResult.Span.NORMAL;
             String result = values.get(expr.toString());
             type = result == null ? IProverResult.Span.NORMAL : result
                     .equals("true") ? IProverResult.Span.TRUE : result
                     .equals("false") ? IProverResult.Span.FALSE
                     : IProverResult.Span.NORMAL;
-            if (show && sp >= 0 && ep >= sp)
+            if (show && sp >= 0 && ep >= sp) {
+                //log.noticeWriter.println("SPAN " + sp + " " + ep + " " + result + " " + expr );
                 path.add(new IProverResult.Span(sp, ep, type)); // FIXME - don't
                                                                 // think the end
                                                                 // position is
                                                                 // right for
                                                                 // statements
+            }
             return type;
         }
 

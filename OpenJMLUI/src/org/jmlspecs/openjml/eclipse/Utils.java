@@ -70,6 +70,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -340,16 +341,11 @@ public class Utils {
 	}
 	
 	/** Checks for dirty editors; pops up a dialog to ask the user what
-	 * to do. Returns true if the operation is to be canceled.
+	 * to do. Returns false if the operation is to be canceled.
 	 * @return
 	 */
-	public boolean checkForDirtyEditors(@Nullable final Shell shell, @Nullable final IWorkbenchWindow  window) {
-		if (window != null) for (IWorkbenchPage page: window.getPages()) {
-			if (page.getDirtyEditors().length != 0) {
-				showMessage(shell, "ESC", "Some editors are not saved. Proceed anyway?");
-			}
-		}
-		return false;
+	public boolean checkForDirtyEditors() {
+		return PlatformUI.getWorkbench().saveAllEditors(true);
 	}
 
 	/**
@@ -374,7 +370,7 @@ public class Utils {
 			showMessage(shell, "ESC", "Nothing applicable to check");
 			return;
 		}
-		if (checkForDirtyEditors(shell, window)) return;
+		if (!checkForDirtyEditors()) return;
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
 			deleteMarkers(res, shell);
@@ -1174,7 +1170,7 @@ public class Utils {
 	 */
 	public void showCEValueForTextSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, Shell shell) {
-		if (checkForDirtyEditors(shell,window)) return;
+		if (!checkForDirtyEditors()) return;
 		ITextSelection selectedText = getSelectedText(selection);
 		if (selectedText == null) {
 			showMessage(shell, "JML", "No text is selected");

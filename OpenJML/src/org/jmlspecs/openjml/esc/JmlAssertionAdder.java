@@ -1333,7 +1333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        d.mods.flags |= Flags.FINAL;
 //        d.sym.flags_field |= Flags.FINAL;
         currentStatements.add(d);
-        JCIdent id = treeutils.makeIdent(expr.pos,d.sym);
+        JCIdent id = treeutils.makeIdent(expr.getStartPosition(),d.sym);
         treeutils.copyEndPosition(d,expr);
         treeutils.copyEndPosition(id,expr);
         return id;
@@ -3252,16 +3252,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             if (clauseToReference != null) {
                 pushBlock();
-                if (!translatingJML) {
-                    addAssert(that.pos(),Label.PRECONDITION,
-                            combinedPrecondition,
-                            clauseToReference.pos(),clauseToReference.source());
-                } else {
+                if (translatingJML) {
                     JCExpression conj = treeutils.makeAnd(methodDecl.pos, collectedInvariants, combinedPrecondition);
                     addAssert(that.pos(),Label.UNDEFINED_PRECONDITION,
                             treeutils.makeImplies(methodDecl.pos, condition, conj),
                             clauseToReference.pos(),clauseToReference.source());
                     
+                } else {
+                    addAssert(that.pos(),Label.PRECONDITION,
+                            combinedPrecondition,
+                            clauseToReference.pos(),clauseToReference.source());
                 }
                 JCBlock bl = popBlock(0,that.pos());
                 addStat( wrapRuntimeException(that.pos(), bl, 
@@ -4420,6 +4420,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Replicate the AST so we are not sharing ASTs across multiple
             // instances of the original ID.
             result = eresult = convertCopy(actual);
+            eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a temporary Ident
+            treeutils.copyEndPosition(eresult, that);
             
         } else if (that.sym instanceof Symbol.TypeSymbol) {
             // The input id is a type, so we expand it to a FQ name

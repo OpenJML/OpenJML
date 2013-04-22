@@ -403,7 +403,7 @@ public class MethodProverSMT {
                 if (!((JmlVariableDecl)stat).name.toString().startsWith(Strings.tmpVarString)) {
                     int sp = stat.getStartPosition();
                     int ep = stat.getEndPosition(log.currentSource().getEndPosTable());
-                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + stat);
+                    if (printspans) log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + stat);
                     if (ep <= sp) {
                         if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + stat);
                     }
@@ -416,15 +416,15 @@ public class MethodProverSMT {
                 int ep = e.getEndPosition(log.currentSource().getEndPosTable());
                 Label label = assumeStat.label;
                 if (label == Label.ASSIGNMENT) {
-                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                    if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + e);
                     if (ep <= sp) {
-                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + label + " " + sp + "  " + ep + " " + e);
                     }
                     else jmlesc.path.add(new Span(sp,ep,Span.NORMAL));
                 } else if (label == Label.EXPLICIT_ASSUME) {
-                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + stat);
+                    if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + stat);
                     if (ep <= sp) {
-                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + label + " " + sp + "  " + ep + " " + e);
                     }
                     else {
 //                        if (e instanceof JCTree.JCLiteral) {
@@ -438,22 +438,23 @@ public class MethodProverSMT {
                         jmlesc.path.add(new Span(sp,ep,Span.NORMAL)); //value ? Span.TRUE : Span.FALSE));
                     }
                 } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.SWITCH_VALUE || label == Label.CASECONDITION) {
-                    //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                    if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + e);
                     if (ep <= sp) {
-                        if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
+                        if (printspans) log.noticeWriter.println("BAD SPAN " + label + " " + sp + "  " + ep + " " + e);
                     }
                     else jmlesc.path.add(new Span(sp,ep,
                             label == Label.BRANCHT ? Span.TRUE : 
                             label == Label.BRANCHE? Span.FALSE : Span.NORMAL));
-                } else if (label == Label.DSA || label == Label.NULL_CHECK || label == Label.IMPLICIT_ASSUME) {
+                } else if (label == Label.DSA || label == Label.NULL_CHECK || label == Label.NULL_FIELD || label == Label.IMPLICIT_ASSUME) {
                     // Ignore
                 } else {
                     // FIXME - at least PRECONDITION
-                    //log.noticeWriter.println("UNHANDLED LABEL " + label);
+                    if (printspans) log.noticeWriter.println("UNHANDLED LABEL " + label);
                 }
             } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
+                Label label = assertStat.label;
                 if (e instanceof JCTree.JCLiteral) {
                     value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
                 } else if (e instanceof JCTree.JCParens) {
@@ -464,7 +465,7 @@ public class MethodProverSMT {
                 }
                 int sp = e.getStartPosition();
                 int ep = e.getEndPosition(log.currentSource().getEndPosTable());
-                //log.noticeWriter.println("SPAN " + sp + "  " + ep + " " + e);
+                if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + e);
                 if (ep <= sp) {
                     if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
                 }
@@ -473,7 +474,6 @@ public class MethodProverSMT {
                 if (!value) {
                     pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     if (terminationPos == 0) terminationPos = decl.pos;
-                    Label label = assertStat.label;
 
                     JavaFileObject prev = null;
                     int pos = assertStat.pos;
@@ -485,7 +485,8 @@ public class MethodProverSMT {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
-                    // FIXME: if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
+                    // FIXME: 
+                    if (printspans) if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                     } else {
