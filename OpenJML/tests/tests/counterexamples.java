@@ -413,7 +413,7 @@ public class counterexamples extends EscBase {
     /** Tests JML statements */
     @Test
     public void testCE14() {
-        options.put("-bb","");
+        main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

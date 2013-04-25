@@ -580,6 +580,7 @@ public class escnew extends EscBase {
     
     @Test // FIXME _ needs type relationships
     public void testTry2() {
+        main.addOptions("-show","-method=m4agood","-ce","-trace");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static int kk;\n"

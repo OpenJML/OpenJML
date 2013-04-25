@@ -12,14 +12,8 @@ import java.util.TreeSet;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -714,6 +708,14 @@ public class MethodProverSMT {
             // Overridden to skip scanning the type name: scan(tree.clazz);
         }
 
+        @Override
+        public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+            if (tree.token == JmlToken.BSTYPELC) {
+                // FIXME - scan for this value?
+            } else {
+                super.visitJmlMethodInvocation(tree);
+            }
+        }
 
         
     }
