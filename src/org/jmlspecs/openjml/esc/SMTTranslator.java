@@ -109,6 +109,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** A list that accumulates all the Java type constants used */
     protected Set<Type> javaTypes = new HashSet<Type>();
+    protected Set<String> javaTypeSymbols = new HashSet<String>();
     
     // Strings used in our use of SMT. Strings that are part of SMTLIB itself
     // are used verbatim in the code.
@@ -223,9 +224,9 @@ public class SMTTranslator extends JmlTreeScanner {
         
         int loc = commands.size();
         
-        javaTypes.add((Type.ClassType)syms.objectType);
-        javaTypes.add((Type.ClassType)syms.exceptionType);
-        javaTypes.add((Type.ClassType)syms.runtimeExceptionType);
+        addType(syms.objectType);
+        addType(syms.exceptionType);
+        addType(syms.runtimeExceptionType);
         
         
         for (JCExpression e: program.background()) {
@@ -352,6 +353,10 @@ public class SMTTranslator extends JmlTreeScanner {
     public IExpr.ISymbol jmlTypeSymbol(Type t) {
         String s = "|JMLT_" + t.toString() + "|" ;
         return F.symbol(s);
+    }
+    
+    public void addType(Type t) {
+        if (javaTypeSymbols.add(t.toString())) javaTypes.add(t);
     }
     
     /** Converts a BasicBlock into SMTLIB, adding commands into the
@@ -534,7 +539,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // FIXME - I think this should not be called?
         if (that.token == JmlToken.BSTYPELC) {
             Type t = that.args.get(0).type;
-            javaTypes.add(t);
+            addType(t);
             result = jmlTypeSymbol(t);
             return;
         }
@@ -694,7 +699,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //        notImpl(tree); // TODO
 //        super.visitTypeTest(tree);
         
-        javaTypes.add((ClassType)tree.clazz.type);
+        addType((ClassType)tree.clazz.type);
         result = F.fcn(F.symbol("javaSubType"),
                 F.fcn(F.symbol("javaTypeOf"), convertExpr(tree.expr)),
                 javaTypeSymbol(tree.clazz.type));
