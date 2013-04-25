@@ -771,6 +771,20 @@ public class JmlTreeUtils {
         return call;
     }
     
+    /** Makes a Java method invocation using the given MethodSymbol, on the given receiver,
+     * with the given arguments, at the given position; no varargs, no typeargs.
+     */
+    public JmlMethodInvocation makeJmlMethodInvocation(DiagnosticPosition pos, JmlToken token, Type type, JCExpression ... args) {
+        ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+        a.appendArray(args);
+        JmlMethodInvocation call = factory.at(pos).JmlMethodInvocation(token, a.toList());
+        call.type = type;
+        call.meth = null;
+        call.typeargs = null;
+        call.varargsElement = null;
+        return call;
+    }
+    
     
     // FIXME _ document
     public JCMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {

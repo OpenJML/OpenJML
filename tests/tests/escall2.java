@@ -1003,7 +1003,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test // FIXME _ fix quantified expressions
+    @Test
     public void testAxiom2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -1014,7 +1014,7 @@ public class escall2 extends EscBase {
                 +"  int i;\n"
                 
                
-                +"  //@ assignable \\everything; \n"
+                +"  //@ assignable \\nothing; \n"
                 +"  public void m1good() {\n"
                 +"    //@ assert i == ii;\n"
                 +"  }\n"

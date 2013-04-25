@@ -93,6 +93,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Commonly used SMTLIB expressions - using these shares structure */
     protected ISort refSort;
     protected ISort javaTypeSort;
+    protected ISort jmlTypeSort;
     protected ISort intSort;
     protected ISort boolSort;
     protected IExpr.ISymbol nullRef;
@@ -107,7 +108,7 @@ public class SMTTranslator extends JmlTreeScanner {
     protected List<ICommand> commands;
     
     /** A list that accumulates all the Java type constants used */
-    protected Set<Type.ClassType> javaTypes = new HashSet<Type.ClassType>();
+    protected Set<Type> javaTypes = new HashSet<Type>();
     
     // Strings used in our use of SMT. Strings that are part of SMTLIB itself
     // are used verbatim in the code.
@@ -117,6 +118,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String this_ = "THIS"; // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF";
     public static final String JAVATYPESORT = "JavaTypeSort";
+    public static final String JMLTYPESORT = "JMLTypeSort";
     public static final String length = "length";
     
     public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
@@ -133,6 +135,7 @@ public class SMTTranslator extends JmlTreeScanner {
         thisRef = F.symbol(this_);
         refSort = F.createSortExpression(F.symbol(REF));
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
+        jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthRef = F.symbol(length);
     }
     
@@ -158,6 +161,7 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         commands = script.commands();
         
+        // FIXME - use factory for the commands?
         // set the logic
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
         commands.add(c);
@@ -168,6 +172,8 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_declare_sort(F.symbol(REF),F.numeral(0));
         commands.add(c);
         c = new C_declare_sort(F.symbol(JAVATYPESORT),F.numeral(0));
+        commands.add(c);
+        c = new C_declare_sort(F.symbol(JMLTYPESORT),F.numeral(0));
         commands.add(c);
         c = new C_declare_fun(nullRef,new LinkedList<ISort>(), refSort);
         commands.add(c);
@@ -200,9 +206,19 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(F.symbol("javaTypeOf"),args, javaTypeSort);
         commands.add(c);
+        c = new C_declare_fun(F.symbol("jmlTypeOf"),args, jmlTypeSort);
+        commands.add(c);
         c = new C_declare_fun(F.symbol("javaSubType"),
                 Arrays.asList(new ISort[]{javaTypeSort,javaTypeSort}), 
                 F.createSortExpression(F.symbol("Bool")));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("jmlSubType"),
+                Arrays.asList(new ISort[]{jmlTypeSort,jmlTypeSort}), 
+                F.createSortExpression(F.symbol("Bool")));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("erasure"),
+                Arrays.asList(new ISort[]{jmlTypeSort}), 
+                javaTypeSort);
         commands.add(c);
         
         int loc = commands.size();
@@ -295,19 +311,30 @@ public class SMTTranslator extends JmlTreeScanner {
         // Insert type relationships
         int len = javaTypes.size();
         List<ICommand> tcommands = new ArrayList<ICommand>(len*len);
-        for (Type.ClassType ti: javaTypes) {
+        for (Type ti: javaTypes) {
             tcommands.add(new C_declare_fun(
-                    typeSymbol(ti),
+                    javaTypeSymbol(ti),
                     new LinkedList<ISort>(),
                     javaTypeSort));
+            tcommands.add(new C_declare_fun(
+                    jmlTypeSymbol(ti),
+                    new LinkedList<ISort>(),
+                    jmlTypeSort));
+            tcommands.add(new C_assert(F.fcn(
+                    F.symbol("="), 
+                    F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
+                    javaTypeSymbol(ti))));
 
         }
-        for (Type.ClassType ti: javaTypes) {
-            for (Type.ClassType tj: javaTypes) {
-                IExpr.ISymbol si = typeSymbol(ti);
-                IExpr.ISymbol sj = typeSymbol(tj);
+        for (Type ti: javaTypes) {
+            for (Type tj: javaTypes) {
+                IExpr.ISymbol si = javaTypeSymbol(ti);
+                IExpr.ISymbol sj = javaTypeSymbol(tj);
                 boolean b = types.isSubtype(ti,tj);
                 IExpr comp = F.fcn(F.symbol("javaSubType"), si, sj);
+                if (!b) comp = F.fcn(F.symbol("not"),comp);
+                tcommands.add(new C_assert(comp));
+                comp = F.fcn(F.symbol("jmlSubType"), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
                 if (!b) comp = F.fcn(F.symbol("not"),comp);
                 tcommands.add(new C_assert(comp));
             }
@@ -317,8 +344,13 @@ public class SMTTranslator extends JmlTreeScanner {
         return script;
     }
     
-    public IExpr.ISymbol typeSymbol(Type t) {
-        String s = "T_" + t.toString().replace('.', '_') ;
+    public IExpr.ISymbol javaTypeSymbol(Type t) {
+        String s = "|T_" + t.toString() + "|";
+        return F.symbol(s);
+    }
+    
+    public IExpr.ISymbol jmlTypeSymbol(Type t) {
+        String s = "|JMLT_" + t.toString() + "|" ;
         return F.symbol(s);
     }
     
@@ -408,7 +440,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
-    // FIXME - review this
+    // FIXME - review this - need to choose between java and jml
     /** Converts a Java/JML type into an SMT Sort */
     public ISort convertSort(Type t) {
         if ( t == null) {
@@ -422,12 +454,15 @@ public class SMTTranslator extends JmlTreeScanner {
             return refSort;
         } else if (t instanceof ArrayType) {
             return refSort;
+        } else if (t instanceof Type.TypeVar) {
+            return refSort;
 //            ArrayType atype = (ArrayType)t;
 //            Type elemtype = atype.getComponentType();
 //            return F.createSortExpression(F.symbol("Array"), F.createSortExpression(F.symbol("Int")), convertSort(elemtype));
         } else {
-            log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
-            throw new RuntimeException();
+            return F.createSortExpression(javaTypeSymbol(t)); // FIXME - use the common method for translating to type names?
+//            log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
+//            throw new RuntimeException();
         }
     }
     
@@ -498,7 +533,9 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         // FIXME - I think this should not be called?
         if (that.token == JmlToken.BSTYPELC) {
-            result = typeSymbol(that.args.get(0).type);
+            Type t = that.args.get(0).type;
+            javaTypes.add(t);
+            result = jmlTypeSymbol(t);
             return;
         }
         List<IExpr> newargs = new LinkedList<IExpr>();
@@ -506,7 +543,11 @@ public class SMTTranslator extends JmlTreeScanner {
             scan(e);
             newargs.add(result);
         }
-        if (that.meth != null) result = F.fcn(F.symbol(that.meth.toString()),newargs);
+        if (that.token == JmlToken.SUBTYPE_OF) {
+            result = F.fcn(F.symbol("jmlSubType"), newargs);
+        } else if (that.token == JmlToken.BSTYPEOF) {
+            result = F.fcn(F.symbol("jmlTypeOf"), newargs);
+        } else if (that.meth != null) result = F.fcn(F.symbol(that.meth.toString()),newargs);
         else result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
     }
 
@@ -656,7 +697,7 @@ public class SMTTranslator extends JmlTreeScanner {
         javaTypes.add((ClassType)tree.clazz.type);
         result = F.fcn(F.symbol("javaSubType"),
                 F.fcn(F.symbol("javaTypeOf"), convertExpr(tree.expr)),
-                typeSymbol(tree.clazz.type));
+                javaTypeSymbol(tree.clazz.type));
     }
 
     @Override
@@ -755,22 +796,31 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe
-    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that)     { notImpl(that); } // FIXME - not impl
     @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)               { notImpl(that); }
 
-//    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-//        List<IDeclaration> params = new LinkedList<IDeclaration>();
-//        for (JCVariableDecl decl: that.decls) {
-//            IExpr.ISymbol sym = F.symbol(decl.name.toString());
-//            ISort sort = convertSort(decl.type);
-//            params.add(F.declaration(sym, sort));
-//        }
-//        scan(that.decls);
-//        scan(that.range);
-//        scan(that.value);
-//        scan(that.racexpr);
-//    }
+    @Override
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        List<IDeclaration> params = new LinkedList<IDeclaration>();
+        for (JCVariableDecl decl: that.decls) {
+            IExpr.ISymbol sym = F.symbol(decl.name.toString());
+            ISort sort = convertSort(decl.type);
+            params.add(F.declaration(sym, sort));
+        }
+        scan(that.range);
+        IExpr range = result;
+        scan(that.value);
+        IExpr value = result;
+        if (that.op == JmlToken.BSFORALL) {
+            if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+            result = F.forall(params,value);
+        } else if (that.op == JmlToken.BSEXISTS) {
+            if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+            result = F.forall(params,value);
+        } else {
+            notImpl(that);
+        }
+    }
 //
 //    public void visitJmlSetComprehension(JmlSetComprehension that) {
 //        scan(that.newtype);

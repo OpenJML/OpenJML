@@ -27,7 +27,7 @@ public class escgeneric extends EscBase {
     }
     
     // FIXME - disabled until we get generic types implemented better
-    @Test @Ignore
+    @Test
     public void testConstructor() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -40,16 +40,17 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"  //@   requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
-                ,"/tt/TestJava.java:12: warning: Associated declaration",10
+                ,!isCustom?"/tt/TestJava.java:11: warning: Associated declaration":"/tt/TestJava.java:12: warning: Associated declaration"
+                ,!isCustom?7:10
                 );
     }
     
     /** Tests that we can reason about the result of \\typeof */
-    @Test @Ignore
+    @Test
     public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -65,7 +66,8 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(this) == \\type(Object);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method tt.TestJava.ma(java.lang.Object)",9
+                ,isCustom?null:"/tt/TestJava.java:6: warning: An assumption appears to be infeasible in method tt.TestJava.ma(java.lang.Object)",15
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 );
     }
@@ -106,7 +108,7 @@ public class escgeneric extends EscBase {
         );
     }
 
-    @Test @Ignore
+    @Test
     public void testStatic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -119,15 +121,15 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"
-                +"  //@   requires \\type(E) != \\type(Integer) ;\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",24
+                ,"/tt/TestJava.java:11: warning: Associated declaration",!isCustom?7:22
         );
     }
 
-    @Test @Ignore
+    @Test
     public void testTypeParameter() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -144,11 +146,11 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:11: warning: Associated declaration",24
+                ,"/tt/TestJava.java:11: warning: Associated declaration",!isCustom?9:24
                 );
     }
     
-    @Test  @Ignore
+    @Test
     public void testTypeParameter2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -167,7 +169,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:12: warning: Associated declaration",24
+                ,"/tt/TestJava.java:12: warning: Associated declaration",!isCustom?9:24
                 );
     }
  

@@ -69,6 +69,7 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
@@ -582,6 +583,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     @Override
     public void scan(JCTree tree) {
+        result = null;
         super.scan(tree);
         if (tree instanceof JCExpression && !(tree instanceof JCAssign)
                 ) bimap.put(tree, result);
@@ -1428,6 +1430,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } finally {
                 currentMap = savedMap;
             }
+        } else if (that.token == JmlToken.SUBTYPE_OF) {
+            scan(that.args.get(0));
+            JCExpression lhs = result;
+            scan(that.args.get(1));
+            JCExpression rhs = result;
+            that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
+            result = that;
         } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
@@ -1932,20 +1941,24 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
-            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
-            that.name = currentMap.getCurrentName(vsym);
-            if (isDefined.add(that.name)) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
-                addDeclaration(that);
+            if (quantifierSymbols.contains(that.sym)) {
+                // no change
+            } else {
+                Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+                that.name = currentMap.getCurrentName(vsym);
+                if (isDefined.add(that.name)) {
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
+                    addDeclaration(that);
+                }
             }
         } else if (that.sym == null) {
             // Temporary variables that are introduced by decomposing expressions do not have associated symbols
             // They are also only initialized once and only used locally, so we do not track them for DSA purposes
             // Just skip
-        } else if (that.sym instanceof Symbol.ClassSymbol) {
+        } else if (that.sym instanceof Symbol.TypeSymbol) { // Includes class, type parameter, package
             // Just skip
-        } else if (that.sym instanceof Symbol.PackageSymbol) {
-            // Just skip
+//        } else if (that.sym instanceof Symbol.PackageSymbol) {
+//            // Just skip
         } else {
             log.error(that.pos,"jml.internal","THIS KIND OF IDENT IS NOT HANDLED: " + that + " " + that.sym.getClass());
         }
@@ -2111,6 +2124,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 that.init = result;
             }
             isDefined.add(that.name);
+            currentMap.putSAVersion(that.sym,that.name,0); // FIXME - should unique be incremented
             currentBlock.statements.add(that);
         } else {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
@@ -2151,10 +2165,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         super.visitSynchronized(that);
     }
     
-    public void visitTypeIdent(JCPrimitiveTypeTree that) { notImpl(that); }
-    public void visitTypeArray(JCArrayTypeTree that)     { notImpl(that); }
-    public void visitTypeApply(JCTypeApply that)         { notImpl(that); }
-    public void visitTypeParameter(JCTypeParameter that) { notImpl(that); }
     public void visitWildcard(JCWildcard that)           { notImpl(that); }
     public void visitTypeBoundKind(TypeBoundKind that)   { notImpl(that); }
     public void visitAnnotation(JCAnnotation that)       { notImpl(that); }
@@ -2162,6 +2172,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitErroneous(JCErroneous that)         { notImpl(that); }
     public void visitLetExpr(LetExpr that)               { notImpl(that); }
     
+    public void visitTypeIdent(JCPrimitiveTypeTree that) { 
+        notImpl(that); 
+    }
+    public void visitTypeArray(JCArrayTypeTree that)     { notImpl(that); }
+    public void visitTypeApply(JCTypeApply that)         { 
+        // This is the application of a generic type to its parameters
+        // e.g., List<Integer> or List<T>
+        
+        // Just skip
+        result = that;
+    }
+    
+    public void visitTypeParameter(JCTypeParameter that) { notImpl(that); }
 
 
     // FIXME _ implement
@@ -2199,7 +2222,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // These should all be translated away prior to calling the basic blocker
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlLblExpression(JmlLblExpression that) { shouldNotBeCalled(that); }    
-    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) { shouldNotBeCalled(that); }
 
     // These do not need to be implemented
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
@@ -2212,6 +2234,27 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitJmlStatementDecls(JmlStatementDecls that) { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     
+    List<Symbol> quantifierSymbols = new LinkedList<Symbol>();
+    
+    @Override public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) { 
+        for (JCVariableDecl d: that.decls) {
+            quantifierSymbols.add(d.sym);
+        }
+        try {
+            scan(that.range);
+            JCExpression range = result;
+            scan(that.value);
+            JCExpression value = result;
+            that.range = range;
+            that.value = value;
+            result = that;
+        } finally {
+            for (JCVariableDecl d: that.decls) {
+                quantifierSymbols.remove(d.sym);
+            }
+        }
+ 
+    }
 
     // OK
     @Override public void visitBinary(JCBinary that) {
