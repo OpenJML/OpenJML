@@ -4960,14 +4960,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl var = convert(that.var);
             // FIXME - should not do this two-level design
             JCEnhancedForLoop jloop = M.at(that.pos()).ForeachLoop(var,expr,null);
-            List<JmlStatementLoop> loopSpecs = convertCopy(that.loopSpecs);
+            List<JmlStatementLoop> loopSpecs = that.loopSpecs == null ? null : convertCopy(that.loopSpecs);
             JmlEnhancedForLoop loop = M.at(that.pos()).JmlEnhancedForLoop(jloop, loopSpecs);
             jloop.type = loop.type = that.type;
             try {
                 treeMap.put(that, jloop);
                 JCStatement bl = convert(that.body);
                 loop.body = bl;
-                loop.loopSpecs = convertCopy(that.loopSpecs); 
+                loop.loopSpecs = that.loopSpecs == null ? null : convertCopy(that.loopSpecs); 
                 result = loop;
             } finally {
                 treeMap.remove(that);
@@ -6050,7 +6050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         // FIXME - review the kinds of quantified expressions that are not translated
         if (that.racexpr != null) {
-            result = eresult = convertExpr(that.racexpr);
+            result = eresult = that.racexpr; // FIXME: using convertCopy(that.racexpr); fails
         } else {
             log.note(that.pos(),"rac.not.implemented.quantified");
             result = eresult = treeutils.makeZeroEquivalentLit(that.pos,that.type);
