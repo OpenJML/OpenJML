@@ -1152,7 +1152,7 @@ public class rac extends RacBase {
         
     }
 
-    @Test
+    @Test @Ignore // old RAC does not do model types
     public void testSpecModelClass() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model static class AC { static int mm() { return 5; }} */ \n"
