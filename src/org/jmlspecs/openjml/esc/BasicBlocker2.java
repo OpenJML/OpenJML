@@ -2051,6 +2051,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right);
             expr.pos = pos;
             expr.type = restype;
+            treeutils.copyEndPosition(expr, right);
 
             // FIXME - set line and source
             addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
@@ -2081,6 +2082,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
                 expr.pos = pos;
                 expr.type = restype;
+                treeutils.copyEndPosition(expr, right);
 
                 // FIXME - set line and source
                 addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
