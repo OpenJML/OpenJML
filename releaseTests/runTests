@@ -67,7 +67,7 @@ ${RTH} testOK1 "java -jar openjml.jar -noPurityCheck -Xlint:unchecked -specspath
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "java -jar openjml.jar -rac -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "java -jar openjml.jar -rac -noRacSource -noPurityCheck -d rac -classpath ../testfiles/testRac -specspath ../testfiles/testRac ../testfiles/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}jmlruntime.jar" A
 java -classpath "rac${Z}jmlruntime.jar" A  > racactual

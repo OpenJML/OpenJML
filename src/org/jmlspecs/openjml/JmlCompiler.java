@@ -487,12 +487,18 @@ public class JmlCompiler extends JavaCompiler {
                 newtree = new JmlRac(context,env).translate(env.tree);
                 
             } else  {
-
+                if (JmlOption.isOption(context,JmlOption.SHOW)) {
+                    log.noticeWriter.println("ORIGINAL");
+                    log.noticeWriter.println(JmlPretty.write(env.tree,true));
+                    log.noticeWriter.println("");
+                }
                 newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
                 if (JmlOption.isOption(context,JmlOption.SHOW)) {
-                    log.noticeWriter.println(JmlPretty.write(newtree));
+                    log.noticeWriter.println("TRANSLATED RAC");
+                    log.noticeWriter.println(JmlPretty.write(newtree,true));
                 }
             }
+
                 
             // When we do the RAC translation, we create a new instance
             // of the JCClassDecl for the class.  So we have to find where
@@ -513,10 +519,6 @@ public class JmlCompiler extends JavaCompiler {
             // FIXME - does this happen?
             JCCompilationUnit newtree = new JmlAssertionAdder(context,false,true).convert(env.toplevel);
             env.toplevel = newtree;
-        }
-        if (JmlOption.isOption(context,"-show")) {
-            log.noticeWriter.println("TRANSLATED RAC");
-            log.noticeWriter.println(JmlPretty.write(env.tree,true));
         }
         //       flow(env);  // FIXME - give a better explanation if this produces errors.
         // IF it does, it is because we have done the RAC translation wrong.

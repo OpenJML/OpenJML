@@ -36,14 +36,17 @@ JML options:
   -keys                      Identifiers for optional JML comments
   -command                   The command to execute (check,esc,rac,compile)
   -check                     Does a JML syntax check [-command=check]
-  -compile                   Does a Java-only compiler [-command=compile]
+  -compile                   Does a Java-only compile [-command=compile]
   -rac                       Enables generating code instrumented with runtime assertion checks [-command=rac]
   -esc                       Enables static checking [-command=esc]
   -boogie                    Enables static checking with boogie
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
   -noJML                     When on, the JML compiler is used, but all JML constructs are ignored
+  -newesc                    When on, uses the new SMT-based implementation
+  -custom                    When on, uses the old custom prover implementation
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
-  -method                    The method name on which to run ESC
+  -method                    Comma-separated list of method name patterns on which to run ESC
+  -exclude                   Comma-separated list of method name patterns to exclude from ESC
   -prover                    The prover to use to check verification conditions
   -exec                      The prover executable to use
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
@@ -54,6 +57,7 @@ JML options:
   -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path
   -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath
   -showNotImplemented        When on, warnings about unimplemented constructs are issued
+  -showNotExecutable         When on, warnings about non-executable constructs are issued
   -verboseness               Level of verboseness (0=quiet...4=debug)
   -quiet                     Only output warnings and errors [-verboseness=0]
   -normal                    Limited output [-verboseness=1]
@@ -62,10 +66,16 @@ JML options:
   -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
   -jmltesting                Only used to generate tracing information during testing
   -trace                     ESC: Enables tracing of counterexamples
-  -showbb                    ESC: Debug output of Basic Block program
+  -show                      Show intermediate programs
+  -ce                        ESC: Enables output of complete, raw counterexample [-counterexample]
+  -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -counterexample            ESC: Enables output of complete, raw counterexample
   -subexpressions            ESC: Enables tracing with subexpressions
+  -checkFeasibility          ESC: Check feasibility of assumptions
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
   -crossRefAssociatedInfo    >...
-  -showRacSource             RAC: Enables error messages with source information [-noRacSource=false]
-  -noRacSource               RAC: Enables error messages with source information
+  -showRacSource             RAC: Error messages will include source information [-noRacSource=false]
+  -noRacSource               RAC: Error messages will not include source information
+  -noRacCheckAssumptions     RAC: Disables checking that assumptions hold
+  -noRacJavaChecks           RAC: Disables explicit checking of Java language checks
+  -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts
