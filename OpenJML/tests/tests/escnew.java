@@ -964,13 +964,14 @@ public class escnew extends EscBase {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
+                // The " ? true : true" is inserted so that the solver is not required to handle non-linear arithmetic
                 +"  public boolean m1bad(boolean b, int i) {\n"
-                +"    return i != 0 || (20/i <= 20) ;\n"
+                +"    return i != 0 || (20/i <= 20 ? true : true) ;\n"
                 +"  }\n"
                 
                 +"  //@ ensures \\result;\n"
                 +"  public boolean m1ok(boolean b, int i) {\n"
-                +"    return i == 0 || (i/i > 0) ;\n"
+                +"    return i == 0 || (i/i > 0 ? true : true) ;\n"
                 +"  }\n"
                 
                 +"  public boolean m2bad(boolean b, int i) {\n"
@@ -978,7 +979,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  public boolean m2ok(boolean b, int i) {\n"
-                +"    return i != 0 && (20/i <= 20) ;\n"
+                +"    return i != 0 && (20/i <= 20 ? true : true) ;\n"
                 +"  }\n"
                 
                 +"  public boolean m3bad(@Nullable TestJava t) {\n"
@@ -1021,18 +1022,18 @@ public class escnew extends EscBase {
                 // exposed a bug in handling unknown results
                 +"  //@ requires i < 2 && i > -2; ensures \\result;\n"
                 +"  public boolean m1bugOK(int i) {\n"
-                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"    return i == 0 || (20/i <= 20 ? true : true) ;\n"
                 +"  }\n"
                 
                 // Look at the counterexample on this one (TODO)
                 +"  //@ ensures \\result;\n"
                 +"  public boolean m1bug(int i) {\n"
-                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"    return i == 0 || (20/i <= 20 ? true : true) ;\n"
                 +"  }\n"
                 
                 +"  //@ requires i < 30 && i > -30; ensures \\result;\n"
                 +"  public boolean m1bugOK2(int i) {\n"
-                +"    return i == 0 || (20/i <= 20) ;\n"
+                +"    return i == 0 || (20/i <= 20 ? true : true) ;\n"
                 +"  }\n"
                 
                 +"}"
@@ -1041,8 +1042,6 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad",26
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
                 ,"/tt/TestJava.java:31: warning: Associated declaration",7
-//                ,"/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Postcondition) in method m1bug",5
-//                ,"/tt/TestJava.java:50: warning: Associated declaration",7
                 );
     }
 

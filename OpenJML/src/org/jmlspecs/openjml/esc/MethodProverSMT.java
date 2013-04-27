@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.esc;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,8 @@ import org.smtlib.SMT;
 import org.smtlib.IResponse.IError;
 import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.sexpr.ISexpr;
+import org.smtlib.solvers.Solver_yices;
+import org.smtlib.solvers.Solver_yices2;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -258,22 +261,31 @@ public class MethodProverSMT {
                     jmlesc.mostRecentCEMap = cemap;
                     // Report JML-labeled values and the path to the failed invariant
                     if (showTrace) log.noticeWriter.println("\nTRACE\n");
+                    path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(program,smt,solver,methodDecl,cemap,jmap);
-
+                    
                     if (proofResult == null) {
                         ProverResult pr = new ProverResult(jmlesc.proverToUse,
                             solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
-                        Counterexample ce = new Counterexample(cemap,jmlesc.path);
-                        pr.add(ce);
+                        if (pathCondition != null) {
+                            Counterexample ce = new Counterexample(cemap,path);
+                            pr.add(ce);
+                        }
                         proofResult = pr;
                     }
+                    
+                    if (pathCondition == null) {
+                        break;
+                    }
+
 
                     //                if (showCounterexample) {
                     //                    log.noticeWriter.println("\nTRACE with respect to ORIGINAL PROGRAM\n");
                     //                }
 
                     if (--count <= 0) break;
-
+                    //if (solver instanceof Solver_yices2 || solver instanceof Solver_yices) break;
+                    
                     solver.pop(1);
                     solver.assertExpr(smttrans.convertExpr(pathCondition));
                     solver.push(1);
@@ -293,6 +305,9 @@ public class MethodProverSMT {
         return proofResult;
         
     }
+    
+    protected List<IProverResult.Span> path;
+
 
     /** Iterates through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover.
@@ -303,6 +318,7 @@ public class MethodProverSMT {
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap);
         if (pathCondition == null) {
             log.warning("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
+            return null;
         }
         return pathCondition;
     }
@@ -334,6 +350,8 @@ public class MethodProverSMT {
         }
         return terminationPos;
     }
+    
+    
     
     /** Helper method for iterating through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover; 
@@ -401,7 +419,7 @@ public class MethodProverSMT {
                     if (ep <= sp) {
                         if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + stat);
                     }
-                    else jmlesc.path.add(new Span(sp,ep,Span.NORMAL));
+                    else path.add(new Span(sp,ep,Span.NORMAL));
                 }
             } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
                 JmlStatementExpr assumeStat = (JmlStatementExpr)stat;
@@ -414,7 +432,7 @@ public class MethodProverSMT {
                     if (ep <= sp) {
                         if (printspans) log.noticeWriter.println("BAD SPAN " + label + " " + sp + "  " + ep + " " + e);
                     }
-                    else jmlesc.path.add(new Span(sp,ep,Span.NORMAL));
+                    else path.add(new Span(sp,ep,Span.NORMAL));
                 } else if (label == Label.EXPLICIT_ASSUME) {
                     if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + stat);
                     if (ep <= sp) {
@@ -429,14 +447,14 @@ public class MethodProverSMT {
 //                            id = ((JCIdent)e).name.toString(); // FIXME _ assumes are not necessarily IDENTS?
 //                            value = getBoolValue(id,smt,solver);
 //                        }
-                        jmlesc.path.add(new Span(sp,ep,Span.NORMAL)); //value ? Span.TRUE : Span.FALSE));
+                        path.add(new Span(sp,ep,Span.NORMAL)); //value ? Span.TRUE : Span.FALSE));
                     }
                 } else if (label == Label.BRANCHT || label == Label.BRANCHE || label == Label.SWITCH_VALUE || label == Label.CASECONDITION) {
                     if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + e);
                     if (ep <= sp) {
                         if (printspans) log.noticeWriter.println("BAD SPAN " + label + " " + sp + "  " + ep + " " + e);
                     }
-                    else jmlesc.path.add(new Span(sp,ep,
+                    else path.add(new Span(sp,ep,
                             label == Label.BRANCHT ? Span.TRUE : 
                             label == Label.BRANCHE? Span.FALSE : Span.NORMAL));
                 } else if (label == Label.DSA || label == Label.NULL_CHECK || label == Label.NULL_FIELD || label == Label.IMPLICIT_ASSUME) {
@@ -463,7 +481,7 @@ public class MethodProverSMT {
                 if (ep <= sp) {
                     if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
                 }
-                else jmlesc.path.add(new Span(sp,ep,
+                else path.add(new Span(sp,ep,
                         value ? Span.TRUE : Span.FALSE));
                 if (!value) {
                     pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
@@ -519,7 +537,8 @@ public class MethodProverSMT {
 
     /** Query the solver for the (boolean) value of an id in the current model */
     public boolean getBoolValue(String id, SMT smt, ISolver solver) {
-        return !getValue(id,smt,solver).toString().contains("false");
+        String v = getValue(id,smt,solver);
+        return v != null && !v.contains("false");
     }
     
     /** Query the solver for the (int) value of an id in the current model */
@@ -537,14 +556,19 @@ public class MethodProverSMT {
         } else if (resp == null) {
             log.error("jml.internal.notsobad", "Could not find value of assertion: " + id); //$NON-NLS-1$
             return null;
-        } else if (!(resp instanceof org.smtlib.sexpr.ISexpr.ISeq)){
+        } else if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
+            org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
+            if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
+            return se.toString();
+
+        } else if (resp instanceof IResponse.IValueResponse) {
+            return ((IResponse.IValueResponse)resp).values().get(0).second().toString(); //FIXME use a printer instead of toString()
+        } else {
             log.error("jml.internal.notsobad", "Unexpected response on requesting value of assertion: " + smt.smtConfig.defaultPrinter.toString(resp)); //$NON-NLS-1$
             return null;
+
         }
 
-        org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
-        if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
-        return se.toString();
     }
     
 

@@ -20,14 +20,14 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
-    static public String[] solvers = {}; // { "z3_4_3" , "yices", "simplify" };
+    static public String[] solvers = { "z3_4_3", "yices2" }; // { "z3_4_3" , "yices", "simplify" };
     static public String[] oldsolvers = {}; // { "yices", "simplify" };
     static public boolean isCustom = false;
     
     @Parameters
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-newesc",null}); 
+       // data.add(new String[]{"-newesc",null}); 
         for (String s: solvers) data.add(new String[]{"-newesc",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         data.add(new String[]{"-custom",null}); 
@@ -57,6 +57,11 @@ public abstract class EscBase extends JmlTestCase {
         this.option = option;
         this.solver = solver;
         isCustom = option.equals("-custom");
+    }
+    
+    public void printDiagnostics() {
+        System.out.println("SOLVER: " + solver + " " + option);
+        super.printDiagnostics();
     }
 
     static String z = java.io.File.pathSeparator;

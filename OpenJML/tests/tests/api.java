@@ -1291,10 +1291,10 @@ public class api {
                     diags,
                     null,
                     option,
-                    "-show",
+                    //"-show",
                     "-noPurityCheck");
             if (option.equals("-custom")) {
-                
+                m.setOption("openjml.defaultProver","yices");
             } else if (option.equals("-boogie")) {
                 m.setOption("openjml.defaultProver","z3_4_3");
             } else {
