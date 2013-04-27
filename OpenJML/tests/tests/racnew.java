@@ -1153,6 +1153,7 @@ public class racnew extends RacBase {
 
     @Test
     public void testSpecModelClass() {
+        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
@@ -1178,7 +1179,7 @@ public class racnew extends RacBase {
     @Test
     public void testSpecModelClass2() { 
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
+                +"/*@ model static class AB { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
                 +"//@ invariant i == 0; \n "
                 +"//@ ensures i == 0;\n "
@@ -1187,7 +1188,7 @@ public class racnew extends RacBase {
                 );
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int m() { \n"
-                +"  //@ set i = AA.mm(); \n"
+                +"  //@ set i = AB.mm(); \n"
                 +"  return 0; \n"
                 +"}  \n "
                 +"public static void main(String[] args) { \n"

@@ -4783,6 +4783,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
                     }
                 }
+                if (rac) for (JmlClassDecl t: tyspecs.modelTypes) {
+                    scan(t);
+                }
             }
 
             List<JCTree> defs = this.classDefs.toList();

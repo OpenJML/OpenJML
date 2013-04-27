@@ -188,9 +188,9 @@ package java.util;
 openjml.jar(specs17/java/util/regex/Matcher.jml):21: error: package org.jmlspecs.lang does not exist
 package java.util.regex;
 ^
-openjml.jar(specs17/java/lang/Object.jml):56: error: cannot access IJMLTYPE
-      @   ensures \result == \typeof(this).erasure();
-                                          ^
+openjml.jar(specs17/java/lang/Object.jml):68: error: cannot access IJMLTYPE
+      @     requires \typeof(this) == \type(Object);
+                                   ^
   class file for org.jmlspecs.utils.IJMLTYPE not found
 openjml.jar(specs17/java/lang/System.jml):21: error: package org.jmlspecs.lang does not exist
 package java.lang;

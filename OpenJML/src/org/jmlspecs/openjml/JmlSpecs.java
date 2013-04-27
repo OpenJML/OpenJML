@@ -1104,6 +1104,10 @@ public class JmlSpecs {
                 c.accept(p);
                 try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
             }
+            if (modelTypes != null) for (JmlClassDecl c: modelTypes) {
+                c.accept(p);
+                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+            }
             return s.toString();
         }
     }

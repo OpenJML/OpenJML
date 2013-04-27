@@ -116,7 +116,4 @@ NAME=openjml-${VERSION}.tar.gz
 	echo "   " tar created
 
 ##### End	
-    cd ..
-    cp ${NAME} ../../OpenJML
-    cp ${NAME} ../../OpenJMLUI
 	echo Release complete
