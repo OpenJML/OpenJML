@@ -280,7 +280,7 @@ public class compiler {
         helper(new String[]
                           { "-classpath","runtime",
                             "-sourcepath","testfiles/testJavaErrors2",
-                            "-specspath","runtime;testfiles/testJavaErrors2",
+                            "-specspath","runtime"+z+"testfiles/testJavaErrors2",
                             "-noPurityCheck",
                             "testfiles/testJavaErrors2/A.java"
                           },1,1
@@ -297,7 +297,7 @@ public class compiler {
         helper(new String[]
                           { "-classpath","runtime",
                             "-sourcepath","testfiles/testJavaParseErrors",
-                            "-specspath","runtime;testfiles/testJavaParseErrors",
+                            "-specspath","runtime"+z+"testfiles/testJavaParseErrors",
                             "-noPurityCheck",
                             "testfiles/testJavaParseErrors/A.jml"
                           },1,1
@@ -316,7 +316,7 @@ public class compiler {
         helper(new String[]
                           { "-classpath","runtime",
                             "-sourcepath","testfiles/testJavaErrors",
-                            "-specspath","runtime;testfiles/testJavaErrors",
+                            "-specspath","runtime"+z+"testfiles/testJavaErrors",
                             "-noPurityCheck",
                             "testfiles/testJavaErrors/A.java"
                           },0,0,
@@ -398,9 +398,9 @@ public class compiler {
     @Test
     public void testJML6() throws Exception {
         helper(new String[]
-                          { "-classpath","runtime;testfiles/testNoSourceWithClass",
+                          { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-sourcepath","",
-                            "-specspath","runtime;testfiles/testNoSourceWithClass",
+                            "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-noPurityCheck",
                             "testfiles/testNoSourceWithClass/A.jml"
                           },0,0
