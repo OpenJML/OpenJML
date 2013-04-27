@@ -3917,13 +3917,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     // OK
-    protected void visitAssignopHelper(JCAssignOp that, boolean scanned) {
+    protected void visitAssignopHelper(JCAssignOp that, boolean post) {
         JCExpression lhs = that.lhs;
         JCExpression rhs = that.rhs;
         int op = that.getTag() - JCTree.ASGOffset;
-        boolean lhsscanned = scanned;
+        boolean lhsscanned = false;
         if (lhs instanceof JCIdent) {
-            lhs = scanned ? lhs : convertExpr(lhs); // This may no longer be a JCIdent (e.g. f may become this.f or T.f) 
+            lhs = convertExpr(lhs); // This may no longer be a JCIdent (e.g. f may become this.f or T.f) 
             lhsscanned = true;
         }
         if (lhs instanceof JCIdent) {
@@ -3934,10 +3934,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //    temp = lhs' op rhs'
             //    lhs' = temp
             
-            rhs = scanned ? rhs : convertExpr(rhs);
+            rhs = convertExpr(rhs);
             addBinaryChecks(that, op, lhs, rhs);
 
             rhs = treeutils.makeBinary(that.pos,op ,lhs,rhs);
+            treeutils.copyEndPosition(rhs, that);
 
             checkAssignable(methodDecl, lhs, that.pos(), (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
 
@@ -3945,8 +3946,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that may be captured by the lhs. - TODO - need an example?
             JCIdent id = newTemp(rhs);
             JCExpression newlhs = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
-            addStat(treeutils.makeAssignStat(that.pos, newlhs, id));
-            result = eresult = newlhs;
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, id));
+            result = eresult = post ? id : newlhs;
             exprBiMap.put(that.lhs,eresult);
             
         } else if (lhs instanceof JCFieldAccess) {
@@ -3957,7 +3958,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression typetree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
                 newfa = treeutils.makeSelect(fa.selected.pos, typetree, fa.sym);
                 newfa.name = fa.name;
-                rhs = scanned ? rhs : convertExpr(rhs);
+                rhs = convertExpr(rhs);
                 
             } else {
                 JCExpression sel = lhsscanned ? fa.selected : convertExpr(fa.selected);
@@ -3971,7 +3972,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(that.pos(), Label.POSSIBLY_NULL, e);
                 }
 
-                rhs = scanned ? rhs : convertExpr(rhs);
+                rhs = convertExpr(rhs);
                 if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
                     JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nullLit);
                     // FIXME - location of nnonnull declaration?
@@ -3990,20 +3991,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that will be captured by the lhs. (TODO - example?)
             rhs = treeutils.makeBinary(that.pos,op ,newfa,rhs);
             JCIdent id = newTemp(rhs);
-            addStat(treeutils.makeAssignStat(that.pos, newlhs, id));
-            result = eresult = newTemp(newlhs);
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, id));
+            treeutils.copyEndPosition(st, that);
+            result = eresult = post ? id : newTemp(newlhs);
             exprBiMap.put(that.lhs, eresult);
             
         } else if (lhs instanceof JCArrayAccess) {
             JCArrayAccess aa = (JCArrayAccess)lhs;
-            JCExpression array = scanned ? aa.indexed : convertExpr(aa.indexed);
+            JCExpression array = convertExpr(aa.indexed);
             if (javaChecks) {
                 JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nullLit);
             // FIXME - location of nnonnull declaration?
                 addAssert(that.pos(), Label.POSSIBLY_NULL, e);
             }
 
-            JCExpression index = scanned ? aa.index: convertExpr(aa.index);
+            JCExpression index = convertExpr(aa.index);
             if (javaChecks) {
                 JCExpression e = treeutils.makeBinary(index.pos, JCTree.GE, index, treeutils.zero);
                 addAssert(that.pos(), Label.POSSIBLY_NEGATIVEINDEX, e);
@@ -4017,7 +4019,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             checkAssignable(methodDecl, lhs, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
 
-            rhs = scanned ? rhs : convertExpr(rhs);
+            rhs = convertExpr(rhs);
 
             lhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
             lhs.pos = aa.pos;
@@ -4035,8 +4037,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             lhs.pos = aa.pos;
             lhs.type = aa.type;
             
-            addStat(treeutils.makeAssignStat(that.pos, lhs, id));
-            result = eresult = newTemp(lhs);
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), lhs, id));
+            treeutils.copyEndPosition(st, that);
+            result = eresult = post ? id : newTemp(lhs);
             exprBiMap.put(that.lhs, eresult);
             
         } else {
@@ -4052,31 +4055,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (translatingJML || pureCopy) {
             JCExpression arg = convertExpr(that.getExpression());
             result = eresult = treeutils.makeUnary(that.pos,tag,that.getOperator(),arg);
-        } else if (tag == JCTree.PREDEC) {
-            JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,that.getExpression(),treeutils.one);
+        } else if (tag == JCTree.PREDEC || tag == JCTree.PREINC) {
+            JCAssignOp b = M.at(that.getStartPosition()).Assignop(tag == JCTree.PREDEC ? JCTree.MINUS_ASG : JCTree.PLUS_ASG ,that.getExpression(),treeutils.one);
+            treeutils.copyEndPosition(b, that);
             b.setType(that.type);
-            b.operator = treeutils.findOpSymbol(JCTree.MINUS,that.type);
+            b.operator = treeutils.findOpSymbol(tag == JCTree.PREDEC ? JCTree.MINUS : JCTree.PLUS ,that.type);
             visitAssignopHelper(b,false);
-        } else if (tag == JCTree.PREINC) {
-            JCAssignOp b = M.at(that.pos()).Assignop(JCTree.PLUS_ASG,that.getExpression(),treeutils.one);
-            b.setType(that.type);
-            b.operator = treeutils.findOpSymbol(JCTree.PLUS,that.type);
-            visitAssignopHelper(b,false);
-        } else if (tag == JCTree.POSTDEC){
-            JCExpression arg = convertExpr(that.getExpression()); // FIXME - needs testing with complicated expressions on lhs
-            JCIdent id = newTemp(arg);
-            JCAssignOp b = M.at(that.pos()).Assignop(JCTree.MINUS_ASG,arg,treeutils.one);
-            b.setType(that.type);
-            b.operator = treeutils.findOpSymbol(JCTree.MINUS,that.type);
-            visitAssignopHelper(b,true);
-            exprBiMap.put(that.getExpression(),eresult);
-            result = eresult = id;
-        } else if (tag == JCTree.POSTINC){
+        } else if (tag == JCTree.POSTDEC || tag == JCTree.POSTINC){
             JCExpression arg = convertExpr(that.getExpression());
             JCIdent id = newTemp(arg);
-            JCAssignOp b = M.at(that.pos()).Assignop(JCTree.PLUS_ASG,arg,treeutils.one);
+            JCAssignOp b = M.at(that.pos()).Assignop(tag == JCTree.POSTDEC ? JCTree.MINUS_ASG : JCTree.PLUS_ASG, that.getExpression() ,treeutils.one);
+            treeutils.copyEndPosition(b, that);
             b.setType(that.type);
-            b.operator = treeutils.findOpSymbol(JCTree.PLUS,that.type);
+            b.operator = treeutils.findOpSymbol(tag == JCTree.POSTDEC ? JCTree.MINUS : JCTree.PLUS,that.type);
             visitAssignopHelper(b,true);
             exprBiMap.put(that.getExpression(),eresult);
             result = eresult = id;

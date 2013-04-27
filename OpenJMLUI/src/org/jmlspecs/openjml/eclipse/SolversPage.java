@@ -45,6 +45,7 @@ IWorkbenchPreferencePage {
         		"cvc3",  //$NON-NLS-1$
         		"cvc4",  //$NON-NLS-1$
         		"yices",  //$NON-NLS-1$
+        		"yices2",  //$NON-NLS-1$
         		"z3_4_3" }; //$NON-NLS-1$
     }
     

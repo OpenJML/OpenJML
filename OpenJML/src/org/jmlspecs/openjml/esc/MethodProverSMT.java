@@ -27,6 +27,7 @@ import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
 import org.smtlib.ICommand;
 import org.smtlib.IExpr;
 import org.smtlib.IResponse;
+import org.smtlib.IResponse.IPair;
 import org.smtlib.ISolver;
 import org.smtlib.SMT;
 import org.smtlib.IResponse.IError;
@@ -314,6 +315,7 @@ public class MethodProverSMT {
      */
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
+        showTrace = true;
         exprValues = new HashMap<JCTree,String>();
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap);
         if (pathCondition == null) {
@@ -379,7 +381,7 @@ public class MethodProverSMT {
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
-        boolean printspans = false;        
+        boolean printspans = true;        
         for (JCStatement stat: block.statements()) {
             // Report any statements that are JML-labeled
             if (stat instanceof JCVariableDecl) {
@@ -624,7 +626,7 @@ public class MethodProverSMT {
         public void visitIdent(JCIdent e) {
             Name n = e.name;
             String sv = cemap.get(e);
-            log.noticeWriter.println("VALUE: " + n + " = " + sv);
+            if (sv != null) log.noticeWriter.println("VALUE: " + n + " = " + sv);
             if (sv == null) {
                 sv = getValue(n.toString(),smt,solver);
                 log.noticeWriter.println("VALUE Retrieved: " + n + " = " + sv);
@@ -753,9 +755,15 @@ public class MethodProverSMT {
             if (ce.get(key) != null) continue;
             ee[0] = e;
             IResponse resp = solver.get_value(ee);
+            // FIXME - need to get a singloe kind of response
             if (resp instanceof ISexpr.ISeq) {
                 ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
                 ISexpr value = ((ISexpr.ISeq)pair).sexprs().get(1);
+                ce.put(key, value.toString());
+            }
+            if (resp instanceof IResponse.IValueResponse) {
+                IPair<IExpr,IExpr> pair = ((IResponse.IValueResponse)resp).values().get(0);
+                IExpr value = pair.second();
                 ce.put(key, value.toString());
             }
         }
@@ -808,7 +816,7 @@ public class MethodProverSMT {
             if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as wtih field or array assignments)
             String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            //log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + t3);
+            if (verbose) log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + t3);
         }
         return values;
     }
