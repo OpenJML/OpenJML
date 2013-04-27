@@ -316,7 +316,6 @@ public class JmlEsc extends JmlTreeScanner {
     
     static public Map<JCTree,String> mostRecentCEMap = null;
     
-    protected List<IProverResult.Span> path = new ArrayList<IProverResult.Span>();
     
 }
 
