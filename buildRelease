@@ -37,6 +37,7 @@ svn up
 REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
 VERSION=`date +%Y%m%d`-REV${REVISION}
 NAME=openjml-${VERSION}.tar.gz
+NAMEZ=openjml-${VERSION}.zip
 
 	echo Building ${NAME} in `pwd`
 
@@ -111,7 +112,7 @@ NAME=openjml-${VERSION}.tar.gz
     cp legal/* ${TEMPJAR}
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	tar -zcf ../${NAME} * )
+	tar -zcf ../${NAME} * ; zip ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
 
