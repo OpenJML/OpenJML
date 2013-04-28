@@ -315,7 +315,6 @@ public class MethodProverSMT {
      */
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
-        showTrace = true;
         exprValues = new HashMap<JCTree,String>();
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap);
         if (pathCondition == null) {
@@ -381,7 +380,7 @@ public class MethodProverSMT {
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
-        boolean printspans = true;        
+        boolean printspans = false;        
         for (JCStatement stat: block.statements()) {
             // Report any statements that are JML-labeled
             if (stat instanceof JCVariableDecl) {
