@@ -1,11 +1,13 @@
 
 Instructions for building and publishing a new update site:
 
-Building:
+* Commit all changes
 
-* Be sure that the JMLAnnotations, OpenJDK, OpenJML. OpenJMLUI, and Specs projects are built without errors and all unit and release tests pass
+* Be sure that the JMLAnnotations, OpenJDK, OpenJML. OpenJMLUI, and Specs 
+  projects are built without errors and all unit and release tests pass
 ** Execute the buildRelease file
-** Execute the testRelease file
+** Execute the testRelease file - be sure it runs successfully
+** Run the JUnit tests - be sure they run successfully
 
 * Open OpenJMLFeature/feature.xml and choose the Overview page
 ** Change the version number
@@ -13,19 +15,39 @@ Building:
 ** Click "Synchronize" under "Exporting" on this page
 ** Select "Force feature..." on the pop-up dialog
 ** Select Finish
-** Save OpenJMLFeature/feature.xml
+** Save all open files
 
 * Open OpenJML-UpdateSite/site.xml
 ** Select the top line
 ** Click on Add Feature
-** Select the OpenJML Feature from the (long) list; make sure it is the desired version
+** Select the OpenJML Feature from the (long) list; 
+   make sure it is the desired version
 ** Click OK
-** Be sure the new feature is selected in the list of features
+** Select the new feature in the list of features
 ** Click 'Build' (NOT 'Build All')
 ** Verify that the new version of the feature is in OpenJML-UpdateSite/features
-   and the new versions of the plug-ins (3 of them) are in OpenJML-UpdateSite/plugins
+   and the new versions of the plug-ins (3 of them) are in 
+   OpenJML-UpdateSite/plugins
+** Save all open files
+** Commit all changes
    
 * Push the new feature to the website as follows
+** Re-run the build-release so it is built with the current version information
 ** In a bash shell, in directory OpenJML-UpdateSite
-** If you are not David Cok, edit the web/toSF script to have your sourceforge user name
+** If you are not David Cok, edit the web/toSF script to use your sourceforge 
+   user name
 ** Run the script web/toSF (you will need to enter your sourceforge password)
+
+Note that there are four sets of files that might be uploaded:
+ * a) the html files constituting the OpenJML specs web site (quick)
+ * b) the OpenJML release file and the most recent plug-in files (takes a while)
+ * c) plug-in files for previous releases (takes quite a while)
+ * d) the project files under the 'Files' category of the sourceforge pages for
+      the JML project (takes a while, but less than b)
+
+Different scripts in OpenJML-UpdateSite/web update different combinations of 
+the files above:
+ * toSF : (the usual update) - does (a), (b), (d)
+ * toSFweb : (use for quick updates to the web pages) - does (a) only
+ * toSFproject : does (d) only
+ * toSFall : does all four
