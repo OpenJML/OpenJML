@@ -1037,5 +1037,173 @@ public class escvisibility extends EscBase {
                 );
     }
     
+    @Test
+    public void testRequires1() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  public boolean pb;\n"
+                +"  protected boolean pt;\n"
+                +"   boolean pa;\n"
+                +"  private boolean pv;\n"
+                
+                +"  /*@ spec_public */ protected boolean ptb;\n"
+                +"  /*@ spec_public */  boolean pab;\n"
+                +"  /*@ spec_public */ private boolean pvb;\n"
+                
+                +"  /*@ spec_protected */  boolean pat;\n"
+                +"  /*@ spec_protected */ private boolean pvt;\n"
+                
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also private normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also protected normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also public normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  public void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:12: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                );
+    }
+    
+    @Test
+    public void testRequires2() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  public boolean pb;\n"
+                +"  protected boolean pt;\n"
+                +"   boolean pa;\n"
+                +"  private boolean pv;\n"
+                
+                +"  /*@ spec_public */ protected boolean ptb;\n"
+                +"  /*@ spec_public */  boolean pab;\n"
+                +"  /*@ spec_public */ private boolean pvb;\n"
+                
+                +"  /*@ spec_protected */  boolean pat;\n"
+                +"  /*@ spec_protected */ private boolean pvt;\n"
+                
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also private normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also protected normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also public normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  protected void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:12: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                );
+    }
+    
+    @Test
+    public void testRequires3() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  public boolean pb;\n"
+                +"  protected boolean pt;\n"
+                +"   boolean pa;\n"
+                +"  private boolean pv;\n"
+                
+                +"  /*@ spec_public */ protected boolean ptb;\n"
+                +"  /*@ spec_public */  boolean pab;\n"
+                +"  /*@ spec_public */ private boolean pvb;\n"
+                
+                +"  /*@ spec_protected */  boolean pat;\n"
+                +"  /*@ spec_protected */ private boolean pvt;\n"
+                
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also private normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also protected normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also public normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"   void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                );
+    }
+    
+    @Test
+    public void testRequires4() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  public boolean pb;\n"
+                +"  protected boolean pt;\n"
+                +"   boolean pa;\n"
+                +"  private boolean pv;\n"
+                
+                +"  /*@ spec_public */ protected boolean ptb;\n"
+                +"  /*@ spec_public */  boolean pab;\n"
+                +"  /*@ spec_public */ private boolean pvb;\n"
+                
+                +"  /*@ spec_protected */  boolean pat;\n"
+                +"  /*@ spec_protected */ private boolean pvt;\n"
+                
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also private normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also protected normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  //@ also public normal_behavior\n"
+                +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
+                +"  private void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
+                ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
+                ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",61
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",68
+                );
+    }
+    
 
 }
