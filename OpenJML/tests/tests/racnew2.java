@@ -968,7 +968,7 @@ public class racnew2 extends RacBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) { boolean z; \n"
                 +"A a = new A(1);\n"
@@ -983,7 +983,7 @@ public class racnew2 extends RacBase {
                 +"//@ ensures i == 1; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) { boolean z; \n"
                 +"A a = new A(1);\n"

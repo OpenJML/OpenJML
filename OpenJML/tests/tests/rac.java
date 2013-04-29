@@ -2433,7 +2433,7 @@ public class rac extends RacBase {
  
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
-                +"  static int j,k;\n"
+                +"  static public int j,k;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ modifies j;\n"
                 +"  //@ ensures j == i;\n"

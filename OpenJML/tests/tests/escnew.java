@@ -512,7 +512,7 @@ public class escnew extends EscBase {
                 +"        } return k; \n"
                 +"  }\n"
                 
-                +"  static int kk;\n"
+                +"  static public int kk;\n"
 
                 +"  //@ assignable kk;\n"
                 +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
@@ -583,7 +583,7 @@ public class escnew extends EscBase {
         main.addOptions("-show","-method=m4agood","-ce","-trace");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int kk;\n"
+                +"  static public int kk;\n"
                 
                 +"  //@ assignable kk;\n"
                 +"  //@ ensures \\result == 3; signals (Exception e)  false; \n"
@@ -829,7 +829,7 @@ public class escnew extends EscBase {
     @Test
     public void testIncDec() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { static int i; \n"
+                +"public class TestJava { static public int i; \n"
                 
                 +"  //@ assignable \\everything;\n"
                 +"  //@ ensures \\result == i;\n"

@@ -30,7 +30,7 @@ public class escnowarn extends EscBase {
     @Test
     public void testNowarnRequires() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { boolean b; \n"
+                +"public class TestJava { public boolean b; \n"
                 +"  //@   requires b;\n"  
                 +"  public void mm() {}\n"
                 
@@ -46,7 +46,7 @@ public class escnowarn extends EscBase {
     @Test
     public void testNowarnRequiresNW() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { boolean b;  \n"
+                +"public class TestJava { public boolean b;  \n"
                 +"  //@   requires b;\n"  
                 +"  public void mm() {}\n"
                 

@@ -34,8 +34,9 @@ Instructions for building and publishing a new update site:
 * Push the new feature to the website as follows
 ** Re-run the build-release so it is built with the current version information
 ** In a bash shell, in directory OpenJML-UpdateSite
-** If you are not David Cok, edit the web/toSF script to use your sourceforge 
-   user name
+** Set the environment variable SOURCEFORGE_USERNAME to be your sourceforge
+   user name (otherwise it will try to login to sourceforge using the user
+   name on your current machine)
 ** Run the script web/toSF (you will need to enter your sourceforge password)
 
 Note that there are four sets of files that might be uploaded:

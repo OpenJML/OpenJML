@@ -170,7 +170,7 @@ public class escnew2 extends EscBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) {  \n"
                 +"A a = new A(1);\n"
@@ -185,7 +185,7 @@ public class escnew2 extends EscBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) {  \n"
                 +"A a = new A(1);\n"
@@ -200,7 +200,7 @@ public class escnew2 extends EscBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) { \n"
                 +"A a = new A(1);\n"
@@ -215,7 +215,7 @@ public class escnew2 extends EscBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
+                +" public int i; \n"
                 
                 +"public static void main(String[] args) {  \n"
                 +"A a = new A(1);\n"
@@ -231,8 +231,8 @@ public class escnew2 extends EscBase {
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
-                +" int i; \n"
-                +" static A x; \n"
+                +" public int i; \n"
+                +" public static A x; \n"
                 
                 +"public static void main(String[] args) { \n"
                 +"  A a = new A(1);\n"
@@ -299,7 +299,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testSuper() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n "
+                +"static public int i; \n "
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
@@ -311,7 +311,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testSuperbad2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n "
+                +"static public int i; \n "
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
@@ -325,7 +325,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testSuperbad() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n "
+                +"static public int i; \n "
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
@@ -339,7 +339,7 @@ public class escnew2 extends EscBase {
     
     @Test public void testThis() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n "
+                +"static public int i; \n "
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"//@ ensures i == 1; \n "
@@ -350,7 +350,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testThisBad() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n"
+                +"static public int i; \n"
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"//@ ensures i == 2; \n"
@@ -363,7 +363,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testThisBad2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i; \n"
+                +"static public int i; \n"
                 +"//@ requires k > 0; ensures i == k; \n "
                 +"public A(int k) { i = k; }\n"
                 +"//@ ensures i == 0; \n"

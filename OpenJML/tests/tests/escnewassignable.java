@@ -38,7 +38,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x,y; \n"
+                +"  public int x,y; \n"
 
                 +"  //@ assignable x; \n"
                 +"  public void m1bad(int i) {\n"
@@ -63,7 +63,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x; \n"
+                +"  public int x; \n"
 
                 +"  //@ requires i > 0; \n"
                 +"  //@ assignable x; \n"
@@ -85,7 +85,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x,y; \n"
+                +"  public int x,y; \n"
 
                 +"  //@ requires i > 0; \n"
                 +"  //@ assignable x; \n"
@@ -116,7 +116,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x,y; \n"
+                +"  public int x,y; \n"
 
                 +"  //@ requires i > 0; \n"
                 +"  //@ assignable x; \n"
@@ -205,7 +205,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable6() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x,xx; static int y,yy; \n"
+                +"  public int x,xx; static public int y,yy; \n"
 
                 +"  //@ assignable this.*; \n"
                 +"  public void m1bad(int i) {\n"
@@ -361,8 +361,8 @@ public class escnewassignable extends EscBase {
     public void testAssignable8() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int[] z;\n"
-                +"  //@ invariant z != null && z.length > 10;\n"
+                +"  public int[] z;\n"
+                +"  //@ public invariant z != null && z.length > 10;\n"
 
                 +"  //@ requires a != null && a.length > 10; assignable a[1]; \n"
                 +"  public void m1good(int i, int[] a) {\n"
@@ -421,7 +421,7 @@ public class escnewassignable extends EscBase {
 
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad",10
                 ,"/tt/TestJava.java:9: warning: Associated declaration",44
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m2bad",10
@@ -443,7 +443,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable9() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int i; static int si; @org.jmlspecs.annotation.NonNull TestJava b;\n"
+                +"  public int i; static public int si; @org.jmlspecs.annotation.NonNull public TestJava b;\n"
 
                 +"  //@ assignable a.i; \n"
                 +"  public void m1good(TestJava a) {\n"
@@ -502,7 +502,7 @@ public class escnewassignable extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"
-                +"  int x,y; static int xx,yy; @org.jmlspecs.annotation.NonNull A a; \n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
 
                 +"  //@ assignable y, A.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; \n"
                 +"  public void m1bad(int i) {\n"

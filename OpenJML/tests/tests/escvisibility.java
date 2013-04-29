@@ -29,43 +29,33 @@ public class escvisibility extends EscBase {
         main.addOptions("-classpath",   testspecpath);
         main.addOptions("-sourcepath",   testspecpath);
         main.addOptions("-specspath",   testspecpath);
-        //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        //options.put("-show",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-trace",   "");
+        main.addOptions("-quiet");
+        //main.addOptions("-show");
+        //main.addOptions("-jmldebug");
+        //main.addOptions("-noInternalSpecs");
+        //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
     }
 
-//    protected void helpTCX(String classname, String s, Object... list) {
-//        try {
-//            String filename = classname.replace(".","/") + ".java";
-//            JavaFileObject f = new TestJavaFileObject(filename,s);
-//            addMockFile("#B/" + filename,f);
-//            super.helpTCX(classname, s, list);
-//        } catch (Exception e) {
-//            System.out.println("EXCEPTION: " + e);
-//        }
-//    }
-
     // Invariant inherited from same package
     
     @Test
     public void testPrivate() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
+                +"  private boolean b = false; public boolean bb = true;\n"
                 +"  //@ private invariant b; \n"
+                +"  //@ ensures bb;\n"
+                +"  public void change() { b = false; }"
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
                 +"  public void m1() throws Exception {\n"
-                +"      b = false;\n"
+                +"      change();\n"
                 +"  }\n"
                 
                 +"}"
@@ -74,7 +64,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -96,11 +86,11 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
+                +"  protected boolean b = true;\n"
                 +"  //@ protected invariant b; \n"
                 +"}\n"
                 
@@ -118,11 +108,11 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
+                +"  boolean b = true;\n"
                 +"  //@ invariant b; \n"
                 +"}\n"
                 
@@ -141,14 +131,14 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate2() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
+                +"  private boolean b = true;\n"
                 +"  //@ private invariant b; \n"
                 +"  public void m1() {\n"
                 +"      b = false;\n"
@@ -162,7 +152,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic2() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -183,11 +173,11 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected2() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
+                +"  protected boolean b = true;\n"
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
@@ -204,11 +194,11 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage2() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
-                +"  public boolean b = true;\n"
+                +"  boolean b = true;\n"
                 +"}\n"
                 
                 +"public class TestJava extends Parent { \n"
@@ -227,7 +217,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -246,7 +236,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -267,7 +257,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected3() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -288,7 +278,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage3() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -311,7 +301,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3a() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -330,7 +320,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3a() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -351,7 +341,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected3a() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -372,7 +362,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage3a() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -395,7 +385,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate4() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -416,7 +406,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic4() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -437,7 +427,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected4() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -458,7 +448,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage4() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -481,7 +471,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate5() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -500,7 +490,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic5() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -521,7 +511,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected5() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -542,7 +532,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage5() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -564,7 +554,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate6() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -583,7 +573,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic6() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -604,7 +594,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected6() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -625,7 +615,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage6() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX2("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -648,7 +638,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic7() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -673,7 +663,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate8() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ private normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -695,7 +685,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic8() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ public normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -721,7 +711,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected8() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -743,7 +733,7 @@ public class escvisibility extends EscBase {
         
     @Test
     public void testPackage8() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         addMockJavaFile("tx/B.java","package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -766,7 +756,7 @@ public class escvisibility extends EscBase {
 
     @Test
     public void testPrivate9() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -787,7 +777,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic9() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -810,7 +800,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected9() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -833,7 +823,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage9() {
-        options.put("-method", "tt.TestJava.m1");
+        main.addOptions("-method", "tt.TestJava.m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -854,6 +844,198 @@ public class escvisibility extends EscBase {
                 );
     }
     
+    @Test
+    public void testInvariant() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  public int pb;\n"
+                +"  protected int pt;\n"
+                +"   int pa;\n"
+                +"  private int pv;\n"
+                
+                +"  //@ invariant 0 == pb;\n"  // Line 7
+                +"  //@ invariant 0 == pt;\n"
+                +"  //@ invariant 0 == pa;\n"
+                +"  //@ invariant 0 == pv;\n"
+                
+                +"  //@ public invariant 0 == pb;\n"
+                +"  //@ public invariant 0 == pt;\n"
+                +"  //@ public invariant 0 == pa;\n"
+                +"  //@ public invariant 0 == pv;\n"
+                
+                +"  //@ protected invariant 0 == pb;\n"  // Line 15
+                +"  //@ protected invariant 0 == pt;\n"
+                +"  //@ protected invariant 0 == pa;\n"
+                +"  //@ protected invariant 0 == pv;\n"
+                
+                +"  //@ private invariant 0 == pb;\n"
+                +"  //@ private invariant 0 == pt;\n"
+                +"  //@ private invariant 0 == pa;\n"
+                +"  //@ private invariant 0 == pv;\n"
+                +"}"
+                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:17: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:19: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:21: An identifier with package visibility may not be used in a invariant clause with private visibility",30
+                );
+    }
+    
+    @Test
+    public void testInvariantM() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  /*@ pure */public int pb(){return 0; };\n"
+                +"  /*@ pure */protected int pt(){return 0; };\n"
+                +"  /*@ pure */ int pa(){return 0; };\n"
+                +"  /*@ pure */private int pv(){return 0; };\n"
+                
+                +"  //@ invariant 0 == pb();\n"  // Line 7
+                +"  //@ invariant 0 == pt();\n"
+                +"  //@ invariant 0 == pa();\n"
+                +"  //@ invariant 0 == pv();\n"
+                
+                +"  //@ public invariant 0 == pb();\n"
+                +"  //@ public invariant 0 == pt();\n"
+                +"  //@ public invariant 0 == pa();\n"
+                +"  //@ public invariant 0 == pv();\n"
+                
+                +"  //@ protected invariant 0 == pb();\n"  // Line 15
+                +"  //@ protected invariant 0 == pt();\n"
+                +"  //@ protected invariant 0 == pa();\n"
+                +"  //@ protected invariant 0 == pv();\n"
+                
+                +"  //@ private invariant 0 == pb();\n"
+                +"  //@ private invariant 0 == pt();\n"
+                +"  //@ private invariant 0 == pa();\n"
+                +"  //@ private invariant 0 == pv();\n"
+                +"}"
+                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:17: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:19: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:21: An identifier with package visibility may not be used in a invariant clause with private visibility",30
+                );
+    }
+    
+    @Test
+    public void testInvariant2() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  /*@ spec_public */ protected int pt;\n"
+                +"  /*@ spec_public */  int pa;\n"
+                +"  /*@ spec_public */ private int pv;\n"
+                
+                +"  //@ invariant 0 == pt;\n"  // Line 6
+                +"  //@ invariant 0 == pa;\n"
+                +"  //@ invariant 0 == pv;\n"
+                
+                +"  //@ public invariant 0 == pt;\n"
+                +"  //@ public invariant 0 == pa;\n"
+                +"  //@ public invariant 0 == pv;\n"
+                
+                +"  //@ protected invariant 0 == pt;\n"
+                +"  //@ protected invariant 0 == pa;\n"
+                +"  //@ protected invariant 0 == pv;\n"
+                
+                +"  //@ private invariant 0 == pt;\n"
+                +"  //@ private invariant 0 == pa;\n"
+                +"  //@ private invariant 0 == pv;\n"
 
+                +"  /*@ spec_protected */  int pat;\n"
+                +"  /*@ spec_protected */ private int pvt;\n"
+                
+                +"  //@ invariant 0 == pat;\n"
+                +"  //@ invariant 0 == pvt;\n"
+                
+                +"  //@ public invariant 0 == pat;\n"
+                +"  //@ public invariant 0 == pvt;\n"
+                
+                +"  //@ protected invariant 0 == pat;\n"
+                +"  //@ protected invariant 0 == pvt;\n"
+                
+                +"  //@ private invariant 0 == pat;\n"
+                +"  //@ private invariant 0 == pvt;\n"
+                +"}"
+                ,"/tt/TestJava.java:6: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:8: An identifier with public visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:12: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:13: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:14: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
+                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:16: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:17: An identifier with public visibility may not be used in a invariant clause with private visibility",30
+ 
+                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:21: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
+                ,"/tt/TestJava.java:22: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:23: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
+                ,"/tt/TestJava.java:26: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                ,"/tt/TestJava.java:27: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
+                );
+    }
+    
+    @Test
+    public void testInClause() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"class B { \n"
+                
+                +"  //@ model public int pb;\n"
+                +"  //@ model protected int pt;\n"
+                +"  //@ model  int pa;\n"
+                +"  //@ model private int pv;\n"
+                
+                +"  public int x1; //@ in pb;\n"  // Line 7
+                +"  public int x2; //@ in pt;\n"
+                +"  public int x3; //@ in pa;\n"
+                +"  public int x4; //@ in pv;\n"
+                
+                +"  protected int y1; //@ in pb;\n"
+                +"  protected int y2; //@ in pt;\n"
+                +"  protected int y3; //@ in pa;\n"
+                +"  protected int y4; //@ in pv;\n"
+                
+                +"   int z1; //@ in pb;\n"
+                +"   int z2; //@ in pt;\n"
+                +"   int z3; //@ in pa;\n"
+                +"   int z4; //@ in pv;\n"
+                
+                +"  private int t1; //@ in pb;\n"
+                +"  private int t2; //@ in pt;\n"
+                +"  private int t3; //@ in pa;\n"
+                +"  private int t4; //@ in pv;\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:9: An identifier with package visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a in clause with public visibility",25
+                ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a in clause with protected visibility",28
+                ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a in clause with protected visibility",28
+                ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a in clause with package visibility",19
+                );
+    }
+    
 
 }

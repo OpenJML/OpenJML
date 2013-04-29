@@ -2677,7 +2677,7 @@ public class racnew extends RacBase {
                 +"}\n"
                 );
         addMockFile("$A/tt/C.java","package tt; public class C implements I { \n"
-                +"static int i=0;  \n"
+                +"static public int i=0;  \n"
                 +"//@ ensures i == 3; \n"
                 +" public void m() {} ; \n"
                 +"}\n"
@@ -2808,7 +2808,7 @@ public class racnew extends RacBase {
     
     @Test public void testAssignable() {
         helpTCX("tt.A","package tt; public class A {\n"
-                +"  static int j=0,k;\n"
+                +"  static public int j=0,k;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ modifies j;\n"
                 +"  //@ ensures j == i;\n"
@@ -2830,7 +2830,7 @@ public class racnew extends RacBase {
     
     @Test public void testAssignable2() {
         helpTCX("tt.A","package tt; public class A {\n"
-                +"  static int j=0,k;\n"
+                +"  static public int j=0,k;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ modifies j;\n"
                 +"  //@ ensures j == i;\n"
@@ -2852,7 +2852,7 @@ public class racnew extends RacBase {
     
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
-                +"  static int j=0,k;\n"
+                +"  static public int j=0,k;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures j == i;\n"

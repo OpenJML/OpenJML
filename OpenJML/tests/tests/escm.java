@@ -317,7 +317,7 @@ public class escm extends EscBase {
     public void testMethodsInSpecs() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { static boolean b; \n"
+                +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
                     +"  //@ normal_behavior\n"
                     +"  //@   ensures \\result == k+1;\n"

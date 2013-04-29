@@ -39,7 +39,7 @@ public class escinclause extends EscBase {
     public void testInClause1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  //@ model int mx;\n"
+                +"  //@ model public int mx;\n"
                 +"  int x; //@ in mx; \n"
                 +"  int y;\n"
 
