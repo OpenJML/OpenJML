@@ -219,7 +219,7 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  //@ model secret Object value;\n" +
+                "  //@ model public secret Object value;\n" +
                 "  @Secret protected Integer cache = null; //@ in value; \n" + 
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
@@ -266,7 +266,7 @@ public class QueryPure extends TCBase {
                 "  //@ ensures \\result == compute();\n" + 
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
                 "  public int use() { return value(); }\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + // To use the implicit declaration, value here must be after the Query
+                "  @Secret public Integer cache = null; //@ in value; \n" + // To use the implicit declaration, value here must be after the Query
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute();\n" +
                 "} \n"
         );
@@ -315,8 +315,8 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  //@ model secret Object value;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  //@ model secret public Object value;\n" +
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == cache;\n" +  // ERROR - no use of secret in specs
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
@@ -419,13 +419,13 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o;\n " +
-                "  @Secret int q; //@ in o;\n" +
+                "  @Secret public int q; //@ in o;\n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + 
                 "  public int use() { return value(); }\n" +
                 "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" +// ERROR - no reading other secret
                 "} \n"
                 ,"/A.java:11: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",80
@@ -447,7 +447,7 @@ public class QueryPure extends TCBase {
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
                 "  public int use() { return value(); }\n" +
                 "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
                 "} \n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",35 
@@ -462,13 +462,13 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
+                "  @Secret public int q = 5; //@ in o;\n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
                 "  public int use() { return value(); }\n" +
                 "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
                 "} \n"
         );
@@ -481,13 +481,13 @@ public class QueryPure extends TCBase {
                 "public class A { \n" +
                 "  //@ @Secret public model Object value;\n" +
                 "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
+                "  @Secret public int q = 5; //@ in o;\n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" +
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
                 "  public int use() { return value(); }\n" +
                 "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
                 "} \n"
         );

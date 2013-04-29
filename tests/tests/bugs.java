@@ -94,7 +94,7 @@ public class bugs extends TCBase {
     @Test
     public void testMisc11() {
         options.put("-specspath",   testspecpath);
-        helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ invariant pending.elementCount == 0; \n} "
+        helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
                 );
     }
 
@@ -192,12 +192,12 @@ public class bugs extends TCBase {
     public void testCollect3() {
         helpTCF("A.java","\n"
                 +"public class A extends java.io.InputStream implements Comparable<A> { \n"
-                +"  //@ invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
+                +"  //@ public invariant m(java.lang.Long.TYPE) && m(java.lang.Long);\n"
                 +"  public boolean m(Object i) {\n"
                 +"  }  \n"
                 +"}\n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
-                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",49
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",56
+                ,"/A.java:3: cannot find symbol\n  symbol:   class lang\n  location: package java",56
               );
     }
 }

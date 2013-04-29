@@ -658,23 +658,23 @@ public class typeclauses extends TCBase {
     /** Tests that specs get associated with the initializer */
     @Test
     public void testInitializer2() {
-        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i==0; initializer ensures j == 0; static_initializer \n}"
+        helpTCF("A.java","public class A {\n public int i; public static int j; //@ ensures i==0; initializer ensures j == 0; static_initializer \n}"
         );
     }
 
     /** Tests that variable references in a static initializer must be static */
     @Test
     public void testInitializer3() {
-        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}"
-                ,"/A.java:2: non-static variable i cannot be referenced from a static context",35
+        helpTCF("A.java","public class A {\n public int i; public static int j; //@ ensures i == 0; static_initializer \n}"
+                ,"/A.java:2: non-static variable i cannot be referenced from a static context",49
         );
     }
 
     @Test
     public void testInitializer4() {
-        addMockFile("$A/A.jml","public class A {\n int i; static int j; //@ ensures i == 0; static_initializer \n}");
-        helpTCF("A.java","public class A {\n int i; static int j;  \n}"
-                ,"/$A/A.jml:2: non-static variable i cannot be referenced from a static context",35
+        addMockFile("$A/A.jml","public class A {\n public int i; public static int j; //@ ensures i == 0; static_initializer \n}");
+        helpTCF("A.java","public class A {\n public int i; public static int j;  \n}"
+                ,"/$A/A.jml:2: non-static variable i cannot be referenced from a static context",49
         );
     }
 
@@ -701,7 +701,7 @@ public class typeclauses extends TCBase {
     /** Tests that specs are parsed with the Java initializer */
     @Test
     public void testInitializer8() {
-        helpTCF("A.java","public class A {\n int i; static int j; //@ ensures i==0; \n {} //@ ensures i==0; \n static {} \n}"
+        helpTCF("A.java","public class A {\n public int i; static public int j; //@ ensures i==0; \n {} //@ ensures i==0; \n static {} \n}"
                 ,"/A.java:3: non-static variable i cannot be referenced from a static context",17
         );
     }
@@ -715,7 +715,7 @@ public class typeclauses extends TCBase {
 
     @Test
     public void testInitializer10() {
-        helpTCF("A.java","public class A {int i; static int j; \n //@ ensures i==0; \n static { i = 0; } \n}"
+        helpTCF("A.java","public class A {public int i; public static int j; \n //@ ensures i==0; \n static { i = 0; } \n}"
                 ,"/A.java:3: non-static variable i cannot be referenced from a static context",11
                 ,"/A.java:2: non-static variable i cannot be referenced from a static context",14
         );

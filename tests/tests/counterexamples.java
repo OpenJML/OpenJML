@@ -96,7 +96,7 @@ public class counterexamples extends EscBase {
     public void testCE4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int j; static int sj; static TestJava t;\n"
+                +"  public int j; static public int sj; static public TestJava t;\n"
                 +"  public TestJava(int i) {}\n"
                 
                 +"  //@ requires t != null;\n"
@@ -125,7 +125,7 @@ public class counterexamples extends EscBase {
     public void testCE5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int j; static int sj; static TestJava t;\n"
+                +"  public int j; static public int sj; static public TestJava t;\n"
                 +"  public TestJava(int i) {}\n"
                 
                 +"  //@ requires j == 0;\n"
@@ -242,7 +242,7 @@ public class counterexamples extends EscBase {
                 +"      return 0;\n"
                 +"  }\n"
                 
-                +"  static int k;\n"
+                +"  static public int k;\n"
                 +"  //@ requires i>=0; ensures k == 0;\n"
                 +"  public void m2(int i) {\n"
                 +"      k = 0;\n"
@@ -318,7 +318,7 @@ public class counterexamples extends EscBase {
                 +"      cc(i);\n"
                 +"  }\n"
                 
-                +"  int k;\n"
+                +"  public int k;\n"
                 +"  //@ requires i>0; \n"
                 +"  //@ ensures k==0;\n"
                 +"  //@ signals (Exception e) false;\n"

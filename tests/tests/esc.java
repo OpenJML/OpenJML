@@ -480,9 +480,9 @@ public class esc extends EscBase {
                 +"    //@ assert \\not_modified(i);\n"  // BAD
                 +"  }\n"
                 
-                +"  int i;\n"
-                +"  static int si;\n"
-                +"  //@ ghost int gi;\n"
+                +"  public int i;\n"
+                +"  public static int si;\n"
+                +"  //@ ghost public int gi;\n"
                 
                 +"  //@ requires i == 5;\n"
                 +"  //@ modifies \\everything;\n"
@@ -537,8 +537,8 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  int i;\n"
-                +"  static /*@ nullable */ TestJava t;\n"
+                +"  public int i;\n"
+                +"  public static /*@ nullable */ TestJava t;\n"
                 
                 +"  //@ requires t != null;\n"
                 +"  //@ modifies \\everything;\n"
@@ -773,8 +773,8 @@ public class esc extends EscBase {
         //main.addOptions("-trace");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  static TestJava p;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public static TestJava p;\n"
                 
                 +"  //@ requires p != null && p != this;\n"
                 +"  //@ modifies \\everything;\n"
@@ -942,8 +942,8 @@ public class esc extends EscBase {
     public void testAssignables6a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; static public int[] sa;\n"
                 
                 +"  //@ requires a != null && a.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -966,8 +966,8 @@ public class esc extends EscBase {
     public void testAssignables6b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; public static int[] sa;\n"
                 
                 +"  //@ requires a != null && a.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -993,8 +993,8 @@ public class esc extends EscBase {
     public void testAssignables6c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; public static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -1017,8 +1017,8 @@ public class esc extends EscBase {
     public void testAssignables6d() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; public static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n" 
                 +"  //@ modifies \\everything;\n"
@@ -1044,8 +1044,8 @@ public class esc extends EscBase {
     public void testAssignables5a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; public static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -1068,8 +1068,8 @@ public class esc extends EscBase {
     public void testAssignables5b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k; static int sk;\n"
-                +"  int[] a; static int[] sa;\n"
+                +"  public int k; public static int sk;\n"
+                +"  public int[] a; public static int[] sa;\n"
                 
                 +"  //@ requires sa != null && sa.length > 10;\n"
                 +"  //@ modifies \\everything;\n"
@@ -1189,8 +1189,8 @@ public class esc extends EscBase {
     public void testAssignables2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k;\n"
-                +"  static int sk;\n"
+                +"  public int k;\n"
+                +"  public static int sk;\n"
                 
                 +"  //@ modifies k,sk;\n"
                 +"  public void m1() {\n"
@@ -1220,7 +1220,7 @@ public class esc extends EscBase {
                 +"    //@ assert k == 0;\n" // FAILS
                 +"  }\n"
                 
-                +"  static int[] a; int[] b;\n"
+                +"  public static int[] a; public int[] b;\n"
 
                 +"  //@ requires i == 0;\n"
                 +"  //@ modifies k;\n"
@@ -1250,8 +1250,8 @@ public class esc extends EscBase {
     public void testAssignables2b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k;\n"
-                +"  static int sk;\n"
+                +"  public int k;\n"
+                +"  public static int sk;\n"
                 
                 +"  //@ modifies k,sk;\n"
                 +"  public void m3() {\n"
@@ -1267,7 +1267,7 @@ public class esc extends EscBase {
                 +"    //@ assert k == 0;\n" // FAILS
                 +"  }\n"
                 
-                +"  static int[] a; int[] b;\n"
+                +"  public static int[] a; public int[] b;\n"
                 +"  //@ requires a != null && a.length == 5;\n"
                 +"  //@ modifies a[0];\n"
                 +"  public void m4() {\n"
@@ -1312,10 +1312,10 @@ public class esc extends EscBase {
     public void testAssignables2c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int k;\n"
-                +"  static int sk;\n"
+                +"  public int k;\n"
+                +"  public static int sk;\n"
                 
-                +"  static int[] a; int[] b;\n"
+                +"  public static int[] a; public int[] b;\n"
 
                 +"  //@ requires b != null && b.length == 5;\n"
                 +"  //@ modifies b[0];\n"
@@ -1377,7 +1377,7 @@ public class esc extends EscBase {
     public void testAssignables3a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int[] a;  //@ invariant a != null && a.length == 10;\n"
+                +"  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
                 
                 +"  public TestJava() {\n"
                 +"     a = new int[10];\n"
@@ -1415,7 +1415,7 @@ public class esc extends EscBase {
     public void testAssignables3b() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int[] a;  //@ invariant a != null && a.length == 10;\n"
+                +"  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
                 
                 +"  public TestJava() {\n"
                 +"     a = new int[10];\n"
@@ -1454,7 +1454,7 @@ public class esc extends EscBase {
     public void testAssignables3c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int[] a;  //@ invariant a != null && a.length == 10;\n"
+                +"  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
                 
                 +"  public TestJava() {\n"
                 +"     a = new int[10];\n"
@@ -1492,7 +1492,7 @@ public class esc extends EscBase {
     public void testMethodCallsWithExceptions() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int k;\n"
+                +"  public static int k;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
                 +"  //@ ensures k == 10;\n"
@@ -1613,13 +1613,13 @@ public class esc extends EscBase {
                 +"  public static boolean bf(boolean bb) { return true; }\n"
                 +"  //@ requires true;\n"
                 +"  public static boolean bt(boolean bb) { return true; }\n"
-                +"  static boolean b;\n"
-                +"  //@ static invariant b;\n"
+                +"  static public boolean b;\n"
+                +"  //@ static public invariant b;\n"
                 +"  //@ requires !b;\n"
                 +"  public static boolean bq(boolean bb) { return true; }\n"
                 +"}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Invariant) in method <init>",10,
-                "/tt/TestJava.java:10: warning: Associated declaration",24,
+                "/tt/TestJava.java:10: warning: Associated declaration",31,
                 "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bf(boolean)",25,
                 "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bq(boolean)",25);
     }
@@ -1784,14 +1784,14 @@ public class esc extends EscBase {
     public void testOld() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
-                +"  //@ static constraint i > \\old(i);\n"
+                +"  static public  int i;\n"
+                +"  //@ static public constraint i > \\old(i);\n"
                 +"  //@ modifies i;\n"
                 +"  //@ ensures true;\n"
                 +"  public static void bok() { i = i - 1; }\n"
                 +"}",
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok",22,
-                "/tt/TestJava.java:4: warning: Associated declaration", 25
+                "/tt/TestJava.java:4: warning: Associated declaration", 32
         );
     }
 
@@ -1799,7 +1799,7 @@ public class esc extends EscBase {
     public void testOld2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ modifies i;\n"
                 +"  //@ ensures i == \\old(i)+2;\n"
                 +"  public static void bok() { i = i + 1; i = i + 1;}\n"
@@ -2169,8 +2169,8 @@ public class esc extends EscBase {
     public void testMethodCallThis() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  static TestJava o;\n"
-                +"  static TestJava p;\n"
+                +"  public static TestJava o;\n"
+                +"  public static TestJava p;\n"
                 +"  public int j; static public int sj; \n"
                 
                 +"  //@ ensures \\result == j;\n"
@@ -2652,7 +2652,7 @@ public class esc extends EscBase {
     public void testTry() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ ensures i == 2;\n"
                 +"  public void inst1() { i=0; try { i = 1; return; } finally { i = 2; } }\n" // OK
                 +"  //@ ensures i == 1;\n"
@@ -2673,7 +2673,7 @@ public class esc extends EscBase {
                 +"public static void ex(boolean b) throws RuntimeException {\n"
                 +"    if (b) throw new RuntimeException();\n"
                 +"}\n"
-                +"static int sk; int k;\n"
+                +"public static int sk; public int k;\n"
                 +"\n" // Line 10
                 +"//@ requires k < 0;\n"
                 +"//@ ensures true;\n"
@@ -2721,7 +2721,7 @@ public class esc extends EscBase {
     public void testMisc() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ ensures i > 0;\n"
                 +"  public static void m() { i = i -1; }\n" // OK
@@ -2791,7 +2791,7 @@ public class esc extends EscBase {
     public void testPureNonFunction() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  int z;\n"
+                +"  public int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
                 +"  //@ pure \n"
                 +"  public int m() { return z+1; }\n"
@@ -2812,7 +2812,7 @@ public class esc extends EscBase {
     public void testPureNoArguments() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  static int z;\n"
+                +"  public static int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
                 +"  //@ pure \n"
                 +"  public static int m() { return z+1; }\n"
@@ -3359,8 +3359,8 @@ public class esc extends EscBase {
     public void testUndefinedInSpec3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
-                +"  int j = 1;\n"
-                +"  static @Nullable TestJava t;\n"
+                +"  public int j = 1;\n"
+                +"  public static @Nullable TestJava t;\n"
                 +"  public static void m(TestJava o) { \n"
                 +"    //@ assume o.j == 1; \n"
                 +"  }\n  "
@@ -3714,7 +3714,7 @@ public class esc extends EscBase {
     public void testSignals1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"
@@ -3737,7 +3737,7 @@ public class esc extends EscBase {
     public void testSignals2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"  // OK
@@ -3760,7 +3760,7 @@ public class esc extends EscBase {
     public void testSignals3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (Exception e) i == 0;\n"
@@ -3783,7 +3783,7 @@ public class esc extends EscBase {
     public void testSignals4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ ensures i>0;\n"
                 +"  //@ signals (RuntimeException e) i == 1;\n" // OK because a RuntimeException is never thrown
