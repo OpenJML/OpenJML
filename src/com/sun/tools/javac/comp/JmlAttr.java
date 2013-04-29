@@ -794,20 +794,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } 
 
         if (!isModel) {
-            JCTree.JCAnnotation a;
             checkForConflict(specsModifiers,SPEC_PUBLIC,SPEC_PROTECTED);
-            if ((specsModifiers.flags & Flags.PROTECTED) != 0 &&
-                    (a=utils.findMod(specsModifiers,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","protected","spec_protected");
-            }
-            if ((specsModifiers.flags & Flags.PUBLIC) != 0 &&
-                    (a=utils.findMod(specsModifiers,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","public","spec_protected");
-            }
-            if ((specsModifiers.flags & Flags.PUBLIC) != 0 &&
-                    (a=utils.findMod(specsModifiers,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","public","spec_public");
-            }
+            checkForRedundantSpecMod(specsModifiers);
         }
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
         checkForConflict(specsModifiers,PURE,QUERY);
@@ -1081,21 +1069,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 allAllowed(mods.annotations,allowedConstructorAnnotations,"constructor declaration");
             }            
         }
+        JCTree.JCAnnotation a;
+        if (((mods.flags & Flags.PRIVATE)== 0 
+                || (utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null
+                || (utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null)
+                && (a=utils.findMod(mods,tokenToAnnotationName.get(HELPER))) != null ) {
+            log.error(a.pos,"jml.helper.must.be.private",javaMethodTree.name.toString());
+        }
         if (!model) {
-            JCTree.JCAnnotation a;
             checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
-            if ((mods.flags & Flags.PROTECTED) != 0 &&
-                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","protected","spec_protected");
-            }
-            if ((mods.flags & Flags.PUBLIC) != 0 &&
-                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","public","spec_protected");
-            }
-            if ((mods.flags & Flags.PUBLIC) != 0 &&
-                    (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
-                log.warning(a.pos(),"jml.redundant.visibility","public","spec_public");
-            }
+            checkForRedundantSpecMod(mods);
         }
     }
     
@@ -1813,18 +1796,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCTree.JCAnnotation a;
             if (!model) {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
-                if ((tree.mods.flags & Flags.PROTECTED) != 0 &&
-                        (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                    log.warning(a.pos(),"jml.redundant.visibility","protected","spec_protected");
-                }
-                if ((tree.mods.flags & Flags.PUBLIC) != 0 &&
-                        (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
-                    log.warning(a.pos(),"jml.redundant.visibility","public","spec_protected");
-                }
-                if ((tree.mods.flags & Flags.PUBLIC) != 0 &&
-                        (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
-                    log.warning(a.pos(),"jml.redundant.visibility","public","spec_public");
-                }
+                checkForRedundantSpecMod(mods);
             }
             a = utils.findMod(mods,tokenToAnnotationName.get(INSTANCE));
             if (a != null && isStatic(tree.mods)) {
@@ -4432,18 +4404,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** This checks that the given modifier set does not have annotations for
      * both of a pair of mutually exclusive annotations; it prints an error
-     * message if they are both present
+     * message if they are both present; returns true if an error happened
      * @param mods the modifiers to check
      * @param ta the first JML token
      * @param tb the second JML token
      */
-    public void checkForConflict(JCModifiers mods, JmlToken ta, JmlToken tb) {
+    public boolean checkForConflict(JCModifiers mods, JmlToken ta, JmlToken tb) {
         JCTree.JCAnnotation a,b;
         a = utils.findMod(mods,tokenToAnnotationName.get(ta));
         b = utils.findMod(mods,tokenToAnnotationName.get(tb));
         if (a != null && b != null) {
             log.error(b.pos(),"jml.conflicting.modifiers",ta.internedName(),tb.internedName());
+            return true;
         }
+        return false;
+    }
+    
+    public boolean checkForRedundantSpecMod(JCModifiers mods) {
+        JCTree.JCAnnotation a;
+        boolean result = false;
+        if ((mods.flags & Flags.PROTECTED) != 0 &&
+                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+            log.warning(a.pos(),"jml.redundant.visibility","protected","spec_protected");
+            result = true;
+        }
+        if ((mods.flags & Flags.PUBLIC) != 0 &&
+                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+            log.warning(a.pos(),"jml.redundant.visibility","public","spec_protected");
+            result = true;
+        }
+        if ((mods.flags & Flags.PUBLIC) != 0 &&
+                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
+            log.warning(a.pos(),"jml.redundant.visibility","public","spec_public");
+            result = true;
+        }
+        return result;
     }
     
     /** Finds the annotation in the modifiers corresponding to the given token

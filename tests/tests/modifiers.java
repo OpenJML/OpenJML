@@ -624,18 +624,28 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testMethod() {
-        helpTCF("A.java","public class A{ /*@ pure non_null helper spec_protected extract */ Object m(){ return null; } }"
+        helpTCF("A.java","public class A{ /*@ pure non_null spec_protected extract */ Object m(){ return null; } }"
+                );
+    }
+     
+    @Test public void testMethod0() {
+        helpTCF("A.java","public class A{ /*@ pure non_null helper private extract */ Object m(){ return null; } }"
                 );
     }
      
     @Test public void testInterfaceMethod() {
-        helpTCF("A.java","public interface A{ /*@ pure non_null helper spec_protected extract */ Object m(); }"
-                ,"/A.java:1: This JML modifier is not allowed for a interface method declaration",61
+        helpTCF("A.java","public interface A{ /*@ pure non_null  spec_protected extract */ Object m(); }"
+                ,"/A.java:1: This JML modifier is not allowed for a interface method declaration",55
                 );
     }
      
     @Test public void testMethod2() {
-        helpTCF("A.java","public class A{ /*@ pure nullable helper spec_public */ void m(){} }"
+        helpTCF("A.java","public class A{ /*@ pure nullable spec_public */ void m(){} }"
+                );
+    }
+     
+    @Test public void testMethod2a() {
+        helpTCF("A.java","public class A{ /*@ pure nullable helper private */ void m(){} }"
                 );
     }
      
@@ -657,12 +667,22 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testConstructor() {
-        helpTCF("A.java","public class A{ /*@ pure helper spec_protected extract */ A(){} }"
+        helpTCF("A.java","public class A{ /*@ pure spec_protected extract */ A(){} }"
+                );
+    }
+     
+    @Test public void testConstructor0() {
+        helpTCF("A.java","public class A{ /*@ pure extract helper private */ A(){} }"
                 );
     }
      
     @Test public void testConstructor1() {
-        helpTCF("A.java","public class A{ /*@ pure helper spec_public */ A(){} }"
+        helpTCF("A.java","public class A{ /*@ pure spec_public */ A(){} }"
+                );
+    }
+     
+    @Test public void testConstructor1a() {
+        helpTCF("A.java","public class A{ /*@ pure helper private */ A(){} }"
                 );
     }
      
@@ -682,18 +702,28 @@ public class modifiers extends TCBase {
      
     
     @Test public void testModelMethod() {
-        helpTCF("A.java","public class A{ /*@ model pure non_null helper extract Object m(){ return null; } */ }"
+        helpTCF("A.java","public class A{ /*@ model pure non_null extract Object m(){ return null; } */ }"
+                );
+    }
+     
+    @Test public void testModelMethod0() {
+        helpTCF("A.java","public class A{ /*@ model pure non_null extract private helper Object m(){ return null; } */ }"
                 );
     }
      
     @Test public void testInterfaceModelMethod() {
-        helpTCF("A.java","public interface A{ /*@ model pure non_null helper extract Object m(); */ }"
-                ,"/A.java:1: This JML modifier is not allowed for a interface model method declaration",52
+        helpTCF("A.java","public interface A{ /*@ model pure non_null extract Object m(); */ }"
+                ,"/A.java:1: This JML modifier is not allowed for a interface model method declaration",45
                 );
     }
      
     @Test public void testModelMethod1() {
-        helpTCF("A.java","public class A{ /*@ model pure nullable helper  void m(){} */ }"
+        helpTCF("A.java","public class A{ /*@ model pure nullable void m(){} */ }"
+                );
+    }
+     
+    @Test public void testModelMethod1a() {
+        helpTCF("A.java","public class A{ /*@ model pure nullable private helper  void m(){} */ }"
                 );
     }
      
@@ -719,13 +749,24 @@ public class modifiers extends TCBase {
      
     
     @Test public void testModelConstructor() {
-        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model pure  helper extract  A(){} */ }"
+        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model pure extract  A(){} */ }"
+                );
+    }
+     
+    @Test public void testModelConstructor0() {
+        helpTCF("A.java","public class A{ A(int i) {} \n/*@ model pure private helper extract  A(){} */ }"
                 );
     }
      
     @Test public void testModelConstructor1() {
-        helpTCF("A.java","public class A{ /*@ model pure  helper  */ A(){} }"
-                ,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",44
+        helpTCF("A.java","public class A{ /*@ model pure  */ A(){} }"
+                ,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",36
+                );
+    }
+     
+    @Test public void testModelConstructor1a() {
+        helpTCF("A.java","public class A{ /*@ model pure private helper */ A(){} }"
+                ,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",50
                 );
     }
      
@@ -1117,6 +1158,41 @@ public class modifiers extends TCBase {
                 );
     }
     
+    @Test public void testHelper1() {
+        helpTCF("A.java","public class A{ /*@ helper */ void m(){} }"
+                ,"/A.java:1: A helper method must be private: m",21
+                );
+    }
+     
+    @Test public void testHelper2() {
+        helpTCF("A.java","public class A{ /*@ helper protected */ void m(){} }"
+                ,"/A.java:1: A helper method must be private: m",21
+                );
+    }
+     
+    @Test public void testHelper3() {
+        helpTCF("A.java","public class A{ /*@ helper public */ void m(){} }"
+                ,"/A.java:1: A helper method must be private: m",21
+                );
+    }
+     
+    @Test public void testHelper4() {
+        helpTCF("A.java","public class A{ /*@ helper private */ void m(){} }"
+                );
+    }
+     
+    @Test public void testHelper5() {
+        helpTCF("A.java","public class A{ /*@ helper private spec_protected*/ void m(){} }"
+                ,"/A.java:1: A helper method must be private: m",21
+                );
+    }
+     
+    @Test public void testHelper6() {
+        helpTCF("A.java","public class A{ /*@ helper private spec_public */ void m(){} }"
+                ,"/A.java:1: A helper method must be private: m",21
+                );
+    }
+     
     
 
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m

@@ -1425,7 +1425,7 @@ public class racnew extends RacBase {
     @Test public void testHelper() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
-                +"/*@ helper */ void m(); \n"
+                +"/*@ private helper */ void m(); \n"
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { \n"
