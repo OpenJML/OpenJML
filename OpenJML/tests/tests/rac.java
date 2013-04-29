@@ -1297,12 +1297,12 @@ public class rac extends RacBase {
     @Test public void testHelper() {
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
-                +"/*@ helper */ void m(); \n"
+                +"/*@ private helper */ void m(); \n"
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { \n"
                 +"int i = 0;  \n "
-                +"void m() { i = 1-i; }  \n "
+                +"private void m() { i = 1-i; }  \n "
                 +"public static void main(String[] args) { \n"
                 +"new A().m(); "
                 +"System.out.println(\"MID\"); "
