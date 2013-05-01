@@ -112,7 +112,7 @@ public class jmltypes extends TCBase {
                 ,"/A.java:6: incomparable types: org.jmlspecs.utils.IJMLTYPE and java.lang.Class<java.lang.Object>",39
                 ,"/A.java:8: The arguments to <: must both be \\TYPE or both be Class",26
                 ,"/A.java:9: The arguments to <: must both be \\TYPE or both be Class",31
-                ,"/A.java:10: unexpected type\n  required: class\n  found:    value",28
+                ,"/A.java:10: unexpected type\n  required: class\n  found:    value",33
                 ,"/A.java:12: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
                 ,"/A.java:13: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
 

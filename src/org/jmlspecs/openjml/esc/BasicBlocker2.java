@@ -2172,7 +2172,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitAnnotation(JCAnnotation that)       { notImpl(that); }
     public void visitModifiers(JCModifiers that)         { notImpl(that); }
     public void visitErroneous(JCErroneous that)         { notImpl(that); }
-    public void visitLetExpr(LetExpr that)               { notImpl(that); }
+
+    public void visitLetExpr(LetExpr that) { 
+        for (JCVariableDecl d: that.defs) {
+            scan(d.init);
+        }
+        scan(that.expr);
+        result = that;
+    }
     
     public void visitTypeIdent(JCPrimitiveTypeTree that) { 
         notImpl(that); 

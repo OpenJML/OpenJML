@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
 import org.smtlib.IExpr;
+import org.smtlib.IExpr.IBinding;
 import org.smtlib.IExpr.IDeclaration;
 import org.smtlib.IExpr.ISymbol;
 import org.smtlib.IParser;
@@ -804,6 +805,28 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)               { notImpl(that); }
 
+    @Override public void visitLetExpr(LetExpr that) { 
+        
+        Iterator<JCVariableDecl> iter = that.defs.iterator();
+        result = doLet(iter,(JCExpression)that.expr);
+    }
+    
+    // We need to create nested let expressions because the SMT let expression
+    // does parallel bindings of initializers to variables, while Java does
+    // sequential bindings.
+    private IExpr doLet(Iterator<JCVariableDecl> iter, JCExpression expr) {
+        if (iter.hasNext()) {
+            JCVariableDecl decl = iter.next();
+            IExpr.ISymbol sym = F.symbol(decl.name.toString());
+            IExpr e = convertExpr(decl.init);
+            List<IBinding> bindings = new LinkedList<IBinding>();
+            bindings.add(F.binding(sym,e));
+            return F.let(bindings, doLet(iter,expr));
+        } else {
+            return convertExpr(expr);
+        }
+    }
+
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         List<IDeclaration> params = new LinkedList<IDeclaration>();
@@ -957,6 +980,5 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitAnnotation(JCAnnotation that) { shouldNotBeCalled(that); }
     @Override public void visitModifiers(JCModifiers that) { shouldNotBeCalled(that); }
     @Override public void visitErroneous(JCErroneous that) { shouldNotBeCalled(that); }
-    @Override public void visitLetExpr(LetExpr that) { shouldNotBeCalled(that); }
 
 }

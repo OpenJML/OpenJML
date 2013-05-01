@@ -2109,7 +2109,7 @@ public class JmlParser extends EndPosParser {
             jmlerror(
                     S.pos(),
                     S.endPos(),
-                    "jml.internal.nosobad",
+                    "jml.internal.notsobad",
                     "This code branch in modifiersOpt() is not expected to be executed and is not fully implemented - please report with code samples");
             // I don't think this is ever executed. If it is we need to check
             // that
@@ -2371,6 +2371,7 @@ public class JmlParser extends EndPosParser {
                 case BSTYPELC:
                     int start = S.pos();
                     S.nextToken();
+                    p = S.pos();
                     if (S.token() != Token.LPAREN) {
                         return syntaxError(p, List.<JCTree> nil(),
                                 "jml.args.required", jt);
@@ -2482,6 +2483,10 @@ public class JmlParser extends EndPosParser {
                     S.nextToken();
                     return parseLblExpr(p, jt);
 
+                case BSLET:
+                    S.nextToken();
+                    return parseLet(p);
+                    
                 case BSONLYCALLED:
                     warnNotImplemented(S.pos(), jt.internedName(),
                             "\\only_called");
@@ -2518,19 +2523,22 @@ public class JmlParser extends EndPosParser {
         JCModifiers mods = modifiersOpt();
         JCExpression t = parseType();
         if (t.getTag() == JCTree.ERRONEOUS) return t;
-        if (mods.pos == -1) mods.pos = t.pos; // set the beginning of the
+        if (mods.pos == -1) {
+            mods.pos = t.pos; // set the beginning of the modifiers
+            storeEnd(mods,t.pos);
+        }
                                               // modifiers
         // to the beginning of the type, if there
         // are no modifiers
         ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
         int idpos = S.pos();
         Name id = ident(); // FIXME JML allows dimensions after the ident
-        decls.append(jmlF.at(idpos).VarDef(mods, id, t, null));
+        decls.append(toP(jmlF.at(idpos).VarDef(mods, id, t, null)));
         while (S.token() == COMMA) {
             S.nextToken();
             idpos = S.pos();
             id = ident(); // FIXME JML allows dimensions after the ident
-            decls.append(jmlF.at(idpos).VarDef(mods, id, t, null));
+            decls.append(toP(jmlF.at(idpos).VarDef(mods, id, t, null)));
         }
         if (S.token() != SEMI) {
             jmlerror(S.pos(), S.endPos(), "jml.expected.semicolon.quantified");
@@ -2659,6 +2667,30 @@ public class JmlParser extends EndPosParser {
         Name n = ident();
         JCExpression e = parseExpression();
         return toP(jmlF.at(pos).JmlLblExpression(jmlToken, n, e));
+    }
+    
+    public JCExpression parseLet(int pos) {
+        ListBuffer<JCVariableDecl> vdefs = new ListBuffer<JCVariableDecl>();
+        do {
+            int pm = S.pos();
+            JCModifiers mods = jmlF.Modifiers(0); // FIXME - there are some modifiers allowed?
+            if (mods.pos == -1) {
+                mods.pos = pm;
+                storeEnd(mods,pm);
+            }
+            JCExpression type = parseType();
+            int p = S.pos();
+            Name name = ident();
+            JCVariableDecl decl = variableDeclaratorRest(pos,mods,type,name,true,null);
+            decl.pos = p;
+            if (decl.init == null) toP(decl);
+            vdefs.add(decl);
+            if (S.token() != COMMA) break;
+            accept(COMMA);
+        } while (true);
+        accept(SEMI);
+        JCExpression expr = parseExpression();
+        return toP(jmlF.at(pos).LetExpr(vdefs.toList(),expr));
     }
 
     /** Parses: "{" [ <modifiers> ] <type> <identifier> "|" <expression> "}" */
