@@ -1430,7 +1430,7 @@ public class racnew extends RacBase {
                 );
         helpTCX("tt.A","package tt; public class A { \n"
                 +"int i = 0;  \n "
-                +"void m() { i = 1-i; }  \n "
+                +"private void m() { i = 1-i; }  \n "
                 +"public static void main(String[] args) { \n"
                 +"new A().m(); "
                 +"System.out.println(\"MID\"); "

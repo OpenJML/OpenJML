@@ -15,7 +15,7 @@ import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.parser.Token;
-import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCConditional;
@@ -24,6 +24,8 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import static org.junit.Assert.*;
@@ -82,7 +84,7 @@ public class expressions extends ParseBase {
                 p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 p3 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 if (p3 != null) {
-                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("Start position for token " + k, p1, TreeInfo.getStartPos(t)); // t.getStartPosition());
                     assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
                     assertEquals("End position for token " + k, p3, p.getEndPos(t));
                 } else if (p2 != null) {
@@ -166,6 +168,33 @@ public class expressions extends ParseBase {
 
     /** Test scanning JML equivalence expression */
     @Test
+    public void testJMLUnary1() {
+        helpExpr(" - (++a) + !b + (a--) + (~a++)",
+                JCBinary.class, 1,22,30,
+                JCBinary.class, 1,14,21,
+                JCBinary.class, 1,9,13,
+
+                JCUnary.class, 1,1,8,
+                JCParens.class, 3,3,8,
+                JCUnary.class, 4,4,7,
+                JCIdent.class ,6,6,7,
+
+                JCUnary.class, 11,11,13,
+                JCIdent.class ,12,12,13,
+                
+                JCParens.class, 16,16,21,
+                JCUnary.class, 17,18,20,
+                JCIdent.class ,17,17,18,
+                
+                JCParens.class, 24,24,30,
+                JCUnary.class, 25,25,29,
+                JCUnary.class, 26,27,29,
+                JCIdent.class ,26,26,27
+                );
+    }
+
+    /** Test scanning JML equivalence expression */
+    @Test
     public void testJMLBinary1() {
         helpExpr("a <==> b",
                 JmlBinary.class, 2,
@@ -230,52 +259,52 @@ public class expressions extends ParseBase {
     @Test
     public void testJMLprecedence1a() {
         helpExpr("a <==  b <==  c <==  d",
-                JmlBinary.class, 16,
-                JmlBinary.class, 9,
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 0,16,22,
+                JmlBinary.class, 0,9,15,
+                JmlBinary.class, 0,2,8,
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8,
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test precedence between equiv and implies operators */
     @Test
     public void testJMLprecedence2() {
         helpExpr("a ==>  b <==> c ==>  d",
-                JmlBinary.class, 9,
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7,
-                JmlBinary.class, 16,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 0,9,22,
+                JmlBinary.class, 0,2,8,
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8,
+                JmlBinary.class, 14,16,22,
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test association of equiv operators */
     @Test
     public void testJMLprecedence2a() {
         helpExpr("a <==> b <==> c <==> d",
-                JmlBinary.class, 16,
-                JmlBinary.class, 9,
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 0,16,22,
+                JmlBinary.class, 0,9,15,
+                JmlBinary.class, 0,2,8,
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8,
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test precedence between equivalence and Java operators */
     @Test
     public void testJMLprecedence3() {
         helpExpr("a +    b <==> c ||   d",
-                JmlBinary.class, 9,
-                JCBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7,
-                JCBinary.class, 16,
-                JCIdent.class ,14,
-                JCIdent.class ,21);
+                JmlBinary.class, 0,9,22,
+                JCBinary.class, 0,2,8,
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8,
+                JCBinary.class, 14,16,22,
+                JCIdent.class ,14,14,15,
+                JCIdent.class ,21,21,22);
     }
 
     /** Test precedence between implies and Java operators */
@@ -496,107 +525,130 @@ public class expressions extends ParseBase {
     @Test
     public void testQuantifier() {
         helpExpr(" \\exists  int i; 0 <= i; i < 0  ",
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class, 19,
-                JCLiteral.class ,17,
-                JCIdent.class ,22,
-                JCBinary.class ,27,
-                JCIdent.class ,25,
-                JCLiteral.class ,29);
+                JmlQuantifiedExpr.class,1,1,30,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class, 17,19,23,
+                JCLiteral.class ,17,17,18,
+                JCIdent.class ,22,22,23,
+                JCBinary.class ,25,27,30,
+                JCIdent.class ,25,25,26,
+                JCLiteral.class ,29,29,30);
     }
 
     @Test
     public void testQuantifier2() {
         helpExpr("(\\forall  int i; 0 <= i; i < 0 ) ",
-                JCParens.class, 0,
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class, 19,
-                JCLiteral.class ,17,
-                JCIdent.class ,22,
-                JCBinary.class ,27,
-                JCIdent.class ,25,
-                JCLiteral.class ,29);
+                JCParens.class, 0,0,32,
+                JmlQuantifiedExpr.class,1,1,30,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class, 17,19,23,
+                JCLiteral.class ,17,17,18,
+                JCIdent.class ,22,22,23,
+                JCBinary.class ,25,27,30,
+                JCIdent.class ,25,25,26,
+                JCLiteral.class ,29,29,30);
     }
 
     @Test
     public void testQuantifier3() {
         helpExpr("(\\sum     int i; 0 <= i; i + 1 ) ",
-                JCParens.class, 0,
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class, 19,
-                JCLiteral.class ,17,
-                JCIdent.class ,22,
-                JCBinary.class ,27,
-                JCIdent.class ,25,
-                JCLiteral.class ,29);
+                JCParens.class, 0,0,32,
+                JmlQuantifiedExpr.class,1,1,30,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class, 17,19,23,
+                JCLiteral.class ,17,17,18,
+                JCIdent.class ,22,22,23,
+                JCBinary.class ,25,27,30,
+                JCIdent.class ,25,25,26,
+                JCLiteral.class ,29,29,30);
     }
 
     @Test
     public void testQuantifier4() {
         helpExpr("(\\product int i; ; i + 1 ) ",
-                JCParens.class, 0,
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class ,21,
-                JCIdent.class ,19,
-                JCLiteral.class ,23);
+                JCParens.class, 0,0,26,
+                JmlQuantifiedExpr.class,1,1,24,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class ,19,21,24,
+                JCIdent.class ,19,19,20,
+                JCLiteral.class ,23,23,24);
     }
 
     @Test
     public void testQuantifier5() {
         helpExpr("(\\min     int i;   i + 1 ) ",
-                JCParens.class, 0,
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class ,21,
-                JCIdent.class ,19,
-                JCLiteral.class ,23);
+                JCParens.class, 0,0,26,
+                JmlQuantifiedExpr.class,1,1,24,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class ,19,21,24,
+                JCIdent.class ,19,19,20,
+                JCLiteral.class ,23,23,24);
     }
 
     @Test
     public void testQuantifier6() {
         helpExpr("(\\max     int i;   i + 1 ) ",
-                JCParens.class, 0,
-                JmlQuantifiedExpr.class,1,
-                JmlVariableDecl.class,14,
-                JCModifiers.class,10,
-                JCPrimitiveTypeTree.class, 10,
-                JCBinary.class ,21,
-                JCIdent.class ,19,
-                JCLiteral.class ,23);
+                JCParens.class, 0,0,26,
+                JmlQuantifiedExpr.class,1,1,24,
+                JmlVariableDecl.class,10,14,15,
+                JCModifiers.class,10,10,10,
+                JCPrimitiveTypeTree.class, 10,10,13,
+                JCBinary.class ,19,21,24,
+                JCIdent.class ,19,19,20,
+                JCLiteral.class ,23,23,24);
+    }
+
+    @Test
+    public void testLet1() {
+        helpExpr("(\\let int i=1+2, boolean b = i==i;   i + 1 ) ",
+                JCParens.class, 0, 0, 44,
+                LetExpr.class, 1, 1, 42,
+                JmlVariableDecl.class,6,10, 15,
+                JCModifiers.class, 6,6,6,
+                JCPrimitiveTypeTree.class, 6,6,9,
+                JCBinary.class, 12,13,15,
+                JCLiteral.class, 12,12,13,
+                JCLiteral.class, 14,14,15,
+                JmlVariableDecl.class, 17,25,33,
+                JCModifiers.class, 17,17,17,
+                JCPrimitiveTypeTree.class, 17,17,24,
+                JCBinary.class, 29,30,33,
+                JCIdent.class, 29,29,30,
+                JCIdent.class,32,32,33,
+                JCBinary.class, 37,39,42,
+                JCIdent.class, 37,37,38,
+                JCLiteral.class, 41,41,42
+                );
     }
 
     @Test
     public void testMisc() {
         print = true;
         helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) "
-                ,JmlBinary.class ,13
-                ,JCParens.class, 0
-                ,JCBinary.class ,8
-                ,JmlSingleton.class ,1
-                ,JCIdent.class ,10
-                ,JmlBinary.class ,28
-                ,JmlMethodInvocation.class, 24 // FIXME - these two JMLMethodInvocations have different positions
-                ,JCIdent.class ,25
-                ,JmlMethodInvocation.class, 31
-                ,JCIdent.class ,37
+                ,JmlBinary.class ,0,13,40
+                ,JCParens.class, 0,0,12
+                ,JCBinary.class ,1,8,11
+                ,JmlSingleton.class ,1,1,8
+                ,JCIdent.class ,10,10,11
+                ,JmlBinary.class ,-1,28,40  // start should be 17
+                ,JmlMethodInvocation.class, -1,24,27 // start should be 17
+                ,JCIdent.class ,25,25,26
+                ,JmlMethodInvocation.class, -1,36,40 // start should be 31
+                ,JCIdent.class ,37,37,39
                 );
     }
 
-
+// TODO: other expressions, etc.
 
 
 }

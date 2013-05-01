@@ -142,6 +142,7 @@ public enum JmlToken {
     BSLBLANY("\\lbl"),
     BSLBLNEG("\\lblneg"),
     BSLBLPOS("\\lblpos"),
+    BSLET("\\let"),
     BSMAX("\\max"),
     BSNONNULLELEMENTS("\\nonnullelements"),
     BSNOTASSIGNED("\\not_assigned"),

@@ -266,6 +266,50 @@ public class escall3 extends EscBase {
     }
     
     @Test
+    public void testLet() {
+        if (option.equals("-custom")) return;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures (\\let int k = i; \\result == k);\n"
+                +"  public int m1(int i) {\n"
+                +"     return i;\n"
+                +"  }\n"
+                
+                +"  //@ ensures (\\let int k = 1; \\result == k);\n"
+                +"  public int m1bad(int i) {\n"
+                +"     return 2;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",6
+                ,"/tt/TestJava.java:7: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
+    public void testLet2() {
+        if (option.equals("-custom")) return;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures (\\let int k = i, int j = k; \\result == j);\n"
+                +"  public int m1(int i) {\n"
+                +"     return i;\n"
+                +"  }\n"
+                
+                +"  //@ ensures (\\let int k = 1, int j = k; \\result == j);\n"
+                +"  public int m1bad(int i) {\n"
+                +"     return 2;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",6
+                ,"/tt/TestJava.java:7: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
     public void testPrecondition2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

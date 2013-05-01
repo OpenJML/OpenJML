@@ -104,36 +104,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCBlock;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
-import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
-import com.sun.tools.javac.tree.JCTree.JCErroneous;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCForLoop;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCModifiers;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCReturn;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCTypeCast;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -142,7 +113,6 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
 /**
@@ -3085,6 +3055,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlresolve.setAllowJML(prevAllowJML);
         result = null; // No type returned
     }
+    
+    public void visitLetExpr(LetExpr tree) { 
+        if (env.info.scope.owner.kind == TYP) {
+            // Block is a static or instance initializer;
+            // let the owner of the environment be a freshly
+            // created BLOCK-method.
+            Env<AttrContext> localEnv =
+                env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+            localEnv.info.scope.owner =
+                new MethodSymbol(BLOCK, names.empty, null, // FIXME - or'd other flags with BLOCK
+                                 env.info.scope.owner);
+            //if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
+
+            attribStats(tree.defs,localEnv);
+            attribExpr(tree.expr,localEnv,Type.noType);
+            Type resultType = tree.expr.type;
+            if (resultType.constValue() != null) resultType = resultType.constType(null);
+            result = check(tree, resultType, VAL, pkind, pt);
+
+        } else {
+            // Create a new local environment with a local scope.
+            Env<AttrContext> localEnv =
+                env.dup(tree, env.info.dup(env.info.scope.dup()));
+
+            attribStats(tree.defs,localEnv);
+            attribExpr(tree.expr,localEnv,Type.noType);
+            Type resultType = tree.expr.type;
+            if (resultType.constValue() != null) resultType = resultType.constType(null);
+            result = check(tree, resultType, VAL, pkind, pt);
+
+            localEnv.info.scope.leave();
+        }
+        
+    }
+
 
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
     public void visitJmlStatementHavoc(JmlTree.JmlStatementHavoc tree) {

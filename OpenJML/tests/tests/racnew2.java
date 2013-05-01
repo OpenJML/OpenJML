@@ -998,6 +998,46 @@ public class racnew2 extends RacBase {
                 );
     }
 
+    @Test public void testLet() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures (\\let int k = 1; \\result == k + i) ; \n "
+                +"public static int m(int i) { return i + 1; } \n"
+                +"//@ ensures (\\let int k = 1; \\result == k - i) ; \n "
+                +"public static int mm(int i) { return i + 1; } \n"
+                +"public static void main(String[] args) {  \n"
+                +"m(1);\n"
+                +"mm(1);\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:5: JML postcondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:8: JML postcondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"END"
 
+                
+                );
+    }
+
+    @Test public void testLet2() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"//@ ensures (\\let int k = 1, int j = k; \\result == j + i) ; \n "
+                +"public static int m(int i) { return i + 1; } \n"
+                +"//@ ensures (\\let int k = 1, int j = k; \\result == j - i) ; \n "
+                +"public static int mm(int i) { return i + 1; } \n"
+                +"public static void main(String[] args) {  \n"
+                +"m(1);\n"
+                +"mm(1);\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:5: JML postcondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:8: JML postcondition is false"
+                ,"/tt/A.java:4: Associated declaration"
+                ,"END"
+
+                
+                );
+    }
 
 }
