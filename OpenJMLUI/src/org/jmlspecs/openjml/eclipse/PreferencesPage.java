@@ -158,9 +158,9 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.noInternalSpecsKey, Messages.OpenJMLUI_PreferencesPage_UseExternalSystemSpecs,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
-                getFieldEditorParent()));
         addField(new StringFieldEditor(Options.optionalKeysKey, Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys,
+                getFieldEditorParent()));
+        addField(new StringFieldEditor(Options.otherOptionsKey, Messages.OpenJMLUI_PreferencesPage_OtherOptions,
                 getFieldEditorParent()));
         
         
@@ -186,6 +186,8 @@ IWorkbenchPreferencePage {
         		    },
                 getFieldEditorParent()));
         
+        addField(new BooleanFieldEditor(Options.traceKey, Messages.OpenJMLUI_PreferencesPage_Trace,
+                getFieldEditorParent()));
         addField(new ComboFieldEditor(Options.feasibilityKey, Messages.OpenJMLUI_PreferencesPage_Feasibility,
         		new String[][]{ 
         			{"all", "all" },  //$NON-NLS-1$
@@ -203,6 +205,8 @@ IWorkbenchPreferencePage {
 				getFieldEditorParent()));
 
         addField(new BooleanFieldEditor(Options.enableRacKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking,
+                getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.noInternalRuntimeKey, Messages.OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.compileToJavaAssert, Messages.OpenJMLUI_PreferencesPage_CompileToJavaAssert,
                 getFieldEditorParent()));

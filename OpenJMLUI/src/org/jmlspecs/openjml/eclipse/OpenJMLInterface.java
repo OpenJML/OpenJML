@@ -1042,6 +1042,7 @@ public class OpenJMLInterface {
             opts.add(JmlOption.PROVER.optionName() +"="+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
             opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
+            opts.add(JmlOption.TRACE.optionName() +"="+ Options.isOption(Options.traceKey));
             opts.add(JmlOption.FEASIBILITY.optionName() +"="+ Options.value(Options.feasibilityKey));
         }
         
@@ -1091,6 +1092,14 @@ public class OpenJMLInterface {
         if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
         opts.add(JmlOption.NONNULLBYDEFAULT.optionName()+"="+Options.isOption(Options.nonnullByDefaultKey));
             
+        String other = Options.value(Options.otherOptionsKey);
+        if (other != null) {
+        	other = other.trim();
+        	if (!other.isEmpty()) for (String o : other.split("\\s")) {
+        		opts.add(o);
+        	}
+        }
+        
         
         if (cmd == Main.Cmd.JMLDOC) {
             // jmldoc specific options

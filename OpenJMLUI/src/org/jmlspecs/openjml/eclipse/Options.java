@@ -62,12 +62,8 @@ public class Options {
 	/** The preference store key for the -checkFeasibility option. */
 	final static public String feasibilityKey = prefix + "feasibility"; //$NON-NLS-1$
 	
-//	/** The preference store key for the source option. */
-//	final static public String sourceKey = prefix + "javaSourceVersion";
-//	/** The preference store key for the specsProjectName option. */
-//	final static public String specsProjectNameKey = prefix + "specsProjectName";
-//	/** The preference store key for the parsePlus option. */
-//	final static public String parsePlusKey = prefix + "parsePlus";
+	/** The preference store key for the show trace info option. */
+	final static public String traceKey = prefix + "trace"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
 	final static public String maxWarningsKey = prefix + "maxWarnings"; //$NON-NLS-1$
 	/** The preference store key for the check purity option. */
@@ -82,6 +78,8 @@ public class Options {
 	final static public String noInternalSpecsKey = prefix + "noInternalSpecs"; //$NON-NLS-1$
 	/** The preference store key for the noInternalRuntime option. */
 	final static public String noInternalRuntimeKey = prefix + "noInternalRuntime"; //$NON-NLS-1$
+	/** The preference store key for the noInternalRuntime option. */
+	final static public String otherOptionsKey = prefix + "otherOptions"; //$NON-NLS-1$
 
 	// TODO - document
 	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
