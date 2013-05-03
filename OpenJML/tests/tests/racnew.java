@@ -576,6 +576,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testElemtype() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = new Integer(4);\n"
                 +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"
@@ -1153,7 +1154,6 @@ public class racnew extends RacBase {
 
     @Test
     public void testSpecModelClass() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"/*@ model static class AA { static int mm() { return 5; }} */ \n"
                 +"//@ ghost static int i = 0;\n  "
@@ -1534,7 +1534,6 @@ public class racnew extends RacBase {
     /** Represents with super model field */
     @Test public void testModelField3() {
         continueAnyway = true;
-        print = true;
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
@@ -2088,7 +2087,7 @@ public class racnew extends RacBase {
     /** Object quantifier */
     @Test public void testObjectQuantifier() {
         expectedNotes = 0;
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; import java.util.*; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +" List<Object> list = new LinkedList<Object>();\n"

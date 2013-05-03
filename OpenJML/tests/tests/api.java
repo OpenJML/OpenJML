@@ -1291,7 +1291,6 @@ public class api {
                     diags,
                     null,
                     option,
-                    //"-show",
                     "-noPurityCheck");
             if (option.equals("-custom")) {
                 m.setOption("openjml.defaultProver","yices");

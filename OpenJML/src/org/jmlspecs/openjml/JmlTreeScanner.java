@@ -70,8 +70,12 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         visitClassDef(that);
         if (scanMode == AST_SPEC_MODE) {
             JmlSpecs.TypeSpecs ms = that.typeSpecsCombined;
-            scan(ms.modifiers);
-            scan(ms.clauses);
+            if (ms != null) {
+                scan(ms.modifiers);
+                scan(ms.clauses);
+            } else {
+                // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
+            }
         }
         if (scanMode == AST_JML_MODE) {
             JmlSpecs.TypeSpecs ms = that.typeSpecs;

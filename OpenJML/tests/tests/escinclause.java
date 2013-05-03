@@ -27,7 +27,6 @@ public class escinclause extends EscBase {
         main.addOptions("-noPurityCheck");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
-        //options.put("-show",   "");
         //options.put("-jmldebug",   "");
         //options.put("-trace",   "");
         //JmlEsc.escdebug = true;

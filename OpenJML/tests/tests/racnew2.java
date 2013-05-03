@@ -1014,8 +1014,6 @@ public class racnew2 extends RacBase {
                 ,"/tt/A.java:8: JML postcondition is false"
                 ,"/tt/A.java:4: Associated declaration"
                 ,"END"
-
-                
                 );
     }
 
@@ -1035,9 +1033,395 @@ public class racnew2 extends RacBase {
                 ,"/tt/A.java:8: JML postcondition is false"
                 ,"/tt/A.java:4: Associated declaration"
                 ,"END"
-
-                
                 );
     }
+    
+    @Test public void testBoxingOnDeclaration() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"{ Integer i = 6;\n"
+                +"int k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Boolean i = true;\n"
+                +"boolean k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Short i = 6;\n"
+                +"short k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Long i = 6L;\n"
+                +"long k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Byte i = 6;\n"
+                +"byte k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Double i = 6.0;\n"
+                +"double k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Float i = 6.0f;\n"
+                +"float k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Character i = 6;\n"
+                +"char k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                
+                +"{ Integer i = 6;\n"
+                +"int k = i;\n"
+                +"//@ assert k == i+1;\n}\n"
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:37: JML assertion is false"
+                ,"END"
+                );
+    }
+        
+    @Test public void testBoxingOnNullDeclaration() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"try { Integer i = null;\n"
+                +"int k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Boolean i = null;\n"
+                +"boolean k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Short i = null;\n"
+                +"short k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Long i = null;\n"
+                +"long k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Byte i = null;\n"
+                +"byte k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Double i = null;\n"
+                +"double k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Float i = null;\n"
+                +"float k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Character i = null;\n"
+                +"char k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+
+                +"System.out.println(\"END\"); \n"
+                +"}}"
+                ,"/tt/A.java:4: JML Attempt to unbox a null object"
+                ,"/tt/A.java:8: JML Attempt to unbox a null object"
+                ,"/tt/A.java:12: JML Attempt to unbox a null object"
+                ,"/tt/A.java:16: JML Attempt to unbox a null object"
+                ,"/tt/A.java:20: JML Attempt to unbox a null object"
+                ,"/tt/A.java:24: JML Attempt to unbox a null object"
+                ,"/tt/A.java:28: JML Attempt to unbox a null object"
+                ,"/tt/A.java:32: JML Attempt to unbox a null object"
+                ,"END"
+                );
+    }       
+
+    @Test public void testBoxingOnAssignment() {
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"{ Integer i; int k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Boolean i; boolean k; i = true;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Short i; short k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Long i; long k; i = 6L;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Byte i; byte k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Double i; double k; i = 6.0;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Float i; float k; i = 6.0f;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Character i; char k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+
+                    +"{ Integer i = 6;\n"
+                    +"int k = i;\n"
+                    +"//@ assert k == i+1;\n}\n"
+                    +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"/tt/A.java:37: JML assertion is false"
+                    ,"END"
+                );
+    }
+
+    @Test public void testBoxingOnAssignmentOp() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+
+                +"try { Integer i = null; int k = 6;\n"
+                +" k += i;\n"
+                +"\n} catch (Exception e) {}\n"
+
+                +"try { Integer i = null; int k = 6;\n"
+                +"i += k; \n"
+                +"\n} catch (Exception e) {}\n"
+
+                +"{ Integer i = 5; int k = 6;\n"
+                +" k += i; i += k; \n"
+                +"//@ assert k == 11;\n}\n"
+
+                +"try { Boolean i = null; boolean k = true;\n"
+                +" k &= i;\n"
+                +"\n} catch (Exception e) {} \n"
+
+                +"try { Boolean i = null; boolean k = true;\n"
+                +" i &= k;\n"
+                +"\n} catch (Exception e) {} \n"
+
+                +"{ Boolean i = false; boolean k = true;\n"
+                +" k &= i;\n"
+                +" i &= k;\n"
+                +"//@ assert  !k;\n}\n"
+
+                    +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"/tt/A.java:4: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:8: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:16: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:20: JML Attempt to unbox a null object"
+                    ,"END"
+                );
+    }
+
+    @Test public void testBoxingOnNullAsssignment() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"try { Integer i = null;\n"
+                +"int k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Boolean i = null;\n"
+                +"boolean k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Short i = null;\n"
+                +"short k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Long i = null;\n"
+                +"long k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Byte i = null;\n"
+                +"byte k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Double i = null;\n"
+                +"double k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Float i = null;\n"
+                +"float k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Character i = null;\n"
+                +"char k; k = i;\n"
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+
+                    +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"/tt/A.java:4: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:8: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:12: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:16: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:20: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:24: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:28: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:32: JML Attempt to unbox a null object"
+                    ,"END"
+                );
+
+    }
+
+    @Test public void testBoxing() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static int unbox(int i) { return i;}  \n"
+                +"public static Integer box(Integer i) { return i;}  \n"
+                +"public static void main(String[] args) {  \n"
+                +"try { Boolean i = null;\n"
+                +"boolean k = true && i;\n"   // Null problem
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Boolean i = false;\n"
+                +"boolean k = true && i;\n"
+                +"//@ assert k == false;\n} catch (Exception e) {}\n"
+                +"try { Boolean i = null;\n" 
+                +"boolean k = i && true;\n" // Null problem
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Boolean i = false;\n"
+                +"boolean k = i && true;\n"
+                +"//@ assert k == false;\n} catch (Exception e) {}\n"
+                
+                +"try { Integer i = null;\n"
+                +"int k = 0 + i;\n"  // Null problem - 22
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Integer i = 6;\n"
+                +"int k = 0 + i;\n"
+                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
+                +"try { Integer i = null;\n"
+                +"int k = i + 0;\n" // Null problem - 30
+                +"//@ assert k == i;\n} catch (Exception e) {}\n"
+                +"try { Integer i = 6;\n"
+                +"int k = i + 0;\n"
+                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
+                +"try { Integer i = null;\n"
+                +"int k = - i;\n" // Null problem -- 38
+                +"//@ assert k == -i;\n} catch (Exception e) {}\n"
+                +"try { Integer i = 6;\n"
+                +"int k = - i;\n"
+                +"//@ assert k == -6;\n} catch (Exception e) {}\n"
+                +"try { Integer i = null;\n"
+                +"unbox(i);\n"  // Null problem -- 46
+                +"} catch (Exception e) {}\n"
+                +"try { Integer i = 6;\n"
+                +"int k = unbox(i);\n"
+                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
+                +"try { int i = 6;\n"
+                +"Integer k = box(i); int ii = k;\n"
+                +"//@ assert ii == 6;\n} catch (Exception e) {}\n"
+
+                +"try { Boolean b = null;\n"
+                +"int i = b ? 4 : 5;\n" // Null problem - 57
+                +"//@ assert i == 6;\n} catch (Exception e) {}\n"
+                +"try { Boolean b = false;\n"
+                +"int i = b ? 4 : 5;\n"
+                +"//@ assert i == 5;\n} catch (Exception e) {}\n"
+
+                +"try { Boolean b = null;\n"
+                +"int i; if (b) i = 4; else i = 5;\n" // Null problem 65
+                +"//@ assert i == 6;\n} catch (Exception e) {}\n"
+                +"try { Boolean b = false;\n"
+                +"int i; if (b) i = 4; else i = 5;\n"
+                +"//@ assert i == 5;\n} catch (Exception e) {}\n"
+
+                +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"/tt/A.java:6: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:14: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:22: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:30: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:38: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:46: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:57: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:65: JML Attempt to unbox a null object"
+                    ,"END"
+                );
+
+        // FIXME: Also synchronized expression, switch expression, not on String, conditional, assignop, array index
+        // type test, type case, return, loop initializers, array initializers, if condition
+    }
+
+    @Test public void testBoxingClass() {
+        expectedRACExit = 1;
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static int unbox(int i) { return i;}  \n"
+                +"public static Integer box(Integer i) { return i;}  \n"
+                +"public static Integer i = 6;  \n"
+                +"public static int j = i;  \n"
+                +"static { //@ assert j == 6; \n}\n"
+
+                +"static { Integer k = 6; int m = k; //@ assert m == 6; \n}\n"
+                +"static { try { Integer k = null; int m = k; } catch (Exception e) {} \n}\n"
+
+                +"public static Integer ii = null;  \n"
+                +"public static int jj = ii;  \n"
+
+                +"public static void main(String[] args) {  \n"
+                +"    System.out.println(\"END\"); \n"
+                +"}}"
+                
+                    ,"/tt/A.java:10: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:13: JML Attempt to unbox a null object"
+                    ,"java.lang.ExceptionInInitializerError"
+                    ,"Caused by: java.lang.NullPointerException"
+                    ,"\tat tt.A.<clinit>(A.java:13)"
+                    ,"Exception in thread \"main\" "
+                );
+    }
+
+    @Test public void testBoxingString() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static int unbox(int i) { return i;}  \n"
+                +"public static Integer box(Integer i) { return i;}  \n"
+                +"public static void main(String[] args) {  \n"
+                +"try { String s = null;\n"
+                +"String ss = \"a\" + s; ss += s; \n" // No null problem // FIXME - crashes on the +=
+                +"\n} catch (Exception e) {}\n"
+
+                +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"END"
+                );
+    }
+
+    @Test public void testStringSwitch() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"String s = \"abc\"; int k;\n"
+                +"switch (s) {\n"
+                +"  case \"asd\": k = 1; break;\n"
+                +"  case \"abc\": k = 2; break;\n"
+                +"  case \"def\": k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"}\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                    ,"END 2"
+                );
+    }
+
+    @Test public void testStringSwitchNull() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"String s = null; int k = 0;\n"
+                +"try { switch (s) {\n"
+                +"  case \"asd\": k = 1; break;\n"
+                +"  case \"abc\": k = 2; break;\n"
+                +"  case \"def\": k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"} } catch (Exception e) {}\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                ,"/tt/A.java:4: JML A null object is dereferenced"
+                ,"END 0"
+                );
+    }
+
+    @Test public void testEnumSwitch() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"enum E { A,B,C}; public static void main(String[] args) {  \n"
+                +"E e = E.B; int k = 0;\n"
+                +"switch (e) {\n"
+                +"  case A: k = 1; break;\n"
+                +"  case B: k = 2; break;\n"
+                +"  case C: k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"}\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                    ,"END 2"
+                );
+    }
+
+
+    @Test public void testEnumSwitchNull() {
+        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+                +"enum E { A,B,C}; public static void main(String[] args) {  \n"
+                +"E e = null; int k = 0;\n"
+                +"try { switch (e) {\n"
+                +"  case A: k = 1; break;\n"
+                +"  case B: k = 2; break;\n"
+                +"  case C: k = 3; break;\n"
+                +"  default: k = 4; break;\n"
+                +"} } catch (Exception ee) {}\n" 
+                +"System.out.println(\"END \" + k); \n"
+                    +"}}"
+                    ,"/tt/A.java:4: JML A null object is dereferenced"
+                    ,"END 0"
+                );
+    }
+
 
 }

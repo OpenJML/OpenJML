@@ -1446,7 +1446,6 @@ public class rac extends RacBase {
     /** Using a model field in a field access */
     @Test public void testModelField1a() {
         continueAnyway = true;
-        print = true;
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA { \n"
                 +" static int j = 5; \n "
