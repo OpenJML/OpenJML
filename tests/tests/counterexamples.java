@@ -413,7 +413,6 @@ public class counterexamples extends EscBase {
     /** Tests JML statements */
     @Test
     public void testCE14() {
-        main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -519,7 +518,6 @@ public class counterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE16() {
-        //main.addOptions("-show","-subexpressions","-method=m1"); 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

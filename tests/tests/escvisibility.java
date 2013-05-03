@@ -30,7 +30,6 @@ public class escvisibility extends EscBase {
         main.addOptions("-sourcepath",   testspecpath);
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-quiet");
-        //main.addOptions("-show");
         //main.addOptions("-jmldebug");
         //main.addOptions("-noInternalSpecs");
         //main.addOptions("-trace");

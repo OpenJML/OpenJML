@@ -213,7 +213,10 @@ public class JmlEsc extends JmlTreeScanner {
             res = new MethodProverOld(this).prove(mdecl);
         }
         
-        progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + proverToUse); //$NON-NLS-1$ //$NON-NLS-2$
+        progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+                + " with prover " + proverToUse  //$NON-NLS-1$ 
+                + (res.isSat() ? " - with warnings" : " - no warnings")  //$NON-NLS-1$ //$NON-NLS-2$
+                );
         proverResults.put(methodDecl.sym,res);
         return res;
     }
@@ -250,7 +253,7 @@ public class JmlEsc extends JmlTreeScanner {
                         break match;
                     }
                 }
-                if (Utils.instance(context).jmlverbose > Utils.QUIET) {
+                if (Utils.instance(context).jmlverbose > Utils.PROGRESS) {
                     log.noticeWriter.println("Skipping " + fully_qualified_name + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
@@ -263,7 +266,7 @@ public class JmlEsc extends JmlTreeScanner {
                 if (fully_qualified_name.equals(exclude) ||
                         exclude.equals(methodDecl.name.toString()) ||
                         Pattern.matches(exclude,fully_qualified_name)) {
-                    if (Utils.instance(context).jmlverbose > Utils.QUIET)
+                    if (Utils.instance(context).jmlverbose > Utils.PROGRESS)
                         log.noticeWriter.println("Skipping " + fully_qualified_name + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }

@@ -313,7 +313,7 @@ public class JmlParser extends EndPosParser {
             if (S._pos == pos) break;
             pos = S._pos;
             // Only certain qualifiers can appear here - perhaps limit the 
-            // parsing of modifiers to just that se. Java explicitly has
+            // parsing of modifiers to just that set. Java explicitly has
             // final abstract strictfp; also synchronized but not as a modifier.
             // FIXME - this needs more testing
             if (S.token() != Token.SYNCHRONIZED) {

@@ -568,6 +568,55 @@ public class escnewassignable extends EscBase {
                 +"  public void mas() {\n"
                 +"  }\n"
 
+                +"  //@ requires b == this; assignable x; \n"
+                +"  public void m1z1(TestJava b) {\n"
+                +"    b.m();\n"
+                +"  }\n"
+
+                +"  //@ requires b != null; assignable x; \n"
+                +"  public void m1z1bad(TestJava b) {\n"
+                +"    b.m();\n"
+                +"  }\n"
+
+                +"  //@ requires b != null; assignable b.x; \n"
+                +"  public void m1z2(TestJava b) {\n"
+                +"    b.m();\n"
+                +"  }\n"
+
+                +"  //@ requires b == this; assignable b.x; \n"
+                +"  public void m1z3(TestJava b) {\n"
+                +"    m();\n"
+                +"  }\n"
+
+                +"  //@ requires b == this; assignable b.x; \n"
+                +"  public void m1z4(TestJava b) {\n"
+                +"    this.m();\n"
+                +"  }\n"
+
+                +"  //@ requires b != null; assignable b.x; \n"
+                +"  public void m1z4bad(TestJava b) {\n"
+                +"    this.m();\n"
+                +"  }\n"
+
+                +"}"
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1bad",18
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3bad",18
+                ,"/tt/TestJava.java:17: warning: Associated declaration",7
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:75: warning: Associated declaration",7
+                
+                );
+    }
+
+    @Test 
+    public void testAssignableM1bug() {
+        main.addOptions("-show","-method=m1z1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public class A { int x,y; static int xx,yy; }\n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
+
                 +"  //@ requires a == this; assignable x; \n"
                 +"  public void m1z1(TestJava a) {\n"
                 +"    a.m();\n"
@@ -599,10 +648,6 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1bad",18
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
-                ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3bad",18
-                ,"/tt/TestJava.java:17: warning: Associated declaration",7
                 ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
                 ,"/tt/TestJava.java:75: warning: Associated declaration",7
                 

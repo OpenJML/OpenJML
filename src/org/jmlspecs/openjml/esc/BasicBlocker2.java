@@ -896,8 +896,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param classDecl the declaration of the containing class
      * @return the completed BasicProgram
      */
-    protected @NonNull BasicProgram convertMethodBody(JCBlock block, @NonNull JCMethodDecl methodDecl, 
-            JmlMethodSpecs denestedSpecs, @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
+    protected @NonNull BasicProgram convertMethodBody(JCBlock block, @NonNull JmlMethodDecl methodDecl, 
+            JmlMethodSpecs denestedSpecs, @NonNull JmlClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
         initialize(methodDecl,classDecl,assertionAdder);
         this.isDefined.clear();
         unique = 0;
@@ -913,7 +913,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         
-        Set<VarSymbol> vsyms = GetSymbols.collectSymbols(methodDecl,classDecl);
+        Set<VarSymbol> vsyms = GetSymbols.collectSymbols(block,assertionAdder.classBiMap.getf(classDecl));
 //        for (VarSymbol v: vsyms) System.out.print(" " + v.toString());
 //        System.out.println("  ENDSYMS");
         
@@ -1104,6 +1104,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected VarMap initMap(BasicBlock block) {
         VarMap newMap = new VarMap();
         currentMap = newMap;
+//        System.out.println("CREATING BLOCK " + block.id);
+//        for (BasicBlock b: block.preceders()) {
+//            System.out.println("INPUT " + b.id);
+//            System.out.println(blockmaps.get(b));
+//        }
         if (block.preceders().size() == 0) {
             // keep the empty one
         } else if (block.preceders().size() == 1) {
@@ -1126,7 +1131,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 VarMap m = blockmaps.get(b);
                 all.add(m);
                 combined.putAll(m);
-                //if (maxe < m.everythingSAversion) maxe = m.everythingSAversion;
             }
             //combined.everythingSAversion = maxe;
             for (VarSymbol sym: combined.keySet()) {
@@ -1214,7 +1218,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         }
-        //log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
+//        log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
         return newMap;
     }
     
@@ -2327,12 +2331,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         boolean noMethods = false;
         
-        public static Set<VarSymbol> collectSymbols(JCMethodDecl method, JCClassDecl classDecl) {
+        public static Set<VarSymbol> collectSymbols(JCBlock method, JCClassDecl classDecl) {
             GetSymbols gs = new GetSymbols();
             gs.noMethods = false;
             method.accept(gs);
             gs.noMethods = true;
-            classDecl.accept(gs);
+            if (classDecl != null) classDecl.accept(gs); // classDecl can be null when we have not translated the whole class, just the method - e.g. doEsc from the API (FIXME)
             return gs.syms;
         }
         

@@ -812,6 +812,15 @@ public class JmlTreeUtils {
         return typeof;
     }
     
+    public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCIdent id, Type type) {
+        int p = pos.getPreferredPosition();
+        JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
+        rhs.type = attr.TYPE;
+        return makeAnd(p,makeEqObject(p,lhs,rhs),
+                makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs));
+    }
+    
     /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
      * with the given name and arguments.
      * @param pos the node position of the new AST
