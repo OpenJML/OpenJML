@@ -611,7 +611,7 @@ public class escnewassignable extends EscBase {
 
     @Test 
     public void testAssignableM1bug() {
-        main.addOptions("-show","-method=m1z1");
+        if (option.equals("-custom")) return;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"
@@ -644,12 +644,16 @@ public class escnewassignable extends EscBase {
 
                 +"  //@ requires a != null; assignable a.x; \n"
                 +"  public void m1z4bad(TestJava a) {\n"
-                +"    this.m();\n"
+                +"    this.m();\n"  // Line 27
+                +"  }\n"
+
+                +"  //@ assignable x; \n"  // Line 29
+                +"  public void m() {\n"
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
-                ,"/tt/TestJava.java:75: warning: Associated declaration",7
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:25: warning: Associated declaration",7
                 
                 );
     }

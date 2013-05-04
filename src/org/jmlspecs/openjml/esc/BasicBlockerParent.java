@@ -412,7 +412,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             startBlock(block);
             processCurrentBlock();
         } else {
-            log.warning("jml.internal","Basic block " + block.id + " is being processed another time");
+            log.warning("jml.internal","Basic block " + block.id + " is being re-processed");
         }
     }
     
@@ -749,7 +749,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
             // list of new variables
             String switchName = SWITCHEXPR + pos;
             JCIdent vd = treeutils.makeIdent(swpos,switchName,switchExpression.type);
-
+            scan(vd);
+            
             program.declarations.add(vd);
 
             JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
