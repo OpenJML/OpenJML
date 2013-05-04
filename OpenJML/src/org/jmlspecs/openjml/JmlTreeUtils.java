@@ -400,6 +400,18 @@ public class JmlTreeUtils {
         return id;
     }
     
+    /** Makes a new AST for an identifier that references the given symbol
+     * @param sym the symbol for which to make an identifier
+     * @return the AST
+     */ 
+    public JCIdent makeIdent(int pos, Name name, Symbol sym) {
+        JCIdent id = factory.Ident(sym);
+        id.name = name;
+        id.pos = pos;
+        // id.type is set in Ident
+        return id;
+    }
+    
     /** Makes a new AST and VarSymbol for an identifier with the given name and type
      * @param sym the symbol for which to make an identifier
      * @return the AST

@@ -731,7 +731,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // THIS is an id that is a proxy for the this object on which a method is called;
                     // we need to distinguish it from uses of 'this' in the text
                 	// FIXME - should make this NonNull
-                    VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),classDecl.sym.type, classDecl.pos);
+                    VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),classDecl.sym.type, Position.NOPOS);
                     THISSym.owner = classDecl.sym;
                     this.currentThisId = treeutils.makeIdent(classDecl.pos,THISSym);
                     this.thisIds.put(classDecl.sym, this.currentThisId);
@@ -1346,7 +1346,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * for the new symbol. */
     protected JCIdent newTemp(DiagnosticPosition pos, Type t) {
         Name n = M.Name(Strings.tmpVarString + (++count));
-        JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , pos.getPreferredPosition()); // FIXME - see note below
+        JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , esc ? Position.NOPOS : pos.getPreferredPosition()); // FIXME - see note below
         // We mark all temporaries as final, as an indication that they will
         // be used only once.  // FIXME - do this or not? can we avoid the esc? check above?
 //        d.mods.flags |= Flags.FINAL;
@@ -1495,8 +1495,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCVariableDecl d: methodDecl.params) {
             JCVariableDecl dd = treeutils.makeVarDef(d.type,M.Name(Strings.formalPrefix+d.name.toString()),  
                     d.sym.owner, M.Ident(d.sym));
+            dd.pos = dd.sym.pos = d.sym.pos;
             preparams.put(d.sym,dd);
-            if (esc) dd.sym.owner = null;
+            if (esc) dd.sym.owner = null; // FIXME - is this used anymore?
             addStat(dd);
         }
         
@@ -4907,7 +4908,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.methodDecl = null;
             if (esc) {
                 JCVariableDecl dd = treeutils.makeVarDef(classDecl.sym.type,names.fromString("THIS"),classDecl.sym,
-                    classDecl.pos); // FIXME - does this need initialization for RAC?
+                    Position.NOPOS); // FIXME - does this need initialization for RAC?
                 dd.sym.flags_field |= Flags.STATIC;
                 dd.mods.flags |= Flags.STATIC;
                 this.currentThisId = treeutils.makeIdent(classDecl.pos,dd.sym);
@@ -5671,6 +5672,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCIdent id = newTemp(nm,expr);
         labels.add(nm);
         result = eresult = id;
+        if (esc) ((VarSymbol)id.sym).pos = Position.NOPOS;
         if (rac) {
             JCExpression lit = treeutils.makeLit(that.getPreferredPosition(),syms.stringType,that.label.toString());
             String name = null;

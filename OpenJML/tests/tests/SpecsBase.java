@@ -105,7 +105,7 @@ public class SpecsBase extends TCBase {
     static private boolean dotests = true;  // Change this to enable/disable dynamic tests
     
     /** If true, then a progress message is printed as each test is executed.*/
-    private static boolean verbose = true;
+    private static boolean verbose = false;
 
     @Parameters
     static public  Collection<String[]> datax() {
@@ -174,7 +174,7 @@ public class SpecsBase extends TCBase {
             }
         } catch (Exception e) {
             e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
+            fail("Exception thrown while processing test: " + testClass + " " + e);
         } catch (AssertionError e) {
             if (!print && !noExtraPrinting) printDiagnostics();
             throw e;

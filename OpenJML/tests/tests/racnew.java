@@ -576,7 +576,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testElemtype() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
                 +"Object o = new String[3]; Object oo = new int[5]; Object o3 = new Integer(4);\n"
                 +"//@ ghost nullable java.lang.Class t; ghost nullable \\TYPE tt; \n"

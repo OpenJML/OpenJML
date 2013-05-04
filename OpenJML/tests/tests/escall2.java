@@ -832,7 +832,7 @@ public class escall2 extends EscBase {
                 
                 +"  //@ requires a != null && a.length > 3; \n"
                 +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n"
+                +"  //@ ensures \\result == \\old(a[0]); \n" // Line 26
                 +"  public int m1good(int[] a) {\n"
                 +"    a[1] = 1;\n"
                 +"    return a[0];\n"

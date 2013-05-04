@@ -464,10 +464,17 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Name s = mapname.get(vsym);
             if (s == null) {
                 s = encodedName(vsym,vsym.pos);
+                for (VarMap map: blockmaps.values()) {
+                    map.putSAVersion(vsym,s,0L);
+                }
+                for (VarMap map: labelmaps.values()) {
+                    map.putSAVersion(vsym,s,0L);
+                }
+
+                //System.out.println("ADDING SYMBOL-A " + vsym.getQualifiedName() + " " + s);
                 if (isDefined.add(s)) {
                     //System.out.println("AddedC " + sym + " " + n);
-                    JCIdent idd = treeutils.makeIdent(0, vsym);
-                    idd.name = s;
+                    JCIdent idd = treeutils.makeIdent(vsym.pos,s,vsym);
                     addDeclaration(idd);
                 }
 
@@ -499,8 +506,19 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         public Long getSAVersionNum(VarSymbol vsym) {
             Long i = mapSAVersion.get(vsym);
             if (i == null) {
-                System.out.println("MISSING SYMBOL " + vsym.getQualifiedName());
-                mapSAVersion.put(vsym,(i=0L));
+                Name n = encodedName(vsym,0L);
+                for (VarMap map: blockmaps.values()) {
+                    map.putSAVersion(vsym,n,0L);
+                }
+                for (VarMap map: labelmaps.values()) {
+                    map.putSAVersion(vsym,n,0L);
+                }
+                i = 0L;
+                JCIdent id = treeutils.makeIdent(vsym.pos,n,vsym);
+                addDeclaration(id);
+
+                System.out.println("ADDING SYMBOL-B " + vsym.getQualifiedName() + " " + n);
+                //mapSAVersion.put(vsym,(i=0L));
             }
             return i;
         }
@@ -523,6 +541,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         /** Stores a new SA version of a symbol */
         public void putSAVersion(VarSymbol vsym, Name s, long version) {
+            mapSAVersion.put(vsym,version);
+            mapname.put(vsym,s);
+        }
+        
+        /** Stores a new SA version of a symbol */
+        public void putSAVersion(VarSymbol vsym, long version) {
+            Name s = encodedName(vsym,version);
             mapSAVersion.put(vsym,version);
             mapname.put(vsym,s);
         }
@@ -621,9 +646,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * are not necessarily unique, but can be used for debugging
      * @return the new name
      */
-    protected Name encodedName(VarSymbol sym, int incarnationPosition) {
+    protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         if (incarnationPosition == 0 || sym.owner == null || sym.name.toString().equals("THIS")) { // FIXME _ can we avoid the explicit test for THIS?
             Name n = sym.getQualifiedName();
+            if (sym.pos >= 0 && !n.toString().equals("THIS")) n = names.fromString(n.toString() + ("_" + sym.pos));
             return n;
         } else
             return names.fromString(
@@ -883,7 +909,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected void completeBlock(@NonNull BasicBlock b) {
 //        if (super.completed(b)) return true;
         super.completeBlock(b);
-        blockmaps.put(b,currentMap);
         currentMap = null; // Defensive - so no inadvertent assignments
         //log.noticeWriter.println("Completed block " + b.id);
 //        return false;
@@ -947,8 +972,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            currentMap.putSAVersion(this.methodDecl._this, this.methodDecl._this.name, 0);
 //            thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
             JCIdent thisId = assertionAdder.thisIds.get(classDecl.sym);
-            currentMap.putSAVersion((VarSymbol)thisId.sym, names.fromString("THIS"), 0);
-            thisId = newAuxIdent(thisId.name.toString(),methodDecl.sym.owner.type,pos,false);
+            //Name n = names.fromString("THIS");
+            currentMap.putSAVersion((VarSymbol)thisId.sym, 0);
+            //thisId = newAuxIdent(n,methodDecl.sym.owner.type,Position.NOPOS,false); // FIXME - this creates a new symbol?
             currentThisId = thisId;
         }
 
@@ -956,19 +982,20 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // FIXME - these no longer belong here, I think
         newIdentIncarnation(heapVar,0);
 //        newIdentIncarnation(allocSym,0);
-        currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), 0); // TODO: Some places use 'length' without encoding, so we store an unencoded name
+        currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), -1); // TODO: Some places use 'length' without encoding, so we store an unencoded name
 
         for (JCVariableDecl d: methodDecl.params) {
-            currentMap.putSAVersion(d.sym, d.name, 0);
+            currentMap.putSAVersion(d.sym, 0);
         }
 
         for (VarSymbol v: vsyms) {
-            currentMap.putSAVersion(v, v.name, 0);
-            JCIdent id = treeutils.makeIdent(Position.NOPOS,v);
+            currentMap.putSAVersion(v, 0);
+            JCIdent id = treeutils.makeIdent(v.pos, currentMap.getCurrentName(v), v);
             addDeclaration(id);
         }
         
         premap = currentMap.copy();
+        labelmaps.put(null,premap);
         
         completeBlock(currentBlock);
 
@@ -1090,6 +1117,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             arrayIdMap.put(s,id);
         }
         id = newIdentUse((VarSymbol)id.sym,0);
+//
+//        JCIdent n = factory.at(0).Ident(id.name);
+//        n.sym = id.sym;
+//        n.type = id.type;
         return id;
     }
     
@@ -1219,6 +1250,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         }
 //        log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
+        blockmaps.put(block,newMap);
         return newMap;
     }
     
@@ -1996,6 +2028,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 id.name = that.name;
                 addDeclaration(id);
             }
+            scan(that.selected);
             result = that;
         }
     }
@@ -2051,6 +2084,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression index = ((JCArrayAccess)left).index;
             JCIdent nid = newArrayIncarnation(right.type,sp);
             
+            scan(ex); ex = result;
+            scan(index); index = result;
+            scan(right); right = result;
+            
             //JCExpression rhs = makeStore(ex,index,right);
             JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right);
             expr.pos = pos;
@@ -2073,6 +2110,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 return newid;
             } else {
                 JCFieldAccess fa = (JCFieldAccess)left;
+                scan(fa.selected);
                 JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                 if (isDefined.add(oldfield.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
@@ -2129,8 +2167,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 scan(that.init);
                 that.init = result;
             }
-            isDefined.add(that.name);
-            currentMap.putSAVersion(that.sym,that.name,0); // FIXME - should unique be incremented
+            Name n = encodedName(that.sym,0L);
+            that.name = n;
+            isDefined.add(n);
+            currentMap.putSAVersion(that.sym,n,0); // FIXME - should unique be incremented
             currentBlock.statements.add(that);
         } else {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
