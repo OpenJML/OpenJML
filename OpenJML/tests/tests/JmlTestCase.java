@@ -3,6 +3,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,6 +57,8 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
      * ( ; or : )
      */
     static final public String z = java.io.File.pathSeparator;
+    
+    static final public String eol = System.getProperty("line.separator");
 
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
@@ -328,7 +332,97 @@ public abstract class JmlTestCase { //extends junit.framework.TestCase {
     }
 
 
+    /** Compares two files, returning null if the same; returning a String of
+     * explanation if they are different.
+     */
+    public String compareFiles(String expected, String actual) {
+        BufferedReader exp = null,act = null;
+        String diff = "";
+        try {
+            exp = new BufferedReader(new FileReader(expected));
+            act = new BufferedReader(new FileReader(actual));
+            
+            boolean same = true;
+            int line = 0;
+            while (true) {
+                line++;
+                String sexp = exp.readLine();
+                String sact = act.readLine();
+                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
+                if (sexp == null && sact != null) {
+                    diff += ("More actual input than expected" + eol);
+                    return diff;
+                }
+                if (sexp != null && sact == null) {
+                    diff += ("Less actual input than expected" + eol);
+                    return diff;
+                }
+                if (!sexp.equals(sact)) {
+                    diff += ("Lines differ at " + line + eol)
+                            + ("EXP: " + sexp + eol)
+                            + ("ACT: " + sact + eol);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            diff += ("No expected file found: " + expected + eol);
+        } catch (Exception e) {
+            diff += ("Exception on file comparison" + eol);
+        } finally {
+            try {
+                if (exp != null) exp.close();
+                if (act != null) act.close();
+            } catch (Exception e) {}
+        }
+        return diff.isEmpty() ? null : diff;
+    }
 
+    /** Compares a file to an actual String (ignoring difference kinds of 
+     * line separators); returns null if they are the same, returns the
+     * explanation string if they are different.
+     */
+    public String compareText(String expectedFile, String actual) {
+        String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
+        BufferedReader exp = null;
+        String[] lines = actual.split(term);
+        String diff = "";
+        try {
+            exp = new BufferedReader(new FileReader(expectedFile));
+            
+            boolean same = true;
+            int line = 0;
+            while (true) {
+                line++;
+                String sexp = exp.readLine();
+                if (sexp == null) {
+                    if (line > lines.length) return diff.isEmpty() ? null : diff;
+
+                    else {
+                        diff += ("More actual input than expected" + eol);
+                        return diff;
+                    }
+                }
+                if (line > lines.length) {
+                    diff += ("Less actual input than expected" + eol);
+                    return diff;
+                }
+                String sact = lines[line-1];
+                if (!sexp.equals(sact)) {
+                    diff += ("Lines differ at " + line + eol)
+                            + ("EXP: " + sexp + eol)
+                            + ("ACT: " + sact + eol);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            diff += ("No expected file found: " + expectedFile + eol);
+        } catch (Exception e) {
+            diff += ("Exception on file comparison" + eol);
+        } finally {
+            try {
+                if (exp != null) exp.close();
+            } catch (Exception e) {}
+        }
+        return diff.isEmpty() ? null : diff;
+    }
 }
 
 

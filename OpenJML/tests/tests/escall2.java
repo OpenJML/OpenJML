@@ -1202,7 +1202,7 @@ public class escall2 extends EscBase {
         
         
                 +"}"
-                ,!JmlOption.isOption(context,  JmlOption.CUSTOM)?
+                ,!isCustom?
                         new Object[] {
                         "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
                         ,"/tt/TestJava.java:7: warning: Associated declaration",30

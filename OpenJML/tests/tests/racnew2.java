@@ -1,7 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -25,12 +23,12 @@ public class racnew2 extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        options.put("-newesc", "");
-        options.put("-showNotImplemented", "");
-        options.put("-noPurityCheck",""); // System specs have a lot of purity errors, so turn this off for now
-        options.put("-noInternalSpecs",   ""); // Faster with this option; should work either way
-        options.put("-noRacSource", "");
-        //options.put("-verboseness",   "4");
+        main.addOptions("-newesc");
+        main.addOptions("-showNotImplemented");
+        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
+        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
+        main.addOptions("-noRacSource");
+        //main.addOptions("-verboseness",   "4");
         expectedNotes = 0;
     }
     

@@ -203,6 +203,4 @@ public class access extends TCBase {
                 );  // OK
     }
 
-
-    // TODO - more access tests needed - e.g. invalide combinations on methods and classes
 }
