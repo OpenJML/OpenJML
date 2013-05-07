@@ -1,0 +1,3 @@
+This folder contains Java+JML files used as inputs for various test families.
+In particular, as of this writing, tests in the api, compiler, and jmldoc
+families.

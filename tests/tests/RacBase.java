@@ -82,7 +82,7 @@ public abstract class RacBase extends JmlTestCase {
             } else if (!new File(sy).exists()) {
                 fail("The OpenJML project location set using -D" + Strings.eclipseProjectLocation + " to " + sy + " does not exist");
             } else {
-                options.put("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
+                main.addOptions("-classpath",sy+"/testdata"+z+sy+"/jdkbin"+z+sy+"/bin");
             }
         }
         specs = JmlSpecs.instance(context);
@@ -143,6 +143,7 @@ public abstract class RacBase extends JmlTestCase {
             
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
+            if (observedMessages < 0) observedMessages = 0;
 
             for (int i=0; i<observedMessages; i++) {
                 int k = 2*i + 2*expectedNotes;

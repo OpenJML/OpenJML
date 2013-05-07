@@ -9,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+// These tests are run for both new and custom translations.
+
 /** These tests check the RAC functionality of outputting a stack trace along with
  * notification of failed RAC assertions.  These test that library class files 
  * recompiled with RAC actually get used and produce errors.  Hence the need to 
@@ -75,20 +77,29 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
+        main.addOptions("-noRacSource","-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
+                +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); } \n"
+                +"/*@ signals (Exception e) false;*/ \n"
                 +"static void m() {\n"
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
                 +"}"
                 
-                ,"Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:27)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,!option.equals("-custom") ? new String[]{
+                 "Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
+                ,"\tat tt.TestJava.m(TestJava.java:6)"
+                ,"\tat tt.TestJava.main(TestJava.java:3)" }
+            :
+                new String[]{
+                        "Exception in thread \"main\" org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:5: JML signals condition is false"
+                       ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
+                       ,"\tat tt.TestJava.m(TestJava.java:5)"
+                       ,"\tat tt.TestJava.main(TestJava.java:3)" }                
                 );
     }
 
@@ -96,21 +107,33 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2c() {
         expectedRACExit = 0;
+        main.addOptions("-noRacSource","-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Error e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); }"
+                +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
+                +"System.out.println(\"END\"); }\n"
+                +"/*@ signals (Exception e) false;*/ \n"
                 +"static void m() {\n"
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
                 +"}"
                 
-                ,"org.jmlspecs.utils.Utils$JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:27)"
-                ,"\tat java.io.File.compareTo(File.java:1)"
-                ,"\tat tt.TestJava.m(TestJava.java:5)"
+                ,!option.equals("-custom") ? new String[]{
+                 "CAUGHT ASSERTION"
+                ,"org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
+                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
+                ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
-                ,"END"
+                ,"END" }
+        :
+            new String[]{
+                        "CAUGHT ASSERTION"
+                        ,"org.jmlspecs.utils.Utils$JmlAssertionError: /tt/TestJava.java:5: JML signals condition is false"
+                        ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:24)"
+                        ,"\tat tt.TestJava.m(TestJava.java:5)"
+                        ,"\tat tt.TestJava.main(TestJava.java:3)"
+                        ,"END" }
                 );
     }
     

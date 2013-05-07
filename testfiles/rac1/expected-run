@@ -1,0 +1,5 @@
+OUT:
+LABEL TY = class java.util.LinkedList
+END
+
+ERR:

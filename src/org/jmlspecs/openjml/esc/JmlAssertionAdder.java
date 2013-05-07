@@ -6141,6 +6141,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             case BSELEMTYPE:
                 if (rac) translateElemtype(that);
+                if (esc) throw new JmlNotImplementedException(that.pos(),that.token.internedName());
                 // FIXME - need esc
                 break;
                 
@@ -6165,7 +6166,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             default:
                 Log.instance(context).error("esc.internal.error","Unknown token in JmlAssertionAdder: " + that.token.internedName());
-                eresult = treeutils.trueLit; // FIXME - may not even be a boolean typed result
+                throw new JmlNotImplementedException(that.pos(),that.token.internedName());
         }
         result = eresult;
     }
