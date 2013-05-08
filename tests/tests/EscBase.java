@@ -20,24 +20,32 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
-    static public String[] solvers = { "z3_4_3", "yices2" }; // { "z3_4_3" , "yices", "simplify" };
-    static public String[] oldsolvers = {}; // { "yices", "simplify" };
+    static boolean enableOldTests = true;
+    
+    static public String[] solvers = { 
+        null, 
+        "z3_4_3", 
+        "yices2" , 
+        // "yices", 
+        // "simplify" 
+    };
+    static public String[] oldsolvers = { 
+        null, 
+        // "yices", 
+        // "simplify" 
+    };
     static public boolean isCustom = false;
     
     @Parameters
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-       // data.add(new String[]{"-newesc",null}); 
-        for (String s: solvers) data.add(new String[]{"-newesc",s});
-        // FIXME: data.add(new String[]{"-boogie",null}); 
-        data.add(new String[]{"-custom",null}); 
-        for (String s: oldsolvers) data.add(new String[]{"-custom",s});
+        data.addAll(noOldData());
+        data.addAll(onlyOldData());
         return data;
     }
     
     static public  Collection<String[]> noOldData() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-newesc",null}); 
         for (String s: solvers) data.add(new String[]{"-newesc",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
@@ -45,8 +53,7 @@ public abstract class EscBase extends JmlTestCase {
 
     static public  Collection<String[]> onlyOldData() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-custom",null}); 
-        //for (String s: oldsolvers) data.add(new String[]{"-custom",s});
+        if (enableOldTests) for (String s: oldsolvers) data.add(new String[]{"-custom",s});
         return data;
     }
 

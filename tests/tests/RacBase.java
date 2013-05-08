@@ -33,11 +33,6 @@ public abstract class RacBase extends JmlTestCase {
     boolean jdkrac = false; // Set to true to do external system tests of RAC (emulating outside of JUnit)
     boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
 
-    /** The java executable */
-    // TODO: This is going to use the external setting for java, rather than
-    // the current environment within Eclipse
-    String jdk = System.getProperty("java.home") + "/bin/java";
-
     /** These are the default command-line arguments for running the RACed
      * program.  The first argument is the java executable; the null argument
      * is replaced by the class name of the class containing the main method.     
