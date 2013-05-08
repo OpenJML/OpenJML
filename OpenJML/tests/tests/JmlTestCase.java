@@ -51,15 +51,23 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase { //extends junit.framework.TestCase {
 
+    /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     
+    /** The java executable */
+    // TODO: This is going to use the external setting for java, rather than
+    // the current environment within Eclipse
+    String jdk = System.getProperty("java.home") + "/bin/java";
+
     /** A purposefully short abbreviation for the system path separator
      * ( ; or : )
      */
     static final public String z = java.io.File.pathSeparator;
     
+    /** Cached value of the end of line character string */
     static final public String eol = System.getProperty("line.separator");
 
+    /** A Diagnostic listener that can report all the collected diagnostics */
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
     }
