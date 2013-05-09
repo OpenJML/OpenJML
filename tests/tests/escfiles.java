@@ -124,5 +124,11 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escTrace4","testfiles/escTrace4","-method=m","-trace","-progress");
     }
 
+    @Test
+    public void testTrace5() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace5","testfiles/escTrace5","-method=m","-trace","-progress");
+    }
+
 
 }

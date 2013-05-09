@@ -537,7 +537,6 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        // FIXME - I think this should not be called?
         if (that.token == JmlToken.BSTYPELC) {
             Type t = that.args.get(0).type;
             addType(t);
