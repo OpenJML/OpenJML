@@ -79,8 +79,6 @@ public class trace {
         } finally {
             m = 11;
         }
-        Object o = new Object();
-        //@ assert \typeof(o) == \type(Object);
         return 0;
     }
 }

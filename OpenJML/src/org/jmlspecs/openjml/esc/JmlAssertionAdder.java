@@ -1371,7 +1371,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, 
                 expr); 
         d.sym.pos = Position.NOPOS; // We set the position to NOPOS so that the temporary name is not further encoded
-        d.pos = Position.NOPOS;
         // We mark all temporaries as final, as an indication that they will
         // be used only once.
 //        d.mods.flags |= Flags.FINAL;
@@ -1393,7 +1392,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, // FIXME - actually sholdn't stuff at the class level be put in an initializer block?
                 treeutils.makeZeroEquivalentLit(pos.getPreferredPosition(),type)); 
         d.sym.pos = Position.NOPOS;
-        d.pos = Position.NOPOS;
         // We mark all temporaries as final, as an indication that they will
         // be used only one.
 //        d.mods.flags |= Flags.FINAL;
@@ -6065,7 +6063,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression t = paramActuals.get(((Type.TypeVar)type.type).tsym);
             if (t != null) type = t;
         } 
-        return convertCopy(type);
+        return convertExpr(type);
     }
 
     /** Helper method to translate \elemtype expressions for RAC */
@@ -6298,7 +6296,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             try {
                 result = eresult = M.at(that.pos()).
-                    JmlQuantifiedExpr(that.op,convert(that.decls),convertExpr(that.range),convertExpr(that.value)).setType(that.type);
+                    JmlQuantifiedExpr(that.op,convertCopy(that.decls),convertExpr(that.range),convertExpr(that.value)).setType(that.type);
             } finally {
                 for (JCVariableDecl d: that.decls) {
                     localVariables.remove(d.sym);

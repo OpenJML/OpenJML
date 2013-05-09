@@ -170,7 +170,9 @@ testfiles\escTrace\trace.java:60:  	set x = (\lbl AAA k + 1)
 			VALUE: \lbl AAA k + 1	 === 17
 			VALUE: (\lbl AAA k + 1)	 === 17
 			VALUE: x = (\lbl AAA k + 1)	 === 17
-warning: Label AAA has value 17
+testfiles\escTrace\trace.java:60: warning: Label AAA has value 17
+        //@ set x = (\lbl AAA k+1);
+                              ^
 testfiles\escTrace\trace.java:62:  	for ...
 testfiles\escTrace\trace.java:62:  	int z = 0
 			VALUE: z	 === 0
@@ -227,20 +229,13 @@ testfiles\escTrace\trace.java:76:  	m = 9
 testfiles\escTrace\trace.java:80:  	m = 11
 			VALUE: 11	 === 11
 			VALUE: m = 11	 === 11
-testfiles\escTrace\trace.java:82:  	Object o = new Object()
-			VALUE: o	 === REF!val!4
-testfiles\escTrace\trace.java:  	assert Assert \typeof(o) == \type(Object);
-			VALUE: o	 === REF!val!4
-			VALUE: \typeof(o)	 === JMLTypeSort!val!0
-			VALUE: \type(Object)	 === ???
-			VALUE: \typeof(o) == \type(Object)	 === true
-testfiles\escTrace\trace.java:84:  	return 0;
+testfiles\escTrace\trace.java:82:  	return 0;
 			VALUE: 0	 === 0
 testfiles\escTrace\trace.java:13:  	ensures \result != 0; 
 			VALUE: \result	 === 0
 			VALUE: 0	 === 0
 			VALUE: \result != 0	 === false
-testfiles\escTrace\trace.java:84: warning: The prover cannot establish an assertion (Postcondition) in method m
+testfiles\escTrace\trace.java:82: warning: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
 testfiles\escTrace\trace.java:13: warning: Associated declaration
