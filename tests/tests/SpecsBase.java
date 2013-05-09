@@ -328,7 +328,7 @@ public class SpecsBase extends TCBase {
     /** Use this to test the specs for a specific file. Enable it by
      * adding an @Test as an annotation. */
     
-    @Test
+    // @Test
     public void testFileTemp() {
         checkClassGeneric("java.util.LinkedList");
     }

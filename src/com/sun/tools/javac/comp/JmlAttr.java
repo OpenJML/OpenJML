@@ -2625,6 +2625,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = pureEnvironment;
         pureEnvironment = true;
         for (JmlSpecificationCase c: tree.cases) {
+            // This check is put here rather than inside visitJmlSpecificationCase
+            // so it is not checked for specification cases that are part of a 
+            // refining statement
+            if (c.modifiers != null && tree.decl != null) { // tree.decl is null for initializers and refining statements
+                long methodMod = enclosingMethodEnv.enclMethod.mods.flags & Flags.AccessFlags;
+                long caseMod = c.modifiers.flags & Flags.AccessFlags;
+                if (methodMod == 0 && enclosingMethodEnv.enclClass.sym.isInterface()) methodMod = Flags.PUBLIC;
+                if (methodMod != caseMod && c.token != null) {
+                    if (caseMod == Flags.PUBLIC ||
+                            methodMod == Flags.PRIVATE ||
+                            (caseMod == Flags.PROTECTED && methodMod == 0)) {
+                        DiagnosticPosition p = c.modifiers.pos();
+                        if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
+                        log.warning(p,"jml.no.point.to.more.visibility");
+                    }
+                }
+            }
+
             c.accept(this);
         }
         pureEnvironment = prev;

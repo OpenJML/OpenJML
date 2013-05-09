@@ -99,12 +99,30 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-noInternalSpecs");
     }
 
-//    /** Testing using system specs */
-//    @Test
-//    public void test1a() {
-//        expectedExit = 0;
-//        helpTCF("testfiles/rac1a","Bug1");
-//    }
+
+    @Test
+    public void testTrace() {
+        expectedExit = 1;
+        helpTCF("testfiles/escTrace","testfiles/escTrace","-trace","-method=m","-escMaxWarnings=1");
+    }
+
+    @Test
+    public void testTrace2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace2","testfiles/escTrace2","-trace","-method=m");
+    }
+
+    @Test
+    public void testTrace3() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace3","testfiles/escTrace3","-trace","-progress");
+    }
+
+    @Test
+    public void testTrace4() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace4","testfiles/escTrace4","-method=m","-trace","-progress");
+    }
 
 
 }

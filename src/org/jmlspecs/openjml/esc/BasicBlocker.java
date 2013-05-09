@@ -6315,8 +6315,8 @@ public class BasicBlocker extends JmlTreeScanner {
         JCExpression e = treeutils.makeNeqObject(pos, objTrans, nullLiteral);
         e = treeutils.makeJmlBinary(pos, JmlToken.IMPLIES, c, e);
         addAssert(
-                label != null ? label : inSpecExpression ? Label.UNDEFINED_NULL
-                        : Label.POSSIBLY_NULL, e, pos, currentBlock.statements,
+                label != null ? label : inSpecExpression ? Label.UNDEFINED_NULL_DEREFERENCE
+                        : Label.POSSIBLY_NULL_DEREFERENCE, e, pos, currentBlock.statements,
                 pos, log.currentSourceFile(), precondition); // FIXME -
                                                              // positions?
     }
@@ -6448,8 +6448,8 @@ public class BasicBlocker extends JmlTreeScanner {
 
             // Require that.selected is not null
             checkForNull(selected, that.pos, condition,
-                    inSpecExpression ? Label.UNDEFINED_NULL
-                            : Label.POSSIBLY_NULL);
+                    inSpecExpression ? Label.UNDEFINED_NULL_DEREFERENCE
+                            : Label.POSSIBLY_NULL_DEREFERENCE);
             result = that;
         } else {
             // FIXME - don't know what this could be

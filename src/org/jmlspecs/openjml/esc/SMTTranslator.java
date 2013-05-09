@@ -784,6 +784,9 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.symbol(tree.name.toString());
 //        } 
     }
+    
+    int stringCount = 0;
+    int doubleCount = 0;
 
     @Override
     public void visitLiteral(JCLiteral tree) {
@@ -795,6 +798,19 @@ public class SMTTranslator extends JmlTreeScanner {
             result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
         } else if (tree.typetag == TypeTags.BOT) {
             result = nullRef;
+        } else if (tree.typetag == TypeTags.CLASS) {
+            // FIXME - every literal is different and we don't remember the value
+            ISymbol sym = F.symbol("STRINGLIT"+(++stringCount)); 
+            ICommand c = new C_declare_fun(sym,new LinkedList<ISort>(), refSort);
+            commands.add(c);
+            result = sym;
+        } else if (tree.typetag == TypeTags.FLOAT || tree.typetag == TypeTags.DOUBLE) {
+            // FIXME - every literal is different and we don't remember the value
+            ISymbol sym = F.symbol("REALLIT"+(++doubleCount)); 
+            ICommand c = new C_declare_fun(sym,new LinkedList<ISort>(), 
+                    F.createSortExpression(F.symbol("Real")));
+            commands.add(c);
+            result = sym;
         } else {
             notImpl(tree);
             super.visitLiteral(tree);

@@ -1,0 +1,93 @@
+Proving methods in trace
+Starting proof of trace.trace() with prover z3_4_3
+Completed proof of trace.trace() with prover z3_4_3 - no warnings
+Starting proof of trace.m() with prover z3_4_3
+
+TRACE
+
+testfiles\escTrace3\trace.java:4:  	int j = 0
+			VALUE: j	 === 0
+testfiles\escTrace3\trace.java:8:  	for ...
+testfiles\escTrace3\trace.java:8:  	int i = 0
+			VALUE: i	 === 0
+testfiles\escTrace3\trace.java:5:  	//@ loop_invariant 0 <= i && i <= 10;
+			VALUE: 0	 === 0
+			VALUE: i	 === 6
+			VALUE: 0 <= i	 === true
+			VALUE: i	 === 6
+			VALUE: 10	 === 10
+			VALUE: i <= 10	 === true
+			VALUE: 0 <= i && i <= 10	 === true
+testfiles\escTrace3\trace.java:6:  	//@ loop_invariant i == j;
+			VALUE: i	 === 6
+			VALUE: j	 === 7
+			VALUE: i == j	 === false
+testfiles\escTrace3\trace.java:7:  	//@ decreases 10 - i;
+			VALUE: 10	 === 10
+			VALUE: i	 === 6
+			VALUE: 10 - i	 === 4
+testfiles\escTrace3\trace.java:9:  	j = j + (i == 5 ? 2 : 1)
+			VALUE: j	 === 5
+			VALUE: i	 === 5
+			VALUE: 5	 === 5
+			VALUE: i == 5	 === true
+			VALUE: 2	 === 2
+			VALUE: i == 5 ? 2 : 1	 === 2
+			VALUE: (i == 5 ? 2 : 1)	 === 2
+			VALUE: j + (i == 5 ? 2 : 1)	 === 7
+			VALUE: j = j + (i == 5 ? 2 : 1)	 === 7
+testfiles\escTrace3\trace.java:8:  	i++
+			VALUE: i	 === 6
+			VALUE: i++	 === 5
+testfiles\escTrace3\trace.java:5:  	//@ loop_invariant 0 <= i && i <= 10;
+			VALUE: 0	 === 0
+			VALUE: i	 === 6
+			VALUE: 0 <= i	 === true
+			VALUE: i	 === 6
+			VALUE: 10	 === 10
+			VALUE: i <= 10	 === true
+			VALUE: 0 <= i && i <= 10	 === true
+testfiles\escTrace3\trace.java:6:  	//@ loop_invariant i == j;
+			VALUE: i	 === 6
+			VALUE: j	 === 7
+			VALUE: i == j	 === false
+testfiles\escTrace3\trace.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method m
+        //@ loop_invariant i == j;
+            ^
+Completed proof of trace.m() with prover z3_4_3 - with warnings
+Starting proof of trace.mok() with prover z3_4_3
+testfiles\escTrace3\trace.java:13: warning: An assumption appears to be infeasible in method trace.mok()
+    public void mok() {
+                ^
+Completed proof of trace.mok() with prover z3_4_3 - no warnings
+Starting proof of trace.mdec() with prover z3_4_3
+
+TRACE
+
+testfiles\escTrace3\trace.java:25:  	int j = 0
+			VALUE: j	 === 0
+testfiles\escTrace3\trace.java:29:  	for ...
+testfiles\escTrace3\trace.java:29:  	int i = 0
+			VALUE: i	 === 0
+testfiles\escTrace3\trace.java:26:  	//@ loop_invariant 0 <= i && i <= 10;
+			VALUE: 0	 === 0
+			VALUE: i	 === 10
+			VALUE: 0 <= i	 === true
+			VALUE: i	 === 10
+			VALUE: 10	 === 10
+			VALUE: i <= 10	 === true
+			VALUE: 0 <= i && i <= 10	 === true
+testfiles\escTrace3\trace.java:27:  	//@ loop_invariant i == j;
+			VALUE: i	 === 10
+			VALUE: j	 === 9
+			VALUE: i == j	 === false
+testfiles\escTrace3\trace.java:28:  	//@ decreases 8 - i;
+			VALUE: 8	 === 8
+			VALUE: i	 === 10
+			VALUE: 8 - i	 === ( - 2 )
+testfiles\escTrace3\trace.java:28: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method mdec
+        //@ decreases 8-i;
+                      ^
+Completed proof of trace.mdec() with prover z3_4_3 - with warnings
+Completed proving methods in trace
+3 warnings

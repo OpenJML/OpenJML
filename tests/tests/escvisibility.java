@@ -1115,6 +1115,7 @@ public class escvisibility extends EscBase {
                 ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
@@ -1154,8 +1155,10 @@ public class escvisibility extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:12: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34
@@ -1193,9 +1196,12 @@ public class escvisibility extends EscBase {
                 +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
                 +"  private void m(){}\n"
                 +"}"
+                ,"/tt/TestJava.java:12: warning: There is no point to a specification case having more visibility than its method",7
                 ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a requires clause with package visibility",34
+                ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:18: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a requires clause with protected visibility",34
+                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: An identifier with private visibility may not be used in a requires clause with public visibility",34

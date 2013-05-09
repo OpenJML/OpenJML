@@ -126,7 +126,7 @@ public class racfiles extends RacBase {
     }
 
     /** Testing using system specs */
-    @Test
+    @Test  // FIXME - problems with library specs
     public void test1a() {
         expectedExit = 0;
         expectedRACExit = 0;

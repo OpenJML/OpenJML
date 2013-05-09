@@ -20,7 +20,7 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
-    static boolean enableOldTests = true;
+    static boolean enableOldTests = false;
     
     static public String[] solvers = { 
         null, 

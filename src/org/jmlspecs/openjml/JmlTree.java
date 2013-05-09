@@ -1095,6 +1095,9 @@ public class JmlTree implements IJmlTree {
         public JavaFileObject sourcefile;
         public String docComment = null; // FIXME - why?
         
+        /** A fixed ident used in ESC */
+        public JCExpression ident = null;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlVariableDecl(JCModifiers mods, Name name,
                 JCExpression vartype, JCExpression init, VarSymbol sym) {

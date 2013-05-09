@@ -25,11 +25,6 @@ public class rac extends RacBase {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         main.addUndocOption("-custom"); // FIXME - are these already in racnew somewhere?
-        main.addOptions("-showNotImplemented");
-        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-noRacSource"); // This is just to avoid a lot of extra output text to check during testing - would be good to put all the information in and check it
-//        options.put("-jmldebug",   "");
         expectedNotes = 0;
     }
 

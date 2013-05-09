@@ -322,7 +322,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         if (trees == null) return null;
         for (List<T> l = trees; l.nonEmpty(); l = l.tail)
             l.head = (T)makeNullCheck(l.head.pos,translate(l.head),
-                    "ERROR",Label.UNDEFINED_NULL);  // FIXME _ fix the error message if this stays
+                    "ERROR",Label.UNDEFINED_NULL_DEREFERENCE);  // FIXME _ fix the error message if this stays
         return trees;
     }
 
@@ -1187,7 +1187,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         //   - if the rhs is a model field, we have to convert this to a method call
 
         that.selected = makeNullCheck(that.pos,translate(that.selected),NULL_SELECTION,
-                inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+                inSpecExpression ? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE);
         
         // FIXME - still need a readability check
         

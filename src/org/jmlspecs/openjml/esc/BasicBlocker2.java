@@ -354,6 +354,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - document
     @NonNull BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
     
+    @NonNull BiMap<JCTree,JCTree> pathmap = new BiMap<JCTree,JCTree>();
+    
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
@@ -1041,8 +1043,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param label the kind of assumption
      * @param expr the (translated) expression being assumed
      */
-    protected void addAssume(int pos, Label label, JCExpression expr) {
-        addAssume(pos,label,expr,currentBlock.statements);
+    protected JmlStatementExpr addAssume(int pos, Label label, JCExpression expr) {
+        return addAssume(pos,label,expr,currentBlock.statements);
     }
     
     /** Adds a new assume statement to the end of the given statements list; the assume statement is
@@ -1882,6 +1884,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
         if (that.token == JmlToken.COMMENT) {
+            // Comments are included in the BB program without rewriting
+            // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
             scan(that.expression);
@@ -1897,6 +1901,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.type = that.type;
             copyEndPosition(st,that);
             currentBlock.statements.add(st);
+//            if (that.token == JmlToken.ASSERT) { 
+//                pathmap.put(that,st);
+//            }
         } else {
             log.error(that.pos,"esc.internal.error","Unknown token in BasicBlocker2.visitJmlStatementExpr: " + that.token.internedName());
         }
@@ -2070,14 +2077,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // Note that only the right expression is translated.
     protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
         int sp = left.getStartPosition();
+        JCStatement newStatement;
+        JCExpression newExpr;
         if (left instanceof JCIdent) {
             JCIdent id = (JCIdent)left;
             JCIdent newid = newIdentIncarnation(id,sp);
             //currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
             JCBinary expr = treeutils.makeEquality(pos,newid,right);
             //copyEndPosition(expr,right);
-            addAssume(sp,Label.ASSIGNMENT,expr);
-            return newid;
+            newStatement = addAssume(sp,Label.ASSIGNMENT,expr);
+            newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
             JCIdent arr = getArrayIdent(right.type);
             JCExpression ex = ((JCArrayAccess)left).indexed;
@@ -2095,9 +2104,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             treeutils.copyEndPosition(expr, right);
 
             // FIXME - set line and source
-            addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
-            //newIdentIncarnation(heapVar,pos);
-            return left;
+            newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+            newExpr = left;
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
             if (sym.isStatic()) {
@@ -2106,8 +2114,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));
                 JCBinary expr = treeutils.makeEquality(pos,newid,right);
                 //copyEndPosition(expr,right);
-                addAssume(statement.getStartPosition(),Label.ASSIGNMENT,expr);
-                return newid;
+                newStatement = addAssume(statement.getStartPosition(),Label.ASSIGNMENT,expr);
+                newExpr = newid;
             } else {
                 JCFieldAccess fa = (JCFieldAccess)left;
                 scan(fa.selected);
@@ -2127,14 +2135,16 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 treeutils.copyEndPosition(expr, right);
 
                 // FIXME - set line and source
-                addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
+                newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
                 newIdentIncarnation(heapVar,pos);
+                newExpr = left;
             }
-            return left;
         } else {
             log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
+        pathmap.put(statement,newStatement);
+        return newExpr;
     }
     
     protected Symbol selectorSym(JCTree tree) {
@@ -2175,6 +2185,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else {
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
             isDefined.add(lhs.name);
+            that.name = lhs.name;
+            scan(that.ident);
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
