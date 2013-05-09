@@ -878,14 +878,14 @@ public class modifiers extends TCBase {
     @Test public void testSpec4() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ public behavior requires true;\n" +
-                "  void m() {} }"
+                "  public void m() {} }"
                 ); // OK
     }
      
     @Test public void testSpec5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  //@ pure behavior requires true;\n" +
-                "  void m() {} }"
+                "  public void m() {} }"
                 ,"/A.java:2: This JML modifier is not allowed for a specification case",7
                 );
     }

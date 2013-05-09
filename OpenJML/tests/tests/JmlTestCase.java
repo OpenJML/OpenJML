@@ -49,7 +49,7 @@ import com.sun.tools.javac.util.Options;
  * @author David Cok
  *
  */
-public abstract class JmlTestCase { //extends junit.framework.TestCase {
+public abstract class JmlTestCase {
 
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();

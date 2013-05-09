@@ -23,11 +23,6 @@ public class racnew2 extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        main.addOptions("-newesc");
-        main.addOptions("-showNotImplemented");
-        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-noRacSource");
         //main.addOptions("-verboseness",   "4");
         expectedNotes = 0;
     }
@@ -226,7 +221,7 @@ public class racnew2 extends RacBase {
                 "new A().m(); }\n " +
                 "public void m() { /*@ nullable*/ Object o = null; int i; \n " +
                 "synchronized (o) { i = 0; } \n}}"
-                ,"/tt/A.java:4: JML A null object is dereferenced"
+                ,"/tt/A.java:4: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException"
                 ,"\tat tt.A.m(A.java:4)"
                 ,"\tat tt.A.main(A.java:2)"
@@ -1382,7 +1377,7 @@ public class racnew2 extends RacBase {
                 +"} } catch (Exception e) {}\n" 
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
-                ,"/tt/A.java:4: JML A null object is dereferenced"
+                ,"/tt/A.java:4: JML An object may be illegally null"
                 ,"END 0"
                 );
     }
@@ -1416,7 +1411,7 @@ public class racnew2 extends RacBase {
                 +"} } catch (Exception ee) {}\n" 
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
-                    ,"/tt/A.java:4: JML A null object is dereferenced"
+                    ,"/tt/A.java:4: JML An object may be illegally null"
                     ,"END 0"
                 );
     }

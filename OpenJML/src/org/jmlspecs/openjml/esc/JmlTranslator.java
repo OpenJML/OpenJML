@@ -361,7 +361,7 @@ public class JmlTranslator extends JmlTreeTranslator {
     
     public void visitIndexed(JCArrayAccess that) {
         that.indexed = makeNullCheck(that.pos,that.indexed,NULL_ASSIGNMENT,
-                inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+                inSpecExpression ? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE);
         that.index = translate(that.index);
         // FIXME - also the array bounds check
         result = that;
@@ -719,7 +719,7 @@ public class JmlTranslator extends JmlTreeTranslator {
 //        }
 
         if (utils.rac) that.selected = makeNullCheck(that.pos,that.selected,NULL_SELECTION,
-                inSpecExpression ? Label.UNDEFINED_NULL : Label.POSSIBLY_NULL);
+                inSpecExpression ? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE);
         else that.selected = translate(that.selected);
         result = that;
     }

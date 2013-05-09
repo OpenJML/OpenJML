@@ -920,6 +920,102 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testSpecCaseVisibility() {
+        expectedExit = 0; // Only warnings
+        helpTCF("TestJava.java","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ public behavior requires true;\n"
+                +"  public void m1p() {\n"
+                +"  }\n"
+                
+                +"  //@ protected behavior requires true;\n"
+                +"  public void m1r() {\n"
+                +"  }\n"
+                
+                +"  //@ behavior requires true;\n"
+                +"  public void m1k() {\n"
+                +"  }\n"
+                
+                +"  //@ private behavior requires true;\n"
+                +"  public void m1v() {\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                
+                +"  //@ public behavior requires true;\n"  // Warning
+                +"  protected void m2p() {\n"
+                +"  }\n"
+                
+                +"  //@ protected behavior requires true;\n"
+                +"  protected void m2r() {\n"
+                +"  }\n"
+                
+                +"  //@ behavior requires true;\n"
+                +"  protected void m2k() {\n"
+                +"  }\n"
+                
+                +"  //@ private behavior requires true;\n"
+                +"  protected void m2v() {\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  protected void m2() {\n"
+                +"  }\n"
+                
+                +"  //@ public behavior requires true;\n" // Warning
+                +"  private void m3p() {\n"
+                +"  }\n"
+                
+                +"  //@ protected behavior requires true;\n" // Warning
+                +"  private void m3r() {\n"
+                +"  }\n"
+                
+                +"  //@ behavior requires true;\n"  // Warning
+                +"  private void m3k() {\n"
+                +"  }\n"
+                
+                +"  //@ private behavior requires true;\n"
+                +"  private void m3v() {\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  private void m3() {\n"
+                +"  }\n"
+                
+                +"  //@ public behavior requires true;\n" // Warning
+                +"  void m4p() {\n"
+                +"  }\n"
+                
+                +"  //@ protected behavior requires true;\n" // Warning
+                +"  void m4r() {\n"
+                +"  }\n"
+                
+                +"  //@ behavior requires true;\n"
+                +"  void m4k() {\n"
+                +"  }\n"
+                
+                +"  //@ private behavior requires true;\n"
+                +"  void m4v() {\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  void m4() {\n"
+                +"  }\n"
+                
+
+                +"}"
+                ,"/TestJava.java:18: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:33: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:36: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:39: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:48: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:51: warning: There is no point to a specification case having more visibility than its method",7
+                );
+    }
+
 
     
     

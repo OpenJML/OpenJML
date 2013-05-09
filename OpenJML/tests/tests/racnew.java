@@ -24,10 +24,6 @@ public class racnew extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        main.addOptions("-showNotImplemented");
-        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-noRacSource"); // This is just to avoid a lot of extra output text to check during testing - would be good to put all the information in and check it
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }
@@ -1531,7 +1527,7 @@ public class racnew extends RacBase {
     
     /** Represents with super model field */
     @Test public void testModelField3() {
-        continueAnyway = true;
+        continueAnyway = true; // That is, even though there are compile errors
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
@@ -1543,9 +1539,10 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
                 +"b = new PA();\n"
                 +"//@ debug System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); "
-                +"}} class PB { //@ model  int i; \n}"
-                ,"/tt/PA.java:11: warning: JML model field is not implemented: i",57
+                +"System.out.println(\"END\");\n"
+                +"}}\n"
+                +"class PB { //@ model  int i; \n}"
+                ,"/tt/PA.java:13: warning: JML model field is not implemented: i",27
                 ,"A 6"
                 ,"B 0"
                 ,"B 6"

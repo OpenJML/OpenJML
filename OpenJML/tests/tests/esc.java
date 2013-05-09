@@ -567,9 +567,9 @@ public class esc extends EscBase {
                 
                  
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1a",31
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1b",31
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1c",31
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
+                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31
                 );
     }
     
@@ -983,7 +983,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m3a",-17
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3a",-17
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
                 );
@@ -1034,7 +1034,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4a",-18
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4a",-18
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
                 );
@@ -2541,7 +2541,7 @@ public class esc extends EscBase {
                 +"  public void inst3c(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method inst3a",171
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method inst3b",182
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method inst3b",182
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
         );
@@ -3100,9 +3100,9 @@ public class esc extends EscBase {
                 +"    boolean i = p(o) || o.j == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m0",14
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6a",32
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m7a",26
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m0",14
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6a",32
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m7a",26
         );
     }
     
@@ -3151,9 +3151,9 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ signals_only \\nothing; \n public int z() { return 0; }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m0",14
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6a",32
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m7a",26
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m0",14
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6a",32
+                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m7a",26
         );
     }
     
@@ -3250,8 +3250,8 @@ public class esc extends EscBase {
                 +"    RuntimeException rr = ((RuntimeException)t) ; \n"
                 +"  }\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m",14,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",-14,
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",14,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",-14,
                 "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",-14,  // FIXME - does need to have one of these errors in m1
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2",14,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3",14,
@@ -3291,7 +3291,7 @@ public class esc extends EscBase {
                 +"    //@ assume o != null ==> o.j == 1; \n"
                 +"  }\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
         );
     }
 
@@ -3340,8 +3340,8 @@ public class esc extends EscBase {
                 +"    //@ assume ((RuntimeException)t) != null ? true : true ; \n"
                 +"  }\n"
                 +"}",
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1",-17, // Sometimes found
+                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17,
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",-17, // Sometimes found
                 "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",-17, // Sometimes found
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",17,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17,
@@ -3383,13 +3383,13 @@ public class esc extends EscBase {
                 +"    //@ ghost int i; set i = o.j; \n"
                 +"  }\n  "
                 +"}",
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17,
-                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m1",17,
-                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m2",24,
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3",33,
-                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m4",19,
-                "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m5",18,
-                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m6",31
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17,
+                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",17,
+                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2",24,
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3",33,
+                "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4",19,
+                "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m5",18,
+                "/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6",31
         );   
     }
     /** Tests whether undefinedness is caught in various JML constructions */
@@ -3404,7 +3404,7 @@ public class esc extends EscBase {
                 +"    //@ assume o.j == 1; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",17
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
         );
     }
     
@@ -3418,8 +3418,8 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ invariant t.j ==1 ? true: true;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method <init>",18
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",18
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",18
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",18
         );
     }
     
@@ -3434,7 +3434,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ initially t.j ? true : true;\n"
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method <init>",18
+                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",18
         );
     }
 
@@ -3449,7 +3449,7 @@ public class esc extends EscBase {
                 +"  }\n  "
                 +"  //@ constraint t.j ==1 ? true: true;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m",21
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",21
         );
     }
 
@@ -3475,7 +3475,7 @@ public class esc extends EscBase {
                 +"  static TestJava t;\n"
                 +"  int j = t.j;\n"
                 +"}"
-                // FIXME ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullReference) in method m2",19
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2",19
         );
     }
 
@@ -3503,11 +3503,11 @@ public class esc extends EscBase {
                 // TODO for, while, foreach, do, switch, case, if, throw, method call, index, conditional, 
                 // annotation, binary, unary, conditional, new array, new class, return, synchronized
                 +"}",
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1",14,
-                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2",6,
-                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3",6,
-                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4",22,
-                "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m5",13
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",14,
+                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",6,
+                "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3",6,
+                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4",22,
+                "/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m5",13
         );
     }
 

@@ -294,8 +294,8 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",16
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m2bad",16
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
                 );
     }
     
@@ -322,7 +322,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",21
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
                 );
     }
@@ -747,7 +747,7 @@ public class escnew extends EscBase {
 //                +"  }\n"
 //                
 //                +"}"
-//                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m1bad",12
+//                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",12
 //                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bad",12
 //                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",12
 //                );
@@ -1037,33 +1037,35 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",25
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",25
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad",26
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad",26
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",5
                 ,"/tt/TestJava.java:31: warning: Associated declaration",7
                 );
     }
 
-    @Test
-    public void testJmlLabelExpression() {
-         helpTCX("tt.TestJava","package tt; \n"
+    @Test public void testJmlLabelExpression() {
+        helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  //@ requires true;\n"
-                +"  //@ ensures b ==> (i==0) ;\n"
+                +"  //@ ensures b ==> (i!=5) ;\n"
                 +"  public int m1ok(boolean b, int i) {\n"
                 +"    //@ ghost boolean bb = (\\lbl LBL_BB b);\n"
-                +"    //@ ghost boolean bbp = (\\lblpos LBL_BB2 (i==0));\n"
-                +"    //@ ghost boolean bbn = (\\lblneg LBL_BB3 (i==0));\n"
+                +"    //@ ghost boolean bbp = (\\lblpos LBL_BB2 (i!=5));\n"
+                +"    //@ ghost boolean bbn = (\\lblneg LBL_BB3 (i!=5));\n"
+                +"    //@ ghost int ii = (\\lbl LBL_BBI i);\n"
                 +"    return 1;\n"
                 +"  }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:6: warning: Label LBL_BB has value true",41
                 ,"/tt/TestJava.java:8: warning: Label LBL_BB3 has value false",46
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1ok",5
+                ,"/tt/TestJava.java:9: warning: Label LBL_BBI has value 5",38
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1ok",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
+
 
     @Test
     public void testBoolOpsParens() {
@@ -1204,7 +1206,7 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:15: warning: Associated declaration",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
                 ,"/tt/TestJava.java:25: warning: Associated declaration",7
-                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3bad2",13
+                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad2",13
                 );
     }
 
@@ -1389,8 +1391,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
                 ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m3badc",9
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullReference) in method m4bad",10
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",9
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",10
                 ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",11
                 ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",10
                 ,"/tt/TestJava.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10

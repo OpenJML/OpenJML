@@ -180,8 +180,11 @@ public class Label {
     /** Used to designate the conditional test of a loop */
     /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");
     
-    /** Used to designate an undefined pure expression because of a potential null reference */
-    /*@ non_null*/ public final static Label UNDEFINED_NULL = new Label("UndefinedNullReference");
+    /** Used to designate an undefined pure expression because of a potential null dereference */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL_DEREFERENCE = new Label("UndefinedNullDeReference");
+    
+    /** Used to designate an undefined pure expression because of a potential illegal null value */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL_VALUE = new Label("UndefinedNullValue");
     
     /** Used to designate an undefined pure expression because of a potential negative size */
     /*@ non_null*/ public final static Label UNDEFINED_NEGATIVESIZE = new Label("UndefinedNegativeSize");
@@ -192,17 +195,14 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential too-large index */
     /*@ non_null*/ public final static Label UNDEFINED_TOOLARGEINDEX = new Label("UndefinedTooLargeIndex");
     
-    /** Used to designate an undefined pure expression because of a potential divide by 0 */
-    /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
-    
-    /** Used to designate an undefined pure expression because of a potential bad cast */
-    /*@ non_null*/ public final static Label UNDEFINED_BADCAST = new Label("UndefinedBadCast");
-    
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
     
     /** Used to designate a possible exception because of a potential null reference */
-    /*@ non_null*/ public final static Label POSSIBLY_NULL = new Label("PossiblyNullReference");
+    /*@ non_null*/ public final static Label POSSIBLY_NULL_DEREFERENCE = new Label("PossiblyNullDeReference");
+    
+    /** Used to designate a possible exception because of a potential null reference */
+    /*@ non_null*/ public final static Label POSSIBLY_NULL_VALUE = new Label("PossiblyNullValue");
     
     /** Used to designate a possible exception because of a potential null assignment to non_null */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_ASSIGNMENT = new Label("PossiblyNullAssignment");
@@ -225,11 +225,18 @@ public class Label {
     /** Used to designate a possible exception because of a potential divide by 0 */
     /*@ non_null*/ public final static Label POSSIBLY_DIV0 = new Label("PossiblyDivideByZero");
 
+    /** Used to designate an undefined pure expression because of a potential divide by 0 */
+    /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
+    
     /** Used to designate a possible exception because of a potential large shift value */
     /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
 
     /** Used to designate a possible exception because of a bad cast */
     /*@ non_null*/ public final static Label POSSIBLY_BADCAST = new Label("PossiblyBadCast");
+
+    /** Used to designate an undefined pure expression because of a potential bad cast */
+    /*@ non_null*/ public final static Label UNDEFINED_BADCAST = new Label("UndefinedBadCast");
     
+
 
 }

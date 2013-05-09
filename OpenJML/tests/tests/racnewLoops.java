@@ -23,11 +23,6 @@ public class racnewLoops extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        main.addUndocOption("-newesc");
-        main.addOptions("-showNotImplemented");
-        main.addOptions("-noPurityCheck"); // System specs have a lot of purity errors, so turn this off for now
-        main.addOptions("-noInternalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-noRacSource");
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }

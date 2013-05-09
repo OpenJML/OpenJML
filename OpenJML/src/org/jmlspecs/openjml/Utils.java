@@ -37,11 +37,13 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
 /** This class holds a number of utility methods.  They could often be
  * static, but we make this a registerable tool, so that it can be 
@@ -509,6 +511,16 @@ public class Utils {
         }
         return methods;
     }
+    
+    /** Creates the location prefix including the colon without any message;
+     * 'pos' is the position in the file given by log.currentSource(). */
+    public String locationString(int pos) {
+        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+        String msg = diag.noSource().replace("Note: ", "");
+        return msg;
+    }
+
+
 
     /** Returns true if a declaration with the given flags is visible in the
      * 'base' class when declared in the 'parent' class. 

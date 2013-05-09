@@ -83,7 +83,7 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullReference) in method mm1",7
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mm1",7
                 );
     }
     
