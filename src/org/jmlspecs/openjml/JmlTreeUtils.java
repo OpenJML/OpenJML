@@ -475,7 +475,9 @@ public class JmlTreeUtils {
     /** Returns the 'larger' of the two types as numeric types are compared;
      * not appropriate for Boolean types; floats test larger than long */
     private Type maxType(Type lhs, Type rhs) {
-        return lhs.tag >= rhs.tag || rhs.tag == TypeTags.BOT ? lhs : rhs;
+        Type t = lhs.tag >= rhs.tag || rhs.tag == TypeTags.BOT ? lhs : rhs;
+        if (TypeTags.INT > t.tag) t = syms.intType;
+        return t;
     }
     
     /** Makes a Java unary operator node; it may be constant-folded
@@ -551,7 +553,9 @@ public class JmlTreeUtils {
      */
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.EQ, lhs, rhs);
-        tree.operator = findOpSymbol(JCTree.EQ, lhs.type);
+        Type t = lhs.type;
+        if (t.isPrimitive() && TypeTags.INT > t.tag) t = syms.intType;
+        tree.operator = findOpSymbol(JCTree.EQ, t);
         tree.type = syms.booleanType;
         return tree;
     }
