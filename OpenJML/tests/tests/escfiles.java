@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -120,6 +121,12 @@ public class escfiles extends EscBase {
     public void testDemoPaths() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","testfiles/escDemoPaths","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test @Ignore // until other integer types are implemented
+    public void testDemoPaths2() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/test/Path2.java","testfiles/escDemoPaths2","-noInternalSpecs","-subexpressions","-progress");
     }
 
     @Test

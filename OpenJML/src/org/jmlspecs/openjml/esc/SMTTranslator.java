@@ -794,7 +794,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // FIXME - need real, double, char, byte
         if (tree.typetag == TypeTags.BOOLEAN) {
            result = F.symbol(((Boolean)tree.getValue()) ?"true":"false"); 
-        } else if (tree.typetag == TypeTags.INT || tree.typetag == TypeTags.LONG || tree.typetag == TypeTags.SHORT) {
+        } else if (tree.typetag == TypeTags.INT || tree.typetag == TypeTags.LONG || tree.typetag == TypeTags.SHORT || tree.typetag == TypeTags.CHAR || tree.typetag == TypeTags.BYTE) {
             long k = Long.parseLong(tree.toString());
             result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
         } else if (tree.typetag == TypeTags.BOT) {

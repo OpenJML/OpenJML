@@ -1528,13 +1528,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         java.util.List<ClassSymbol> parents = utils.parents((ClassSymbol)methodDecl.sym.owner);
         
         // Iterate through parent classes and interfaces, assuming relevant axioms and invariants
+        // These are checked prior to calling the callee
         currentStatements = preStats;
         for (ClassSymbol csym: parents) {
             JmlSpecs.TypeSpecs tspecs = specs.get(csym);
 
             for (JmlTypeClause clause : tspecs.clauses) {
                 JmlTypeClauseExpr t;
-                //if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags)) continue;
 
                 try {
                     switch (clause.token) {
@@ -1571,6 +1571,67 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
+        // Accumulate the invariants to be checked after the callee returns
+        // FIXME - iterate over parent classes and interfaces in reverse order!!
+        currentStatements = ensuresStats;
+        for (ClassSymbol csym: parents) {
+            JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+            for (JmlTypeClause clause : tspecs.clauses) {
+                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+                JmlTypeClauseExpr t;
+                try {
+                    switch (clause.token) {
+
+                        case INVARIANT:
+                            if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                if (!isHelper(methodDecl.sym)) {
+                                    pushBlock();
+                                    t = (JmlTypeClauseExpr)clause;
+                                    addTraceableComment(t.expression,clause.toString());
+                                    addAssert(methodDecl.pos(),Label.INVARIANT_EXIT,
+                                            convertJML(t.expression),
+                                            clause.pos(),clause.source);
+                                    addStat( popBlock(0,clause.pos()));
+                                }
+                            }
+                            break;
+                        case CONSTRAINT:
+                            // FIXME - need to check the list of method signatures
+                            if ((!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) ||
+                                    (isConstructor && utils.hasAny(clause.modifiers,Flags.STATIC))) {
+                                pushBlock();
+                                JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
+                                addTraceableComment(tt.expression,clause.toString());
+                                addAssert(methodDecl.pos(),Label.CONSTRAINT,
+                                        convertJML(tt.expression),
+                                        clause.pos(),
+                                        clause.source);
+                                addStat( popBlock(0,clause.pos()));
+                            }
+                            break;
+                        case INITIALLY:
+                            if (isConstructor && !isHelper(methodDecl.sym)) {
+                                pushBlock();
+                                t = (JmlTypeClauseExpr)clause;
+                                addTraceableComment(t.expression,clause.toString());
+                                addAssert(methodDecl.pos(),Label.INITIALLY,
+                                        convertJML(t.expression),
+                                        clause.pos(),clause.source);
+                                addStat( popBlock(0,clause.pos()));
+                            }
+                            break;
+                        default:
+                            // Skip
+
+                    }
+                } catch (JmlNotImplementedException e) {
+                    notImplemented(clause.token.internedName() + " clause containing ",e);
+                    continue;
+                }
+
+            }
+        }
+
         JCExpression combinedPrecondition = null;
         
         // Iterate over all methods that methodDecl overrides, collecting specs
@@ -1586,66 +1647,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Iterator<VarSymbol> iter = msym.params.iterator();
             for (JCVariableDecl dp: methodDecl.params) {
                 paramActuals.put(iter.next(),treeutils.makeIdent(dp.pos, dp.sym));
-            }
-
-            // FIXME - iterate over parent classes and interfaces in reverse order!!
-            currentStatements = ensuresStats;
-            for (ClassSymbol csym: parents) {
-                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-                for (JmlTypeClause clause : tspecs.clauses) {
-                    if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                    JmlTypeClauseExpr t;
-                    try {
-                        switch (clause.token) {
-                            // FIXME - add in assert of non-null fields - check staticness
-                            case INVARIANT:
-                                if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
-                                    if (!isHelper(methodDecl.sym)) {
-                                        pushBlock();
-                                        t = (JmlTypeClauseExpr)clause;
-                                        addTraceableComment(t.expression,clause.toString());
-                                        addAssert(methodDecl.pos(),Label.INVARIANT_EXIT,
-                                                convertJML(t.expression),
-                                                clause.pos(),clause.source);
-                                        addStat( popBlock(0,clause.pos()));
-                                    }
-                                }
-                                break;
-                            case CONSTRAINT:
-                                // FIXME - need to check the list of method signatures
-                                if ((!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) ||
-                                        (isConstructor && utils.hasAny(clause.modifiers,Flags.STATIC))) {
-                                    pushBlock();
-                                    JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
-                                    addTraceableComment(tt.expression,clause.toString());
-                                    addAssert(methodDecl.pos(),Label.CONSTRAINT,
-                                            convertJML(tt.expression),
-                                            clause.pos(),
-                                            clause.source);
-                                    addStat( popBlock(0,clause.pos()));
-                                }
-                                break;
-                            case INITIALLY:
-                                if (isConstructor && !isHelper(methodDecl.sym)) {
-                                    pushBlock();
-                                    t = (JmlTypeClauseExpr)clause;
-                                    addTraceableComment(t.expression,clause.toString());
-                                    addAssert(methodDecl.pos(),Label.INITIALLY,
-                                            convertJML(t.expression),
-                                            clause.pos(),clause.source);
-                                    addStat( popBlock(0,clause.pos()));
-                                }
-                                break;
-                            default:
-                                // Skip
-
-                        }
-                    } catch (JmlNotImplementedException e) {
-                        notImplemented(clause.token.internedName() + " clause containing ",e);
-                        continue;
-                    }
-
-                }
             }
 
 

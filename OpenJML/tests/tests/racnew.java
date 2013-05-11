@@ -2327,6 +2327,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuperInvariant() {
+        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"
