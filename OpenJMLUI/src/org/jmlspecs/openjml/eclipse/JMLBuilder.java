@@ -228,6 +228,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear();
 		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
+
+		Activator.getDefault().utils.racMarked(jproject);
 	}
 	
 	// FIXME - move this to Utils? Combine into the one caller?
@@ -279,6 +281,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear(); // Empties the list
 		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
+
+		Activator.getDefault().utils.racMarked(jproject); // FIXME - should only compile the incremental items?
 	}
 
 	// FIXME - duplicated in Utils?

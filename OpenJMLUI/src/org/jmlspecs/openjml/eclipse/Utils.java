@@ -475,12 +475,15 @@ public class Utils {
 	 */
 	public void racSelection(final @NonNull ISelection selection,
 			@Nullable final IWorkbenchWindow window, final Shell shell) {
+		if (!checkForDirtyEditors()) return;
+		
 		// For now at least, only IResources are accepted for selection
 		final @NonNull List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
 			showMessage(shell, "JML RAC Selected", "Nothing appropriate to check");
 			return;
 		}
+		
 		final @NonNull Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		for (final IJavaProject jp : sorted.keySet()) {
 			Job j = new Job("Compiling Runtime Assertions on selected resources") {
@@ -520,6 +523,9 @@ public class Utils {
 	 */
 	public void racMarked(final @NonNull ISelection selection,
 			@Nullable final IWorkbenchWindow window, final Shell shell) {
+
+		if (!checkForDirtyEditors()) return;
+
 		// For now at least, only IResources are accepted for selection
 		final @NonNull Collection<IJavaProject> projects = getSelectedProjects(true,selection, window, shell);
 		if (projects.size() == 0) {
@@ -527,25 +533,29 @@ public class Utils {
 			return;
 		}
 		for (final IJavaProject jp : projects) {
-			Job j = new Job("Compiling Runtime Assertions on marked resources") {
-				public IStatus run(IProgressMonitor monitor) {
-					boolean c = false;
-					try {
-						Set<IResource> resources = getRacFiles(jp);
-						getInterface(jp).executeExternalCommand(Cmd.RAC,
-						    resources, monitor);
-					} catch (Exception e) {
-						showExceptionInUI(shell,
-							"Failure while compiling runtime assertions", e);
-						c = true;
-					}
-					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-				}
-			};
-			j.setUser(true); // true since the job has been initiated by an
-								// end-user
-			j.schedule();
+			racMarked(jp);
 		}
+	}
+	
+	public void racMarked(final IJavaProject jp) {
+		Job j = new Job("Compiling Runtime Assertions on marked resources") {
+			public IStatus run(IProgressMonitor monitor) {
+				boolean c = false;
+				try {
+					Set<IResource> resources = getRacFiles(jp);
+					getInterface(jp).executeExternalCommand(Cmd.RAC,
+							resources, monitor);
+				} catch (Exception e) {
+					showExceptionInUI(null,
+							"Failure while compiling runtime assertions", e);
+					c = true;
+				}
+				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+			}
+		};
+		j.setUser(true); // true since the job has been initiated by an
+		// end-user
+		j.schedule();
 	}
 
 	// TODO - document doBuildRac - put in a Job - or not - because called from
