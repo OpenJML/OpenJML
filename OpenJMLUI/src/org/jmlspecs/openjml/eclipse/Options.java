@@ -64,6 +64,8 @@ public class Options {
 	
 	/** The preference store key for the show trace info option. */
 	final static public String traceKey = prefix + "trace"; //$NON-NLS-1$
+	/** The preference store key for the -subexpressions option. */
+	final static public String subexpressionsKey = prefix + "subexpressions"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
 	final static public String maxWarningsKey = prefix + "maxWarnings"; //$NON-NLS-1$
 	/** The preference store key for the check purity option. */

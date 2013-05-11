@@ -204,7 +204,7 @@ public class JmlEclipseProblem extends DefaultProblem {
 			JmlEclipseProblem cp = (JmlEclipseProblem)p;
 			String stext = cp.sourceText;
 			lineStart = cp.lineStart;
-			if (lineStart >= 0) {
+			if (lineStart >= 0 && stext != null) {
 				// Caution: cp.lineEnd is the characterPosition of the last
 				// line-termination character, if any.  
 				int k = cp.lineEnd + 1;// since the end index in substring is one beyond the end

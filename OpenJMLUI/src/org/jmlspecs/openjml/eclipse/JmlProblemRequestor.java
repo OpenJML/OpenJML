@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.PrintStream;
 import java.util.Map;
 
 import org.eclipse.core.resources.IMarker;
@@ -112,9 +113,12 @@ public class JmlProblemRequestor implements IProblemRequestor {
 				// No originating file name, so use the project or the workspace root
 				f = project != null ? project : root;
 			}
+			
 			// Use the following if you want problems printed to the console
 			// as well as producing markers and annotations
-			//JmlEclipseProblem.printProblem(Log.log.stream(), p);
+			if (Utils.verboseness >= Utils.PROGRESS) {
+				JmlEclipseProblem.printProblem(new PrintStream(Log.log.listener().getStream()), p);
+			}
 
 			JmlEclipseProblem jmlproblem = (JmlEclipseProblem)p;
 			final IResource r = f;

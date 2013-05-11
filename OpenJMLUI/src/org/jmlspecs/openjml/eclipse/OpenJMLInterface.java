@@ -924,10 +924,17 @@ public class OpenJMLInterface {
             		else Log.log(diagnostic.toString());
             	}
             } else {
+            	String text = null;
+            	// FIXME - the following does not work
+//            	try {
+//            		text = javaFileObject == null ? null : javaFileObject.getCharContent(true).toString();
+//            	} catch (java.io.IOException e) {
+//            		// ignore - just leave text as null;
+//            	}
                 JmlEclipseProblem problem = new JmlEclipseProblem(resource, message, id,  severity,
-                        (int)startPosition, (int)endPosition, (int)line, null, // No source text avaialble? FIXME
+                        (int)startPosition, (int)endPosition, (int)line, 
+                        text,
                         (int)lineStart, (int)lineEnd);
-
                 preq.acceptProblem(problem);
                 // Log it as well
                 if (Utils.verboseness >= Utils.VERBOSE) {
@@ -1043,6 +1050,7 @@ public class OpenJMLInterface {
             opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
             opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +"="+ Options.isOption(Options.traceKey));
+            opts.add(JmlOption.SUBEXPRESSIONS.optionName() +"="+ Options.isOption(Options.subexpressionsKey));
             opts.add(JmlOption.FEASIBILITY.optionName() +"="+ Options.value(Options.feasibilityKey));
         }
         

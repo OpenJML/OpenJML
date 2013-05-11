@@ -188,6 +188,9 @@ IWorkbenchPreferencePage {
         
         addField(new BooleanFieldEditor(Options.traceKey, Messages.OpenJMLUI_PreferencesPage_Trace,
                 getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.subexpressionsKey, Messages.OpenJMLUI_PreferencesPage_Subexpressions,
+                getFieldEditorParent()));
+        
         addField(new ComboFieldEditor(Options.feasibilityKey, Messages.OpenJMLUI_PreferencesPage_Feasibility,
         		new String[][]{ 
         			{"all", "all" },  //$NON-NLS-1$
