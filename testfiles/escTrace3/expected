@@ -5,6 +5,8 @@ Starting proof of trace.m() with prover z3_4_3
 
 TRACE
 
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
 testfiles\escTrace3\trace.java:4:  	int j = 0
 			VALUE: j	 === 0
 testfiles\escTrace3\trace.java:8:  	for ...
@@ -64,6 +66,8 @@ Starting proof of trace.mdec() with prover z3_4_3
 
 TRACE
 
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
 testfiles\escTrace3\trace.java:25:  	int j = 0
 			VALUE: j	 === 0
 testfiles\escTrace3\trace.java:29:  	for ...

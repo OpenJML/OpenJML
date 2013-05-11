@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -754,7 +755,8 @@ public class JmlParser extends EndPosParser {
             } else if (jt == REPRESENTS) {
                 list.append(parseRepresents(mods));
             } else if (methodClauseTokens.contains(jt)
-                    || specCaseTokens.contains(jt)) {
+                    || specCaseTokens.contains(jt) 
+                    || jt == SPEC_GROUP_START) {
                 list.append(parseMethodSpecs(mods));
                 S.docComment = dc;
                 // getMethodSpecs may have already parsed some modifiers.
@@ -2664,9 +2666,11 @@ public class JmlParser extends EndPosParser {
      */
     protected JCExpression parseLblExpr(int pos, JmlToken jmlToken) {
         // The JML token is already scanned
+        // pos is the position of the \lbl token
+        int labelPos = S.pos();
         Name n = ident();
         JCExpression e = parseExpression();
-        return toP(jmlF.at(pos).JmlLblExpression(jmlToken, n, e));
+        return toP(jmlF.at(pos).JmlLblExpression(labelPos,jmlToken, n, e));
     }
     
     public JCExpression parseLet(int pos) {

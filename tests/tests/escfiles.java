@@ -73,12 +73,18 @@ public class escfiles extends EscBase {
             pw.close();
             
             String diffs = compareFiles(outDir + "/expected", actCompile);
+            int n = 1;
+            while (diffs != null) {
+                n++;
+                String name = outDir + "/expected" + n;
+                if (!new File(name).exists()) break;
+                diffs = compareFiles(name, actCompile);
+            }
             if (diffs != null) {
                 System.out.println(diffs);
                 fail("Files differ: " + diffs);
-            } else {
-                new File(actCompile).delete();
-            }
+            }  
+            new File(actCompile).delete();
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
         } catch (Exception e) {
@@ -92,42 +98,71 @@ public class escfiles extends EscBase {
     }
 
 
-    /** Testing using system specs */
     @Test
-    public void test1() {
+    public void testDemo1() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-noInternalSpecs");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo1","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemo2() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemo2","-noInternalSpecs","-subexpressions","-progress","-show","-method=tick");
+    }
+
+    @Test
+    public void testDemo3() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemo3","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemoPaths() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","testfiles/escDemoPaths","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemoTypes() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs","-subexpressions","-progress");
     }
 
 
     @Test
     public void testTrace() {
-        expectedExit = 1;
-        helpTCF("testfiles/escTrace","testfiles/escTrace","-trace","-method=m","-escMaxWarnings=1");
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace","testfiles/escTrace","-subexpressions","-method=m","-escMaxWarnings=1");
     }
 
     @Test
     public void testTrace2() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace2","testfiles/escTrace2","-trace","-method=m");
+        helpTCF("testfiles/escTrace2","testfiles/escTrace2","-subexpressions","-method=m");
     }
 
     @Test
     public void testTrace3() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace3","testfiles/escTrace3","-trace","-progress");
+        helpTCF("testfiles/escTrace3","testfiles/escTrace3","-subexpressions","-progress");
     }
 
     @Test
     public void testTrace4() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace4","testfiles/escTrace4","-method=m","-trace","-progress");
+        helpTCF("testfiles/escTrace4","testfiles/escTrace4","-method=m","-subexpressions","-progress");
     }
 
     @Test
     public void testTrace5() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace5","testfiles/escTrace5","-method=m","-trace","-progress");
+        helpTCF("testfiles/escTrace5","testfiles/escTrace5","-method=m","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTrace6() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTrace6","testfiles/escTrace6","-subexpressions","-progress");
     }
 
 

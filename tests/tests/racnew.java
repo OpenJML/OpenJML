@@ -2285,8 +2285,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
-                ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
                 ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
+                ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23

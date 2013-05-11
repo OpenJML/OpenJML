@@ -187,6 +187,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     @Override
     public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
         return M.at(that.pos).JmlLblExpression(
+                that.labelPosition,
                 that.token,
                 that.label,
                 copy(that.expression,p));

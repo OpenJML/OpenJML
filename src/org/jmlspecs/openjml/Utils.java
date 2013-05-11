@@ -533,6 +533,28 @@ public class Utils {
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
     }
 
+    /** Returns true if a declaration with the given flags is visible in the
+     * 'base' class when declared in the 'parent' class. 
+     */
+    public boolean jmlvisible(Symbol base, Symbol parent, long flags, long methodFlags) {
+        if (!visible(base,parent,flags)) return false;
+        // In JML the clause must be at least as visible to clients as the method
+//        flags &= Flags.AccessFlags;
+//        methodFlags &= Flags.AccessFlags;
+//        if (flags == methodFlags) return true;
+//        if (flags == Flags.PUBLIC) return true;
+//        if (methodFlags == Flags.PRIVATE) return true;
+//        if (methodFlags == Flags.PUBLIC) return false;
+//        if (flags == Flags.PROTECTED) return true;
+        // FIXME - this is not quite right for protected inheritance
+        // The rule is that the clause has to be visible wherever the method is visible
+        // If a protected method can see a protected clause by Java rules, then either
+        // the clause is in the same package OR in the same or a super class.
+        // But if both the clause and method are to be visible to a client, then 
+        // the clause has to be in the same package AND in the same or a super class
+        return true;
+    }
+
     /** Returns the owning class declaration of a method declaration */
     public JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
         return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;

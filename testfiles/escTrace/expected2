@@ -225,7 +225,7 @@ testfiles\escTrace\trace.java:73:  	m = 8
 			VALUE: 8	 === 8
 			VALUE: m = 8	 === 8
 testfiles\escTrace\trace.java:74:  	throw new Exception();
-			VALUE: new Exception()	 === REF!val!4
+			VALUE: new Exception()	 === REF!val!3
 testfiles\escTrace\trace.java:78:  	m = 10
 			VALUE: 10	 === 10
 			VALUE: m = 10	 === 10

@@ -1,0 +1,6 @@
+Proving methods in openjml.clock.TickTockClockB
+Starting proof of openjml.clock.TickTockClockB.TickTockClockB() with prover z3_4_3
+Completed proof of openjml.clock.TickTockClockB.TickTockClockB() with prover z3_4_3 - no warnings
+Starting proof of openjml.clock.TickTockClockB.tick() with prover z3_4_3
+Completed proof of openjml.clock.TickTockClockB.tick() with prover z3_4_3 - no warnings
+Completed proving methods in openjml.clock.TickTockClockB

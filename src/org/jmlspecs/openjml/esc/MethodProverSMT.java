@@ -16,7 +16,9 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -98,7 +100,7 @@ public class MethodProverSMT {
         this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
         this.showTrace = verbose || this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
-        this.showBBTrace = verbose;
+        this.showBBTrace = escdebug;
 
         boolean print = jmlesc.verbose;
         boolean printPrograms = print || JmlOption.isOption(context, JmlOption.SHOW);
@@ -266,9 +268,14 @@ public class MethodProverSMT {
                     Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
                     BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
                     tracer = new Tracer(context,smt,solver,cemap,jmap);
-                    jmlesc.mostRecentCEMap = cemap;
                     // Report JML-labeled values and the path to the failed invariant
-                    if (showTrace) log.noticeWriter.println("\nTRACE\n");
+                    if (showTrace) {
+                        log.noticeWriter.println("\nTRACE\n");
+                        String n = cemap.get(JmlTreeUtils.instance(context).nullLit);
+                        String t = getValue("THIS",smt,solver);
+                        log.noticeWriter.println("\t\t\tVALUE: null = " + n);
+                        log.noticeWriter.println("\t\t\tVALUE: this = " + t);
+                    }
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(program,smt,solver,methodDecl,cemap,jmap,
                             jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
@@ -281,6 +288,7 @@ public class MethodProverSMT {
                             pr.add(ce);
                         }
                         proofResult = pr;
+                        jmlesc.mostRecentProofResult = proofResult;
                     }
                     
                     if (pathCondition == null) {
@@ -425,17 +433,12 @@ public class MethodProverSMT {
                 if (origStat != null) {
                     String loc = utils.locationString(origStat.getStartPosition());
                     String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
-                    int sp,ep;
+                    int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
                     int spanType = Span.NORMAL;
                     JCTree toTrace = null;
                     String val = null;
                     if (origStat instanceof JCIf) {
-                        JCExpression e = ((JCIf)origStat).getCondition();
-                        sp = e.getStartPosition();
-                        ep = e.getEndPosition(log.currentSource().getEndPosTable());
-                        val = cemap.get(e); // getBoolValue(e,smt,solver);
-                        spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
-                        toTrace = e;
+                        toTrace = ((JCIf)origStat).getCondition();
                     } else if (origStat instanceof JCSwitch) {
                         toTrace = ((JCSwitch)origStat).getExpression();
                         sp = toTrace.getStartPosition();
@@ -445,14 +448,13 @@ public class MethodProverSMT {
                         sp = origStat.getStartPosition();
                         // 8 is the length of "default:"
                         ep = toTrace == null ? sp + 8 : toTrace.getEndPosition(log.currentSource().getEndPosTable());
-                    } else if (origStat instanceof JCCatch) {
-                        JCVariableDecl d = ((JCCatch)origStat).param;
-                        sp = origStat.getStartPosition();
-                        ep = d.getEndPosition(log.currentSource().getEndPosTable());
+//                    } else if (origStat instanceof JCCatch) { // catches come as JmlVariableDecls
+//                        JCVariableDecl d = ((JCCatch)origStat).param;
+//                        sp = origStat.getStartPosition();
+//                        ep = d.getEndPosition(log.currentSource().getEndPosTable());
+//                        toTrace = null ; // FIXME - not working correctly yet
                     } else if (origStat instanceof JCSynchronized) {
                         toTrace = ((JCSynchronized)origStat).getExpression();
-                        sp = toTrace.getStartPosition();
-                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
                     } else if (origStat instanceof JmlForLoop) {
                         JmlForLoop s = (JmlForLoop)origStat;
                         sp = s.getStartPosition();
@@ -467,24 +469,31 @@ public class MethodProverSMT {
                         JmlDoWhileLoop s = (JmlDoWhileLoop)origStat;
                         sp = s.getCondition().getStartPosition();
                         ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
+//                    } else if (origStat instanceof JmlEnhancedForLoop) {
+//                        JmlEnhancedForLoop s = (JmlEnhancedForLoop)origStat;
+//                        sp = s.getCondition().getStartPosition();
+//                        ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
                     } else {
-                        sp = origStat.getStartPosition();
-                        ep = origStat.getEndPosition(log.currentSource().getEndPosTable());
                         toTrace = origStat;
                     }
-                    path.add(new Span(sp,ep,spanType));
-                    log.noticeWriter.println(loc + " \t" + comment);
-                    if (toTrace != null) tracer.scan(toTrace);
-                    if (origStat instanceof JCIf) log.noticeWriter.println("\t\t\t\tCondition = " + val);
-
-                } else {
-                    JCTree trstat = bbPathMap.getr(bbstat);
-                    if (trstat instanceof JmlStatementExpr &&
-                            ((JmlStatementExpr)trstat).token == JmlToken.ASSERT) {
-                        //log.noticeWriter.println("SYNTHETIC STATEMENT: " + trstat);
-                    } else {
-                        //log.noticeWriter.println("UNMAPPED STATEMENT:  " + bbstat);
+                    if (sp == -2) {
+                        sp = toTrace.getStartPosition();
+                        ep = toTrace.getEndPosition(log.currentSource().getEndPosTable());
+                        val = cemap.get(toTrace);
+                        spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
                     }
+                    //log.noticeWriter.println("SPAN " + sp + " " + ep + " " + spanType);
+                    if (sp != Position.NOPOS) {
+                        if (ep >= sp) path.add(new Span(sp,ep,spanType));
+//                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
+                    } else {
+//                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
+                    }
+                    log.noticeWriter.println(loc + " \t" + comment);
+                    if (toTrace != null && showSubexpressions) tracer.scan(toTrace);
+                    if (origStat instanceof JCIf) log.noticeWriter.println("\t\t\t\tCondition = " + val);
+                    if (origStat instanceof JCSwitch) log.noticeWriter.println("\t\t\t\tSelection = " + cemap.get(toTrace));
+
                 }
                 
             }
@@ -513,14 +522,6 @@ public class MethodProverSMT {
                     id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);
                 }
-                int sp = e.getStartPosition();
-                int ep = e.getEndPosition(log.currentSource().getEndPosTable());
-                if (printspans) log.noticeWriter.println("SPAN " + label + " " + sp + "  " + ep + " " + e);
-                if (ep <= sp) {
-                    if (printspans) log.noticeWriter.println("BAD SPAN " + sp + "  " + ep + " " + e);
-                }
-                else path.add(new Span(sp,ep,
-                        value ? Span.TRUE : Span.FALSE));
                 if (!value) {
                     pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     if (terminationPos == 0) terminationPos = decl.pos;
@@ -535,23 +536,18 @@ public class MethodProverSMT {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
-                    // FIXME: 
-                    if (printspans) if (epos == Position.NOPOS) log.noticeWriter.println("INCOMPLETE WARNING RANGE " + assertStat.getStartPosition() + " " + ep + " " + assertStat);
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                     } else {
                         // FIXME - migrate to using pos() for terminationPos as well 
                         log.warning(assertStat.pos(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                     }
-                    String msg = utils.locationString(pos);
-//                    JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new JCDiagnostic.SimpleDiagnosticPosition(pos), "esc.empty",Strings.empty); //$NON-NLS-1$
-//                    String msg = diag.toString();
-//                    msg = msg.substring(0,msg.indexOf("Note")); //$NON-NLS-1$
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
                     // a literal string, it is printed with quotes around it.
                     if (prev != null) log.useSource(prev);
                     if (assertStat.associatedPos != Position.NOPOS) {
+                        String msg = utils.locationString(pos);
                         if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
                         log.warning(assertStat.associatedPos, "jml.associated.decl",msg); // FIXME - could add this information, but it would blow Aaway the test results
                         if (assertStat.associatedSource != null) log.useSource(prev);
@@ -665,7 +661,9 @@ public class MethodProverSMT {
             super.scan(that);
             if (that instanceof JCExpression && !JmlTreeUtils.instance(context).isATypeTree((JCExpression)that)) {
                 String sv = cemap.get(that);
-                if (print) log.noticeWriter.println("\t\t\tVALUE: " + that + "\t === " + (sv==null ? "???" : sv));
+                if (print) {
+                    log.noticeWriter.println("\t\t\tVALUE: " + that + "\t === " + (sv==null ? "???" : sv));
+                }
                 else print = true;
             }
         }
@@ -694,12 +692,12 @@ public class MethodProverSMT {
             scan(e.init);
             Name n = e.name;
             String sv = cemap.get(e);
-            log.noticeWriter.println("VALUE: " + n + " = " + sv);
             if (sv == null) {
                 sv = getValue(n.toString(),smt,solver);
-                log.noticeWriter.println("VALUE Retrieved: " + n + " = " + sv);
+                //log.noticeWriter.println("\t\t\t\tVALUE Retrieved: " + n + " = " + sv);
                 cemap.put(e, sv);
             }
+            log.noticeWriter.println("\t\t\tVALUE: " + e.sym + " = " + sv);
 
         }
         

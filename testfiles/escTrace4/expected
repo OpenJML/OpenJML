@@ -3,6 +3,8 @@ Starting proof of trace.m(int) with prover z3_4_3
 
 TRACE
 
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
 testfiles\escTrace4\trace.java:12:  	requires true; 
 			VALUE: true	 === true
 testfiles\escTrace4\trace.java:15:  	int j = 0

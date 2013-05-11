@@ -1058,9 +1058,9 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: Label LBL_BB has value true",41
-                ,"/tt/TestJava.java:8: warning: Label LBL_BB3 has value false",46
-                ,"/tt/TestJava.java:9: warning: Label LBL_BBI has value 5",38
+                ,"/tt/TestJava.java:6: warning: Label LBL_BB has value true",34
+                ,"/tt/TestJava.java:8: warning: Label LBL_BB3 has value false",38
+                ,"/tt/TestJava.java:9: warning: Label LBL_BBI has value 5",30
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1ok",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );

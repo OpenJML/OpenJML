@@ -996,6 +996,7 @@ public class escall2 extends EscBase {
                 );
     }
     
+    // TODO - yices does not support quantification
     @Test
     public void testAxiom2() {
         helpTCX("tt.TestJava","package tt; \n"
