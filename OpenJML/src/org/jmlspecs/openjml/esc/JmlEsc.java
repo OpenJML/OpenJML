@@ -317,7 +317,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     // FIXME - move these away from being globals
     
-    static public Map<JCTree,String> mostRecentCEMap = null;
+    static public IProverResult mostRecentProofResult = null;
     
     
 }

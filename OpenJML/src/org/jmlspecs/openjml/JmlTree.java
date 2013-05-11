@@ -88,7 +88,7 @@ public class JmlTree implements IJmlTree {
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
-        JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr);
+        JmlLblExpression JmlLblExpression(int labelPosition, JmlToken token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
@@ -413,8 +413,9 @@ public class JmlTree implements IJmlTree {
         
         /** Creates a JML labeled expression */
         @Override
-        public JmlLblExpression JmlLblExpression(JmlToken token, Name label, JCTree.JCExpression expr) {
-            return new JmlLblExpression(pos,token,label,expr);
+        public JmlLblExpression JmlLblExpression(int labelPosition, JmlToken token, Name label, JCTree.JCExpression expr) {
+            JmlLblExpression p = new JmlLblExpression(pos,labelPosition,token,label,expr);
+            return p;
         }
 
         /** Creates a JML expression statement (e.g. assert) */
@@ -1515,13 +1516,21 @@ public class JmlTree implements IJmlTree {
         public Name label;
         /** The expression that is labelled */
         public JCExpression expression;
+        
+        public int labelPosition;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlLblExpression(int pos, JmlToken token, Name label, JCTree.JCExpression expr) {
+        protected JmlLblExpression(int pos, int labelPosition, JmlToken token, Name label, JCTree.JCExpression expr) {
             this.pos = pos;
             this.token = token;
             this.label = label;
             this.expression = expr;
+            this.labelPosition = labelPosition;
+        }
+        
+        /*@ pure */
+        public int getLabelPosition() {
+            return labelPosition;
         }
     
         @Override
@@ -1617,6 +1626,7 @@ public class JmlTree implements IJmlTree {
         public int startpos;
         public JmlToken token;
         public Label label = null; // FIXME - explain this
+        public boolean javaType = false; // FIXME - this is a hack
         
         /** Creates a method invocation for a JML specific construct (e.g. \typeof) -
          * no type arguments and no expression for the method name, just a token.

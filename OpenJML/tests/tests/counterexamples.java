@@ -431,7 +431,7 @@ public class counterexamples extends EscBase {
                 
                 +"}\n"
                 
-                ,"/tt/TestJava.java:11: warning: Label X has value true",39 // FIXME - point to the label, not the expression?
+                ,"/tt/TestJava.java:11: warning: Label X has value true",37
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Unreachable) in method m1",11
                 );
     }

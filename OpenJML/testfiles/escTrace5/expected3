@@ -11,8 +11,8 @@ testfiles\escTrace5\trace.java:6:  	Object o = new Object()
 			VALUE: o	 === REF!val!2
 testfiles\escTrace5\trace.java:  	assert Assert \typeof(o) == \type(Object);
 			VALUE: o	 === REF!val!2
-			VALUE: \typeof(o)	 === JMLTypeSort!val!2
-			VALUE: \type(Object)	 === JMLTypeSort!val!2
+			VALUE: \typeof(o)	 === JMLTypeSort!val!1
+			VALUE: \type(Object)	 === JMLTypeSort!val!1
 			VALUE: \typeof(o) == \type(Object)	 === true
 testfiles\escTrace5\trace.java:8:  	return 0;
 			VALUE: 0	 === 0

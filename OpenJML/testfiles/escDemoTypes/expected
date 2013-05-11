@@ -1,0 +1,141 @@
+Proving methods in openjml.demo.Types
+Starting proof of openjml.demo.Types.Types() with prover z3_4_3
+Completed proof of openjml.demo.Types.Types() with prover z3_4_3 - no warnings
+Starting proof of openjml.demo.Types.types(java.util.List<?>) with prover z3_4_3
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Types.java:8:  	requires a != null; 
+			VALUE: a	 === REF!val!2
+			VALUE: null	 === REF!val!1
+			VALUE: a != null	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9:  	@Ghost 
+boolean b1 = (\lbl A \type(Integer) <: \type(Number))
+			VALUE: b1	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: Label A has value true
+		//@ ghost boolean b1 = (\lbl A \type(Integer) <: \type(Number));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:10:  	@Ghost 
+boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>))
+			VALUE: b2	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:10: warning: Label B has value true
+		//@ ghost boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:11:  	@Ghost 
+boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>))
+			VALUE: b3	 === false
+..\OpenJMLDemo\src\openjml\demo\Types.java:11: warning: Label C has value false
+		//@ ghost boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:12:  	@Ghost 
+boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>))
+			VALUE: b4	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:12: warning: Label D has value true
+		//@ ghost boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:13:  	@Ghost 
+boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List))
+			VALUE: b5	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:13: warning: Label E has value true
+		//@ ghost boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:14:  	Integer i = (Integer)a.get(0)
+			VALUE: i	 === REF!val!1
+..\OpenJMLDemo\src\openjml\demo\Types.java:14: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method types
+		Integer i = (Integer)a.get(0);
+		        ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Types.java:8:  	requires a != null; 
+			VALUE: a	 === REF!val!2
+			VALUE: null	 === REF!val!1
+			VALUE: a != null	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9:  	@Ghost 
+boolean b1 = (\lbl A \type(Integer) <: \type(Number))
+			VALUE: b1	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: Label A has value true
+		//@ ghost boolean b1 = (\lbl A \type(Integer) <: \type(Number));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:10:  	@Ghost 
+boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>))
+			VALUE: b2	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:10: warning: Label B has value true
+		//@ ghost boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:11:  	@Ghost 
+boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>))
+			VALUE: b3	 === false
+..\OpenJMLDemo\src\openjml\demo\Types.java:11: warning: Label C has value false
+		//@ ghost boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:12:  	@Ghost 
+boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>))
+			VALUE: b4	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:12: warning: Label D has value true
+		//@ ghost boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:13:  	@Ghost 
+boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List))
+			VALUE: b5	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:13: warning: Label E has value true
+		//@ ghost boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:14:  	Integer i = (Integer)a.get(0)
+			VALUE: i	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Types.java:14: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types
+		Integer i = (Integer)a.get(0);
+		            ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Types.java:8:  	requires a != null; 
+			VALUE: a	 === REF!val!2
+			VALUE: null	 === REF!val!1
+			VALUE: a != null	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9:  	@Ghost 
+boolean b1 = (\lbl A \type(Integer) <: \type(Number))
+			VALUE: b1	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: Label A has value true
+		//@ ghost boolean b1 = (\lbl A \type(Integer) <: \type(Number));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:10:  	@Ghost 
+boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>))
+			VALUE: b2	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:10: warning: Label B has value true
+		//@ ghost boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:11:  	@Ghost 
+boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>))
+			VALUE: b3	 === false
+..\OpenJMLDemo\src\openjml\demo\Types.java:11: warning: Label C has value false
+		//@ ghost boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:12:  	@Ghost 
+boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>))
+			VALUE: b4	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:12: warning: Label D has value true
+		//@ ghost boolean b4 = (\lbl D \type(java.util.ArrayList<Integer>) <: \type(java.util.List<?>));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:13:  	@Ghost 
+boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List))
+			VALUE: b5	 === true
+..\OpenJMLDemo\src\openjml\demo\Types.java:13: warning: Label E has value true
+		//@ ghost boolean b5 = (\lbl E \type(java.util.ArrayList) <: \type(java.util.List));
+		                             ^
+..\OpenJMLDemo\src\openjml\demo\Types.java:14:  	Integer i = (Integer)a.get(0)
+			VALUE: i	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Types.java:15:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Types.java:15: warning: The prover cannot establish an assertion (Assert) in method types
+		//@ assert false;
+		    ^
+Completed proof of openjml.demo.Types.types(java.util.List<?>) with prover z3_4_3 - with warnings
+Completed proving methods in openjml.demo.Types
+18 warnings

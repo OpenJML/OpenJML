@@ -332,10 +332,11 @@ public class SMTTranslator extends JmlTreeScanner {
             for (Type tj: javaTypes) {
                 IExpr.ISymbol si = javaTypeSymbol(ti);
                 IExpr.ISymbol sj = javaTypeSymbol(tj);
-                boolean b = types.isSubtype(ti,tj);
+                boolean b = types.isSubtype(types.erasure(ti),types.erasure(tj));
                 IExpr comp = F.fcn(F.symbol("javaSubType"), si, sj);
                 if (!b) comp = F.fcn(F.symbol("not"),comp);
                 tcommands.add(new C_assert(comp));
+                b = types.isSubtype(ti,tj);
                 comp = F.fcn(F.symbol("jmlSubType"), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
                 if (!b) comp = F.fcn(F.symbol("not"),comp);
                 tcommands.add(new C_assert(comp));
@@ -540,7 +541,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (that.token == JmlToken.BSTYPELC) {
             Type t = that.args.get(0).type;
             addType(t);
-            result = jmlTypeSymbol(t);
+            result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
             return;
         }
         List<IExpr> newargs = new LinkedList<IExpr>();
@@ -551,7 +552,8 @@ public class SMTTranslator extends JmlTreeScanner {
         if (that.token == JmlToken.SUBTYPE_OF) {
             result = F.fcn(F.symbol("jmlSubType"), newargs);
         } else if (that.token == JmlToken.BSTYPEOF) {
-            result = F.fcn(F.symbol("jmlTypeOf"), newargs);
+            ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
+            result = F.fcn(s, newargs);
         } else if (that.meth != null) result = F.fcn(F.symbol(that.meth.toString()),newargs);
         else result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
     }
