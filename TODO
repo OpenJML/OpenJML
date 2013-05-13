@@ -1,3 +1,32 @@
+Recent issues:
+- visibility of default assignable this.* for constructors
+- require at least one spec case at method visibility
+- enforce strictness of clause ordering?
+- need a check for undefined pure methods
+- denested specs are causing multiple evaluations
+- pure methods are supposed to be deterministic
+- transitive, final subtype relationships
+- jobs need to wait for each other; monitor not being shown
+- test showing control flow for all statement types
+- test getting values for all expression types
+- finish fixing java types of generic types
+- implement tracing for loops
+
+- ESC on method can have NPE if no typecheck completed
+- when old is used, values shown have encoded names
+
+Plug-in
+- would like to report old values for op= assignments and x++
+- bug in printing position in the UI
+- start position wrong for assert?
+- show exception info for catch clauses
+- show exception info in the UI? exception highlighting?
+- manage multiple proofs, show proof information
+
+Other:
+- RAC constructor
+- havoc
+
 To do soon
 - constraint
 - thisID for invariants in applyHelper

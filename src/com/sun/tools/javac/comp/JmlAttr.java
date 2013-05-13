@@ -1040,10 +1040,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }            
         }
         JCTree.JCAnnotation a;
-        if (((mods.flags & Flags.PRIVATE)== 0 
-                || (utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null
-                || (utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null)
-                && (a=utils.findMod(mods,tokenToAnnotationName.get(HELPER))) != null ) {
+        if ( (a=utils.findMod(mods,tokenToAnnotationName.get(HELPER))) != null  &&
+              utils.findMod(mods,tokenToAnnotationName.get(PURE)) == null  && 
+              (    (mods.flags & Flags.PRIVATE) == 0 
+                || utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC)) != null
+                || utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED)) != null
+                )
+            ) {
             log.error(a.pos,"jml.helper.must.be.private",javaMethodTree.name.toString());
         }
         if (!model) {

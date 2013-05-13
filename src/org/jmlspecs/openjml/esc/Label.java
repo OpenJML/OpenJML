@@ -33,6 +33,11 @@ public class Label {
         map.put(s, this);
     }
     
+    /** The descriptive name of the Label */
+    public String info() {
+        return info;
+    }
+    
     /** Returns the info String for this instance
       * @see java.lang.Object#toString()
      */

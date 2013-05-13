@@ -196,8 +196,18 @@ public class MethodProverSMT {
                     java.util.List<JCTree.JCParens> a = jmlesc.assertionAdder.assumptionChecks.get(methodDecl.sym);
                     boolean first = true;
                     if (a != null) for (JCParens assumptionExpr: a) { // FIXME - warn if a null? perhaps just an artifact of assertig a constructor
-                        JCExpression prevExpr = assumptionExpr.expr;
-                        assumptionExpr.expr = JmlTreeUtils.instance(context).falseLit;
+//                    java.util.List<JmlStatementExpr> a = jmlesc.assertionAdder.assumptionCheckStats.get(methodDecl.sym);
+//                    boolean first = true;
+//                    if (a != null) for (JmlStatementExpr assumptionExpr: a) { // FIXME - warn if a null? perhaps just an artifact of assertig a constructor
+//                        log.noticeWriter.println("Trying feasibility " + ((JCLiteral)assumptionExpr.optionalExpression).value + " " + utils.locationString(assumptionExpr.pos));
+                    	JCExpression prevExpr = assumptionExpr.expr;
+                        assumptionExpr.expr = JmlTreeUtils.instance(context).makeBooleanLiteral(assumptionExpr.pos,false);
+//                        JCExpression prevExpr = assumptionExpr.expression;
+//                        assumptionExpr.expression = JmlTreeUtils.instance(context).falseLit;
+                        {
+                        	JCTree t = basicBlocker.bimap.getr(prevExpr);
+                        	basicBlocker.bimap.put(t, assumptionExpr.expr);
+                        }
                         try {
                             BasicBlocker2 basicBlocker2 = new BasicBlocker2(context);
                             BasicProgram program2 = basicBlocker2.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
@@ -225,7 +235,6 @@ public class MethodProverSMT {
                             // Try the prover
                             if (jmlesc.verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
                             solverResponse = script2.execute(solver2); // Note - the solver knows the smt configuration
-                            solver2.exit();
                             if (solverResponse.toString().equals("unsat")) {
                                 if (first) {
                                 	log.warning(assumptionExpr.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
@@ -236,10 +245,28 @@ public class MethodProverSMT {
                                 	log.warning(assumptionExpr.pos(), "esc.infeasible.assumption", utils.qualifiedMethodSig(methodDecl.sym));
                                     proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
                                 }
+                            } else if (false) {
+                                Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver2);
+                                BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
+                                tracer = new Tracer(context,smt,solver2,cemap,jmap);
+                                // Report JML-labeled values and the path to the failed invariant
+                                if (true || showTrace) {
+                                    log.noticeWriter.println("\nTRACE\n");
+                                    String n = cemap.get(JmlTreeUtils.instance(context).nullLit);
+                                    String t = getValue("THIS",smt,solver2);
+                                    log.noticeWriter.println("\t\t\tVALUE: null = " + n);
+                                    log.noticeWriter.println("\t\t\tVALUE: this = " + t);
+                                }
+                                path = new ArrayList<IProverResult.Span>();
+                                JCExpression pathCondition = reportInvalidAssertion(program2,smt,solver2,methodDecl,cemap,jmap,
+                                        jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
                             }
+                            solver2.exit();
                         } finally {
                         	first = false;
                             assumptionExpr.expr = prevExpr;
+//                            assumptionExpr.expression = prevExpr;
+
                         }
                         if (!JmlOption.value(context, JmlOption.FEASIBILITY).equals("all")) break;
                     }

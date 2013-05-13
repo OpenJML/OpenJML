@@ -408,6 +408,36 @@ public class compiler {
                           );
     }
 
+    /** Checks that -nowarn turns off waranings. */
+    @Test
+    public void testJML6nowarn() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
+                            "-sourcepath","",
+                            "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
+                            "-noPurityCheck","-nowarn",
+                            "testfiles/testNoSourceWithClass/A.jml"
+                          },0,0
+                          ,""
+                          );
+    }
+
+    /** Checks that -Werror turns warnings into errors */
+    @Test
+    public void testJML6Werror() throws Exception {
+        helper(new String[]
+                          { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
+                            "-sourcepath","",
+                            "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
+                            "-noPurityCheck","-Werror",
+                            "testfiles/testNoSourceWithClass/A.jml"
+                          },1,0
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSourceWithClass/A.jml" + eol +
+                           "error: warnings found and -Werror specified" + eol + 
+                           "1 error" + eol + 
+                           "1 warning" + eol);
+    }
+
     /** Tests using source path but including java spec files - may encounter
      * compilation warnings in the spec files as they evolve.
      * Uses bin for classpath.

@@ -19,13 +19,20 @@ public class Utils {
      * @param message The message to report
      */
     // This one is declared first to minimize changes to its location 
-    public static final String ASSERTION_FAILURE = "assertionFailure"; // Must match the method name
-    public static void assertionFailure(String message) {
-        if (useExceptions) throw new JmlAssertionError(message);
+    public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
+    public static void assertionFailureL(String message, /*@ nullable */String label) {
+        if (useExceptions) { if ("Precondition".equals(label)) throw new JmlAssertionError.Precondition(message,label); else throw new JmlAssertionError(message,label);}
         else if (useJavaAssert) assert false: message;
         else { System.out.println(message); System.out.flush();
-            if (showStack) (new JmlAssertionError(message)).printStackTrace(System.out); // Keep this on line 27 or some test results change
+            if (showStack) { Error e = ("Precondition".equals(label)) ? new JmlAssertionError.Precondition(message,label): new JmlAssertionError(message,label);
+                e.printStackTrace(System.out); // Keep the new expressions on line 27 or some test results will change
+            }
         }
+    }
+    
+    // Deprecate this
+    public static void assertionFailure(String message) {
+        assertionFailureL(message,null);
     }
     
     //@ public normal_behavior
@@ -188,20 +195,6 @@ public class Utils {
 //        }
 //        return null;
 //    }
-    
-    /** Error object that is thrown when any JML assertion failure is 
-     * encountered (if exceptions are enabled using Utils.useExceptions)
-     * @author David Cok
-     */
-    public static class JmlAssertionError extends java.lang.Error {
-        private static final long serialVersionUID = 1L;
-        /** The constructor with an informational message string
-         * @param s the reason for the failure
-         */
-        public JmlAssertionError(String s) {
-            super(s);
-        }
-    }
     
     // The report... methods provide a mechanism for reporting
     // values encountered during execution.

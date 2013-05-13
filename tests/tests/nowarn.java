@@ -1,5 +1,7 @@
 package tests;
 
+/** This tests parsing of nowarn. */
+
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.junit.Test;

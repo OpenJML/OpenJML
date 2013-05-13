@@ -52,16 +52,17 @@ public enum JmlToken {
     UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
     MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
     PEER("peer",org.jmlspecs.annotation.Peer.class),
-    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
     REP("rep",org.jmlspecs.annotation.Rep.class),
-    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
     SPEC_BIGINT_MATH("spec_bigint_math"), // FIXME - need implementations for these
     SPEC_JAVA_MATH("spec_java_math"),
     SPEC_SAFE_MATH("spec_safe_math"),
     SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
     SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
-    CODE_BIGINT_MATH("code_bigint_math"), // Keep this one the last of the modifiers (see the modifiers Map below)
+    CODE_BIGINT_MATH("code_bigint_math"), // Keep this one the last of the standard modifiers (see the modifiers Map below)
+    QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
+    SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+    LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
     INVARIANT("invariant"),
@@ -248,7 +249,12 @@ public enum JmlToken {
     /** This is a set of all the modifier tokens, defined so that it is quick
      * and easy to test if a token is a modifier.
      */
-    public final static EnumSet<JmlToken> modifiers = EnumSet.range(PURE,CODE_BIGINT_MATH);  // BSREADONLY added below
+    public final static EnumSet<JmlToken> modifiers = EnumSet.range(PURE,LAST);  // BSREADONLY added below
+    
+    public final static EnumSet<JmlToken> extensions = EnumSet.range(CODE_BIGINT_MATH, LAST);
+    static {
+        extensions.remove(CODE_BIGINT_MATH);
+    }
     
     /** This is a set of the modifiers that may be used to characterize a type. */
     public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY};

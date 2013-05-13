@@ -13,9 +13,11 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
+import com.sun.tools.javac.main.OptionName;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Name;
@@ -137,6 +139,9 @@ public class JmlScanner extends DocCommentScanner {
 
     }
     
+    /** The compilation context */
+    protected Context context;
+    
     /** A temporary reference to the instance of the nowarn collector for the context. */
     /*@NonNull*/ public Nowarns nowarns;
 
@@ -190,8 +195,9 @@ public class JmlScanner extends DocCommentScanner {
      */
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
-    protected JmlScanner(ScannerFactory fac, char[] input, int inputLength) {
+    protected JmlScanner(JmlFactory fac, char[] input, int inputLength) {
         super(fac, input, inputLength);
+        context = fac.context;
     }
 
     /**
@@ -202,8 +208,9 @@ public class JmlScanner extends DocCommentScanner {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
-    protected JmlScanner(ScannerFactory fac, CharBuffer buffer) {
+    protected JmlScanner(JmlFactory fac, CharBuffer buffer) {
         super(fac, buffer);
+        context = fac.context;
     }
 
     /**
@@ -275,8 +282,10 @@ public class JmlScanner extends DocCommentScanner {
         // pos() points to the first / of the comment sequence (or to the
         // last character of the unicode sequence for that /)
         bp = pos(); // OK for unicode
+        int commentStart = bp;
         scanChar(); // the next / or *
         scanChar(); // The @, or a + or - if there are keys, or something else if it is not a JML comment
+        int plusPosition = bp;
 
         // FIXME - do we need this line?
         //if (bp >= end) return; // This can happen if there is a // right at the end of the line
@@ -298,7 +307,9 @@ public class JmlScanner extends DocCommentScanner {
                 // Old -style //+@ or //-@ comments
                 
                 // Too many warnings to enable this message
-                //log.warning(new DiagnosticPositionSE(commentStart,bp),"jml.deprecated.conditional.annotation");
+                if (Options.instance(context).isSet("-Xlint:deprecation")) {
+                    log.warning(new DiagnosticPositionSE(commentStart,plusPosition,bp),"jml.deprecated.conditional.annotation");
+                }
 
                 // To be backward compatible at the moment,
                 // quit for //-@, process the comment if //+@
