@@ -38,6 +38,7 @@ public enum JmlOption implements IOption {
     NOJML("-noJML",false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
     NEWESC("-newesc",false,"When on, uses the new SMT-based implementation",null),
     CUSTOM("-custom",false,"When on, uses the old custom prover implementation",null),
+    STRICT("-strictJML",false,"Disables any JML extensions in OpenJML",null),
 
     STOPIFERRORS("-stopIfParseErrors",false,"When enabled, stops after parsing if any files have parsing errors",null),
 

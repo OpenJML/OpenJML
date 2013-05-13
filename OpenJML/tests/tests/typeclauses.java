@@ -231,7 +231,6 @@ public class typeclauses extends TCBase {
     @Test
     public void testRepresents1() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i <- true;\n}"
-                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",32
                 ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",35
                 );
     }
@@ -377,6 +376,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testRepresents17() {
         expectedExit = 0;
+        main.addOptions("-deprecation");
         helpTCF("A.java","public class A {\n static int j; //@  model static int i; static represents i <- j;\n}"
                 ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",61
                 );

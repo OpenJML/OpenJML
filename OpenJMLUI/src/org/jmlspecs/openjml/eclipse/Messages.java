@@ -43,11 +43,12 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_CheckSpecificationPath;
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;
+	public static String OpenJMLUI_PreferencesPage_EnableAutoESCChecking;
 	public static String OpenJMLUI_PreferencesPage_EnableAutoRuntimeAssertionChecking;
 	public static String OpenJMLUI_PreferencesPage_Show;
 	public static String OpenJMLUI_PreferencesPage_JavaVerbose;
 	public static String OpenJMLUI_PreferencesPage_JmlOptions;
-	public static String OpenJMLUI_PreferencesPage_NonNullByDefault;
+	public static String OpenJMLUI_PreferencesPage_NullableByDefault;
 	public static String OpenJMLUI_PreferencesPage_normal;
 	public static String OpenJMLUI_PreferencesPage_OptionalAnnotationKeys;
 	public static String OpenJMLUI_PreferencesPage_OptionsRelatingToESC;

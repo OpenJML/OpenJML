@@ -10,6 +10,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceRuleFactory;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -17,6 +18,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IProblemRequestor;
@@ -97,6 +99,10 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			//          p.delete();
 			return;
 		}
+		if (p.getID() == 0 && p.getMessage().contains("is public, should be declared in a file named")
+				&& String.valueOf(p.getOriginatingFileName()).endsWith(Utils.dotJML)) {
+			return;
+		}
 		
 		// Ignore warnings if level is 2
 		if (p.isWarning() && level == 2) return;
@@ -171,7 +177,10 @@ public class JmlProblemRequestor implements IProblemRequestor {
 					marker.setAttribute(IMarker.MESSAGE, finalErrorMessage);
 				}
 			};
-			r.getWorkspace().run(runnable, null);
+	        IResourceRuleFactory ruleFactory = 
+	                ResourcesPlugin.getWorkspace().getRuleFactory();
+	        ISchedulingRule rule = ruleFactory.markerRule(r);
+			r.getWorkspace().run(runnable, rule, IWorkspace.AVOID_UPDATE, (IProgressMonitor)null);
 		} catch (Exception e) {
 			Log.errorKey("openjml.ui.failed.to.create.marker",e); //$NON-NLS-1$
 		}

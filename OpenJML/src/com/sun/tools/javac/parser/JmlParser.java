@@ -57,6 +57,7 @@ import org.jmlspecs.openjml.esc.Label;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.main.OptionName;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -65,6 +66,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
 /** This class extends the javac parser to parse JML constructs as well. */
@@ -130,6 +132,11 @@ public class JmlParser extends EndPosParser {
     /** Returns the node factory being used by the parser */
     public JmlTree.Maker maker() {
         return jmlF;
+    }
+    
+    /** Returns true if the -deprecation option is set */
+    public boolean isDeprecationSet() {
+        return Options.instance(context).isSet("-Xlint:deprecation");
     }
 
     /**
@@ -1061,7 +1068,9 @@ public class JmlParser extends EndPosParser {
             S.nextToken();
             e = parseExpression();
         } else if (S.jmlToken() == JmlToken.LEFT_ARROW) {
-            log.warning(S.pos(), "jml.deprecated.left.arrow.in.represents");
+            if (isDeprecationSet() || JmlOption.isOption(context, JmlOption.STRICT)) {
+                log.warning(S.pos(), "jml.deprecated.left.arrow.in.represents");
+            }
             suchThat = false;
             S.nextToken();
             e = parseExpression();
@@ -2052,10 +2061,14 @@ public class JmlParser extends EndPosParser {
                 } else if (!strictId && S.jmlToken() == DOT_DOT) {
                     S.nextToken();
                     JCExpression hi = null;
+                    int rbracketPos = S.pos();
                     if (S.token() == STAR) {
                         S.nextToken();
                     } else if (S.token() == Token.RBRACKET) {
-                        // OK
+                        if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                            log.warning(rbracketPos,"jml.not.strict","storeref with implied end-of-range (a[i..])");
+                        }
+                        // OK - missing hi end implies end of array
                     } else {
                         hi = parseExpression();
                     }
@@ -2187,6 +2200,9 @@ public class JmlParser extends EndPosParser {
                 // we just silently ignore that situation
                 // (this is true at the moment for math annotations, but could
                 // also be true for a modifier someone forgot)
+                if (JmlToken.extensions.contains(j) && JmlOption.isOption(context, JmlOption.STRICT)) {
+                    log.warning(S._pos,"jml.not.strict",j.internedName());
+                }
             } else if (j == ENDJMLCOMMENT) {
                 // skip over
             } else if (j == CONSTRUCTOR || j == FIELD || j == METHOD) {
@@ -2340,10 +2356,13 @@ public class JmlParser extends EndPosParser {
                 return t;
             }
             switch (jt) {
-                case BSRESULT:// FIXME - what can follow this?
                 case BSEXCEPTION:// FIXME - what can follow this?
                 case BSINDEX:
                 case BSVALUES:// FIXME - what can follow this?
+                    if (JmlOption.isOption(context,JmlOption.STRICT)) {
+                        log.warning(p,"jml.not.strict",jt.internedName());
+                    }
+                case BSRESULT:// FIXME - what can follow this?
                 case BSLOCKSET: // FIXME - what can follow this?
                     t = to(jmlF.at(p).JmlSingleton(jt));
                     S.nextToken();
@@ -2670,6 +2689,9 @@ public class JmlParser extends EndPosParser {
         int labelPos = S.pos();
         Name n = ident();
         JCExpression e = parseExpression();
+        if (jmlToken == JmlToken.BSLBLANY && JmlOption.isOption(context,JmlOption.STRICT)) {
+            log.warning(pos,"jml.not.strict","\\lbl");
+        }
         return toP(jmlF.at(pos).JmlLblExpression(labelPos,jmlToken, n, e));
     }
     

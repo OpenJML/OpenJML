@@ -497,6 +497,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Assertions that can be changed to be feasibility checks */
     public Map<Symbol,java.util.List<JCTree.JCParens>> assumptionChecks = new HashMap<Symbol,java.util.List<JCTree.JCParens>>();
+    public Map<Symbol,java.util.List<JmlTree.JmlStatementExpr>> assumptionCheckStats = new HashMap<Symbol,java.util.List<JmlTree.JmlStatementExpr>>();
     
     // FIXME - review which of these bimaps is actually needed
     
@@ -564,6 +565,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.oldenv = null;
         racMessages.clear();
         escMessages.clear();
+        assumptionChecks.clear();
+        assumptionCheckStats.clear();
     }
     
     public void initialize2(long flags) {
@@ -782,12 +785,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             {
                 // We create an 'assert true' after the precondition assumptions.
-                // Later wew can turn the true to false and see if the path through
+                // Later we can turn the true to false and see if the path through
                 // the initial assumptions is feasible. We use the Parens expr
                 // so that we can just change the literal inside it. We don't 
                 // change the assert statement itself, because typically its
                 // expression is converted to a temporary id.
-                addAssumeCheck(methodDecl,initialStatements); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
+                addAssumeCheck(methodDecl,initialStatements,"end of preconditions"); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
             }
             
             addStat( comment(methodDecl.pos(),"Method Body"));
@@ -799,7 +802,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // postconditions and exceptional postconditions are checked.
             if (JmlOption.value(context,JmlOption.FEASIBILITY).equals("all") ||
             		JmlOption.value(context,JmlOption.FEASIBILITY).equals("exit")) {
-            	addAssumeCheck(methodDecl,outerFinalizeStats);
+     //       	addAssumeCheck(methodDecl,outerFinalizeStats,"program exit");
             }
             JCTry outerTryStatement = M.at(methodDecl.pos()).Try(
                             newMainBody,
@@ -1162,7 +1165,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (info == null) {
                     info = treeutils.makeStringLiteral(translatedExpr.pos,msg);
                 }
-                JCStatement st = assertFailure(info,codepos);
+                JCStatement st = assertFailure(info,codepos,label);
                 if (!isFalse) st = M.at(codepos).If(
                         treeutils.makeNot(codepos == null ? Position.NOPOS : codepos.getPreferredPosition(), treeutils.makeIdent(translatedExpr.pos,assertDecl.sym)), 
                         st, null);
@@ -1189,20 +1192,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Creates a statement at which we can check feasibility */
-    protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list) {
-        // We create an 'assert true' after the precondition assumptions.
+    protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
+        // We create an 'assert true'.
         // Later we can turn the true to false and see if the path through
         // the initial assumptions is feasible. We use the Parens expr
         // so that we can just change the literal inside it. We don't 
         // change the assume statement itself, because typically its
         // expression is converted to a temporary id.
-    	java.util.List<JCTree.JCParens> checks = assumptionChecks.get(methodDecl.sym);
-    	if (checks == null) assumptionChecks.put(methodDecl.sym, checks = new ArrayList<JCTree.JCParens>(10));
+        java.util.List<JCTree.JCParens> checks = assumptionChecks.get(methodDecl.sym);
+        java.util.List<JmlTree.JmlStatementExpr> checkStats = assumptionCheckStats.get(methodDecl.sym);
+        if (checks == null) assumptionChecks.put(methodDecl.sym, checks = new ArrayList<JCTree.JCParens>(10));
+        if (checkStats == null) assumptionCheckStats.put(methodDecl.sym, checkStats = new ArrayList<JmlTree.JmlStatementExpr>(10));
     	JCParens ep = M.at(item.pos()).Parens(treeutils.trueLit);
     	ep.setType(treeutils.trueLit.type);
     	treeutils.copyEndPosition(ep,item);
     	JmlStatementExpr a = M.at(item.pos()).JmlExpressionStatement(JmlToken.ASSERT, Label.ASSUME_CHECK, ep);
+    	a.optionalExpression = treeutils.makeStringLiteral(item.pos,description);
     	checks.add(ep);
+    	checkStats.add(a);
     	addStat(list,a);
     }
     
@@ -1230,9 +1237,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param pos the character position of the created AST
      * @return an assert statement indication an assertion failure
      */
-    protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos) {
+    protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label) {
         JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
-        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp)).setType(syms.voidType);
+        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,label.info()))).setType(syms.voidType);
         return M.at(pos).Exec(c);
     }
 
@@ -1809,6 +1816,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         notImplemented(clause.token.internedName() + " clause containing ",e);
                         continue;
                     }
+                    
                 }
                 if (!sawSignalsOnly && rac) {
                     sawSomeSpecs = true;
@@ -1825,6 +1833,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,pos == null ? methodDecl.pos() : pos, log.currentSourceFile());
                     addStat(popBlock(0,methodDecl.pos()));
                 }
+                //addAssumeCheck(scase,ensuresStats,"end of specification case");
             }
             if (!sawSomeSpecs && rac) {
                 currentStatements = exsuresStats;
@@ -1840,6 +1849,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,pos == null ? methodDecl.pos() : pos, log.currentSourceFile());
                 addStat(popBlock(0,methodDecl.pos()));
             }
+
         }
 
 
@@ -6536,13 +6546,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case ASSERT:
                 addTraceableComment(that);
                 JCExpression e = convertJML(that.expression);
+                addAssumeCheck(that,currentStatements,"before explicit assert statement");
                 result = addAssert(that.pos(),Label.EXPLICIT_ASSERT,e,null,null,that.optionalExpression); // FIXME - convert optionalExpression
                 break;
             case ASSUME:
                 addTraceableComment(that);
                 JCExpression ee = convertJML(that.expression);
                 result = addAssume(that.pos(),Label.EXPLICIT_ASSUME,ee,null,null,that.optionalExpression);
-                addAssumeCheck(that,currentStatements);
+                addAssumeCheck(that,currentStatements,"after explicit assume statement");
                 break;
             case COMMENT:
                 JCExpression expr = fullTranslation ? convertJML(that.expression) : that.expression;

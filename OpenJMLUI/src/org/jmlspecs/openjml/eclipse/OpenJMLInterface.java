@@ -356,7 +356,7 @@ public class OpenJMLInterface {
      * @param things the set of files (or containers) or Java elements to check
      * @param monitor the progress monitor the UI is using
      */
-    public void executeESCCommand(Main.Cmd command, List<Object> things, IProgressMonitor monitor) {
+    public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
         try {
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
@@ -393,14 +393,23 @@ public class OpenJMLInterface {
             			count += utils.countMethods((ICompilationUnit)r);
             		} else if (r instanceof IType) {
             			count += utils.countMethods((IType)r);
-            		} else if (r instanceof IMethod) {
-            			count += 1;
+                    } else if (r instanceof IMethod) {
+                        count += 1;
+                    } else if (r instanceof IFile || r instanceof IFolder) {
+                        // If a file is not part of a source folder, then we
+                        // don't have Java elements and it is not a ICompilationUnit
+                        // So we can't really count the methods in it.
+                        // The number used here is arbitrary, and will result in
+                        // a bad estimate of the work to be done. 
+                        // TODO - count the methods using the OpenJML AST.
+                        count += 2;
             		} else {
             			Log.log("Can't count methods in a " + r.getClass());
             		}
             	} catch (Exception e) {}
             }
             for (Object r: things) { // an IType is adaptable to an IResource (the containing file), but we want it left as an IType
+                try { Thread.sleep(5000); } catch (Exception e) {}
                 if (!(r instanceof IType) && r instanceof IAdaptable 
                 		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
                 	r = rr;
@@ -1022,7 +1031,7 @@ public class OpenJMLInterface {
     String[] optionsToCopy = new String[] {
     		Options.showNotImplementedKey,
     		Options.noCheckPurityKey,
-    		Options.nonnullByDefaultKey
+    		Options.nullableByDefaultKey
     };
 
 
@@ -1098,7 +1107,7 @@ public class OpenJMLInterface {
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
         if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
-        opts.add(JmlOption.NONNULLBYDEFAULT.optionName()+"="+Options.isOption(Options.nonnullByDefaultKey));
+        opts.add(JmlOption.NULLABLEBYDEFAULT.optionName()+"="+Options.isOption(Options.nullableByDefaultKey));
             
         String other = Options.value(Options.otherOptionsKey);
         if (other != null) {

@@ -148,7 +148,7 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.JML",Messages.OpenJMLUI_PreferencesPage_JmlOptions,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
-        addField(new BooleanFieldEditor(Options.nonnullByDefaultKey, Messages.OpenJMLUI_PreferencesPage_NonNullByDefault,
+        addField(new BooleanFieldEditor(Options.nullableByDefaultKey, Messages.OpenJMLUI_PreferencesPage_NullableByDefault,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.noCheckPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
                 getFieldEditorParent()));
@@ -171,6 +171,8 @@ IWorkbenchPreferencePage {
 		addField(new LabelFieldEditor("zzzzz.ESC",Messages.OpenJMLUI_PreferencesPage_OptionsRelatingToESC,SWT.SEPARATOR|SWT.HORIZONTAL, //$NON-NLS-1$
 				getFieldEditorParent()));
 
+        addField(new BooleanFieldEditor(Options.enableESCKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoESCChecking,
+                getFieldEditorParent()));
         addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
         		new String[][]{ 
         			{"All", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$

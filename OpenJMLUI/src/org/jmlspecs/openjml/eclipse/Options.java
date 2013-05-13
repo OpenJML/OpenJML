@@ -50,7 +50,7 @@ public class Options {
 	/** The preference store key for the checkSpecsPath option. */
 	final static public String checkSpecsPathKey = prefix + "checkSpecsPath"; //$NON-NLS-1$
 	/** The preference store key for the nonnullByDefault option. */
-	final static public String nonnullByDefaultKey = prefix + "nonnullByDefault"; //$NON-NLS-1$
+	final static public String nullableByDefaultKey = prefix + "nullableByDefault"; //$NON-NLS-1$
 	/** The preference store key for the Java verbosity (boolean). */
 	final static public String javaverboseKey = prefix + "verbose"; //$NON-NLS-1$
 	/** The preference store key for the verbosity (quiet, nowarnings, verbose) option. */
@@ -84,6 +84,7 @@ public class Options {
 	final static public String otherOptionsKey = prefix + "otherOptions"; //$NON-NLS-1$
 
 	// TODO - document
+	final static public String enableESCKey = prefix + "enableESC"; //$NON-NLS-1$
 	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
 	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
 	final static public String racNoCheckJavaFeatures = prefix + "racNoCheckJavaFeatures"; //$NON-NLS-1$

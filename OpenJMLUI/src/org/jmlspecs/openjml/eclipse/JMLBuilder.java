@@ -192,10 +192,20 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// Also all the resources should be from this project, because the
 		// builders work project by project
 
+		boolean done = false;
 		if (Options.isOption(Options.enableRacKey)) {
-			Activator.getDefault().utils.doBuildRac(jproject,resourcesToBuild,monitor);
-		} else {
-			//doChecking(jproject,v.resourcesToBuild,monitor);
+			Activator.getDefault().utils.racMarked(jproject);
+
+			//Activator.getDefault().utils.doBuildRac(jproject,resourcesToBuild,monitor);
+			done = true;
+		} 
+		if (Options.isOption(Options.enableESCKey)) {
+			// FIXME - use monitor, be incremental?
+			Activator.getDefault().utils.checkESCProject(jproject,resourcesToBuild,null,"Static Checks - Auto");
+			done = true;
+		} 
+		if (!done) {
+			// If we did not already type-check because of RAC or ESC, do it now
 			Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor);
 		}
 	}
@@ -229,7 +239,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		v.resourcesToBuild.clear();
 		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 
-		Activator.getDefault().utils.racMarked(jproject);
 	}
 	
 	// FIXME - move this to Utils? Combine into the one caller?
@@ -250,7 +259,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 		monitor.beginTask(Messages.OpenJMLUI_JMLBuilder_Title, 
 				5*v.resourcesToBuild.size());
-		Main.Cmd cmd = Options.isOption(Options.enableRacKey) ? Main.Cmd.RAC : Main.Cmd.CHECK; 
+		Main.Cmd cmd = Options.isOption(Options.enableRacKey) ? Main.Cmd.RAC : Options.isOption(Options.enableESCKey) ? Main.Cmd.ESC :Main.Cmd.CHECK; 
 		Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(cmd,v.resourcesToBuild, monitor);
 		boolean cancelled = monitor.isCanceled();
 		monitor.done();
@@ -282,7 +291,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		v.resourcesToBuild.clear(); // Empties the list
 		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 
-		Activator.getDefault().utils.racMarked(jproject); // FIXME - should only compile the incremental items?
 	}
 
 	// FIXME - duplicated in Utils?
@@ -319,6 +327,11 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 
 	// FIXME - if there are multiple projects being run, they need to 
 	// be run in the right order 
+	
+	// FIXME - there is a variety of duplication here - unify
+	// checkJML, doBuild, doAction, and from Utils,
+	// checkESCSelection, checkSelection, checkESCProject, doBuildRAC
+	// executeExternalCommand
 
 	/** Checks the JML in each of the given resources, in order;
 	 * expects to be called in the UI thread.

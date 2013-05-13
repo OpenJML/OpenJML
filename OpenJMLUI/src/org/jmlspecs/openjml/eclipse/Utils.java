@@ -28,15 +28,7 @@ import java.util.zip.ZipFile;
 
 import javax.tools.JavaFileObject;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
@@ -47,6 +39,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -139,6 +132,18 @@ public class Utils {
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull
+	String JML_HIGHLIGHT_ID_TRUE = JML_HIGHLIGHT_ID + ".True"; //$NON-NLS-1$
+
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
+	String JML_HIGHLIGHT_ID_FALSE = JML_HIGHLIGHT_ID + ".False"; //$NON-NLS-1$
+
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull // FIXME - is this still used?
+	String JML_HIGHLIGHT_ID_EXCEPTION = JML_HIGHLIGHT_ID + ".Exception"; //$NON-NLS-1$
+
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
 	String ESC_MARKER_ID = Activator.PLUGIN_ID + ".JMLESCProblem"; //$NON-NLS-1$
 
 	/** An empty string */
@@ -149,6 +154,9 @@ public class Utils {
 
 	/** The .java suffix */
 	final public static @NonNull String dotJava = ".java";  //$NON-NLS-1$
+
+	/** The .jml suffix */
+	final public static @NonNull String dotJML = ".jml";  //$NON-NLS-1$
 
 	/**
 	 * A map relating java projects to the instance of OpenJMLInterface that
@@ -313,6 +321,7 @@ public class Utils {
 	 */
 	public void checkSelection(@NonNull final ISelection selection,
 			@Nullable final IWorkbenchWindow window, @NonNull final Shell shell) {
+		if (!checkForDirtyEditors()) return;
 		List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
 			showMessage(shell, "JML Check", "Nothing appropriate to check");
@@ -322,6 +331,7 @@ public class Utils {
 		final Map<IJavaProject, List<IResource>> sorted = sortByProject(res);
 		Job j = new Job("JML Manual Check") {
 			public IStatus run(IProgressMonitor monitor) {
+				monitor.beginTask("JML type-checking", sorted.size());
 				boolean c = false;
 				for (final IJavaProject jp : sorted.keySet()) { // FIXME - should impose an order on the projects
 					final List<IResource> ores = sorted.get(jp);
@@ -332,10 +342,19 @@ public class Utils {
 						showExceptionInUI(shell, null, e);
 						c = true;
 					}
+					monitor.worked(1);
 				}
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
+        IResourceRuleFactory ruleFactory = 
+                ResourcesPlugin.getWorkspace().getRuleFactory();
+// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+		if (sorted.keySet().size() == 1) {
+			j.setRule(sorted.keySet().iterator().next().getProject());
+		} else {
+			j.setRule(ResourcesPlugin.getWorkspace().getRoot());
+		}
 		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
 	}
@@ -365,38 +384,51 @@ public class Utils {
 	 */
 	public void checkESCSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
+		if (!checkForDirtyEditors()) return;
 		final List<Object> res = getSelectedElements(selection, window, shell);
 		if (res.size() == 0) {
 			showMessage(shell, "ESC", "Nothing applicable to check");
 			return;
 		}
-		if (!checkForDirtyEditors()) return;
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
+		deleteMarkers(res, shell);
 		for (final IJavaProject jp : sorted.keySet()) {
-			deleteMarkers(res, shell);
+			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual");
 		}
-		Job j = new Job("Static Checks - Manual") {
+	}
+	
+	public void checkESCProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
+		Job j = new Job(reason) {
 			public IStatus run(IProgressMonitor monitor) {
 				// We are processing the projects sequentially.
 				// FIXME - they should be done in dependency order
+				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
 				boolean c = false;
-				for (final IJavaProject jp : sorted.keySet()) {
-					try {
-						final List<Object> ores = sorted.get(jp);
+				try {
+					if (ores == null) {
+						LinkedList<Object> list = new LinkedList<Object>();
+						list.add(jp);
+						final List<Object> res = list;
+						getInterface(jp).executeESCCommand(Cmd.ESC, res,
+								monitor);
+					} else {
 						getInterface(jp).executeESCCommand(Cmd.ESC, ores,
 								monitor);
-					} catch (Exception e) {
-						// FIXME - this will block, preventing progress on the rest of the projects
-						Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
-						showExceptionInUI(shell, "Exception during Static Checking - " + jp.getElementName(), e);
-						c = true;
 					}
+				} catch (Exception e) {
+					// FIXME - this will block, preventing progress on the rest of the projects
+					Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
+					showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
+					c = true;
 				}
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
-		j.setUser(true); // true since the job has been initiated by an
-		// end-user
+        IResourceRuleFactory ruleFactory = 
+                ResourcesPlugin.getWorkspace().getRuleFactory();
+// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+		j.setRule(jp.getProject());
+		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
 	}
 
@@ -405,7 +437,11 @@ public class Utils {
 	}
 
 	public void initializeProperties() {
-		verboseness = Integer.parseInt(Options.value(Options.verbosityKey));
+		try {
+			verboseness = Integer.parseInt(Options.value(Options.verbosityKey));
+		} catch (Exception e) { // In particular, NumberFormatException
+			verboseness = 1; 
+		}
 	}
 
 	static public java.util.Properties readProperties() {
@@ -500,6 +536,10 @@ public class Utils {
 					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 				}
 			};
+	        IResourceRuleFactory ruleFactory = 
+	                ResourcesPlugin.getWorkspace().getRuleFactory();
+	// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+			j.setRule(jp.getProject());
 			j.setUser(true); // true since the job has been initiated by an
 								// end-user
 			j.schedule();
@@ -553,6 +593,10 @@ public class Utils {
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
+        IResourceRuleFactory ruleFactory = 
+                ResourcesPlugin.getWorkspace().getRuleFactory();
+// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
+        j.setRule(jp.getProject());
 		j.setUser(true); // true since the job has been initiated by an
 		// end-user
 		j.schedule();
@@ -627,6 +671,8 @@ public class Utils {
 				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
+		// FIXME - use some proper scheduling rule?
+		j.setRule(ResourcesPlugin.getWorkspace().getRoot());
 		j.setUser(true);
 		j.schedule();
 	}
@@ -2265,11 +2311,11 @@ public class Utils {
 					IResource.DEPTH_INFINITE);
 			resource.deleteMarkers(JML_HIGHLIGHT_ID, false,
 					IResource.DEPTH_INFINITE);
-			resource.deleteMarkers(JML_HIGHLIGHT_ID + "True", false,
+			resource.deleteMarkers(JML_HIGHLIGHT_ID_TRUE, false,
 					IResource.DEPTH_INFINITE);
-			resource.deleteMarkers(JML_HIGHLIGHT_ID + "False", false,
+			resource.deleteMarkers(JML_HIGHLIGHT_ID_FALSE, false,
 					IResource.DEPTH_INFINITE);
-			resource.deleteMarkers(JML_HIGHLIGHT_ID + "Exception", false,
+			resource.deleteMarkers(JML_HIGHLIGHT_ID_EXCEPTION, false,
 					IResource.DEPTH_INFINITE);
 		} catch (CoreException e) {
 			String msg = "Failed to delete markers on " + resource.getProject();
@@ -2410,6 +2456,8 @@ public class Utils {
 					return racClear(jp,shell,monitor);
 				}
 			};
+			// FIXME - use some proper scheduling rule?
+			j.setRule(jp.getProject());
 			j.setUser(true);
 			j.schedule();
 		}

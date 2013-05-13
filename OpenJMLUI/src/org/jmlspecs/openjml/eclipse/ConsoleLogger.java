@@ -142,6 +142,7 @@ public class ConsoleLogger implements Log.IListener {
 					return Status.OK_STATUS;
 				}
 			};
+			// FIXME - does this need a scheduling rule?
 			j.setUser(true);
 			j.schedule();
 
@@ -180,6 +181,7 @@ public class ConsoleLogger implements Log.IListener {
 					return Status.OK_STATUS;
 				}
 			};
+			// FIXME - does this need a scheduling rule?
 			j.setUser(true);
 			j.schedule();
 
@@ -226,6 +228,7 @@ public class ConsoleLogger implements Log.IListener {
 					return Status.OK_STATUS;
 				}
 			};
+			// FIXME - does this need a scheduling rule?
 			j.setUser(true);
 			j.schedule();
 
