@@ -29,7 +29,7 @@
 		<link>
 			<name>src-annotation</name>
 			<type>2</type>
-			<location>C:/cygwin/home/dcok/eprojects/JMLAnnotations/src</location>
+			<locationURI>PARENT-1-PROJECT_LOC/JmlAnnotations/src</locationURI>
 		</link>
 		<link>
 			<name>src-openjdk</name>
