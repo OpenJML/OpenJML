@@ -1,4 +1,4 @@
-/* This file is part of the OpenJML plugin
+/* This file is part of the OpenJML plugin project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -41,25 +41,16 @@ abstract public class PathItem {
 	 */
 	public final static String split = ","; //$NON-NLS-1$
 
-	/** The key used to store the sourcepath as a persistent property. */
-	public final static QualifiedName sourceKey = new QualifiedName(Activator.PLUGIN_ID,"sourcepath"); //$NON-NLS-1$
-
-	/** The key used to store the specspath as a persistent property. */
-	public final static QualifiedName specsKey = new QualifiedName(Activator.PLUGIN_ID,"specspath"); //$NON-NLS-1$
-
-	/** The key used to store the files to rac as a persistent property. */
-	public static final QualifiedName racKey = new QualifiedName(Activator.PLUGIN_ID,".racfiles"); //$NON-NLS-1$
-	
 	/** Creates an appropriate PathItem from a raw file path. */
-	public static PathItem create(IJavaProject jp, String pureString) {
-		IFile f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pureString));
+	public static PathItem create(IJavaProject jp, String pathString) {
+		IFile f = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pathString));
 		if (f != null) {
 			if (!f.getProject().equals(jp.getProject())) {
 				return new WorkspacePath(f.getFullPath().toString());
 			}
 			return new ProjectPath(f.getProjectRelativePath().toString());
 		}
-		return new AbsolutePath(pureString);
+		return new AbsolutePath(pathString);
 	}
 	
 	/** Adds a PathItem to the path for the given key and project; returns
@@ -71,7 +62,7 @@ abstract public class PathItem {
 			s = sp;
 		} else {
 			// Check whether the item is already present
-			// Return false if it is
+			// Return false if it is and don't add it
 			int k = s.indexOf(sp); 
 			if (k >= 0) { 
 				int kk = s.indexOf(split,k);
@@ -124,12 +115,13 @@ abstract public class PathItem {
 		}
 	}
 	
-	// FIXME - document
+	/** Parses an entire encoded String into a sequence of PathItems */
 	public static List<PathItem> parseAll(String encodedString) {
 		if (encodedString == null) encodedString = Utils.emptyString;
 		List<PathItem> list = new LinkedList<PathItem>();
-		for (String s: encodedString.split(split)) {
-			list.add(parse(s));
+		for (String s: encodedString.split(PathItem.split)) {
+			/*@ nullable */ PathItem p = parse(s);
+			if (p != null) list.add(p); // defensive - we should never see a null
 		}
 		return list;
 	}
@@ -174,24 +166,24 @@ abstract public class PathItem {
 		try {
 			String prop = jproject.getProject().getPersistentProperty(key);
 			if (prop == null) {
-				List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : 
-					key == PathItem.sourceKey ? PathItem.defaultSourcePath :
+				List<PathItem> defaults = key.equals(Env.specsKey) ? PathItem.defaultSpecsPath : 
+					key.equals(Env.sourceKey) ? PathItem.defaultSourcePath :
 						new ArrayList<PathItem>();
 				prop = concat(defaults);
 			}
 			return prop;
 		} catch (CoreException e) {
-			// FIXME - report Error
+			Log.errorlog("Exception while retreiving path property: " + key, e); //$NON-NLS-1$
 			return Utils.emptyString;
 		}
 	}
 	
-	// FIXME - document
+	/** Stores the encoded path as a project property. */
 	static public void setEncodedPath(IJavaProject jproject, QualifiedName key, String encoded) {
 		try {
 			jproject.getProject().setPersistentProperty(key,encoded);
 		} catch (CoreException e) {
-			// FIXME - report Error
+			Log.errorlog("Exception while setting path property: " + key + Utils.space + encoded, e); //$NON-NLS-1$
 		}
 	}
 	
@@ -205,13 +197,15 @@ abstract public class PathItem {
 		for (String s: paths) {
 			PathItem p  = parse(s);
 			if (p == null) {
-				// FIXME - error
+				Log.errorlog("Unexpected failure to parse an persistent encoded path: " + s, null); //$NON-NLS-1$
 			} else {
 				sb.append(p.toAbsolute(jproject));
 				sb.append(File.pathSeparator);
 			}
 		}
-		if (paths.length != 0) sb.setLength(sb.length()-File.pathSeparator.length());
+		if (paths.length != 0 && sb.length() > File.pathSeparator.length()) {
+			sb.setLength(sb.length()-File.pathSeparator.length());
+		}
 		return sb.toString();
 	}
 
@@ -302,7 +296,7 @@ abstract public class PathItem {
     }
 
     /** Represents special kinds of path items: the classpath, the sourcepath,
-     * the system specs, all soursce folders. Each of these might actually be
+     * the system specs, all source folders. Each of these might actually be
      * multiple directories or jar files.
      */
     public static class SpecialPath extends PathItem {
@@ -331,7 +325,11 @@ abstract public class PathItem {
     		for (Kind k : Kind.values()) {
     			if (rest.equals(k.key)) { kind = k; return; }
     		}
-    		// FIXME - error
+    		// Invalid value of rest
+    		Log.errorlog("Invalid SpecialPath value: " + rest, null); //$NON-NLS-1$
+    		// Use an arbitrary other value so that the data structure
+    		// remains consistent
+    		kind = Kind.SOURCEPATH;
     	}
     	
     	public String toEncodedString() {
@@ -354,14 +352,14 @@ abstract public class PathItem {
 	                        	sb.append(p.toString());
 	                        	sb.append(File.pathSeparator);
 	                        } else {
-	                        	// FIXME - error
+	                        	Log.errorlog("Failure to interpret an element of the Eclipse source folder list: " + cpe + Utils.space + cpe.getPath() + Utils.space + r, null); //$NON-NLS-1$
 	                        }
     					}
     				}
     				if (sb.length() > 0) sb.setLength(sb.length() - File.pathSeparator.length());
     				out = sb.toString();
     			} catch (JavaModelException e) {
-    				// FIXME - error
+    				Log.errorlog("Exception while interpreting source folders", e); //$NON-NLS-1$
     				out = Utils.emptyString;
     			}
     			break;
@@ -378,7 +376,7 @@ abstract public class PathItem {
     			break;
     			
     		case SOURCEPATH:
-    			out = getAbsolutePath(jproject,sourceKey);
+    			out = getAbsolutePath(jproject,Env.sourceKey);
     			break;
     			
     		case SYSTEM_SPECS:
@@ -387,7 +385,7 @@ abstract public class PathItem {
     			break;
     			
     		default:
-    			// FIXME - report error
+    			Log.errorlog("An unexpected value of kind in SpecialPath: " + kind, null); //$NON-NLS-1$
     			out = Utils.emptyString;
     		}
     		return out;

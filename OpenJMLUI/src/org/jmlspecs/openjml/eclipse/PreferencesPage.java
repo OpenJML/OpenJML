@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project.
- * Copyright 2004-2013 David R. Cok
+ * Copyright (c) 2004-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -22,17 +22,13 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.eclipse.widgets.ButtonFieldEditor;
 import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
 
-// FIXME - review for other options
-
 /**
  * This class creates a Preferences page in Eclipse
  * This page hold data needed for CodeSonar and Eclipse interaction
  * <P>
  * The preferences page manages various JML and OpenJML and plug-in specific
- * options. As usual these are stored in the preferences store, but OpenJML
- * uses the System properties to hold values of options, so we need also to 
- * store new changed values in the System properties. Also, we have the
- * unusual functionality to initialize the Eclipse preferences from properties.
+ * options. As usual these are stored in the preferences store.
+ * Some project specific properties are stored differently.
  * <P>
  * The key used for preferences is the same as the key used in System properties.
  * <P>
@@ -48,6 +44,18 @@ import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
  * <LI> There is insufficient access to FieldEditorPreferencePage functionality
  * such as the list of all fields or being able to force loads and stores.
  * </UL>
+ */
+
+/* To add a new Preference do the following, using the existing contents of 
+ * the files as a guide:
+ * a) Declare a key in Options.java
+ * b) Add a declaration in Messages.java
+ * c) Add a preference field in PreferencesPage.java, which uses the key from
+ * Options.java and the String from Messages.java
+ * d) Add a property in messages.properties that will initialize the variable in
+ * Messages.java
+ * e) In OpenJMLInterface.getOptions, convert the Preference into an OpenJML
+ * option, as appropriate.
  */
 
 public class PreferencesPage extends FieldEditorPreferencePage implements
@@ -73,11 +81,6 @@ IWorkbenchPreferencePage {
     }
     
 
-    /** Cached copy of the verbosity editor so we can handle its change
-     * events specially.
-     */
-    protected FieldEditor verbosity;
-
     /** Overriding performOk() callback in order to maintain copies
      * of the option values appropriately. This is called when
      * 'Apply' or 'OK' is clicked.
@@ -85,8 +88,7 @@ IWorkbenchPreferencePage {
 	@Override
 	public boolean performOk() {
 		super.performOk();
-		String value = getPreferenceStore().getString(Options.verbosityKey);
-        Utils.verboseness = Integer.parseInt((String)value);
+        Options.init();
         return true;
 	}
 	
@@ -108,8 +110,8 @@ IWorkbenchPreferencePage {
 					String key = (String)keyobj;
 					if (!(entry.getValue() instanceof String)) continue;
 					String value = (String)entry.getValue();
-					if (key.contains(Utils.OPENJML)) {
-						if (Utils.verboseness >= Utils.DEBUG) {
+					if (key.contains(Env.OPENJML)) {
+						if (Options.uiverboseness) {
 							Log.log("Reading property: " + key + " = " + value); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						FieldEditor field = fieldMap.get(key);
@@ -120,10 +122,10 @@ IWorkbenchPreferencePage {
 								getPreferenceStore().setValue(key,value);
 							} else if (field instanceof ComboFieldEditor) {
 								getPreferenceStore().setValue(key,value); // FIXME - how do we know it is a valid value
-								if (field == verbosity) Utils.verboseness = Integer.parseInt(value);
 							} else {
 								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
 							}
+							Options.init();
 						} else {
 							// Assume anything else has a String value
 							getPreferenceStore().setValue(key,value);
@@ -239,7 +241,7 @@ IWorkbenchPreferencePage {
         addField(new BooleanFieldEditor(Options.showKey, Messages.OpenJMLUI_PreferencesPage_Show,
                 getFieldEditorParent()));
         
-        addField(verbosity=new ComboFieldEditor(Options.verbosityKey, Messages.OpenJMLUI_PreferencesPage_VerbosityLevel,
+        addField(new ComboFieldEditor(Options.verbosityKey, Messages.OpenJMLUI_PreferencesPage_VerbosityLevel,
         		new String[][]{ 
         			{Messages.OpenJMLUI_PreferencesPage_quiet, Integer.toString(Utils.QUIET) }, 
         			{Messages.OpenJMLUI_PreferencesPage_normal, Integer.toString(Utils.NORMAL)}, 
@@ -247,6 +249,11 @@ IWorkbenchPreferencePage {
         		    {Messages.OpenJMLUI_PreferencesPage_verbose, Integer.toString(Utils.VERBOSE)}, 
         		    {Messages.OpenJMLUI_PreferencesPage_debug, Integer.toString(Utils.DEBUG)}},
                 getFieldEditorParent()));
+        
+        addField(new BooleanFieldEditor(Options.uiverbosityKey, Messages.OpenJMLUI_PreferencesPage_UIVerbose,
+                getFieldEditorParent()));
+        
+        
     }
     
 

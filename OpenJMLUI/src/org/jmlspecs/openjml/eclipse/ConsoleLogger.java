@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project.
- * Copyright 2004-2013 David R. Cok
+ * Copyright (c) 2004-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -13,8 +13,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -29,6 +27,8 @@ import org.eclipse.ui.progress.UIJob;
  */
 public class ConsoleLogger implements Log.IListener {
 
+	public static final String jobName = "Console Logger";  //$NON-NLS-1$
+	
 	/** Creates a new ConsoleLogger utility object
 	 * 
 	 * @param consoleName The name of the console to be logged to, as it will 
@@ -108,7 +108,6 @@ public class ConsoleLogger implements Log.IListener {
 	}
 
 	/** Color to use for error messages */
-	// FIXME - should get this color from the system preferences
 	static final private Color errorColor = new Color(null,255,0,0);
 
 	// In the implementations below we write to the console in the UI thread.
@@ -116,7 +115,7 @@ public class ConsoleLogger implements Log.IListener {
 	// order. If we are already in the UI thread we definitely do not want
 	// to write a message in a new job, because that would not execute until
 	// the current job is complete.
-	// FIXME - Whhoops - there seems to be some interaction with the progress monitor - figure this out
+	// FIXME - Whoops - there seems to be some interaction with the progress monitor - figure this out
 	boolean test = false;
 	
 	/**
@@ -129,7 +128,7 @@ public class ConsoleLogger implements Log.IListener {
 	public void log(final String msg) {
 
 		if(test &&  Display.getDefault().getThread() != Thread.currentThread() ) {
-			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+			UIJob j = new UIJob(Display.getDefault(),jobName) {
 				public IStatus runInUIThread(IProgressMonitor monitor) {
 					getConsoleStream().println(msg);
 					// Also write it to the log file, if requested.
@@ -168,7 +167,7 @@ public class ConsoleLogger implements Log.IListener {
 	//@ modifies content;
 	public void log_noln(final String msg) {
 		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
-			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+			UIJob j = new UIJob(Display.getDefault(),jobName) { 
 				public IStatus runInUIThread(IProgressMonitor monitor) {
 					getConsoleStream().print(msg);
 					// Also write it to the log file, if requested.
@@ -186,7 +185,7 @@ public class ConsoleLogger implements Log.IListener {
 			j.schedule();
 
 		} else {
-			getConsoleStream().println(msg);
+			getConsoleStream().print(msg);
 			// Also write it to the log file, if requested.
 			if (alsoLogInfo) {
 				pluginLog.log(
@@ -197,17 +196,18 @@ public class ConsoleLogger implements Log.IListener {
 		}
 	}
 
+	// FIXME - change to logln, errorlogln?
 
 	/**
 	 * Records an error message; only call this from the UI thread (because it 
 	 * changes the color associated with the console).
-	 * @param msg The message to log
+	 * @param msg The message to log (adding a newline)
 	 * @param e An associated exception (may be null)
 	 */
 	//@ modifies content;
 	public void errorlog(final /*@ non_null */String msg, final /*@ nullable */ Throwable e) {
 		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
-			UIJob j = new UIJob(Display.getDefault(),"Console Logger") {
+			UIJob j = new UIJob(Display.getDefault(),jobName) {
 				public IStatus runInUIThread(IProgressMonitor monitor) {
 					// Always put errors in the log
 					pluginLog.log(

@@ -1,4 +1,4 @@
-/* This file is part of the OpenJML plugin
+/* This file is part of the OpenJML plugin project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -11,7 +11,6 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
 // FIXME - needs to be changed to Eclipse 4.2
-// FIXME - Review for no longer used classes; also compare to MenuActions.java
 
 /** This class and its inner classes implement the various utilities
  * that are defined when a right-mouse click is performed on menu items
@@ -19,12 +18,6 @@ import org.eclipse.ui.IWorkbenchPart;
  * must be in synch with the information in the plug-in definition.
  */
 abstract public class PopupActions implements IObjectActionDelegate {
-
-    /** The Eclipse ID of the Decorator used on Java Projects to show that
-     * JML compilation is enabled.  This must match the ID defined in the plug-in 
-     * definition (plugin.xml).
-     */
-    static public final String JML_DECORATOR_ID = Activator.PLUGIN_ID + ".JMLDecoration";
 
     /** A cached value of the most recent selection */
     protected ISelection selection;
@@ -70,9 +63,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Enable JML context action initiated"); //$NON-NLS-1$
+    			}
                 utils.changeJmlNatureSelection(true,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.EnableJML",e);
+                utils.topLevelException(shell,"PopupActions.EnableJML",e); //$NON-NLS-1$
             }
         }
     }
@@ -86,9 +82,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Disable JML context action initiated"); //$NON-NLS-1$
+    			}
                 utils.changeJmlNatureSelection(false,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DisableJML",e);
+                utils.topLevelException(shell,"PopupActions.DisableJML",e); //$NON-NLS-1$
             }
         }
     }
@@ -102,9 +101,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Delete Markers context action initiated"); //$NON-NLS-1$
+    			}
                 utils.deleteMarkersInSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DeleteJMLMarkers",e);
+                utils.topLevelException(shell,"PopupActions.DeleteJMLMarkers",e); //$NON-NLS-1$
             }
         }
     }
@@ -116,9 +118,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public void run(IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Type-check JML context action initiated"); //$NON-NLS-1$
+    			}
                 utils.checkSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.CheckJML",e);
+                utils.topLevelException(shell,"PopupActions.CheckJML",e); //$NON-NLS-1$
             }
         }
     }
@@ -130,9 +135,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public void run(IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("ESC context action initiated"); //$NON-NLS-1$
+    			}
                 utils.checkESCSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.CheckESC",e);
+                utils.topLevelException(shell,"PopupActions.CheckESC",e); //$NON-NLS-1$
             }
         }
     }
@@ -144,9 +152,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public void run(IAction action) {
             try{
+    			if (Options.uiverboseness) {
+    				Log.log("RAC context action initiated"); //$NON-NLS-1$
+    			}
                 utils.racSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.RAC",e);
+                utils.topLevelException(shell,"PopupActions.RAC",e); //$NON-NLS-1$
             }
         }
     }
@@ -158,9 +169,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public void run(IAction action) {
             try{
+    			if (Options.uiverboseness) {
+    				Log.log("Show Specifications context action initiated"); //$NON-NLS-1$
+    			}
                 utils.showSpecsForSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ShowSpecs",e);
+                utils.topLevelException(shell,"PopupActions.ShowSpecs",e); //$NON-NLS-1$
             }
         }
     }
@@ -177,9 +191,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Specs Editor context action initiated"); //$NON-NLS-1$
+    			}
                 utils.openSpecEditorForSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.SpecsEditor",e);
+                utils.topLevelException(shell,"MenuActions.SpecsEditor",e); //$NON-NLS-1$
             }
         }
     }
@@ -192,9 +209,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public void run(IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Proof Information context action initiated"); //$NON-NLS-1$
+    			}
                 utils.showProofInfoForSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ShowCounterexample",e);
+                utils.topLevelException(shell,"PopupActions.ShowCounterexample",e); //$NON-NLS-1$
             }
         }
     }
@@ -209,9 +229,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Add To Specs Path context action initiated"); //$NON-NLS-1$
+    			}
                 utils.addSelectionToSpecsPath(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.AddToSpecsPath",e);
+                utils.topLevelException(shell,"PopupActions.AddToSpecsPath",e); //$NON-NLS-1$
             }
         }
     }
@@ -225,9 +248,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Remove From Specs Path context action initiated"); //$NON-NLS-1$
+    			}
                 utils.removeSelectionFromSpecsPath(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.RemoveFromSpecsPath",e);
+                utils.topLevelException(shell,"PopupActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
             }
         }
     }
@@ -241,25 +267,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Edit Specs Path context action initiated"); //$NON-NLS-1$
+    			}
                 utils.manipulateSpecsPath(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.SpecsPath",e);
-            }
-        }
-    }
-
-    /**
-     * This action puts up a dialog that allows manipulation of the class path.
-     * @author David Cok
-     */ // FIXME - do we need this?
-    static public class ClassPath extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-                utils.showPaths(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ClassPath",e);
+                utils.topLevelException(shell,"PopupActions.SpecsPath",e); //$NON-NLS-1$
             }
         }
     }
@@ -270,13 +283,15 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * @author David Cok
      */
     static public class JmlDoc extends PopupActions {
-        // This is done in the UI thread. // FIXME - probably jmldoc should not be done in the UI thread
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("JML doc context action initiated"); //$NON-NLS-1$
+    			}
                 utils.jmldocSelection(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.JmlDoc",e);
+                utils.topLevelException(shell,"PopupActions.JmlDoc",e); //$NON-NLS-1$
             }
         }
     }
@@ -290,9 +305,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Mark For RAC context action initiated"); //$NON-NLS-1$
+    			}
                 utils.racMark(true,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.EnableForRac",e);
+                utils.topLevelException(shell,"PopupActions.EnableForRac",e); //$NON-NLS-1$
             }
         }
     }
@@ -306,9 +324,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Unmark For RAC context action initiated"); //$NON-NLS-1$
+    			}
                 utils.racMark(false,selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DisableForRac",e);
+                utils.topLevelException(shell,"PopupActions.DisableForRac",e); //$NON-NLS-1$
             }
         }
     }
@@ -322,9 +343,12 @@ abstract public class PopupActions implements IObjectActionDelegate {
         @Override
         public final void run(final IAction action) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Clear RAC Marks context action initiated"); //$NON-NLS-1$
+    			}
                 utils.racClear(selection,null,shell);
             } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ClearForRac",e);
+                utils.topLevelException(shell,"PopupActions.ClearForRac",e); //$NON-NLS-1$
             }
         }
     }

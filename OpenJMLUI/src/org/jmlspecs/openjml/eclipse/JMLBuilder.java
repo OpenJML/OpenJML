@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -88,9 +87,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	/** The ID of the Builder, which must match that in the plugin file */
-	public static final String JML_BUILDER_ID = Activator.PLUGIN_ID + ".JMLBuilder"; //$NON-NLS-1$
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -101,7 +97,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	// would like delta data for the next time the builder is called.  A null value
 	// for nothing other than one's own project is OK.
 	@Override @Nullable
-	protected IProject[] build(int kind, @Nullable Map<String,String> args, IProgressMonitor monitor)
+	protected IProject[] build(int kind, @Nullable Map<String,String> args, /*@ nullable */ IProgressMonitor monitor)
 	throws CoreException {
 		// kind can be
 		// FULL_BUILD - e.g. an automatic build after a request to clean
@@ -115,7 +111,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		} else { // INCREMENTAL_BUILD, as long as we have incremental information
 			// AUTO_BUILD also (requires good dependency information)
 			IResourceDelta delta = getDelta(getProject());
-			if (delta == null) {
+			if (delta == null) { // no delta available, do a full build
 				fullBuild(monitor);
 			} else {
 				incrementalBuild(delta, monitor);
@@ -129,37 +125,15 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.resources.IncrementalProjectBuilder#clean(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	@Override
-	protected void clean(IProgressMonitor monitor) throws CoreException {
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Cleaning: " + getProject().getName()); //$NON-NLS-1$
-		deleteMarkers(getProject(),true);
-		cleanRacbin(getProject());
+	protected void clean(/*@ nullable */ IProgressMonitor monitor) throws CoreException {
+		if (Options.uiverboseness) Log.log("Cleaning: " + getProject().getName()); //$NON-NLS-1$
+		IProject p = getProject();
+		deleteMarkers(p,true);
+		Activator.getDefault().utils.cleanRacbin(p);
 	}
 
-	// FIXME - move to Utils?
+	// FIXME - get rid of doing delete at the same time?
 	
-	/** Deletes the contents of the RAC binary directory (at the location defined in the
-	 * options) of the given project and refreshing it
-	 * in the workspace.  All done in the UI thread.
-	 * @param p the project whose RAC directory is to be cleaned
-	 */  // FIXME - should this be done in a computational thread, with a progress monitor?
-	public void cleanRacbin(IProject p) {
-		try {
-			String racbin = Activator.getDefault().utils.getRacDir();
-			IResource rf = p.findMember(Options.value(Options.racbinKey));
-			if (rf instanceof IFolder) {
-				IFolder f = (IFolder)rf;
-				for (IResource r: f.members()) {
-					r.delete(IResource.FORCE,null);
-				}
-				f.refreshLocal(IResource.DEPTH_INFINITE,null);
-			} else {
-				// FIXME - error - show message
-			}
-		} catch (CoreException e) {
-			Log.errorKey("openjml.ui.cleaning.rac",e); //$NON-NLS-1$
-		}
-	}
-
 
 	/** Called during tree walking; it records the java files visited and
 	 *  deletes any markers.
@@ -180,8 +154,6 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	// FIXME _ fix the number of tasks in a monitor
-
 	/** Perform JML checking on all identified items - called in UI thread
 	 * @param jproject the Java project all the resources are in
 	 * @param resourcesToBuild the resources to build
@@ -192,6 +164,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// Also all the resources should be from this project, because the
 		// builders work project by project
 
+		// FIXME - do typechecking first - check for errors? if so, don't compile or run esc
+		
 		boolean done = false;
 		if (Options.isOption(Options.enableRacKey)) {
 			Activator.getDefault().utils.racMarked(jproject);
@@ -224,12 +198,12 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Full build " + project.getName()); //$NON-NLS-1$
+		if (Options.uiverboseness) Log.log("Full build " + project.getName()); //$NON-NLS-1$
 		
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		deleteMarkers(project,true);
 		if (monitor.isCanceled() || isInterrupted()) {
-			if (Utils.verboseness >= Utils.NORMAL) Log.log("Build interrupted"); //$NON-NLS-1$
+			if (Options.uiverboseness) Log.log("Build interrupted"); //$NON-NLS-1$
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
@@ -237,7 +211,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		Activator.getDefault().utils.racClear(jproject,null,monitor);
 		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear();
-		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
+		if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 
 	}
 	
@@ -283,13 +257,13 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 
-		if (Utils.verboseness >= Utils.NORMAL) Log.log("Incremental build " + project.getName()); //$NON-NLS-1$
+		if (Options.uiverboseness) Log.log("Incremental build " + project.getName()); //$NON-NLS-1$
 		Timer.timer.markTime(); // FIXME - where is this timer used
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files and deletes markers
 		doAction(jproject,v.resourcesToBuild,monitor);
 		v.resourcesToBuild.clear(); // Empties the list
-		if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
+		if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$
 
 	}
 
@@ -304,9 +278,9 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 */
 	static public void deleteMarkers(IResource resource, boolean recursive) {
 		try {
-			resource.deleteMarkers(Utils.JML_MARKER_ID, false, 
+			resource.deleteMarkers(Env.JML_MARKER_ID, false, 
 					recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
-			resource.deleteMarkers(Utils.ESC_MARKER_ID, false, 
+			resource.deleteMarkers(Env.ESC_MARKER_ID, false, 
 					recursive? IResource.DEPTH_INFINITE :IResource.DEPTH_ZERO);
 		} catch (CoreException e) {
 			Log.errorKey("openjml.ui.failed.to.delete.markers", e, resource.getName()); //$NON-NLS-1$
@@ -347,7 +321,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// FIXME - need to build one project at a time
 		try {
 			boolean cancelled = doBuild(JavaCore.create(resources.get(0).getProject()),resources, monitor);  // FIXME - build everything or update?
-			if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended")); //$NON-NLS-3$
+			if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Manual build " + (cancelled ? "cancelled" : "ended")); //$NON-NLS-3$
 		} catch (Exception e) {
 			Log.errorKey("openjml.ui.exception.during.check",e); //$NON-NLS-1$
 		}

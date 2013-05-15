@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project.
- * Copyright 2004-2013 David R. Cok
+ * Copyright (c) 2004-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -21,25 +21,25 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PathItem_SourcePath;
 	public static String OpenJMLUI_PathItem_SysSpecs;
 	public static String OpenJMLUI_PathItem_WORKSPACE;
-	public static String OpenJMLUI_PathsEditor_ClassPath;
-	public static String OpenJMLUI_PathsEditor_ClassPathTitle;
-	public static String OpenJMLUI_PathsEditor_ClassPathTitle2;
-	public static String OpenJMLUI_PathsEditor_DirectoryDialogMessage;
-	public static String OpenJMLUI_PathsEditor_ErrorDialogTitle;
-	public static String OpenJMLUI_PathsEditor_PersistentPropertyError;
-	public static String OpenJMLUI_PathsEditor_SourcePath;
-	public static String OpenJMLUI_PathsEditor_SourcePathTitle;
-	public static String OpenJMLUI_PathsEditor_SpecsPath;
-	public static String OpenJMLUI_PathsEditor_SpecsPathTitle;
-	public static String OpenJMLUI_PathsEditor_UnparsableError;
-	public static String OpenJMLUI_PathsEditor_Default;
-	public static String OpenJMLUI_PathsEditor_AddJar;
-	public static String OpenJMLUI_PathsEditor_AddFolder;
-	public static String OpenJMLUI_PathsEditor_AddSpecial;
-	public static String OpenJMLUI_PathsEditor_Remove;
-	public static String OpenJMLUI_PathsEditor_Up;
-	public static String OpenJMLUI_PathsEditor_Down;
-	//public static String OpenJMLUI_PreferencesPage_AddRuntimeLibraryAutomatically;
+	public static String OpenJMLUI_Editor_ClassPath;
+	public static String OpenJMLUI_Editor_ClassPathTitle;
+	public static String OpenJMLUI_Editor_ClassPathTitle2;
+	public static String OpenJMLUI_Editor_DirectoryDialogMessage;
+	public static String OpenJMLUI_Editor_ErrorDialogTitle;
+	public static String OpenJMLUI_Editor_PersistentPropertyError;
+	public static String OpenJMLUI_Editor_SourcePath;
+	public static String OpenJMLUI_Editor_SourcePathTitle;
+	public static String OpenJMLUI_Editor_SpecsPath;
+	public static String OpenJMLUI_Editor_SpecsPathTitle;
+	public static String OpenJMLUI_Editor_UnparsableError;
+	public static String OpenJMLUI_Editor_Default;
+	public static String OpenJMLUI_Editor_AddJar;
+	public static String OpenJMLUI_Editor_AddFolder;
+	public static String OpenJMLUI_Editor_AddSpecial;
+	public static String OpenJMLUI_Editor_Add;
+	public static String OpenJMLUI_Editor_Remove;
+	public static String OpenJMLUI_Editor_Up;
+	public static String OpenJMLUI_Editor_Down;
 	public static String OpenJMLUI_PreferencesPage_CheckSpecificationPath;
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;
@@ -60,6 +60,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_progress;
 	public static String OpenJMLUI_PreferencesPage_quiet;
 	public static String OpenJMLUI_PreferencesPage_SkipPurityCheck;
+	public static String OpenJMLUI_PreferencesPage_UIVerbose;
 	public static String OpenJMLUI_PreferencesPage_UpdateFromPropertiesFiles;
 	public static String OpenJMLUI_PreferencesPage_UseExternalRuntimeLibrary;
 	public static String OpenJMLUI_PreferencesPage_UseExternalSystemSpecs;
@@ -81,6 +82,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_RACDialog_DirDialogTitle;
 	public static String OpenJMLUI_RACDialog_ErrorDialogMessage;
 	public static String OpenJMLUI_RACDialog_ErrorDialogTitle;
+	public static String OpenJMLUI_SolversPage_DialogTitle;
 	public static String OpenJMLUI_SolversPage_DefaultLabel;
 	public static String OpenJMLUI_SolversPage_Title;
 	static {

@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -21,21 +21,15 @@ import org.jmlspecs.annotation.*;
  */
 public class JMLNature implements IProjectNature {
 
-	/**
-	 * ID of this project nature. This String is used literally in plugin.xml.
-	 */
-	//@ non_null
-	public static final String JML_NATURE_ID = Activator.PLUGIN_ID + ".JMLNatureID"; //$NON-NLS-1$
-
-	/** The ID of the Java nature */
-	//@ non_null
-	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
-
 	/** The project to which this nature applies. */
 	private IProject project;
 	
-	private IClasspathEntry internalRuntimeEntry = null;
+	/** A reference for the classpath entry that was added as the internal 
+	 * runtime library entry, or null if it was not added.
+	 */
+	private /*@ nullable*/ IClasspathEntry internalRuntimeEntry = null;
 	
+	// FIXME - document and review use
 	private boolean runtimeEverConfigured = false;
 
 	/** Creates a JML Builder in the project.  This is automatically called by
@@ -44,16 +38,21 @@ public class JMLNature implements IProjectNature {
 	 */
 	@Override
 	public void configure() throws CoreException {
+		// This code records whether the internal runtime library was automatically
+		// configured into the project classpath. We remember what was done, so it 
+		// can be undone on deconfiguring.
 		if (!Options.isOption(Options.noInternalRuntimeKey)) {
 			internalRuntimeEntry = Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
 			if (internalRuntimeEntry != null) runtimeEverConfigured = true;
 		}
+		
+		// Now add the JML builder
 
 		IProjectDescription desc = project.getDescription();
 		ICommand[] commands = desc.getBuildSpec();
 
 		for (int i = 0; i < commands.length; ++i) {
-			if (commands[i].getBuilderName().equals(JMLBuilder.JML_BUILDER_ID)) {
+			if (commands[i].getBuilderName().equals(Env.JML_BUILDER_ID)) {
 				return; // There already is a JML Builder
 			}
 		}
@@ -61,7 +60,7 @@ public class JMLNature implements IProjectNature {
 		ICommand[] newCommands = new ICommand[commands.length + 1];
 		System.arraycopy(commands, 0, newCommands, 0, commands.length);
 		ICommand command = desc.newCommand();
-		command.setBuilderName(JMLBuilder.JML_BUILDER_ID);
+		command.setBuilderName(Env.JML_BUILDER_ID);
 		newCommands[newCommands.length - 1] = command;
 		desc.setBuildSpec(newCommands);
 		project.setDescription(desc, null);
@@ -84,7 +83,7 @@ public class JMLNature implements IProjectNature {
 		ICommand[] commands = description.getBuildSpec();
 		// Note: Only removes one instance - there should never be more than one.
 		for (int i = 0; i < commands.length; ++i) {
-			if (commands[i].getBuilderName().equals(JMLBuilder.JML_BUILDER_ID)) {
+			if (commands[i].getBuilderName().equals(Env.JML_BUILDER_ID)) {
 				ICommand[] newCommands = new ICommand[commands.length - 1];
 				System.arraycopy(commands, 0, newCommands, 0, i);
 				System.arraycopy(commands, i + 1, newCommands, i,
@@ -119,30 +118,30 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void enableJMLNature(@NonNull IProject project) {
 		try {
-			if (Utils.verboseness >= Utils.NORMAL) Log.log("Enabling JML nature for project " + project.getName()); //$NON-NLS-1$
+			if (Options.uiverboseness) Log.log("Enabling JML nature for project " + project.getName()); //$NON-NLS-1$
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
 			boolean hasJava = false;
 			for (int i = 0; i < natures.length; ++i) {
-				if (JML_NATURE_ID.equals(natures[i])) {
-					if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature already present in " + project.getName()); //$NON-NLS-1$
+				if (Env.JML_NATURE_ID.equals(natures[i])) {
+					if (Options.uiverboseness) Log.log("JML Nature already present in " + project.getName()); //$NON-NLS-1$
 					return;
 				}
-				if (JAVA_NATURE_ID.equals(natures[i])) hasJava = true;
+				if (Env.JAVA_NATURE_ID.equals(natures[i])) hasJava = true;
 			}
 			if (!hasJava) {
-				if (Utils.verboseness >= Utils.VERBOSE) Log.log("Non-Java project: " + project.getName()); //$NON-NLS-1$
+				if (Options.uiverboseness) Log.log("Non-Java project: " + project.getName()); //$NON-NLS-1$
 				return; // Was not a Java project after all
 			}
 
 			// Add the nature
 			String[] newNatures = new String[natures.length + 1];
 			System.arraycopy(natures, 0, newNatures, 0, natures.length);
-			newNatures[natures.length] = JML_NATURE_ID;
+			newNatures[natures.length] = Env.JML_NATURE_ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, null);
-			if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature added to " + project.getName()); //$NON-NLS-1$
+			if (Options.uiverboseness) Log.log("JML Nature added to " + project.getName()); //$NON-NLS-1$
 
 		} catch (CoreException e) {
 			Log.errorKey("openjml.ui.failed.to.enable.jml", e, project.getProject()); //$NON-NLS-1$
@@ -155,14 +154,13 @@ public class JMLNature implements IProjectNature {
 	 */
 	static public void disableJMLNature(@NonNull IProject project) {
 		try {
-			if (Utils.verboseness >= Utils.NORMAL) Log.log("Disabling nature on project " + project.getName()); //$NON-NLS-1$
+			if (Options.uiverboseness) Log.log("Disabling nature on project " + project.getName()); //$NON-NLS-1$
 			IProjectDescription description = project.getDescription();
 			String[] natures = description.getNatureIds();
 
 			// Note: Presumes the Nature is present at most once.
 			for (int i = 0; i < natures.length; ++i) {
-				//Log.log("   Nature " + natures[i]);
-				if (JML_NATURE_ID.equals(natures[i])) {
+				if (Env.JML_NATURE_ID.equals(natures[i])) {
 					// Remove the nature
 					String[] newNatures = new String[natures.length - 1];
 					System.arraycopy(natures, 0, newNatures, 0, i);
@@ -171,11 +169,11 @@ public class JMLNature implements IProjectNature {
 					description.setNatureIds(newNatures);
 					project.setDescription(description, null);
 
-					if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature removed from " + project.getName()); //$NON-NLS-1$
+					if (Options.uiverboseness) Log.log("JML Nature removed from " + project.getName()); //$NON-NLS-1$
 					return;
 				}
 			}
-			if (Utils.verboseness >= Utils.VERBOSE) Log.log("JML Nature not present in " + project.getName()); //$NON-NLS-1$
+			if (Options.uiverboseness) Log.log("JML Nature not present in " + project.getName()); //$NON-NLS-1$
 
 		} catch (CoreException e) {
 			Log.errorKey("openjml.ui.failed.to.disable.jml", e, project.getProject()); //$NON-NLS-1$

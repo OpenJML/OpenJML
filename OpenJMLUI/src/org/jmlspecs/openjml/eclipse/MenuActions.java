@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plug-in project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -70,6 +70,9 @@ abstract public class MenuActions extends AbstractHandler {
     	public Object execute(ExecutionEvent event) {
     		// For now at least, only IResources are accepted for selection
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Type-check action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
     			utils.checkSelection(selection,window,shell);
     		} catch (Exception e) {
@@ -91,6 +94,9 @@ abstract public class MenuActions extends AbstractHandler {
     	@Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("ESC action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.checkESCSelection(selection,window,shell);
             } catch (Exception e) {
@@ -111,6 +117,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("RAC action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.racSelection(selection,window,shell);
             } catch (Exception e) {
@@ -131,6 +140,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("RAC Marked files action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.racMarked(selection,window,shell);
             } catch (Exception e) {
@@ -151,6 +163,9 @@ abstract public class MenuActions extends AbstractHandler {
     	@Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Delete Markers action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
         		utils.deleteMarkersInSelection(selection,window,shell);
     		} catch (Exception e) {
@@ -172,6 +187,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Enable JML action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.changeJmlNatureSelection(true,selection,window,shell);
             } catch (Exception e) {
@@ -192,6 +210,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Disable JML action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.changeJmlNatureSelection(false,selection,window,shell);
             } catch (Exception e) {
@@ -217,6 +238,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Specifications action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.showSpecsForSelection(selection,window,shell);
             } catch (Exception e) {
@@ -235,6 +259,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Open Specs Editor action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.openSpecEditorForSelection(selection,window,shell);
             } catch (Exception e) {
@@ -252,6 +279,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.showProofInfoForSelection(selection,window,shell);
             } catch (Exception e) {
@@ -270,6 +300,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Counterexample action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.showCEValueForTextSelection(selection,window,shell);
             } catch (Exception e) {
@@ -287,6 +320,9 @@ abstract public class MenuActions extends AbstractHandler {
     	@Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Add To Specs Path action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.addSelectionToSpecsPath(selection,window,shell);
             } catch (Exception e) {
@@ -304,6 +340,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Remove From Specs Path action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.removeSelectionFromSpecsPath(selection,window,shell);
             } catch (Exception e) {
@@ -321,6 +360,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Edit Paths action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.manipulateSpecsPath(selection,window,shell);
             } catch (Exception e) {
@@ -339,6 +381,9 @@ abstract public class MenuActions extends AbstractHandler {
     	@Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Paths action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.showPaths(selection,window,shell);
             } catch (Exception e) {
@@ -357,6 +402,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Mark for RAC action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.racMark(true,selection,window,shell);
             } catch (Exception e) {
@@ -375,6 +423,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Unmark For RAC action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
                 utils.racMark(false,selection,window,shell);
             } catch (Exception e) {
@@ -393,6 +444,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Clear RAC Marks action initiated"); //$NON-NLS-1$
+    			}
             	getInfo(event);
                 utils.racClear(selection,window,shell);
             } catch (Exception e) {
@@ -411,6 +465,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
+    			if (Options.uiverboseness) {
+    				Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
+    			}
             	getInfo(event);
                 utils.racChoose(selection,window,shell);
             } catch (Exception e) {
@@ -433,6 +490,9 @@ abstract public class MenuActions extends AbstractHandler {
         @Override
     	public Object execute(ExecutionEvent event) {
     		try {
+    			if (Options.uiverboseness) {
+    				Log.log("JMLdoc action initiated"); //$NON-NLS-1$
+    			}
         		getInfo(event);
         		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
         				"jmldoc is not yet implemented"); //$NON-NLS-1$

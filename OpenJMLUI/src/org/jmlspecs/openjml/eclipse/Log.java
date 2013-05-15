@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -18,10 +18,11 @@ import org.eclipse.osgi.util.NLS;
  * user output is sent to
  * the static methods of this class; specific kinds of reporters register as listeners.
  * Actually - in the current implementation there can be only one listener.
+ * If no listener is present, the message will be sent to System.out.
  * @author David R. Cok
  */
 
-// FIXME - There is also an Eclipse plugin log mechanism - should we be using
+// TODO - There is also an Eclipse plugin log mechanism - should we be using
 // that directly? Currently this Log sends material to the console log.
 // The alternative is to send everything to 
 // the Eclipse provided log and have the ConsoleLog be a listener.

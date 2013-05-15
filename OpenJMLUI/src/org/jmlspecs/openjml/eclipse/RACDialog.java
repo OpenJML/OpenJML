@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2012-2013 David R. Cok
  * @author David R. Cok
  */
@@ -30,7 +30,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
 
-/** Implements a dialog that allows editing of the source and specs path of a Java project */
+/** Implements a dialog that allows editing of the files that are 
+ *  marked for automatic RAC compilation. */
 public class RACDialog extends Utils.ModelessDialog { 
 	
 	/** Window title */
@@ -67,7 +68,7 @@ public class RACDialog extends Utils.ModelessDialog {
 	public Control createDialogArea(Composite parent) {
 		
 		String label = Messages.OpenJMLUI_RACDialog_DialogTitle;
-		racListEditor = new RACListEditor(shell,parent,jproject,PathItem.racKey,label);
+		racListEditor = new RACListEditor(shell,parent,jproject,Env.racKey,label);
 		
 		return null;
 	}
@@ -75,12 +76,12 @@ public class RACDialog extends Utils.ModelessDialog {
 	@Override
 	public void okPressed() {
 		try {
-			jproject.getProject().setPersistentProperty(PathItem.racKey, PathItem.concat(racListEditor.pathItems));
-			if (Utils.verboseness >= Utils.VERBOSE) {
-				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.racKey)); //$NON-NLS-1$
+			jproject.getProject().setPersistentProperty(Env.racKey, PathItem.concat(racListEditor.pathItems));
+			if (Options.uiverboseness) {
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(Env.racKey)); //$NON-NLS-1$
 			}
 		} catch (CoreException e) {
-			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_PathsEditor_PersistentPropertyError,e);
+			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
 		} finally {
 			super.okPressed();
 		}
@@ -170,7 +171,7 @@ class RACListEditor {
 	protected void init(QualifiedName key) {
 		pathItems.clear();
 		String prop = PathItem.getEncodedPath(jproject,key);
-		if (Utils.verboseness >= Utils.VERBOSE) {
+		if (Options.uiverboseness) {
 			Log.log("Read path property: " + prop); //$NON-NLS-1$
 		}
 
@@ -184,8 +185,8 @@ class RACListEditor {
 				list.add(p.display());
 			} else {
 				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
-					Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
-					Messages.OpenJMLUI_PathsEditor_UnparsableError + s);
+					Messages.OpenJMLUI_Editor_ErrorDialogTitle,
+					Messages.OpenJMLUI_Editor_UnparsableError + s);
 			}
 		}
 	}
@@ -310,9 +311,9 @@ class RACListEditor {
 	private void createButtons(Composite box) {
 		addFileButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_AddFile);
 		addDirButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_AddFolder);
-		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
-		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
-		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);
+		removeButton = createPushButton(box, Messages.OpenJMLUI_Editor_Remove);
+		upButton = createPushButton(box, Messages.OpenJMLUI_Editor_Up);
+		downButton = createPushButton(box, Messages.OpenJMLUI_Editor_Down);
 		clearButton = createPushButton(box, Messages.OpenJMLUI_RACDialog_Clear);
 	}
 

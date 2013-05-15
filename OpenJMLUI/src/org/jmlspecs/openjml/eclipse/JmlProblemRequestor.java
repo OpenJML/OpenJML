@@ -1,6 +1,6 @@
 /*
  * This file is part of the OpenJML plugin project. 
- * Copyright 2006-2013 David R. Cok
+ * Copyright (c) 2006-2013 David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
@@ -122,7 +122,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			
 			// Use the following if you want problems printed to the console
 			// as well as producing markers and annotations
-			if (Utils.verboseness >= Utils.PROGRESS) {
+			if (Options.uiverboseness) {
 				JmlEclipseProblem.printProblem(new PrintStream(Log.log.listener().getStream()), p);
 			}
 
@@ -158,8 +158,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) throws CoreException {
 					IMarker marker = r.createMarker(
-										staticCheckWarning ? Utils.ESC_MARKER_ID 
-															: Utils.JML_MARKER_ID);
+										staticCheckWarning ? Env.ESC_MARKER_ID 
+															: Env.JML_MARKER_ID);
 					marker.setAttribute(IMarker.LINE_NUMBER, 
 										finalLineNumber >= 1? finalLineNumber : 1);
 					if (column >= 0) {

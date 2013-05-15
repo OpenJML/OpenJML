@@ -147,7 +147,7 @@ public class OpenJMLInterface {
     * @param monitor the progress monitor the UI is using
     */
    public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor) {
-	   boolean verboseProgress = Utils.verboseness >= Utils.NORMAL;
+	   boolean verboseProgress = utils.openjmlVerbose() >= Utils.NORMAL;
        try {
            if (files.isEmpty()) {
                if (verboseProgress) Log.log("Nothing applicable to process");
@@ -443,7 +443,7 @@ public class OpenJMLInterface {
 
         	Timer.timer.markTime();
             if (!args.isEmpty()) {
-            	if (Utils.verboseness >= Utils.NORMAL) {
+            	if (Options.uiverboseness) {
             		Log.log(Timer.timer.getTimeString() + " Executing static checks");
             	}
                 try {
@@ -497,7 +497,7 @@ public class OpenJMLInterface {
             			}
             			if (msym != null) {
             				Timer t = new Timer();
-            				if (Utils.verboseness >= Utils.VERBOSE)
+            				if (Options.uiverboseness)
             					Log.log("Beginning ESC on " + msym);
             				if (monitor != null) monitor.subTask("Checking " + msym);
             				IProverResult res = api.doESC(msym);
@@ -521,7 +521,7 @@ public class OpenJMLInterface {
             			else {} // ERROR - FIXME
             		}
             	}
-                if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
+                if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Completed ESC operation on individual methods");
             }
             if (monitor != null) {
                 monitor.subTask("Completed ESC operation");
@@ -530,7 +530,7 @@ public class OpenJMLInterface {
         	if (monitor != null) {
                 monitor.subTask("Canceled ESC operation");
             }
-            if (Utils.verboseness >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
+            if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
         }
     }
 
@@ -946,7 +946,7 @@ public class OpenJMLInterface {
                         (int)lineStart, (int)lineEnd);
                 preq.acceptProblem(problem);
                 // Log it as well
-                if (Utils.verboseness >= Utils.VERBOSE) {
+                if (Options.uiverboseness) {
                     if (severity == ProblemSeverities.Error) Log.errorlog(diagnostic.toString(),null);
                     else Log.log(diagnostic.toString());
                 }
@@ -1096,9 +1096,9 @@ public class OpenJMLInterface {
 //            }
 //            opts.add(f.getLocation().toString());
 //        }
-        boolean verbose = Utils.verboseness >= Utils.NORMAL;
+        boolean verbose = Options.uiverboseness;
 
-        opts.add(JmlOption.VERBOSENESS.optionName()+"="+Integer.toString(Utils.verboseness));
+        opts.add(JmlOption.VERBOSENESS.optionName()+"="+Options.value(Options.verbosityKey));
         
         if (Options.isOption(Options.javaverboseKey)) {
         	opts.add("-verbose"); // FIXME - no hard string
@@ -1156,10 +1156,10 @@ public class OpenJMLInterface {
         // So, openjml itself never needs to
         opts.add(JmlOption.NOINTERNALSPECS.optionName());
         opts.add(JmlOption.SPECS.optionName());
-        opts.add(PathItem.getAbsolutePath(jproject,PathItem.specsKey));
+        opts.add(PathItem.getAbsolutePath(jproject,Env.specsKey));
 
         opts.add(Strings.sourcepathOptionName); 
-        opts.add(PathItem.getAbsolutePath(jproject,PathItem.sourceKey));
+        opts.add(PathItem.getAbsolutePath(jproject,Env.sourceKey));
 
         
         // Handle the classpath and internal runtime library if needed
@@ -1192,7 +1192,7 @@ public class OpenJMLInterface {
         // trace subexpressions counterexample
         // specs , classpath , sourcepath, stopiferrors
         // Java options, Jmldoc options
-		if (Utils.verboseness >= Utils.DEBUG) {
+		if (Options.uiverboseness) {
 			StringBuilder s = new StringBuilder();
 			s.append("Options collected by UI to send to OpenJML: ");
 			for (String opt: opts) {

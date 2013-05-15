@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2012-2013 David R. Cok
  * @author David R. Cok
  */
@@ -81,9 +81,9 @@ public class PathsEditor extends Utils.ModelessDialog {
 		Composite sourcecomp = new Composite(tabs,SWT.NONE);
 		Composite specscomp = new Composite(tabs,SWT.NONE);
 		tabs.setSelection(specstab);
-		specstab.setText(Messages.OpenJMLUI_PathsEditor_SpecsPath);
-		sourcetab.setText(Messages.OpenJMLUI_PathsEditor_SourcePath);
-		classtab.setText(Messages.OpenJMLUI_PathsEditor_ClassPath);
+		specstab.setText(Messages.OpenJMLUI_Editor_SpecsPath);
+		sourcetab.setText(Messages.OpenJMLUI_Editor_SourcePath);
+		classtab.setText(Messages.OpenJMLUI_Editor_ClassPath);
 		specstab.setControl(specscomp);
 		sourcetab.setControl(sourcecomp);
 		classtab.setControl(classcomp);
@@ -91,8 +91,8 @@ public class PathsEditor extends Utils.ModelessDialog {
 		Utils utils = Activator.getDefault().utils;
 		
 		StringBuilder text = new StringBuilder();
-		text.append(Messages.OpenJMLUI_PathsEditor_ClassPathTitle + Env.eol
-			+ Messages.OpenJMLUI_PathsEditor_ClassPathTitle2);
+		text.append(Messages.OpenJMLUI_Editor_ClassPathTitle + Env.eol
+			+ Messages.OpenJMLUI_Editor_ClassPathTitle2);
 		text.append(Env.eol);
 		text.append(Env.eol);
 		for (String s: utils.getClasspath(jproject)) {
@@ -103,25 +103,25 @@ public class PathsEditor extends Utils.ModelessDialog {
 		t.setText(text.toString());
 		t.setSize(500,200);
 		
-		String label = Messages.OpenJMLUI_PathsEditor_SourcePathTitle;
-		sourceListEditor = new ListEditor(shell,sourcecomp,jproject,PathItem.sourceKey,label);
+		String label = Messages.OpenJMLUI_Editor_SourcePathTitle;
+		sourceListEditor = new ListEditor(shell,sourcecomp,jproject,Env.sourceKey,label);
 		
-		label = Messages.OpenJMLUI_PathsEditor_SpecsPathTitle;
-		specsListEditor = new ListEditor(shell,specscomp,jproject,PathItem.specsKey,label);
+		label = Messages.OpenJMLUI_Editor_SpecsPathTitle;
+		specsListEditor = new ListEditor(shell,specscomp,jproject,Env.specsKey,label);
 		return tabs;
 	}
 	
 	@Override
 	public void okPressed() {
 		try {
-			jproject.getProject().setPersistentProperty(PathItem.sourceKey, PathItem.concat(sourceListEditor.pathItems));
-			jproject.getProject().setPersistentProperty(PathItem.specsKey, PathItem.concat(specsListEditor.pathItems));
-			if (Utils.verboseness >= Utils.VERBOSE) {
-				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.sourceKey)); //$NON-NLS-1$
-				Log.log("Saved " + jproject.getProject().getPersistentProperty(PathItem.specsKey)); //$NON-NLS-1$
+			jproject.getProject().setPersistentProperty(Env.sourceKey, PathItem.concat(sourceListEditor.pathItems));
+			jproject.getProject().setPersistentProperty(Env.specsKey, PathItem.concat(specsListEditor.pathItems));
+			if (Options.uiverboseness) {
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(Env.sourceKey)); //$NON-NLS-1$
+				Log.log("Saved " + jproject.getProject().getPersistentProperty(Env.specsKey)); //$NON-NLS-1$
 			}
 		} catch (CoreException e) {
-			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_PathsEditor_PersistentPropertyError,e);
+			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
 		} finally {
 			super.okPressed();
 		}
@@ -190,7 +190,7 @@ class ListEditor {
 		fileDialog = new FileDialog(shell);
 		fileDialog.setFilterExtensions(new String[]{"*.jar"}); //$NON-NLS-1$
 		dirDialog = new DirectoryDialog(shell);
-		dirDialog.setMessage(Messages.OpenJMLUI_PathsEditor_DirectoryDialogMessage);
+		dirDialog.setMessage(Messages.OpenJMLUI_Editor_DirectoryDialogMessage);
 		String path = jproject.getProject().getLocation().toString();
 		dirDialog.setFilterPath(path);
 
@@ -207,7 +207,7 @@ class ListEditor {
 	protected void init(QualifiedName key) {
 		pathItems.clear();
 		String prop = PathItem.getEncodedPath(jproject,key);
-		if (Utils.verboseness >= Utils.VERBOSE) {
+		if (Options.uiverboseness) {
 			Log.log("Read path property: " + prop); //$NON-NLS-1$
 		}
 
@@ -221,8 +221,8 @@ class ListEditor {
 				list.add(p.display());
 			} else {
 				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
-			        Messages.OpenJMLUI_PathsEditor_ErrorDialogTitle,
-					Messages.OpenJMLUI_PathsEditor_UnparsableError + s);
+			        Messages.OpenJMLUI_Editor_ErrorDialogTitle,
+					Messages.OpenJMLUI_Editor_UnparsableError + s);
 			}
 		}
 	}
@@ -283,7 +283,7 @@ class ListEditor {
 	protected void defaultPressed() {
 		list.removeAll();
 		pathItems.clear();
-		java.util.List<PathItem> defaults = key == PathItem.specsKey ? PathItem.defaultSpecsPath : PathItem.defaultSourcePath;
+		java.util.List<PathItem> defaults = key == Env.specsKey ? PathItem.defaultSpecsPath : PathItem.defaultSourcePath;
 		for (PathItem item : defaults) {
 			list.add(item.display());
 			pathItems.add(item);
@@ -311,7 +311,7 @@ class ListEditor {
 	
 	protected void specialPressed() {
 		EnumSet<PathItem.SpecialPath.Kind> disable = EnumSet.noneOf(PathItem.SpecialPath.Kind.class);
-		if (key == PathItem.sourceKey) disable.add(PathItem.SpecialPath.Kind.SOURCEPATH);
+		if (key == Env.sourceKey) disable.add(PathItem.SpecialPath.Kind.SOURCEPATH);
 		for (PathItem k : pathItems) {
 			if (k instanceof PathItem.SpecialPath){
 				disable.add(((PathItem.SpecialPath)k).kind);
@@ -358,13 +358,13 @@ class ListEditor {
 	 * @param box the box for the buttons
 	 */
 	private void createButtons(Composite box) {
-		addJarButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddJar);
-		addDirButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddFolder);
-		addSpecialButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_AddSpecial);
-		removeButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Remove);
-		upButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Up);
-		downButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Down);
-		defaultButton = createPushButton(box, Messages.OpenJMLUI_PathsEditor_Default);
+		addJarButton = createPushButton(box, Messages.OpenJMLUI_Editor_AddJar);
+		addDirButton = createPushButton(box, Messages.OpenJMLUI_Editor_AddFolder);
+		addSpecialButton = createPushButton(box, Messages.OpenJMLUI_Editor_AddSpecial);
+		removeButton = createPushButton(box, Messages.OpenJMLUI_Editor_Remove);
+		upButton = createPushButton(box, Messages.OpenJMLUI_Editor_Up);
+		downButton = createPushButton(box, Messages.OpenJMLUI_Editor_Down);
+		defaultButton = createPushButton(box, Messages.OpenJMLUI_Editor_Default);
 	}
 
 	/**

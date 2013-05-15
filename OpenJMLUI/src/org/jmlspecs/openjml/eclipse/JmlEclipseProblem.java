@@ -1,5 +1,5 @@
 /**
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2005-2013 David R. Cok
  * @author David R. Cok
  */

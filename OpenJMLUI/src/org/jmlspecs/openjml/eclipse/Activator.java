@@ -1,5 +1,5 @@
 /*
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plug-in project.
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
@@ -22,16 +22,6 @@ import org.smtlib.SMT;
  */
 public class Activator extends AbstractUIPlugin {
 
-	/** The plug-in ID, which must match the content of plugin.xml in several places */
-	public static final String PLUGIN_ID = "org.jmlspecs.OpenJMLUI"; //$NON-NLS-1$
-
-	/** The plug-in ID of the Specs project plugin (containing specifications
-	 * of Java library classes).  This must match the ID specified in the 
-	 * plugin.xml file of the Specs plugin.  The Specs plugin is the
-	 * source of all the Java library specifications.
-	 */
-	public static final String SPECS_PLUGIN_ID = "org.jmlspecs.Specs"; //$NON-NLS-1$
-
 	/** The single shared instance */
 	private static Activator plugin;
 
@@ -39,7 +29,7 @@ public class Activator extends AbstractUIPlugin {
 	protected Utils utils;
 
 	/**
-	 * The constructor, called by Eclipse, not by user code
+	 * The constructor, called by Eclipse, not by application code
 	 */
 	public Activator() {
 		//Log.log("UI Plugin constructor executed");
@@ -54,11 +44,15 @@ public class Activator extends AbstractUIPlugin {
 		super.start(context);
 		
 		Log.log.setListener(new ConsoleLogger(Messages.OpenJMLUI_Activator_JmlConsoleTitle));
-		//Log.log("JML UI plugin started");
 		
-		// Various initialization: instances of options and utils, cached fields
 		utils = new Utils();
-		utils.initializeProperties();
+		Options.init();
+		
+		if (Options.uiverboseness) {
+			Log.log("JML UI plugin started"); //$NON-NLS-1$
+		}
+		
+		//utils.showMessageInUI(null, "OpenJML Introduction", "Welcome to OpenJML");
 		
 	    /** The logic file finder for the plug-in looks for a logic file with the given name:
 	     * (a) if no logic directory path is set, then it looks within the plugin itself for any built-in files
@@ -78,7 +72,7 @@ public class Activator extends AbstractUIPlugin {
 	    			// This logic depends on the fact that the SMT logic files
 	    			// reside at the root of the jSMTLIB.jar file, and that the
 	    			// .jar file is part of the plugin.
-	    			URL url = Platform.getBundle(PLUGIN_ID).getResource(name + org.smtlib.Utils.SUFFIX);
+	    			URL url = Platform.getBundle(Env.PLUGIN_ID).getResource(name + org.smtlib.Utils.SUFFIX);
 	    			if (url != null) {
 	    				InputStream stream =  url.openStream();
 	    				if (stream != null) return stream;
@@ -88,8 +82,8 @@ public class Activator extends AbstractUIPlugin {
 	    			File f = new File(fname);
 	    			if (f.isFile()) return new FileInputStream(f);
 	    		}
-    			utils.showMessageInUI(null,"OpenJML - SMT",
-						"No logic file found for " + name);
+    			utils.showMessageInUI(null,"OpenJML - SMT", //$NON-NLS-1$
+						"No logic file found for " + name); //$NON-NLS-1$
 				return null;
 	    	}
 	    };
@@ -101,6 +95,9 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		if (Options.uiverboseness) {
+			Log.log("JML UI plugin stopping"); //$NON-NLS-1$
+		}
 		utils = null;
 		plugin = null;
 		super.stop(context);

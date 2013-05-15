@@ -1,11 +1,13 @@
 /**
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2005-2013 David R. Cok
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.core.runtime.QualifiedName;
+import org.jmlspecs.annotation.NonNull;
+
 
 /**
  * A class of generally useful quantities that are expected to be
@@ -27,71 +29,75 @@ public class Env {
 	 */
 	public static final String eol = System.getProperty("line.separator"); //$NON-NLS-1$
 
-	/** An enum used to indicate the level of compiler compliance level.  It
-	 *  is translated into the appropriate value from the internal class.
+	/** The plug-in ID, which must match the content of plugin.xml in several places */
+	public static final @NonNull
+	String PLUGIN_ID = "org.jmlspecs.OpenJMLUI"; //$NON-NLS-1$
+
+	/** The plug-in ID of the Specs project plugin (containing specifications
+	 * of Java library classes).  This must match the ID specified in the 
+	 * plugin.xml file of the Specs plugin.  The Specs plugin is the
+	 * source of all the Java library specifications.
 	 */
-	static public enum Level {
-		/**
-		 * An enum value corresponding to the 1.3 version of Java
-		 */
-		JLS1_3(ClassFileConstants.JDK1_3,"1.3"),  //$NON-NLS-1$
-		/**
-		 * An enum value corresponding to the 1.4 version of Java
-		 */
-		JLS1_4(ClassFileConstants.JDK1_4,"1.4"),  //$NON-NLS-1$
-		/**
-		 * An enum value corresponding to the 1.5(5.0) version of Java
-		 */
-		JLS1_5(ClassFileConstants.JDK1_5,"1.5"), //$NON-NLS-1$
+	public static final @NonNull
+	String SPECS_PLUGIN_ID = "org.jmlspecs.Specs"; //$NON-NLS-1$
 
-		/**
-		 * An enum value corresponding to the 1.6 version of Java
-		 */
-		JLS1_6(ClassFileConstants.JDK1_6,"1.6"), //$NON-NLS-1$
+    /** The Eclipse ID of the Decorator used on Java Projects to show that
+     * JML compilation is enabled.  This must match the ID defined in the plug-in 
+     * definition (plugin.xml).
+     */
+    static public final @NonNull
+    String JML_DECORATOR_ID = Env.PLUGIN_ID + ".JMLDecoration";
 
-		/**
-		 * An enum value corresponding to the 1.7 version of Java
-		 */
-		JLS1_7(ClassFileConstants.JDK1_7,"1.7"); //$NON-NLS-1$
+	/** String used in openjml-specific properties. */
+	final public static @NonNull 
+	String OPENJML = "openjml"; //$NON-NLS-1$
 
-		/**
-		 * The ClassFileConstants value corresponding to this enum instance.
-		 */
-		final private long javaLevel;
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull 
+	String JML_MARKER_ID = Env.PLUGIN_ID + ".JMLProblem"; //$NON-NLS-1$
 
-		/**
-		 * The source level as a String
-		 */
-		final private String sourceLevel;
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
+	String JML_HIGHLIGHT_ID = Env.PLUGIN_ID + ".JMLHighlight"; //$NON-NLS-1$
 
-		/**
-		 * Constructs an enum value given a value of ClassFileContants, such as
-		 * JDK1_5.
-		 * @param j the value of the compiler compliance level to use
-		 * @param source the compiler compliance level as a String
-		 */
-		private Level(long j, String source) { 
-			javaLevel = j; 
-			sourceLevel = source;
-		}
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
+	String JML_HIGHLIGHT_ID_TRUE = JML_HIGHLIGHT_ID + ".True"; //$NON-NLS-1$
 
-		/**
-		 * @return the internal ClassFileConstants value that corresponds to the
-		 *         enum
-		 */
-		public long classFileConstant() { return javaLevel; }
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
+	String JML_HIGHLIGHT_ID_FALSE = JML_HIGHLIGHT_ID + ".False"; //$NON-NLS-1$
 
-		/**
-		 * The level of source code to be parsed expressed as a String.
-		 * @return the source code level in String form
-		 */
-		public String sourceLevel() { return sourceLevel; }
-	};
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull // FIXME - is this still used?
+	String JML_HIGHLIGHT_ID_EXCEPTION = JML_HIGHLIGHT_ID + ".Exception"; //$NON-NLS-1$
 
-	/**
-	 * The value of Java language level handled by this code
-	 * (particularly by the parser). 
-	 */
-	public static Level jlsLevel = Level.JLS1_7;
+	/** The ID of the marker, which must match that in the plugin file. */
+	final public static @NonNull
+	String ESC_MARKER_ID = Env.PLUGIN_ID + ".JMLESCProblem"; //$NON-NLS-1$
+
+	/** The key used to store the sourcepath as a persistent property. */
+	@NonNull
+	public final static QualifiedName sourceKey = new QualifiedName(PLUGIN_ID,"sourcepath"); //$NON-NLS-1$
+
+	/** The key used to store the specspath as a persistent property. */
+	@NonNull
+	public final static QualifiedName specsKey = new QualifiedName(PLUGIN_ID,"specspath"); //$NON-NLS-1$
+
+	/** The key used to store the files to rac as a persistent property. */
+	@NonNull
+	public static final QualifiedName racKey = new QualifiedName(PLUGIN_ID,"racfiles"); //$NON-NLS-1$
+
+	/** ID of the JML project nature. This String is used literally in plugin.xml */
+	@NonNull
+	public static final String JML_NATURE_ID = PLUGIN_ID + ".JMLNatureID"; //$NON-NLS-1$
+
+	/** The ID of the Java nature */
+	@NonNull
+	public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature"; //$NON-NLS-1$
+
+	/** The ID of the Builder, which must match that in the plugin file */
+	public static final String JML_BUILDER_ID = PLUGIN_ID + ".JMLBuilder"; //$NON-NLS-1$
+
 
 }

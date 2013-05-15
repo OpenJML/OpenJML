@@ -1,13 +1,11 @@
 /**
- * This file is part of the OpenJML project.
+ * This file is part of the OpenJML plugin project.
  * Copyright (c) 2005-2013 David R. Cok.
  * @author David R. Cok
  */
 package org.jmlspecs.openjml.eclipse;
 
 import org.jmlspecs.openjml.Strings;
-
-// FIXME - needs review for all options we're interested in - Options.java; some options may no longer be used
 
 /**
  * This class manages user-settable options for OpenJML - at least those
@@ -27,25 +25,38 @@ public class Options {
 	
 	/** Returns the value of a Boolean-valued option. */
 	static boolean isOption(String key) {
-		//return System.getProperty(key) != null;
 		Boolean value = Activator.getDefault().getPreferenceStore().getBoolean(key);
 		return value != null && value;
 	}
 	
 	/** Returns the value of a String-valued option. */
 	static String value(String key) {
-		//return System.getProperty(key) != null;
 		return Activator.getDefault().getPreferenceStore().getString(key);
 	}
 	
+	/** Sets the value of a String-valued option. */
+	static void setValue(String key, String value) {
+		Activator.getDefault().getPreferenceStore().setValue(key,value);
+	}
+	
+	/** Cached value of the verboseness */
+	static public boolean uiverboseness = false;
+
+	/** Caches values of properties as needed, based on preference store */
+	public static void init() {
+		Options.uiverboseness = Options.isOption(Options.uiverbosityKey);
+	}
+
+
+	
+	// Note: The values of the keys must correspond to the names of the 
+	// command-line options. That way we can load them automatically.
+
 	/** The prefix to be put on each key that is a command-line option for the application. */
 	final static public String prefix = Strings.optionPropertyPrefix;
 
 	/** A fake preference store key for the update button. */
 	final static public String updateKey = prefix + "update"; //$NON-NLS-1$
-
-	// Note: The values of the keys must correspond to the names of the 
-	// command-line options.
 
 	/** The preference store key for the checkSpecsPath option. */
 	final static public String checkSpecsPathKey = prefix + "checkSpecsPath"; //$NON-NLS-1$
@@ -83,20 +94,32 @@ public class Options {
 	/** The preference store key for the noInternalRuntime option. */
 	final static public String otherOptionsKey = prefix + "otherOptions"; //$NON-NLS-1$
 
-	// TODO - document
-	final static public String enableESCKey = prefix + "enableESC"; //$NON-NLS-1$
-	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
+	/** RAC option which says to use Java asserts when compiling assertions */
 	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
+	/** RAC option which skips checking Java features such as Null Pointer Exceptions, letting Java issue its own exception */
 	final static public String racNoCheckJavaFeatures = prefix + "racNoCheckJavaFeatures"; //$NON-NLS-1$
+	/** RAC option which disables checking assumptions */
 	final static public String racNoCheckAssumptions = prefix + "racNoCheckAssumptions"; //$NON-NLS-1$
+	/** RAC option which disables including source code in compiled-in error messages */
 	final static public String racNoShowSource = prefix + "racNoShowSource"; //$NON-NLS-1$
+
+	/** If enabled, ESC is performed automatically upon an Eclipse build */
+	final static public String enableESCKey = prefix + "enableESC"; //$NON-NLS-1$
+	/** If enabled, RAC is performed automatically upon an Eclipse build */
+	final static public String enableRacKey = prefix + "enableRac"; //$NON-NLS-1$
 	
 	/** The preference store key for the racbin option */
-	final static public String racbinKey = prefix + "racbin";
+	final static public String racbinKey = prefix + "racbin"; //$NON-NLS-1$
 	
+	/** The prefix used for prover executable path preferences - this must be
+	 * the same as the prefix used in the properties file.
+	 */
+	final static public String proverPrefix = Strings.proverPropertyPrefix;
+
+	/** A preference that contains the names of solvers to be shown in the preference page. */
+	final static public String solversKey = prefix + "solvers"; //$NON-NLS-1$
+	
+	// FIXME - change this
 	final static public String defaultProverKey = Strings.defaultProverProperty;
 	
-	final static public String proverPrefix = Strings.proverPropertyPrefix;
-	
-
 }
