@@ -4,23 +4,16 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.Map;
-import java.util.Properties;
+import java.util.Arrays;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
-import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -44,6 +37,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.widgets.ButtonFieldEditor;
+import org.jmlspecs.openjml.eclipse.widgets.EnumDialog;
 
 // FIXME - adding/deleting solvers
 
@@ -53,6 +47,10 @@ import org.jmlspecs.openjml.eclipse.widgets.ButtonFieldEditor;
 public class SolversPage extends FieldEditorPreferencePage implements
 IWorkbenchPreferencePage {
 
+    final static public String execKeyPrefix = Strings.proverPropertyPrefix;
+
+	protected String[] solvers;
+	
 	public SolversPage() {
 		super(FLAT);
 	}
@@ -65,36 +63,35 @@ IWorkbenchPreferencePage {
         setPreferenceStore(istore);
         setDescription(Messages.OpenJMLUI_SolversPage_Title);
         
-        String ss = Options.value(Options.solversKey);
+        String ss = getValue();
         if (ss == null || ss.isEmpty()) {
-    		setValue("simplify,yices2,z3_4_3");
-    		ss = Options.value(Options.solversKey);
+    		setValue("simplify,yices2,z3_4_3"); // FIXME - temporary default
+    		ss = getValue();
         }
         solvers = ss.split(Utils.comma);
         for (int i = 0; i < solvers.length; i++) solvers[i] = solvers[i].trim();
     }
     
     public void setValue(String out) {
-		Activator.getDefault().getPreferenceStore().setValue(Options.solversKey,out);
-    }
+    	Options.setValue(Options.solversKey,out);    }
     
     public String getValue() {
-		return Activator.getDefault().getPreferenceStore().getString(Options.solversKey);
+		return Options.value(Options.solversKey);
     }
     
-    final static public String execKey = Strings.proverPropertyPrefix;
-
-	protected String[] solvers;
-	
     @Override
     protected void createFieldEditors() {
 
     	MouseListener listener = new MouseAdapter() {
     		@Override
 			public void mouseUp(MouseEvent e) {
-    			Dialog d = new EditDialog(null,"Edit the list of solvers");
+    			SolversEditorDialog d = new SolversEditorDialog(null,
+    					Messages.OpenJMLUI_SolversListEditor_Title);
     			d.create();
-    			d.open();
+    			if (d.open() == Status.OK) {
+    				// reset the field editors
+    				// FIXME;
+    			}
     			d.close();
     			return; 
 			}
@@ -114,85 +111,92 @@ IWorkbenchPreferencePage {
     			getFieldEditorParent()));
     	
 		addField(new ButtonFieldEditor(editKey,"", //$NON-NLS-1$
-				"Edit list of solvers", // Messages.OpenJMLUI_PreferencesPage_UpdateFromPropertiesFiles,
+				Messages.OpenJMLUI_SolversPage_EditButton, // Messages.OpenJMLUI_PreferencesPage_UpdateFromPropertiesFiles,
 				listener,
 				getFieldEditorParent())
 		);
 
     	for (String solver: solvers) {
-	        addField(new FileFieldEditor(execKey + solver, solver + ": ", //$NON-NLS-1$
+	        addField(new FileFieldEditor(execKeyPrefix + solver, solver + ": ", //$NON-NLS-1$
 	                getFieldEditorParent()));
     	}
     }
+    
+    class SolversEditorDialog extends Dialog { 
+    	
+    	/** Window title */
+    	protected String title;
+    	/** The current shell */
+    	protected Shell shell;
+    	/** Reference to the internal control for editing the set of files to RAC */
+    	protected SolversListEditor solversListEditor;
+    	
+    	/** Constructor for the dialog
+    	 * @param parentShell parent shell for the dialog
+    	 * @param title text on the title bar
+    	 * @param jproject Java project whose paths are to be edited
+    	 */
+    	public SolversEditorDialog(Shell parentShell, String title) {
+    		super(parentShell);
+
+    		this.title = title;
+    	}
+
+    	@Override
+    	protected void configureShell(Shell newShell) {
+    		super.configureShell(newShell);
+    		newShell.setText(title);
+    		setShellStyle(SWT.CLOSE | SWT.BORDER | SWT.TITLE);
+    		setBlockOnOpen(true);
+    		shell = newShell;
+    	}
+
+    	@Override
+    	public Control createDialogArea(Composite parent) {
+    		
+    		solversListEditor = new SolversListEditor(shell,parent,
+    				getValue().split(Utils.comma),null);
+    		
+    		return null;
+    	}
+    	
+    	String concat(String[] items) {
+    		StringBuilder sb = new StringBuilder();
+    		for (String s: items) {
+    			sb.append(s.trim());
+    			sb.append(Utils.comma);
+    		}
+    		sb.setLength(sb.length()-1);
+    		return sb.toString();
+    	}
+    	
+    	@Override
+    	public void okPressed() {
+    		try {
+    			setValue(concat(solversListEditor.list.getItems()));
+    			if (Options.uiverboseness) {
+    				Log.log("Saved solver list: " + getValue()); //$NON-NLS-1$
+    			}
+    		} finally {
+    			super.okPressed();
+    		}
+    	}
+
+    }
+
 }
 
 
-/** Implements a dialog that allows editing of the source and specs path of a Java project */
-class EditDialog extends Dialog { 
-	
-	/** Window title */
-	protected String title;
-	/** The current shell */
-	protected Shell shell;
-	
-	/** The list object */
-	protected SolverListEditor listEditor;
-	
-	/** Constructor for the dialog
-	 * @param parentShell parent shell for the dialog
-	 * @param title text on the title bar
-	 * @param jproject Java project whose paths are to be edited
-	 */
-	public EditDialog(Shell parentShell, String title) {
-		super(parentShell);
 
-		this.title = title;
-	}
-
-	@Override
-	protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText(title);
-		setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
-		setBlockOnOpen(false);
-		shell = newShell;
-	}
-
-	@Override
-	public Control createDialogArea(Composite parent) {
-		
-		String label = Messages.OpenJMLUI_SolversPage_DialogTitle;
-		listEditor = new SolverListEditor(shell,parent,Env.racKey,label);
-		
-		return null;
-	}
-	
-	@Override
-	public void okPressed() {
-		StringBuilder sb = new StringBuilder();
-		for (String i: listEditor.items) {
-			sb.append(i.trim());
-			sb.append(Utils.comma);
-		}
-		if (sb.length() > 0) sb.setLength(sb.length()-1); // remove last comma
-
-		try {
-			//jproject.getProject().setPersistentProperty(PathItem.racKey, PathItem.concat(racListEditor.pathItems));
-			if (Options.uiverboseness) {
-//				Log.log("Saved solvers " + solverList); //$NON-NLS-1$
-			}
-//		} catch (CoreException e) {
-//			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_PathsEditor_PersistentPropertyError,e);
-		} finally {
-			super.okPressed();
-		}
-	}
-
+enum Solvers {
+	simplify,
+	z3_4_3,
+	yices2
 }
 
 // TODO: Unify this with the PathEditor ListEditor and perhaps with the ListFieldEditor
 
-class SolverListEditor {
+class SolversListEditor {
 	
 	/**
 	 * The list widget; <code>null</code> if none
@@ -203,10 +207,7 @@ class SolverListEditor {
 	/** The list of items. This must be kept in synch with the Strings in
 	 * 'list'.
 	 */
-	protected java.util.List<String> items = new java.util.ArrayList<String>();
-	
-	/** The key for the persistent copy of the path */
-	protected QualifiedName key;
+	protected String[] items;
 	
 	/**
 	 * The button box containing the buttons;
@@ -227,16 +228,18 @@ class SolverListEditor {
 	protected SelectionListener selectionListener;
 
 	protected Shell shell;
+	protected Composite parent;
 
 	/** Constructs a widget to edit the path corresponding to the given key and for
 	 * the given project.
 	 */
 	// The GridLayout code is copied from FieldEditor
-	public SolverListEditor(Shell shell, Composite parent, QualifiedName key, String labelText) {
+	public SolversListEditor(Shell shell, Composite parent, String[] items, String labelText) {
 
 		this.shell = shell;
-		this.key = key;
+		this.parent = parent;
 		this.labelText = labelText;
+		this.items = items;
 		
 		GridLayout layout = new GridLayout(2,false);
 		layout.marginWidth = 0;
@@ -247,18 +250,9 @@ class SolverListEditor {
 		
 	}
 	
-	/** Initializes the widget from the persistent property. */
+	/** Initializes the widget. */
 	protected void init() {
-		items.clear();
-		String prop = Options.value(Options.solversKey);
-		prop = "simplify,yices2,z3_4_3";
-		String[] strings = prop.split(",");
-		for (String s : strings) {
-			s = s.trim();
-			if (s.isEmpty()) continue;
-			items.add(s);
-			list.add(s);
-		}
+		list.setItems(items);
 	}
 
 	/** Manages the layout of controls */
@@ -285,15 +279,24 @@ class SolverListEditor {
 	}
 	
 	protected void addPressed() {
-		String item = "zzz";
 		int index = list.getSelectionIndex();
-		if (index >= 0) {
-			list.add(item, index + 1);
-			items.add(index + 1, item);
-		} else {
-			list.add(item, 0);
-			items.add(0, item);
+		EnumDialog<Solvers> d = 
+				new EnumDialog<Solvers>(
+						shell,
+						Solvers.values(),
+						null);
+		shell.setText("Solver to add");
+		d.create();
+		if (d.open() == Dialog.OK) {
+			String s = d.selection().toString();
+			if (index >= 0) {
+				list.add(s, index + 1);
+			} else {
+				list.add(s, 0);
+			}
+			selectionChanged();
 		}
+
 	}
 
 
@@ -301,7 +304,6 @@ class SolverListEditor {
 		int index = list.getSelectionIndex();
 		if (index >= 0) {
 			list.remove(index);
-			items.remove(index);
 			selectionChanged();
 		}
 	}
@@ -331,8 +333,6 @@ class SolverListEditor {
 			list.remove(index);
 			list.add(selection[0], target);
 			list.setSelection(target);
-			String p = items.remove(index);
-			items.add(target,p);
 		}
 		selectionChanged();
 	}

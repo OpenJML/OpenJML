@@ -22,25 +22,27 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.jmlspecs.annotation.Nullable;
 
-/** Implements a dialog that allows the user to choose among the values of an Enum,
+/** Implements a dialog that allows the user to choose among the values of an 
+ * array of some type,
  * using radio buttons.
  * <P>
- * Typical use for an Enum type E:<BR>
- * <BR>EnumDialog&lt;E&gt; d = new EnumDialog&lt;E&gt;(shell, E.values(), null);
+ * Typical use :<BR>
+ * <BR>ChoiceDialog&lt;E&gt; d = new ChoiceDialog&lt;E&gt;(shell, array, disabled);
  * <BR>d.create();
  * <BR>if (d.open() == Dialog.OK) {
- * <BR>  E value = d.selection();
+ * <BR>  String value = d.selection();
  * <BR>  ...
  * <BR>}
  * @param <E> the Enum whose values are being selected
  */
-public class EnumDialog<E extends Enum<E>> extends Dialog {
-	
-	/** Which elements are to be disabled */
-	protected EnumSet<E> disabled;
+public class ChoiceDialog<E> extends Dialog {
 	
 	/** Which value is selected on exit from open() */
 	protected E selected;
+	
+	/** Which values are to be disabled */
+	/*@ nullable */
+	protected E[] disabled;
 	
 	/** Which values are to be included */
 	protected E[] values;
@@ -55,8 +57,9 @@ public class EnumDialog<E extends Enum<E>> extends Dialog {
 	 * @param values the values to display (e.g., E.values())
 	 * @param disabled the values to disable (may be null, indicating nothing is disabled)
 	 */
-	public EnumDialog(Shell shell, E[] values, @Nullable EnumSet<E> disabled) {
+	public ChoiceDialog(Shell shell, E[] values, /*@ nullable */ E[] disabled) {
 		super(shell);
+		shell.setText("TITLE");
 		this.values = values;
 		this.disabled = disabled;
 	}
@@ -66,9 +69,9 @@ public class EnumDialog<E extends Enum<E>> extends Dialog {
 	@Override
 	public Control createDialogArea(Composite parent) {
 		Control c = super.createDialogArea(parent);
-		for (E v: values) { // Would rather say E.values(), but Java does not allow that
+		for (E v: values) {
 			Button b = createRadioButton(parent,v,v.toString());
-			if (disabled != null) b.setEnabled(!disabled.contains(v));
+			for (E w: disabled) if (w.equals(v)) b.setEnabled(false);
 		}
 		return c;
 	}
@@ -107,6 +110,4 @@ public class EnumDialog<E extends Enum<E>> extends Dialog {
 		double horizontalDialogUnitSize = averageWidth * 0.25;
 		return (int) Math.round(dlus * horizontalDialogUnitSize);
 	}
-
-
 }
