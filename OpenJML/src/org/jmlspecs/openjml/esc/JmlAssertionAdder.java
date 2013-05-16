@@ -2178,7 +2178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitSwitch(JCSwitch that) {
         if (!pureCopy) {
-            addTraceableComment(that,"switch " + that.getExpression() + " ...");
+            addStat(traceableComment(that,that,"switch " + that.getExpression() + " ...","Selection"));
         }
         try {
             JCExpression selector = convertExpr(that.selector);
@@ -2202,7 +2202,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (JCCase c: that.cases) {
                 JCExpression pat = convertExpr(c.pat);
                 JCBlock b = convertIntoBlock(c.pos(),c.stats);
-                b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":")));
+                b.stats = b.stats.prepend(traceableComment(c,c,(c.pat == null ? "default:" : "case " + c.pat + ":"),null));
                 JCCase cc = M.at(c.pos).Case(pat,b.stats);
                 cases.add(cc);
             }
@@ -2418,7 +2418,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitIf(JCIf that) {
         if (!pureCopy) {
-            addTraceableComment(that,"if " + that.getCondition() + " ...");
+            addStat(traceableComment(that,that,"if " + that.getCondition() + " ...", "Condition"));
         }
         JCExpression cond = convertExpr(that.cond);
         cond = addImplicitConversion(that.cond.pos(),syms.booleanType,cond);
@@ -2443,15 +2443,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void addTraceableComment(JCTree t, String description) {
-        addStat(traceableComment(t,t,description));
+        addStat(traceableComment(t,t,description,null));
     }
 
     protected void addTraceableComment(JCTree t, JCExpression expr, String description) {
-        addStat(traceableComment(t,expr,description));
+        addStat(traceableComment(t,expr,description,null));
     }
 
-    protected JCStatement traceableComment(JCTree t, JCTree expr, String description) {
-        JCStatement c = comment(t.pos(),description);
+    protected void addTraceableComment(JCTree t, JCExpression expr, String description, String info) {
+        addStat(traceableComment(t,expr,description,info));
+    }
+
+    protected JCStatement traceableComment(JCTree t, JCTree expr, String description, String info) {
+        JmlStatementExpr c = comment(t.pos(),description);
+        c.id = info;
         pathMap.put(expr, c);
         return c;
     }
@@ -5241,7 +5246,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             loopHelperHavoc(that.body.pos(),that.body,that.cond);
         }
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that.pos());
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Now in the loop, so check that the variants are non-negative
         loopHelperCheckNegative(decreasesIDs, that.pos());
@@ -5252,6 +5257,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperMakeBody(that.body);
         
         // Now compute any side-effects of the loop condition
+        addTraceableComment(that.cond,that.cond,"Loop test");
         JCExpression cond = convertExpr(that.cond);
         
         // increment the index
@@ -5392,14 +5398,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Assume the invariants
             // Compute and remember the variants
-            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that.pos());
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that);
 
             // Compute the condition, recording any side-effects
             {
 
-                JCExpression cond = treeutils.makeBinary(that.pos, JCTree.LT, 
+                JCExpression ocond = treeutils.makeBinary(that.pos, JCTree.LT, 
                         treeutils.makeIdent(that.pos,indexDecl.sym),
                         lengthExpr);
+                JCExpression cond = convertCopy(ocond);
+                addTraceableComment(ocond,ocond,"Loop test");
 
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
@@ -5443,14 +5451,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Assume the invariants
             // Compute and remember the variants
-            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that.pos());
+            loopHelperAssumeInvariants(that.loopSpecs,decreasesIDs,that);
 
             // Compute the condition, recording any side-effects
             {
 
                 // iterator.hasNext()
-                JCExpression cond = methodCallUtilsExpression(array.pos(),"hasNext",
+                JCExpression ocond = methodCallUtilsExpression(array.pos(),"hasNext",
                         treeutils.makeIdent(array.pos, decl.sym));
+                JCExpression cond = convertCopy(ocond);
+                addTraceableComment(ocond,ocond,"Loop test");
 
                 // The exit block tests the condition; if exiting, it tests the
                 // invariant and breaks.
@@ -5511,6 +5521,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCVariableDecl loopHelperDeclareIndex(DiagnosticPosition pos) {
         Name indexName = names.fromString("index_" + pos.getPreferredPosition() + "_" + (++count));
         JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
+        indexDecl.sym.pos = pos.getPreferredPosition();
         indexDecl.pos = pos.getPreferredPosition();
         addStat(indexDecl);
         indexStack.add(0,indexDecl);
@@ -5561,7 +5572,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (loopSpecs != null) {
             for (JmlStatementLoop inv: loopSpecs) {
                 if (inv.token == JmlToken.LOOP_INVARIANT) {
-                    JCExpression e = convertJML(inv.expression);
+                    JCExpression copy = convertCopy(inv.expression);
+                    addTraceableComment(inv,copy,inv.toString());
+                    JCExpression e = convertJML(copy);
                     addAssert(inv.pos(),Label.LOOP_INVARIANT_PRELOOP, e);
                 }
             }
@@ -5571,15 +5584,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Create the if statement that is the loop exit */
     protected void loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, DiagnosticPosition pos) {
         pushBlock();
-        if (loopSpecs != null) {
-            for (JmlStatementLoop inv: loopSpecs) {
-                if (inv.token == JmlToken.LOOP_INVARIANT) {
-                    addTraceableComment(inv,inv.expression,inv.toString());
-                    JCExpression e = convertJML(inv.expression);
-                    addAssert(inv.pos(),Label.LOOP_INVARIANT_ENDLOOP, e);
-                }
-            }
-        }
         JCBreak br = M.at(pos).Break(null);
         br.target = loop;
         addStat(br);
@@ -5590,6 +5594,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Convert the loop body */
     protected void loopHelperMakeBody(JCStatement body) {
+        addTraceableComment(body,null,"Begin loop body");
         JCBlock bodyBlock = M.at(body.pos()).Block(0, null);
         Name label = names.fromString("loopBody_" + body.pos + "_" + (++count));
         JCLabeledStatement lab = M.at(body.pos()).Labelled(label,bodyBlock);
@@ -5606,13 +5611,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Inserts the invariants as assumptions; also computes initial values of
      * the variants. (at the beginning of a loop body) */
-    protected void loopHelperAssumeInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs, DiagnosticPosition pos) {
+    protected void loopHelperAssumeInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs, JCTree that) {
+        addTraceableComment(that, null, "Begin loop check");
+        DiagnosticPosition pos = that.pos();
+        
         // Assume the invariants
         if (loopSpecs != null) {
             for (JmlStatementLoop inv: loopSpecs) {
                 if (inv.token == JmlToken.LOOP_INVARIANT) {
-                    addTraceableComment(inv,inv.expression,inv.toString());
-                    JCExpression e = convertJML(inv.expression);
+                    JCExpression copy = convertCopy(inv.expression);
+                    addTraceableComment(inv,copy,inv.toString());
+                    JCExpression e = convertJML(copy);
                     addAssume(inv.pos(),Label.LOOP_INVARIANT_ASSUMPTION, e);
                 }
             }
@@ -5628,8 +5637,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (loopSpecs != null) {
             for (JmlStatementLoop inv: loopSpecs) {
                 if (inv.token == JmlToken.DECREASES) {
-                    addTraceableComment(inv,inv.expression,inv.toString());
-                    JCExpression e = convertJML(inv.expression);
+                    JCExpression copy = convertCopy(inv.expression);
+                    addTraceableComment(inv,copy,inv.toString(),"Initial Value of Loop Decreases Expression");
+                    JCExpression e = convertJML(copy);
                     JCIdent id = newTemp(e);
                     decreasesIDs.add(id);
                 }
@@ -5650,8 +5660,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (loopSpecs != null) {
             for (JmlStatementLoop inv: loopSpecs) {
                 if (inv.token == JmlToken.LOOP_INVARIANT) {
-                    addTraceableComment(inv,inv.expression,inv.toString());
-                    JCExpression e = convertJML(inv.expression);
+                    JCExpression copy = convertCopy(inv.expression);
+                    addTraceableComment(inv,copy,inv.toString());
+                    JCExpression e = convertJML(copy);
                     addAssert(inv.pos(),Label.LOOP_INVARIANT, e);
                 }
             }
@@ -5659,8 +5670,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Iterator<JCIdent> iter = decreasesIDs.iterator();
             for (JmlStatementLoop inv: loopSpecs) {
                 if (inv.token == JmlToken.DECREASES) {
-                    addTraceableComment(inv,inv.expression,inv.toString());
-                    JCExpression e = convertJML(inv.expression);
+                    JCExpression copy = convertCopy(inv.expression);
+                    addTraceableComment(inv,copy,inv.toString());
+                    JCExpression e = convertJML(copy);
                     JCIdent id = newTemp(e);
                     JCBinary bin = treeutils.makeBinary(inv.pos, JCTree.LT,  treeutils.intltSymbol, id, iter.next());
                     addAssert(inv.pos(),Label.LOOP_DECREASES, bin);
@@ -5764,15 +5776,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             loopHelperHavoc(that.body.pos(),that.step,that.body,that.cond);
         }
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that.pos());
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
         if (that.cond != null) {
             
+            addTraceableComment(that.cond,that.cond,"Loop test");
             JCExpression cond = convertExpr(that.cond);
 
-            // The exit block tests the condition; if exiting, it tests the
-            // invariant and breaks.
+            // The exit block tests the condition; if exiting, it breaks out of the loop
             loopHelperMakeBreak(that.loopSpecs, cond, loop, that.pos());
         }
         
@@ -6401,6 +6413,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlSingleton(JmlSingleton that) {
+        if (pureCopy) {
+            JmlSingleton e = M.at(that.pos()).JmlSingleton(that.token);
+            e.type = that.type;
+            e.symbol = that.symbol;
+            e.info = that.info;
+            treeutils.copyEndPosition(e,that);
+            result = eresult = e;
+            return;
+        }
         if (!translatingJML) {
             error(that.pos(),"Unexpected call of JmlAssertionAdder.visitJmlSingleton: " + that.getClass());
             return;
@@ -7132,11 +7153,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             loopHelperHavoc(that.body.pos(),that.body,that.cond);
         }
         
-        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that.pos());
+        loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
         
         // Compute the condition, recording any side-effects
         {
             
+            addTraceableComment(that.cond,that.cond,"Loop test");
             JCExpression cond = convertExpr(that.cond);
 
             // The exit block tests the condition; if exiting, it tests the

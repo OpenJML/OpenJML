@@ -1,0 +1,26 @@
+Proving methods in trace
+Starting proof of trace.m1() with prover z3_4_3
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+testfiles\escTraceLoops\trace.java:14:  	int k = 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:15:  	int j = 1
+			VALUE: j	 === 1
+testfiles\escTraceLoops\trace.java:17:  	for ...
+testfiles\escTraceLoops\trace.java:17:  	int i = 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:16:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 1
+			VALUE: i	 === 0
+			VALUE: j == i	 === false
+			VALUE: j == i && 0 <= i	 === false
+			VALUE: j == i && 0 <= i && i <= k	 === false
+testfiles\escTraceLoops\trace.java:16: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m1
+        //@ loop_invariant j == i && 0 <= i && i <= k;
+            ^
+Completed proof of trace.m1() with prover z3_4_3 - with warnings
+Completed proving methods in trace
+1 warning

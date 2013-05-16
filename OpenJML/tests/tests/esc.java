@@ -139,12 +139,12 @@ public class esc extends EscBase {
                 
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m3",11
                 ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Assert) in method m5",14
-                ,"/tt/TestJava.java:48: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method m7x",5
+                ,"/tt/TestJava.java:48: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7x",5
                 ,"/tt/TestJava.java:47: warning: Associated declaration",9
                 );
     }
 
-    @Test @Ignore // FIXME Test7a complains about LoopDecreasesNotPositive, when it should complain about LoopDecreases
+    @Test @Ignore // FIXME Test7a complains about LoopDecreasesNonNegative, when it should complain about LoopDecreases
     public void testForEach() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -202,7 +202,7 @@ public class esc extends EscBase {
                 +"  public TestJava() {}\n"
                 +"}"
                 
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method m7y",5
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7y",5
                 ,"/tt/TestJava.java:5: warning: Associated declaration",9
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
                 ,"/tt/TestJava.java:11: warning: Associated declaration",9
@@ -2251,7 +2251,7 @@ public class esc extends EscBase {
                 +"  public void instc() { int n = 0; /*@ loop_invariant 0<=i && i<5 && n==i; decreases 5-i; */ for (int i=0; i<5; i++) n++; /*@ assert n == 5; */ }\n"
                 +"  public void instd() { int n = 0; /*@ loop_invariant 0<=i && i<=5 && n==i-1; decreases 5-i; */ for (int i=0; i<5; i++) n++;  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",119
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",119
                 ,"/tt/TestJava.java:4: warning: Associated declaration",77
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",118
                 ,"/tt/TestJava.java:5: warning: Associated declaration",40
@@ -2273,7 +2273,7 @@ public class esc extends EscBase {
                 +"}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91, // This presumably an effect of the 
                 "/tt/TestJava.java:4: warning: Associated declaration",40,
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
+                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",91,
                 "/tt/TestJava.java:4: warning: Associated declaration",61,
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method instb",108,
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",89,
@@ -2294,7 +2294,7 @@ public class esc extends EscBase {
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
                 +"  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"}",
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",91,
+                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",91,
                 "/tt/TestJava.java:4: warning: Associated declaration",61,
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",100,
                 "/tt/TestJava.java:5: warning: Associated declaration",61,
@@ -2312,7 +2312,7 @@ public class esc extends EscBase {
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- >0) { } /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (--i > 1) { } /*@ assert i == 0; */ }\n"
                 +"}"
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopDecreasesNotPositive) in method instb",96 // FIXME - should be OK
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",96 // FIXME - should be OK
                 ,"/tt/TestJava.java:3: warning: Associated declaration",40
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method instb", 95
                 ,"/tt/TestJava.java:4: warning: Associated declaration",40

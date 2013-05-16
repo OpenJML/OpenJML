@@ -172,5 +172,119 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escTrace6","testfiles/escTrace6","-subexpressions","-progress");
     }
 
+    @Test
+    public void testTraceloops() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops","-method=mgood","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops1() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops1","-method=m1","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops2","-method=m2","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops3() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops3","-method=m3","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops4() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops4","-method=m4","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops5() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops5","-method=m5","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceloops6() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops6","-method=m6","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceWhile() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceWhile","-method=mwhile","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceWhile1() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceWhile1","-method=mwhile1","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceWhile2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceWhile2","-method=mwhile2","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceDo() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo","-method=mdo","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceDo1() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo1","-method=mdo1","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceDo2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo2","-method=mdo2","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach","-method=mforeach","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach1() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach1","-method=mforeach1","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach2","-show","-method=mforeach2","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach3() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach3","-method=mforeach3","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach4() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach4","-method=mforeach4","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceForeach5() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach5","-method=mforeach5","-subexpressions","-progress");
+    }
+
 
 }

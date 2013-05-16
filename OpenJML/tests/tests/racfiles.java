@@ -133,5 +133,12 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/rac1a","Bug1");
     }
 
+    @Test // Stack overflow because of recursive check of invariant
+    public void testBug1() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF("testfiles/racbug1","Add");
+    }
+
 
 }
