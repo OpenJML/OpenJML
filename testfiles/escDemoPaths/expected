@@ -2,59 +2,7 @@ Proving methods in openjml.demo.Paths
 Starting proof of openjml.demo.Paths.Paths() with prover z3_4_3
 Completed proof of openjml.demo.Paths.Paths() with prover z3_4_3 - no warnings
 Starting proof of openjml.demo.Paths.clip(int,int,int) with prover z3_4_3
-
-TRACE
-
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
-..\OpenJMLDemo\src\openjml\demo\Paths.java:7:  	old boolean p1 = i < min;
-			VALUE: i_359	 === 0
-			VALUE: min_375	 === 1
-			VALUE: i_359 < min_375	 === true
-			VALUE: p1 = true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:9:  	requires p1; 
-			VALUE: p1	 === true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:7:  	old boolean p1 = i < min;
-			VALUE: i_359	 === 0
-			VALUE: min_375	 === 1
-			VALUE: i_359 < min_375	 === true
-			VALUE: p1 = true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:12:  	requires i > max; 
-			VALUE: i	 === 0
-			VALUE: max	 === ( - 1 )
-			VALUE: i > max	 === true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:7:  	old boolean p1 = i < min;
-			VALUE: i_359	 === 0
-			VALUE: min_375	 === 1
-			VALUE: i_359 < min_375	 === true
-			VALUE: p1 = true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:15:  	requires !p1 && i <= max; 
-			VALUE: p1	 === true
-			VALUE: !p1	 === false
-			VALUE: !p1 && i <= max	 === false
-..\OpenJMLDemo\src\openjml\demo\Paths.java:19:  	if (i < min) ...
-			VALUE: i	 === 0
-			VALUE: min	 === 1
-			VALUE: i < min	 === true
-			VALUE: (i < min)	 === true
-				Condition = true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:19:  	return min;
-			VALUE: min	 === 1
-..\OpenJMLDemo\src\openjml\demo\Paths.java:10:  	ensures \result == min; 
-			VALUE: \result	 === 1
-			VALUE: min	 === 1
-			VALUE: \result == min	 === true
-..\OpenJMLDemo\src\openjml\demo\Paths.java:13:  	ensures \result == max; 
-			VALUE: \result	 === 1
-			VALUE: max	 === ( - 1 )
-			VALUE: \result == max	 === false
-..\OpenJMLDemo\src\openjml\demo\Paths.java:19: warning: The prover cannot establish an assertion (Postcondition) in method clip
-		if (i < min) return min;
-		             ^
-..\OpenJMLDemo\src\openjml\demo\Paths.java:13: warning: Associated declaration
-	//@   ensures \result == max;
-	      ^
-Completed proof of openjml.demo.Paths.clip(int,int,int) with prover z3_4_3 - with warnings
+Completed proof of openjml.demo.Paths.clip(int,int,int) with prover z3_4_3 - no warnings
 Starting proof of openjml.demo.Paths.multipleErrors(int) with prover z3_4_3
 
 TRACE
@@ -112,22 +60,25 @@ TRACE
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	k = 1
 			VALUE: 1	 === 1
 			VALUE: k = 1	 === 1
-..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	case 2:
-			VALUE: 2	 === 2
-..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	k = 2
-			VALUE: 2	 === 2
-			VALUE: k = 2	 === 2
-..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	case 3:
-			VALUE: 3	 === 3
-..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	k = 3
-			VALUE: 3	 === 3
-			VALUE: k = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	break;
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
 			VALUE: i	 === 1
-			VALUE: k	 === 3
-			VALUE: i == k	 === false
-..\OpenJMLDemo\src\openjml\demo\Paths.java:40: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
-		//@ assert i == k;
+			VALUE: k	 === 1
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:48:  	j = 2
+			VALUE: 2	 === 2
+			VALUE: j = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 1
+			VALUE: i += k	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
 		    ^
 
 TRACE
@@ -147,18 +98,395 @@ TRACE
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	k = 2
 			VALUE: 2	 === 2
 			VALUE: k = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 2
+			VALUE: k	 === 2
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 2
+			VALUE: i += k	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 1
+			VALUE: (i)	 === 1
+				Selection = 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	case 1:
+			VALUE: 1	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 1
+			VALUE: k	 === 1
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 1
+			VALUE: i += k	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 2
+			VALUE: (i)	 === 2
+				Selection = 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	case 2:
+			VALUE: 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	k = 2
+			VALUE: 2	 === 2
+			VALUE: k = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 2
+			VALUE: k	 === 2
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 2
+			VALUE: i += k	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 4
+			VALUE: (i)	 === 4
+				Selection = 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	default:
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	k = i
+			VALUE: i	 === 4
+			VALUE: k = i	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 4
+			VALUE: k	 === 4
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 4
+			VALUE: i += k	 === 8
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 2
+			VALUE: (i)	 === 2
+				Selection = 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	case 2:
+			VALUE: 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	k = 2
+			VALUE: 2	 === 2
+			VALUE: k = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:37:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 2
+			VALUE: k	 === 2
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:48:  	j = 2
+			VALUE: 2	 === 2
+			VALUE: j = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 2
+			VALUE: i += k	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 1
+			VALUE: (i)	 === 1
+				Selection = 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	case 1:
+			VALUE: 1	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:36:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 1
+			VALUE: k	 === 1
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 1
+			VALUE: i += k	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 4
+			VALUE: (i)	 === 4
+				Selection = 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	default:
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	k = i
+			VALUE: i	 === 4
+			VALUE: k = i	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 4
+			VALUE: k	 === 4
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 4
+			VALUE: i += k	 === 8
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 3
+			VALUE: (i)	 === 3
+				Selection = 3
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	case 3:
 			VALUE: 3	 === 3
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	k = 3
 			VALUE: 3	 === 3
 			VALUE: k = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	break;
 ..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
-			VALUE: i	 === 2
+			VALUE: i	 === 3
 			VALUE: k	 === 3
-			VALUE: i == k	 === false
-..\OpenJMLDemo\src\openjml\demo\Paths.java:40: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
-		//@ assert i == k;
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 3
+			VALUE: i += k	 === 6
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 3
+			VALUE: (i)	 === 3
+				Selection = 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	case 3:
+			VALUE: 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	k = 3
+			VALUE: 3	 === 3
+			VALUE: k = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 3
+			VALUE: k	 === 3
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:48:  	j = 2
+			VALUE: 2	 === 2
+			VALUE: j = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 3
+			VALUE: i += k	 === 6
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 3
+			VALUE: (i)	 === 3
+				Selection = 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	case 3:
+			VALUE: 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	k = 3
+			VALUE: 3	 === 3
+			VALUE: k = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:38:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 3
+			VALUE: k	 === 3
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:50:  	j = 3
+			VALUE: 3	 === 3
+			VALUE: j = 3	 === 3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 3
+			VALUE: i += k	 === 6
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
+		    ^
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int k = 0
+			VALUE: k	 === 0
+..\OpenJMLDemo\src\openjml\demo\Paths.java:33:  	int j = 1
+			VALUE: j	 === 1
+..\OpenJMLDemo\src\openjml\demo\Paths.java:34:  	switch (i) ...
+			VALUE: i	 === 4
+			VALUE: (i)	 === 4
+				Selection = 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	default:
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	k = i
+			VALUE: i	 === 4
+			VALUE: k = i	 === 4
+..\OpenJMLDemo\src\openjml\demo\Paths.java:35:  	break;
+..\OpenJMLDemo\src\openjml\demo\Paths.java:40:  	assert Assert i == k;
+			VALUE: i	 === 4
+			VALUE: k	 === 4
+			VALUE: i == k	 === true
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:43:  	Exception thrown by Exception()
+			VALUE: _JML___exceptionCall	 === REF!val!3
+..\OpenJMLDemo\src\openjml\demo\Paths.java:48:  	j = 2
+			VALUE: 2	 === 2
+			VALUE: j = 2	 === 2
+..\OpenJMLDemo\src\openjml\demo\Paths.java:52:  	i += k
+			VALUE: k	 === 4
+			VALUE: i += k	 === 8
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
+			VALUE: false	 === false
+..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+		//@ assert false;
 		    ^
 Completed proof of openjml.demo.Paths.lotsOfPaths(int) with prover z3_4_3 - with warnings
 Completed proving methods in openjml.demo.Paths
-6 warnings
+14 warnings

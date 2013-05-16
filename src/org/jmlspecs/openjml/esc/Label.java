@@ -180,7 +180,7 @@ public class Label {
     /*@ non_null*/ public final static Label LOOP_DECREASES = new Label("LoopDecreases");
     
     /** Used for the assertion that the loop variant is never negative prior to executing a loop iteration. */
-    /*@ non_null*/ public final static Label LOOP_DECREASES_NEGATIVE = new Label("LoopDecreasesNotPositive");
+    /*@ non_null*/ public final static Label LOOP_DECREASES_NEGATIVE = new Label("LoopDecreasesNonNegative");
     
     /** Used to designate the conditional test of a loop */
     /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");

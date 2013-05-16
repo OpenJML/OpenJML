@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.ListBuffer;
@@ -58,14 +59,17 @@ public class TargetFinder extends JmlTreeScanner {
         return vars;
     }
     
+    @Override
     public void visitAssign(JCAssign that) {
         vars.add(that.lhs);
     }
     
-    public void visitAssignOp(JCAssign that) {
+    @Override
+    public void visitAssignop(JCAssignOp that) {
         vars.add(that.lhs);
     }
     
+    @Override
     public void visitUnary(JCUnary that) {
         int op = that.getTag();
         if (op == JCTree.POSTDEC || op == JCTree.POSTINC ||

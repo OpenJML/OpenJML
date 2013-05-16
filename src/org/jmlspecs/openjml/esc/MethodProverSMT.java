@@ -518,9 +518,13 @@ public class MethodProverSMT {
                     }
                     log.noticeWriter.println(loc + " \t" + comment);
                     if (toTrace != null && showSubexpressions) tracer.scan(toTrace);
-                    if (origStat instanceof JCIf) log.noticeWriter.println("\t\t\t\tCondition = " + val);
-                    if (origStat instanceof JCSwitch) log.noticeWriter.println("\t\t\t\tSelection = " + cemap.get(toTrace));
+                    String s = ((JmlStatementExpr)bbstat).id;
+                    if (toTrace != null && s != null) log.noticeWriter.println("\t\t\t\t" + s + " = " + cemap.get(toTrace));
 
+                } else if (aaPathMap.reverse.keySet().contains(bbstat)) {
+                    String loc = utils.locationString(bbstat.getStartPosition());
+                    String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+                    log.noticeWriter.println(loc + " \t" + comment);
                 }
                 
             }
@@ -544,7 +548,7 @@ public class MethodProverSMT {
                 if (e instanceof JCTree.JCLiteral) {
                     value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
                 } else if (e instanceof JCTree.JCParens) {
-                        value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
+                    value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
                 } else {
                     id = ((JCIdent)e).name.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);

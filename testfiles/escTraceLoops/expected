@@ -1,0 +1,4 @@
+Proving methods in trace
+Starting proof of trace.mgood() with prover z3_4_3
+Completed proof of trace.mgood() with prover z3_4_3 - no warnings
+Completed proving methods in trace

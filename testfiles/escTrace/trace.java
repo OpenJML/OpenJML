@@ -63,6 +63,7 @@ public class trace {
             m = m + 1;
         }
         //@ assume a.length > 10;
+        a[2] = 42;
         m = a[1+1] - a[2];
         a[1] = k + 1;
         a[1] += k + 1;
