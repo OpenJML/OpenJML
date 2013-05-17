@@ -108,7 +108,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo2() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemo2","-noInternalSpecs","-subexpressions","-progress","-show","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemo2","-noInternalSpecs","-subexpressions","-progress","-method=tick");
     }
 
     @Test
@@ -265,7 +265,7 @@ public class escfiles extends EscBase {
     @Test
     public void testTraceForeach2() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach2","-show","-method=mforeach2","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach2","-method=mforeach2","-subexpressions","-progress");
     }
 
     @Test

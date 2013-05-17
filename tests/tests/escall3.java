@@ -309,6 +309,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testPrecondition2() {
+        //main.addOptions("-show","-method=<init>","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -352,6 +353,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testPostcondition1() {
+        //main.addOptions("-progress","-show","-method=m2good");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

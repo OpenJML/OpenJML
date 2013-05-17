@@ -307,6 +307,10 @@ public class SMTTranslator extends JmlTreeScanner {
         
         cc = new C_push(F.numeral(1));
         commands.add(cc);
+        cc = new C_assert(F.fcn(F.symbol("="),F.symbol(JmlAssertionAdder.assumeCheckVar),F.numeral(0)));
+        commands.add(cc);
+        cc = new C_push(F.numeral(1));
+        commands.add(cc);
         cc = new C_check_sat();
         commands.add(cc);
         
