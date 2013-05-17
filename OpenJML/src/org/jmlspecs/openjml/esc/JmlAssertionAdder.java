@@ -522,7 +522,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public VarSymbol assumeCheckSym;
     
-    public Map<JmlMethodDecl,java.util.List<String>> assumeChecks = new HashMap<JmlMethodDecl,java.util.List<String>>();
+    public Map<JmlMethodDecl,java.util.List<JmlStatementExpr>> assumeChecks = new HashMap<JmlMethodDecl,java.util.List<JmlStatementExpr>>();
     
     
     /** (Public API) Creates an object to do the rewriting and assertion insertion. This object
@@ -819,7 +819,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // postconditions and exceptional postconditions are checked.
             if (JmlOption.value(context,JmlOption.FEASIBILITY).equals("all") ||
             		JmlOption.value(context,JmlOption.FEASIBILITY).equals("exit")) {
-            	addAssumeCheck(methodDecl,outerFinalizeStats,"program exit");
+            	addAssumeCheck(methodDecl,outerFinalizeStats,"at program exit");
             }
             JCTry outerTryStatement = M.at(methodDecl.pos()).Try(
                             newMainBody,
@@ -1212,34 +1212,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Creates a statement at which we can check feasibility */
     protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
         if (!esc) return;
-        // We create an 'assert true'.
-        // Later we can turn the true to false and see if the path through
-        // the initial assumptions is feasible. We use the Parens expr
-        // so that we can just change the literal inside it. We don't 
-        // change the assume statement itself, because typically its
-        // expression is converted to a temporary id.
-//        java.util.List<JCTree.JCParens> checks = assumptionChecks.get(methodDecl.sym);
-//        java.util.List<JmlTree.JmlStatementExpr> checkStats = assumptionCheckStats.get(methodDecl.sym);
-//        if (checks == null) assumptionChecks.put(methodDecl.sym, checks = new ArrayList<JCTree.JCParens>(10));
-//        if (checkStats == null) assumptionCheckStats.put(methodDecl.sym, checkStats = new ArrayList<JmlTree.JmlStatementExpr>(10));
-//    	JCParens ep = M.at(item.pos()).Parens(treeutils.trueLit);
-//    	ep.setType(treeutils.trueLit.type);
-//    	treeutils.copyEndPosition(ep,item);
-//    	JmlStatementExpr a = M.at(item.pos()).JmlExpressionStatement(JmlToken.ASSERT, Label.ASSUME_CHECK, ep);
-//    	a.optionalExpression = treeutils.makeStringLiteral(item.pos,description);
-//    	checks.add(ep);
-//    	checkStats.add(a);
-//    	addStat(list,a);
+        // We create feasibility check points by adding assertions of the 
+        // form assumeCheckVar != n, for different values of n > 0.
+        // Then for normal checking of the method, we assert assumeCheckVar == 0
+        // so all the introduced asserts are trivially true.
+        // But plater we can pop the assumeCheckVar == 0 and add 
+        // assumeCHeckVar == k, to check feasibility at point k.
         
         ++assumeCheckCount;
-        java.util.List<String> descs = assumeChecks.get(methodDecl);
-        if (descs == null) assumeChecks.put(methodDecl, descs = new LinkedList<String>());
-        descs.add(description);
+        java.util.List<JmlStatementExpr> descs = assumeChecks.get(methodDecl);
+        if (descs == null) assumeChecks.put(methodDecl, descs = new LinkedList<JmlStatementExpr>());
         JCIdent id = treeutils.makeIdent(item.pos, assumeCheckSym);
         JCExpression bin = treeutils.makeBinary(item.pos,JCTree.NE,treeutils.intneqSymbol,id,treeutils.makeIntLiteral(item.pos,assumeCheckCount));
         ListBuffer<JCStatement> prev = currentStatements;
         currentStatements = list;
-        JCStatement a = addAssert(item.pos(), Label.ASSUME_CHECK, bin);
+        JmlStatementExpr a = (JmlStatementExpr)addAssert(item.pos(), Label.ASSUME_CHECK, bin);
+        a.description = description;
+        descs.add(a);
         currentStatements = prev;
     }
     

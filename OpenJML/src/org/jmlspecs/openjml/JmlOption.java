@@ -46,7 +46,8 @@ public enum JmlOption implements IOption {
     EXCLUDE("-exclude",true,"Comma-separated list of method name patterns to exclude from ESC",null),
     PROVER("-prover",true,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,"The prover executable to use",null),
-
+    LOGIC("-logic",true,"The SMT logic to use",null),
+    
     NONNULLBYDEFAULT("-nonnullByDefault",false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,"Makes references nullable by default",null),
     SPECS("-specspath",true,"Specifies the directory path to search for specification files",null),
@@ -84,7 +85,6 @@ public enum JmlOption implements IOption {
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     ;
     
-
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' character.
      */
@@ -127,7 +127,7 @@ public enum JmlOption implements IOption {
      * 
      * @param context the compilation context
      * @param option the option to set
-     * @param value the value to give the option - boolean options use null for false and non-null for true
+     * @param value the value to give the option - boolean options interpret null as false and non-null as true
      */
     public static void putOption(Context context, JmlOption option, String value) {
         Options.instance(context).put(option.name,value);

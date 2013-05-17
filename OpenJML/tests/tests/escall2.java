@@ -650,6 +650,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testDZero() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -706,6 +707,7 @@ public class escall2 extends EscBase {
     
     @Test // THIS ONE BLOWS THE PROVER ??? FIXME (literal divide by zero)
     public void testDZero2() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"

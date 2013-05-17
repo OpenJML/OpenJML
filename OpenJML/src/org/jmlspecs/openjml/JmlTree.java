@@ -2509,6 +2509,9 @@ public class JmlTree implements IJmlTree {
         /** A String just used to distinguish assertions for reporting purposes */
         public String id = null;
         
+        /** A descriptive string for reporting purposes */
+        public String description = null;
+        
         /** The file containing the specification (e.g. clause) from which this
          * assertion or assumption arises; if null then is the same as source. 
          * (source and pos are the location in 

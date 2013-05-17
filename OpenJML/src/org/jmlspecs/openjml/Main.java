@@ -833,6 +833,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (options == null) {
             filenames = new ListBuffer<File>();
             classnames = new ListBuffer<String>();
+            coreDefaultOptions(opts);
             Properties properties = Utils.findProperties(context);
             for (Map.Entry<Object,Object> p : properties.entrySet()) {
                 Object o = p.getKey();
@@ -876,6 +877,10 @@ public class Main extends com.sun.tools.javac.main.Main {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
         return null;
+    }
+    
+    public void coreDefaultOptions(Options opts) {
+        opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
     }
     
     /** Adjusts the options on the current instance of main per the arguments. */

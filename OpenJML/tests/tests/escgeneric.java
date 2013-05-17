@@ -66,8 +66,9 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(this) == \\type(Object);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: An assumption appears to be infeasible in method tt.TestJava.ma(java.lang.Object)",9
-                ,isCustom?null:"/tt/TestJava.java:6: warning: An assumption appears to be infeasible in method tt.TestJava.ma(java.lang.Object)",15
+                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,isCustom?null:"/tt/TestJava.java:8: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 );
     }

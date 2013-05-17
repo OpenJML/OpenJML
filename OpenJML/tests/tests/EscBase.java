@@ -25,7 +25,7 @@ public abstract class EscBase extends JmlTestCase {
     static public String[] solvers = { 
         null, 
         "z3_4_3", 
-        //"cvc4",
+        "cvc4",
         "yices2" , 
         // "yices", 
         // "simplify" 

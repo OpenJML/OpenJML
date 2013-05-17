@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -72,6 +73,9 @@ import com.sun.tools.javac.util.Names;
  */
 public class SMTTranslator extends JmlTreeScanner {
 
+    /** The compilation context */
+    protected Context context;
+    
     /** The error log */
     protected Log log;
     
@@ -126,6 +130,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     public SMTTranslator(Context context) {
+        this.context = context;
         log = Log.instance(context);
         syms = Symtab.instance(context);
         names = Names.instance(context);
@@ -167,7 +172,9 @@ public class SMTTranslator extends JmlTreeScanner {
         // set the logic
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
         commands.add(c);
-        c = new C_set_logic(F.symbol("AUFNIRA"));
+        
+        String s = JmlOption.value(context, JmlOption.LOGIC);
+        c = new C_set_logic(F.symbol(s));
         commands.add(c);
         
         // add background statements
