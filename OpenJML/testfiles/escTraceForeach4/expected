@@ -1,0 +1,72 @@
+Proving methods in trace
+Starting proof of trace.mforeach4(int[]) with prover z3_4_3
+
+TRACE
+
+			VALUE: null = REF!val!1
+			VALUE: this = REF!val!0
+testfiles\escTraceLoops\trace.java:194:  	requires a != null; 
+			VALUE: a	 === REF!val!2
+			VALUE: null	 === REF!val!1
+			VALUE: a != null	 === true
+testfiles\escTraceLoops\trace.java:195:  	int j = 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 0
+			VALUE: \index	 === 0
+			VALUE: j == \index	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 0
+			VALUE: 0 <= \index	 === true
+			VALUE: j == \index && 0 <= \index	 === true
+			VALUE: \index	 === 0
+			VALUE: a	 === REF!val!2
+			VALUE: a.length	 === 7720
+			VALUE: \index <= a.length	 === true
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+testfiles\escTraceLoops\trace.java:198:  	Begin loop check
+testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 7719
+			VALUE: \index	 === 7719
+			VALUE: j == \index	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 7719
+			VALUE: 0 <= \index	 === true
+			VALUE: j == \index && 0 <= \index	 === true
+			VALUE: \index	 === 7719
+			VALUE: a	 === REF!val!2
+			VALUE: a.length	 === 7720
+			VALUE: \index <= a.length	 === true
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+testfiles\escTraceLoops\trace.java:197:  	//@ decreases j;
+			VALUE: j	 === 7719
+				Initial Value of Loop Decreases Expression = 7719
+testfiles\escTraceLoops\trace.java:198:  	Loop test
+			VALUE: index_4757_101	 === 7719
+			VALUE: _JML__tmp102	 === 7720
+			VALUE: index_4757_101 < _JML__tmp102	 === true
+testfiles\escTraceLoops\trace.java:198:  	Begin loop body
+testfiles\escTraceLoops\trace.java:199:  	j += 1
+			VALUE: 1	 === 1
+			VALUE: j += 1	 === 7720
+testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 7720
+			VALUE: \index	 === 7720
+			VALUE: j == \index	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 7720
+			VALUE: 0 <= \index	 === true
+			VALUE: j == \index && 0 <= \index	 === true
+			VALUE: \index	 === 7720
+			VALUE: a	 === REF!val!2
+			VALUE: a.length	 === 7720
+			VALUE: \index <= a.length	 === true
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+testfiles\escTraceLoops\trace.java:197:  	//@ decreases j;
+			VALUE: j	 === 7720
+testfiles\escTraceLoops\trace.java:197: warning: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
+        //@ decreases j;
+            ^
+Completed proof of trace.mforeach4(int[]) with prover z3_4_3 - with warnings
+Completed proving methods in trace
+1 warning

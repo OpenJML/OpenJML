@@ -1,7 +1,11 @@
 Proving methods in trace
 Starting proof of trace.trace() with prover z3_4_3
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - program exit : OK
 Completed proof of trace.trace() with prover z3_4_3 - no warnings
 Starting proof of trace.mm() with prover z3_4_3
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - program exit : OK
 Completed proof of trace.mm() with prover z3_4_3 - no warnings
 Starting proof of trace.m() with prover z3_4_3
 
@@ -29,6 +33,8 @@ testfiles\escTrace6\trace.java:9: warning: Associated declaration
         ^
 Completed proof of trace.m() with prover z3_4_3 - with warnings
 Starting proof of trace.m2() with prover z3_4_3
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - program exit : OK
 Completed proof of trace.m2() with prover z3_4_3 - no warnings
 Starting proof of trace.m3() with prover z3_4_3
 

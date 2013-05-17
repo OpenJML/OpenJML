@@ -26,45 +26,45 @@ testfiles\escTraceLoops\trace.java:39:  	//@ loop_invariant j == i && 0 <= i && 
 			VALUE: j == i && 0 <= i && i <= k	 === true
 testfiles\escTraceLoops\trace.java:41:  	Begin loop check
 testfiles\escTraceLoops\trace.java:39:  	//@ loop_invariant j == i && 0 <= i && i <= k;
-			VALUE: j	 === 0
-			VALUE: i	 === 0
+			VALUE: j	 === 4
+			VALUE: i	 === 4
 			VALUE: j == i	 === true
 			VALUE: 0	 === 0
-			VALUE: i	 === 0
+			VALUE: i	 === 4
 			VALUE: 0 <= i	 === true
 			VALUE: j == i && 0 <= i	 === true
-			VALUE: i	 === 0
+			VALUE: i	 === 4
 			VALUE: k	 === 5
 			VALUE: i <= k	 === true
 			VALUE: j == i && 0 <= i && i <= k	 === true
 testfiles\escTraceLoops\trace.java:40:  	//@ decreases j;
-			VALUE: j	 === 0
-				Initial Value of Loop Decreases Expression = 0
+			VALUE: j	 === 4
+				Initial Value of Loop Decreases Expression = 4
 testfiles\escTraceLoops\trace.java:41:  	Loop test
-			VALUE: i	 === 0
+			VALUE: i	 === 4
 			VALUE: k	 === 5
 			VALUE: i < k	 === true
 testfiles\escTraceLoops\trace.java:41:  	Begin loop body
 testfiles\escTraceLoops\trace.java:42:  	++j
-			VALUE: j	 === 1
-			VALUE: ++j	 === 1
+			VALUE: j	 === 5
+			VALUE: ++j	 === 5
 testfiles\escTraceLoops\trace.java:41:  	i++
-			VALUE: i	 === 1
-			VALUE: i++	 === 0
+			VALUE: i	 === 5
+			VALUE: i++	 === 4
 testfiles\escTraceLoops\trace.java:39:  	//@ loop_invariant j == i && 0 <= i && i <= k;
-			VALUE: j	 === 1
-			VALUE: i	 === 1
+			VALUE: j	 === 5
+			VALUE: i	 === 5
 			VALUE: j == i	 === true
 			VALUE: 0	 === 0
-			VALUE: i	 === 1
+			VALUE: i	 === 5
 			VALUE: 0 <= i	 === true
 			VALUE: j == i && 0 <= i	 === true
-			VALUE: i	 === 1
+			VALUE: i	 === 5
 			VALUE: k	 === 5
 			VALUE: i <= k	 === true
 			VALUE: j == i && 0 <= i && i <= k	 === true
 testfiles\escTraceLoops\trace.java:40:  	//@ decreases j;
-			VALUE: j	 === 1
+			VALUE: j	 === 5
 testfiles\escTraceLoops\trace.java:40: warning: The prover cannot establish an assertion (LoopDecreases) in method m3
         //@ decreases j;
             ^

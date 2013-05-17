@@ -157,7 +157,7 @@ public class trace {
 
     public void mforeach(int[] a) {
         int j = 0;
-        //@ loop_invariant j == \index;
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
         for (int i: a) {
             j += 1;
         }
@@ -166,7 +166,7 @@ public class trace {
     }
     public void mforeach1(int[] a) {
         int j = 0;
-        //@ loop_invariant j == 0;
+        //@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
         for (int i: a) {
             j += 1;
         }
@@ -175,7 +175,7 @@ public class trace {
     }
     public void mforeach2(int[] a) {
         int j = 0;
-        //@ loop_invariant j == \index;
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
         for (int i: a) {
             j = j + j + 1;
         }
@@ -183,7 +183,7 @@ public class trace {
     }
     public void mforeach3(int[] a) {
         int j = 0;
-        //@ loop_invariant j == \index;
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
         //@ decreases a.length - j;
         for (int i: a) {
             j += 1;
@@ -193,7 +193,7 @@ public class trace {
     }
     public void mforeach4(int[] a) {
         int j = 0;
-        //@ loop_invariant j == \index;
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
         //@ decreases j;
         for (int i: a) {
             j += 1;
@@ -203,7 +203,7 @@ public class trace {
     }
     public void mforeach5(int[] a) {
         int j = 0;
-        //@ loop_invariant j == \index;
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
         //@ decreases -j;
         for (int i: a) {
             j += 1;

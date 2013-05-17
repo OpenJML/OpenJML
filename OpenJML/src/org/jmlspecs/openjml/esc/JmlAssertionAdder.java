@@ -516,6 +516,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** A map from Class Symbols to an ident containing the this symbol for that class */
     public Map<Symbol,JCIdent> thisIds = new HashMap<Symbol,JCIdent>();
     
+    public int assumeCheckCount = 0;
+    
+    public final static String assumeCheckVar = "__JML_AssumeCheck_";
+    
+    public VarSymbol assumeCheckSym;
+    
+    public Map<JmlMethodDecl,java.util.List<String>> assumeChecks = new HashMap<JmlMethodDecl,java.util.List<String>>();
+    
+    
     /** (Public API) Creates an object to do the rewriting and assertion insertion. This object
      * can be reused to translate different method bodies, so long as the arguments
      * to this constructor remain appropriate. May not have both esc and rac true;
@@ -612,6 +621,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             terminationSymbols.put(methodDecl, terminationSym);
             currentStatements.add(d);
         }
+        if (esc) {
+            Name name = names.fromString(assumeCheckVar);
+            JCVariableDecl d = treeutils.makeVarDef(syms.intType, name, methodDecl.sym, Position.NOPOS); // NOPOS so the name is not mangled
+            assumeCheckSym = d.sym;
+            d.sym.owner = null;
+            currentStatements.add(d);
+        }
         
         exprBiMap.put(treeutils.nullLit,treeutils.nullLit);
 
@@ -698,6 +714,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
+        int prevAssumeCheckCount = assumeCheckCount;
         JmlMethodDecl prev = this.methodDecl;
         JmlClassDecl prevClass = this.classDecl;
         JCIdent savedThisId = this.currentThisId;
@@ -708,6 +725,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
         
         try {
+            assumeCheckCount = 0;
             this.methodDecl = pmethodDecl;
             this.classDecl = pclassDecl != null ? pclassDecl : utils.getOwner(methodDecl) ;
             this.initialStatements = new ListBuffer<JCStatement>();
@@ -777,21 +795,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Values of the result, any exception active, and the termination
             // position (location of last return or throw statement) are tracked
 
+            // We create this first, so that it is the first one in the list.
+            // We'll add the block into the right spot later.
+            // Other checks will be created during addPrePostConditions
             pushBlock();
+            addAssumeCheck(methodDecl,currentStatements,"end of preconditions"); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
+            JCStatement preconditionAssumeCheck = popBlock(0,methodDecl.pos());
 
+            pushBlock();
+            
             initialStatements.add( comment(methodDecl.pos(),"Check Preconditions"));
             outerFinalizeStats.add( comment(methodDecl.pos(),"Check Postconditions"));
             addPrePostConditions(initialStatements, outerFinalizeStats);
 
-            {
-                // We create an 'assert true' after the precondition assumptions.
-                // Later we can turn the true to false and see if the path through
-                // the initial assumptions is feasible. We use the Parens expr
-                // so that we can just change the literal inside it. We don't 
-                // change the assert statement itself, because typically its
-                // expression is converted to a temporary id.
-                addAssumeCheck(methodDecl,initialStatements,"end of preconditions"); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
-            }
+            addStat(initialStatements,preconditionAssumeCheck);
             
             addStat( comment(methodDecl.pos(),"Method Body"));
             if (methodDecl.body != null) scan(methodDecl.body.stats);
@@ -802,7 +819,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // postconditions and exceptional postconditions are checked.
             if (JmlOption.value(context,JmlOption.FEASIBILITY).equals("all") ||
             		JmlOption.value(context,JmlOption.FEASIBILITY).equals("exit")) {
-     //       	addAssumeCheck(methodDecl,outerFinalizeStats,"program exit");
+            	addAssumeCheck(methodDecl,outerFinalizeStats,"program exit");
             }
             JCTry outerTryStatement = M.at(methodDecl.pos()).Try(
                             newMainBody,
@@ -822,6 +839,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Log.instance(context).error("jml.internal.notsobad",message);
             return null;
         } finally {
+            this.assumeCheckCount = prevAssumeCheckCount;
             this.methodDecl = prev;
             this.classDecl = prevClass;
             this.initialStatements = prevStats;
@@ -1193,24 +1211,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Creates a statement at which we can check feasibility */
     protected void addAssumeCheck(JCTree item, ListBuffer<JCStatement> list, String description) {
+        if (!esc) return;
         // We create an 'assert true'.
         // Later we can turn the true to false and see if the path through
         // the initial assumptions is feasible. We use the Parens expr
         // so that we can just change the literal inside it. We don't 
         // change the assume statement itself, because typically its
         // expression is converted to a temporary id.
-        java.util.List<JCTree.JCParens> checks = assumptionChecks.get(methodDecl.sym);
-        java.util.List<JmlTree.JmlStatementExpr> checkStats = assumptionCheckStats.get(methodDecl.sym);
-        if (checks == null) assumptionChecks.put(methodDecl.sym, checks = new ArrayList<JCTree.JCParens>(10));
-        if (checkStats == null) assumptionCheckStats.put(methodDecl.sym, checkStats = new ArrayList<JmlTree.JmlStatementExpr>(10));
-    	JCParens ep = M.at(item.pos()).Parens(treeutils.trueLit);
-    	ep.setType(treeutils.trueLit.type);
-    	treeutils.copyEndPosition(ep,item);
-    	JmlStatementExpr a = M.at(item.pos()).JmlExpressionStatement(JmlToken.ASSERT, Label.ASSUME_CHECK, ep);
-    	a.optionalExpression = treeutils.makeStringLiteral(item.pos,description);
-    	checks.add(ep);
-    	checkStats.add(a);
-    	addStat(list,a);
+//        java.util.List<JCTree.JCParens> checks = assumptionChecks.get(methodDecl.sym);
+//        java.util.List<JmlTree.JmlStatementExpr> checkStats = assumptionCheckStats.get(methodDecl.sym);
+//        if (checks == null) assumptionChecks.put(methodDecl.sym, checks = new ArrayList<JCTree.JCParens>(10));
+//        if (checkStats == null) assumptionCheckStats.put(methodDecl.sym, checkStats = new ArrayList<JmlTree.JmlStatementExpr>(10));
+//    	JCParens ep = M.at(item.pos()).Parens(treeutils.trueLit);
+//    	ep.setType(treeutils.trueLit.type);
+//    	treeutils.copyEndPosition(ep,item);
+//    	JmlStatementExpr a = M.at(item.pos()).JmlExpressionStatement(JmlToken.ASSERT, Label.ASSUME_CHECK, ep);
+//    	a.optionalExpression = treeutils.makeStringLiteral(item.pos,description);
+//    	checks.add(ep);
+//    	checkStats.add(a);
+//    	addStat(list,a);
+        
+        ++assumeCheckCount;
+        java.util.List<String> descs = assumeChecks.get(methodDecl);
+        if (descs == null) assumeChecks.put(methodDecl, descs = new LinkedList<String>());
+        descs.add(description);
+        JCIdent id = treeutils.makeIdent(item.pos, assumeCheckSym);
+        JCExpression bin = treeutils.makeBinary(item.pos,JCTree.NE,treeutils.intneqSymbol,id,treeutils.makeIntLiteral(item.pos,assumeCheckCount));
+        ListBuffer<JCStatement> prev = currentStatements;
+        currentStatements = list;
+        JCStatement a = addAssert(item.pos(), Label.ASSUME_CHECK, bin);
+        currentStatements = prev;
     }
     
     /** Adds an assertion with the given label and (already translated) expression
@@ -1833,7 +1863,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(esc ? null :methodDecl.pos(),Label.SIGNALS_ONLY,condd,pos == null ? methodDecl.pos() : pos, log.currentSourceFile());
                     addStat(popBlock(0,methodDecl.pos()));
                 }
-                //addAssumeCheck(scase,ensuresStats,"end of specification case");
             }
             if (!sawSomeSpecs && rac) {
                 currentStatements = exsuresStats;
@@ -5533,12 +5562,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - needs checking that we are getting all of needed variables
     protected void loopHelperHavoc(DiagnosticPosition pos, List<? extends JCTree> list, JCTree... trees) {
         ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
-        for (JCTree t: list) {
+        if (list != null) for (JCTree t: list) {
             TargetFinder.findVars(t,targets);
         }
         for (JCTree t: trees) {
             TargetFinder.findVars(t,targets);
         }
+        targets.add(treeutils.makeIdent(pos.getPreferredPosition(),indexStack.get(0).sym));
         // synthesize a modifies list
         JmlStatementHavoc st = M.at(pos.getPreferredPosition()).JmlHavocStatement(targets.toList());
         addStat(st);
@@ -5550,13 +5580,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     // FIXME - needs checking that we are getting all of needed variables
     protected void loopHelperHavoc(DiagnosticPosition pos, JCTree... trees) {
-        ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
-        for (JCTree t: trees) {
-            TargetFinder.findVars(t,targets);
-        }
-        // synthesize a modifies list
-        JmlStatementHavoc st = M.at(pos.getPreferredPosition()).JmlHavocStatement(targets.toList());
-        addStat(st);
+        loopHelperHavoc(pos, null, trees);
     }
     
     /** Adds a statement to increment the index variable */

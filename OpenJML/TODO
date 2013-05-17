@@ -9,8 +9,8 @@ Loop issues:
 - havoc computation needs review
 
 Recent issues:
-- implement tracing for loops
 - fix feasibility checks
+- reorganize postcondition checks to allow checking feasibility of spec cases
 
 - DMZ's recursive use of functions requiring invariants to be checked in invariants (seen in RAC)
 - Check that ESC on a method without typechecking or with bad typecheck is OK
