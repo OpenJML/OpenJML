@@ -371,6 +371,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testMethodInvocation() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -959,6 +960,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testShortCircuit() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
@@ -1291,6 +1293,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testAssignOp() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1555,6 +1558,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testUndefined() {
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

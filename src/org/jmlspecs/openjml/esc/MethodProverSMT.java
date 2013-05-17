@@ -195,10 +195,11 @@ public class MethodProverSMT {
                 if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
                     solver.pop(1); // Pop off previous check_sat
 
-                    java.util.List<String> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
+                    java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
                     int k = 0;
-                    if (checks != null) for (String description: checks) {
+                    if (checks != null) for (JmlStatementExpr stat: checks) {
                         ++k;
+                        String description = stat.description;
                         solver.pop(1); // Pop off previous setting of assumeCheck
                         solver.push(1); // Mark the top
                         JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
@@ -211,12 +212,12 @@ public class MethodProverSMT {
                                 (solverResponse.toString().equals("unsat") ? "infeasible": "OK"));
                         if (solverResponse.toString().equals("unsat")) {
                             if (k == 1) {
-                                log.warning(methodDecl.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                                log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
                                 // If the preconditions are inconsistent, all subsequent paths will be infeasible as well
                                 break;
                             } else {
-                                log.warning(methodDecl.pos(), "esc.infeasible.assumption", utils.qualifiedMethodSig(methodDecl.sym));
+                                log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
                             }
                         } else if (false) {
