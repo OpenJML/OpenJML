@@ -7,109 +7,182 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
-import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlForLoop;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.smtlib.ICommand;
 import org.smtlib.IExpr;
 import org.smtlib.IResponse;
+import org.smtlib.IResponse.IError;
 import org.smtlib.IResponse.IPair;
 import org.smtlib.ISolver;
-import org.smtlib.SMT;
-import org.smtlib.IResponse.IError;
 import org.smtlib.IVisitor.VisitorException;
+import org.smtlib.SMT;
 import org.smtlib.sexpr.ISexpr;
-import org.smtlib.solvers.Solver_yices;
-import org.smtlib.solvers.Solver_yices2;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Types;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCCase;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Position;
 
 public class MethodProverSMT {
 
-    /** true if counterexample information is desired */
-    boolean showCounterexample;
+    // OPTIONS SET WHEN prover() IS CALLED
     
-    /** true if counterexample trace information is desired */
-    boolean showTrace; // FIXME - need to distinguish computing the trace information (for use in the GUI) vs. printing it out
+    /** true if counterexample information is desired - set when prove() is called */
+    protected boolean showCounterexample;
     
-    /** true if trace information with respect to the basic block program is to be output */
-    boolean showBBTrace;
+    /** true if counterexample trace information is desired - set when prove() is called */
+    protected boolean showTrace; // FIXME - need to distinguish computing the trace information (for use in the GUI) vs. printing it out
     
-    /** true if subexpression trace information is desired */
-    boolean showSubexpressions;
+    /** true if subexpression trace information is desired 
+     *  - set when prove() is called */
+    protected boolean showSubexpressions;
+    
+    /** The compilation context - cached at construction time */
+    final protected Context context;
+    
+    /** The compiler log for this context - cached at construction time */
+    final protected Log log;
+    
+    /** The Utils instance for this context - cached at construction time */
+    final protected Utils utils;
+    
+    /** The JmlEsc instance that is calling this method prover - cached at construction time */
+    final protected JmlEsc jmlesc;
+    
+    /** Cached copy of the JmlTreeUtils tool for this compilation context */
+    final protected JmlTreeUtils treeutils;
+    
+    /** The factory to produce IProverResult objects. This is initialized to use
+     * ProverResult in the constructor, but the client can set a different 
+     * factory before calls to prove() 
+     */
+    public IProverResult.IFactory factory;
+    
+    /** The interface for new ITracer factories */
+    public interface ITracerFactory {
+        public ITracer makeTracer();
+    }
+    
+    // FIXME - complete -decide on the interface for tracers
+    public ITracerFactory tracerFactory;
+
+    
+    public interface ITracer {
+        
+    }
+    
+    /** The factory to produce ITracer objects. This is initialized to use
+     * Tracer in the constructor, but the client can set a different 
+     * factory before calls to prove(). */
+    public Tracer tracer;
     
 
-    final public Context context;
-    final public Log log;
-    final public Utils utils;
-    final public JmlEsc jmlesc;
-    
-    // FIXME DOCUMENT
-    protected Tracer tracer;
-    
+    // DEBUGGING SETTINGS
 
-
-    /** true if compiler options are set to a verbose mode */
-    boolean verbose;
+    /** local field used to enable verbose output for this object */
+    protected boolean verbose;
     
     /** Just for debugging esc */
     public static boolean escdebug = false; // May be set externally to enable debugging while testing
     
+    /** true if trace information with respect to the basic block program is to be output
+     *  (for debugging only) - set when prove() is called */
+    protected boolean showBBTrace;
+    
 
+    /** Constructs an instance of this class to do static checking on a method.
+     * The instance can be reused for multiple methods and classes
+     * within the same compilation context. It does not retain any state of its
+     * own, beyond the cached values of other tools in the compilation context.
+     */
     public MethodProverSMT(JmlEsc jmlesc) {
         this.jmlesc = jmlesc;
         this.context = jmlesc.context;
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
+        this.treeutils = JmlTreeUtils.instance(context);
+
+        this.factory = new IProverResult.IFactory() {
+            @Override
+            public IProverResult makeProverResult(String prover, IProverResult.Kind kind) {
+                return new ProverResult(prover,kind);
+            }
+        };
+//        this.tracerFactory = new ITracerFactory() {
+//            @Override
+//            public ITracer makeTracer() { return new Tracer(); }
+//        }; TODO
+//        }
     }
     
+    /** The entry point to initiate proving a method. In the current implementation
+     * the methodDecl is a method of the original AST and the original AST must
+     * already be translated using the JmlAssertionAdder instance that is in
+     * jmlesc.assertionAdder. Various information is printed about the proof attempt, and
+     * the result of the proof attempt is also returned in an IProverResult object.
+     * <P>
+     * The amount and kind of printing depends on various options, such as
+     * -trace, -subexpressions, -show as well as debugging and verbosity flags.
+     */
     public IProverResult prove(JmlMethodDecl methodDecl) {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
-        this.showTrace = verbose || this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
+        this.showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
 
         boolean print = jmlesc.verbose;
         boolean printPrograms = JmlOption.isOption(context, JmlOption.SHOW);
         
-
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         
-        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : jmlesc.specs.getDenestedSpecs(methodDecl.sym);
+        // FIXME - when might methodDecl.sym be null?
+        JmlMethodSpecs denestedSpecs = methodDecl.sym == null ? null : 
+            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
+        // newblock is the translated version of the method body
         JCBlock newblock = jmlesc.assertionAdder.methodBiMap.getf(methodDecl).getBody();
         if (printPrograms) {
             log.noticeWriter.println(Strings.empty);
@@ -120,10 +193,11 @@ public class MethodProverSMT {
         }
 
         // determine the executable
+        String proverToUse = jmlesc.proverToUse;
         String exec = jmlesc.pickProverExec(jmlesc.proverToUse);
         if (exec == null) {
             log.warning("esc.no.exec",jmlesc.proverToUse); //$NON-NLS-1$
-            return new ProverResult(jmlesc.proverToUse,IProverResult.SKIPPED);
+            return factory.makeProverResult(jmlesc.proverToUse,IProverResult.SKIPPED);
         }
         
         // create an SMT object, adding any options
@@ -169,28 +243,38 @@ public class MethodProverSMT {
                 }
             }
 
-            solver = smt.startSolver(smt.smtConfig,jmlesc.proverToUse,exec);
+            solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
 
             // Try the prover
-            if (jmlesc.verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
-            solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+            try {
+                solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            } catch (Exception e) {
+                // Not sure there is anything to worry about, but just in case
+                log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+                return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            }
 
         }
         
-        
-    
+        // Now assemble and report the result
+
+        if (verbose) {
+            log.noticeWriter.println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
+        }
+
         IProverResult proofResult = null;
 
         {
+            IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
             if (solverResponse.isError()) {
                 solver.exit();
                 log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                return new ProverResult(jmlesc.proverToUse,IProverResult.ERROR);
+                return factory.makeProverResult(jmlesc.proverToUse,IProverResult.ERROR);
             }
-            if (print) log.noticeWriter.println(smt.smtConfig.defaultPrinter.toString(solverResponse));
-            if (solverResponse.toString().equals("unsat")) {// FIXME - should have a better means of checking this
-                if (jmlesc.verbose) log.noticeWriter.println("Method checked OK");
-                proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.UNSAT);
+            if (solverResponse.equals(unsatResponse)) {
+                if (verbose) log.noticeWriter.println("Method checked OK");
+                proofResult = factory.makeProverResult(jmlesc.proverToUse,IProverResult.UNSAT);
                 
                 if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
                     solver.pop(1); // Pop off previous check_sat
@@ -202,7 +286,6 @@ public class MethodProverSMT {
                         String description = stat.description;
                         solver.pop(1); // Pop off previous setting of assumeCheck
                         solver.push(1); // Mark the top
-                        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
                         JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
                                 treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
                                 treeutils.makeIntLiteral(Position.NOPOS, k));
@@ -213,19 +296,19 @@ public class MethodProverSMT {
                         if (solverResponse.toString().equals("unsat")) {
                             if (k == 1) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
+                                proofResult = factory.makeProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
                                 // If the preconditions are inconsistent, all subsequent paths will be infeasible as well
                                 break;
                             } else {
                                 log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = new ProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
+                                proofResult = factory.makeProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
                             }
                         } else if (false) {
                             Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
                             BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
                             tracer = new Tracer(context,smt,solver,cemap,jmap);
                             // Report JML-labeled values and the path to the failed invariant
-                            if (true || showTrace) {
+                            if (showTrace) {
                                 log.noticeWriter.println("\nTRACE\n");
                                 String n = cemap.get(JmlTreeUtils.instance(context).nullLit);
                                 String t = getValue("THIS",smt,solver);
@@ -241,7 +324,7 @@ public class MethodProverSMT {
                         }
                     }
                 }
-            } else {
+            } else { // Proof was not UNSAT, so there is a counterexample
                 int count = Utils.instance(context).maxWarnings;
                 while (true) {
                     if (print) log.noticeWriter.println("Some assertion not valid");
@@ -274,15 +357,16 @@ public class MethodProverSMT {
                         log.noticeWriter.println("\t\t\tVALUE: this = " + t);
                     }
                     path = new ArrayList<IProverResult.Span>();
-                    JCExpression pathCondition = reportInvalidAssertion(program,smt,solver,methodDecl,cemap,jmap,
+                    JCExpression pathCondition = reportInvalidAssertion(
+                            program,smt,solver,methodDecl,cemap,jmap,
                             jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
                     
                     if (proofResult == null) {
-                        ProverResult pr = new ProverResult(jmlesc.proverToUse,
+                        ProverResult pr = (ProverResult)factory.makeProverResult(jmlesc.proverToUse,
                             solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
                         if (pathCondition != null) {
                             Counterexample ce = new Counterexample(cemap,path);
-                            pr.add(ce);
+                            pr.add(ce); // TODO - make more abstract
                         }
                         proofResult = pr;
                         jmlesc.mostRecentProofResult = proofResult;
@@ -293,27 +377,18 @@ public class MethodProverSMT {
                     }
 
 
-                    //                if (showCounterexample) {
-                    //                    log.noticeWriter.println("\nTRACE with respect to ORIGINAL PROGRAM\n");
-                    //                }
-
                     if (--count <= 0) break;
-                    //if (solver instanceof Solver_yices2 || solver instanceof Solver_yices) break;
                     
                     solver.pop(1); // pops off all of the previous check_sat
                     solver.assertExpr(smttrans.convertExpr(pathCondition));
-//                    JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
-//                    JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
-//                            treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),treeutils.zero);
-//                    solver.assertExpr(smttrans.convertExpr(bin));
                     solver.push(1); // mark the top again
                     solverResponse = solver.check_sat();
 
                     if (solverResponse.isError()) {
                         log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        return new ProverResult(jmlesc.proverToUse,IProverResult.ERROR);
+                        return factory.makeProverResult(proverToUse,IProverResult.ERROR);
                     }
-                    if (solverResponse.toString().equals("unsat")) break;
+                    if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
                 }
             }
@@ -621,31 +696,13 @@ public class MethodProverSMT {
     }
 
     
-//    /** Write out (through log.noticeWriter) the values of the given expression
-//     * and, recursively, of any subexpressions.
-//     */
-//    public void traceSubExpr(JCExpression e, SMT smt, ISolver solver, Map<JCExpression,String> cemap, BiMap<JCExpression,JCExpression> jmap) {
-//        e.accept(tracer);if (e instanceof JCIdent) {
-//            Name n = ((JCIdent)e).name;
-//            String value = getValue(n.toString(),smt,solver);
-//            log.noticeWriter.println("VALUE: " + n + " = " + value);
-//            String sv = cemap.get(e);
-//            log.noticeWriter.println("V " + n + " : " + jmap.getr(e) + " = " + sv + " :: " + value);
-//            return;
-//        } else if (e instanceof JCBinary) {
-//        } else if (e instanceof JCUnary) {
-//            traceSubExpr(((JCUnary)e).arg,smt,solver,cemap,jmap);
-//            String sv = cemap.get(e);
-//            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
-//        } else if (e instanceof JCConditional) {
-//            traceSubExpr(((JCConditional)e).arg,smt,solver,cemap,jmap);
-//            String sv = cemap.get(e);
-//            log.noticeWriter.println("V " + e + " : " + jmap.getr(e) + " = " + sv);
-//        }
-//        // FIXME - this should be expanded to more kinds of expressions, but only those that might be in a basic program - actually should do this in relation to the original program
-//    }
-    
-    // FIXME - document
+   
+    /** This class walks the expression subtrees, printing out the value of each
+     * subexpression. It is used by creating an instance of the Tracer (using
+     * the constructor), and then calling scan() on an AST. scan() is called
+     * recursively to find and print all expressions. Statements are not printed
+     * but are scanned for any subexpressions.
+     */
     // Not static so we have access to getValue
     public class Tracer extends JmlTreeScanner {
         SMT smt;
@@ -653,7 +710,12 @@ public class MethodProverSMT {
         Map<JCTree,String> cemap;
         Log log;
         String result;
-        boolean print = true;
+        
+        /** Not to be used by callers - this is set false by some visit methods
+         * to prevent scan() from printing the value of the expression under
+         * scrutiny.
+         */
+        protected boolean print = true;
         
         public Tracer(Context context, SMT smt, ISolver solver, Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap) {
             this.smt = smt;
@@ -664,7 +726,7 @@ public class MethodProverSMT {
         
         public void scan(JCTree that) {
             super.scan(that);
-            if (that instanceof JCExpression && !JmlTreeUtils.instance(context).isATypeTree((JCExpression)that)) {
+            if (that instanceof JCExpression && !treeutils.isATypeTree((JCExpression)that)) {
                 String sv = cemap.get(that);
                 if (print) {
                     log.noticeWriter.println("\t\t\tVALUE: " + that + "\t === " + (sv==null ? "???" : sv));
@@ -673,25 +735,9 @@ public class MethodProverSMT {
             }
         }
         
-//        @Override
-//        public String getValue(JCIdent e) {
-//            Name n = e.name;
-//            String sv = cemap.get(e);
-//            if (sv == null) {
-//                sv = getValue(n.toString(),smt,solver);
-//                if (verbose) log.noticeWriter.println("\t\t\tVALUE Retrieved: " + n + " = " + sv);
-//                cemap.put(e, sv);
-//            }
-//            if (sv != null) log.noticeWriter.println("\t\t\tVALUE: " + n + " = " + sv);
-////            JCTree ex = jmap.getr(e);
-////            if (ex != null) {
-////                log.noticeWriter.println(ex + " === " + sv);
-////            } else {
-////                //log.noticeWriter.println("VALUE unknown: " + n );
-////            }
-//            return sv;
-//        }
-        
+        /** Declarations are not expressions, but we want to print the final
+         * value of the newly declared variable anyway.
+         */
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl e) {
             scan(e.init);
@@ -706,18 +752,9 @@ public class MethodProverSMT {
 
         }
         
-//        @Override
-//        public void visitAssign(JCAssign e) {
-//            scan(e.lhs);
-//            scan(e.rhs);
-//            String sv = cemap.get(e);
-////            JCTree ex = jmap.getr(e);
-////            if (sv != null && ex != null) {
-////                log.noticeWriter.println(ex + " === " + sv);
-////            }
-//            result = sv;
-//        }
-        
+        /** We only scan and print one branch of the conditional, that selected by the
+         * condition.
+         */
         @Override
         public void visitConditional(JCConditional e) {
             scan(e.cond);
@@ -730,41 +767,7 @@ public class MethodProverSMT {
             }
         }
         
-//        @Override
-//        public void visitSelect(JCFieldAccess tree) {
-//            if (!JmlTreeUtils.instance(context).isATypeTree(tree.selected)) {
-//                scan(tree.selected);
-//            }
-//        }
-        
-
-//        @Override
-//        public void visitTypeCast(JCTypeCast tree) {
-//            // Overridden to skip scanning the type name: scan(tree.clazz);
-//            scan(tree.expr);
-//        }
-//
-//        @Override
-//        public void visitTypeTest(JCInstanceOf tree) {
-//            scan(tree.expr);
-//            // Overridden to skip scanning the type name: scan(tree.clazz);
-//        }
-        
-        public void scanLHS(JCTree that) {
-            if (that instanceof JCIdent) {
-                // skip
-            } else if (that instanceof JCFieldAccess) {
-                JCFieldAccess fa = (JCFieldAccess)that;
-                scan(fa.selected);
-            } else if (that instanceof JCArrayAccess) {
-                JCArrayAccess aa = (JCArrayAccess)that;
-                scan(aa.indexed);
-                scan(aa.index);
-            } else {
-                // FIXME - error
-            }
-        }
-
+        /** Overridden to handle short-circuit cases appropriately */
         @Override
         public void visitBinary(JCBinary tree) {
             // Special handling of short-circuit cases
@@ -781,6 +784,7 @@ public class MethodProverSMT {
             }
         }
 
+        /** Overridden to handle short-circuit cases appropriately */
         @Override
         public void visitJmlBinary(JmlBinary tree) {
             // Special handling of short-circuit cases
@@ -793,6 +797,29 @@ public class MethodProverSMT {
             }
         }
 
+        /** Scans only subexpressions, so that the tracing of assignments is
+         * more intuitive.
+         */
+        public void scanLHS(JCTree that) {
+            if (that instanceof JCIdent) {
+                // skip
+            } else if (that instanceof JCFieldAccess) {
+                JCFieldAccess fa = (JCFieldAccess)that;
+                scan(fa.selected);
+            } else if (that instanceof JCArrayAccess) {
+                JCArrayAccess aa = (JCArrayAccess)that;
+                scan(aa.indexed);
+                scan(aa.index);
+            } else {
+                log.warning(that.pos(), "jml.internal.notsobad", 
+                     "Unexpected kind of AST in Tracer.scanLHS: " + that.getClass());
+            }
+        }
+
+        /** Left-hand sides take special handling; the LHS is evaluated before
+         * the RHS, so we can it first. However, we want the final value of the
+         * full LHS expression to be printed after all subexpressions. 
+         */
         @Override
         public void visitAssign(JCAssign tree) {
             scanLHS(tree.lhs);
@@ -801,6 +828,8 @@ public class MethodProverSMT {
 
         @Override
         public void visitAssignop(JCAssignOp tree) {
+            // TODO: AssignOp statements have the annoyance that only the final
+            // value of the LHS is reported.
             scanLHS(tree.lhs);
             scan(tree.rhs);
         }
@@ -824,6 +853,13 @@ public class MethodProverSMT {
             }
         }
 
+        @Override
+        public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree) {
+            // We don't scan the interior of quantified expressions -
+            // they don't have concrete values. The value of the
+            // expression itself is reported by scan()
+        }
+
         
     }
     
@@ -836,7 +872,7 @@ public class MethodProverSMT {
             if (ce.get(key) != null) continue;
             ee[0] = e;
             IResponse resp = solver.get_value(ee);
-            // FIXME - need to get a singloe kind of response
+            // FIXME - need to get a single kind of response
             if (resp instanceof ISexpr.ISeq) {
                 ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
                 ISexpr value = ((ISexpr.ISeq)pair).sexprs().get(1);
@@ -946,9 +982,8 @@ public class MethodProverSMT {
         
     /** This class stores variable - value pairs that constitute a counterexample
      * for a given proof attempt.  For flexibility, both variable and value are 
-     * stored as Strings.
-     * @author David Cok
-     *
+     * stored as Strings, though this makes it depend on the format of the 
+     * rendering to String. It's OK because this information is not persisted.
      */
     public class Counterexample implements IProverResult.ICounterexample {
         protected SortedMap<String,String> map = new TreeMap<String,String>();
@@ -959,7 +994,8 @@ public class MethodProverSMT {
             mapv = cemap;
             this.path = path;
         }
-        
+  
+        // FIXME _ Cleanup
 //        @Override
 //        public void put(String key,String value) {
 //            map.put(key,value);
