@@ -14,6 +14,10 @@ import org.jmlspecs.annotation.NonNull;
 import com.sun.tools.javac.tree.JCTree;
 
 public interface IProverResult {
+    
+    public static interface IFactory {
+        public IProverResult makeProverResult(String prover, Kind kind);
+    }
 
     /** Kinds of results a prover can produce */
     static public final class Kind {
