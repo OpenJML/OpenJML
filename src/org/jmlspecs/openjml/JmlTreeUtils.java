@@ -763,13 +763,28 @@ public class JmlTreeUtils {
     /** Makes an \old expression */
     public JCMethodInvocation makeOld(int pos, JCExpression arg, JCIdent label) {
         JCMethodInvocation m;
-        if (label.toString().isEmpty()) {
+        if (label == null || label.toString().isEmpty()) {
             m = factory.JmlMethodInvocation(JmlToken.BSOLD, List.<JCExpression>of(arg));
         } else {
             JCIdent id = factory.at(pos).Ident(label.name);
             id.type = null; // Should never refer to the label's type
             id.sym = null; // Should never refer to the label's symbol
             m = factory.JmlMethodInvocation(JmlToken.BSOLD, List.<JCExpression>of(arg, id));
+        }
+        m.type = arg.type;
+        return m;
+    }
+   
+    /** Makes a \past expression */
+    public JCMethodInvocation makePast(int pos, JCExpression arg, JCIdent label) {
+        JCMethodInvocation m;
+        if (label.toString().isEmpty()) {
+            m = factory.JmlMethodInvocation(JmlToken.BSPAST, List.<JCExpression>of(arg));
+        } else {
+            JCIdent id = factory.at(pos).Ident(label.name);
+            id.type = null; // Should never refer to the label's type
+            id.sym = null; // Should never refer to the label's symbol
+            m = factory.JmlMethodInvocation(JmlToken.BSPAST, List.<JCExpression>of(arg, id));
         }
         m.type = arg.type;
         return m;

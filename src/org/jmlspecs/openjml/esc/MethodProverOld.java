@@ -101,9 +101,6 @@ public class MethodProverOld {
     /** Just for debugging esc */
     public static boolean escdebug = false; // May be set externally to enable debugging while testing
     
-    /** If true, then cross reference information is generated. */ // FIXME - should this just always be on? - need to fix tests
-    public boolean cfInfo = false;
-    
 
     public MethodProverOld(JmlEsc jmlesc) {
         this.jmlesc = jmlesc;
@@ -118,7 +115,6 @@ public class MethodProverOld {
     public IProverResult prove(JmlMethodDecl node) {
         IProverResult proofResult;
         this.checkAssumptions = !JmlOption.isOption(context,JmlOption.NO_RAC_CHECK_ASSUMPTIONS);
-        this.cfInfo = JmlOption.isOption(context,JmlOption.ASSOCINFO);
 
         timingTest = 0; // jmlesc.timingTest;
         proverToUse = jmlesc.proverToUse;
@@ -1217,30 +1213,16 @@ protected String displayCounterexampleInfo(JCMethodDecl methodDecl,
 //                  if (Nowarns.instance(context).suppress(log.currentSource(), termpos, label)) {
 //                      // nothing to do
 //                  } else 
-                    if (!cfInfo) {
+                    {
                         log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName(), Strings.empty);
-
+                        String loc = utils.locationString(termpos);
+                        
                         if (jfo != null) log.useSource(jfo);
-                        log.warning(declpos,"esc.associated.decl",Strings.empty);
+                        log.warning(declpos,
+                        		Utils.testingMode ? "jml.associated.decl": "jml.associated.decl.cf",
+                        		loc);
 
-                    } else {
-                        // This way of finding line numbers is a bit expensive - it reads in the
-                        // whole file and scans from the beginning.
-                        // Is there a way to use the endPos table?  FIXME
-
-                        int line = new DiagnosticSource(prev,log).getLineNumber(termpos);
-
-                        //if (jfo != null) log.useSource(jfo);
-                        int aline = new DiagnosticSource(jfo==null?prev:jfo,log).getLineNumber(declpos);
-                        //log.useSource(prev);
-
-                        String cf = !cfInfo ? Strings.empty : " [ cf. " + (jfo==null?prev:jfo).getName() + ", line " + aline + "]";
-                        log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName() + cf, Strings.empty);
-
-                        if (jfo != null) log.useSource(jfo);
-                        String assocPos = !cfInfo ? Strings.empty : " [" + prev.getName() + ", line " + line + "]";
-                        log.warning(declpos,"esc.associated.decl",assocPos);
-                    }
+                   }
                     log.useSource(prev);
                 } else {
                     log.warning(termpos,"esc.assertion.invalid",label,methodDecl.getName(), Strings.empty);

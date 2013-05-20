@@ -1,15 +1,14 @@
 Proving methods in trace
 Starting proof of trace.mforeach1(int[]) with prover z3_4_3
 
-TRACE
+TRACE of trace.mforeach1(int[])
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTraceLoops\trace.java:167:  	requires a != null; 
 			VALUE: a	 === REF!val!2
-			VALUE: null	 === REF!val!1
+			VALUE: null	 === null
 			VALUE: a != null	 === true
 testfiles\escTraceLoops\trace.java:168:  	int j = 0
+			VALUE: 0	 === 0
 			VALUE: j	 === 0
 testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
@@ -39,9 +38,9 @@ testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \ind
 			VALUE: \index <= a.length	 === true
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
 testfiles\escTraceLoops\trace.java:170:  	Loop test
-			VALUE: index_3960_86	 === 1
+			VALUE: \index	 === 1
 			VALUE: _JML__tmp87	 === 1
-			VALUE: index_3960_86 < _JML__tmp87	 === false
+			VALUE: \index < _JML__tmp87	 === false
 testfiles\escTraceLoops\trace.java:173:  	assert Assert j == a.length;
 			VALUE: j	 === 0
 			VALUE: a	 === REF!val!2
@@ -51,15 +50,14 @@ testfiles\escTraceLoops\trace.java:173: warning: The prover cannot establish an 
         //@ assert j == a.length;
             ^
 
-TRACE
+TRACE of trace.mforeach1(int[])
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTraceLoops\trace.java:167:  	requires a != null; 
 			VALUE: a	 === REF!val!2
-			VALUE: null	 === REF!val!1
+			VALUE: null	 === null
 			VALUE: a != null	 === true
 testfiles\escTraceLoops\trace.java:168:  	int j = 0
+			VALUE: 0	 === 0
 			VALUE: j	 === 0
 testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
@@ -71,7 +69,7 @@ testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \ind
 			VALUE: j == 0 && 0 <= \index	 === true
 			VALUE: \index	 === 0
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2438
+			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
 testfiles\escTraceLoops\trace.java:170:  	Begin loop check
@@ -80,18 +78,18 @@ testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \ind
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 2437
+			VALUE: \index	 === 1
 			VALUE: 0 <= \index	 === true
 			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 2437
+			VALUE: \index	 === 1
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2438
+			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
 testfiles\escTraceLoops\trace.java:170:  	Loop test
-			VALUE: index_3960_86	 === 2437
-			VALUE: _JML__tmp87	 === 2438
-			VALUE: index_3960_86 < _JML__tmp87	 === true
+			VALUE: \index	 === 1
+			VALUE: _JML__tmp87	 === 2
+			VALUE: \index < _JML__tmp87	 === true
 testfiles\escTraceLoops\trace.java:170:  	Begin loop body
 testfiles\escTraceLoops\trace.java:171:  	j += 1
 			VALUE: 1	 === 1

@@ -27,6 +27,7 @@ public class esclocation extends EscBase {
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //JmlEsc.escdebug = true;
+        main.addOptions("-jmltesting");
     }
     
     @Test

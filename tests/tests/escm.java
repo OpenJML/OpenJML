@@ -15,6 +15,7 @@ public class escm extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        main.addOptions("-jmltesting");
     }
     
     /** This test checks that nested, local and anonymous classes are handled */

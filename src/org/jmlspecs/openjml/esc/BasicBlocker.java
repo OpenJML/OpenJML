@@ -4515,6 +4515,7 @@ public class BasicBlocker extends JmlTreeScanner {
         } else {
 
             switch (token) {
+                case BSPAST:
                 case BSOLD:
                 case BSPRE:
                     // FIXME - there is a problem if the argument includes an

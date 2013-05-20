@@ -2687,12 +2687,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type t = null;
         int n;
         switch (token) {
+            case BSPAST:
             case BSOLD:
             case BSPRE:
                 // The argument can be a JML spec-expression
                 // Expect one argument, result type is the same type
                 n = tree.args.size();
-                if (!(n == 1 || (token == JmlToken.BSOLD && n == 2))) {
+                if (!(n == 1 || (token != JmlToken.BSPRE && n == 2))) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
                             token == BSPRE ? "1" : "1 or 2",n);
                 }

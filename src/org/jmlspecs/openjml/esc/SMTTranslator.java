@@ -85,8 +85,10 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The Names table for this compilation context */
     protected Names names;
     
+    /** Cached value of the types tool */
     protected javax.lang.model.util.Types types;
     
+    /** Cached instance of the JmlTreeUtils tool for the context. */
     protected JmlTreeUtils treeutils;
     
     /** The factory for creating SMTLIB expressions */
@@ -97,6 +99,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Commonly used SMTLIB expressions - using these shares structure */
     protected ISort refSort;
+    protected ISort stringSort;
     protected ISort javaTypeSort;
     protected ISort jmlTypeSort;
     protected ISort intSort;
@@ -116,6 +119,11 @@ public class SMTTranslator extends JmlTreeScanner {
     protected Set<Type> javaTypes = new HashSet<Type>();
     protected Set<String> javaTypeSymbols = new HashSet<String>();
     
+    int stringCount = 0;
+    int doubleCount = 0;
+    int uniqueCount = 0;
+    boolean inQuant = false;
+
     // Strings used in our use of SMT. Strings that are part of SMTLIB itself
     // are used verbatim in the code.
     public static final String store = "store";
@@ -123,6 +131,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String NULL = "NULL";
     public static final String this_ = "THIS"; // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF";
+    public static final String STRINGSORT = "_STRING_";
     public static final String JAVATYPESORT = "JavaTypeSort";
     public static final String JMLTYPESORT = "JMLTypeSort";
     public static final String length = "length";
@@ -141,22 +150,29 @@ public class SMTTranslator extends JmlTreeScanner {
         nullRef = F.symbol(NULL);
         thisRef = F.symbol(this_);
         refSort = F.createSortExpression(F.symbol(REF));
+        boolSort = F.createSortExpression(F.symbol("Bool"));
+        intSort = F.createSortExpression(F.symbol("Int"));
+        stringSort = F.createSortExpression(F.symbol(STRINGSORT));
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthRef = F.symbol(length);
+        
     }
     
+    @Override
     public void scan(JCTree t) {
         result = null;
         if (t != null) {
             super.scan(t);
             if (result != null && t instanceof JCExpression) bimap.put((JCExpression)t, result);
-            if (result != null && t instanceof JCVariableDecl) {
-                JCIdent id = treeutils.makeIdent(t.pos,((JCVariableDecl)t).sym);
+            if (result != null && t instanceof JmlVariableDecl) {
+                JCIdent id = ((JmlVariableDecl)t).ident;
                 bimap.put(id, result);
             }
         }
     }
+    
+    public final List<ISort> emptyList = new LinkedList<ISort>();
     
     // FIXME - want to be able to produce AUFBV programs as well
     // FIXME - this converts the whole program into one big SMT program
@@ -180,19 +196,24 @@ public class SMTTranslator extends JmlTreeScanner {
         // add background statements
         c = new C_declare_sort(F.symbol(REF),F.numeral(0));
         commands.add(c);
+        c = new C_declare_sort(F.symbol(STRINGSORT),F.numeral(0));
+        commands.add(c);
         c = new C_declare_sort(F.symbol(JAVATYPESORT),F.numeral(0));
         commands.add(c);
         c = new C_declare_sort(F.symbol(JMLTYPESORT),F.numeral(0));
         commands.add(c);
-        c = new C_declare_fun(nullRef,new LinkedList<ISort>(), refSort);
+        c = new C_declare_fun(nullRef,emptyList, refSort);
         commands.add(c);
-        c = new C_declare_fun(thisRef,new LinkedList<ISort>(), refSort);
+        c = new C_declare_fun(thisRef,emptyList, refSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("stringEquals"),Arrays.asList(stringSort,stringSort), boolSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("stringConcat"),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
         c = new C_assert(F.fcn(F.symbol("distinct"), thisRef, nullRef));
         commands.add(c);
-        List<ISort> args = new LinkedList<ISort>();
         c = new C_declare_fun(lengthRef,
-                args, 
+                emptyList, 
                 F.createSortExpression(F.symbol("Array"),
                 refSort,
                 F.createSortExpression(F.symbol("Int"))));
@@ -200,11 +221,12 @@ public class SMTTranslator extends JmlTreeScanner {
         try {
             c = smt.smtConfig.smtFactory.createParser(smt.smtConfig,smt.smtConfig.smtFactory.createSource("(assert (forall ((o REF)) (>= (select length o) 0)))",null)).parseCommand();
             commands.add(c);
+            c = smt.smtConfig.smtFactory.createParser(smt.smtConfig,smt.smtConfig.smtFactory.createSource("(assert (forall ((s1 REF)(s2 REF)) (distinct (stringConcat s1 s2) NULL)))",null)).parseCommand();
+            commands.add(c);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        args = new LinkedList<ISort>();
-        args.add(refSort);
+        List<ISort> args = Arrays.asList(refSort);
         c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));
         commands.add(c);
         c = new C_declare_fun(F.symbol("asRefArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
@@ -267,7 +289,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     }
                     ISymbol sym = F.symbol(nm);
                     c = new C_declare_fun(sym,
-                            new LinkedList<ISort>(),
+                            emptyList,
                             sort);
                     commands.add(c);
                     bimap.put(id,sym);
@@ -297,7 +319,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // backward references to variables in earlier blocks, we declare
         // all the block variables first
         for (BasicProgram.BasicBlock b: program.blocks()) {
-            ICommand cc = new C_declare_fun(F.symbol(b.id.toString()), new LinkedList<ISort>(), F.Bool());
+            ICommand cc = new C_declare_fun(F.symbol(b.id.toString()), emptyList, F.Bool());
             commands.add(cc);
         }
         
@@ -327,11 +349,11 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             tcommands.add(new C_declare_fun(
                     javaTypeSymbol(ti),
-                    new LinkedList<ISort>(),
+                    emptyList,
                     javaTypeSort));
             tcommands.add(new C_declare_fun(
                     jmlTypeSymbol(ti),
-                    new LinkedList<ISort>(),
+                    emptyList,
                     jmlTypeSort));
             tcommands.add(new C_assert(F.fcn(
                     F.symbol("="), 
@@ -359,16 +381,21 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     public IExpr.ISymbol javaTypeSymbol(Type t) {
-        String s = "|T_" + t.toString() + "|";
+        //String s = "|T_" + t.toString() + "|";
+        if (t.tag == TypeTags.BOT) t = syms.objectType;
+        String s = ("T_" + t.toString() + "").replace(".", "_");
         return F.symbol(s);
     }
     
     public IExpr.ISymbol jmlTypeSymbol(Type t) {
-        String s = "|JMLT_" + t.toString() + "|" ;
+        if (t.tag == TypeTags.BOT) t = syms.objectType;
+        //String s = "|JMLT_" + t.toString() + "|" ;
+        String s = ("JMLT_" + t.toString() + "").replace(".", "_") ;
         return F.symbol(s);
     }
     
     public void addType(Type t) {
+        // FIXME - what if t is the type of an explicit null?
         if (javaTypeSymbols.add(t.toString())) javaTypes.add(t);
     }
     
@@ -407,8 +434,8 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         JCStatement stat = iter.next();
         try {
-            if (stat instanceof JCVariableDecl) {
-                JCVariableDecl decl = (JCVariableDecl)stat;
+            if (stat instanceof JmlVariableDecl) {
+                JmlVariableDecl decl = (JmlVariableDecl)stat;
                 // convert to a declaration or definition
                 IExpr init = decl.init == null ? null : convertExpr(decl.init);
                 
@@ -416,7 +443,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 ICommand c = init == null ?
                         new C_declare_fun(
                                 sym,
-                                new LinkedList<ISort>(),
+                                emptyList,
                                 convertSort(decl.type))
                 : new C_define_fun(
                         sym,
@@ -424,7 +451,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         convertSort(decl.type),
                         init);
                  commands.add(c);
-                 bimap.put(treeutils.makeIdent(0, decl.name.toString(), decl.type), sym);
+                 if (decl.ident != null) bimap.put(decl.ident, sym);
                  return convert(iter,tail);
             } else if (stat instanceof JmlStatementExpr) {
                 IExpr ex = convert(iter,tail);
@@ -464,13 +491,27 @@ public class SMTTranslator extends JmlTreeScanner {
         if ( t == null) {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
-        } else if (t.equals(syms.booleanType)) {
+        } else if (t.tag == TypeTags.BOOLEAN) {
             return F.Bool();
-        } else if (t.tsym == syms.intType.tsym) { 
+        } else if (t.tag == TypeTags.INT) { 
             return F.createSortExpression(F.symbol("Int"));
         } else if (t.tag == syms.objectType.tag) {
             return refSort;
-        } else if (t instanceof ArrayType) {
+        } else if (t.tag == TypeTags.SHORT) { 
+            return F.createSortExpression(F.symbol("Int"));
+        } else if (t.tag == TypeTags.CHAR) { 
+            return F.createSortExpression(F.symbol("Int"));
+        } else if (t.tag == TypeTags.BYTE) { 
+            return F.createSortExpression(F.symbol("Int"));
+        } else if (t.tag == TypeTags.LONG) { 
+            return F.createSortExpression(F.symbol("Int"));
+        } else if (t.tag == TypeTags.FLOAT) { 
+            return F.createSortExpression(F.symbol("Real"));
+        } else if (t.tag == TypeTags.DOUBLE) { 
+            return F.createSortExpression(F.symbol("Real"));
+        } else if (t.tag == TypeTags.ARRAY) {
+            return refSort;
+        } else if (t.tag == TypeTags.BOT) {
             return refSort;
         } else if (t instanceof Type.TypeVar) {
             return refSort;
@@ -504,7 +545,8 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
-            if (((JCIdent)m).name.toString().equals(BasicBlocker2.STOREString)) {
+            String name = ((JCIdent)m).name.toString();
+            if (name.equals(BasicBlocker2.STOREString)) {
                 result = F.fcn(F.symbol("store"),
                         convertExpr(tree.args.get(0)),
                         convertExpr(tree.args.get(1)),
@@ -512,6 +554,14 @@ public class SMTTranslator extends JmlTreeScanner {
                         );
                 return;
             }
+//            if (name.equals("equals")) {
+//                result = F.fcn(F.symbol("stringEquals"),
+//                        convertExpr(tree.meth.),
+//                        convertExpr(tree.args.get(1)),
+//                        convertExpr(tree.args.get(2))
+//                        );
+//                
+//            }
         } else if (m == null) {
             if (tree instanceof JmlBBFieldAssignment) {
                 IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
@@ -656,7 +706,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol(">="), args);
                 break;
             case JCTree.PLUS:
-                result = F.fcn(F.symbol("+"), args);
+                if (tree.lhs.type.tag == TypeTags.CLASS) {
+                    result = F.fcn(F.symbol("stringConcat"), args);
+                } else {
+                    result = F.fcn(F.symbol("+"), args);
+                }
                 break;
             case JCTree.MINUS:
                 result = F.fcn(F.symbol("-"), args);
@@ -703,8 +757,9 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast tree) {
-        notImpl(tree); // TODO
-        super.visitTypeCast(tree);
+        // For reference types, ignore the cast; we presume any check about the
+        // validity of the cast is already performed.
+        result = convertExpr(tree.expr);
     }
 
     @Override
@@ -713,9 +768,14 @@ public class SMTTranslator extends JmlTreeScanner {
 //        super.visitTypeTest(tree);
         
         addType((ClassType)tree.clazz.type);
-        result = F.fcn(F.symbol("javaSubType"),
-                F.fcn(F.symbol("javaTypeOf"), convertExpr(tree.expr)),
+        IExpr e = convertExpr(tree.expr);
+        // instanceof is always false if the argument is null
+        // and javaTypeOf is not defined for null arguments
+        IExpr r1 = F.fcn(F.symbol("distinct"), e, nullRef);
+        IExpr r2 = F.fcn(F.symbol("javaSubType"),
+                F.fcn(F.symbol("javaTypeOf"), e),
                 javaTypeSymbol(tree.clazz.type));
+        result = F.fcn(F.symbol("and"), r1, r2);
     }
 
     @Override
@@ -754,6 +814,12 @@ public class SMTTranslator extends JmlTreeScanner {
 //            result = null;
 //        }
     }
+    
+    @Override 
+    public void visitConditional(JCConditional that) { 
+        result = F.fcn(F.symbol("ite"), convertExpr(that.cond), convertExpr(that.truepart), convertExpr(that.falsepart));
+    }
+
 
     @Override
     public void visitSelect(JCFieldAccess tree) {
@@ -769,9 +835,8 @@ public class SMTTranslator extends JmlTreeScanner {
         if (field != syms.lengthVar) {
             if (defined.add(name)) {
                 ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
-                List<ISort> args = new LinkedList<ISort>();
                 ICommand c = new C_declare_fun(F.symbol(name.toString()),
-                        args,arrsort);
+                        emptyList,arrsort);
                 commands.add(c);
             }
         } 
@@ -797,29 +862,29 @@ public class SMTTranslator extends JmlTreeScanner {
 //        } 
     }
     
-    int stringCount = 0;
-    int doubleCount = 0;
-
     @Override
     public void visitLiteral(JCLiteral tree) {
         // FIXME - need real, double, char, byte
         if (tree.typetag == TypeTags.BOOLEAN) {
            result = F.symbol(((Boolean)tree.getValue()) ?"true":"false"); 
-        } else if (tree.typetag == TypeTags.INT || tree.typetag == TypeTags.LONG || tree.typetag == TypeTags.SHORT || tree.typetag == TypeTags.CHAR || tree.typetag == TypeTags.BYTE) {
-            long k = Long.parseLong(tree.toString());
+        } else if (tree.typetag == TypeTags.INT || tree.typetag == TypeTags.LONG || tree.typetag == TypeTags.SHORT || tree.typetag == TypeTags.BYTE) {
+            long k = Long.parseLong(tree.value.toString());
+            result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
+        } else if (tree.typetag == TypeTags.CHAR) {
+            long k = Long.parseLong(tree.value.toString());
             result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
         } else if (tree.typetag == TypeTags.BOT) {
             result = nullRef;
         } else if (tree.typetag == TypeTags.CLASS) {
             // FIXME - every literal is different and we don't remember the value
             ISymbol sym = F.symbol("STRINGLIT"+(++stringCount)); 
-            ICommand c = new C_declare_fun(sym,new LinkedList<ISort>(), refSort);
+            ICommand c = new C_declare_fun(sym,emptyList, refSort);
             commands.add(c);
             result = sym;
         } else if (tree.typetag == TypeTags.FLOAT || tree.typetag == TypeTags.DOUBLE) {
             // FIXME - every literal is different and we don't remember the value
             ISymbol sym = F.symbol("REALLIT"+(++doubleCount)); 
-            ICommand c = new C_declare_fun(sym,new LinkedList<ISort>(), 
+            ICommand c = new C_declare_fun(sym,emptyList, 
                     F.createSortExpression(F.symbol("Real")));
             commands.add(c);
             result = sym;
@@ -857,24 +922,44 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
-        List<IDeclaration> params = new LinkedList<IDeclaration>();
-        for (JCVariableDecl decl: that.decls) {
-            IExpr.ISymbol sym = F.symbol(decl.name.toString());
-            ISort sort = convertSort(decl.type);
-            params.add(F.declaration(sym, sort));
-        }
-        scan(that.range);
-        IExpr range = result;
-        scan(that.value);
-        IExpr value = result;
-        if (that.op == JmlToken.BSFORALL) {
-            if (range != null) value = F.fcn(F.symbol("=>"),range,value);
-            result = F.forall(params,value);
-        } else if (that.op == JmlToken.BSEXISTS) {
-            if (range != null) value = F.fcn(F.symbol("=>"),range,value);
-            result = F.forall(params,value);
-        } else {
-            notImpl(that);
+        boolean prev = inQuant;
+        try {
+            inQuant = true;
+            List<IDeclaration> params = new LinkedList<IDeclaration>();
+            for (JCVariableDecl decl: that.decls) {
+                IExpr.ISymbol sym = F.symbol(decl.name.toString());
+                ISort sort = convertSort(decl.type);
+                params.add(F.declaration(sym, sort));
+            }
+            scan(that.range);
+            IExpr range = result;
+            scan(that.value);
+            IExpr value = result;
+            if (that.op == JmlToken.BSFORALL) {
+                if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+                result = F.forall(params,value);
+            } else if (that.op == JmlToken.BSEXISTS) {
+                if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+                result = F.forall(params,value);
+            } else {
+                notImpl(that);
+            }
+            if (!prev) {
+//              // Because SMTLIB does not allow getValue to have arguments containing
+//              // quantifiers, we do the following trick. We could use named 
+//              // SMTLIB expressions, but I'm not sure how widespread support
+//              // for that feature is.
+                ISymbol tmp = F.symbol("_JMLSMT_tmp_" + (++uniqueCount));
+                ICommand c = new C_declare_fun(tmp,emptyList,boolSort);
+                commands.add(c);
+                c = new C_assert(F.fcn(F.symbol("="),  tmp, result));
+                commands.add(c);
+                //ICommand c = new C_define_fun(tmp,new LinkedList<IDeclaration>(),boolSort,result);
+                //commands.add(c);
+                result = tmp;
+            }
+        } finally {
+            inQuant = prev;
         }
     }
 //
@@ -995,7 +1080,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitSynchronized(JCSynchronized that) { shouldNotBeCalled(that); }
     @Override public void visitTry(JCTry that) { shouldNotBeCalled(that); }
     @Override public void visitCatch(JCCatch that) { shouldNotBeCalled(that); }
-    @Override public void visitConditional(JCConditional that) { shouldNotBeCalled(that); }
     @Override public void visitIf(JCIf that) { shouldNotBeCalled(that); }
     @Override public void visitExec(JCExpressionStatement that) { shouldNotBeCalled(that); }
     @Override public void visitBreak(JCBreak that) { shouldNotBeCalled(that); }
@@ -1009,4 +1093,20 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitModifiers(JCModifiers that) { shouldNotBeCalled(that); }
     @Override public void visitErroneous(JCErroneous that) { shouldNotBeCalled(that); }
 
+}
+
+class QuantCheck extends JmlTreeScanner {
+    
+    boolean result;
+    
+    public boolean check(JCTree that) {
+        result = false;
+        scan(that);
+        return result;
+    }
+        
+    @Override
+    public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        result = true;
+    }
 }

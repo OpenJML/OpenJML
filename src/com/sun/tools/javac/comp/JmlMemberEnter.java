@@ -322,14 +322,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if (t instanceof JmlVariableDecl) {
                     VarSymbol vsym = matchAndCombineFieldSpecs(jtree,jtree.sym,(JmlVariableDecl)t);
                     if (vsym != null && (matchpos=matches.put(vsym,((JmlVariableDecl)t).pos)) != null) {
-                        log.error(((JmlVariableDecl)t).pos,"jml.duplicate.var.match",((JmlVariableDecl)t).name);
-                        log.error(matchpos,"jml.associated.decl");
+                        int p = ((JmlVariableDecl)t).pos;
+                    	log.error(p,"jml.duplicate.var.match",((JmlVariableDecl)t).name);
+                        log.error(matchpos,"jml.associated.decl.cf",
+                        		utils.locationString(p));
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     MethodSymbol msym = matchAndCombineMethodSpecs(jtree,jtree.sym,(JmlMethodDecl)t,env);
                     if (msym != null && (matchpos=matches.put(msym,((JmlMethodDecl)t).pos)) != null) {
-                        log.error(((JmlMethodDecl)t).pos,"jml.duplicate.method.match",((JmlMethodDecl)t).name);
-                        log.error(matchpos,"jml.associated.decl");
+                        int p = ((JmlMethodDecl)t).pos;
+                        log.error(p,"jml.duplicate.method.match",((JmlMethodDecl)t).name);
+                        log.error(matchpos,"jml.associated.decl.cf",
+                        		utils.locationString(p));
                     }
                 }
             }
@@ -773,14 +777,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if (t instanceof JmlVariableDecl) {
                     VarSymbol vsym = matchAndCombineFieldSpecs(jtree,csym,(JmlVariableDecl)t);
                     if (vsym != null && (matchpos=matches.put(vsym,((JmlVariableDecl)t).pos)) != null) {
-                        log.error(((JmlVariableDecl)t).pos,"jml.duplicate.var.match",((JmlVariableDecl)t).name);
-                        log.error(matchpos,"jml.associated.decl");
+                        int p = ((JmlVariableDecl)t).pos;
+                        log.error(p,"jml.duplicate.var.match",((JmlVariableDecl)t).name);
+                        log.error(matchpos,"jml.associated.decl.cf",
+                        		utils.locationString(p));
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     MethodSymbol msym = matchAndCombineMethodSpecs(jtree,csym,(JmlMethodDecl)t,env);
                     if (msym != null && (matchpos=matches.put(msym,((JmlMethodDecl)t).pos)) != null) {
-                        log.error(((JmlMethodDecl)t).pos,"jml.duplicate.method.match",((JmlMethodDecl)t).name);
-                        log.error(matchpos,"jml.associated.decl");
+                        int p = ((JmlMethodDecl)t).pos;
+                        log.error(p,"jml.duplicate.method.match",((JmlMethodDecl)t).name);
+                        log.error(matchpos,"jml.associated.decl.cf",
+                        		utils.locationString(p));
                     }
                 }
             }
@@ -2095,7 +2103,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     Integer matchpos;
                     if ((matchpos=matchedSyms.put(vsym,vd.pos)) != null) {
                         log.error(vd.pos,"jml.duplicate.var.match",vd.name);
-                        log.error(matchpos,"jml.associated.decl");
+                        log.error(matchpos,"jml.associated.decl.cf",
+                        		utils.locationString(vd.pos));
                     }
                     vd.sym = vsym;
                     checkFieldMatch(vsym,vd);

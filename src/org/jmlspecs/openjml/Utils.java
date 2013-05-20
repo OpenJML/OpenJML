@@ -50,6 +50,12 @@ import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
  * overridden by some enterprising future person.
  */
 public class Utils {
+    
+    /** This field is used to restrict output during testing so as to 
+     * make test results more deterministic (or to match old test results).
+     */
+    static public boolean testingMode = false;
+    
     ///////////////////////////////////////////////////////////////////////////////////////
 
     /** The context applicable for this instance of the Utils class. */

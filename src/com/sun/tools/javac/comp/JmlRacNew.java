@@ -1722,6 +1722,7 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
             return;
         }
         switch (token) {
+            case BSPAST:
             case BSOLD:
             case BSPRE:
                 arg = translate(tree.args.get(0));

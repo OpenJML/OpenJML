@@ -260,7 +260,8 @@ public class JmlEnter extends Enter {
                     } else {
                         JavaFileObject prev = log.useSource(specsClass.source());
                         log.error(matched.pos,"jml.duplicate.jml.class.decl",matched.name);
-                        log.error(def.specsDecls.get(0).pos,"jml.associated.decl");
+                        log.error(def.specsDecls.get(0).pos,"jml.associated.decl.cf",
+                        		utils.locationString(matched.pos));
                         log.useSource(prev);
                     }
                 }
@@ -495,7 +496,8 @@ public class JmlEnter extends Enter {
                             }
                         } else {
                             log.error(specClass.pos,"jml.duplicate.jml.class.decl",specClass.name);
-                            log.error(matched.pos,"jml.associated.decl");
+                            log.error(matched.pos,"jml.associated.decl.cf",
+                            		utils.locationString(specClass.pos));
                         }
                         log.useSource(prev);
                     }

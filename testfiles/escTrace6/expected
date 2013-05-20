@@ -9,10 +9,8 @@ Feasibility check #2 - at program exit : OK
 Completed proof of trace.mm() with prover z3_4_3 - no warnings
 Starting proof of trace.m() with prover z3_4_3
 
-TRACE
+TRACE of trace.m()
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace6\trace.java:7:  	requires true; 
 			VALUE: true	 === true
 testfiles\escTrace6\trace.java:11:  	k = 1
@@ -28,7 +26,7 @@ testfiles\escTrace6\trace.java:9:  	signals (Exception e) false;
 testfiles\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
         mm();
           ^
-testfiles\escTrace6\trace.java:9: warning: Associated declaration
+testfiles\escTrace6\trace.java:9: warning: Associated declaration: testfiles\escTrace6\trace.java:12: 
     //@ signals (Exception e) false;
         ^
 Completed proof of trace.m() with prover z3_4_3 - with warnings
@@ -38,10 +36,8 @@ Feasibility check #2 - at program exit : OK
 Completed proof of trace.m2() with prover z3_4_3 - no warnings
 Starting proof of trace.m3() with prover z3_4_3
 
-TRACE
+TRACE of trace.m3()
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace6\trace.java:29:  	requires true; 
 			VALUE: true	 === true
 testfiles\escTrace6\trace.java:36:  	k = 1
@@ -57,7 +53,7 @@ testfiles\escTrace6\trace.java:31:  	ensures k == 2;
 testfiles\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m3
             mm();
               ^
-testfiles\escTrace6\trace.java:31: warning: Associated declaration
+testfiles\escTrace6\trace.java:31: warning: Associated declaration: testfiles\escTrace6\trace.java:37: 
     //@ ensures k == 2;
         ^
 Completed proof of trace.m3() with prover z3_4_3 - with warnings

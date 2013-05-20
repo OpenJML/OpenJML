@@ -1360,7 +1360,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - needs review
     public void visitApply(JCMethodInvocation that) { 
-        // This is an expression so we just use trExpr
         JCExpression now;
         JCExpression obj;
         MethodSymbol msym;
@@ -1383,6 +1382,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 obj = ( fa.selected );
                 // FIXME - should do better than converting to String
                 //if (!fa.selected.type.toString().endsWith("JMLTYPE")) checkForNull(obj,fa.pos,trueLiteral,null);
+            }
+            
+            // Special case for Strings
+            if (fa.name.toString().equals("equals")) {
+                System.out.println("HERE");
             }
 //        } else if (that.token == null) {
 //            super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
@@ -1445,7 +1449,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE) {
+        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE || that.token == JmlToken.BSPAST) {
             VarMap savedMap = currentMap;
             try {
                 if (that.args.size() == 1) {
@@ -1480,6 +1484,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
+            scanList(that.args);
+            result = that;
+        } else if (that.token == JmlToken.BSSAME) {
+            // In this context, BSSAME is a noop
             scanList(that.args);
             result = that;
         } else {
@@ -2182,7 +2190,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             isDefined.add(n);
             currentMap.putSAVersion(that.sym,n,0); // FIXME - should unique be incremented
             currentBlock.statements.add(that);
+            scan(that.ident);
         } else {
+            // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
             isDefined.add(lhs.name);
             that.name = lhs.name;
@@ -2190,7 +2200,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
-                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ,lhs,that.init);
+                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ, that.ident != null ? that.ident : lhs,that.init);
                 addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
             }
         }
@@ -2238,8 +2248,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     public void visitTypeIdent(JCPrimitiveTypeTree that) { 
-        notImpl(that); 
+        result = that; 
     }
+    
     public void visitTypeArray(JCArrayTypeTree that)     { notImpl(that); }
     public void visitTypeApply(JCTypeApply that)         { 
         // This is the application of a generic type to its parameters
@@ -2256,7 +2267,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitJmlSetComprehension(JmlSetComprehension that) { notImpl(that); }
     
     
-    @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { notImpl(that); }
+    @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { 
+        notImpl(that); 
+    }
     @Override public void visitJmlChoose(JmlChoose that)                     { notImpl(that); }
     @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that)                     { notImpl(that); }
     @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that)                     { notImpl(that); }

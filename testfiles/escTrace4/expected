@@ -1,10 +1,8 @@
 Proving methods in trace
 Starting proof of trace.m(int) with prover z3_4_3
 
-TRACE
+TRACE of trace.m(int)
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace4\trace.java:12:  	requires true; 
 			VALUE: true	 === true
 testfiles\escTrace4\trace.java:15:  	int j = 0
@@ -40,7 +38,7 @@ testfiles\escTrace4\trace.java:13:  	ensures \result != 0;
 testfiles\escTrace4\trace.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
-testfiles\escTrace4\trace.java:13: warning: Associated declaration
+testfiles\escTrace4\trace.java:13: warning: Associated declaration: testfiles\escTrace4\trace.java:19: 
     //@ ensures \result != 0;
         ^
 Completed proof of trace.m(int) with prover z3_4_3 - with warnings

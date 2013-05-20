@@ -100,33 +100,69 @@ public class escfiles extends EscBase {
 
 
     @Test
+    public void testDemo() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
     public void testDemo1() {
-        expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo1","-noInternalSpecs","-subexpressions","-progress");
-    }
-
-    @Test
-    public void testDemo2() {
-        expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemo2","-noInternalSpecs","-subexpressions","-progress","-method=tick");
-    }
-
-    @Test
-    public void testDemo3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemo3","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-noInternalSpecs","-progress");
     }
 
     @Test
+    public void testDemoA() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemoA","-noInternalSpecs","-subexpressions","-progress","-method=tick");
+    }
+
+    @Test
+    public void testDemoA1() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemoA1","-noInternalSpecs","-subexpressions","-progress","-method=tick");
+    }
+
+    @Test
+    public void testDemoB() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemoB1() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB1.java","testfiles/escDemoB1","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemoB2() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","testfiles/escDemoB2","-noInternalSpecs","-progress");
+    }
+
+    @Test
+    public void testDemoB3() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testDemoC() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-noInternalSpecs","-subexpressions","-progress");
+    }
+
+    @Test @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void testDemoPaths() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","testfiles/escDemoPaths","-noInternalSpecs","-subexpressions","-progress");
     }
 
-    @Test @Ignore // until other integer types are implemented
-    public void testDemoPaths2() {
+    @Test 
+    public void testDemoChangeCase() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/test/Path2.java","testfiles/escDemoPaths2","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","testfiles/escDemoChangeCase","-noInternalSpecs","-subexpressions","-progress","-method=changeCase");
     }
 
     @Test
@@ -284,6 +320,12 @@ public class escfiles extends EscBase {
     public void testTraceForeach5() {
         expectedExit = 0;
         helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach5","-method=mforeach5","-subexpressions","-progress");
+    }
+
+    @Test
+    public void testTraceBS() {
+        expectedExit = 0;
+        helpTCF("testfiles/escTraceBS","testfiles/escTraceBS","-subexpressions","-progress");
     }
 
 

@@ -1,8 +1,6 @@
 
-TRACE
+TRACE of trace.m(int)
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace\trace.java:12:  	requires true; 
 			VALUE: true	 === true
 testfiles\escTrace\trace.java:15:  	k = 7
@@ -20,7 +18,7 @@ testfiles\escTrace\trace.java:18:  	f = k + 9
 			VALUE: f = k + 9	 === 23
 testfiles\escTrace\trace.java:19:  	j = f + this.f
 			VALUE: f	 === 23
-			VALUE: this	 === REF!val!0
+			VALUE: this	 === THIS
 			VALUE: this.f	 === 23
 			VALUE: f + this.f	 === 46
 			VALUE: j = f + this.f	 === 46
@@ -30,13 +28,13 @@ testfiles\escTrace\trace.java:20:  	f += k + 9
 			VALUE: k + 9	 === 23
 			VALUE: f += k + 9	 === 46
 testfiles\escTrace\trace.java:21:  	this.f = k + 9
-			VALUE: this	 === REF!val!0
+			VALUE: this	 === THIS
 			VALUE: k	 === 14
 			VALUE: 9	 === 9
 			VALUE: k + 9	 === 23
 			VALUE: this.f = k + 9	 === 23
 testfiles\escTrace\trace.java:22:  	this.f += k + 9
-			VALUE: this	 === REF!val!0
+			VALUE: this	 === THIS
 			VALUE: k	 === 14
 			VALUE: 9	 === 9
 			VALUE: k + 9	 === 23
@@ -61,8 +59,8 @@ testfiles\escTrace\trace.java:25:  	j = mmm(j + 1) + mmm(10)
 			VALUE: mmm(j + 1) + mmm(10)	 === 82
 			VALUE: j = mmm(j + 1) + mmm(10)	 === 82
 testfiles\escTrace\trace.java:26:  	synchronized (this) ...
-			VALUE: this	 === REF!val!0
-			VALUE: (this)	 === REF!val!0
+			VALUE: this	 === THIS
+			VALUE: (this)	 === THIS
 testfiles\escTrace\trace.java:27:  	if (k == 14) ...
 			VALUE: k	 === 14
 			VALUE: 14	 === 14
@@ -251,7 +249,7 @@ testfiles\escTrace\trace.java:13:  	ensures \result != 0;
 testfiles\escTrace\trace.java:83: warning: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
-testfiles\escTrace\trace.java:13: warning: Associated declaration
+testfiles\escTrace\trace.java:13: warning: Associated declaration: testfiles\escTrace\trace.java:83: 
     //@ ensures \result != 0;
         ^
 3 warnings

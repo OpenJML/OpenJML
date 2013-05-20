@@ -36,6 +36,7 @@ public class escvisibility extends EscBase {
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
+        main.addOptions("-jmltesting");
     }
 
     // Invariant inherited from same package
