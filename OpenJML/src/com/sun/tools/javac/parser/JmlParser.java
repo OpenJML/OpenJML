@@ -2450,6 +2450,7 @@ public class JmlParser extends EndPosParser {
 
                 case BSELEMTYPE:
                 case BSTYPEOF:
+                case BSPAST:
                 case BSOLD:
                 case BSPRE:
                 case BSNOWARN:

@@ -8,6 +8,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
@@ -132,13 +133,15 @@ public class MethodProverBoogie extends MethodProverSMT {
                     if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString();
                 }
                 log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra);
+            	String loc = utils.locationString(pos);
                 // TODO - above we include the optionalExpression as part of the error message
                 // however, it is an expression, and not evaluated for ESC. Even if it is
                 // a literal string, it is printed with quotes around it.
                 if (prev != null) log.useSource(prev);
                 if (assertStat.associatedPos != Position.NOPOS) {
                     if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                    log.warning(assertStat.associatedPos, "jml.associated.decl");
+                    log.warning(assertStat.associatedPos, 
+                    		Utils.testingMode ? "jml.associated.decl" :"jml.associated.decl.cf",loc);
                     if (assertStat.associatedSource != null) log.useSource(prev);
                 }
 

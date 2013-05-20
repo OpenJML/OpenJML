@@ -293,10 +293,6 @@ public class Main extends com.sun.tools.javac.main.Main {
     @NonNull
     final public static String helpOption = "-help";
     
-    /** The option string for requesting interactive mode */
-    @NonNull
-    final public static String interactiveOption = "-i";
-
     /** The option string for running jmldoc */
     @NonNull
     final public static String jmldocOption = "-doc";
@@ -359,10 +355,6 @@ public class Main extends com.sun.tools.javac.main.Main {
                         uninitializedLog().warning("jml.ignoring.options");
                     }
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
-                } else if (args.length > 0 && args[0].equals(interactiveOption)) {
-                    // interactive mode // TODO - what is this? do we still support it?
-                    errorcode = new org.jmlspecs.openjml.Interactive().run(args);
-                    if (errorcode != 0) writer.println("ENDING with exit code " + errorcode); 
                 } else {
                     // We create an instance of main through which to call the
                     // actual compile method. Note though that the compile method
@@ -375,9 +367,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
                     errorcode = compiler.compile(args); // context and new options are created in here
-                    if (errorcode != 0 && 
-                        Options.instance(compiler.context()).get(JmlOption.JMLTESTING.optionName()) != null) {
-                        writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
+                    if (errorcode > EXIT_CMDERR || 
+                            Utils.instance(compiler.context()).jmlverbose > Utils.PROGRESS) {
+                        writer.println("ENDING with exit code " + errorcode);
                     }
                 }
             }
@@ -422,8 +414,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 initialize(writer, diagListener, options, emptyArgs);
                 // The following line does an end-to-end compile, in a fresh context
                 errorcode = compile(args); // context and new options are created in here
-                if (errorcode != 0 && 
-                        Options.instance(this.context()).get(JmlOption.JMLTESTING.optionName()) != null) {
+                if (errorcode > EXIT_CMDERR || 
+                        Utils.instance(context()).jmlverbose > Utils.PROGRESS) {
                     writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
             }
@@ -644,6 +636,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
+        String t = options.get(JmlOption.JMLTESTING.optionName());
+        Utils.testingMode =  ( t != null && !t.equals("false"));
+        
         utils.jmlverbose = Utils.NORMAL;
         String levelstring = options.get(JmlOption.VERBOSENESS.optionName());
         if (levelstring != null) {

@@ -908,7 +908,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE) {
+        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE || that.token == JmlToken.BSPAST) {
                 if (that.args.size() == 1) {
                     that.args.get(0).accept(this);
                 } else {

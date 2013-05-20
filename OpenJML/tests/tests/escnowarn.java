@@ -1,5 +1,6 @@
 package tests;
 
+import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +26,7 @@ public class escnowarn extends EscBase {
         //options.put("-jmldebug",   "");
         //options.put("-noInternalSpecs",   "");
         //JmlEsc.escdebug = true;
+        main.addOptions("-jmltesting");
     }
     
     @Test

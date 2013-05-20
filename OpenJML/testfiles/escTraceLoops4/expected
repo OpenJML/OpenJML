@@ -1,16 +1,17 @@
 Proving methods in trace
 Starting proof of trace.m4() with prover z3_4_3
 
-TRACE
+TRACE of trace.m4()
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTraceLoops\trace.java:48:  	int k = 5
+			VALUE: 5	 === 5
 			VALUE: k	 === 5
 testfiles\escTraceLoops\trace.java:49:  	int j = 0
+			VALUE: 0	 === 0
 			VALUE: j	 === 0
 testfiles\escTraceLoops\trace.java:52:  	for ...
 testfiles\escTraceLoops\trace.java:52:  	int i = 0
+			VALUE: 0	 === 0
 			VALUE: i	 === 0
 testfiles\escTraceLoops\trace.java:50:  	//@ loop_invariant j == i && 0 <= i && i <= k;
 			VALUE: j	 === 0

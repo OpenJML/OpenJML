@@ -88,7 +88,7 @@ public class namelookup extends TCBase {
                         "}"
         ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",4
         ,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",11
-        ,"/$A/A.jml:1: Associated declaration",16
+        ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",16
         ,"/$A/A.jml:3: The specification of the method A.m(double) must not have a body",21
         );
     }
@@ -105,7 +105,7 @@ public class namelookup extends TCBase {
                         "   void m(double k) {}\n" +
                         "}"
         ,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",8
-        ,"/$A/A.jml:1: Associated declaration",16
+        ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",16
         ,"/$A/A.jml:3: The specification of the method A.m(double) must not have a body",21
         );
     }
@@ -344,10 +344,10 @@ public class namelookup extends TCBase {
                 "}\n" +
                 ""
        ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
-       ,"/$A/A.jml:1: Associated declaration",8
+       ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:16: ",8
        ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
        ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
-       ,"/$A/A.jml:2: Associated declaration",11
+       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
        ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
        // FIXME: Would prefer this: ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7

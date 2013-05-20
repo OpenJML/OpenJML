@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.smtlib.ICommand;
 import org.smtlib.IExpr;
+import org.smtlib.IPrinter;
 import org.smtlib.IResponse;
 import org.smtlib.IResponse.IError;
 import org.smtlib.IResponse.IPair;
@@ -38,6 +39,7 @@ import org.smtlib.SMT;
 import org.smtlib.sexpr.ISexpr;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -106,6 +108,7 @@ public class MethodProverSMT {
     // FIXME - complete -decide on the interface for tracers
     public ITracerFactory tracerFactory;
 
+    public Map<String,String> constantTraceMap = new HashMap<String,String>();
     
     public interface ITracer {
         
@@ -292,8 +295,8 @@ public class MethodProverSMT {
                         solver.assertExpr(smttrans.convertExpr(bin));
                         solverResponse = solver.check_sat();
                         jmlesc.progress(1,1,"Feasibility check #" + k + " - " + description + " : " +
-                                (solverResponse.toString().equals("unsat") ? "infeasible": "OK"));
-                        if (solverResponse.toString().equals("unsat")) {
+                                (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
+                        if (solverResponse.equals(unsatResponse)) {
                             if (k == 1) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(jmlesc.proverToUse,IProverResult.INCONSISTENT);
@@ -350,11 +353,9 @@ public class MethodProverSMT {
                     tracer = new Tracer(context,smt,solver,cemap,jmap);
                     // Report JML-labeled values and the path to the failed invariant
                     if (showTrace) {
-                        log.noticeWriter.println("\nTRACE\n");
-                        String n = cemap.get(JmlTreeUtils.instance(context).nullLit);
-                        String t = getValue("THIS",smt,solver);
-                        log.noticeWriter.println("\t\t\tVALUE: null = " + n);
-                        log.noticeWriter.println("\t\t\tVALUE: this = " + t);
+                        log.noticeWriter.println(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym) + JmlTree.eol);
+                        if (utils.jmlverbose  >= Utils.JMLVERBOSE) log.noticeWriter.println("Constants");
+                        populateConstantMap(smt, solver, cemap, smttrans);
                     }
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(
@@ -402,6 +403,37 @@ public class MethodProverSMT {
     protected List<IProverResult.Span> path;
 
 
+    public void populateConstantMap(SMT smt, ISolver solver, Map<JCTree,String> cemap,
+            SMTTranslator smttrans) {
+        addToConstantMap(treeutils.nullLit,cemap);
+        addToConstantMap("THIS",smt,solver,cemap);
+        for (Type t : smttrans.javaTypes) {
+            String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer
+            addToConstantMap(s,smt,solver,cemap);
+            s = smttrans.jmlTypeSymbol(t).toString(); // FIXME - need official printer
+            addToConstantMap(s,smt,solver,cemap);
+        }
+    }
+    
+    public void addToConstantMap(String id, SMT smt, ISolver solver, Map<JCTree,String> cemap) {
+        String result = getValue(id,smt,solver);
+        if (result != null) constantTraceMap.put(result,id);
+        if (utils.jmlverbose  >= Utils.JMLVERBOSE) {
+            log.noticeWriter.println("\t\t\tVALUE: " + id + "\t === " + 
+                    result);
+        }
+
+    }
+    
+    public void addToConstantMap(JCExpression e, Map<JCTree,String> cemap) {
+        String result = cemap.get(e);
+        String expr = e.toString();// TODO - use the pretty printer?
+        if (result != null) constantTraceMap.put(result,e.toString()); 
+        if (utils.jmlverbose  >= Utils.JMLVERBOSE) log.noticeWriter.println("\t\t\tVALUE: " + expr + "\t === " + 
+                 result);
+
+    }
+    
     /** Iterates through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover.
      */
@@ -506,7 +538,7 @@ public class MethodProverSMT {
             if (showTrace) {
                 JCStatement bbstat = stat;
                 JCTree origStat = aaPathMap.getr(bbstat);
-                if (origStat != null) {
+                ifstat: if (origStat != null) {
                     String loc = utils.locationString(origStat.getStartPosition());
                     String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                     int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
@@ -549,6 +581,15 @@ public class MethodProverSMT {
 //                        JmlEnhancedForLoop s = (JmlEnhancedForLoop)origStat;
 //                        sp = s.getCondition().getStartPosition();
 //                        ep = s.getCondition().getEndPosition(log.currentSource().getEndPosTable());
+                    } else if (origStat instanceof JmlVariableDecl) {
+                        JmlVariableDecl s = (JmlVariableDecl)origStat;
+                        sp = s.getStartPosition();
+                        ep = s.getEndPosition(log.currentSource().getEndPosTable());
+                        toTrace = s.ident;
+                        log.noticeWriter.println(loc + " \t" + comment);
+                        if (toTrace != null && showSubexpressions) tracer.scan(s.init);
+                        if (toTrace != null && showSubexpressions) tracer.scan(s.ident);
+                        break ifstat;
                     } else {
                         toTrace = origStat;
                     }
@@ -615,21 +656,27 @@ public class MethodProverSMT {
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
                     }
+                    
+                    
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
+                    String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
+                        loc = utils.locationString(pos);
                     } else {
                         // FIXME - migrate to using pos() for terminationPos as well 
                         log.warning(assertStat.pos(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
+                        loc = utils.locationString(assertStat.pos);
                     }
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
                     // a literal string, it is printed with quotes around it.
                     if (prev != null) log.useSource(prev);
                     if (assertStat.associatedPos != Position.NOPOS) {
-                        String msg = utils.locationString(pos);
                         if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
-                        log.warning(assertStat.associatedPos, "jml.associated.decl",msg); // FIXME - could add this information, but it would blow Aaway the test results
+                        log.warning(assertStat.associatedPos, 
+                                Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                loc);
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
 
@@ -727,9 +774,12 @@ public class MethodProverSMT {
         public void scan(JCTree that) {
             super.scan(that);
             if (that instanceof JCExpression && !treeutils.isATypeTree((JCExpression)that)) {
-                String sv = cemap.get(that);
                 if (print) {
-                    log.noticeWriter.println("\t\t\tVALUE: " + that + "\t === " + (sv==null ? "???" : sv));
+                    String expr = that.toString();
+                    String sv = cemap.get(that);
+                    String userString = sv == null ? "???" : constantTraceMap.get(sv);
+                    if (userString == null) userString = sv;
+                    log.noticeWriter.println("\t\t\tVALUE: " + expr + "\t === " + userString);
                 }
                 else print = true;
             }
@@ -748,7 +798,8 @@ public class MethodProverSMT {
                 //log.noticeWriter.println("\t\t\t\tVALUE Retrieved: " + n + " = " + sv);
                 cemap.put(e, sv);
             }
-            log.noticeWriter.println("\t\t\tVALUE: " + e.sym + " = " + sv);
+            log.noticeWriter.println("\t\t\tVALUE: " + e.sym + " = " + 
+                        (sv == null ? "???" : sv));
 
         }
         
@@ -863,29 +914,29 @@ public class MethodProverSMT {
         
     }
     
-    /** Fetch values for all expressions that are targets of the mapping in smttrans. */
-    public Map<String,String> constructSMTCounterexample(SMTTranslator smttrans, ISolver solver) {
-        Map<String,String> ce = new HashMap<String,String>();
-        IExpr[] ee = new IExpr[1];
-        for (IExpr e: smttrans.bimap.forward.values()) {
-            String key = smttrans.bimap.getr(e).toString();
-            if (ce.get(key) != null) continue;
-            ee[0] = e;
-            IResponse resp = solver.get_value(ee);
-            // FIXME - need to get a single kind of response
-            if (resp instanceof ISexpr.ISeq) {
-                ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
-                ISexpr value = ((ISexpr.ISeq)pair).sexprs().get(1);
-                ce.put(key, value.toString());
-            }
-            if (resp instanceof IResponse.IValueResponse) {
-                IPair<IExpr,IExpr> pair = ((IResponse.IValueResponse)resp).values().get(0);
-                IExpr value = pair.second();
-                ce.put(key, value.toString());
-            }
-        }
-        return ce;
-    }
+//    /** Fetch values for all expressions that are targets of the mapping in smttrans. */
+//    public Map<String,String> constructSMTCounterexample(SMTTranslator smttrans, ISolver solver) {
+//        Map<String,String> ce = new HashMap<String,String>();
+//        IExpr[] ee = new IExpr[1];
+//        for (IExpr e: smttrans.bimap.forward.values()) {
+//            String key = smttrans.bimap.getr(e).toString();
+//            if (ce.get(key) != null) continue;
+//            ee[0] = e;
+//            IResponse resp = solver.get_value(ee);
+//            // FIXME - need to get a single kind of response
+//            if (resp instanceof ISexpr.ISeq) {
+//                ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
+//                ISexpr value = ((ISexpr.ISeq)pair).sexprs().get(1);
+//                ce.put(key, value.toString());
+//            }
+//            if (resp instanceof IResponse.IValueResponse) {
+//                IPair<IExpr,IExpr> pair = ((IResponse.IValueResponse)resp).values().get(0);
+//                IExpr value = pair.second();
+//                ce.put(key, value.toString());
+//            }
+//        }
+//        return ce;
+//    }
     
     /** Construct the mapping from original source subexpressions to values in the current solver model. */
     public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
@@ -893,7 +944,7 @@ public class MethodProverSMT {
         if (verbose) {
             log.noticeWriter.println("ORIGINAL <==> TRANSLATED");
             for (JCTree e: assertionAdder.exprBiMap.forward.keySet()) {
-                if (!(e instanceof JCExpression)) continue;
+                if (!(e instanceof JCExpression) && !(e instanceof JCVariableDecl)) continue;
                 JCTree v = assertionAdder.exprBiMap.getf(e);
                 if (v != null && assertionAdder.exprBiMap.getr(v) == e) {
                     log.noticeWriter.println(e.toString() + " <==> " + v);
@@ -921,19 +972,46 @@ public class MethodProverSMT {
             }
             log.noticeWriter.println("\nORIGINAL <==> SMT");
         }
-        Map<String,String> ce = constructSMTCounterexample(smttrans,solver);
+        IExpr[] ee = new IExpr[1];
+        IPrinter p = smt.smtConfig.defaultPrinter;
+//        Map<String,String> ce = constructSMTCounterexample(smttrans,solver);
         Map<JCTree,String> values = new HashMap<JCTree,String>();
         for (JCTree t : assertionAdder.exprBiMap.forward.keySet() ) {
+            if (t instanceof JmlVariableDecl) t = ((JmlVariableDecl)t).ident;
             if (!(t instanceof JCExpression)) continue;
             // t is the original source expression
             JCTree t1 = assertionAdder.exprBiMap.getf(t);
-            // t1 is the result of JmlAssertionAdder
+            // t1 is the result of JmlAssertionAdder, which should be a new AST
             JCExpression t2 = basicBlocker.bimap.getf(t1);
             // t2 is the result of BasicBlocker2, which may have changed AST nodes in place
             if (t2 == null && t1 instanceof JCIdent) t2 = (JCIdent)t1; // this can happen if the Ident ends up being declared in a declaration (such as wtih field or array assignments)
-            String t3 = t2 == null ? null : ce.get(t2.toString());
+
+            IExpr smtexpr = smttrans.bimap.getf(t2);
+            if (smtexpr == null) continue;
+            
+            ee[0] = smtexpr;
+            String value = null;
+            IResponse resp = solver.get_value(ee);
+            // FIXME - need to get a single kind of response
+            if (resp instanceof ISexpr.ISeq) {
+                ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);
+                value = p.toString(((ISexpr.ISeq)pair).sexprs().get(1));
+//                ce.put(key, value.toString());
+            }
+            if (resp instanceof IResponse.IValueResponse) {
+                IPair<IExpr,IExpr> pair = ((IResponse.IValueResponse)resp).values().get(0);
+                value = p.toString(pair.second());
+ //               ce.put(key, value.toString());
+            }
+            if (resp instanceof IError) {
+                value = p.toString(resp);
+            }
+            String t3 = value;
+
+//            String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            if (verbose) log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + t3);
+            if (verbose) log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
+                    smt.smtConfig.defaultPrinter.toString(smtexpr) + " >>>> "+ t3);
         }
         return values;
     }

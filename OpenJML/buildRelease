@@ -103,18 +103,24 @@ NAMEZ=openjml-${VERSION}.zip
 	
     rm -rf temp temp2
     
-##### Build the tar file
-    if [ -e ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
-        cp ../../texstuff/papers/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR}
+##### Collect other files for the tar file
+    cp legal/* ${TEMPJAR}
+        (echo Building user manual; cd documentation/OpenJMLUserGuide; rm *.pdf; make all > build.log )
+    if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
+        cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
     else
         echo No User Guide file is found
     fi
-    cp legal/* ${TEMPJAR}
+    
+##### Build the tar file
 	(cd ${TEMPJAR}; \
     cp ../openjml-template.properties . ;\
-	tar -zcf ../${NAME} * ; zip ../${NAMEZ} *)
+	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
-
+	
+##### Build the web pages, even though we are not including them here
+    (cd ../OpenJML-UpdateSite/web/src; . create > log)
+    
 ##### End	
 	echo Release complete

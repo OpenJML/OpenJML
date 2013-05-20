@@ -153,6 +153,7 @@ public enum JmlToken {
     BSONLYASSIGNED("\\only_assigned"),
     BSONLYCALLED("\\only_called"),
     BSONLYCAPTURED("\\only_captured"),
+    BSPAST("\\past"),
     BSPRE("\\pre"),
     BSREACH("\\reach"),
     BSSPACE("\\space"),

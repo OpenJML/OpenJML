@@ -1044,30 +1044,30 @@ public class OpenJMLInterface {
     public @NonNull List<String> getOptions(IJavaProject jproject, Main.Cmd cmd) {
     	
     	//com.sun.tools.javac.util.Options openjmlOptions = com.sun.tools.javac.util.Options.instance(api.context());
+    	String eq = "=";
     	
         //Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd != null) {
-            opts.add(JmlOption.COMMAND.optionName() +"="+ cmd);
-            opts.add(JmlOption.NOPURITYCHECK.optionName() +"="+ Options.isOption(Options.noCheckPurityKey));
-            opts.add(JmlOption.SHOW.optionName() +"="+ Options.isOption(Options.showKey));
+            opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
+            opts.add(JmlOption.NOPURITYCHECK.optionName() +eq+ Options.isOption(Options.noCheckPurityKey));
+            opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
         if (cmd == Main.Cmd.ESC) {
-            opts.add(JmlOption.ASSOCINFO.optionName());
             String prover = Options.value(Options.defaultProverKey);
-            opts.add(JmlOption.PROVER.optionName() +"="+ prover);
-            opts.add(JmlOption.PROVEREXEC.optionName() +"="+ Options.value(Options.proverPrefix + prover));
-            opts.add(JmlOption.MAXWARNINGS.optionName() +"="+ Options.value(Options.maxWarningsKey));
-            opts.add(JmlOption.TRACE.optionName() +"="+ Options.isOption(Options.traceKey));
-            opts.add(JmlOption.SUBEXPRESSIONS.optionName() +"="+ Options.isOption(Options.subexpressionsKey));
-            opts.add(JmlOption.FEASIBILITY.optionName() +"="+ Options.value(Options.feasibilityKey));
+            opts.add(JmlOption.PROVER.optionName() +eq+ prover);
+            opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
+            opts.add(JmlOption.MAXWARNINGS.optionName() +eq+ Options.value(Options.maxWarningsKey));
+            opts.add(JmlOption.TRACE.optionName() +eq+ Options.isOption(Options.traceKey));
+            opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ Options.isOption(Options.subexpressionsKey));
+            opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));
         }
         
         if (cmd == Main.Cmd.RAC) {
-            opts.add(JmlOption.NO_RAC_SOURCE.optionName() +"="+ Options.isOption(Options.racNoShowSource));
-            opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +"="+ Options.isOption(Options.racNoCheckAssumptions));
-            opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +"="+ Options.isOption(Options.racNoCheckJavaFeatures));
-            opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +"="+ Options.isOption(Options.compileToJavaAssert));
+            opts.add(JmlOption.NO_RAC_SOURCE.optionName() +eq+ Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racNoCheckAssumptions));
+            opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racNoCheckJavaFeatures));
+            opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         
 //        for (String key: optionsToCopy) {
@@ -1098,7 +1098,7 @@ public class OpenJMLInterface {
 //        }
         boolean verbose = Options.uiverboseness;
 
-        opts.add(JmlOption.VERBOSENESS.optionName()+"="+Options.value(Options.verbosityKey));
+        opts.add(JmlOption.VERBOSENESS.optionName()+eq+Options.value(Options.verbosityKey));
         
         if (Options.isOption(Options.javaverboseKey)) {
         	opts.add("-verbose"); // FIXME - no hard string
@@ -1107,7 +1107,7 @@ public class OpenJMLInterface {
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
         if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
-        opts.add(JmlOption.NULLABLEBYDEFAULT.optionName()+"="+Options.isOption(Options.nullableByDefaultKey));
+        opts.add(JmlOption.NULLABLEBYDEFAULT.optionName()+eq+Options.isOption(Options.nullableByDefaultKey));
             
         String other = Options.value(Options.otherOptionsKey);
         if (other != null) {

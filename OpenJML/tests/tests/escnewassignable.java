@@ -2,6 +2,7 @@ package tests;
 
 import java.util.Collection;
 
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,7 @@ public class escnewassignable extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         //print = true;
+        main.addOptions("-jmltesting");
     }
 
     @Test

@@ -27,6 +27,7 @@ public class escnew extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-noPurityCheck");
+        main.addOptions("-jmltesting");
         //options.put("-jmlverbose",   "");
         //options.put("-method",   "m2bad");
         //options.put("-jmldebug",   "");
@@ -372,6 +373,7 @@ public class escnew extends EscBase {
     @Test
     public void testMethodInvocation() {
         main.addOptions("-logic=AUFNIRA");
+        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -961,6 +963,7 @@ public class escnew extends EscBase {
     @Test
     public void testShortCircuit() {
         main.addOptions("-logic=AUFNIRA");
+        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
@@ -1294,6 +1297,7 @@ public class escnew extends EscBase {
     @Test
     public void testAssignOp() {
         main.addOptions("-logic=AUFNIRA");
+        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1559,6 +1563,7 @@ public class escnew extends EscBase {
     @Test
     public void testUndefined() {
         main.addOptions("-logic=AUFNIRA");
+        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

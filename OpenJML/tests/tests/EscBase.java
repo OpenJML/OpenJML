@@ -30,6 +30,15 @@ public abstract class EscBase extends JmlTestCase {
         // "yices", 
         // "simplify" 
     };
+    
+    static public String[] nonullsolvers = { 
+        "z3_4_3", 
+        "cvc4",
+        "yices2" , 
+        // "yices", 
+        // "simplify" 
+    };
+    
     static public String[] oldsolvers = { 
         null, 
         // "yices", 
@@ -37,11 +46,18 @@ public abstract class EscBase extends JmlTestCase {
     };
     static public boolean isCustom = false;
     
-    @Parameters
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
         data.addAll(noOldData());
         data.addAll(onlyOldData());
+        return data;
+    }
+    
+    @Parameters
+    static public  Collection<String[]> nonnulldatax() {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        data.addAll(noOldData());
+        data.remove(null);
         return data;
     }
     

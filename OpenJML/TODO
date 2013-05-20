@@ -1,19 +1,51 @@
-- loop modifies, and general block modifies
-- interface betwen UI and tool
+Done:
+- partially built cross reference information in, removing option
+- more usable trace information, mapping internal representations to user understandable tokens
+- partial String semantics
+- partial int type semantics (no value ranges or overflow yet)
+- added parsing and type-checking for \past
+- implemented nonnullelements for ESC
+- implemented not_modified for ESC and RAC
 
+Fix
+- testNonNullElements3
+- tracing in escTraceBS
+- review foreach loops once more
+
+Soon
+- loop modifies, and general block modifies
+- interface between UI and tool
+- demo files
+- preferences for feasibility
+- fix Z3 command arguments
+
+Tracing issues
+- insert constants for newly allocated objects (from new)
+- report no method or new value if the method or constructor throws an exception
+- show chars as characters?
+
+Integer types
+- need to assume value ranges
+- need to check for overflows
+
+Strings
+- need fresh semantics on the output
+- need determinism
+- need to debug testStringLength3
+
+Output
+- give assertion warnings with more explanation
 
 Education issues
 - Warnings about JML subsets
 
 Loop issues:
-- tracing of foreach loop shows mangled names in loop test (escTraceForeach1,4)
-- bug in escTraceForeach2,5
 - formulation problem in escTraceDo
 - problem with display of expressions that are used more than once (like loop invariants and variants); might be true of callee preconditions, replicated method preconditions
 - havoc computation needs review
 
 Recent issues:
-- fix feasibility checks
+- need UI for feasibility checks
 - reorganize postcondition checks to allow checking feasibility of spec cases
 
 - DMZ's recursive use of functions requiring invariants to be checked in invariants (seen in RAC)

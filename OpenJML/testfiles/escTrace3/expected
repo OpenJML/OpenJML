@@ -5,14 +5,14 @@ Feasibility check #2 - at program exit : OK
 Completed proof of trace.trace() with prover z3_4_3 - no warnings
 Starting proof of trace.m() with prover z3_4_3
 
-TRACE
+TRACE of trace.m()
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace3\trace.java:4:  	int j = 0
+			VALUE: 0	 === 0
 			VALUE: j	 === 0
 testfiles\escTrace3\trace.java:8:  	for ...
 testfiles\escTrace3\trace.java:8:  	int i = 0
+			VALUE: 0	 === 0
 			VALUE: i	 === 0
 testfiles\escTrace3\trace.java:5:  	//@ loop_invariant 0 <= i && i <= 10;
 			VALUE: 0	 === 0
@@ -84,14 +84,14 @@ Feasibility check #2 - at program exit : OK
 Completed proof of trace.mok() with prover z3_4_3 - no warnings
 Starting proof of trace.mdec() with prover z3_4_3
 
-TRACE
+TRACE of trace.mdec()
 
-			VALUE: null = REF!val!1
-			VALUE: this = REF!val!0
 testfiles\escTrace3\trace.java:25:  	int j = 0
+			VALUE: 0	 === 0
 			VALUE: j	 === 0
 testfiles\escTrace3\trace.java:29:  	for ...
 testfiles\escTrace3\trace.java:29:  	int i = 0
+			VALUE: 0	 === 0
 			VALUE: i	 === 0
 testfiles\escTrace3\trace.java:26:  	//@ loop_invariant 0 <= i && i <= 10;
 			VALUE: 0	 === 0

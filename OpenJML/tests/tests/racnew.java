@@ -1,5 +1,6 @@
 package tests;
 
+import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -26,6 +27,7 @@ public class racnew extends RacBase {
         super.setUp();
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
+        main.addOptions("-jmltesting");
     }
 
     /** Basic Hello World test, with no RAC tests triggered */

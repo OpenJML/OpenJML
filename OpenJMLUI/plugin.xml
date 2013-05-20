@@ -151,6 +151,7 @@
                enablesFor="+"
                id="JMLUI.jmldocAction">
        </action>
+<!--
        <action
                label="Show paths"
                class="org.jmlspecs.openjml.eclipse.PopupActions$ClassPath"
@@ -158,7 +159,7 @@
                enablesFor="+"
                id="JMLUI.showpathAction">
        </action>
-<!--
+
        <action
                label="Edit JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsPath"

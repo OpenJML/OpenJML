@@ -987,6 +987,7 @@ public class JmlTranslator extends JmlTreeTranslator {
         }
         // FIXME - what about these implementations
         switch (t) {
+            case BSPAST:
             case BSOLD:
             case BSPRE:
 //                arg = translate(tree.args.get(0));

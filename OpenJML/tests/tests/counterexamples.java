@@ -35,6 +35,7 @@ public class counterexamples extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-trace","-counterexample");
+        main.addOptions("-jmltesting");
     }
     
     /** Tests an explicit assertion */

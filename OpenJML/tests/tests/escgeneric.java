@@ -24,6 +24,7 @@ public class escgeneric extends EscBase {
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
+        main.addOptions("-jmltesting");
     }
     
     // FIXME - disabled until we get generic types implemented better
