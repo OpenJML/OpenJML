@@ -117,7 +117,7 @@ public class racfiles extends RacBase {
     }
 
 
-    /** Testing using system specs */
+    /** Testing without using system specs */
     @Test
     public void test1() {
         expectedExit = 0;

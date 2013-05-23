@@ -648,14 +648,14 @@ public class racnew extends RacBase {
                 "m(0); System.out.println(\"END\"); } \n" +
                 " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
                 " static void m(int i) { \n" +
-                "//@ assert (\\lbl AST \\typeof(true)) != null; \n" +
-                "//@ assert (\\lbl AST2 \\typeof((short)0)) != null; \n" +
-                "//@ assert (\\lbl AST3 \\typeof((long)0)) != null; \n" +
-                "//@ assert (\\lbl AST4 \\typeof((byte)0)) != null; \n" +
-                "//@ assert (\\lbl AST5 \\typeof('c')) != null; \n" +
-                "//@ assert (\\lbl AST6 \\typeof(\"c\")) != null; \n" +
-                "//@ assert (\\lbl AST7 \\typeof((float)0)) != null; \n" +
-                "//@ assert (\\lbl AST8 \\typeof((double)0)) != null; \n" +
+                "//@ assert (\\lbl AST \\typeof(true)) == \\typeof(true); \n" +
+                "//@ assert (\\lbl AST2 \\typeof((short)0)) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST3 \\typeof((long)0)) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST4 \\typeof((byte)0)) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST5 \\typeof('c')) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST6 \\typeof(\"c\")) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST7 \\typeof((float)0)) != \\typeof(true); \n" +
+                "//@ assert (\\lbl AST8 \\typeof((double)0)) != \\typeof(true); \n" +
                 "} " +
                 "}"
                 ,"LABEL CLS = int"
@@ -680,8 +680,8 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
-                "//@ assert (\\lbl AST9 \\typeof(5/0)) != null; \n" +
-                "//@ assert (\\lbl AST10 \\typeof(5.0/0.0)) != null; \n" +
+                "//@ assert (\\lbl AST9 \\typeof(5/0)) == \\typeof(5/0); \n" +
+                "//@ assert (\\lbl AST10 \\typeof(5.0/0.0)) != \\typeof(5/0); \n" +
                 "} " +
                 "}"
                 ,"LABEL AST9 = int"
@@ -695,7 +695,7 @@ public class racnew extends RacBase {
     @Test public void testTypeOf4() {
         helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new LinkedList<String>()); m(new LinkedList<Integer>());  m(new HashSet<Integer>()); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) .equals ( \\type(LinkedList<Integer>) ); \n" +
+                " //@ requires (\\lbl CLS \\typeof(i)) == ( \\type(LinkedList<Integer>) ); \n" +
                 " static void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.util.LinkedList"
@@ -2139,7 +2139,7 @@ public class racnew extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}}"
                 ,"/$A/tt/B.java:1: warning: JML model field is not implemented: i",36
-                ,"A 0"
+                ,"A 0"  //FIXME - check this
                 ,"B 0"
                 ,"B 0"
                 ,"END"
@@ -2329,7 +2329,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuperInvariant() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A  extends B { \n"
                 +" public void m() {} //@ invariant i == 1; \n"
                 +"public static void main(String[] args) { \n"

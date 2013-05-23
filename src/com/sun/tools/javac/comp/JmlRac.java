@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -1111,7 +1112,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             case SUBTYPE_OF:
             case JSUBTYPE_OF:
                 // TODO - review this
-                if (that.lhs.type.equals(attr.TYPE)) {
+                if (that.lhs.type.equals(JmlTypes.instance(context).TYPE)) {
                     // \TYPE <: \TYPE
                     JCExpression c = methodCallUtilsExpression("isSubTypeOf",that.lhs,that.rhs);
                     c.setType(syms.booleanType);
@@ -1934,7 +1935,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     // FIXME - check this
     public void translateElemtype(JCMethodInvocation tree) {
         JCExpression arg = tree.args.head;
-        if (tree.type.equals(attr.TYPE)) {
+        if (tree.type.equals(JmlTypes.instance(context).TYPE)) {
             arg = methodCallUtilsExpression("erasure",arg);
         }
         Name n = names.fromString("getComponentType");
@@ -1947,7 +1948,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
         JCExpression c = factory.Apply(null,m,List.<JCExpression>nil());
         c.setType(syms.classType);
         result = c;
-        if (tree.type.equals(attr.TYPE)) {
+        if (tree.type.equals(JmlTypes.instance(context).TYPE)) {
             result = methodCallUtilsExpression("makeTYPE0",c);
         }
     }
@@ -2660,7 +2661,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
     }
 
     public void visitTypeCast(JCTypeCast tree) {
-        if (tree.clazz.type.equals(attr.TYPE)) {
+        if (tree.clazz.type.equals(JmlTypes.instance(context).TYPE)) {
             JCExpression e = translate(tree.expr);
             result = methodCallUtilsExpression("makeTYPE0",e);
         } else {

@@ -387,6 +387,10 @@ public class Utils {
         return t.erasure();
     }
     
+    public static IJMLTYPE getComponentType(IJMLTYPE t) {
+        return makeTYPE0(t.erasure().getComponentType());
+    }
+    
     public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
         try {
             return tt.erasure().isAssignableFrom(t.erasure());

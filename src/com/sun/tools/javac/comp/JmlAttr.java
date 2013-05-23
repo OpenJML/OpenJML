@@ -81,25 +81,16 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 
 import com.sun.source.tree.IdentifierTree;
-import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Attribute.Compound;
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.Lint;
-import com.sun.tools.javac.code.Scope;
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
-import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -185,6 +176,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The Utils instance for this context */
     @NonNull final protected Utils utils;
 
+    /** The Types instance for this context */
+    @NonNull final protected JmlTypes jmltypes;
+
     /** The Names table from the compilation context, initialized in the constructor */
     @NonNull final protected Names names;
     
@@ -231,9 +225,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // type tags are out of range, so we cannot use the usual
     // initType call to initialize them.
     // FIXME - may need to revisit this for boxing and unboxing
-    final public Type TYPE;// = new Type(1000,null); 
-    final public Type REAL;// = new Type(1001,null);
-    final public Type BIGINT;// = new Type(1002,null);
     final public Type Lock;// = new Type(1003,null);
     final public Type LockSet;// = new Type(1004,null);
     final public Type JMLUtilsType;
@@ -316,6 +307,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         this.factory = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
         this.classReader = ClassReader.instance(context);
+        this.jmltypes = JmlTypes.instance(context);
         this.classReader.init(syms);
         this.jmlcompiler = (JmlCompiler)JmlCompiler.instance(context);
         this.jmlresolve = (JmlResolve)rs;
@@ -336,14 +328,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
 
-        TYPE = createClass("org.jmlspecs.utils.IJMLTYPE").type;
         datagroupClass = createClass("org.jmlspecs.lang.JMLDataGroup");
         JMLSetType = createClass("org.jmlspecs.lang.JMLSetType").type;
         JMLValuesType = createClass("org.jmlspecs.lang.JMLList").type;
         JMLUtilsType = utilsClass.type;
         JMLIterType = createClass("java.util.Iterator").type;
-        REAL = syms.doubleType;
-        BIGINT = syms.longType;
         Lock = syms.objectType;
         LockSet = JMLSetType;
         nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NullableByDefault");
@@ -352,15 +341,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         pureAnnotationSymbol = createClass("org.jmlspecs.annotation.Pure");
         modelAnnotationSymbol = createClass("org.jmlspecs.annotation.Model");
 
-        // FIXME - do we need these?
-        if (TYPE.tsym == null) TYPE.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("TYPE"), TYPE, syms.rootPackage);
-        if (REAL.tsym == null) {
-//            REAL.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("real"), REAL, syms.rootPackage);
-//            BIGINT.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("bigint"), BIGINT, syms.rootPackage);
-//            Lock.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("Lock"), Lock, syms.rootPackage);
-//            LockSet.tsym = new ClassSymbol(Flags.PUBLIC, names.fromString("LockSet"), LockSet, syms.rootPackage);
-        }
-        
         this.resultName = names.fromString(Strings.resultVarString);
         this.exceptionName = names.fromString(Strings.exceptionVarString);
         
@@ -372,7 +352,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
  
     /** Returns (creating if necessary) a class symbol for a given fully-qualified name */
-    protected ClassSymbol createClass(String fqName) {
+    public ClassSymbol createClass(String fqName) {
         return classReader.enterClass(names.fromString(fqName));
     }
  
@@ -2808,7 +2788,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (n != 1) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
                 }
-                t = this.TYPE;
+                t = jmltypes.TYPE;
                 result = check(tree, t, VAL, pkind, pt);
                 break;
 
@@ -2843,7 +2823,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
 
             case BSELEMTYPE :
-                ExpressionExtension ext = ExpressionExtension.find(tree.pos,token,context,null);
+                ExpressionExtension ext = Extensions.instance(context).find(tree.pos,token);
                 Type ttt = ext.typecheck(this,tree,localEnv);
 //                // Expect one argument of any array type, result type is \TYPE
 //                // The argument expression may contain JML constructs
@@ -2901,7 +2881,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (n > 0) {
                     attribTree(tree.args.get(0), localEnv, TYP, Type.noType);
                 }
-                t = this.TYPE;
+                t = jmltypes.TYPE;
                 Type saved = check(tree, t, VAL, pkind, pt);
                 addTodo(utilsClass);
                 result = saved;
@@ -3185,14 +3165,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles JML primitive types */
     public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) {
-        result = that.token == JmlToken.BSTYPEUC ? TYPE :
-            that.token == JmlToken.BSBIGINT ? BIGINT :
-            that.token == JmlToken.BSREAL ? REAL :
-                    syms.errType ;
-        if (result == syms.errType) {
+        JmlType type = that.token == JmlToken.BSTYPEUC ? jmltypes.TYPE :
+            that.token == JmlToken.BSBIGINT ? jmltypes.BIGINT :
+            that.token == JmlToken.BSREAL ? jmltypes.REAL :
+                    null;
+        if (type == null) {
+            result = syms.errType;
             log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlPrimitiveTypeTree");
+            return;
         }
-        that.type = result;
+        that.type = type;
+        type.repType = jmltypes.repType(that.pos(), type);
+        attribType(type.repType,env);
+        result = type;
+        if (utils.rac) {
+            result = type.repType.type;
+            that.type = result;
+        }
     }
     
     /** This set holds method clause types in which the \result token may appear 
@@ -3339,7 +3328,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Type t = that.lhs.type;
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
-                else if (!t.equals(TYPE)
+                else if (!t.equals(jmltypes.TYPE)
                         && !t.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     log.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
@@ -3347,15 +3336,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.rhs,env,Type.noType);
                 Type tt = that.rhs.type;
                 if (tt.isErroneous()) errorAlready = true;
-                else if (!tt.equals(TYPE)
+                else if (!tt.equals(jmltypes.TYPE)
                         && !tt.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     log.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if (t.equals(TYPE) != tt.equals(TYPE) && !errorAlready) {
+                if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
                     log.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
                 }
-                if (!t.equals(TYPE)) that.op = JmlToken.JSUBTYPE_OF; // Java subtyping
+                if (t != jmltypes.TYPE) that.op = JmlToken.JSUBTYPE_OF; // Java subtyping
                 
                 result = syms.booleanType;
                 break;
@@ -4326,7 +4315,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     result = check(tree, clazztype, VAL, pkind, pt);
                 } else {
                     log.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
-                    result = tree.type = TYPE;
+                    result = tree.type = jmltypes.TYPE;
                 }
             } else {
                 // For now do no checking // FIXME

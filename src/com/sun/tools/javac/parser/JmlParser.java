@@ -2460,8 +2460,8 @@ public class JmlParser extends EndPosParser {
                 case BSBIGINT_MATH:
                 case BSSAFEMATH:
                 case BSJAVAMATH:
-                    ExpressionExtension ne = ExpressionExtension.find(S.pos(),
-                            jt, context, this);
+                    ExpressionExtension ne = Extensions.instance(context).find(S.pos(),
+                            jt);
                     if (ne == null) {
                         jmlerror(S.pos(), S.endPos(), "jml.no.such.extension",
                                 jt.internedName());

@@ -1002,9 +1002,9 @@ public class escall2 extends EscBase {
                 );
     }
     
-    // TODO - yices does not support quantification
     @Test
     public void testAxiom2() {
+        if ("yices2".equals(solver)) return; // TODO: yices2 does not handle quantifiers
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"

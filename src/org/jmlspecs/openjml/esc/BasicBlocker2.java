@@ -821,7 +821,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review and document
     protected JCIdent newTypeVarIncarnation(TypeSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedTypeName(vsym,incarnationPosition));
-        n.type = JmlAttr.instance(context).TYPE;
+        n.type = JmlTypes.instance(context).TYPE;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name);
         return n;

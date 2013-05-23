@@ -7,7 +7,10 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
+import com.sun.tools.javac.code.JmlType;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -15,7 +18,9 @@ import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javap.Options;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -29,7 +34,14 @@ import com.sun.tools.javac.util.List;
 // RAC and ESC translation are added.
 public class Elemtype extends ExpressionExtension {
 
-    public Elemtype() {}
+    protected Context context;
+    protected JmlTypes jmltypes;
+    
+    public Elemtype(Context context) {
+        super(context);
+        this.jmltypes = JmlTypes.instance(context);
+        
+    }
     
     static public JmlToken[] tokens() { return new JmlToken[]{
             JmlToken.BSELEMTYPE,JmlToken.BSTYPEOF,
@@ -38,6 +50,8 @@ public class Elemtype extends ExpressionExtension {
             JmlToken.BSBIGINT_MATH, JmlToken.BSJAVAMATH, JmlToken.BSSAFEMATH}; }
     
     public JCExpression parse(JmlParser parser, List<JCExpression> typeArgs) {
+        this.parser = parser;
+        this.scanner = parser.getScanner();
         JmlToken jt = scanner.jmlToken();
         int p = scanner.pos();
         scanner.nextToken();
@@ -69,15 +83,17 @@ public class Elemtype extends ExpressionExtension {
         }
         Type t = syms.errType;
         if (n > 0) {
-            if (tree.args.get(0).type == attr.TYPE) {
-                t = attr.TYPE;
+            Type tt = tree.args.get(0).type;
+            if (tt == jmltypes.TYPE) {
+                t = jmltypes.TYPE;
             } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
                 t = syms.classType;
             } else {
                 error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-                t = attr.TYPE;
+                t = jmltypes.TYPE;
             }
         }
         return t;
     }
+    
 }
