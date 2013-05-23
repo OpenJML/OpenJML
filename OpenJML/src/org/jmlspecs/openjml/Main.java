@@ -26,6 +26,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -35,6 +36,7 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.util.Context;
@@ -792,12 +794,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlCompiler.preRegister(context);
         JmlEnter.preRegister(context);
         JmlResolve.preRegister(context);
-        JmlMemberEnter.preRegister(context);
         JmlFlow.preRegister(context);
+        JmlMemberEnter.preRegister(context);
+        JmlTypes.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
-        //JmlTreeInfo.preRegister(context);
+        Extensions.register(context);
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML

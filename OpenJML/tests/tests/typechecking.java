@@ -133,82 +133,82 @@ public class typechecking extends TCBase {
     @Test public void testType() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A,k);\n}}"
                 ,"/A.java:2: More than one argument or otherwise ill-formed type expression as argument of \\type",19
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType2() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type();\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType3() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(b);\n}}"
                 ,"/A.java:2: cannot find symbol\n  symbol:   class b\n  location: class A",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType4() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(true);\n}}"
                 ,"/A.java:2: illegal start of type",18
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType5() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                                 );
     }
 
     @Test public void testType6() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(int[][]);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                                 );
     }
 
     @Test public void testType7() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Object);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                                 );
     }
 
     @Test public void testType8() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                                 );
     }
 
     @Test public void testType9() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(java.lang.Object[][]);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                             );
     }
 
     @Test public void testType10() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType11() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(void);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testType12() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(Void);\n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",17
+                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",17
                 );
     }
 
     @Test public void testTypeof() {
         helpTCF("A.java"," class A { int k; Boolean b; void m() { \n//@ assert \\typeof(b);\n}}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.utils.IJMLTYPE",19);
+                "/A.java:2: incompatible types\n  required: boolean\n  found:    \\TYPE",19);
     }
 
     @Test public void testResult() {

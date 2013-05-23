@@ -125,6 +125,7 @@ public class JmlTree implements IJmlTree {
         JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list);
         JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e);
         JmlWhileLoop JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs);
+        JCExpression Type(Type t);
     }
     
     /** This class is a factory for JML parse tree nodes, and by extension, all 
@@ -353,6 +354,13 @@ public class JmlTree implements IJmlTree {
         public JmlPrimitiveTypeTree JmlPrimitiveTypeTree(JmlToken jt) {
             return new JmlPrimitiveTypeTree(pos,jt);
         }
+        
+        @Override
+        public JCExpression Type(Type t) {
+            if (!(t instanceof JmlType)) return super.Type(t);
+            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag);
+        }
+
         
         /** Creates JML expressions from tokens without arguments (e.g. \result)*/
         @Override
@@ -2119,7 +2127,7 @@ public class JmlTree implements IJmlTree {
         
         @Override
         public String toString() {
-            return token.internedName();
+            return token != null ? token.internedName() : super.toString();
         }
     
         @Override

@@ -166,7 +166,7 @@ public class JmlTreeUtils {
         this.names = Names.instance(context);
         this.rs = JmlResolve.instance(context);
         this.syms = Symtab.instance(context);
-        this.types = Types.instance(context);
+        this.types = JmlTypes.instance(context);
 
         ClassReader reader = ClassReader.instance(context);
 
@@ -847,7 +847,7 @@ public class JmlTreeUtils {
         int p = pos.getPreferredPosition();
         JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
-        rhs.type = attr.TYPE;
+        rhs.type = JmlTypes.instance(context).TYPE;
         return makeAnd(p,makeEqObject(p,lhs,rhs),
                 makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs));
     }

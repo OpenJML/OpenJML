@@ -99,20 +99,21 @@ public class jmltypes extends TCBase {
                 "  //@ ghost \\TYPE t = Object.class;\n" + // NO mixing
                 "  //@ ghost Class<?> cc = t;\n" + // NO mixing
                 "  //@ ghost boolean b = \\type(Object) == Object.class;\n" + // No mixing
-                "  //@ ghost Object oo = \\type(Object);\n" +  // types are Objects??? TODO
+                "  //@ ghost Object oo = \\type(Object);\n" +  // \TYPE will box
                 "  //@ set b = t <: Object.class;\n" +  // No mixing
                 "  //@ set b = Object.class <: t;\n" +  // No mixing 
                 "  //@ set b = c instanceof \\type(Object);\n" +  // No mixing
-                "  //@ set b = t instanceof Object;\n" +  // types are Objects??? TODO
+                "  //@ set b = t instanceof Object;\n" + // \Type is a primitive
                 "  //@ set t = (\\TYPE)0;\n" + // No casts of ints
                 "  //@ set t = (\\TYPE)o;\n" + // No casts of Object
                 "}}\n"
-                ,"/A.java:4: incompatible types\n  required: org.jmlspecs.utils.IJMLTYPE\n  found:    java.lang.Class<java.lang.Object>",29
-                ,"/A.java:5: incompatible types\n  required: java.lang.Class<?>\n  found:    org.jmlspecs.utils.IJMLTYPE",27
-                ,"/A.java:6: incomparable types: org.jmlspecs.utils.IJMLTYPE and java.lang.Class<java.lang.Object>",39
+                ,"/A.java:4: incompatible types\n  required: \\TYPE\n  found:    java.lang.Class<java.lang.Object>",29
+                ,"/A.java:5: incompatible types\n  required: java.lang.Class<?>\n  found:    \\TYPE",27
+                ,"/A.java:6: incomparable types: \\TYPE and java.lang.Class<java.lang.Object>",39
                 ,"/A.java:8: The arguments to <: must both be \\TYPE or both be Class",26
                 ,"/A.java:9: The arguments to <: must both be \\TYPE or both be Class",31
                 ,"/A.java:10: unexpected type\n  required: class\n  found:    value",33
+                ,"/A.java:11: unexpected type\n  required: reference\n  found:    \\TYPE",15
                 ,"/A.java:12: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
                 ,"/A.java:13: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
 

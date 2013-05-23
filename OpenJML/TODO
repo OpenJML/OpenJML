@@ -8,9 +8,10 @@ Done:
 - implemented not_modified for ESC and RAC
 
 Fix
-- testNonNullElements3
-- tracing in escTraceBS
+- tracing 
 - review foreach loops once more
+- better error message for yices2 and quantifiers
+- better error message for CVC4 and non-linear constructs
 
 Soon
 - loop modifies, and general block modifies
@@ -35,6 +36,7 @@ Strings
 
 Output
 - give assertion warnings with more explanation
+- other half of associated location information
 
 Education issues
 - Warnings about JML subsets
@@ -42,7 +44,7 @@ Education issues
 Loop issues:
 - formulation problem in escTraceDo
 - problem with display of expressions that are used more than once (like loop invariants and variants); might be true of callee preconditions, replicated method preconditions
-- havoc computation needs review
+- havoc computation needs review - do a loop modifies check
 
 Recent issues:
 - need UI for feasibility checks
@@ -115,8 +117,8 @@ Things to do./check to be up to old implementation
 - \TYPE in ESC and RAC
 - <: operator in ESC and RAC
 - recursive calls in specs (ESC)
-- implement: \fresh, \nonnullelements, \elemtype, \typeof, \type
-- [quantified expressions]
+- implement: \fresh, \elemtype, \typeof, \type
+- [quantified expressions] - test on RAC
 - [new informal expression]
 - checks on visibility of identifiers in specification cases, invariants
 - Java features in RAC, at least as a pass through

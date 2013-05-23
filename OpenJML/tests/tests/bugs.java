@@ -78,10 +78,10 @@ public class bugs extends TCBase {
                 );
     }
     
-    /** Check that 'this' is defined in interface specifications */
+    /** Check that 'this' is defined in interface specifications, and we can do \type of an interface name */
     @Test
     public void testMisc9() {
-        helpTCF("A.java","public interface A { //@ ensures \\typeof(this) != null; \n void p();}"
+        helpTCF("A.java","public interface A { //@ ensures \\typeof(this) == \\type(A); \n void p();}"
                 );
     }
 
