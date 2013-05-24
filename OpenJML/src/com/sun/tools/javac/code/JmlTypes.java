@@ -62,6 +62,10 @@ public class JmlTypes extends Types {
         syms.initType(BIGINT,"\\bigint");
         syms.initType(TYPE,"\\TYPE");
         syms.initType(REAL,"\\real");
+//        TYPE.repSym = repSym(TYPE);
+//        BIGINT.repSym = repSym(BIGINT);
+//        REAL.repSym = repSym(REAL);
+        
         enterBinop("==", TYPE, TYPE, syms.booleanType);
         enterBinop("!=", TYPE, TYPE, syms.booleanType);
 
@@ -73,28 +77,14 @@ public class JmlTypes extends Types {
         enterBinop(">=", BIGINT, BIGINT, syms.booleanType);
         
         enterUnop("-", BIGINT, BIGINT);
+        enterUnop("++", BIGINT, BIGINT);
+        enterUnop("--", BIGINT, BIGINT);
 
-//        enterBinop("==", syms.longType, BIGINT, syms.booleanType);
-//        enterBinop("==", BIGINT, syms.intType, syms.booleanType);
-//        enterBinop(">", syms.longType, BIGINT, syms.booleanType);
-//        enterBinop(">", syms.intType, BIGINT, syms.booleanType);
-//        enterBinop(">", BIGINT, syms.intType, syms.booleanType);
-//        enterBinop("<", syms.intType, BIGINT, syms.booleanType);
-//        enterBinop("<=", BIGINT, syms.intType, syms.booleanType);
-//        enterBinop("<=", syms.intType, BIGINT, syms.booleanType);
-//        enterBinop("<=", syms.longType, BIGINT, syms.booleanType);
-//        enterBinop(">=", BIGINT, syms.intType, syms.booleanType);
-//        enterBinop(">=", syms.longType, BIGINT, syms.booleanType);
-//        enterBinop(">=", syms.intType, BIGINT, syms.booleanType);
-//        enterBinop("!=", BIGINT, syms.intType, syms.booleanType);
-        
         enterBinop("+", BIGINT, BIGINT, BIGINT);
         enterBinop("-", BIGINT, BIGINT, BIGINT);
         enterBinop("*", BIGINT, BIGINT, BIGINT);
         enterBinop("/", BIGINT, BIGINT, BIGINT);
         enterBinop("%", BIGINT, BIGINT, BIGINT);
-
-        enterUnop("-", REAL, REAL);
 
         enterBinop("==", REAL, REAL, syms.booleanType);
         enterBinop("!=", REAL, REAL, syms.booleanType);
@@ -103,18 +93,13 @@ public class JmlTypes extends Types {
         enterBinop("<=", REAL, REAL, syms.booleanType);
         enterBinop(">=", REAL, REAL, syms.booleanType);
 
+        enterUnop("-", REAL, REAL);
+
         enterBinop("+", REAL, REAL, REAL);
         enterBinop("-", REAL, REAL, REAL);
         enterBinop("*", REAL, REAL, REAL);
         enterBinop("/", REAL, REAL, REAL);
         enterBinop("%", REAL, REAL, REAL);
-
-        enterUnop("-", REAL, REAL);
-
-//        enterBinop("+", BIGINT, syms.longType, BIGINT);
-//        enterBinop("+", BIGINT, syms.intType, BIGINT);
-//        enterBinop("-", BIGINT, syms.longType, BIGINT);
-//        enterBinop("-", BIGINT, syms.intType, BIGINT);
     }
     
     @Override
@@ -260,19 +245,22 @@ public class JmlTypes extends Types {
     }
     
     public ClassSymbol repSym(JmlType t) {
-        JmlToken token = t.jmlTypeTag;
-        String n;
-        if (token == JmlToken.BSTYPEUC) {
-            n = "org.jmlspecs.utils.IJMLTYPE";
-        } else if (token == JmlToken.BSBIGINT) {
-            n = "java.math.BigInteger";
-        } else if (token == JmlToken.BSREAL) {
-            n = "java.lang.Double";
-        } else {
-            n = null;
-            // FIXME
+        if (t.repSym == null) {
+            JmlToken token = t.jmlTypeTag;
+            String n;
+            if (token == JmlToken.BSTYPEUC) {
+                n = "org.jmlspecs.utils.IJMLTYPE";
+            } else if (token == JmlToken.BSBIGINT) {
+                n = "java.math.BigInteger";
+            } else if (token == JmlToken.BSREAL) {
+                n = "java.lang.Double";
+            } else {
+                n = null;
+                // FIXME
+            }
+            t.repSym = JmlAttr.instance(context).createClass(n);
         }
-        return JmlAttr.instance(context).createClass(n);
+        return t.repSym;
     }
     
     public boolean isJmlType(Type t) {

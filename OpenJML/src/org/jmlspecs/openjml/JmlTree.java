@@ -2118,6 +2118,9 @@ public class JmlTree implements IJmlTree {
         
         public JmlToken token;
         
+        /** The representation of this JML type when used in RAC */
+        public JCExpression repType;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlPrimitiveTypeTree(int pos, JmlToken token) {
         	super(TypeTags.NONE);

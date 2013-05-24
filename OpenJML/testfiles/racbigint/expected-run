@@ -1,0 +1,7 @@
+OUT:
+LABEL BVALUE = 20
+testfiles\racbigint\bigint.java:26: JML assertion is false
+        //@ assert b == zero;
+            ^
+
+ERR:

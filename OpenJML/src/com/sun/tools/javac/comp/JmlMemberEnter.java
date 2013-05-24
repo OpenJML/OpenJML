@@ -1892,10 +1892,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public void completeSpecClassForBinary(JmlClassDecl classDecl) {
-//        if (d.name.toString().equals("BigInteger")) {
-//            log.noticeWriter.println(d.name);
-//        }
-//        log.noticeWriter.println("COMPLETESPECCLASSFORBINARY " + classDecl.name);
         Env<AttrContext> prev = env;
         ClassSymbol classSym = classDecl.sym;
         if (classSym == null) {

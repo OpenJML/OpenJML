@@ -3175,13 +3175,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return;
         }
         that.type = type;
-        type.repType = jmltypes.repType(that.pos(), type);
-        attribType(type.repType,env);
+        that.repType = jmltypes.repType(that.pos(), type);
+        attribType(that.repType,env);
         result = type;
-        if (utils.rac) {
-            result = type.repType.type;
-            that.type = result;
-        }
+//        if (utils.rac) {
+//            result = type.repType.type;
+//            that.type = result;
+//        }
     }
     
     /** This set holds method clause types in which the \result token may appear 
@@ -3977,10 +3977,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-//        if (tree.name.toString().equals("V")) {
-//            System.out.println("FOUND V");
-//        }
-        
         long prevVisibility = jmlVisibility;
         JmlToken prevClauseType = currentClauseType;
         try {
@@ -5015,6 +5011,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+
     	// FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); 
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;

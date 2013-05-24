@@ -1,0 +1,13 @@
+OUT:
+testfiles\firstTest\FirstTest.java:17: JML precondition is false
+          x.setA(10);
+                ^
+testfiles\firstTest\FirstTest.java:6: Associated declaration: testfiles\firstTest\FirstTest.java:17: 
+	//@ requires a < 0;
+	    ^
+testfiles\firstTest\FirstTest.java:6: JML precondition is false
+	//@ requires a < 0;
+	    ^
+x: 10
+
+ERR:

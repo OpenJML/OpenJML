@@ -1263,11 +1263,6 @@ public class api {
     // FIXME _ also test various solvers
     
     @Test
-    public void testESCOld() {
-        testESC("-custom");
-    }
-    
-    @Test
     public void testESC() {
         testESC("-newesc");
     }

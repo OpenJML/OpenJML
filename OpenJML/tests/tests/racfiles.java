@@ -140,5 +140,17 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/racbug1","Add");
     }
 
+    @Test
+    public void testFirstTest() {
+        expectedExit = 0;
+        helpTCF("testfiles/firstTest","FirstTest");
+    }
+
+    @Test
+    public void testbigint() {
+        expectedExit = 0;
+        helpTCF("testfiles/racbigint","bigint");
+    }
+
 
 }
