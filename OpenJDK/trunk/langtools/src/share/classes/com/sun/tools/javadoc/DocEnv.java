@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -84,7 +84,7 @@ public class DocEnv {
     final Symbol externalizableSym;
 
     /** Access filter (public, protected, ...).  */
-    ModifierFilter showAccess;
+    protected ModifierFilter showAccess;
 
     /** True if we are using a sentence BreakIterator. */
     boolean breakiterator;
@@ -102,7 +102,7 @@ public class DocEnv {
     boolean docClasses = false;
 
     /** Does the doclet only expect pre-1.5 doclet API? */
-    boolean legacyDoclet = true;
+    protected boolean legacyDoclet = true;
 
     /**
      * Set this to true if you would like to not emit any errors, warnings and
@@ -115,7 +115,7 @@ public class DocEnv {
      *
      * @param context      Context for this javadoc instance.
      */
-    protected DocEnv(Context context) { // DRC - changed from private to protected
+    protected DocEnv(Context context) {
         context.put(docEnvKey, this);
 
         messager = Messager.instance0(context);
@@ -518,7 +518,7 @@ public class DocEnv {
         messager.exit();
     }
 
-    private Map<PackageSymbol, PackageDocImpl> packageMap =
+    protected Map<PackageSymbol, PackageDocImpl> packageMap =
             new HashMap<PackageSymbol, PackageDocImpl>();
     /**
      * Return the PackageDoc of this package symbol.
@@ -546,12 +546,12 @@ public class DocEnv {
     }
 
 
-    protected Map<ClassSymbol, ClassDocImpl> classMap = // DRC - changed from private to protected
+    protected Map<ClassSymbol, ClassDocImpl> classMap =
             new HashMap<ClassSymbol, ClassDocImpl>();
     /**
      * Return the ClassDoc (or a subtype) of this class symbol.
      */
-    protected ClassDocImpl getClassDoc(ClassSymbol clazz) { // DRC - changed from package to protected
+    public ClassDocImpl getClassDoc(ClassSymbol clazz) {
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) return result;
         if (isAnnotationType(clazz)) {
@@ -566,7 +566,7 @@ public class DocEnv {
     /**
      * Create the ClassDoc (or a subtype) for a class symbol.
      */
-    protected void makeClassDoc(ClassSymbol clazz, String docComment, JCClassDecl tree, Position.LineMap lineMap) { // DRC - changed from package to protected
+    protected void makeClassDoc(ClassSymbol clazz, String docComment, JCClassDecl tree, Position.LineMap lineMap) {
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) {
             if (docComment != null) result.setRawCommentText(docComment);
@@ -581,7 +581,7 @@ public class DocEnv {
         classMap.put(clazz, result);
     }
 
-    protected static boolean isAnnotationType(ClassSymbol clazz) { // DRC - changed from private to protected
+    protected static boolean isAnnotationType(ClassSymbol clazz) {
         return ClassDocImpl.isAnnotationType(clazz);
     }
 
@@ -589,12 +589,12 @@ public class DocEnv {
         return (tree.mods.flags & Flags.ANNOTATION) != 0;
     }
 
-    private Map<VarSymbol, FieldDocImpl> fieldMap =
+    protected Map<VarSymbol, FieldDocImpl> fieldMap =
             new HashMap<VarSymbol, FieldDocImpl>();
     /**
      * Return the FieldDoc of this var symbol.
      */
-    FieldDocImpl getFieldDoc(VarSymbol var) {
+    public FieldDocImpl getFieldDoc(VarSymbol var) {
         FieldDocImpl result = fieldMap.get(var);
         if (result != null) return result;
         result = new FieldDocImpl(this, var);
@@ -604,7 +604,7 @@ public class DocEnv {
     /**
      * Create a FieldDoc for a var symbol.
      */
-    void makeFieldDoc(VarSymbol var, String docComment, JCVariableDecl tree, Position.LineMap lineMap) {
+    protected void makeFieldDoc(VarSymbol var, String docComment, JCVariableDecl tree, Position.LineMap lineMap) {
         FieldDocImpl result = fieldMap.get(var);
         if (result != null) {
             if (docComment != null) result.setRawCommentText(docComment);
@@ -615,13 +615,13 @@ public class DocEnv {
         }
     }
 
-    private Map<MethodSymbol, ExecutableMemberDocImpl> methodMap =
+    protected Map<MethodSymbol, ExecutableMemberDocImpl> methodMap =
             new HashMap<MethodSymbol, ExecutableMemberDocImpl>();
     /**
      * Create a MethodDoc for this MethodSymbol.
      * Should be called only on symbols representing methods.
      */
-    void makeMethodDoc(MethodSymbol meth, String docComment,
+    protected void makeMethodDoc(MethodSymbol meth, String docComment,
                        JCMethodDecl tree, Position.LineMap lineMap) {
         MethodDocImpl result = (MethodDocImpl)methodMap.get(meth);
         if (result != null) {
@@ -650,7 +650,7 @@ public class DocEnv {
      * Create the ConstructorDoc for a MethodSymbol.
      * Should be called only on symbols representing constructors.
      */
-    void makeConstructorDoc(MethodSymbol meth, String docComment,
+    protected void makeConstructorDoc(MethodSymbol meth, String docComment,
                             JCMethodDecl tree, Position.LineMap lineMap) {
         ConstructorDocImpl result = (ConstructorDocImpl)methodMap.get(meth);
         if (result != null) {
@@ -679,7 +679,7 @@ public class DocEnv {
      * Create the AnnotationTypeElementDoc for a MethodSymbol.
      * Should be called only on symbols representing annotation type elements.
      */
-    void makeAnnotationTypeElementDoc(MethodSymbol meth,
+    protected void makeAnnotationTypeElementDoc(MethodSymbol meth,
                                       String docComment, JCMethodDecl tree, Position.LineMap lineMap) {
         AnnotationTypeElementDocImpl result =
             (AnnotationTypeElementDocImpl)methodMap.get(meth);

@@ -31,7 +31,11 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.MissingResourceException;
+import java.util.Set;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.annotation.processing.Processor;
@@ -107,8 +111,7 @@ public class Main {
         }
 
         public void addFile(File f) {
-            if (!filenames.contains(f))
-                filenames.append(f);
+            filenames.add(f);
         }
 
         public void addClassName(String s) {
@@ -136,7 +139,7 @@ public class Main {
 
     /** The list of source files to process
      */
-    public ListBuffer<File> filenames = null; // XXX sb protected
+    public Set<File> filenames = null; // XXX sb protected
 
     /** List of class files names passed on the command line
      */
@@ -202,7 +205,11 @@ public class Main {
      *  in `options' table and return all source filenames.
      *  @param flags    The array of command line arguments.
      */
-    public List<File> processArgs(String[] flags) { // XXX sb protected
+    public Collection<File> processArgs(String[] flags) { // XXX sb protected
+        return processArgs(flags, null);
+    }
+
+    public Collection<File> processArgs(String[] flags, String[] classNames) { // XXX sb protected
         int ac = 0;
         while (ac < flags.length) {
             String flag = flags[ac];
@@ -241,6 +248,10 @@ public class Main {
                 if (option.process(options, flag))
                     return null;
             }
+        }
+
+        if (this.classnames != null && classNames != null) {
+            this.classnames.addAll(Arrays.asList(classNames));
         }
 
         if (!checkDirectory(D))
@@ -294,7 +305,7 @@ public class Main {
             showClass(showClass);
         }
 
-        return filenames.toList();
+        return filenames;
     }
     // where
         private boolean checkDirectory(OptionName optName) {
@@ -339,10 +350,19 @@ public class Main {
                        List<JavaFileObject> fileObjects,
                        Iterable<? extends Processor> processors)
     {
+        return compile(args,  null, context, fileObjects, processors);
+    }
+
+    public int compile(String[] args,
+                       String[] classNames,
+                       Context context,
+                       List<JavaFileObject> fileObjects,
+                       Iterable<? extends Processor> processors)
+    {
         if (options == null)
             options = Options.instance(context); // creates a new one
 
-        filenames = new ListBuffer<File>();
+        filenames = new LinkedHashSet<File>();
         classnames = new ListBuffer<String>();
         JavaCompiler comp = null;
         /*
@@ -351,14 +371,16 @@ public class Main {
          * into account.
          */
         try {
-            if (args.length == 0 && fileObjects.isEmpty()) {
+            if (args.length == 0
+                && (classNames == null || classNames.length == 0)
+                && fileObjects.isEmpty()) {
                 help();
                 return EXIT_CMDERR;
             }
 
-            List<File> files;
+            Collection<File> files;
             try {
-                files = processArgs(CommandLine.parse(args));
+                files = processArgs(CommandLine.parse(args), classNames);
                 if (files == null) {
                     // null signals an error in options, abort
                     return EXIT_CMDERR;

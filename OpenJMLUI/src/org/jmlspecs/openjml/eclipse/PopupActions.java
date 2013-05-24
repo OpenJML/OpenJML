@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Shell;
@@ -90,6 +91,43 @@ abstract public class PopupActions implements IObjectActionDelegate {
                 utils.topLevelException(shell,"PopupActions.DisableJML",e); //$NON-NLS-1$
             }
         }
+    }
+
+    /**
+     * This action puts up a dialog that allows manipulation of the specs path.
+     */
+    static public class EditPaths extends PopupActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+    		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Edit Paths action initiated"); //$NON-NLS-1$
+    			}
+                utils.manipulateSpecsPath(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
+    		}
+    	}
+    }
+
+    /**
+     * This action puts up a dialog that shows the class, source, specs paths.
+     * @author David Cok
+     */ 
+    static public class ShowPaths extends PopupActions {
+        // This is done in the UI thread. 
+    	@Override
+        public final void run(final IAction action) {
+    		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Paths action initiated"); //$NON-NLS-1$
+    			}
+                utils.showPaths(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
+    		}
+    	}
     }
 
 
@@ -333,6 +371,26 @@ abstract public class PopupActions implements IObjectActionDelegate {
             }
         }
     }
+    
+    /**
+     * This action opens a dialog enabling choosing the files for RAC.
+     * @author David Cok
+     */
+    static public class ChooseForRAC extends PopupActions {
+        // This is done in the UI thread. 
+        @Override
+        public final void run(final IAction action) {
+            try {
+    			if (Options.uiverboseness) {
+    				Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
+    			}
+                utils.racChoose(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"PopupActions.ChooseForRac",e); //$NON-NLS-1$
+            }
+        }
+    }
+
 
     /**
      * This action deletes RAC-compiled class files.

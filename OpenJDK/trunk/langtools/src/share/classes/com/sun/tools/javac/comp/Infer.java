@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -249,6 +249,13 @@ public class Infer {
         }
     };
 
+    private final Filter<Type> botFilter = new Filter<Type>() {
+        @Override
+        public boolean accepts(Type t) {
+            return t.tag != BOT;
+        }
+    };
+
     /** Instantiate undetermined type variable to the lub of all its lower bounds.
      *  Throw a NoInstanceException if this not possible.
      */
@@ -269,21 +276,18 @@ public class Infer {
             // VGJ: sort of inlined maximizeInst() below.  Adding
             // bounds can cause lobounds that are above hibounds.
             List<Type> hibounds = Type.filter(that.hibounds, errorFilter);
-            if (hibounds.isEmpty())
-                return;
             Type hb = null;
-            if (hibounds.tail.isEmpty())
+            if (hibounds.isEmpty())
+                hb = syms.objectType;
+            else if (hibounds.tail.isEmpty())
                 hb = hibounds.head;
-            else for (List<Type> bs = hibounds;
-                      bs.nonEmpty() && hb == null;
-                      bs = bs.tail) {
-                if (isSubClass(bs.head, hibounds))
-                    hb = types.fromUnknownFun.apply(bs.head);
-            }
+            else
+                hb = types.glb(hibounds);
             if (hb == null ||
-                !types.isSubtypeUnchecked(hb, hibounds, warn) ||
-                !types.isSubtypeUnchecked(that.inst, hb, warn))
-                throw ambiguousNoInstanceException;
+                hb.isErroneous())
+                throw ambiguousNoInstanceException
+                        .setMessage("incompatible.upper.bounds",
+                                    that.qtype, hibounds);
         }
     }
 
@@ -332,25 +336,29 @@ public class Infer {
             //replace uninferred type-vars
             targs = types.subst(targs,
                     that.tvars,
-                    instaniateAsUninferredVars(undetvars, that.tvars));
+                    instantiateAsUninferredVars(undetvars, that.tvars));
         }
         return chk.checkType(warn.pos(), that.inst(targs, types), to);
     }
     //where
-    private List<Type> instaniateAsUninferredVars(List<Type> undetvars, List<Type> tvars) {
+    private List<Type> instantiateAsUninferredVars(List<Type> undetvars, List<Type> tvars) {
+        Assert.check(undetvars.length() == tvars.length());
         ListBuffer<Type> new_targs = ListBuffer.lb();
-        //step 1 - create syntethic captured vars
+        //step 1 - create synthetic captured vars
         for (Type t : undetvars) {
             UndetVar uv = (UndetVar)t;
             Type newArg = new CapturedType(t.tsym.name, t.tsym, uv.inst, syms.botType, null);
             new_targs = new_targs.append(newArg);
         }
         //step 2 - replace synthetic vars in their bounds
+        List<Type> formals = tvars;
         for (Type t : new_targs.toList()) {
             CapturedType ct = (CapturedType)t;
             ct.bound = types.subst(ct.bound, tvars, new_targs.toList());
-            WildcardType wt = new WildcardType(ct.bound, BoundKind.EXTENDS, syms.boundClass);
+            WildcardType wt = new WildcardType(syms.objectType, BoundKind.UNBOUND, syms.boundClass);
+            wt.bound = (TypeVar)formals.head;
             ct.wildcard = wt;
+            formals = formals.tail;
         }
         return new_targs.toList();
     }
@@ -470,7 +478,8 @@ public class Infer {
                         UndetVar uv = (UndetVar)t;
                         if (uv.qtype == tv) {
                             switch (ck) {
-                                case EXTENDS: return uv.hibounds.appendList(types.subst(types.getBounds(tv), all_tvars, inferredTypes));
+                                case EXTENDS: return Type.filter(uv.hibounds, botFilter)
+                                        .appendList(types.subst(types.getBounds(tv), all_tvars, inferredTypes));
                                 case SUPER: return uv.lobounds;
                                 case EQUAL: return uv.inst != null ? List.of(uv.inst) : List.<Type>nil();
                             }

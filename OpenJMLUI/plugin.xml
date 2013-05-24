@@ -151,23 +151,13 @@
                enablesFor="+"
                id="JMLUI.jmldocAction">
        </action>
-<!--
        <action
-               label="Show paths"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$ClassPath"
+               label="%openjml.ui.command.ShowPaths"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$ShowPaths"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.showpathAction">
        </action>
-
-       <action
-               label="Edit JML specs path"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsPath"
-               menubarPath="JML"
-               enablesFor="+"
-               id="JMLUI.specspathAction">
-       </action>
--->
        <action
                label="Add to JML specs path"
                class="org.jmlspecs.openjml.eclipse.PopupActions$AddToSpecsPath"
@@ -181,6 +171,12 @@
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.removespecspathAction">
+       </action>
+       <action
+            label="Open a Specifications Editor"
+            class="org.jmlspecs.openjml.eclipse.PopupActions$SpecsEditor"
+            enablesFor="+"
+            id="JMLUI.openspecseditorAction">
        </action>
     </objectContribution>
     <!-- These context menu items are enabled for methods -->
@@ -936,6 +932,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.RACMarked"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RACMarked"
+            >
+      </command>
+      <command
+            name="RAC - choose files"
+            description="Selects java files and folders for RAC"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ChooseForRAC"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ChooseForRAC"
             >
       </command>
       <command

@@ -149,7 +149,7 @@ public enum Token implements Formattable {
     GTGTEQ(">>="),
     GTGTGTEQ(">>>="),
     MONKEYS_AT("@"),
-    CUSTOM;
+    CUSTOM(""); // DRC - added a name, so that we don't have NPEs elsewhere
 
     Token() {
         this(null);

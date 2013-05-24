@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -308,7 +308,16 @@ public class Check {
      */
     void duplicateError(DiagnosticPosition pos, Symbol sym) {
         if (!sym.type.isErroneous()) {
-            log.error(pos, "already.defined", sym, sym.location());
+            Symbol location = sym.location();
+            if (location.kind == MTH &&
+                    ((MethodSymbol)location).isStaticOrInstanceInit()) {
+                log.error(pos, "already.defined.in.clinit", kindName(sym), sym,
+                        kindName(sym.location()), kindName(sym.location().enclClass()),
+                        sym.location().enclClass());
+            } else {
+                log.error(pos, "already.defined", kindName(sym), sym,
+                        kindName(sym.location()), sym.location());
+            }
         }
     }
 
@@ -515,16 +524,16 @@ public class Check {
      *  @param a             The type that should be bounded by bs.
      *  @param bs            The bound.
      */
-    private boolean checkExtends(Type a, TypeVar bs) {
+    private boolean checkExtends(Type a, Type bound) {
          if (a.isUnbound()) {
              return true;
          } else if (a.tag != WILDCARD) {
              a = types.upperBound(a);
-             return types.isSubtype(a, bs.bound);
+             return types.isSubtype(a, bound);
          } else if (a.isExtendsBound()) {
-             return types.isCastable(bs.getUpperBound(), types.upperBound(a), Warner.noWarnings);
+             return types.isCastable(bound, types.upperBound(a), Warner.noWarnings);
          } else if (a.isSuperBound()) {
-             return !types.notSoftSubtype(types.lowerBound(a), bs.getUpperBound());
+             return !types.notSoftSubtype(types.lowerBound(a), bound);
          }
          return true;
      }
@@ -766,18 +775,16 @@ public class Check {
             List<Type> actuals = type.allparams();
             List<Type> args = type.getTypeArguments();
             List<Type> forms = type.tsym.type.getTypeArguments();
-            ListBuffer<Type> tvars_buf = new ListBuffer<Type>();
+            ListBuffer<Type> bounds_buf = new ListBuffer<Type>();
 
             // For matching pairs of actual argument types `a' and
             // formal type parameters with declared bound `b' ...
             while (args.nonEmpty() && forms.nonEmpty()) {
                 // exact type arguments needs to know their
                 // bounds (for upper and lower bound
-                // calculations).  So we create new TypeVars with
-                // bounds substed with actuals.
-                tvars_buf.append(types.substBound(((TypeVar)forms.head),
-                                                  formals,
-                                                  actuals));
+                // calculations).  So we create new bounds where
+                // type-parameters are replaced with actuals argument types.
+                bounds_buf.append(types.subst(forms.head.getUpperBound(), formals, actuals));
                 args = args.tail;
                 forms = forms.tail;
             }
@@ -794,32 +801,30 @@ public class Check {
             }
 
             args = type.getTypeArguments();
-            List<Type> tvars = tvars_buf.toList();
+            List<Type> bounds = bounds_buf.toList();
 
-            while (args.nonEmpty() && tvars.nonEmpty()) {
-                Type actual = types.subst(args.head,
-                    type.tsym.type.getTypeArguments(),
-                    tvars_buf.toList());
+            while (args.nonEmpty() && bounds.nonEmpty()) {
+                Type actual = args.head;
                 if (!isTypeArgErroneous(actual) &&
-                        !tvars.head.getUpperBound().isErroneous() &&
-                        !checkExtends(actual, (TypeVar)tvars.head)) {
+                        !bounds.head.isErroneous() &&
+                        !checkExtends(actual, bounds.head)) {
                     return args.head;
                 }
                 args = args.tail;
-                tvars = tvars.tail;
+                bounds = bounds.tail;
             }
 
             args = type.getTypeArguments();
-            tvars = tvars_buf.toList();
+            bounds = bounds_buf.toList();
 
             for (Type arg : types.capture(type).getTypeArguments()) {
                 if (arg.tag == TYPEVAR &&
                         arg.getUpperBound().isErroneous() &&
-                        !tvars.head.getUpperBound().isErroneous() &&
+                        !bounds.head.isErroneous() &&
                         !isTypeArgErroneous(args.head)) {
                     return args.head;
                 }
-                tvars = tvars.tail;
+                bounds = bounds.tail;
                 args = args.tail;
             }
 
@@ -2101,25 +2106,26 @@ public class Check {
      */
     void checkOverrideClashes(DiagnosticPosition pos, Type site, MethodSymbol sym) {
          ClashFilter cf = new ClashFilter(site);
-         //for each method m1 that is a member of 'site'...
-         for (Symbol s1 : types.membersClosure(site, false).getElementsByName(sym.name, cf)) {
-            //...find another method m2 that is overridden (directly or indirectly)
-            //by method 'sym' in 'site'
-            for (Symbol s2 : types.membersClosure(site, false).getElementsByName(sym.name, cf)) {
-                if (s1 == s2 || !sym.overrides(s2, site.tsym, types, false)) continue;
+        //for each method m1 that is overridden (directly or indirectly)
+        //by method 'sym' in 'site'...
+        for (Symbol m1 : types.membersClosure(site, false).getElementsByName(sym.name, cf)) {
+            if (!sym.overrides(m1, site.tsym, types, false)) continue;
+             //...check each method m2 that is a member of 'site'
+             for (Symbol m2 : types.membersClosure(site, false).getElementsByName(sym.name, cf)) {
+                if (m2 == m1) continue;
                 //if (i) the signature of 'sym' is not a subsignature of m1 (seen as
                 //a member of 'site') and (ii) m1 has the same erasure as m2, issue an error
-                if (!types.isSubSignature(sym.type, types.memberType(site, s1), false) &&
-                        types.hasSameArgs(s1.erasure(types), s2.erasure(types))) {
+                if (!types.isSubSignature(sym.type, types.memberType(site, m2), false) &&
+                        types.hasSameArgs(m2.erasure(types), m1.erasure(types))) {
                     sym.flags_field |= CLASH;
-                    String key = s2 == sym ?
+                    String key = m1 == sym ?
                             "name.clash.same.erasure.no.override" :
                             "name.clash.same.erasure.no.override.1";
                     log.error(pos,
                             key,
                             sym, sym.location(),
-                            s1, s1.location(),
-                            s2, s2.location());
+                            m2, m2.location(),
+                            m1, m1.location());
                     return;
                 }
             }

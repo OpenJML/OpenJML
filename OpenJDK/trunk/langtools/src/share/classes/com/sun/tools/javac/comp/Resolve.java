@@ -695,6 +695,7 @@ public class Resolve {
             case ABSENT_MTH:
                 return wrongMethod.setWrongSym(sym, ex.getDiagnostic());
             case WRONG_MTH:
+                if (operator) return bestSoFar;
                 wrongMethods.addCandidate(currentStep, wrongMethod.sym, wrongMethod.explanation);
             case WRONG_MTHS:
                 return wrongMethods.addCandidate(currentStep, sym, ex.getDiagnostic());
@@ -771,16 +772,13 @@ public class Resolve {
                                        m2.erasure(types).getParameterTypes()))
                     return ambiguityError(m1, m2);
                 // both abstract, neither overridden; merge throws clause and result type
-                Symbol mostSpecific;
-                if (types.returnTypeSubstitutable(mt1, mt2))
-                    mostSpecific = m1;
-                else if (types.returnTypeSubstitutable(mt2, mt1))
-                    mostSpecific = m2;
-                else {
+                Type mst = mostSpecificReturnType(mt1, mt2);
+                if (mst == null) {
                     // Theoretically, this can't happen, but it is possible
                     // due to error recovery or mixing incompatible class files
                     return ambiguityError(m1, m2);
                 }
+                Symbol mostSpecific = mst == mt1 ? m1 : m2;
                 List<Type> allThrown = chk.intersect(mt1.getThrownTypes(), mt2.getThrownTypes());
                 Type newSig = types.createMethodTypeWithThrown(mostSpecific.type, allThrown);
                 MethodSymbol result = new MethodSymbol(
@@ -860,6 +858,28 @@ public class Resolve {
             return new MethodSymbol(to.flags_field & ~VARARGS, to.name, mtype, to.owner);
         } else {
             return to;
+        }
+    }
+    //where
+    Type mostSpecificReturnType(Type mt1, Type mt2) {
+        Type rt1 = mt1.getReturnType();
+        Type rt2 = mt2.getReturnType();
+
+        if (mt1.tag == FORALL && mt2.tag == FORALL) {
+            //if both are generic methods, adjust return type ahead of subtyping check
+            rt1 = types.subst(rt1, mt1.getTypeArguments(), mt2.getTypeArguments());
+        }
+        //first use subtyping, then return type substitutability
+        if (types.isSubtype(rt1, rt2)) {
+            return mt1;
+        } else if (types.isSubtype(rt2, rt1)) {
+            return mt2;
+        } else if (types.returnTypeSubstitutable(mt1, mt2)) {
+            return mt1;
+        } else if (types.returnTypeSubstitutable(mt2, mt1)) {
+            return mt2;
+        } else {
+            return null;
         }
     }
     //where
@@ -1684,6 +1704,7 @@ public class Resolve {
      */
     Symbol resolveOperator(DiagnosticPosition pos, int optag,
                            Env<AttrContext> env, List<Type> argtypes) {
+        startResolution();
         Name name = treeinfo.operatorName(optag);
         Symbol sym = findMethod(env, syms.predefClass.type, name, argtypes,
                                 null, false, false, true);
@@ -1804,9 +1825,10 @@ public class Resolve {
  *  ResolveError classes, indicating error situations when accessing symbols
  ****************************************************************************/
 
-    public void logAccessError(Env<AttrContext> env, JCTree tree, Type type) {
-        AccessError error = new AccessError(env, type.getEnclosingType(), type.tsym);
-        logResolveError(error, tree.pos(), type.getEnclosingType().tsym, type.getEnclosingType(), null, null, null);
+    //used by TransTypes when checking target type of synthetic cast
+    public void logAccessErrorInternal(Env<AttrContext> env, JCTree tree, Type type) {
+        AccessError error = new AccessError(env, env.enclClass.type, type.tsym);
+        logResolveError(error, tree.pos(), env.enclClass.sym, env.enclClass.type, null, null, null);
     }
     //where
     private void logResolveError(ResolveError error,

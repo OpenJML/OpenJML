@@ -73,7 +73,7 @@ public abstract class ProgramElementDocImpl
         this.lineMap = lineMap;
     }
 
-    void setTree(JCTree tree) {
+    public void setTree(JCTree tree) { // DRC - set this from package to public
         this.tree = tree;
     }
 

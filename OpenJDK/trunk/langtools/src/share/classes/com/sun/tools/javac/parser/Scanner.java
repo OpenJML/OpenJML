@@ -993,8 +993,20 @@ public class Scanner implements Lexer {
     }
 
     /** Sets the current token.
+     * This method is primarily used to update the token stream when the
+     * parser is handling the end of nested type arguments such as
+     * {@code List<List<String>>} and needs to disambiguate between
+     * repeated use of ">" and relation operators such as ">>" and ">>>". Noting
+     * that this does not handle arbitrary tokens containing Unicode escape
+     * sequences.
      */
     public void token(Token token) {
+// DRC - the following two lines are part of 7u6. However, the first one crashes, so I added the guard.
+// The second one screws up the prevEndPos, at least when this method is used according to the comment,
+// which is how OpenJML uses it. Commenting them out seems to restore the correct behavior.
+// (FIXME) This should be investigated further.
+//        if (this.token.name != null && token.name != null) _pos += this.token.name.length() - token.name.length(); // DRC - put in the guard, but not sure what the right answer is
+//        prevEndPos = _pos;
         this.token = token;
     }
 

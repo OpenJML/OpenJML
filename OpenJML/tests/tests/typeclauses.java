@@ -447,14 +447,14 @@ public class typeclauses extends TCBase {
     @Test
     public void testForall7() { // FIXME - this is not the clearest error message - it should refer to the specifications
         helpTCF("A.java","public class A { \n //@ forall int i; old int k=0   ; requires i<k; \n public void m(int i) {}}"
-                ,"/A.java:2: i is already defined in m(int)",17
+                ,"/A.java:2: variable i is already defined in method m(int)",17
                 );        
     }
     
     @Test
     public void testForall8() { // FIXME - this is not the clearest error message - it should refer to the specifications
         helpTCF("A.java","public class A { \n //@ forall int k; old int k=0   ; requires i<k; \n public void m(int i) {}}"
-                ,"/A.java:2: k is already defined in m(int)",28
+                ,"/A.java:2: variable k is already defined in method m(int)",28
                 );        
     }
     
@@ -468,7 +468,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testForall10() { // FIXME - this is not the clearest error message - it should refer to the specifications
         helpTCF("A.java","public class A { \n //@ forall int j; old int k=0   ; requires i<k; \n//@{| forall int k; ensures k<m; also ensures i==0; |} \n public void m(int i) {}}"
-                ,"/A.java:3: k is already defined in m(int)",18
+                ,"/A.java:3: variable k is already defined in method m(int)",18
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable m\n  location: class A",31
                 );        
     }

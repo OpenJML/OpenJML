@@ -69,7 +69,10 @@ public class expressions extends ParseBase {
             int k = 0;
             if (print) {
                 for (JCTree t: out) {
-                    System.out.println(t.getClass() + " " + t.getPreferredPosition());
+                    System.out.println(t.getClass() 
+                            + " " + t.getStartPosition() 
+                            + " " + t.getPreferredPosition() 
+                            + " " + p.getEndPos(t));
                 }
             }
             if (print || collector.getDiagnostics().size() != 0)
@@ -85,13 +88,15 @@ public class expressions extends ParseBase {
                 p3 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 if (p3 != null) {
                     assertEquals("Start position for token " + k, p1, TreeInfo.getStartPos(t)); // t.getStartPosition());
-                    assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
+                    //if (t.getPreferredPosition() != (Integer)p2 && t.getPreferredPosition() != (Integer)p2+1)
+                        assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
                     assertEquals("End position for token " + k, p3, p.getEndPos(t));
                 } else if (p2 != null) {
                     assertEquals("Start position for token " + k, p1, t.getStartPosition());
                     assertEquals("End position for token " + k, p2, p.getEndPos(t));
                 } else {
-                    assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
+                    //if (t.getPreferredPosition() != (Integer)p1 && t.getPreferredPosition() != (Integer)p1+1)
+                        assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
                 }
                 ++k;
             }
@@ -169,6 +174,7 @@ public class expressions extends ParseBase {
     /** Test scanning JML equivalence expression */
     @Test
     public void testJMLUnary1() {
+        print = true;
         helpExpr(" - (++a) + !b + (a--) + (~a++)",
                 JCBinary.class, 1,22,30,
                 JCBinary.class, 1,14,21,
@@ -196,10 +202,11 @@ public class expressions extends ParseBase {
     /** Test scanning JML equivalence expression */
     @Test
     public void testJMLBinary1() {
+        print = true;
         helpExpr("a <==> b",
-                JmlBinary.class, 2,
-                JCIdent.class ,0,
-                JCIdent.class ,7);
+                JmlBinary.class, 0,2,8,
+                JCIdent.class ,0,0,1,
+                JCIdent.class ,7,7,8);
     }
 
     /** Test scanning JML inequivalence expression */

@@ -1,6 +1,7 @@
 package org.jmlspecs.utils;
 
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -509,38 +510,86 @@ public class Utils {
     
     public static interface ValueBool {
         public boolean value(final Object[] args);
-     }
+    }
 
     public static interface ValueInt {
         public int value(final Object[] args);
-     }
+    }
 
     public static interface ValueShort {
         public short value(final Object[] args);
-     }
+    }
 
     public static interface ValueChar {
         public char value(final Object[] args);
-     }
+    }
 
     public static interface ValueLong {
         public long value(final Object[] args);
-     }
+    }
 
     public static interface ValueByte {
         public byte value(final Object[] args);
-     }
+    }
 
     public static interface ValueFloat {
         public float value(final Object[] args);
-     }
+    }
 
     public static interface ValueDouble {
         public double value(final Object[] args);
-     }
+    }
 
     public static interface Value<T> {
         public T value(final Object[] args);
-     }
+    }
+    
+    public static BigInteger bigint_add(BigInteger a, BigInteger b) {
+        return a.add(b);
+    }
+
+    public static BigInteger bigint_sub(BigInteger a, BigInteger b) {
+        return a.subtract(b);
+    }
+
+    public static BigInteger bigint_mul(BigInteger a, BigInteger b) {
+        return a.multiply(b);
+    }
+
+    public static BigInteger bigint_div(BigInteger a, BigInteger b) {
+        return a.divide(b);
+    }
+
+    public static BigInteger bigint_mod(BigInteger a, BigInteger b) {
+        return a.mod(b);
+    }
+
+    public static BigInteger bigint_neg(BigInteger a) {
+        return a.negate();
+    }
+
+    public static Double bigint_add(Double a, Double b) {
+        return Double.valueOf(a.doubleValue() + b.doubleValue());
+    }
+
+    public static Double bigint_sub(Double a, Double b) {
+        return Double.valueOf(a.doubleValue() - b.doubleValue());
+    }
+
+    public static Double bigint_mul(Double a, Double b) {
+        return Double.valueOf(a.doubleValue() * b.doubleValue());
+    }
+
+    public static Double bigint_div(Double a, Double b) {
+        return Double.valueOf(a.doubleValue() / b.doubleValue());
+    }
+
+    public static Double bigint_mod(Double a, Double b) {
+        return Double.valueOf(a.doubleValue() % b.doubleValue());
+    }
+
+    public static Double bigint_neg(Double a) {
+        return Double.valueOf(-a.doubleValue());
+    }
 
 }

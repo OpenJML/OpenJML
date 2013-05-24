@@ -493,13 +493,13 @@ public class typechecking extends TCBase {
     
     @Test public void testLet5() {
         helpTCF("A.java","public class A { void m() { boolean i; //@ assert (\\let int i=0; i==0); \n i = true; }}"
-                ,"/A.java:1: i is already defined in m()",61
+                ,"/A.java:1: variable i is already defined in method m()",61
                 );
     }
     
     @Test public void testLet6() {
         helpTCF("A.java","public class A { void m(boolean i) {  //@ assert (\\let int i=0; i==0); \n i = true; }}"
-                ,"/A.java:1: i is already defined in m(boolean)",60
+                ,"/A.java:1: variable i is already defined in method m(boolean)",60
                 );
     }
     

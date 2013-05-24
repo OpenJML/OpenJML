@@ -70,7 +70,7 @@ public class namelookup extends TCBase {
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:2: k is already defined in A",21
+        "/A.java:2: variable k is already defined in class A",21
         ,"/A.java:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
         );
     }
@@ -121,7 +121,7 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: k is already defined in A",21
+        ,"/$A/A.jml:2: variable k is already defined in class A",21
         ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
         );
     }
@@ -133,7 +133,7 @@ public class namelookup extends TCBase {
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
                 "}",
-                "/A.java:2: k is already defined in A",21
+                "/A.java:2: variable k is already defined in class A",21
                 ,"/A.java:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
                 );
     }
@@ -146,7 +146,7 @@ public class namelookup extends TCBase {
                 "      int d;\n" +
                 "   }\n" +
                 "}",
-        "/A.java:3: d is already defined in m(double)",11);
+        "/A.java:3: variable d is already defined in method m(double)",11);
     }
 
     @Test
@@ -157,7 +157,7 @@ public class namelookup extends TCBase {
                 "      //@ ghost int d;\n" +
                 "   }\n" +
                 "}",
-        "/A.java:3: d is already defined in m(double)",21);
+        "/A.java:3: variable d is already defined in method m(double)",21);
     }
 
     @Test
@@ -211,7 +211,7 @@ public class namelookup extends TCBase {
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:2: k() is already defined in A",21
+        ,"/A.java:2: method k() is already defined in class A",21
         //,"/A.java:2: The return types of method A.k() are different in the specification and java files: double vs. int",14
         ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 21
         );
