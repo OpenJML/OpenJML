@@ -12,7 +12,8 @@ public class JmlType extends Type {
 
     public JmlToken jmlTypeTag;
     
-    public JCExpression repType;
+    // Caution do not use directly - lazily initialized
+    Symbol.ClassSymbol repSym;
     
     public JmlType(JmlToken token, TypeSymbol tsym) {
         super(TypeTags.UNKNOWN,tsym);

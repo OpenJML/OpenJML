@@ -1,5 +1,4 @@
 package org.jmlspecs.utils;
-
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -564,32 +563,101 @@ public class Utils {
         return a.mod(b);
     }
 
+    public static BigInteger bigint_valueOf(int i) {
+        return new BigInteger(Integer.toString(i));
+    }
+
     public static BigInteger bigint_neg(BigInteger a) {
         return a.negate();
     }
 
-    public static Double bigint_add(Double a, Double b) {
+    public static boolean bigint_lt(BigInteger a, BigInteger b) {
+        return a.compareTo(b) < 0;
+    }
+
+    public static boolean bigint_le(BigInteger a, BigInteger b) {
+        return a.compareTo(b) <= 0;
+    }
+
+    public static boolean bigint_gt(BigInteger a, BigInteger b) {
+        return a.compareTo(b) > 0;
+    }
+
+    public static boolean bigint_ge(BigInteger a, BigInteger b) {
+        return a.compareTo(b) >= 0;
+    }
+
+    public static boolean bigint_eq(BigInteger a, BigInteger b) {
+        return a.compareTo(b) == 0;
+    }
+
+    public static boolean bigint_ne(BigInteger a, BigInteger b) {
+        return a.compareTo(b) != 0;
+    }
+
+    public static long bigint_tolong(BigInteger a) {
+        return a.longValue();
+    }
+
+    public static int bigint_toint(BigInteger a) {
+        return a.intValue();
+    }
+
+    public static short bigint_toshort(BigInteger a) {
+        return a.shortValue();
+    }
+
+    public static byte bigint_tobyte(BigInteger a) {
+        return a.byteValue();
+    }
+
+    public static Double real_add(Double a, Double b) {
         return Double.valueOf(a.doubleValue() + b.doubleValue());
     }
 
-    public static Double bigint_sub(Double a, Double b) {
+    public static Double real_sub(Double a, Double b) {
         return Double.valueOf(a.doubleValue() - b.doubleValue());
     }
 
-    public static Double bigint_mul(Double a, Double b) {
+    public static Double real_mul(Double a, Double b) {
         return Double.valueOf(a.doubleValue() * b.doubleValue());
     }
 
-    public static Double bigint_div(Double a, Double b) {
+    public static Double real_div(Double a, Double b) {
         return Double.valueOf(a.doubleValue() / b.doubleValue());
     }
 
-    public static Double bigint_mod(Double a, Double b) {
+    public static Double real_mod(Double a, Double b) {
         return Double.valueOf(a.doubleValue() % b.doubleValue());
     }
 
-    public static Double bigint_neg(Double a) {
+    public static Double real_neg(Double a) {
         return Double.valueOf(-a.doubleValue());
     }
+
+    public static boolean real_lt(Double a, Double b) {
+        return a.compareTo(b) < 0;
+    }
+
+    public static boolean real_le(Double a, Double b) {
+        return a.compareTo(b) <= 0;
+    }
+
+    public static boolean real_gt(Double a, Double b) {
+        return a.compareTo(b) > 0;
+    }
+
+    public static boolean real_ge(Double a, Double b) {
+        return a.compareTo(b) >= 0;
+    }
+
+    public static boolean real_eq(Double a, Double b) {
+        return a.compareTo(b) == 0;
+    }
+
+    public static boolean real_ne(Double a, Double b) {
+        return a.compareTo(b) != 0;
+    }
+
 
 }
