@@ -12,13 +12,16 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
+import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
@@ -464,15 +467,22 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     //@ requires args != null && \nonnullelements(args);
     //@ requires context != null;
+    //@Override
+    //public int compile(String[] args, Context context) {
+
     @Override
-    public int compile(String[] args, Context context) {
+    public int compile(String[] args,
+                Context context,
+                List<JavaFileObject> fileObjects,
+                Iterable<? extends Processor> processors) {
+
         this.context = context;
         register(context);
         initializeOptions(savedOptions);
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
-        int exit = super.compile(args,context);
+        int exit = super.compile(args,context,fileObjects,processors);
         if (args.length == 0 || Options.instance(context).get(helpOption) != null) {
             helpJML(out);
         }
@@ -727,13 +737,13 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
-    public List<File> processArgs(String[] args) {
+    public Collection<File> processArgs(String[] args, String[] classNames) {
         Options options = Options.instance(this.context);
         ListBuffer<File> jmlfiles = new ListBuffer<File>();
         args = processJmlArgs(args,options,jmlfiles);
-        if (filenames == null) filenames = new ListBuffer<File>(); // needed when called from the API
-        List<File> files = super.processArgs(args);
-        if (files != null) files = files.appendList(jmlfiles);
+        if (filenames == null) filenames = new TreeSet<File>(); // needed when called from the API
+        Collection<File> files = super.processArgs(args,classNames);
+        if (files != null) files.addAll(jmlfiles);
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
         return files;
@@ -825,11 +835,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      * 
      * @param args the array of command-line arguments used to setup options
      */
-    public List<File> initializeOptions(@Nullable Options options, @NonNull String... args) {
+    public Collection<File> initializeOptions(@Nullable Options options, @NonNull String... args) {
         Options opts = Options.instance(context);
         setOptions(opts);
         if (options == null) {
-            filenames = new ListBuffer<File>();
+            filenames = new TreeSet<File>();
             classnames = new ListBuffer<String>();
             coreDefaultOptions(opts);
             Properties properties = Utils.findProperties(context);
@@ -866,9 +876,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
 
         if (args != null && args.length > 0) try {
-            List<File> files = processArgs(CommandLine.parse(args));
+            Collection<File> files = processArgs(CommandLine.parse(args));
             if (files != null && !files.isEmpty()) {
-                Log.instance(context).warning("jml.ignore.extra.material",files.get(0).getName());
+                Log.instance(context).warning("jml.ignore.extra.material",files.iterator().next().getName());
             }
             return files;
         } catch (java.io.IOException e) {

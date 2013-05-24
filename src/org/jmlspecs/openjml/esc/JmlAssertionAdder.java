@@ -1162,7 +1162,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             st.optionalExpression = info;
             st.id = assertID;
             treeutils.copyEndPosition(st.expression, translatedExpr);
-            treeutils.copyEndPosition(st, translatedExpr);
+            treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
             currentStatements.add(st);
             return st;
         } 

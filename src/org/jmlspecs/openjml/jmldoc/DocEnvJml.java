@@ -25,7 +25,7 @@ public class DocEnvJml extends DocEnv {
     }
     
     // MAINTENANCE ISSUE: Copied from super class
-    protected ClassDocImpl getClassDoc(ClassSymbol clazz) {
+    public ClassDocImpl getClassDoc(ClassSymbol clazz) {
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) return result;
         if (isAnnotationType(clazz)) {
@@ -42,15 +42,16 @@ public class DocEnvJml extends DocEnv {
     protected void makeClassDoc(ClassSymbol clazz, String docComment, JCClassDecl tree, Position.LineMap lineMap) {
         ClassDocImpl result = classMap.get(clazz);
         if (result != null) {
-            super.makeClassDoc(clazz,docComment,tree,lineMap);
+            if (docComment != null) result.setRawCommentText(docComment);
+            if (tree != null) result.setTree(tree);
             return;
         }
         if (isAnnotationType(tree)) {   // flags of clazz may not yet be set
-            super.makeClassDoc(clazz,docComment,tree,lineMap);
+            result = new AnnotationTypeDocImpl(this, clazz, docComment, tree, lineMap);
         } else {
             result = new ClassDocJml(this, clazz, docComment, tree, lineMap);
-            classMap.put(clazz, result);
         }
+        classMap.put(clazz, result);
     }
 
 }

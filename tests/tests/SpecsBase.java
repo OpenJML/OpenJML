@@ -159,7 +159,7 @@ public class SpecsBase extends TCBase {
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            int ex = main.compile(new String[]{}, context, files, null);
+            int ex = main.compile(new String[]{}, null, context, files, null);
             if (print) JmlSpecs.instance(context).printDatabase();
             int expected = expectedExit;
             if (expected == -1) expected = collector.getDiagnostics().size() == 0 ? 0 : 1;

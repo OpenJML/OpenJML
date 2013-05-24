@@ -665,8 +665,8 @@ public class MethodProverSMT {
                         loc = utils.locationString(pos);
                     } else {
                         // FIXME - migrate to using pos() for terminationPos as well 
-                        log.warning(assertStat.pos(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
-                        loc = utils.locationString(assertStat.pos);
+                        log.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
+                        loc = utils.locationString(assertStat.getPreferredPosition());
                     }
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is

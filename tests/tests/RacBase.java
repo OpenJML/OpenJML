@@ -138,7 +138,7 @@ public abstract class RacBase extends JmlTestCase {
             }
 
             Log.instance(context).useSource(files.first());
-            int ex = main.compile(new String[]{}, context, files.toList(), null);
+            int ex = main.compile(new String[]{}, null, context, files.toList(), null);
             
             if (print) printDiagnostics();
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
