@@ -1,7 +1,25 @@
 OUT:
-LABEL BVALUE = 20
-testfiles\racbigint\bigint.java:26: JML assertion is false
+testfiles\racbigint\bigint.java:25: JML assertion is false
         //@ assert b == zero;
             ^
+LABEL BBB = -420
+LABEL XX = 1234567890123456789012345678900
+testfiles\racbigint\bigint.java:35: JML Division by zero
+            //@ set bb = bb / zero;
+                            ^
+java.lang.ArithmeticException: BigInteger divide by zero
+	at java.math.MutableBigInteger.divide(MutableBigInteger.java:883)
+	at java.math.BigInteger.divide(BigInteger.java:1342)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:559)
+	at bigint.main(bigint.java:35)
+testfiles\racbigint\bigint.java:40: JML Division by zero
+            //@ set prod = prod / 0;
+                                ^
+java.lang.ArithmeticException: BigInteger divide by zero
+	at java.math.MutableBigInteger.divide(MutableBigInteger.java:883)
+	at java.math.BigInteger.divide(BigInteger.java:1342)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:559)
+	at bigint.main(bigint.java:40)
+LABEL BBB = -417
 
 ERR:

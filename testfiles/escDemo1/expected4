@@ -35,14 +35,14 @@ Starting proof of openjml.clock.TickTockClock1.tick() with prover z3_4_3
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: warning: The prover cannot establish an assertion (Postcondition) in method tick
 	public void tick() {
 	            ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:33: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: 
-      @  ensures getSecond() == \old(getSecond() + 1) &&
+..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:39: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: 
+      @  ensures getSecond() == 0;
          ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: warning: The prover cannot establish an assertion (Postcondition) in method tick
 	public void tick() {
 	            ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:39: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: 
-      @  ensures getSecond() == 0;
+..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:33: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: 
+      @  ensures getSecond() == \old(getSecond() + 1) &&
          ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: warning: The prover cannot establish an assertion (Postcondition) in method tick
 	public void tick() {

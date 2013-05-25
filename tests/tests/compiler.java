@@ -227,7 +227,7 @@ public class compiler {
     @Test
     public void testSourcePath() throws Exception {
         helper(new String[]
-                          { "-classpath","",
+                          { "-classpath"," ",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
                             "-specspath","runtime",
                             "-noInternalSpecs",
@@ -312,7 +312,6 @@ public class compiler {
      */ 
     @Test
     public void testJML1B() throws Exception {
-        print = true;
         helper(new String[]
                           { "-classpath","runtime",
                             "-sourcepath","testfiles/testJavaErrors",
@@ -347,7 +346,7 @@ public class compiler {
     public void testJML3() throws Exception {
         helper(new String[]
                           { "-classpath","runtime",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime",
                             "-noPurityCheck",
                             "testfiles/testNoErrors/A.jml"
@@ -360,7 +359,7 @@ public class compiler {
     public void testJML4() throws Exception {
         helper(new String[]
                           { "-classpath","runtime",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime",
                             "-noPurityCheck",
                             "testfiles/testNoSourceParseError/A.jml"
@@ -378,7 +377,7 @@ public class compiler {
     public void testJML5() throws Exception {
         helper(new String[]
                           { "-classpath","runtime",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime",
                             "-noPurityCheck",
                             "testfiles/testNoSourceTypeError/A.jml"
@@ -399,7 +398,7 @@ public class compiler {
     public void testJML6() throws Exception {
         helper(new String[]
                           { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-noPurityCheck",
                             "testfiles/testNoSourceWithClass/A.jml"
@@ -413,7 +412,7 @@ public class compiler {
     public void testJML6nowarn() throws Exception {
         helper(new String[]
                           { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-noPurityCheck","-nowarn",
                             "testfiles/testNoSourceWithClass/A.jml"
@@ -427,7 +426,7 @@ public class compiler {
     public void testJML6Werror() throws Exception {
         helper(new String[]
                           { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
-                            "-sourcepath","",
+                            "-sourcepath"," ",
                             "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-noPurityCheck","-Werror",
                             "testfiles/testNoSourceWithClass/A.jml"
@@ -460,7 +459,7 @@ public class compiler {
     @Test
     public void testSourcePath3() throws Exception {
         helper(new String[]
-                          { "-classpath","",
+                          { "-classpath"," ",
                             "-sourcepath","testfiles/testNoErrors"+z+"runtime",
                             "-specspath","",
                             "-noInternalSpecs",

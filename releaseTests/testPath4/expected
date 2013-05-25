@@ -8,4 +8,3 @@ public class TestPath extends TestPathS {
   symbol:   variable q
   location: class TestPath
 2 errors
-ENDING with exit code 1

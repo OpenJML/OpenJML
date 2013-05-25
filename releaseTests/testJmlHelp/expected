@@ -50,6 +50,7 @@ JML options:
   -exclude                   Comma-separated list of method name patterns to exclude from ESC
   -prover                    The prover to use to check verification conditions
   -exec                      The prover executable to use
+  -logic                     The SMT logic to use
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
   -nullableByDefault         Makes references nullable by default
   -specspath                 Specifies the directory path to search for specification files
@@ -74,7 +75,6 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
   -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
-  -crossRefAssociatedInfo    >...
   -showRacSource             RAC: Error messages will include source information [-noRacSource=false]
   -noRacSource               RAC: Error messages will not include source information
   -noRacCheckAssumptions     RAC: Disables checking that assumptions hold

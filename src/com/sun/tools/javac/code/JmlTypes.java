@@ -2,31 +2,17 @@ package com.sun.tools.javac.code;
 
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeUtils;
 
-import com.sun.tools.javac.code.Source;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.comp.Attr;
-import com.sun.tools.javac.comp.Check;
-import com.sun.tools.javac.comp.Flow;
 import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.jvm.ByteCodes;
-import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.util.Warner;
 
 
@@ -85,6 +71,8 @@ public class JmlTypes extends Types {
         enterBinop("*", BIGINT, BIGINT, BIGINT);
         enterBinop("/", BIGINT, BIGINT, BIGINT);
         enterBinop("%", BIGINT, BIGINT, BIGINT);
+        
+        // FIXME - shift operators???
 
         enterBinop("==", REAL, REAL, syms.booleanType);
         enterBinop("!=", REAL, REAL, syms.booleanType);
@@ -94,6 +82,8 @@ public class JmlTypes extends Types {
         enterBinop(">=", REAL, REAL, syms.booleanType);
 
         enterUnop("-", REAL, REAL);
+        enterUnop("++", REAL, REAL);
+        enterUnop("--", REAL, REAL);
 
         enterBinop("+", REAL, REAL, REAL);
         enterBinop("-", REAL, REAL, REAL);
@@ -123,11 +113,13 @@ public class JmlTypes extends Types {
         if (s == BIGINT) {
             int tag = t.tag;
             if (isIntegral(tag)) return true;
+            if (repSym((JmlType)s) == t.tsym) return true;
             return false; // FIXME - call the warner?
         }
         if (s == REAL) {
             int tag = t.tag;
             if (isNumeric(tag)) return true; 
+            if (repSym((JmlType)s) == t.tsym) return true;
             return false; // FIXME - call the warner?
         }
         return super.isAssignable(t, s, warn);
@@ -143,8 +135,10 @@ public class JmlTypes extends Types {
     
     public boolean isConvertible(Type t, Type s, Warner warn) {
         if (s instanceof JmlType) {
-            if (s == BIGINT && isIntegral(s.tag)) return true;
-            if (s == REAL && isNumeric(s.tag)) return true;
+            if (s == BIGINT && isIntegral(t.tag)) return true;
+            if (s == BIGINT && repSym(BIGINT) == t.tsym) return true;
+            if (s == REAL && isNumeric(t.tag)) return true;
+            if (s == REAL && repSym(REAL) == t.tsym) return true;
         }
         return super.isConvertible(t, s, warn);
     }
@@ -153,7 +147,7 @@ public class JmlTypes extends Types {
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
         if (s instanceof JmlType) {
             if (s == BIGINT && isIntegral(t.tag)) return true;
-            if (s == REAL && isNumeric(s.tag)) return true;
+            if (s == REAL && isNumeric(t.tag)) return true;
         }
         return super.isSubtypeUnchecked(t, s, warn);
     }
@@ -166,7 +160,12 @@ public class JmlTypes extends Types {
         return reader.enterClass(syms.boxedName[t.tag]);
     }
 
-
+    public Type unboxedType(Type t) {
+        if (t.tsym == repSym(BIGINT)) return BIGINT;
+        if (t.tsym == repSym(REAL)) return REAL;
+        if (t.tsym == repSym(TYPE)) return TYPE;
+    	return super.unboxedType(t);
+    }
 
     @Override
     public boolean isSubtype(Type t, Type s, boolean capture) {
@@ -215,13 +214,19 @@ public class JmlTypes extends Types {
     public boolean isCastable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (s == BIGINT) {
-            int tag = t.tag;
-            if (tag == TypeTags.INT || tag == TypeTags.LONG || tag == TypeTags.SHORT || tag == TypeTags.CHAR || tag == TypeTags.BYTE) return true;
+            if (isIntegral(t.tag)) return true;
             return false; // FIXME - call the warner?
         }
         if (t == BIGINT) {
-            int tag = s.tag;
-            if (tag == TypeTags.INT || tag == TypeTags.LONG || tag == TypeTags.SHORT || tag == TypeTags.CHAR || tag == TypeTags.BYTE) return true;
+            if (isIntegral(s.tag)) return true;
+            return false; // FIXME - call the warner?
+        }
+        if (s == REAL) {
+            if (isNumeric(t.tag)) return true;
+            return false; // FIXME - call the warner?
+        }
+        if (t == REAL) {
+            if (isNumeric(s.tag)) return true;
             return false; // FIXME - call the warner?
         }
         return super.isCastable(t, s,warn);
@@ -253,7 +258,7 @@ public class JmlTypes extends Types {
             } else if (token == JmlToken.BSBIGINT) {
                 n = "java.math.BigInteger";
             } else if (token == JmlToken.BSREAL) {
-                n = "java.lang.Double";
+                n = "org.jmlspecs.lang.Real";
             } else {
                 n = null;
                 // FIXME
@@ -265,6 +270,10 @@ public class JmlTypes extends Types {
     
     public boolean isJmlType(Type t) {
         return t.tag == TypeTags.UNKNOWN;
+    }
+    
+    public boolean isJmlTypeToken(JmlToken t) {
+        return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT || t == JmlToken.BSREAL;
     }
 
 

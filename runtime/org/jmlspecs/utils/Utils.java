@@ -4,8 +4,8 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-// Keep this to match the .jml file, for now
-
+import org.jmlspecs.lang.Real;
+// Keep this to match the .jml file, for now - FIXME add copyright at top
 /** 
  * This class contains utility methods used in internal translations for both
  * ESC and RAC.  In RAC, these functions are executed to provide the built-in
@@ -563,10 +563,6 @@ public class Utils {
         return a.mod(b);
     }
 
-    public static BigInteger bigint_valueOf(int i) {
-        return new BigInteger(Integer.toString(i));
-    }
-
     public static BigInteger bigint_neg(BigInteger a) {
         return a.negate();
     }
@@ -595,6 +591,10 @@ public class Utils {
         return a.compareTo(b) != 0;
     }
 
+    public static boolean bigint_nonzero(BigInteger a) {
+        return a.compareTo(BigInteger.ZERO) != 0;
+    }
+
     public static long bigint_tolong(BigInteger a) {
         return a.longValue();
     }
@@ -611,52 +611,72 @@ public class Utils {
         return a.byteValue();
     }
 
-    public static Double real_add(Double a, Double b) {
-        return Double.valueOf(a.doubleValue() + b.doubleValue());
+    public static BigInteger bigint_valueOf(long i) {
+        return new BigInteger(Long.toString(i));
     }
 
-    public static Double real_sub(Double a, Double b) {
-        return Double.valueOf(a.doubleValue() - b.doubleValue());
+    public static Real real_add(Real a, Real b) {
+        return a.add(b);
     }
 
-    public static Double real_mul(Double a, Double b) {
-        return Double.valueOf(a.doubleValue() * b.doubleValue());
+    public static Real real_sub(Real a, Real b) {
+        return a.subtract(b);
     }
 
-    public static Double real_div(Double a, Double b) {
-        return Double.valueOf(a.doubleValue() / b.doubleValue());
+    public static Real real_mul(Real a, Real b) {
+        return a.multiply(b);
     }
 
-    public static Double real_mod(Double a, Double b) {
-        return Double.valueOf(a.doubleValue() % b.doubleValue());
+    public static Real real_div(Real a, Real b) {
+        return a.divide(b);
     }
 
-    public static Double real_neg(Double a) {
-        return Double.valueOf(-a.doubleValue());
+    public static Real real_mod(Real a, Real b) {
+        return a.mod(b);
     }
 
-    public static boolean real_lt(Double a, Double b) {
+    public static Real real_neg(Real a) {
+        return a.neg();
+    }
+
+    public static boolean real_lt(Real a, Real b) {
         return a.compareTo(b) < 0;
     }
 
-    public static boolean real_le(Double a, Double b) {
+    public static boolean real_le(Real a, Real b) {
         return a.compareTo(b) <= 0;
     }
 
-    public static boolean real_gt(Double a, Double b) {
+    public static boolean real_gt(Real a, Real b) {
         return a.compareTo(b) > 0;
     }
 
-    public static boolean real_ge(Double a, Double b) {
+    public static boolean real_ge(Real a, Real b) {
         return a.compareTo(b) >= 0;
     }
 
-    public static boolean real_eq(Double a, Double b) {
+    public static boolean real_eq(Real a, Real b) {
         return a.compareTo(b) == 0;
     }
 
-    public static boolean real_ne(Double a, Double b) {
+    public static boolean real_ne(Real a, Real b) {
         return a.compareTo(b) != 0;
+    }
+
+    public static boolean real_nonzero(Real a) {
+        return a.compareTo(Real.ZERO) != 0;
+    }
+
+    public static Real real_valueOf(double i) {
+        return Real.valueOf(i);
+    }
+
+    public static double real_todouble(Real a) {
+        return a.doubleValue();
+    }
+
+    public static float real_tofloat(Real a) {
+        return (float)a.doubleValue();
     }
 
 

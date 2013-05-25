@@ -591,5 +591,11 @@ public class Utils {
         }
     }
 
+    
+    /** This is a predicate that can be used in a debugging condition */
+    public static boolean print(String s) {
+        System.out.println(s);
+        return true;
+    }
 
 }

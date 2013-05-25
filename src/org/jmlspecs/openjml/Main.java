@@ -571,6 +571,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs, @NonNull java.util.List<String> files ) {
         String res = "";
         String s = args[i++];
+        if (s == null || s.isEmpty()) return i; // For convenience, allow but ignore null or empty arguments
         IOption o = JmlOption.find(s);
         while (o!=null && o.synonym()!=null) {
             s = o.synonym();
