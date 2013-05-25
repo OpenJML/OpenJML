@@ -1,24 +1,5 @@
 Proving methods in trace
 Starting proof of trace.m(int) with prover z3_4_3
-
-TRACE of trace.m(int)
-
-testfiles\escTrace5\trace.java:3:  	requires true; 
-			VALUE: true	 === true
-testfiles\escTrace5\trace.java:6:  	Object o = new Object()
-			VALUE: new Object()	 === REF!val!2
-			VALUE: o	 === REF!val!2
-testfiles\escTrace5\trace.java:  	assert Assert \typeof(o) == \type(Object);
-			VALUE: o	 === REF!val!2
-			VALUE: \typeof(o)	 === JMLT_java_lang_Object
-			VALUE: \type(Object)	 === JMLT_java_lang_Object
-			VALUE: \typeof(o) == \type(Object)	 === true
-testfiles\escTrace5\trace.java:8:  	return 0;
-			VALUE: 0	 === 0
-testfiles\escTrace5\trace.java:4:  	ensures \result != 0; 
-			VALUE: \result	 === 0
-			VALUE: 0	 === 0
-			VALUE: \result != 0	 === false
 testfiles\escTrace5\trace.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^

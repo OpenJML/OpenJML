@@ -4,4 +4,3 @@ public class A { /*@ invariant 0; */ }
   required: boolean
   found:    int
 1 error
-ENDING with exit code 1

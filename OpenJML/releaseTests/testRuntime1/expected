@@ -127,8 +127,8 @@ openjml.jar(specs17/java/io/OutputStream.jml):21: error: package org.jmlspecs.la
 package java.io;
 ^
 openjml.jar(specs17/java/io/OutputStream.jml):36: error: cannot find symbol
-    //@ public model JMLDataGroup output; in objectState;
-                     ^
+    //-RAC@ public model JMLDataGroup output; in objectState;
+                         ^
   symbol:   class JMLDataGroup
   location: class OutputStream
 openjml.jar(specs17/java/io/FilterOutputStream.jml):4: error: package org.jmlspecs.lang does not exist
@@ -173,14 +173,14 @@ package java.lang;
 openjml.jar(specs17/java/lang/StringBuffer.jml):21: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
-openjml.jar(specs17/java/lang/reflect/InvocationTargetException.jml):1: error: package org.jmlspecs.lang does not exist
-package java.lang.reflect;
-^
 openjml.jar(specs17/java/lang/Number.jml):21: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
 openjml.jar(specs17/java/math/BigInteger.jml):21: error: package org.jmlspecs.lang does not exist
 package java.math;
+^
+openjml.jar(specs17/java/lang/reflect/InvocationTargetException.jml):1: error: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
 ^
 openjml.jar(specs17/java/util/MissingResourceException.jml):1: error: package org.jmlspecs.lang does not exist
 package java.util;
@@ -188,10 +188,6 @@ package java.util;
 openjml.jar(specs17/java/util/regex/Matcher.jml):21: error: package org.jmlspecs.lang does not exist
 package java.util.regex;
 ^
-openjml.jar(specs17/java/lang/Object.jml):68: error: cannot access IJMLTYPE
-      @     requires \typeof(this) == \type(Object);
-                                   ^
-  class file for org.jmlspecs.utils.IJMLTYPE not found
 openjml.jar(specs17/java/lang/System.jml):21: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -284,6 +280,10 @@ package java.lang;
 openjml.jar(specs17/java/lang/Byte.jml):21: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
+openjml.jar(specs17/java/lang/Class.jml):96: error: cannot access IJMLTYPE
+    //@   ensures \result <==> (obj != null && (\typeof(obj) <: (\TYPE)this));
+                                                                 ^
+  class file for org.jmlspecs.utils.IJMLTYPE not found
 openjml.jar(specs17/java/lang/IllegalStateException.jml):1: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -310,4 +310,3 @@ import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; 
                                             ^
   class file for org.jmlspecs.utils.Utils not found
 98 errors
-ENDING with exit code 1

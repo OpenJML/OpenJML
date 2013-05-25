@@ -174,7 +174,6 @@ public class expressions extends ParseBase {
     /** Test scanning JML equivalence expression */
     @Test
     public void testJMLUnary1() {
-        print = true;
         helpExpr(" - (++a) + !b + (a--) + (~a++)",
                 JCBinary.class, 1,22,30,
                 JCBinary.class, 1,14,21,
@@ -202,7 +201,6 @@ public class expressions extends ParseBase {
     /** Test scanning JML equivalence expression */
     @Test
     public void testJMLBinary1() {
-        print = true;
         helpExpr("a <==> b",
                 JmlBinary.class, 0,2,8,
                 JCIdent.class ,0,0,1,
@@ -640,7 +638,6 @@ public class expressions extends ParseBase {
 
     @Test
     public void testMisc() {
-        print = true;
         helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) "
                 ,JmlBinary.class ,0,13,40
                 ,JCParens.class, 0,0,12

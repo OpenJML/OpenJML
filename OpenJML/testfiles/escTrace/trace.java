@@ -1,6 +1,6 @@
 public class trace {
     
-    public int f;
+    public int fxxx;
     static public int sf;
     public int[] a = { 1,2,3};
     
@@ -15,11 +15,11 @@ public class trace {
         k = 7;
         k += 7;
         int j;
-        f = k + 9;
-        j = f + this.f;
-        f += k + 9;
-        this.f = k + 9;
-        this.f += k + 9;
+        fxxx = k + 9;
+        j = fxxx + this.fxxx;
+        fxxx += k + 9;
+        this.fxxx = k + 9;
+        this.fxxx += k + 9;
         mm(k+k,k==0);
         mmm(9);
         j = mmm(j+1) + mmm(10);

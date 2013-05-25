@@ -612,8 +612,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void scan(JCTree tree) {
         result = null;
         super.scan(tree);
-        if (tree instanceof JCExpression && !(tree instanceof JCAssign)
-                ) bimap.put(tree, result);
+        if (tree instanceof JCExpression && !(tree instanceof JCAssign)) {
+            bimap.put(tree, result);
+        }
     }
 
     public void scanList(com.sun.tools.javac.util.List<JCExpression> trees) {
