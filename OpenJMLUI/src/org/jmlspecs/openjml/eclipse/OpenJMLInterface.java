@@ -7,15 +7,12 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -29,43 +26,23 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageDeclaration;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IProblemRequestor;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
-import org.jmlspecs.openjml.API;
-import org.jmlspecs.openjml.Factory;
-import org.jmlspecs.openjml.IAPI;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
-import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -94,7 +71,7 @@ public class OpenJMLInterface {
     @NonNull
     protected IAPI api;
     
-    /** The common instance of a Utils object that provides various
+    /** The common instance of a UI Utils object that provides various
      * utility methods.  We initialize this when an OpenJMLInterface
      * object is created rather than making it static because the 
      * singleton object is not created until the plugin is actually
@@ -128,31 +105,35 @@ public class OpenJMLInterface {
 	   initialize(null);
    }
    
-   public void initialize(/*@nullable*/ Main.Cmd cmd) {
+   /** Initializes new OpenJMLInterface objects */
+   protected void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
        PrintWriter w = Log.log.listener() != null ? 
     		   new PrintWriter(Log.log.listener().getStream(),true) : null;
        List<String> opts = getOptions(jproject,cmd);
        try { 
-    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); //, new String[]{/*"-noInternalRuntime"*/}); 
+    	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
        } catch (Exception e) {
-    	   Log.errorlog("Failed to create an interface to OpenJML",e);
+    	   Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
        }
    }
    
    /** Executes the JML Check (syntax and typechecking) or the RAC compiler
-    * operations on the given set of resources.
+    * operations on the given set of resources, creating a new compilation context.
+    * Must be called in a computational thread.
     * @param command either CHECK or RAC
     * @param files the set of files (or containers) to check
     * @param monitor the progress monitor the UI is using
     */
-   public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor) {
+   public void executeExternalCommand(Main.Cmd command, Collection<IResource> files, @Nullable IProgressMonitor monitor, boolean auto) {
 	   boolean verboseProgress = utils.openjmlVerbose() >= Utils.NORMAL;
        try {
            if (files.isEmpty()) {
-               if (verboseProgress) Log.log("Nothing applicable to process");
-               Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
-               return;
+        	   if (!auto) {
+        		   if (verboseProgress) Log.log("Nothing applicable to process"); //$NON-NLS-1$
+        		   Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process"); //$NON-NLS-1$ //$NON-NLS-2$
+        	   }
+        	   return;
            }
            IJavaProject jp = JavaCore.create(files.iterator().next().getProject());
            List<String> args;
@@ -169,42 +150,44 @@ public class OpenJMLInterface {
         			   // FIXME - is it a problem that this is done in the UI thread; is local=true correct?
         		       jp.getProject().getFolder(racdir).create(IResource.FORCE,true,null);
         		   } catch (CoreException e) {
-        			   // FIXME - error
+                       if (verboseProgress) Log.errorlog("Failed to create the RAC output folder",e); //$NON-NLS-1$
+                       Activator.getDefault().utils.showExceptionInUI(null,"Failed to create the RAC output folder",e); //$NON-NLS-1$
+                       return;
         		   }
         	   }
-        	   args.add("-d");
+        	   args.add(Strings.outputOptionName);
         	   args.add(jp.getProject().getLocation().append(racdir).toString());
            }
 
            for (IResource r: files) {
-           	if (r instanceof IProject) {
-           		args.add(JmlOption.DIR.optionName());
-                   args.add(r.getLocation().toString());
-           	} else {
-           		if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
-                args.add(r.getLocation().toString());
-           	}
+        	   if (r instanceof IProject) {
+        		   args.add(JmlOption.DIR.optionName());
+        		   args.add(r.getLocation().toString());
+        	   } else {
+        		   if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
+        		   args.add(r.getLocation().toString());
+        	   }
            }
            Timer.timer.markTime();
            if (verboseProgress) {
-        	   String s = files.size() == 1 ? files.iterator().next().getName() : (files.size() + " items");
-        	   Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s);
+        	   String s = files.size() == 1 ? files.iterator().next().getName() : (files.size() + " items"); //$NON-NLS-1$
+        	   Log.log(Timer.timer.getTimeString() + " Executing openjml on " + s); //$NON-NLS-1$
            }
            if (monitor != null) {
-               monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking");
-               monitor.subTask("Executing openjml");
+               monitor.setTaskName(command == Main.Cmd.RAC ? "JML RAC" : "JML Checking"); //$NON-NLS-1$ //$NON-NLS-2$
+               monitor.subTask("Executing openjml"); //$NON-NLS-1$
            }
            try {
                setMonitor(monitor);
                int ret = api.execute(null,args.toArray(new String[args.size()]));
                if (ret == Main.EXIT_OK) {
-            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed");
+            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed"); //$NON-NLS-1$
                }
                else if (ret == Main.EXIT_CANCELED) {
             	   throw new Main.JmlCanceledException(Utils.emptyString);
                }
                else if (ret == Main.EXIT_ERROR) {
-            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+            	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors"); //$NON-NLS-1$
                }
                else if (ret == Main.EXIT_CMDERR) {
                    StringBuilder ss = new StringBuilder();
@@ -212,8 +195,8 @@ public class OpenJMLInterface {
                        ss.append(r);
                        ss.append(Utils.space);
                    }
-                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)
-                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
+                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)  //$NON-NLS-1$//$NON-NLS-2$
+                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
                }
                else if (ret >= Main.EXIT_SYSERR) {
                    StringBuilder ss = new StringBuilder();
@@ -221,8 +204,8 @@ public class OpenJMLInterface {
                        ss.append(r);
                        ss.append(Utils.space);
                    }
-                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result
-                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); 
+                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result //$NON-NLS-1$ //$NON-NLS-2$
+                   Activator.getDefault().utils.showMessageInUI(null,"OpenJML Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss);   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
                }
            } catch (JmlCanceledException e) {
                throw e;
@@ -234,89 +217,16 @@ public class OpenJMLInterface {
                    ss.append(c);
                    ss.append(Utils.space);
                }
-               Log.errorlog("Failure to execute openjml: "+ss,e); 
-               Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
+               Log.errorlog("Failure to execute openjml: "+ss,e);  //$NON-NLS-1$
+               Activator.getDefault().utils.showExceptionInUI(null,"Failure to execute openjml: " + ss,e); //$NON-NLS-1$
            }
-           if (monitor != null) monitor.subTask("Completed openjml");
+           if (monitor != null) monitor.subTask("Completed openjml"); //$NON-NLS-1$
        } catch (JmlCanceledException e) {
-           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
-    	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled");
+           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage()); //$NON-NLS-1$
+    	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled"); //$NON-NLS-1$
        }
    }
-   
-//   /** Executes the JML Check (syntax and typechecking) or the RAC compiler
-//    * operations on the given set of resources.
-//    * @param command either CHECK or RAC
-//    * @param files the set of files (or containers) to check
-//    * @param monitor the progress monitor the UI is using
-//    */
-//   public void executeTypeCheck(List<IResource> files, @Nullable IProgressMonitor monitor) {
-//       try {
-//           if (files.isEmpty()) {
-//               Log.log("Nothing applicable to process");
-//               Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
-//               return;
-//           }
-//           IJavaProject jp = JavaCore.create(files.get(0).getProject());
-//           //List<String> args = getOptions(jp,Cmd.CHECK);
-//           List<String> args = new ArrayList<String>();
-//
-//           // FIXME - need to expand into all files
-//           
-//           for (IResource r: files) {
-//           	if (r instanceof IProject) {
-//           		args.add(JmlOption.DIR.optionName());
-//                   args.add(r.getLocation().toString());
-//           	} else {
-//           		if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
-//                   args.add(r.getLocation().toString());
-//           	}
-//           }
-//           if (Utils.uiverbose >= Utils.NORMAL) Log.log(Timer.timer.getTimeString() + " Executing openjml ");
-//           if (monitor != null) {
-//               monitor.setTaskName("JML Checking");
-//               monitor.subTask("Executing openjml");
-//           }
-//           try {
-//               setMonitor(monitor);
-//               int ret = api.typecheck(api.parseFiles(args.toArray(new String[args.size()])));
-//               if (ret == 0) Log.log(Timer.timer.getTimeString() + " Completed");
-//               else if (ret == 1) Log.log(Timer.timer.getTimeString() + " Completed with errors");
-//               else if (ret >= 2) {
-//                   StringBuilder ss = new StringBuilder();
-//                   for (String r: args) {
-//                       ss.append(r);
-//                       ss.append(" ");
-//                   }
-//                   Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-//                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + eol + ss);
-//               }
-//               else if (ret >= 3) {
-//                   StringBuilder ss = new StringBuilder();
-//                   for (String r: args) {
-//                       ss.append(r);
-//                       ss.append(" ");
-//                   }
-//                   Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-//                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
-//               }
-//           } catch (JmlCanceledException e) {
-//               throw e;
-//           } catch (Throwable e) {
-//               StringBuilder ss = new StringBuilder();
-//               for (String c: args) {
-//                   ss.append(c);
-//                   ss.append(" ");
-//               }
-//               Log.errorlog("Failure to execute openjml: "+ss,e); 
-//               Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Failure to execute openjml: " + e + " " + ss);
-//           }
-//           if (monitor != null) monitor.subTask("Completed openjml");
-//       } catch (JmlCanceledException e) {
-//           if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage());
-//       }
-//   }
-   
+ 
     /** Executes the jmldoc tool on the given project, producing output according
      * to the current set of options.
      * @param p the project whose jmldocs are to be produced
@@ -325,37 +235,40 @@ public class OpenJMLInterface {
      */
     public int generateJmldoc(IJavaProject p) {
         List<String> args = getOptions(p,Main.Cmd.JMLDOC);
-        args.add("-d");
-        args.add(p.getProject().getLocation().toString() + File.separator + "docx");
+        args.add(Strings.outputOptionName);
+        args.add(p.getProject().getLocation().toString() + File.separator + "docx"); //$NON-NLS-1$
         //args.add(JmlOption.DIRS.optionName());
         try {
             for (IPackageFragmentRoot pfr : p.getPackageFragmentRoots()) {
                 // PackageFragmentRoots can be source folders or jar files
                 // We want just the source folders
-                IResource f = (IResource)pfr.getAdapter(IResource.class);  // FIXME - there must be a better way to do this
+                IResource f = (IResource)pfr.getAdapter(IResource.class);
                 if (!(f instanceof IFolder)) continue;
                 IJavaElement[] packages = pfr.getChildren();
                 for (IJavaElement je : packages) {
                     IPackageFragment pf = (IPackageFragment)je;
+                    // FIXME - will the following include folders of .jml files? what is the guard trying to exclude?
                     if (pf.containsJavaResources()) args.add(pf.getElementName()); // getElementName gives the fully qualified package name
                 }
             }
+            // FIXME - we need to do the following in the computational thread
             int ret = Factory.makeAPI().jmldoc(args.toArray(new String[args.size()]));
             return ret;
         } catch (JavaModelException e) {
-            Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e); 
+            Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e);  //$NON-NLS-1$
         } catch (Exception e) {
-            Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e); 
+            Log.errorlog("INTERNAL EXCEPTION while generating jmldoc",e);  //$NON-NLS-1$
         }
-        return -1;
+        return 3;
     }
 
     /** Executes the JML ESC (static checking) operation
-     * on the given set of resources.
+     * on the given set of resources. Must be called in a computational thread.
      * @param command should be ESC
      * @param things the set of files (or containers) or Java elements to check
      * @param monitor the progress monitor the UI is using
      */
+    // TODO - Review this
     public void executeESCCommand(Main.Cmd command, List<?> things, IProgressMonitor monitor) {
         try {
             if (things.isEmpty()) {
@@ -372,7 +285,7 @@ public class OpenJMLInterface {
             setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
-            api.addOptions(null,  args.toArray(new String[args.size()]));
+            api.initOptions(null,  args.toArray(new String[args.size()]));
             args.clear();
             
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
@@ -406,10 +319,12 @@ public class OpenJMLInterface {
             		} else {
             			Log.log("Can't count methods in a " + r.getClass());
             		}
-            	} catch (Exception e) {}
+            	} catch (Exception e) {
+            		// FIXME - record exception
+            	}
             }
-            for (Object r: things) { // an IType is adaptable to an IResource (the containing file), but we want it left as an IType
-                try { Thread.sleep(5000); } catch (Exception e) {}
+            for (Object r: things) { 
+            	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
                 		&& (rr=(IResource)((IAdaptable)r).getAdapter(IResource.class)) != null) {
                 	r = rr;
@@ -428,7 +343,7 @@ public class OpenJMLInterface {
                     elements.add((IJavaElement)r);
                 } else if (r instanceof IJavaElement) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
                     elements.add((IJavaElement)r);
-                } else Log.log("Ignoring " + r.getClass() + " " + r.toString());
+                } else Log.log("Ignoring " + r.getClass() + Strings.space + r.toString()); //$NON-NLS-1$
             }
             if (args.isEmpty() && elements.isEmpty()) {
                 Log.log("No files or elements to process");
@@ -499,7 +414,7 @@ public class OpenJMLInterface {
             				Timer t = new Timer();
             				if (Options.uiverboseness)
             					Log.log("Beginning ESC on " + msym);
-            				if (monitor != null) monitor.subTask("Checking " + msym);
+            				if (monitor != null) monitor.subTask("ESChecking " + msym);
             				IProverResult res = api.doESC(msym);
             				if (res != null) {
             					IProverResult.ICounterexample ce = res.counterexample();
@@ -556,11 +471,13 @@ public class OpenJMLInterface {
                 //String s = type.getTypeQualifiedName();
                 IPackageDeclaration[] pks = cu.getPackageDeclarations();
                 if (pks.length > 0) {
-                    // Not sure what we do with more than one
+                    // Documentation says not to expect more than one
                     String pname = pks[0].getElementName();
-                    className = pname + "." + className;
+                    className = pname + Strings.dot + className;
                 }
-            } catch (JavaModelException e) {}
+            } catch (Exception e) {
+            	throw new Utils.OpenJMLException("Could not find a class symbol for " + className,e); //$NON-NLS-1$
+            }
         }
         ClassSymbol csym = api.getClassSymbol(className);
         return csym;
@@ -577,12 +494,12 @@ public class OpenJMLInterface {
         if (csym == null) return null;
         try {
             com.sun.tools.javac.util.Name name = com.sun.tools.javac.util.Names.instance(api.context()).fromString(
-                    method.isConstructor() ? "<init>" : method.getElementName());
+                    method.isConstructor() ? "<init>" : method.getElementName()); //$NON-NLS-1$
             Scope.Entry e = csym.members().lookup(name); // FIXME - Need to match types & number
             MethodSymbol firstsym = null;
             outer: while (e != null && e.sym != null) {
                 Symbol sym = e.sym;
-                e = e.sibling;    // FIXME - use next?
+                e = e.next();
                 if (!(sym instanceof MethodSymbol)) continue;
                 MethodSymbol msym = (MethodSymbol)sym;
                 List<VarSymbol> params = msym.getParameters();
@@ -597,7 +514,7 @@ public class OpenJMLInterface {
                 return msym;
             }
             if (firstsym != null) return firstsym;  // FIXME: hack because of poor type matching
-            String error = "No matching method in OpenJML: " + method.getDeclaringType().getFullyQualifiedName() + "." + method;
+            String error = "No matching method in OpenJML: " + method.getDeclaringType().getFullyQualifiedName() + Strings.dot + method; //$NON-NLS-1$
             Log.errorlog(error,null);
             throw new Utils.OpenJMLException(error);
         } catch (JavaModelException e) {
@@ -650,36 +567,7 @@ public class OpenJMLInterface {
         }
         return true;
     }
-    
-//    /** Returns the list of names of directories and jar files that constitute
-//     * the current specspath in openjml.
-//     * @return the current specspath
-//     */
-//    public @NonNull List<String> getSpecsPath() {
-//        return api.getSpecsPath();
-//    }
-    
-    /** Return the specs of the given type, pretty-printed as a String.  This
-     * may be an empty String if there are no specifications.
-     * @param type the Eclipse IType for the class whose specs are wanted
-     * @return the corresponding specs, as a String
-     */
-    @NonNull
-    public String getSpecs(IType type) throws Utils.OpenJMLException {
-        ClassSymbol csym = convertType(type);
-        if (csym == null) {
-            return "Either JML checking has not been run or type " + type + " does not exist";
-        }
-        try{
-            TypeSpecs tspecs = api.getSpecs(csym);
-            String smods = api.prettyPrintJML(tspecs.modifiers);
-            return smods + eol + tspecs.toString();
-        } catch (Exception e) { return "<Exception>: " + e; }
-    }
-    
-    /** Convenience field to hold the line termination string */
-    final static private String eol = "\n";
-
+        
     /** Return the specs of the given type, including all inherited specs,
      * pretty-printed as a String.  This
      * may be an empty String if there are no specifications.
@@ -688,19 +576,23 @@ public class OpenJMLInterface {
      */
     public @Nullable String getAllSpecs(@NonNull IType type) {
         ClassSymbol csym = convertType(type);
-        if (csym == null) return null;
+        if (csym == null) {
+        	return null;
+        }
         List<TypeSpecs> typeSpecs = api.getAllSpecs(csym);
         try {
             StringBuilder sb = new StringBuilder();
             for (TypeSpecs ts: typeSpecs) {
-                sb.append("From " + ts.file.getName() + eol);
+                sb.append("From " + ts.file.getName() + Strings.eol); //$NON-NLS-1$
                 sb.append(api.prettyPrintJML(ts.modifiers));
-                sb.append(eol);
+                sb.append(Strings.eol);
                 sb.append(ts.toString());
-                sb.append(eol);
+                sb.append(Strings.eol);
             }
             return sb.toString();
-        } catch (Exception e) { return "<Exception>: " + e; }
+        } catch (Exception e) { 
+        	return "<Exception>: " + e; //$NON-NLS-1$
+        }
     }
     
     /** Return the specs of the given method, including all inherited specs,
@@ -716,14 +608,17 @@ public class OpenJMLInterface {
         try {
             StringBuilder sb = new StringBuilder();
             for (JmlSpecs.MethodSpecs ts: methodSpecs) {
-                sb.append("From " + ts.cases.decl.sourcefile.getName() + eol);
+                sb.append("From " + ts.cases.decl.sourcefile.getName()); //$NON-NLS-1$
+                sb.append(Strings.eol);
                 sb.append(api.prettyPrintJML(ts.mods)); // FIXME - want the collected mods in the JmlMethodSpecs
-                sb.append(eol);
+                sb.append(Strings.eol);
                 sb.append(api.prettyPrintJML(ts.cases));
-                sb.append(eol);
+                sb.append(Strings.eol);
             }
             return sb.toString();
-        } catch (Exception e) { return "<Exception>: " + e; }
+        } catch (Exception e) { 
+        	return "<Exception>: " + e;  //$NON-NLS-1$
+        }
         
     }
 
@@ -738,22 +633,13 @@ public class OpenJMLInterface {
         VarSymbol fsym = api.getVarSymbol(csym,field.getElementName());
         FieldSpecs fspecs = api.getSpecs(fsym);
         try { 
-            return fspecs.toString(); // FIXME - use proper eol
-        } catch (Exception e) { return "<Exception>: " + e; }
+            return fspecs.toString();
+        } catch (Exception e) { 
+        	return "<Exception>: " + e;  //$NON-NLS-1$
+        }
     }
     
-    // FIXME - documentation
-    public File getLeadingSpecFile(IType t) {
-        ClassSymbol csym = convertType(t);
-        if (csym != null) {
-            // FIXME go through API
-            //JavaFileObject f = JmlSpecs.instance(api.context()).findSpecFile(csym);
-            return null;
-        }
-        // FIXME - no check run?
-        return null;
-    }
-
+    // FIXME - revise this
     /** Show information about the most recent proof of the given method in a 
      * dialog box for the given Shell.  This information states whether the 
      * proof was performed, whether it was successful, and launches editor
@@ -775,13 +661,13 @@ public class OpenJMLInterface {
             utils.showMessageInUINM(shell,"JML Proof Results","The method " + method.getElementName() + " has not yet been checked (or a proof attempted)");
             return;
         }
-        String methodName = msym.owner + "." + msym;
-        String shortName = msym.owner.name + "." + msym.name;
+        String methodName = msym.owner + Strings.dot + msym;
+        String shortName = msym.owner.name + Strings.dot + msym.name;
         
         IProverResult r = api.getProofResult(msym);
         
         String s = ((API)api).getBasicBlockProgram(msym);
-        utils.launchEditor(s,msym.owner.name + "." + msym.name);
+        utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
 
         if (r == null) {
             utils.showMessageInUINM(shell,"JML Proof Results","There is no current proof result for " + methodName);
@@ -795,17 +681,17 @@ public class OpenJMLInterface {
 
         if (r.result() == IProverResult.UNSAT) {
             utils.showMessageInUINM(shell,"JML Proof Results",
-                    "The verification proof succeeded for " + methodName + eol
+                    "The verification proof succeeded for " + methodName + Strings.eol
                     + "Prover: " + r.prover());
             return;
         }
         if (r.result() == IProverResult.INCONSISTENT) {
-            utils.showMessageInUINM(shell,"JML Proof Results","The assumptions are INCONSISTENT for " + methodName + eol
+            utils.showMessageInUINM(shell,"JML Proof Results","The assumptions are INCONSISTENT for " + methodName + Strings.eol
             + "Prover: " + r.prover());
             return;
         }
         if (r.result() == IProverResult.UNKNOWN) {
-            utils.showMessageInUINM(shell,"JML Proof Results","The verification was not provable for " + methodName + eol
+            utils.showMessageInUINM(shell,"JML Proof Results","The verification was not provable for " + methodName + Strings.eol
             + "Prover: " + r.prover());
             return;
         }
@@ -821,7 +707,7 @@ public class OpenJMLInterface {
                 sb.append(entry.getKey());
                 sb.append(" = ");
                 sb.append(entry.getValue());
-                sb.append(eol);
+                sb.append(Strings.eol);
             }
             utils.launchEditor(sb.toString(),shortName);
         }
@@ -833,7 +719,7 @@ public class OpenJMLInterface {
         return api.getCEValue(pos,end,text,r.getLocation().toString());
     }
 
-    /** Instances of this class can be registered as DiagnosticListeners (that is,
+    /** Instances of this class can be registered as OpenJML DiagnosticListeners (that is,
      * listeners for errors from tools in the javac framework); they then convert
      * any diagnostic into an Eclipse problem (a JmlEclipseProblem) of the 
      * appropriate severity, which is
@@ -844,8 +730,8 @@ public class OpenJMLInterface {
      */
     static public class EclipseDiagnosticListener implements DiagnosticListener<JavaFileObject> {
 
-        /** When this listener hears a problem from openjml, 
-         * it needs to report it to the problem to Eclipse, by calling report
+        /** When this listener hears a problem from OpenJML, 
+         * it needs to report the problem to Eclipse, by calling report
          * on this IProblemRequestor
          */
         @NonNull @SpecPublic
@@ -1002,7 +888,7 @@ public class OpenJMLInterface {
                 }
             });
             boolean cancel = monitor != null && monitor.isCanceled();
-            if (cancel) throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled"));
+            if (cancel) throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
             return cancel;
         }
         
@@ -1028,32 +914,28 @@ public class OpenJMLInterface {
         }
     }
 
-    String[] optionsToCopy = new String[] {
-    		Options.showNotImplementedKey,
-    		Options.noCheckPurityKey,
-    		Options.nullableByDefaultKey
-    };
-
-
     /** Retrieves the options from the preference page, determines the 
-     * corresponding options for OpenJML and sends them.
+     * corresponding options for OpenJML, tailored to the given Cmd.
+     * If cmd is null, all options are retrieved.
      * @param jproject
-     * @param cmd The command to be executed
+     * @param cmd The command to be executed, or null to get all options
      * @return the list of options and arguments
      */
-    public @NonNull List<String> getOptions(IJavaProject jproject, Main.Cmd cmd) {
+    public @NonNull List<String> getOptions(IJavaProject jproject, /*@nullable*/Main.Cmd cmd) {
     	
     	//com.sun.tools.javac.util.Options openjmlOptions = com.sun.tools.javac.util.Options.instance(api.context());
-    	String eq = "=";
+    	String eq = "="; //$NON-NLS-1$
     	
         //Options opt = Activator.options;
         List<String> opts = new LinkedList<String>();
         if (cmd != null) {
             opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
+        }
+        {
             opts.add(JmlOption.NOPURITYCHECK.optionName() +eq+ Options.isOption(Options.noCheckPurityKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
-        if (cmd == Main.Cmd.ESC) {
+        if (cmd == Main.Cmd.ESC || cmd == null) {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
@@ -1063,45 +945,17 @@ public class OpenJMLInterface {
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));
         }
         
-        if (cmd == Main.Cmd.RAC) {
+        if (cmd == Main.Cmd.RAC || cmd == null) {
             opts.add(JmlOption.NO_RAC_SOURCE.optionName() +eq+ Options.isOption(Options.racNoShowSource));
             opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racNoCheckAssumptions));
             opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racNoCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         
-//        for (String key: optionsToCopy) {
-//        	String value = Options.value(key);
-//        	if (key.startsWith(Strings.optionPropertyPrefix)) {
-//        		if ("false".equals(value)) value = null;
-//        		openjmlOptions.put(key, value);
-//        		String arg = "-" + key.substring(Strings.optionPropertyPrefix.length());
-//        		openjmlOptions.put(arg, value);
-//        	} else {
-//        		openjmlOptions.put(key, value);
-//        	}
-//        }
-        // FIXME
-//        if (cmd == Cmd.RAC) {
-//            opts.add(JmlOption.RAC.optionName());
-//            opts.add("-d");
-//            IFolder f = jproject.getProject().getFolder(opt.racbin);
-//            if (!f.exists()) {
-//                try {
-//                    f.create(IResource.FORCE,true,null);
-//                    f.refreshLocal(IResource.DEPTH_INFINITE,null);
-//                } catch (CoreException e) {
-//                    Log.errorlog("Exception in creating RAC output directory " + opt.racbin,e);
-//                }
-//            }
-//            opts.add(f.getLocation().toString());
-//        }
-        boolean verbose = Options.uiverboseness;
-
         opts.add(JmlOption.VERBOSENESS.optionName()+eq+Options.value(Options.verbosityKey));
         
         if (Options.isOption(Options.javaverboseKey)) {
-        	opts.add("-verbose"); // FIXME - no hard string
+        	opts.add(com.sun.tools.javac.main.OptionName.VERBOSE.optionName);
         }
         
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
@@ -1112,7 +966,8 @@ public class OpenJMLInterface {
         String other = Options.value(Options.otherOptionsKey);
         if (other != null) {
         	other = other.trim();
-        	if (!other.isEmpty()) for (String o : other.split("\\s")) {
+        	// Split by whitespace (won't handle quoted strings with whitespace)
+        	if (!other.isEmpty()) for (String o : other.split("\\s")) { //$NON-NLS-1$
         		opts.add(o);
         	}
         }
@@ -1120,45 +975,16 @@ public class OpenJMLInterface {
         
         if (cmd == Main.Cmd.JMLDOC) {
             // jmldoc specific options
-            opts.add("-private");
+            opts.add("-private"); //$NON-NLS-1$
         }
 
-//        List<IResource> files = specsPath;
-//        boolean first = true;
-//        StringBuilder ss = new StringBuilder();
-//        if (files != null) { 
-//            for (IResource s: files) {
-//                if (first) first = false; else ss.append(File.pathSeparator);
-//                ss.append(s.getLocation().toString());
-//            }
-//        }
-//        // Now determine the location of library specs and the internal 
-//        // runtime library
-//        
-//        // The plug-in always supplies the specs - either with the code below
-//        // or because the user added it to the specspath. So we always tell
-//        // openjml itself not to add specs
-//        opts.add(JmlOption.NOINTERNALSPECS.optionName());
-//        if (!Options.isOption(Options.noInternalSpecsKey)) {
-//            String sysSpecs = getInternalSystemSpecs();
-//            if (sysSpecs != null && !sysSpecs.isEmpty()) {
-//            	if (first) first = false; else ss.append(File.pathSeparator);
-//                ss.append(sysSpecs);
-//            }
-//        }
-//
-//        if (ss.toString().length()!=0) {
-//            opts.add(JmlOption.SPECS.optionName());
-//            opts.add(ss.toString());
-//        }
-        
         // The plug-in adds the internal specs (or asks the user for external specs)
         // So, openjml itself never needs to
         opts.add(JmlOption.NOINTERNALSPECS.optionName());
         opts.add(JmlOption.SPECS.optionName());
         opts.add(PathItem.getAbsolutePath(jproject,Env.specsKey));
 
-        opts.add(Strings.sourcepathOptionName); 
+        opts.add(com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName); 
         opts.add(PathItem.getAbsolutePath(jproject,Env.sourceKey));
 
         
@@ -1168,7 +994,6 @@ public class OpenJMLInterface {
         boolean first = true;
         StringBuilder ss = new StringBuilder();
         for (String s: cpes) {
-            //Log.log("CPE " + s );
             if (first) first = false; else ss.append(File.pathSeparator);
             ss.append(s);
         }
@@ -1190,13 +1015,13 @@ public class OpenJMLInterface {
         // FIXME - what about these options
         // roots, nojml, nojavacompiler
         // trace subexpressions counterexample
-        // specs , classpath , sourcepath, stopiferrors
+        // specs, stopiferrors
         // Java options, Jmldoc options
 		if (Options.uiverboseness) {
 			StringBuilder s = new StringBuilder();
-			s.append("Options collected by UI to send to OpenJML: ");
+			s.append("Options collected by UI to send to OpenJML: "); //$NON-NLS-1$
 			for (String opt: opts) {
-				s.append(" ");
+				s.append(Strings.space);
 				s.append(opt);
 			}
 			Log.log(s.toString());
@@ -1205,41 +1030,10 @@ public class OpenJMLInterface {
         return opts;
     }
 
-//    /**
-//     * Update the value of the property openjml.prover.yices, using
-//     * the value given by prover editor.
-//     */
-//    public static void setYicesLocation() {
-//      Bundle yicesBundle = Platform.getBundle("yices.editor");
-//      if (yicesBundle != null) try {
-//        Class<?> editor = yicesBundle.loadClass("mobius.prover.yices.YicesEditor");
-//        Method meth = editor.getMethod("getYicesLocation");
-//        String loc = (String) meth.invoke(null);
-//        System.setProperty("openjml.prover.yices", loc);
-//      } catch (ClassNotFoundException e) {
-//      } catch (SecurityException e) {
-//      } catch (NoSuchMethodException e) {
-//      } catch (IllegalArgumentException e) {
-//      } catch (IllegalAccessException e) {
-//      } catch (InvocationTargetException e) {
-//      }
-//    }
-    
-    /** Sets the value of a command-line option in the OpenJml object
-     * @param name the name of the option, including any leading - sign
-     * @param value the value of the option; you can use an empty string as a
-     * value for options which are just on or off 
+    /** Adds additional command-line options in the OpenJml object
      */
-    public void setOption(String name, String value) {
-        api.setOption(name,value);
-    }
-    
-    /** Removes an option if it was present - equivalent to the option not
-     * having been named on the command-line
-     * @param name the name of the option, including any leading - sign
-     */
-    public void removeOption(String name) {
-        api.removeOption(name);
+    public void addOptions(String... args) {
+    	api.addOptions(args);
     }
     
     /** Gets a String representation of the BasicBlock encoding of the method

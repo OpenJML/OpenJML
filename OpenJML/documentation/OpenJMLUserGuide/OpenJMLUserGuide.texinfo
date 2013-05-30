@@ -1,233 +1,68 @@
-%% Based on a TeXnicCenter-Template by Gyorgy SZEIDL.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input texinfo
+@c %**start of header
+@setfilename OpenJML.info
+@settitle OpenJML User Guide
+@c %**end of header
 
-%------------------------------------------------------------
-%
-\documentclass{report}%
-%Options -- Point size:  10pt (default), 11pt, 12pt
-%        -- Paper size:  letterpaper (default), a4paper, a5paper, b5paper
-%                        legalpaper, executivepaper
-%        -- Orientation  (portrait is the default)
-%                        landscape
-%        -- Print size:  oneside (default), twoside
-%        -- Quality      final(default), draft
-%        -- Title page   notitlepage, titlepage(default)
-%        -- Columns      onecolumn(default), twocolumn
-%        -- Equation numbering (equation numbers on the right is the default)
-%                        leqno
-%        -- Displayed equations (centered is the default)
-%                        fleqn (equations start at the same distance from the right side)
-%        -- Open bibliography style (closed is the default)
-%                        openbib
-% For instance the command
-%           \documentclass[a4paper,12pt,leqno]{article}
-% ensures that the paper size is a4, the fonts are typeset at the size 12p
-% and the equation numbers are on the left side
-%
-\usepackage{amsmath}%
-\usepackage{amsfonts}%
-\usepackage{amssymb}%
-\usepackage{graphicx}
-\usepackage{caption}
-\usepackage{color}
-\definecolor{gray}{rgb}{0.8,0.8,0.8}
-%% Language %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage[USenglish]{babel} %francais, polish, spanish, ...
-\usepackage[T1]{fontenc}
-\usepackage{textcomp}
-\usepackage[ansinew]{inputenc}
-\usepackage{makeidx}	  %% needed to create an index
-\usepackage{hyperref}   %% sets hyperlinks within a pdf
-\usepackage{rotating}
-\usepackage{threeparttable}
-\usepackage{verbatim}
-\usepackage{tabularx}
-%%\usepackage{listings}
-
-%%\usepackage{lmodern} %Type1-font for non-english texts and characters
-
-
-%% Packages for Graphics & Figures %%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{graphicx} %%For loading graphic files
-%\usepackage{subfig} %%Subfigures inside a figure
-%\usepackage{tikz} %%Generate vector graphics from within LaTeX
-
-\usepackage{mathptmx} %% Times fonts, for math as well
-%% NOT WORKING?: \usepackage{mathpazo} %% Palatino fonts
-%% NO: \usepackage{bookman} %% Bookman fonts for text, no change for math
-%%\usepackage{newcent} %% NewCentury fonts for text, no change for math
-%% Others: avant chancery charter helvet lucida palatino pslatex utopia times
-
-%% DOES NOT SEEM TO WORK: \usepackage{fullpage}  %% Makes margins 1"
-
-%% Please note:
-%% Images can be included using \includegraphics{filename}
-%% resp. using the dialog in the Insert menu.
-%% 
-%% The mode "LaTeX => PDF" allows the following formats:
-%%   .jpg  .png  .pdf  .mps
-%% 
-%% The modes "LaTeX => DVI", "LaTeX => PS" und "LaTeX => PS => PDF"
-%% allow the following formats:
-%%   .eps  .ps  .bmp  .pict  .pntg
-
-
-%% Commands for changing the Standardtexts %%%%%%%%%%%%%%%%%%
-%\renewcommand{\ccname}{Copies}
-%\renewcommand{\phonemsg}{Telephone}
-%\renewcommand{\signmsgold}{Our signs}
-%\renewcommand{\signmsgnew}{Our signs, our mail from}
-%\renewcommand{\yourmailmsg}{Your signs, Your mail from}
-%\renewcommand{\psname}{PS}
-%\renewcommand{\enclname}{\tt Anlage(n)}
-\DeclareFontShape{OT1}{cmtt}{bx}{n}{<5><6><7><8><9><10><10.95><12><14.4><17.28><20.74><24.88>cmttb10}{}
-
-\newcommand{\bs}{{\tt \char'134}}
-
-\newcommand{\at}{{\tt \char'100}}
-\newcommand{\boxspace}{\vspace*{6pt}}
-\newcommand{\boxedexampleZ}[1]{\boxspace \\ \fbox{\parbox{\textwidth}{\tt #1}}\boxspace\\*}
-\newcommand{\boxedexample}[1]{\boxspace \\ \fbox{\parbox{5.50in}{\tt #1}}\boxspace\\*}
-\newcommand{\boxedexampleA}[1]{\boxspace \\ \fbox{\parbox{6.00in}{\tt #1}}\boxspace\\*}
-\newcommand{\boxedexampleB}[1]{\boxspace \\ \fbox{\parbox{5.5in}{\tt #1}}\boxspace\\*}
-\newcommand{\boxedinput}[1]{\boxspace \\ \fbox{\parbox{6.00in}{\tt \verbatiminput{#1}}}\boxspace\\*}
-
-\newcommand{\boxedinputc}[2]{\boxspace \\ \fbox{\parbox{6.00in}{\tt \verbatiminput{#1}}} \fcolorbox{black}{gray}{\parbox{6.00in}{\tt \verbatiminput{#2}}} \boxspace\\*}
-
-\newcommand{\source}{../demos}
-\newcommand{\demo}[1]{\boxedinputc{\source/#1.java}{\source/#1.txt}}
-
-\newcommand{\nospace}{\setlength{\itemsep}{0in}\setlength{\parsep}{0in}\setlength{\parskip}{0in}\setlength{\topsep}{0in}}
-\newcommand{\bae}[1]{\begin{array}{l}\\#1\\\end{array}}
-
-\newcommand{\logand}{{\wedge}}
-\newcommand{\logor}{{\vee}}
-\newcommand{\imp}{{\Rightarrow}}
-\newcommand{\inequiv}{{\neq}}
-\newcommand{\smt}{{\tt \$\{SMTLIB\}}}
-\newcommand{\cht}{\char'136}
-\newcommand{\ind}{\hspace*{2em}}
-%%\makeindex
-
-%% The adjustment amounts depend on the font
-%% -.5 for 12pt, -.875 for 10pt
-%% FIXME: should these be set instead of adjusted?
-\addtolength{\oddsidemargin}{-.5in}
-\addtolength{\evensidemargin}{-.5in}
-\addtolength{\textwidth}{1.0in}
-\addtolength{\topmargin}{-.5in}
-\addtolength{\textheight}{1.0in}
-\begin{document}
-
-\title{The OpenJML User Guide  \\ \vspace{.2in} DRAFT IN PROGRESS }
-
-\author{David R. Cok \\ GrammaTech, Inc. }
-
-\date{\today \\ \vspace*{.5in}
-The most recent version of this document is available at \url{http://jmlspecs.sourceforge.net/OpenJMLUserGuide.pdf}.\\
- \vspace*{2.3in}
+%%@copying ZZZZZZ
+@setchapternewpage odd
+@titlepage
+@sp 10
+@center @titlefont{OpenJML User Guide}
+@center David R. Cok
+@center 3 March 2013
+@sp 2
+@center{DRAFT IN PROGRESS}
+@sp 1
+%%The most recent version of this document is available at \url{http://jmlspecs.sourceforge.net/OpenJMLUserGuide.pdf}.\\
+ %%\vspace*{2.3in}
 \parbox{\textwidth}{Copyright (c) 2010-2013 by David R. Cok. Permission is granted to make and distribute copies of this document for educational or research purposes, provided that the copyright notice and permission notice are preserved and acknowledgment is given in publications. 
 Modified versions of the document may not be made. Please forward corrections to the author.
 Incorporating this document within a larger collection, or distributing it for commercial purposes, or including it as part or all of a product for sale is allowed only by separate written permission from the author.}}
 
-\maketitle
-%
-\tableofcontents
+@end titlepage
 
-\part{OpenJML}
+@contents
 
-\chapter{Introduction}
+@ifnottex
+@node Top
+@top OpenJML User Guide
 
-\section{OpenJML}
-
-OpenJML is a tool for working with logical annotations in Java programs. It
-enables static or run-time checking of the validity of the annotations; it also
-provides an enhanced version of javadoc that includes the annotations in the
-javadoc documentation.
-
-The functionality is available 
-\begin{itemize}
-\item as a command-line tool to do type-checking, static checking or runtime checking,</li>
-\item as an Eclipse plug-in to perform those tasks, and</li>
-\item programmatically from a user's Java program</li>
-\end{itemize}
-
-OpenJML makes use of program specifications written in JML, the Java Modeling Language, and
-it is constructed by extending OpenJDK, the open source Java compiler.
-
-OpenJML requires Java 1.7 to run.
-Releases of Java can be obtained from 
-<A href="http://www.oracle.com/technetwork/java/javase/downloads">the Oracle release site</A>.
-
-The source code for OpenJML is kept in sourceforge as a module of the 
-<A HREF="https://sourceforge.net/p/jmlspecs/code/HEAD/tree/">JML Project</A>.
-The JMLAnnotations and Specs projects (also modules of JML) are used by OpenJML.
-Information about creating a developer's environment for the OpenJML source
-can be found below.
- 
-\subsection{Command-line tool}
-
-The OpenJML command line tool can be downloaded from
-\url{http://jmlspecs.sourceforge.net/openjml.tar.gz}.
-
-The command line tool is described in section TBD.
-
-\subsection{Eclipse plug-in}
-
-The Update site for the Eclipse plug-in that encapsulates the OpenJML tool
-is \url{http://jmlspecs.sourceforge.net/openjml-updatesite}.
-
-The plug-in is described in section TBD and in the online documentation available in Eclipse Help.
+%%@insertcopying
+@end ifnottex
 
 
-\subsection{Development of OpenJML}
+@part OpenJML
 
-Developers wishing to contribute to OpenJML can retrieve a project-set file to download source code from SVN and create the corresponding projects within Eclipse from 
-\url{http://jmlspecs.sourceforge.net/OpenJML-projectSet.psf}.
-<p>Alternately, the set of SVN commands needed to checkout all the pieces of the
-OpenJML source code into the directory structure expected by Eclipse is found at this link: 
-\url{http://jmlspecs.sourceforge.net/svn_commands}.
+@chapter Introduction 
+@section JML
 
-The general instructions for setting up a development environment are found at the JML wiki: \url{https://sourceforge.net/apps/trac/jmlspecs/wiki/OpenJmlSetup}.
+{\it This section will be added later.} %% TBD
+
+@section OpenJDK
+
+\textit{This section will be added later.} %% TBD
 
 
+@section OpenJML
 
-\section{JML}
+\textit{This section will be added later.} %% TBD
 
-The Java Modeling Language (JML) is a language that enables logical assertions
-to be made about Java programs. The assertions are expressed as structured 
-Java comments or Java annotations. Various tools can then read the JML 
-information and do static checking, runtime checking, display for documentation,
-or other useful tasks.
 
-More information about JML can be found on the JML web site: 
-\url{http://www.jmlspecs.org}.
-The information includes publications, groups using or contributing to JML, 
-mailing lists, etc.
-There is also a sourceforge project for JML : \url{https://sourceforge.net/projects/jmlspecs/}.
-
-\section{OpenJDK}
-
-OpenJDK (\url{http://openjdk.net}) is the project that produces the Java JDK and JRE releases.
-OpenJML extends OpenJDK with minor modifications to produce the OpenJML tools. OpenJML is a 
-fully encapsulated, stand-alone tool, so the OpenJDK foundation is only of interest to OpenJML developers.
-<P>
-Users, however, can be assured that OpenJML is built on 'official' Java tooling and can readily stay up 
-to date with Java changes.
-
-\section{License}
+@section License
 
 The OpenJML command-line tool is built from OpenJDK, which is licensed under GPLv.2 (\url{http://openjdk.java.net/legal/}).
 Hence OpenJML is correspondingly licensed.
 
 The OpenJML plug-in is a pure Eclipse plug-in, and therefore is not required to be licensed under the EPL.
+It does, however, call the command-line tool (in a Java sort of way), so it may be considered to be GPL v.2 as well.
 
-
-The source code for both tools is available as a sourceforge project at
+In any case, the source code for both tools is available as a sourceforge project at
 \url{http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/}.
 
 
-\chapter{The command-line tool}
+@chapter The command-line tool 
+@ifset AA
 \section{Installation and System Requirements}
 
 The command-line tool is supplied as a .tar.gz file, downloadable from \url{http://jmlspecs.sourceforge.net/}.
@@ -244,11 +79,22 @@ containing definitions of properties whose values depend on your local system
 \item OpenJMLUserGuide.pdf - this document
 \end{itemize}
 
-You can run OpenJML in a Java 1.7 JRE.
+You can run OpenJML in a Java 1.7 JRE or, with a bit of work-around, in a Java 1.6 JRE.
+\footnote{This situation appears to result from how the Java class loader handles static fields, such as Enum constants.}
+
+\paragraph{Java 1.7}
+Java 1.7 is not quite released, but you can obtain a version suitable for running OpenJML from these locations:
+\begin{itemize} \nospace
+\item for Windows and Linux: \url{http://dlc.sun.com.edgesuite.net/jdk7/binaries/index.html}. For testing on Windows/Cygwin, I have been using build 103, from July 2010, which you can download from \url{http://jmlspecs.sourceforge.net/openjdk-7-ea-src-b103-29_jul_2010.zip}
+\item for MacOS X: \url{http://formalmethods.insttech.washington.edu/software/openjml.html}
+\end{itemize}
+Note that the 1.7 JRE must be the current JRE in the system or the shell in which you run OpenJML.
 
 You should also be sure that the {\tt jmlruntime.jar} and {\tt jmlspecs.jar} files remain
 in the same folder as the {\tt openjml.jar} file.
 
+\paragraph{Java 1.6}
+If you use Java 1.6, you need to add the {\tt openjml.jar} library at the beginning of the bootclasspath, as shown in the next section.
 
 \section{Running OpenJML}
 \label{Running}
@@ -308,7 +154,7 @@ TBD: specification files - are they processed as well?
 -counterexample & show a counterexample for failed static checks\\
 -crossRefAssociatedInfo & \\
 -dir {\it <dir>} & argument is a folder of files \\
--dirs & remaining arguments are folders or files, up to an argument that begins with a hyphen\\
+-dirs & remaining arguments are folders or files\\
 -esc & do static chacking ({\tt -command esc})\\
 -java & use the native OpenJDK tool\\
 -jmldebug & very verbose output (includes -progress) \\
@@ -1397,4 +1243,6 @@ Here {\tt \&} and {\tt |} are the (FOL) boolean non-short-circuit conjunction an
 %% TBD - index
 %% TBD - bibliography
 
-\end{document}
+@end ifset
+
+@bye

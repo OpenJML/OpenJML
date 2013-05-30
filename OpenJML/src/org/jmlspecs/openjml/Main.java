@@ -149,8 +149,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         boolean report(int ticks, int level, String message);
     }
     
-    /** The complication Context only allows one instance to be registered for
-     * a given class, so we register an instance of DelegatingProgressListener;
+    /** The compilation Context only allows one instance to be registered for
+     * a given class and that instance cannot be changed.
+     * So we register an instance of DelegatingProgressListener;
      * then we can change the delegate registered in DelegatingProgressListener
      * to our heart's content. 
      * <P>
@@ -827,16 +828,16 @@ public class Main extends com.sun.tools.javac.main.Main {
     // EXTERNAL API FOR PROGRAMATIC ACCESS TO JML COMPILER INTERNALS
     
     /** This method initializes the Options.instance(context) instance of
-     * Options class. If options is null, it is initialized by reading
+     * Options class. If the options argument is not null, its content is used
+     * to initialize Options.instance(context); if options is null, then
+     * Options.instance(context) is initialized by reading
      * the options specified in the environment (System properties +
-     * openjml properties files); if options is not null, it is used as is
-     * (and should include any options and environment variables that are used
-     * by the OpenJML compiler). Then the args are processed to make any 
-     * further adjustments to the options.
-     * 
-     * @param args the array of command-line arguments used to setup options
+     * openjml properties files). Then the specified args are processed to make any 
+     * further adjustments to the options. Any errors are reported through the
+     * log mechanism. Any non-options in the args list (e.g. files) are 
+     * warned about and ignored. 
      */
-    public Collection<File> initializeOptions(@Nullable Options options, @NonNull String... args) {
+    public void initializeOptions(@Nullable Options options, @NonNull String... args) {
         Options opts = Options.instance(context);
         setOptions(opts);
         if (options == null) {
@@ -881,29 +882,37 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (files != null && !files.isEmpty()) {
                 Log.instance(context).warning("jml.ignore.extra.material",files.iterator().next().getName());
             }
-            return files;
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
-        return null;
     }
     
-    public void coreDefaultOptions(Options opts) {
+    /** Sets default initial options to the Options instance that is the 
+     * argument (does not change the compilation context Options directly);
+     * edit this method to set any defaults that would not be set by other
+     * means.
+     */
+    protected void coreDefaultOptions(Options opts) {
         opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
+        opts.put(JmlOption.NOPURITYCHECK.optionName(), "");
     }
     
-    /** Adjusts the options on the current instance of main per the arguments. */
+    /** Adds additional options to those already present (which may change 
+     * previous settings). */
     public void addOptions(String... args) {
         processArgs(args);
     }
     
-    /** Adds a custom option (not checked as a legitimate command-line option) */
-    public void addUndocOption(String arg) {
+    /** Adds a custom option (not checked as a legitimate command-line option);
+     * may have an argument after a = symbol */
+    public void addUncheckedOption(String arg) {
         int k = arg.indexOf('=');
         if (k == -1) {
             Options.instance(context).put(arg,"");
         } else {
-            Options.instance(context).put(arg.substring(0,k),arg.substring(k+1));
+            String value = arg.substring(k+1);
+            if (value.equals("false")) value = null;
+            Options.instance(context).put(arg.substring(0,k),value);
         }
     }
     
@@ -913,17 +922,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         String jmlruntimePath = null;
         
-        // See if a jar file has been specified
-        
-        //if (jmlruntimePath == null) {
-            String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
-            // These are used in testing - sy should be the directory of the OpenJML project
-            if (sy != null) {
-                jmlruntimePath = sy;
-            }
-        //}
+        /** This property is just used in testing. */ // TODO - check this
+        String sy = Options.instance(context).get(Strings.defaultRuntimeClassPath);
+        if (sy != null) {
+            jmlruntimePath = sy;
+        }
 
-        // Then look for jmlruntime.jar in the classpath itself
+        // Look for jmlruntime.jar in the classpath itself
         
         if (jmlruntimePath == null) {
             URL url = ClassLoader.getSystemResource(Strings.runtimeJarName);
@@ -935,7 +940,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
-        // Then look for something in the same directory as something on the classpath
+        // Otherwise look for something in the same directory as something on the classpath
         
         String classpath = System.getProperty("java.class.path");
         if (jmlruntimePath == null) {
@@ -972,7 +977,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // the class path under a different name.
 
         if (jmlruntimePath == null) {
-            URL url = ClassLoader.getSystemResource("org/jmlspecs/annotation");
+            URL url = ClassLoader.getSystemResource(Strings.jmlAnnotationPackage.replace('.','/'));
             if (url != null) {
                 try {
                     String s = url.getPath();
@@ -987,7 +992,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                     if (new File(s).exists()) jmlruntimePath = s;
 
-                    url = ClassLoader.getSystemResource("org/jmlspecs/lang");
+                    url = ClassLoader.getSystemResource(Strings.jmlSpecsPackage.replace('.','/'));
                     if (url != null) {
                         s = url.getPath();
                         if (s.startsWith("file:")) s = s.substring("file:".length());

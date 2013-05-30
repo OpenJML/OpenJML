@@ -366,6 +366,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign2() {
+       // main.addOptions("-show","-method=m4b");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

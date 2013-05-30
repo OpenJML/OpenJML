@@ -99,14 +99,14 @@
             locationURI="popup:org.eclipse.ui.examples.contributions.view?after=additions">
          <command
                id="JMLUI.disableNatureAction"
-               commandId="org.jmlspecs.openjml.eclipse.DisableNature"
+               commandId="org.jmlspecs.openjml.eclipse.DisableJMLNature"
                label="Disable JML"
                enablesFor="+"
                >
          </command>
          <command
                id="JMLUI.enableNatureAction"
-               commandId="org.jmlspecs.openjml.eclipse.EnableNature"
+               commandId="org.jmlspecs.openjml.eclipse.EnableJMLNature"
                label="Enable JML"
                enablesFor="+"
                >
@@ -215,14 +215,14 @@
             id="JMLUI.contribution1">
        <action
                label="Disable JML"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableJMLNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.removeNatureAction">
        </action>
        <action
                label="Enable JML"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableJMLNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.addNatureAction">
@@ -237,14 +237,14 @@
             id="JMLUI.contribution1WS">
        <action
                label="Disable JML"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableNature"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$DisableJMLNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.removeNatureActionWS">
        </action>
        <action
                label="Enable JML"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableNature"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$EnableJMLNature"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.addNatureActionWS">
@@ -441,14 +441,14 @@
              <command
                label="%openjml.ui.command.EnableAutoChecking"
                tooltip="%openjml.ui.command.EnableAutoChecking.description"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableJML"
-               commandId="org.jmlspecs.eclipse.commands.EnableJML">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.EnableJMLNature"
+               commandId="org.jmlspecs.eclipse.commands.EnableJMLNature">
              </command>
              <command
                label="%openjml.ui.command.DisableAutoChecking"
                tooltip="%openjml.ui.command.DisableAutoChecking.description"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableJML"
-               commandId="org.jmlspecs.eclipse.commands.DisableJML">
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DisableJMLNature"
+               commandId="org.jmlspecs.eclipse.commands.DisableJMLNature">
              </command>
              <command
                label="%openjml.ui.command.DeleteMarkers"
@@ -890,16 +890,16 @@
             name="%openjml.ui.command.EnableAutoChecking"
             description="%openjml.ui.command.EnableAutoChecking.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.EnableJML"
-            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EnableJML"
+            id="org.jmlspecs.eclipse.commands.EnableJMLNature"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$EnableJMLNature"
             >
       </command> 
       <command
             name="%openjml.ui.command.DisableAutoChecking"
             description="%openjml.ui.command.DisableAutoChecking.description"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.jmlspecs.eclipse.commands.DisableJML"
-            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$DisableJML"
+            id="org.jmlspecs.eclipse.commands.DisableJMLNature"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$DisableJMLNature"
             >
       </command>
       <command

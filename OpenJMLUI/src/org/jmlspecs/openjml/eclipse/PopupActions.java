@@ -59,7 +59,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     /** This class implements the 'EnableNature' action, which adds the
      * JML Natures to a Java Project.
      */
-    public static class EnableNature extends PopupActions {
+    public static class EnableJMLNature extends PopupActions {
         // This is all done in the UI thread with no progress
         @Override
         public final void run(final IAction action) {
@@ -78,7 +78,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
      * the JML Nature from a Java Project.  This menu item
      * is only enabled for Java Projects.
      */
-    public static class DisableNature extends PopupActions {
+    public static class DisableJMLNature extends PopupActions {
         // This is all done in the UI thread with no progress
         @Override
         public final void run(final IAction action) {
@@ -93,7 +93,190 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
-    /**
+    /** This class implements the action of type-checking JML for
+	 *  a resource (recursively, for containers).
+	 */
+	public static class CheckJML extends PopupActions {
+	    @Override
+	    public void run(IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Type-check JML context action initiated"); //$NON-NLS-1$
+				}
+	            utils.checkSelection(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.CheckJML",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/** This class implements the action of static checking for
+	 *  a resource (recursively, for containers).
+	 */
+	public static class CheckESC extends PopupActions {
+	    @Override
+	    public void run(IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("ESC context action initiated"); //$NON-NLS-1$
+				}
+	            utils.checkESCSelection(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.CheckESC",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/** This class implements the action of compiling runtime checks for
+	 *  a resource (recursively, for containers).
+	 */
+	public static class RAC extends PopupActions {
+	    @Override
+	    public void run(IAction action) {
+	        try{
+				if (Options.uiverboseness) {
+					Log.log("RAC context action initiated"); //$NON-NLS-1$
+				}
+	            utils.racSelection(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.RAC",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action enables selected resources for RAC compilation.
+	 * @author David Cok
+	 */
+	static public class EnableForRAC extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Mark For RAC context action initiated"); //$NON-NLS-1$
+				}
+	            utils.racMark(true,selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.EnableForRac",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action disables selected resources from RAC compilation.
+	 * @author David Cok
+	 */
+	static public class DisableForRAC extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Unmark For RAC context action initiated"); //$NON-NLS-1$
+				}
+	            utils.racMark(false,selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.DisableForRac",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action opens a dialog enabling choosing the files for RAC.
+	 * @author David Cok
+	 */
+	static public class ChooseForRAC extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
+				}
+	            utils.racChoose(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.ChooseForRac",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action deletes RAC-compiled class files.
+	 * @author David Cok
+	 */
+	static public class ClearForRAC extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Clear RAC Marks context action initiated"); //$NON-NLS-1$
+				}
+	            utils.racClear(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.ClearForRac",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/** This class implements the action of deleting all the JML markers
+	 * in everything selected (recursively, for containers).  It is completed
+	 * in the UI thread, without a progress monitor.
+	 */
+	public static class DeleteJMLMarkers extends PopupActions {
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Delete Markers context action initiated"); //$NON-NLS-1$
+				}
+	            utils.deleteMarkersInSelection(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.DeleteJMLMarkers",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action adds selected folders to the specs path.
+	 * @author David Cok
+	 */
+	static public class AddToSpecsPath extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Add To Specs Path context action initiated"); //$NON-NLS-1$
+				}
+	            utils.addSelectionToSpecsPath(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.AddToSpecsPath",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
+	 * This action removes selected folders from the specs path.
+	 * @author David Cok
+	 */
+	static public class RemoveFromSpecsPath extends PopupActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public final void run(final IAction action) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Remove From Specs Path context action initiated"); //$NON-NLS-1$
+				}
+	            utils.removeSelectionFromSpecsPath(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/**
      * This action puts up a dialog that allows manipulation of the specs path.
      */
     static public class EditPaths extends PopupActions {
@@ -111,7 +294,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     	}
     }
 
-    /**
+	/**
      * This action puts up a dialog that shows the class, source, specs paths.
      * @author David Cok
      */ 
@@ -130,92 +313,6 @@ abstract public class PopupActions implements IObjectActionDelegate {
     	}
     }
 
-
-    /** This class implements the action of deleting all the JML markers
-     * in everything selected (recursively, for containers).  It is completed
-     * in the UI thread, without a progress monitor.
-     */
-    public static class DeleteJMLMarkers extends PopupActions {
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Delete Markers context action initiated"); //$NON-NLS-1$
-    			}
-                utils.deleteMarkersInSelection(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DeleteJMLMarkers",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /** This class implements the action of type-checking JML for
-     *  a resource (recursively, for containers).
-     */
-    public static class CheckJML extends PopupActions {
-        @Override
-        public void run(IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Type-check JML context action initiated"); //$NON-NLS-1$
-    			}
-                utils.checkSelection(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.CheckJML",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /** This class implements the action of static checking for
-     *  a resource (recursively, for containers).
-     */
-    public static class CheckESC extends PopupActions {
-        @Override
-        public void run(IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("ESC context action initiated"); //$NON-NLS-1$
-    			}
-                utils.checkESCSelection(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.CheckESC",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /** This class implements the action of compiling runtime checks for
-     *  a resource (recursively, for containers).
-     */
-    public static class RAC extends PopupActions {
-        @Override
-        public void run(IAction action) {
-            try{
-    			if (Options.uiverboseness) {
-    				Log.log("RAC context action initiated"); //$NON-NLS-1$
-    			}
-                utils.racSelection(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.RAC",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /** This class implements the action of popping up a dialog to
-     * show specifications of a Java element.
-     */
-    public static class ShowSpecs extends PopupActions {
-        @Override
-        public void run(IAction action) {
-            try{
-    			if (Options.uiverboseness) {
-    				Log.log("Show Specifications context action initiated"); //$NON-NLS-1$
-    			}
-                utils.showSpecsForSelection(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ShowSpecs",e); //$NON-NLS-1$
-            }
-        }
-    }
 
     /**
      * This action opens an editor containing the specifications file
@@ -241,6 +338,23 @@ abstract public class PopupActions implements IObjectActionDelegate {
 
 
     /** This class implements the action of popping up a dialog to
+	 * show specifications of a Java element.
+	 */
+	public static class ShowSpecs extends PopupActions {
+	    @Override
+	    public void run(IAction action) {
+	        try{
+				if (Options.uiverboseness) {
+					Log.log("Show Specifications context action initiated"); //$NON-NLS-1$
+				}
+	            utils.showSpecsForSelection(selection,null,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"PopupActions.ShowSpecs",e); //$NON-NLS-1$
+	        }
+	    }
+	}
+
+	/** This class implements the action of popping up a dialog to
      * show the counterexample for a Java method.
      */
     public static class ProofInformation extends PopupActions {
@@ -259,63 +373,6 @@ abstract public class PopupActions implements IObjectActionDelegate {
 
 
     /**
-     * This action adds selected folders to the specs path.
-     * @author David Cok
-     */
-    static public class AddToSpecsPath extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Add To Specs Path context action initiated"); //$NON-NLS-1$
-    			}
-                utils.addSelectionToSpecsPath(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.AddToSpecsPath",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /**
-     * This action removes selected folders from the specs path.
-     * @author David Cok
-     */
-    static public class RemoveFromSpecsPath extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Remove From Specs Path context action initiated"); //$NON-NLS-1$
-    			}
-                utils.removeSelectionFromSpecsPath(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /**
-     * This action puts up a dialog that allows manipulation of the specs path.
-     * @author David Cok
-     */
-    static public class SpecsPath extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Edit Specs Path context action initiated"); //$NON-NLS-1$
-    			}
-                utils.manipulateSpecsPath(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.SpecsPath",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /**
      * This action generates jmldoc documentation for selected projects (and
      * for projects whose elements are selected).
      * @author David Cok
@@ -327,86 +384,11 @@ abstract public class PopupActions implements IObjectActionDelegate {
     			if (Options.uiverboseness) {
     				Log.log("JML doc context action initiated"); //$NON-NLS-1$
     			}
-                utils.jmldocSelection(selection,null,shell);
+        		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
+        				"jmldoc is not yet implemented"); //$NON-NLS-1$
+                if (false) utils.jmldocSelection(selection,null,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.JmlDoc",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /**
-     * This action enables selected resources for RAC compilation.
-     * @author David Cok
-     */
-    static public class EnableForRAC extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Mark For RAC context action initiated"); //$NON-NLS-1$
-    			}
-                utils.racMark(true,selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.EnableForRac",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-    /**
-     * This action disables selected resources from RAC compilation.
-     * @author David Cok
-     */
-    static public class DisableForRAC extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Unmark For RAC context action initiated"); //$NON-NLS-1$
-    			}
-                utils.racMark(false,selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.DisableForRac",e); //$NON-NLS-1$
-            }
-        }
-    }
-    
-    /**
-     * This action opens a dialog enabling choosing the files for RAC.
-     * @author David Cok
-     */
-    static public class ChooseForRAC extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
-    			}
-                utils.racChoose(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ChooseForRac",e); //$NON-NLS-1$
-            }
-        }
-    }
-
-
-    /**
-     * This action deletes RAC-compiled class files.
-     * @author David Cok
-     */
-    static public class ClearForRAC extends PopupActions {
-        // This is done in the UI thread. 
-        @Override
-        public final void run(final IAction action) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Clear RAC Marks context action initiated"); //$NON-NLS-1$
-    			}
-                utils.racClear(selection,null,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"PopupActions.ClearForRac",e); //$NON-NLS-1$
             }
         }
     }

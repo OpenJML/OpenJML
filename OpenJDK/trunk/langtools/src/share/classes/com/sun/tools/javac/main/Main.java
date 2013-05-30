@@ -486,7 +486,7 @@ public class Main {
         } finally {
             if (comp != null) {
                 try {
-                    comp.close();
+                    //comp.close(); // DRC - commented out so that we can keep the compiler context around - if this is command-line everything dies anyway
                 } catch (ClientCodeException ex) {
                     throw new RuntimeException(ex.getCause());
                 }

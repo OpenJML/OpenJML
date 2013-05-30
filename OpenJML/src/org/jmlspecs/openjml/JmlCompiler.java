@@ -186,7 +186,7 @@ public class JmlCompiler extends JavaCompiler {
         return cu;
     }
     
-    /** Finds the specs for a given compilation unit.
+    /** Finds the specs file for a given compilation unit.
      * @param jmlcu The compilation unit of the Java source, if any
      * @param specs if true, looks for any specs file; if false, looks for Java file
      * @return the source object of the specifications

@@ -6,21 +6,11 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -29,32 +19,9 @@ import java.util.zip.ZipFile;
 import javax.tools.JavaFileObject;
 
 import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.QualifiedName;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.*;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.ITypeHierarchy;
-import org.eclipse.jdt.core.ITypeParameter;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.*;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -63,7 +30,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -74,7 +40,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -152,7 +117,6 @@ public class Utils {
 	 */
 	public @NonNull
 	OpenJMLInterface getInterface(@NonNull IJavaProject jproject) {
-		// readProjectProperties(jproject.getProject());
 		OpenJMLInterface i = projectMap.get(jproject);
 		if (i == null) {
 			projectMap.put(jproject, i = new OpenJMLInterface(jproject));
@@ -161,20 +125,17 @@ public class Utils {
 	}
 
 	protected String getInternalSystemSpecs() {
-		String filesep = "/"; // Not File.separator I think
+		String filesep = "/"; // Not File.separator I think //$NON-NLS-1$
 		StringBuilder ss = new StringBuilder();
 		try {
 			boolean somethingPresent = false;
-			String versionString = System.getProperty("java.version"); // FIXME
-																		// - use
-																		// eclipse
-																		// version?
+			String versionString = System.getProperty("java.version"); //$NON-NLS-1$
 			int version = 7; // the current default
-			if (versionString.startsWith("1.") && versionString.length() > 3
+			if (versionString.startsWith("1.") && versionString.length() > 3 //$NON-NLS-1$
 					&& (version = (versionString.charAt(2) - '0')) >= 4 && version <= 9) {
 				// found OK version number
 			} else {
-				Log.log("Unrecognized version: " + versionString);
+				Log.log("Unrecognized version: " + versionString); //$NON-NLS-1$
 				version = 7; // default, if the version string is in an
 								// unexpected format
 			}
@@ -184,36 +145,35 @@ public class Utils {
 			Bundle specsBundle = Platform.getBundle(Env.SPECS_PLUGIN_ID);
 			if (specsBundle == null) {
 				if (Options.uiverboseness)
-					Log.log("No specification plugin "
-							+ Env.SPECS_PLUGIN_ID);
+					Log.log("No specification plugin " + Env.SPECS_PLUGIN_ID); //$NON-NLS-1$
 			} else {
 				String loc = null;
-				URL url = FileLocator.toFileURL(specsBundle.getResource(""));
+				URL url = FileLocator.toFileURL(specsBundle.getResource(emptyString));
 				File root = new File(url.toURI());
 				loc = root.getAbsolutePath();
-				loc = loc.replace("\\", "/");
+				loc = loc.replace("\\", "/");  //$NON-NLS-1$//$NON-NLS-2$
 				if (Options.uiverboseness)
-					Log.log("JMLSpecs plugin found " + root + " "
+					Log.log("JMLSpecs plugin found " + root + space //$NON-NLS-1$
 							+ root.exists());
 				if (root.isFile()) {
 					// Presume it is a jar or zip file
 					JarFile j = new JarFile(root);
 					int i = 0;
 					for (int v = version; v >= 4; --v) {
-						JarEntry f = j.getJarEntry("java" + v);
+						JarEntry f = j.getJarEntry("java" + v); //$NON-NLS-1$
 						if (f != null)
-							defspecs[i++] = loc + "!java" + v;
+							defspecs[i++] = loc + "!java" + v; //$NON-NLS-1$
 					}
 					j.close();
 				} else if (root.isDirectory()) {
 					// Normal file system directory
 					int i = 0;
 					for (int v = version; v >= 4; --v) {
-						File f = new File(root, "java" + v);
+						File f = new File(root, "java" + v); //$NON-NLS-1$
 						if (f.exists())
 							defspecs[i++] = root.getAbsolutePath().replace(
 									'\\', '/')
-									+ filesep + "java" + v;
+									+ filesep + "java" + v; //$NON-NLS-1$
 					}
 				} else {
 					if (Options.uiverboseness)
@@ -275,9 +235,17 @@ public class Utils {
 			if (ss.length() > 0)
 				ss.setLength(ss.length() - File.pathSeparator.length());
 		} catch (Exception e) {
-			Log.log("Failure finding internal specs: " + e);
+			Log.log("Failure finding internal specs: " + e); //$NON-NLS-1$
 		}
 		return ss.toString();
+	}
+
+	/** Checks for dirty editors; pops up a dialog to ask the user what
+	 * to do. Returns false if the operation is to be canceled.
+	 * @return
+	 */
+	public boolean checkForDirtyEditors() {
+		return PlatformUI.getWorkbench().saveAllEditors(true);
 	}
 
 	/**
@@ -300,7 +268,7 @@ public class Utils {
 		if (!checkForDirtyEditors()) return;
 		List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
-			showMessage(shell, "JML Check", "Nothing appropriate to check");
+			showMessage(shell, "JML Check", "Nothing appropriate to check"); //$NON-NLS-2$
 			return;
 		}
 		deleteMarkers(res, shell);
@@ -313,7 +281,7 @@ public class Utils {
 					final List<IResource> ores = sorted.get(jp);
 					try {
 						getInterface(jp).executeExternalCommand(Cmd.CHECK,
-								ores, monitor);
+								ores, monitor,false);
 					} catch (Exception e) {
 						showExceptionInUI(shell, null, e);
 						c = true;
@@ -335,14 +303,6 @@ public class Utils {
 		j.schedule();
 	}
 	
-	/** Checks for dirty editors; pops up a dialog to ask the user what
-	 * to do. Returns false if the operation is to be canceled.
-	 * @return
-	 */
-	public boolean checkForDirtyEditors() {
-		return PlatformUI.getWorkbench().saveAllEditors(true);
-	}
-
 	/**
 	 * This routine initiates (as a Job) executing ESC on all the Java files in
 	 * the selection; if any containers are selected, the operation applies the
@@ -367,7 +327,7 @@ public class Utils {
 			return;
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
-		deleteMarkers(res, shell);
+		deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
 		for (final IJavaProject jp : sorted.keySet()) {
 			checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual");
 		}
@@ -376,8 +336,6 @@ public class Utils {
 	public void checkESCProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
 		Job j = new Job(reason) {
 			public IStatus run(IProgressMonitor monitor) {
-				// We are processing the projects sequentially.
-				// FIXME - they should be done in dependency order
 				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
 				boolean c = false;
 				try {
@@ -495,7 +453,7 @@ public class Utils {
 					boolean c = false;
 					try {
 						getInterface(jp).executeExternalCommand(Cmd.RAC,
-						    sorted.get(jp), monitor);
+						    sorted.get(jp), monitor,false);
 					} catch (Exception e) {
 						showExceptionInUI(shell,
 							"Failure while compiling runtime assertions", e);
@@ -552,7 +510,7 @@ public class Utils {
 				try {
 					Set<IResource> resources = getRacFiles(jp);
 					getInterface(jp).executeExternalCommand(Cmd.RAC,
-							resources, monitor);
+							resources, monitor,false);
 				} catch (Exception e) {
 					showExceptionInUI(null,
 							"Failure while compiling runtime assertions", e);
@@ -585,7 +543,7 @@ public class Utils {
 				if (Options.uiverboseness)
 					Log.log("Starting RAC " + newlist.size() + " files");
 				getInterface(jproject).executeExternalCommand(Cmd.RAC, newlist,
-						monitor);
+						monitor,false);
 				if (Options.uiverboseness)
 					Log.log("Completed RAC");
 			} catch (Exception e) {
@@ -2585,13 +2543,11 @@ public class Utils {
 		});
 	}
 
-	// TODO _ document
+	/** Pops up a dialog showing the given message and thte stack trace of the
+	 * given exception; may be called from the computational thread.
+	 */
 	public void showExceptionInUI(@Nullable Shell shell, String message,
-			Exception e) {
-//		String s = message != null ? message + Env.eol + e.getMessage() : e
-//				.getMessage();
-//		if (s == null || s.isEmpty())
-//			s = e.getClass().toString();
+			Throwable e) {
 		
 		String emsg = e == null ? null : e.getMessage();
 		if (emsg != null && !emsg.isEmpty()) message = message + " (" + emsg + ")"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -2688,8 +2644,6 @@ public class Utils {
 
 	/** The suffixes allowed for JML files. */
 	static public final String[] suffixes = { ".jml", ".java" };
-	// static public final String[] suffixes = { ".refines-java",
-	// ".refines-spec", ".refines-jml", ".java", ".spec", ".jml" };
 
 	/**
 	 * These constants should be the same as in org.jmlspecs.openjml.Utils, but

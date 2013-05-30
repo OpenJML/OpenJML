@@ -473,9 +473,11 @@ public class Utils {
     }
 
     // Includes self
-    public java.util.List<ClassSymbol> parents(ClassSymbol c) {
-        List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
+    public java.util.List<ClassSymbol> parents(TypeSymbol ct) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
+        if (!(ct instanceof ClassSymbol)) return interfaces;
+        ClassSymbol c = (ClassSymbol)ct; // FIXME - what if we want the parents of a type variable?
+        List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
         Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
         ClassSymbol cc = c;
         while (cc != null) {

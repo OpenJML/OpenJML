@@ -57,6 +57,53 @@ abstract public class MenuActions extends AbstractHandler {
     abstract public Object execute(ExecutionEvent event);
 
     /**
+	 * This action enables the JML nature on the selected projects,
+	 * so that checking happens as part of compilation.
+	 * 
+	 * @author David Cok
+	 *
+	 */
+	static public class EnableJMLNature extends MenuActions {
+	    // This is all done in the UI thread with no progress monitor
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Enable JML action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.changeJmlNatureSelection(true,selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.EnableJML",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
+	 * This action disables the JML nature on the selected projects.
+	 * 
+	 * @author David Cok
+	 *
+	 */
+	static public class DisableJMLNature extends MenuActions {
+	    // This is all done in the UI thread with no progress monitor
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Disable JML action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.changeJmlNatureSelection(false,selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.DisableJML",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
      * This class implements the action for checking
      * JML in the selected objects (which may be working sets, folders,
      * or java files).  Applying the operation
@@ -153,6 +200,90 @@ abstract public class MenuActions extends AbstractHandler {
     }
 
     /**
+	 * This action enables selected resources for RAC compilation.
+	 * @author David Cok
+	 */
+	static public class EnableForRAC extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Mark for RAC action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.racMark(true,selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
+	 * This action disables selected resources for RAC compilation.
+	 * @author David Cok
+	 */
+	static public class DisableForRAC extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Unmark For RAC action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.racMark(false,selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
+	 * This action opens a dialog enabling choosing the files for RAC.
+	 * @author David Cok
+	 */
+	static public class ChooseForRAC extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public Object execute(ExecutionEvent event) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
+				}
+	        	getInfo(event);
+	            utils.racChoose(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.ChooseForRac",e); //$NON-NLS-1$
+	        }
+	        return null;
+	    }
+	}
+
+	/**
+	 * This action deletes RAC-compiled class files.
+	 * @author David Cok
+	 */
+	static public class ClearForRAC extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+	    public Object execute(ExecutionEvent event) {
+	        try {
+				if (Options.uiverboseness) {
+					Log.log("Clear RAC Marks action initiated"); //$NON-NLS-1$
+				}
+	        	getInfo(event);
+	            utils.racClear(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
+	        }
+	        return null;
+	    }
+	}
+
+	/**
      * This class implements the action that clears
      * JML markers.  It is performed entirely in the UI thread, with no
      * progress reporting.  It ought to be fast.
@@ -176,81 +307,87 @@ abstract public class MenuActions extends AbstractHandler {
     }
 
     /**
-     * This action enables the JML nature on the selected projects,
-     * so that checking happens as part of compilation.
-     * 
-     * @author David Cok
-     *
-     */
-    static public class EnableJML extends MenuActions {
-        // This is all done in the UI thread with no progress monitor
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Enable JML action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.changeJmlNatureSelection(true,selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.EnableJML",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
+	 * This action adds selected folders to the specs path.
+	 */
+	static public class AddToSpecsPath extends MenuActions {
+	    // This is done in the UI thread. 
+		@Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Add To Specs Path action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.addSelectionToSpecsPath(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
 
-    /**
-     * This action disables the JML nature on the selected projects.
-     * 
-     * @author David Cok
-     *
-     */
-    static public class DisableJML extends MenuActions {
-        // This is all done in the UI thread with no progress monitor
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Disable JML action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.changeJmlNatureSelection(false,selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DisableJML",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
+	/**
+	 * This action removes selected folders from the specs path.
+	 */
+	static public class RemoveFromSpecsPath extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Remove From Specs Path action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.removeSelectionFromSpecsPath(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
 
-    /**
-     * This action pops up a dialog showing the specs for the selected
-     * Java element.
-     * 
-     * @author David Cok
-     *
-     */
-    static public class ShowSpecs extends MenuActions {
-        // This is mostly done in the UI thread.  Gathering and formatting
-        // the specs for display should be fast, unless the specs actually
-        // need to be computed; that computation is done in a computation
-        // thread.  However, the display of specs has to wait for that to
-        // complete in any case.
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Show Specifications action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.showSpecsForSelection(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
+	/**
+	 * This action puts up a dialog that allows manipulation of the specs path.
+	 */
+	static public class EditPaths extends MenuActions {
+	    // This is done in the UI thread. 
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Edit Paths action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.manipulateSpecsPath(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
 
-    /**
+	/**
+	 * This action puts up a dialog that shows the class, source, specs paths.
+	 * @author David Cok
+	 */ 
+	static public class ShowPaths extends MenuActions {
+	    // This is done in the UI thread. 
+		@Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Show Paths action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.showPaths(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
      * This action opens an editor containing the specifications file
      * for the selected Java classes.
      */
@@ -272,6 +409,34 @@ abstract public class MenuActions extends AbstractHandler {
     }
 
     /**
+	 * This action pops up a dialog showing the specs for the selected
+	 * Java element.
+	 * 
+	 * @author David Cok
+	 *
+	 */
+	static public class ShowSpecs extends MenuActions {
+	    // This is mostly done in the UI thread.  Gathering and formatting
+	    // the specs for display should be fast, unless the specs actually
+	    // need to be computed; that computation is done in a computation
+	    // thread.  However, the display of specs has to wait for that to
+	    // complete in any case.
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try {
+				if (Options.uiverboseness) {
+					Log.log("Show Specifications action initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+	            utils.showSpecsForSelection(selection,window,shell);
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,"MenuActions.ShowSpecs",e); //$NON-NLS-1$
+			}
+			return null;
+		}
+	}
+
+	/**
      * This action pops up a dialog showing the proof result for the selected
      * Java element.
      */
@@ -313,172 +478,6 @@ abstract public class MenuActions extends AbstractHandler {
     }
 
     /**
-     * This action adds selected folders to the specs path.
-     */
-    static public class AddToSpecsPath extends MenuActions {
-        // This is done in the UI thread. 
-    	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Add To Specs Path action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.addSelectionToSpecsPath(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.AddToSpecsPath",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action removes selected folders from the specs path.
-     */
-    static public class RemoveFromSpecsPath extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Remove From Specs Path action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.removeSelectionFromSpecsPath(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.RemoveFromSpecsPath",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action puts up a dialog that allows manipulation of the specs path.
-     */
-    static public class EditPaths extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Edit Paths action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.manipulateSpecsPath(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.SpecsPath",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action puts up a dialog that shows the class, source, specs paths.
-     * @author David Cok
-     */ 
-    static public class ShowPaths extends MenuActions {
-        // This is done in the UI thread. 
-    	@Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Show Paths action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.showPaths(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ShowPaths",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action enables selected resources for RAC compilation.
-     * @author David Cok
-     */
-    static public class EnableForRAC extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Mark for RAC action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.racMark(true,selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.EnableForRac",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action disables selected resources for RAC compilation.
-     * @author David Cok
-     */
-    static public class DisableForRAC extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-    	public Object execute(ExecutionEvent event) {
-    		try {
-    			if (Options.uiverboseness) {
-    				Log.log("Unmark For RAC action initiated"); //$NON-NLS-1$
-    			}
-        		getInfo(event);
-                utils.racMark(false,selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.DisableForRac",e); //$NON-NLS-1$
-    		}
-    		return null;
-    	}
-    }
-
-    /**
-     * This action deletes RAC-compiled class files.
-     * @author David Cok
-     */
-    static public class ClearForRAC extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-        public Object execute(ExecutionEvent event) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Clear RAC Marks action initiated"); //$NON-NLS-1$
-    			}
-            	getInfo(event);
-                utils.racClear(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ClearForRac",e); //$NON-NLS-1$
-            }
-            return null;
-        }
-    }
-
-    /**
-     * This action opens a dialog enabling choosing the files for RAC.
-     * @author David Cok
-     */
-    static public class ChooseForRAC extends MenuActions {
-        // This is done in the UI thread. 
-        @Override
-        public Object execute(ExecutionEvent event) {
-            try {
-    			if (Options.uiverboseness) {
-    				Log.log("Choose For RAC action initiated"); //$NON-NLS-1$
-    			}
-            	getInfo(event);
-                utils.racChoose(selection,window,shell);
-            } catch (Exception e) {
-                utils.topLevelException(shell,"MenuActions.ChooseForRac",e); //$NON-NLS-1$
-            }
-            return null;
-        }
-    }
-
-
-    /**
      * This action generates jmldoc html pages for any selected project
      * (or for projects whose elements are selected).
      * @author David Cok
@@ -496,7 +495,7 @@ abstract public class MenuActions extends AbstractHandler {
         		getInfo(event);
         		utils.showMessageInUI(shell, "OpenJML - Not Yet Implemented", //$NON-NLS-1$
         				"jmldoc is not yet implemented"); //$NON-NLS-1$
-                //utils.jmldocSelection(selection,window,shell);
+                if (false) utils.jmldocSelection(selection,window,shell);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.JmlDoc",e); //$NON-NLS-1$
     		}

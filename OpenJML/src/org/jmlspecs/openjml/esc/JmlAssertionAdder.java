@@ -77,6 +77,7 @@ import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.jvm.ClassReader;
@@ -1483,6 +1484,113 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCCatch catcher = M.at(pos).Catch(exceptionDecl,bl);
         return M.at(pos).Try(block,List.<JCCatch>of(catcher),null);
     }
+    
+    protected void addInvariants(DiagnosticPosition pos, MethodSymbol methodSym, TypeSymbol basecsym, JCIdent receiver, ListBuffer<JCStatement> stats, 
+            boolean includeAxioms, boolean isPost, boolean assume, Label invariantLabel) {
+        java.util.List<ClassSymbol> parents = utils.parents(basecsym);
+        boolean methodIsStatic = utils.isJMLStatic(methodSym);
+        boolean isConstructor = methodSym.isConstructor();
+        
+        // Iterate through parent classes and interfaces, assuming relevant axioms and invariants
+        // These are checked prior to calling the callee
+        ListBuffer<JCStatement> prevStats = currentStatements;
+        JCIdent prevThisId = currentThisId;
+        try {
+            currentStatements = stats;
+            currentThisId = receiver;
+            for (ClassSymbol csym: parents) {
+                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+                if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+
+                for (JmlTypeClause clause : tspecs.clauses) {
+                    if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+                    JmlTypeClauseExpr t;
+
+                    try {
+                        // FIXME - guard against the receiver being null for non-static invariants
+                        switch (clause.token) {
+                            case INVARIANT:
+                                if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
+                                    if (!isHelper(methodSym) && (methodIsStatic || !isConstructor || isPost)) {
+                                        t = (JmlTypeClauseExpr)clause;
+                                        addTraceableComment(t.expression,clause.toString());
+                                        JCExpression e = convertJML(t.expression);
+                                        if (assume) addAssume(pos,invariantLabel,
+                                                e,
+                                                clause.pos(),clause.source);
+                                        else  addAssert(pos,invariantLabel,
+                                                e,
+                                                clause.pos(),clause.source);
+                                    }
+                                }
+                                break;
+                            case AXIOM:
+                                if (!includeAxioms || isPost) break;
+                                if (rac) {
+                                    notImplemented(clause.pos(), "axiom clause");
+                                } else if (esc) {
+                                    t = (JmlTypeClauseExpr)clause;
+                                    JCExpression e = convertJML(t.expression);
+                                    if (assume) addAssume(pos,Label.AXIOM,
+                                            e,
+                                            clause.pos(),clause.source);
+                                    else addAssert(pos,Label.AXIOM,
+                                            e,
+                                            clause.pos(),clause.source);
+                                }
+                                break;
+                            case CONSTRAINT:
+                                if (!isPost) break;
+                                // FIXME - need to check the list of method signatures
+                                if ((!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) ||
+                                        (isConstructor && utils.hasAny(clause.modifiers,Flags.STATIC))) {
+                                    pushBlock();
+                                    JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
+                                    addTraceableComment(tt.expression,clause.toString());
+                                    JCExpression e = convertJML(tt.expression);
+                                    if (assume) addAssert(pos,Label.CONSTRAINT,
+                                            e,
+                                            clause.pos(),
+                                            clause.source);
+                                    else addAssert(pos,Label.CONSTRAINT,
+                                            e,
+                                            clause.pos(),
+                                            clause.source);
+                                    addStat( popBlock(0,clause.pos()));
+                                }
+                                break;
+                            case INITIALLY:
+                                if (isPost && isConstructor) {
+                                    pushBlock();
+                                    t = (JmlTypeClauseExpr)clause;
+                                    addTraceableComment(t.expression,clause.toString());
+                                    JCExpression e = convertJML(t.expression);
+                                    if (assume) addAssume(pos,Label.INITIALLY,
+                                            e,
+                                            clause.pos(),clause.source);
+                                    else addAssert(pos,Label.INITIALLY,
+                                            e,
+                                            clause.pos(),clause.source);
+                                    addStat( popBlock(0,clause.pos()));
+                                }
+                                break;
+                            default:
+                                // Skip
+
+                        }
+                    } catch (NoModelMethod e) {
+                        // FIXME - what to do.
+                    } catch (JmlNotImplementedException e) {
+                        notImplemented(clause.token.internedName() + " clause containing ", e);
+                    }
+                }
+            }
+        } finally {
+            currentStatements = prevStats;
+            currentThisId = prevThisId;
+        }
+
+    }
 
     /** Computes and adds checks for all the pre and postcondition clauses. */
     // FIXME - review this
@@ -1492,7 +1600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ) {
         
         JCMethodDecl methodDecl = this.methodDecl;
-        boolean methodIsStatic = methodDecl.sym.isStatic();
+        boolean methodIsStatic = utils.isJMLStatic(methodDecl.sym);
         boolean isConstructor = methodDecl.sym.isConstructor();
         ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
         currentStatements = initialStats;
@@ -1554,113 +1662,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nullLit);
         
         // the following list of parents includes self
-        java.util.List<ClassSymbol> parents = utils.parents((ClassSymbol)methodDecl.sym.owner);
+        // FIXME - what if the owning class is a TypeSymbol because it is a TypeVar
+        TypeSymbol owner = (TypeSymbol)methodDecl.sym.owner;
         
         // Iterate through parent classes and interfaces, assuming relevant axioms and invariants
-        // These are checked prior to calling the callee
-        currentStatements = preStats;
-        for (ClassSymbol csym: parents) {
-            JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-
-            for (JmlTypeClause clause : tspecs.clauses) {
-                JmlTypeClauseExpr t;
-
-                try {
-                    switch (clause.token) {
-                        case INVARIANT:
-                            if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
-                                if (!isHelper(methodDecl.sym) && (methodIsStatic || !isConstructor) &&
-                                        utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags) // FIXME - test visibility
-                                        ) {
-                                    t = (JmlTypeClauseExpr)clause;
-                                    addTraceableComment(t.expression,clause.toString());
-                                    addAssume(methodDecl.pos(),Label.INVARIANT_ENTRANCE,
-                                            convertJML(t.expression),
-                                            clause.pos(),clause.source);
-                                }
-                            }
-                            break;
-                        case AXIOM:
-                            if (rac) {
-                                notImplemented(clause.pos(), "axiom clause");
-                            } else if (esc) {
-                                t = (JmlTypeClauseExpr)clause;
-                                addAssume(methodDecl.pos(),Label.AXIOM,
-                                        convertJML(t.expression),
-                                        clause.pos(),clause.source);
-                            }
-                            break;
-                        default:
-                            // Skip
-
-                    }
-                } catch (JmlNotImplementedException e) {
-                    notImplemented(clause.token.internedName() + " clause containing ", e);
-                }
-            }
+        addInvariants(methodDecl.pos(),methodDecl.sym,owner,currentThisId,preStats,true,false,true,Label.INVARIANT_ENTRANCE);
+        for (JCVariableDecl v: methodDecl.params) {
+            if (v.type.isPrimitive()) continue;
+            JCVariableDecl d = preparams.get(v.sym);
+            JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+            addInvariants(v.pos(),methodDecl.sym,v.type.tsym,id,preStats,true,false,true,Label.INVARIANT_ENTRANCE);
         }
         
-        // Accumulate the invariants to be checked after the callee returns
-        // FIXME - iterate over parent classes and interfaces in reverse order!!
-        currentStatements = ensuresStats;
-        for (ClassSymbol csym: parents) {
-            JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-            for (JmlTypeClause clause : tspecs.clauses) {
-                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                JmlTypeClauseExpr t;
-                try {
-                    switch (clause.token) {
-
-                        case INVARIANT:
-                            if (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC)) {
-                                if (!isHelper(methodDecl.sym)) {
-                                    pushBlock();
-                                    t = (JmlTypeClauseExpr)clause;
-                                    addTraceableComment(t.expression,clause.toString());
-                                    addAssert(methodDecl.pos(),Label.INVARIANT_EXIT,
-                                            convertJML(t.expression),
-                                            clause.pos(),clause.source);
-                                    addStat( popBlock(0,clause.pos()));
-                                }
-                            }
-                            break;
-                        case CONSTRAINT:
-                            // FIXME - need to check the list of method signatures
-                            if ((!isConstructor && (!methodIsStatic || utils.hasAny(clause.modifiers,Flags.STATIC))) ||
-                                    (isConstructor && utils.hasAny(clause.modifiers,Flags.STATIC))) {
-                                pushBlock();
-                                JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
-                                addTraceableComment(tt.expression,clause.toString());
-                                addAssert(methodDecl.pos(),Label.CONSTRAINT,
-                                        convertJML(tt.expression),
-                                        clause.pos(),
-                                        clause.source);
-                                addStat( popBlock(0,clause.pos()));
-                            }
-                            break;
-                        case INITIALLY:
-                            if (isConstructor && !isHelper(methodDecl.sym)) {
-                                pushBlock();
-                                t = (JmlTypeClauseExpr)clause;
-                                addTraceableComment(t.expression,clause.toString());
-                                addAssert(methodDecl.pos(),Label.INITIALLY,
-                                        convertJML(t.expression),
-                                        clause.pos(),clause.source);
-                                addStat( popBlock(0,clause.pos()));
-                            }
-                            break;
-                        default:
-                            // Skip
-
-                    }
-                } catch (JmlNotImplementedException e) {
-                    notImplemented(clause.token.internedName() + " clause containing ",e);
-                    continue;
-                }
-
-            }
+        // Accumulate the invariants to be checked after the method returns
+        addInvariants(methodDecl.pos(),methodDecl.sym,owner,currentThisId,ensuresStats,false,true,false,Label.INVARIANT_EXIT);
+        for (JCVariableDecl v: methodDecl.params) {
+            if (v.type.isPrimitive()) continue;
+            JCVariableDecl d = preparams.get(v.sym);
+            JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+            addInvariants(v.pos(),methodDecl.sym,v.type.tsym,id,ensuresStats,false,true,false,Label.INVARIANT_EXIT);
         }
 
+        currentStatements = ensuresStats;
         JCExpression combinedPrecondition = null;
         
         // Iterate over all methods that methodDecl overrides, collecting specs
@@ -2742,11 +2765,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 Symbol s = sel instanceof JCIdent ? ((JCIdent)sel).sym : 
                     sel instanceof JCFieldAccess ? ((JCFieldAccess)sel).sym :
                         null;
+                    boolean st = utils.isJMLStatic(id.sym);
                     if (id.sym != pfa.sym && pfa.sym != null) return treeutils.falseLit;
-                    if (id.sym.isStatic()  && pfa.sym != null) return treeutils.trueLit;
-                    if (id.sym.isStatic()  && pfa.sym == null && s0 == classDecl.sym) return treeutils.trueLit;
-                    if (id.sym.isStatic()  && pfa.sym == null && s0 != classDecl.sym) return treeutils.falseLit;
-                    if (!id.sym.isStatic() && pfa.sym == null) {
+                    if (st  && pfa.sym != null) return treeutils.trueLit;
+                    if (st  && pfa.sym == null && s0 == classDecl.sym) return treeutils.trueLit;
+                    if (st  && pfa.sym == null && s0 != classDecl.sym) return treeutils.falseLit;
+                    if (!st && pfa.sym == null) {
                         if (s instanceof Symbol.ClassSymbol) return treeutils.falseLit;
                     }
                     JCIdent idthis = treeutils.makeIdent(pos.getPreferredPosition(), targetThisSym);
@@ -2783,7 +2807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (pfac instanceof JCIdent) {
             JCIdent pid = (JCIdent)pfac;
             if (!isContainedIn((VarSymbol)fa.sym,(VarSymbol)pid.sym)) return treeutils.falseLit;
-            if (pid.sym.isStatic()) return treeutils.trueLit;
+            if (utils.isJMLStatic(pid.sym)) return treeutils.trueLit;
             JCIdent idthis = treeutils.makeIdent(posp, baseThisSym);
             JCExpression result = treeutils.makeEqObject(posp, idthis, 
                      convertJML(fa.selected));
@@ -2798,12 +2822,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // a.x vs b.y with x != y, so automatically false
                     return treeutils.falseLit;
                 }
-                if (contained && !pfa.sym.isStatic()) {
+                if (contained && !utils.isJMLStatic(pfa.sym)) {
                     // a.x vs. b.x  with x not static, so result is (a == b)
                     JCExpression result = treeutils.makeEqObject(posp, convertJML(fa.selected), convertJML(pfa.selected));
                     return result;
                 }
-                if (contained && pfa.sym.isStatic()) {
+                if (contained && utils.isJMLStatic(pfa.sym)) {
                     // a.x vs. b.x  with x static, so result is true - a and b have to be the same type
                     return treeutils.trueLit;
                 }
@@ -3115,8 +3139,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         
         try {
-            boolean methodIsStatic = methodDecl.sym.isStatic();
-            boolean isConstructor = methodDecl.sym.isConstructor();
+//            boolean methodIsStatic = utils.isJMLStatic(methodDecl.sym);
+//            boolean isConstructor = methodDecl.sym.isConstructor();
 
             // Translate the method name, and determine the thisid for the
             // method call
@@ -3164,7 +3188,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 mExpr.setType(that.type);
                 mExpr.varargsElement = varargsElement;
                 trExpr = mExpr;
-                newThisId = id.sym.isStatic() ? null : currentThisId;
+                newThisId = utils.isJMLStatic(id.sym) ? null : currentThisId;
                 
             } else if (meth instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)meth;
@@ -3172,7 +3196,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newThisId = null;
                 if (!treeutils.isATypeTree(fa.selected)) {
                     convertedReceiver = convertExpr(fa.selected); // This checks for null, I would think, if necessary FIXME - verify this.
-                    if (!fa.sym.isStatic()) {
+                    if (!utils.isJMLStatic(fa.sym)) {
                         convertedReceiver = newTemp(convertedReceiver);
                         newThisId = (JCIdent)convertedReceiver;
                         if (javaChecks) {
@@ -3310,30 +3334,33 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             java.util.List<ClassSymbol> callerParents = utils.parents((ClassSymbol)methodDecl.sym.owner);
 
             
-            if (true) {
-                addStat(comment(that.pos(), "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym)));
-                // Iterate through parent classes and interfaces, adding relevant invariants
-                for (ClassSymbol csym: callerParents) {
-                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-                    for (JmlTypeClause clause : tspecs.clauses) {
-                        try {
-                            if (clause.token == JmlToken.INVARIANT) {
-                                if (isConstructor && !methodIsStatic) continue;
-                                if (methodIsStatic && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
-                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                                if (isHelper(calleeMethodSym)) continue;
-                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-                                // FIXME - what if undefined?
-                                addAssert(that.pos(),Label.INVARIANT_EXIT_CALLER,
-                                        convertJML(t.expression),
-                                        clause.pos(),clause.source);
-                            }
-                        } catch (JmlNotImplementedException e) {
-                            notImplemented(clause.token.internedName() + " clause containing ", e);
-                        }
-                    }
-                }
+            addStat(comment(that.pos(), "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym)));
+            if (!(meth instanceof JCIdent && ((JCIdent)meth).name.equals(names._super))) {
+                addInvariants(that.pos(),methodDecl.sym,classDecl.sym,currentThisId,currentStatements,false,true,false,Label.INVARIANT_EXIT_CALLER);
             }
+//            if (true) {
+//                // Iterate through parent classes and interfaces, adding relevant invariants
+//                for (ClassSymbol csym: callerParents) {
+//                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+//                    for (JmlTypeClause clause : tspecs.clauses) {
+//                        try {
+//                            if (clause.token == JmlToken.INVARIANT) {
+//                                if (isConstructor && !methodIsStatic) continue;
+//                                if (methodIsStatic && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
+//                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+//                                if (isHelper(calleeMethodSym)) continue;
+//                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+//                                // FIXME - what if undefined?
+//                                addAssert(that.pos(),Label.INVARIANT_EXIT_CALLER,
+//                                        convertJML(t.expression),
+//                                        clause.pos(),clause.source);
+//                            }
+//                        } catch (JmlNotImplementedException e) {
+//                            notImplemented(clause.token.internedName() + " clause containing ", e);
+//                        }
+//                    }
+//                }
+//            }
 
             ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
             java.util.List<ClassSymbol> calleeParents = utils.parents(calleeClass);
@@ -3341,40 +3368,42 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression collectedInvariants = treeutils.trueLit;
             
             if (!translatingJML) {
+                // Iterate through parent classes and interfaces, adding relevant invariants
             addStat(comment(that.pos(), "Checking callee invariants by the caller"));
-            // Iterate through parent classes and interfaces, adding relevant invariants
-            for (ClassSymbol csym: calleeParents) {
-                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-
-                for (JmlTypeClause clause : tspecs.clauses) {
-                    try {
-                        if (clause.token == JmlToken.INVARIANT) {
-                            if (calleeMethodSym.isConstructor() && !calleeMethodSym.isStatic()) continue;
-                            if (calleeMethodSym.isStatic() && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
-                            if (isHelper(calleeMethodSym)) continue;
-                            // This checks whether the invariant of the callee's parent class
-                            // is visible within the caller - which is all we can hope for.
-                            if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                            // FIXME - what if undefined? also fix model methods
-                            try {
-                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-                                JCExpression convexpr = convertJML(t.expression);
-                                if (!translatingJML) {
-                                    addAssert(that.pos(),Label.INVARIANT_ENTRANCE,
-                                            convexpr,
-                                            clause.pos(),clause.source);
-                                } else {
-                                    collectedInvariants = treeutils.makeAnd(clause.pos, collectedInvariants, convexpr);
-                                }
-                            } catch (NoModelMethod e) {
-                                // continue
-                            }
-                        }
-                    } catch (JmlNotImplementedException e) {
-                        notImplemented(clause.token.internedName() + " clause containing ", e);
-                    }
-                }
-            }
+            addInvariants(that.pos(),calleeMethodSym,calleeClass,newThisId,currentStatements,
+                    false,false,false,Label.INVARIANT_ENTRANCE);
+//            for (ClassSymbol csym: calleeParents) {
+//                JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+//
+//                for (JmlTypeClause clause : tspecs.clauses) {
+//                    try {
+//                        if (clause.token == JmlToken.INVARIANT) {
+//                            if (calleeMethodSym.isConstructor() && !calleeMethodSym.isStatic()) continue;
+//                            if (calleeMethodSym.isStatic() && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
+//                            if (isHelper(calleeMethodSym)) continue;
+//                            // This checks whether the invariant of the callee's parent class
+//                            // is visible within the caller - which is all we can hope for.
+//                            if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+//                            // FIXME - what if undefined? also fix model methods
+//                            try {
+//                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+//                                JCExpression convexpr = convertJML(t.expression);
+//                                if (!translatingJML) {
+//                                    addAssert(that.pos(),Label.INVARIANT_ENTRANCE,
+//                                            convexpr,
+//                                            clause.pos(),clause.source);
+//                                } else {
+//                                    collectedInvariants = treeutils.makeAnd(clause.pos, collectedInvariants, convexpr);
+//                                }
+//                            } catch (NoModelMethod e) {
+//                                // continue
+//                            }
+//                        }
+//                    } catch (JmlNotImplementedException e) {
+//                        notImplemented(clause.token.internedName() + " clause containing ", e);
+//                    }
+//                }
+//            }
             }
 
             // A list to hold the preconditions, in order by specification case
@@ -3675,74 +3704,82 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 currentStatements = exsuresStats;
                 addStat(comment(that.pos(), "Assuming callee invariants by the caller after exiting the callee"));
 
-                // Iterate through parent classes and interfaces, adding relevant invariants
-                for (ClassSymbol csym: calleeParents) {
-                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+                addInvariants(that.pos(),calleeMethodSym,calleeClass,newThisId,ensuresStats,
+                        false,false,true,Label.INVARIANT_EXIT);
+                addInvariants(that.pos(),calleeMethodSym,calleeClass,newThisId,exsuresStats,
+                        false,false,true,Label.INVARIANT_EXIT);
 
-                    for (JmlTypeClause clause : tspecs.clauses) {
-                        try {
-                            if (clause.token == JmlToken.INVARIANT) {
-                                if (calleeMethodSym.isConstructor() && !calleeMethodSym.isStatic()) continue;
-                                if (calleeMethodSym.isStatic() && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
-                                if (isHelper(calleeMethodSym)) continue;
-                                // This checks whether the invariant of the callee's parent class
-                                // is visible within the caller - which is all we can hope for.
-                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                                // FIXME - what if undefined? also fix model methods
-                                try {
-                                    JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-                                    currentStatements = ensuresStats;
-                                    addAssume(that.pos(),Label.INVARIANT_EXIT,
-                                            convertJML(t.expression),
-                                            clause.pos(),clause.source);
-                                    currentStatements = exsuresStats;
-                                    addAssume(that.pos(),Label.INVARIANT_EXIT,
-                                            convertJML(t.expression),
-                                            clause.pos(),clause.source);
-                                } catch (NoModelMethod e) {
-                                    // continue
-                                }
-                            }
-                        } catch (NoModelMethod e) {
-                            // continue // FIXME - warn?
-                        } catch (JmlNotImplementedException e) {
-                            notImplemented(clause.token.internedName() + " clause containing ", e);
-                        }
-                    }
-                }
+//                // Iterate through parent classes and interfaces, adding relevant invariants
+//                for (ClassSymbol csym: calleeParents) {
+//                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+//
+//                    for (JmlTypeClause clause : tspecs.clauses) {
+//                        try {
+//                            if (clause.token == JmlToken.INVARIANT) {
+//                                if (calleeMethodSym.isConstructor() && !calleeMethodSym.isStatic()) continue;
+//                                if (calleeMethodSym.isStatic() && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
+//                                if (isHelper(calleeMethodSym)) continue;
+//                                // This checks whether the invariant of the callee's parent class
+//                                // is visible within the caller - which is all we can hope for.
+//                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+//                                // FIXME - what if undefined? also fix model methods
+//                                try {
+//                                    JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+//                                    currentStatements = ensuresStats;
+//                                    addAssume(that.pos(),Label.INVARIANT_EXIT,
+//                                            convertJML(t.expression),
+//                                            clause.pos(),clause.source);
+//                                    currentStatements = exsuresStats;
+//                                    addAssume(that.pos(),Label.INVARIANT_EXIT,
+//                                            convertJML(t.expression),
+//                                            clause.pos(),clause.source);
+//                                } catch (NoModelMethod e) {
+//                                    // continue
+//                                }
+//                            }
+//                        } catch (NoModelMethod e) {
+//                            // continue // FIXME - warn?
+//                        } catch (JmlNotImplementedException e) {
+//                            notImplemented(clause.token.internedName() + " clause containing ", e);
+//                        }
+//                    }
+//                }
 
                 currentThisId = savedThisId;
                 // Iterate through parent classes and interfaces, adding relevant invariants
                 currentStatements = ensuresStats;
                 addStat(comment(that.pos(), "Assuming caller invariants upon reentering the caller"));
+                addInvariants(that.pos(),methodDecl.sym,classDecl.sym,currentThisId,ensuresStats,false,false,true,Label.INVARIANT_REENTER_CALLER);
                 currentStatements = exsuresStats;
                 addStat(comment(that.pos(), "Assuming caller invariants upon reentering the caller"));
-                for (ClassSymbol csym: callerParents) {
-                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-
-                    for (JmlTypeClause clause : tspecs.clauses) {
-                        try {
-                            if (clause.token == JmlToken.INVARIANT) {
-                                if (isConstructor && !methodIsStatic) continue;
-                                if (methodIsStatic && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
-                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
-                                if (isHelper(calleeMethodSym)) continue;
-                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
-                                // FIXME - what if undefined?
-                                currentStatements = ensuresStats;
-                                addAssume(that.pos(),Label.INVARIANT_REENTER_CALLER,
-                                        convertJML(t.expression),
-                                        clause.pos(),clause.source);
-                                currentStatements = exsuresStats;
-                                addAssume(that.pos(),Label.INVARIANT_REENTER_CALLER,
-                                        convertJML(t.expression),
-                                        clause.pos(),clause.source);
-                            }
-                        } catch (JmlNotImplementedException e) {
-                            notImplemented(clause.token.internedName() + " clause containing ", e);
-                        }
-                    }
-                }
+                addInvariants(that.pos(),methodDecl.sym,classDecl.sym,currentThisId,exsuresStats,false,false,false,Label.INVARIANT_REENTER_CALLER);
+                
+//                for (ClassSymbol csym: callerParents) {
+//                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+//
+//                    for (JmlTypeClause clause : tspecs.clauses) {
+//                        try {
+//                            if (clause.token == JmlToken.INVARIANT) {
+//                                if (isConstructor && !methodIsStatic) continue;
+//                                if (methodIsStatic && !utils.hasAny(clause.modifiers,Flags.STATIC)) continue;
+//                                if (!utils.jmlvisible(classDecl.sym, csym, clause.modifiers.flags, methodDecl.mods.flags)) continue;
+//                                if (isHelper(calleeMethodSym)) continue;
+//                                JmlTypeClauseExpr t = (JmlTypeClauseExpr)clause;
+//                                // FIXME - what if undefined?
+//                                currentStatements = ensuresStats;
+//                                addAssume(that.pos(),Label.INVARIANT_REENTER_CALLER,
+//                                        convertJML(t.expression),
+//                                        clause.pos(),clause.source);
+//                                currentStatements = exsuresStats;
+//                                addAssume(that.pos(),Label.INVARIANT_REENTER_CALLER,
+//                                        convertJML(t.expression),
+//                                        clause.pos(),clause.source);
+//                            }
+//                        } catch (JmlNotImplementedException e) {
+//                            notImplemented(clause.token.internedName() + " clause containing ", e);
+//                        }
+//                    }
+//                }
 
                 if (!rac || !onlyComments(ensuresStats)) {
                     JCBlock ensuresBlock = M.at(that.pos).Block(0, ensuresStats.toList());
@@ -4088,7 +4125,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (that.lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)(that.lhs);
             JCFieldAccess newfa;
-            if (!fa.sym.isStatic()) {
+            if (!utils.isJMLStatic(fa.sym)) {
                 JCExpression obj = convertExpr(fa.selected);
                 JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nullLit);
                 if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_NULL_DEREFERENCE, e);
@@ -4239,7 +4276,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (lhs instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)lhs;
             JCFieldAccess newfa;
-            if (fa.sym.isStatic()) {
+            if (utils.isJMLStatic(fa.sym)) {
                 if (!lhsscanned && !treeutils.isATypeTree(fa.selected))  convertExpr(fa.selected);
                 JCExpression typetree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
                 newfa = treeutils.makeSelect(fa.selected.pos, typetree, fa.sym);
@@ -4775,21 +4812,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = fa;
         } else if (translatingJML && attr.isModel(that.sym)) {
             JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
-            Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
-            JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
-            for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
-                    JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                    JCMethodInvocation app = treeutils.makeMethodInvocation(that.pos(),sel,md.sym);
-                    result = eresult = app;
-                    treeutils.copyEndPosition(result, that);
-                    return;
+            if (rac) {
+                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
+                JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
+                for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
+                    if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
+                        JmlMethodDecl md = (JmlMethodDecl)x.decl;
+                        JCMethodInvocation app = treeutils.makeMethodInvocation(that.pos(),sel,md.sym);
+                        result = eresult = app;
+                        treeutils.copyEndPosition(result, that);
+                        return;
+                    }
                 }
+                // This is an internal error - the wrapper for the model field method
+                // should have been created during the MemberEnter phase.
+                throw new NoModelMethod();
             }
-            // This is an internal error - the wrapper for the model field method
-            // should have been created during the MemberEnter phase.
-            if (rac) throw new NoModelMethod();
-            error(that.pos(), "No corresponding model method for model field " + that.sym);
+            JCFieldAccess fa = M.Select(sel, that.name);
+            fa.pos = that.pos;
+            fa.sym = that.sym;
+            result = eresult = fa;
             return;
         } else if (that.sym instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
@@ -4798,7 +4840,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             selected = convertExpr(that.selected);
             boolean var = false;
-            if (!that.sym.isStatic() && that.selected instanceof JCIdent && !localVariables.contains(((JCIdent)that.selected).sym)) {
+            if (!utils.isJMLStatic(that.sym) && that.selected instanceof JCIdent && !localVariables.contains(((JCIdent)that.selected).sym)) {
                 JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
                         treeutils.nullLit);
                 if (translatingJML) nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
@@ -4839,6 +4881,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIdent(JCIdent that) {
+        if (that.name.toString().equals("charArray")) {
+            System.out.println(that.name + " " + utils.isJMLStatic(that.sym) );
+        }
         if (pureCopy) {
             result = eresult = treeutils.makeIdent(that.pos, that.sym);
             treeutils.copyEndPosition(eresult, that);
@@ -4952,7 +4997,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent id = treeutils.makeIdent(that.pos, currentThisId.sym);
             result = eresult = id;
 
-        } else if (!that.sym.isStatic()) {
+        } else if (!utils.isJMLStatic(that.sym)) {
             // It is a non-static class field, so we prepend 'this'
             // FIXME - do we need to use the current this?
             JCIdent id  = treeutils.makeIdent(that.pos,currentThisId.sym);
@@ -6432,22 +6477,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(that.pos(),Label.POSSIBLY_NULL_VALUE,
                         treeutils.makeImplies(that.pos, condition, bin));
                 
-                Name index = names.fromString("ind");
-                JCVariableDecl d = treeutils.makeVarDef(syms.intType, index, null, that.pos);
-                JCIdent id = treeutils.makeIdent(that.pos, d.sym);
-                JCArrayAccess aa = M.at(that.pos).Indexed(arg, id);
-                aa.type = syms.objectType;
-                // FIXME - set correct component type
-                JCBinary b1 = treeutils.makeBinary(that.pos,JCTree.LE,treeutils.zero,id);
-                JCExpression len = treeutils.makeLength(that.pos(),arg);
-                JCBinary b2 = treeutils.makeBinary(that.pos, JCTree.LT, id, len);
-                bin = treeutils.makeNeqObject(that.pos, aa, treeutils.nullLit);
-                JmlQuantifiedExpr q = M.at(that.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,
-                        List.<JCVariableDecl>of(d),
-                        treeutils.makeBinary(that.pos, JCTree.AND, treeutils.andSymbol, b1, b2),
-                        bin);
-                q.type = syms.booleanType;
-                result = eresult = convertExpr(q);
+                if (true) {
+                    result = eresult = treeutils.makeJmlMethodInvocation(that.pos(),
+                            that.token,that.type,arg);
+                } else {
+                    Name index = names.fromString("ind");
+                    JCVariableDecl d = treeutils.makeVarDef(syms.intType, index, null, that.pos);
+                    JCIdent id = treeutils.makeIdent(that.pos, d.sym);
+                    JCArrayAccess aa = M.at(that.pos).Indexed(arg, id);
+                    aa.type = syms.objectType;
+                    // FIXME - set correct component type
+                    JCBinary b1 = treeutils.makeBinary(that.pos,JCTree.LE,treeutils.zero,id);
+                    JCExpression len = treeutils.makeLength(that.pos(),arg);
+                    JCBinary b2 = treeutils.makeBinary(that.pos, JCTree.LT, id, len);
+                    bin = treeutils.makeNeqObject(that.pos, aa, treeutils.nullLit);
+                    JmlQuantifiedExpr q = M.at(that.pos).JmlQuantifiedExpr(JmlToken.BSFORALL,
+                            List.<JCVariableDecl>of(d),
+                            treeutils.makeBinary(that.pos, JCTree.AND, treeutils.andSymbol, b1, b2),
+                            bin);
+                    q.type = syms.booleanType;
+                    result = eresult = convertExpr(q);
+                }
             }
             break;
             

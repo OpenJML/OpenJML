@@ -19,6 +19,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testNonNullElements() {
         if ("yices2".equals(solver)) return; // TODO: yices2 cannot handle quantifiers - better error message
+        //main.addOptions("-show","-method=m3","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -63,7 +64,8 @@ public class escnew3 extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 1;\n"
-                +"    a[0] = new Object();\n"
+                +"    a[0] = new Object();" // No return so as not to bollix the line numbers in the error messages
+                +"    //@ assert a[0] != null;\n" // OK
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 

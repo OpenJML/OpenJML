@@ -494,7 +494,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
     public Todo todo;
 
     /** Ordered list of compiler phases for each compilation unit. */
-    static public enum CompileState { // DRC - made static public TODO Why is this static?
+    static public enum CompileState { // DRC - made static public
         PARSE(1),
         ENTER(2),
         PROCESS(3),
@@ -833,7 +833,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
                     classnames);
 
             delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
-            delegateCompiler.close();
+            // delegateCompiler.close(); // DRC - commented out in order to be able to query the compiler later
             elapsed_msec = delegateCompiler.elapsed_msec;
         } catch (Abort ex) {
             if (devVerbose)

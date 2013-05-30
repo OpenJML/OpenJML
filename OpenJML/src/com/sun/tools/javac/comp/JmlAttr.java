@@ -4031,7 +4031,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (currentClauseType == JmlToken.INVARIANT || currentClauseType == JmlToken.CONSTRAINT) {
                 // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
-                if (jmlVisibility != v && !special(v,tree.sym)) { 
+                if (jmlVisibility != v && !utils.isExprLocal(tree.sym.flags()) && !special(v,tree.sym)) { 
                     log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
             } else if (currentClauseType == JmlToken.REPRESENTS) {

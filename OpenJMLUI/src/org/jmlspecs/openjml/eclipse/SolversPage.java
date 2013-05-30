@@ -64,10 +64,10 @@ IWorkbenchPreferencePage {
         setDescription(Messages.OpenJMLUI_SolversPage_Title);
         
         String ss = getValue();
-        if (ss == null || ss.isEmpty()) {
-    		setValue("simplify,yices2,z3_4_3"); // FIXME - temporary default
+        //if (ss == null || ss.isEmpty()) {
+    		setValue("cvc4,simplify,yices2,z3_4_3"); // FIXME - temporary default
     		ss = getValue();
-        }
+        //}
         solvers = ss.split(Utils.comma);
         for (int i = 0; i < solvers.length; i++) solvers[i] = solvers[i].trim();
     }

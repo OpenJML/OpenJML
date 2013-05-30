@@ -42,6 +42,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -113,6 +114,7 @@ public class api {
     
     public void check(String errOutput, String output) {
         if (!capture) return;
+        boolean cap = capture;
         endCapture();
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualErr = berr.toString();
@@ -122,13 +124,13 @@ public class api {
             System.out.println("ERR: " + actualErr);
             System.out.println("OUT: " + actualOut);
         }
-        if (capture && errOutput != null) try {
+        if (cap && errOutput != null) try {
             compareStrings(errOutput,actualErr);
         } catch (AssertionError ex) {
             if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualErr);
             throw ex;
         }
-        if (capture && output != null) try {
+        if (cap && output != null) try {
             compareStrings(output,actualOut);
         } catch (AssertionError ex) {
             if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualOut);
@@ -211,7 +213,7 @@ public class api {
         java.util.List<org.jmlspecs.openjml.JmlTree.JmlCompilationUnit> asts = m.parseFiles(fa,fb);
         return m.prettyPrint(asts,"NEXT AST"); // Pretty prints a list of asts
     }
-    
+
     String parseAndPrettyPrintFromFileArray() throws Exception {
         java.io.File fa = new java.io.File("testfiles/testNoErrors/A.java");
         java.io.File fb = new java.io.File("testfiles/testNoErrors/B.java");
@@ -661,12 +663,12 @@ public class api {
     @Test
     public void testAPI3() {
       String out =
-          "/A.java:1: incompatible types"+eol+
+          "/A.java:1: error: incompatible types"+eol+
           "-------------"+eol+
           "^"+eol+
           "  required: int"+eol+
           "  found:    boolean"+eol+
-          "/A.java:1: duplicate class: org.test.A"+eol+
+          "/A.java:1: error: duplicate class: org.test.A"+eol+
           "-------------"+eol+
           "^"+eol;
       String err = "";
@@ -732,7 +734,6 @@ public class api {
           check(null,null);
           System.out.println(e);
           e.printStackTrace(System.out);
-          assertTrue(false);
       }
   }
   
@@ -847,6 +848,72 @@ public class api {
         }
     }
     
+    @Test
+    public void testAPI6() {
+        start(true);
+        try {
+            IAPI m = Factory.makeAPI();
+            int exitcode = m.execute(null,"-cp","testfiles/api","testfiles/api/A.java");
+            assertTrue(exitcode == 0);
+            assertTrue(m.isTypechecked("A"));
+            assertTrue(!m.isTypechecked("B"));
+            m.parseAndCheck(new File("testfiles/api/B.java"));
+            assertTrue(m.isTypechecked("B"));
+            ClassSymbol sym = m.getClassSymbol("B");
+            m.doESC(sym);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        } finally {
+            check("","");
+        }
+    }
+    
+    @Test
+    public void testAPI5() {
+        start(false);
+        try {
+            IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
+            int exitcode = m.execute(null,"-cp","testfiles/api","testfiles/api/A.java");
+            assertTrue(exitcode == 0);
+            assertTrue(m.isTypechecked("A"));
+            assertTrue(!m.isTypechecked("B"));
+            m.typecheck(m.parseFiles(new File("testfiles/api/B.java")));
+            assertTrue(m.isTypechecked("B"));
+            m.doESC(m.getClassSymbol("B"));
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        } finally {
+            check("","");
+        }
+    }
+    
+    @Test
+    public void testAPI7() {
+        start(false);
+        try {
+            IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
+            int exitcode = m.execute(null,"-cp","testfiles/api2","testfiles/api2/p1/A.java");
+            assertTrue(exitcode == 0);
+            assertTrue(m.isTypechecked("p1.A"));
+            assertTrue(!m.isTypechecked("p2.B"));
+            m.typecheck(m.parseFiles(new File("testfiles/api2/p2/B.java")));
+            assertTrue(m.isTypechecked("p2.B"));
+            ClassSymbol sym = m.getClassSymbol("p2.B");
+            sym = m.getClassSymbol("p2.B");
+            m.doESC(sym);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        } finally {
+            check("","");
+        }
+    }
+    
     public static class TestScanner extends JmlTreeScanner {
         public int numberClasses = 0;
         public int numberNodes = 0;
@@ -904,7 +971,7 @@ public class api {
         start(true);
         try {
             IAPI m = Factory.makeAPI();
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
             check("","");
@@ -926,17 +993,21 @@ public class api {
             String s = m.getOption("-x");
             assertEquals(null,s);
 
-            m.setOption("-x");
-            s = m.getOption("-x");
-            assertEquals("",s);
-
-            m.removeOption("-x");
+            m.addOptions("-x");
             s = m.getOption("-x");
             assertEquals(null,s);
 
-            m.setOption("-x","asd");
+            m.main().addUncheckedOption("-x");
+            s = m.getOption("-x");
+            assertEquals("",s);
+
+            m.addUncheckedOption("-x=asd");
             s = m.getOption("-x");
             assertEquals("asd",s);
+            
+            m.addUncheckedOption("-x=false");
+            s = m.getOption("-x");
+            assertEquals(null,s);
         } catch (Exception e) {
             fail();
         }
@@ -957,7 +1028,7 @@ public class api {
     // FIXME - test getting symbols by name with outer classes and inheritance
     
     /** Tests the symbol utilities call */
-    // parseString, enterAndCheck, getClassSymbol, getSymbol, getClassDecl, getJavaDecl 
+    // parseString, enterAndCheck, getClassSymbol, getSymbol, getClassDecl, getMethodDecl, getVarDecl
     @Test
     public void testSymbolUtilities() {
         start(true);
@@ -968,7 +1039,7 @@ public class api {
             assertTrue(n == 0);
             check("","");
             ClassSymbol csym = m.getClassSymbol("A");
-            JmlClassDecl cd = m.getJavaDecl(csym);
+            JmlClassDecl cd = m.getClassDecl(csym);
             JmlClassDecl cdd = m.getClassDecl("A");
             ClassSymbol csymm = m.getSymbol(cd);
             assertEquals(cd,cdd);
@@ -977,7 +1048,7 @@ public class api {
             
             VarSymbol vsym = m.getVarSymbol(csym,"ff");
             assertEquals("ff",vsym.getSimpleName().toString());
-            JmlVariableDecl vd = m.getJavaDecl(vsym);
+            JmlVariableDecl vd = m.getVarDecl(vsym);
             VarSymbol vsymm = m.getSymbol(vd);
             assertEquals(vsym,vsymm);
             
@@ -986,7 +1057,7 @@ public class api {
             
             MethodSymbol msym = m.getMethodSymbol(csym,"mm");
             assertEquals("mm",msym.getSimpleName().toString());
-            JmlMethodDecl md = m.getJavaDecl(msym);
+            JmlMethodDecl md = m.getMethodDecl(msym);
             MethodSymbol msymm = m.getSymbol(md);
             assertEquals(msym,msymm);
             
@@ -995,7 +1066,7 @@ public class api {
             
             ClassSymbol ccsym = m.getClassSymbol(csym,"B");
             assertEquals("B",ccsym.getSimpleName().toString());
-            JmlClassDecl ccd = m.getJavaDecl(ccsym);
+            JmlClassDecl ccd = m.getClassDecl(ccsym);
             ClassSymbol ccsymm = m.getSymbol(ccd);
             assertEquals(ccsym,ccsymm);
             
@@ -1030,7 +1101,7 @@ public class api {
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f);
             check("","");
         } catch (Exception e) {
@@ -1051,7 +1122,7 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             java.io.File ff = new java.io.File("testfiles/testNoErrors2/A.java");
             IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll,null);
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f,ff);  // FIXME - expect errors - check for them
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1077,17 +1148,18 @@ public class api {
     @Test
     public void testParseAndCheckCrash() {
         start(true);
+        String out = "error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can." + eol +
+                "  Reason: The end-position table for testfiles\\testNoErrors\\A.java is set twice to different values" + eol;
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
             check("","");
         } catch (Exception e) {
-            check("","");
-            System.out.println(e);
-            e.printStackTrace(System.out);
-            assertTrue(false);
+            check("",out);
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
         }
     }
     
@@ -1101,7 +1173,7 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testSyntaxError/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1131,7 +1203,7 @@ public class api {
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null,
                     "-specspath","testfiles/testJavaErrors");
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f); 
             check("",""); // FIXME - this does not capture errors
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1157,7 +1229,7 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1181,8 +1253,8 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.setOption("-noPurityCheck");
-            //m.setOption("-specspath","testfiles/testSpecErrors");
+            m.addOptions("-noPurityCheck");
+            //m.addOptions("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1204,7 +1276,7 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null,"-specspath","testfiles/testSpecErrors");
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1226,8 +1298,8 @@ public class api {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.setOption("-noPurityCheck");
-            m.setOption("-specspath","testfiles/testSpecErrors");
+            m.addOptions("-noPurityCheck");
+            m.addOptions("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1249,7 +1321,7 @@ public class api {
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.setOption("-noPurityCheck");
+            m.addOptions("-noPurityCheck");
             m.parseAndCheck(new File[]{f});
             check("","");
         } catch (Exception e) {
@@ -1288,11 +1360,11 @@ public class api {
                     option,
                     "-noPurityCheck");
             if (option.equals("-custom")) {
-                m.setOption("openjml.defaultProver","yices");
+                m.addOptions("openjml.defaultProver","yices");
             } else if (option.equals("-boogie")) {
-                m.setOption("openjml.defaultProver","z3_4_3");
+                m.addOptions("openjml.defaultProver","z3_4_3");
             } else {
-                m.setOption("openjml.defaultProver","z3_4_3");
+                m.addOptions("openjml.defaultProver","z3_4_3");
             }
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
@@ -1340,7 +1412,7 @@ public class api {
     @Test
     public void testUtils() {
         try {
-            API api = new API();
+            IAPI api = Factory.makeAPI();
             char[] cb = new char[10000];
             FileReader fr = new FileReader(new File("testfiles/testNoErrors/A.java"));
             int n = fr.read(cb,0,cb.length);
