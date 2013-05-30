@@ -1480,6 +1480,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression rhs = result;
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
             result = that;
+        } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
+            scan(that.args.get(0));
+            JCExpression arg = result;
+            JCExpression argarrays = getArrayIdent(syms.objectType);
+            that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
+            result = that;
         } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
@@ -2036,6 +2042,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
             result = id;
             
+        } else if (that.name.toString().equals("length")) {
+            scan(that.selected);
+            JmlBBFieldAccess fa = new JmlBBFieldAccess(lengthIdent,result);
+            fa.pos = that.pos;
+            fa.type = that.type;
+            fa.name = that.name;
+            fa.sym = that.sym;
+            fa.arraysId = getArrayIdent(((ArrayType)that.selected.type).getComponentType());
+            result = fa;
         } else {
             that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             if (isDefined.add(that.name)) {

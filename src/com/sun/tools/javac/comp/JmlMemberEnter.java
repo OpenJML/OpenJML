@@ -577,7 +577,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (javaDecl != null) {
             // TODO - is there a better way to find a declaration for a symbol?
             for (JCTree t: javaDecl.defs) {
-                if (t instanceof JmlVariableDecl && (javaMatch=(JmlVariableDecl)t).sym == matchSym) break;
+                if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == matchSym) {
+                    javaMatch=(JmlVariableDecl)t;
+                    break;
+                }
             }
             if (javaMatch == null) {
                 for (JmlTypeClause t: javaDecl.typeSpecsCombined.clauses) {
@@ -2511,10 +2514,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         long flags = tree.mods.flags;
         boolean wasFinal = (flags&Flags.FINAL) != 0;
         boolean wasStatic = (flags&Flags.STATIC) != 0;
-//        if ((currentClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
-//            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlToken.INSTANCE) != null;
-//            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
-//        }
+        if ((env.enclClass.mods.flags & INTERFACE) != 0  && utils.isJML(tree.mods)) {
+            boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlToken.INSTANCE) != null;
+            if (isInstance && !wasStatic) tree.mods.flags &= ~Flags.STATIC;
+        }
         super.visitVarDef(tree);
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.noticeWriter.println("Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
@@ -2527,7 +2530,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             boolean isInstance = JmlAttr.instance(context).findMod(tree.mods,JmlToken.INSTANCE) != null;
             //boolean isGhost = JmlAttr.instance(context).findMod(tree.mods,JmlToken.GHOST) != null;
             //boolean isModel = JmlAttr.instance(context).findMod(tree.mods,JmlToken.MODEL) != null;
-            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;
+            if (isInstance && !wasStatic) tree.sym.flags_field &= ~Flags.STATIC;  // FIXME - this duplicates JmlCheck
             if (!wasFinal) sym.flags_field &= ~FINAL; 
         }
     }

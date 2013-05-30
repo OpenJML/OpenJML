@@ -17,12 +17,15 @@ public class Strings {
     // final for now - which could be changed if necessary.
  
 	static public final String empty = ""; //$NON-NLS-1$
-	static public final String underscore = "_"; //$NON-NLS-1$
+    static public final String underscore = "_"; //$NON-NLS-1$
+    static public final String space = " "; //$NON-NLS-1$
+    static public final String dot = "."; //$NON-NLS-1$
+    static public final String eol = System.getProperty("line.separator");
 	
     // Names of Java options
-    static public final String classpathOptionName = "-classpath"; //$NON-NLS-1$
-    static public final String sourcepathOptionName = "-sourcepath"; //$NON-NLS-1$
-    static public final String outputOptionName = "-d"; //$NON-NLS-1$
+    static public final String classpathOptionName = com.sun.tools.javac.main.OptionName.CLASSPATH.optionName;
+    static public final String sourcepathOptionName = com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName;
+    static public final String outputOptionName = com.sun.tools.javac.main.OptionName.D.optionName;
 
     static public final String javaSuffix = ".java"; //$NON-NLS-1$
     static public final String specsSuffix = ".jml"; //$NON-NLS-1$
@@ -32,6 +35,10 @@ public class Strings {
     
     /** The fully-qualified name of the runtime utilities class. */
     static public final String runtimeUtilsFQName = "org.jmlspecs.utils.Utils";
+    
+    /** A string giving the name of the package that default JML runtime classes are in.
+     */
+    static public final String jmlSpecsPackage = "org.jmlspecs.lang"; //$NON-NLS-1$
     
     /** A string giving the name of the package that JML annotations are in.
      */

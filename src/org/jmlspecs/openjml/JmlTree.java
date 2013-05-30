@@ -3401,6 +3401,7 @@ public class JmlTree implements IJmlTree {
     }
     
     public static class JmlBBFieldAccess extends JCFieldAccess {
+        public JCIdent arraysId;
         public JCIdent fieldId;
         public JmlBBFieldAccess(JCIdent fieldId, JCExpression selected) {
             super(selected,fieldId.name,fieldId.sym);

@@ -12,6 +12,10 @@ Fix
 - review foreach loops once more
 - better error message for yices2 and quantifiers
 - better error message for CVC4 and non-linear constructs
+- cancel jobs in the Plugin stop method - use job families
+- use a WorkspaceRunnable for resource changes
+- what other things need Invariants assumed/checked
+- what about invariants of parents of type variables
 
 Soon
 - loop modifies, and general block modifies

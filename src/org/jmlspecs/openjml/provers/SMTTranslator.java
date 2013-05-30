@@ -78,15 +78,6 @@ public class SMTTranslator extends JmlTreeScanner {
     /*@ non_null */
     private StringBuilder result = new StringBuilder();
 
-    protected void send(String s) {
-        try {
-            p.send(s);
-            p.eatPrompt();
-        } catch (ProverException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     int distinctCount = 100; // FIXME - ???
     protected boolean define(String name, String type) {
         try {

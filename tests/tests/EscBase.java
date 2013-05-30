@@ -119,15 +119,15 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUndocOption(JmlOption.NEWESC.optionName());
-            main.addUndocOption(JmlOption.BOOGIE.optionName());
+            main.addUncheckedOption(JmlOption.NEWESC.optionName());
+            main.addUncheckedOption(JmlOption.BOOGIE.optionName());
         } else if (option.equals("-custom")) {
-            main.addUndocOption(JmlOption.CUSTOM.optionName());
+            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
             options.put(JmlOption.NEWESC.optionName(),null);
-            main.addUndocOption("openjml.defaultProver=yices");
+            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUndocOption(JmlOption.NEWESC.optionName());
-            main.addUndocOption("openjml.defaultProver=z3_4_3");
+            main.addUncheckedOption(JmlOption.NEWESC.optionName());
+            main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
     }
 
@@ -135,15 +135,15 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUndocOption(JmlOption.NEWESC.optionName());
-            main.addUndocOption(JmlOption.BOOGIE.optionName());
+            main.addUncheckedOption(JmlOption.NEWESC.optionName());
+            main.addUncheckedOption(JmlOption.BOOGIE.optionName());
         } else if (option.equals("-custom")) {
-            main.addUndocOption(JmlOption.CUSTOM.optionName());
+            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
             options.put(JmlOption.NEWESC.optionName(),null);
-            main.addUndocOption("openjml.defaultProver=yices");
+            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUndocOption(JmlOption.NEWESC.optionName());
-            main.addUndocOption("openjml.defaultProver=z3_4_3");
+            main.addUncheckedOption(JmlOption.NEWESC.optionName());
+            main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
         // solver == null means use the default
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);

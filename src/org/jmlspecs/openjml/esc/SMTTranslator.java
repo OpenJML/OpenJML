@@ -15,6 +15,7 @@ import java.util.Set;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
@@ -218,6 +219,24 @@ public class SMTTranslator extends JmlTreeScanner {
                 refSort,
                 F.createSortExpression(F.symbol("Int"))));
         commands.add(c);
+        c = new C_declare_fun(F.symbol("length_REF"),
+                emptyList, 
+                F.createSortExpression(F.symbol("Array"),
+                  F.createSortExpression(F.symbol("Array"),intSort,refSort),
+                  F.createSortExpression(F.symbol("Int"))));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("length_Int"),
+                emptyList, 
+                F.createSortExpression(F.symbol("Array"),
+                  F.createSortExpression(F.symbol("Array"),intSort,intSort),
+                  F.createSortExpression(F.symbol("Int"))));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("length_Bool"),
+                emptyList, 
+                F.createSortExpression(F.symbol("Array"),
+                  F.createSortExpression(F.symbol("Array"),intSort,boolSort),
+                  F.createSortExpression(F.symbol("Int"))));
+        commands.add(c);
         try {
             c = smt.smtConfig.smtFactory.createParser(smt.smtConfig,smt.smtConfig.smtFactory.createSource("(assert (forall ((o REF)) (>= (select length o) 0)))",null)).parseCommand();
             commands.add(c);
@@ -229,7 +248,7 @@ public class SMTTranslator extends JmlTreeScanner {
         List<ISort> args = Arrays.asList(refSort);
         c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));
         commands.add(c);
-        c = new C_declare_fun(F.symbol("asRefArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
+        c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
         commands.add(c);
         c = new C_declare_fun(F.symbol("intValue"),args, F.createSortExpression(F.symbol("Int")));
         commands.add(c);
@@ -251,6 +270,41 @@ public class SMTTranslator extends JmlTreeScanner {
                 Arrays.asList(new ISort[]{jmlTypeSort}), 
                 javaTypeSort);
         commands.add(c);
+        c = new C_declare_fun(F.symbol("length"),
+                Arrays.asList(new ISort[]{refSort}), 
+                intSort);
+        c = new C_define_fun(F.symbol("nonnullelements"),
+                Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort),
+                        F.declaration(F.symbol("arrays"),
+                                F.createSortExpression(F.symbol("Array"),
+                                        refSort,
+                                        F.createSortExpression(F.symbol("Array"),intSort,refSort)))}), 
+                boolSort,
+                F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
+                      F.fcn(F.symbol("=>"),
+                        F.fcn(F.symbol("and"),
+                           F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
+                           F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(F.symbol("select"),F.symbol("length"),F.symbol("a")))
+                           ),
+                        F.fcn(F.symbol("distinct"),
+                          F.symbol(NULL),
+                          F.fcn(F.symbol("select"),
+                             F.fcn(F.symbol("select"),F.symbol("arrays"),F.symbol("a")),
+                             F.symbol("i"))))));
+        commands.add(c);
+//        c = new C_declare_fun(F.symbol("nonnullelements"),
+//                Arrays.asList(new ISort[]{refSort}), 
+//                boolSort);
+//      commands.add(c);
+//        c = new C_assert(
+//                F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort)}),
+//                  F.fcn(F.symbol("="),
+//                      F.fcn(F.symbol("nonnullelements"), F.symbol("a")),
+//                      F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
+//                        F.fcn(F.symbol("distinct"),
+//                          F.symbol(NULL),
+//                          F.fcn(F.symbol("select"),F.fcn(F.symbol("asREFArray"), F.symbol("a")),F.symbol("i")))))));
+//        commands.add(c);
         
         int loc = commands.size();
         
@@ -274,6 +328,9 @@ public class SMTTranslator extends JmlTreeScanner {
         
         defined.add(names.fromString(this_));
         defined.add(names.fromString(length));
+        defined.add(names.fromString(length+"_REF"));
+        defined.add(names.fromString(length+"_Int"));
+        defined.add(names.fromString(length+"_Bool"));
         for (JCIdent id: program.declarations) {
             if (defined.add(id.name)) {
                 try {
@@ -615,6 +672,8 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.token == JmlToken.BSTYPEOF) {
             ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
             result = F.fcn(s, newargs);
+        } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
+            result = F.fcn(F.symbol("nonnullelements"), newargs);
         } else if (that.meth != null) result = F.fcn(F.symbol(that.meth.toString()),newargs);
         else result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
     }
@@ -807,7 +866,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //            result = F.fcn(F.symbol("asIntArray"), array);
 //            result = F.fcn(F.symbol("select"),result,index);
 //        } else if (!tree.type.isPrimitive()) {
-//            result = F.fcn(F.symbol("asRefArray"), array);
+//            result = F.fcn(F.symbol("asREFArray"), array);
 //            result = F.fcn(F.symbol("select"),result,index);
 //        } else {
 //            notImpl(tree);
@@ -825,13 +884,13 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess tree) {
         // FIXME - review
         // o.f becomes f[o] where f has sort (Array REF type)
-        if (tree.selected != null) doFieldAccess(tree.selected,tree.name,tree.sym);
+        if (tree.selected != null) doFieldAccess(tree,tree.selected,tree.name,tree.sym);
     }
     
     java.util.Set<Name> defined = new java.util.HashSet<Name>();
     
     // FIXME - review
-    protected void doFieldAccess(JCExpression object, Name name, Symbol field) {
+    protected void doFieldAccess(JCFieldAccess tree, JCExpression object, Name name, Symbol field) {
         if (field != syms.lengthVar) {
             if (defined.add(name)) {
                 ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
@@ -839,8 +898,22 @@ public class SMTTranslator extends JmlTreeScanner {
                         emptyList,arrsort);
                 commands.add(c);
             }
-        } 
-        if (field.isStatic()) {
+        } else {
+            Type t = ((ArrayType)object.type).getComponentType();
+            ISort s = convertSort(t);
+            name = Names.instance(context).fromString("length");
+//          IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+//          convertExpr(((JmlTree.JmlBBFieldAccess)tree).arraysId),
+//          convertExpr(object)
+//          );
+//            IExpr.IFcnExpr sel = F.fcn(F.symbol("as" + s.toString() + "Array"),
+//                    convertExpr(object)
+//                    );
+            IExpr sel = convertExpr(object);
+            result = F.fcn(F.symbol("select"),F.symbol(name.toString()),sel);
+            return;
+        }
+        if (field.isStatic()) { // FIXME - isJMLStatic?
             result = F.symbol(name.toString());
         } else {
             result = F.fcn(F.symbol("select"),F.symbol(name.toString()),

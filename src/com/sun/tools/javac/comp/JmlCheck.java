@@ -4,6 +4,7 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.TypeTags.FORALL;
 
 import com.sun.tools.javac.code.Flags;
@@ -16,6 +17,8 @@ import com.sun.tools.javac.util.Warner;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 import org.jmlspecs.annotation.*;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.Utils;
 
 /** The Check class is specialized for JML in order to avoid unchecked-cast warnings
  * for uses of casts in JML expressions.  JML checks these logically. Also adjusts
@@ -107,9 +110,14 @@ public class JmlCheck extends Check {
      */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
+        JCTree.JCVariableDecl d = (tree instanceof JCTree.JCVariableDecl) ? (JCTree.JCVariableDecl) tree : null;
         if (staticOldEnv) flags &= ~Flags.STATIC;
         long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
+        if (d != null) {
+            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlToken.INSTANCE) != null;
+            if (isInstance) k &= ~Flags.STATIC;
+        }
         return k;
     }
 }

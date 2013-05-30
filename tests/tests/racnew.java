@@ -1310,7 +1310,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-noRacSource=false");
+        main.addOptions("-noRacSource=false","-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"void m(); \n"
@@ -1355,6 +1355,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInitially() {
+        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ initially i == 1; \n "
                 +"//@ initially j == 1; \n "
@@ -1419,6 +1420,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
+        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"
