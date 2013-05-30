@@ -307,7 +307,7 @@ public class escnew extends EscBase {
     @Test
     public void testMethodInvocation() {
         main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
+        if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME) does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -563,7 +563,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testGhostSet() {
-        //args = new String[] { "-keys=DEBUG" };
         options.put(JmlOption.KEYS.optionName(), "DEBUG");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -659,57 +658,58 @@ public class escnew extends EscBase {
     }
     
     
-    
-//    public void testArrays() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  public void m1bad(/*@ nullable*/ int[] a, int i) {\n"
-//                +"      a[1] = 9;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i < a.length; \n"
-//                +"  public void m2bad(int[] a, int i) {\n"
-//                +"      a[i] = 9;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i >= 0; \n"
-//                +"  public void m3bad(int[] a, int i) {\n"
-//                +"      a[i] = 9;\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i >= 0 && i < a.length; \n"
-//                +"  public void m1good(int[] a, int i) {\n"
-//                +"      a[i] = 9;\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",12
-//                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bad",12
-//                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",12
-//                );
-//    }
+    @Ignore
+    @Test public void testArrays() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1bad(/*@ nullable*/ int[] a, int i) {\n"
+                +"      a[1] = 9;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < a.length; \n"
+                +"  public void m2bad(int[] a, int i) {\n"
+                +"      a[i] = 9;\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0; \n"
+                +"  public void m3bad(int[] a, int i) {\n"
+                +"      a[i] = 9;\n"
+                +"  }\n"
+                
+                +"  //@ requires i >= 0 && i < a.length; \n"
+                +"  public void m1good(int[] a, int i) {\n"
+                +"      a[i] = 9;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bad",12
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",12
+                );
+    }
     
     // FIXME _ check that different return or throw statements are properly pointed to
 
     // FIXME - needs proper expansion of array accesses
-//    public void testPostcondition1() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                
-//                +"  //@ ensures a[i]>0;\n"
-//                +"  public void m1bad(int[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"  //@ requires i >= 0 && i < a.length;\n"
-//                +"  //@ ensures a[i]==true || a[i]==false;\n"
-//                +"  public void m1good(boolean[] a, int i) {\n"
-//                +"  }\n"
-//                
-//                +"}"
-//                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
-//                );
-//    }
+    @Test @Ignore
+    public void testPostcondition10() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  //@ ensures a[i]>0;\n"
+                +"  public void m1bad(int[] a, int i) {\n"
+                +"  }\n"
+
+                +"  //@ requires i >= 0 && i < a.length;\n"
+                +"  //@ ensures a[i]==true || a[i]==false;\n"
+                +"  public void m1good(boolean[] a, int i) {\n"
+                +"  }\n"
+
+                +"}"
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
+                );
+    }
     
     // FIXME - need tests with multiple ensures and various cases
     
@@ -870,6 +870,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testConditional() {
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -888,9 +889,6 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                // custom mode finds only the first error in a method
-                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 

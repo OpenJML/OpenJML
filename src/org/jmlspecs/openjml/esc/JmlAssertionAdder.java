@@ -3596,6 +3596,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     paramActuals.put(iter.next().sym, arg);
                 }
                 // FIXME - we should set condition
+                // Be sure to do assignable (havoc) clauses befor the postcondition clauses
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     if (!utils.jmlvisible(classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
                     ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
@@ -3603,6 +3604,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression pre = preExpressions.remove(0);
                     if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                     condition = pre; // FIXME - is this right? what about the havoc statement?
+                    for (JmlMethodClause clause : cs.clauses) {
+                        try {
+                            switch (clause.token) {
+                                case ASSIGNABLE:
+                                    currentStatements = ensuresStats;
+                                    if (esc) {
+                                        addStat(comment(clause));
+                                        List<JCExpression> havocs = convertJML(((JmlMethodClauseStoreRef)clause).list);
+                                        JCStatement havoc = M.at(clause.pos).JmlHavocStatement(havocs);
+                                        addStat(havoc);
+                                    }
+                                    break;
+                                default:
+                                    // skip everything else
+                                    break;
+                            }
+                        } catch (JmlNotImplementedException e) {
+                            notImplemented(clause.token.internedName() + " clause containing ",e);
+                        }
+                    }
                     for (JmlMethodClause clause : cs.clauses) {
                         try {
                             switch (clause.token) {
@@ -3623,20 +3644,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             "JML undefined postcondition - exception thrown",
                                             null));
                                     break;
-                                case ASSIGNABLE:
-                                    currentStatements = ensuresStats;
-                                    if (esc) {
-                                        addStat(comment(clause));
-                                        List<JCExpression> havocs = convertJML(((JmlMethodClauseStoreRef)clause).list);
-                                        JCStatement havoc = M.at(clause.pos).JmlHavocStatement(havocs);
-                                        addStat(havoc);
-                                    }
-                                    break;
                                 case SIGNALS:
                                     // FIXME - review this
                                     currentStatements = exsuresStats;
                                     addStat(comment(clause));
-                                    
+
                                     JCVariableDecl vdo = ((JmlMethodClauseSignals)clause).vardef;
                                     pushBlock();
                                     Type vdtype = syms.exceptionType;
@@ -3660,8 +3672,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCStatement st = M.at(clause.pos()).If(ex,popBlock(0,that.pos()),null);
 
                                     addStat( wrapRuntimeException(clause.pos(), M.at(clause.pos()).Block(0,List.<JCStatement>of(st)), 
-                                                "JML undefined exceptional postcondition - exception thrown",
-                                                null));
+                                            "JML undefined exceptional postcondition - exception thrown",
+                                            null));
                                     break;
                                 default:
                                     // FIXME - implement others
@@ -3670,7 +3682,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } catch (JmlNotImplementedException e) {
                             notImplemented(clause.token.internedName() + " clause containing ",e);
                         }
-
                     }
                     if (!ensuresStats.isEmpty()) {
                         JCBlock ensuresBlock = M.at(cs.pos+1).Block(0, ensuresStats.toList());
