@@ -3,14 +3,14 @@ Starting proof of trace.mforeach5(int[]) with prover z3_4_3
 
 TRACE of trace.mforeach5(int[])
 
-testfiles\escTraceLoops\trace.java:204:  	requires a != null; 
-			VALUE: a	 === REF!val!2
+testfiles\escTraceLoops\trace.java:205:  	requires a != null; 
+			VALUE: a	 === REF!val!3
 			VALUE: null	 === null
 			VALUE: a != null	 === true
-testfiles\escTraceLoops\trace.java:205:  	int j = 0
+testfiles\escTraceLoops\trace.java:206:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:206:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
 			VALUE: \index	 === 0
 			VALUE: j == \index	 === true
@@ -19,12 +19,12 @@ testfiles\escTraceLoops\trace.java:206:  	//@ loop_invariant j == \index && 0 <=
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
 			VALUE: \index	 === 0
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!3
 			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:208:  	Begin loop check
-testfiles\escTraceLoops\trace.java:206:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:209:  	Begin loop check
+testfiles\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 1
 			VALUE: \index	 === 1
 			VALUE: j == \index	 === true
@@ -33,19 +33,19 @@ testfiles\escTraceLoops\trace.java:206:  	//@ loop_invariant j == \index && 0 <=
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
 			VALUE: \index	 === 1
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!3
 			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:207:  	//@ decreases -j;
+testfiles\escTraceLoops\trace.java:208:  	//@ decreases -j;
 			VALUE: j	 === 1
 			VALUE: -j	 === ( - 1 )
 				Initial Value of Loop Decreases Expression = ( - 1 )
-testfiles\escTraceLoops\trace.java:208:  	Loop test
+testfiles\escTraceLoops\trace.java:209:  	Loop test
 			VALUE: \index	 === 1
-			VALUE: _JML__tmp108	 === 2
-			VALUE: \index < _JML__tmp108	 === true
-testfiles\escTraceLoops\trace.java:207: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
+			VALUE: _JML__tmp110	 === 2
+			VALUE: \index < _JML__tmp110	 === true
+testfiles\escTraceLoops\trace.java:208: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
                       ^
 Completed proof of trace.mforeach5(int[]) with prover z3_4_3 - with warnings

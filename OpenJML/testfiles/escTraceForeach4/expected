@@ -3,14 +3,14 @@ Starting proof of trace.mforeach4(int[]) with prover z3_4_3
 
 TRACE of trace.mforeach4(int[])
 
-testfiles\escTraceLoops\trace.java:194:  	requires a != null; 
+testfiles\escTraceLoops\trace.java:195:  	requires a != null; 
 			VALUE: a	 === REF!val!2
 			VALUE: null	 === null
 			VALUE: a != null	 === true
-testfiles\escTraceLoops\trace.java:195:  	int j = 0
+testfiles\escTraceLoops\trace.java:196:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:197:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
 			VALUE: \index	 === 0
 			VALUE: j == \index	 === true
@@ -20,50 +20,50 @@ testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <=
 			VALUE: j == \index && 0 <= \index	 === true
 			VALUE: \index	 === 0
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2438
+			VALUE: a.length	 === 8856
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:198:  	Begin loop check
-testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
-			VALUE: j	 === 2437
-			VALUE: \index	 === 2437
+testfiles\escTraceLoops\trace.java:199:  	Begin loop check
+testfiles\escTraceLoops\trace.java:197:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 8855
+			VALUE: \index	 === 8855
 			VALUE: j == \index	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 2437
+			VALUE: \index	 === 8855
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
-			VALUE: \index	 === 2437
+			VALUE: \index	 === 8855
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2438
+			VALUE: a.length	 === 8856
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:197:  	//@ decreases j;
-			VALUE: j	 === 2437
-				Initial Value of Loop Decreases Expression = 2437
-testfiles\escTraceLoops\trace.java:198:  	Loop test
-			VALUE: \index	 === 2437
-			VALUE: _JML__tmp102	 === 2438
-			VALUE: \index < _JML__tmp102	 === true
-testfiles\escTraceLoops\trace.java:198:  	Begin loop body
-testfiles\escTraceLoops\trace.java:199:  	j += 1
+testfiles\escTraceLoops\trace.java:198:  	//@ decreases j;
+			VALUE: j	 === 8855
+				Initial Value of Loop Decreases Expression = 8855
+testfiles\escTraceLoops\trace.java:199:  	Loop test
+			VALUE: \index	 === 8855
+			VALUE: _JML__tmp104	 === 8856
+			VALUE: \index < _JML__tmp104	 === true
+testfiles\escTraceLoops\trace.java:199:  	Begin loop body
+testfiles\escTraceLoops\trace.java:200:  	j += 1
 			VALUE: 1	 === 1
-			VALUE: j += 1	 === 2438
-testfiles\escTraceLoops\trace.java:196:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
-			VALUE: j	 === 2438
-			VALUE: \index	 === 2438
+			VALUE: j += 1	 === 8856
+testfiles\escTraceLoops\trace.java:197:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 8856
+			VALUE: \index	 === 8856
 			VALUE: j == \index	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 2438
+			VALUE: \index	 === 8856
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
-			VALUE: \index	 === 2438
+			VALUE: \index	 === 8856
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2438
+			VALUE: a.length	 === 8856
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:197:  	//@ decreases j;
-			VALUE: j	 === 2438
-testfiles\escTraceLoops\trace.java:197: warning: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
+testfiles\escTraceLoops\trace.java:198:  	//@ decreases j;
+			VALUE: j	 === 8856
+testfiles\escTraceLoops\trace.java:198: warning: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
         //@ decreases j;
             ^
 Completed proof of trace.mforeach4(int[]) with prover z3_4_3 - with warnings

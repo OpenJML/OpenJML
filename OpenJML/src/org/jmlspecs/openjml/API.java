@@ -717,17 +717,14 @@ public class API implements IAPI {
             out = "Found expression node: " + node.toString() + "\n";
         }
         
-        if (!JmlOption.isOption(context(), JmlOption.CUSTOM)) {
-            if (JmlEsc.mostRecentProofResult != null) {
-                String value = JmlEsc.mostRecentProofResult.counterexample().get(node);
-                if (value != null) out = out + "Value " + node.type + " : " + value;
-                else out = out + "Value is unknown (type " + node.type + ")";
-                return out;
-            }
-            return "No counterexample information available";
+        if (JmlEsc.mostRecentProofResult != null) {
+            String value = JmlEsc.mostRecentProofResult.counterexample().get(node);
+            if (value != null) out = out + "Value " + node.type + " : " + value;
+            else out = out + "Value is unknown (type " + node.type + ")";
+            return out;
         }
+        return "No counterexample information available";
         
-        return "Counterexample information not implemented";
     }
     
     /* (non-Javadoc)

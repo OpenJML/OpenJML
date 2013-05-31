@@ -1,11 +1,4 @@
 Done:
-- partially built cross reference information in, removing option
-- more usable trace information, mapping internal representations to user understandable tokens
-- partial String semantics
-- partial int type semantics (no value ranges or overflow yet)
-- added parsing and type-checking for \past
-- implemented nonnullelements for ESC
-- implemented not_modified for ESC and RAC
 
 Fix
 - tracing 
@@ -16,6 +9,7 @@ Fix
 - use a WorkspaceRunnable for resource changes
 - what other things need Invariants assumed/checked
 - what about invariants of parents of type variables
+- fix default assignable for constructors
 
 Soon
 - loop modifies, and general block modifies

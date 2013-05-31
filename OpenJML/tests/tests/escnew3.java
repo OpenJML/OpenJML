@@ -19,7 +19,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testNonNullElements() {
         if ("yices2".equals(solver)) return; // TODO: yices2 cannot handle quantifiers - better error message
-        //main.addOptions("-show","-method=m3","-subexpressions");
+        //main.addOptions("-show","-method=m2","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

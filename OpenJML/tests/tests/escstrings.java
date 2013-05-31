@@ -136,7 +136,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs1() {
-        main.addOptions("-noInternalSpecs","-show");
+        main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -150,7 +150,7 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,!"yices2".equals(solver)?null:
+                ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
                     "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
@@ -158,7 +158,6 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs2() {
-        if ("yices2".equals(solver)) return; // SKIP because yices2 cannot do quantifiers
         main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -173,6 +172,8 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
+                ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
+                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",19
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
@@ -190,7 +191,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss);\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
@@ -201,7 +202,6 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcat1() {
-        if ("yices2".equals(solver)) return; // SKIP because yices2 cannot do quantifiers
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -215,13 +215,14 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
+                ,!"yices2".equals(solver)?null: // FIXME because yices2 cannot do quantifiers
+                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
     /** Tests String concatenation */
     @Test
     public void testStringConcat2() {
-        if ("yices2".equals(solver)) return; // SKIP because yices2 cannot do quantifiers
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -235,6 +236,10 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"  // FIXME - need more semantics of concat and equals
+                ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
+                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",19
+                //,!"yices2".equals(solver)?null: // FIXME because yices2 cannot do quantifiers
+                //    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 

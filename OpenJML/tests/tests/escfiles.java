@@ -147,7 +147,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress");
     }
 
     @Test

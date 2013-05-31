@@ -144,16 +144,10 @@ public class escnowarn extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,!option.equals("-custom") ?
-                new Object[]{"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7}
-                :
-                    new Object[]{"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                        ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17
-                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m",13
-                        ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",17}
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     
@@ -172,7 +166,7 @@ public class escnowarn extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom")?7:17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     
@@ -192,7 +186,7 @@ public class escnowarn extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom")?7:18
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     

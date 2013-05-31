@@ -45,8 +45,7 @@ public class escgeneric extends EscBase {
                 +"  public TestG(E i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
-                ,!isCustom?"/tt/TestJava.java:11: warning: Associated declaration":"/tt/TestJava.java:12: warning: Associated declaration"
-                ,!isCustom?7:10
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
                 );
     }
     
@@ -68,7 +67,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
-                ,isCustom?null:"/tt/TestJava.java:8: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:8: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
                 ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 );
@@ -128,7 +127,7 @@ public class escgeneric extends EscBase {
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
-                ,"/tt/TestJava.java:11: warning: Associated declaration",!isCustom?7:22
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
         );
     }
 
@@ -149,7 +148,7 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:11: warning: Associated declaration",!isCustom?9:24
+                ,"/tt/TestJava.java:11: warning: Associated declaration",9
                 );
     }
     
@@ -172,7 +171,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:12: warning: Associated declaration",!isCustom?9:24
+                ,"/tt/TestJava.java:12: warning: Associated declaration",9
                 );
     }
  

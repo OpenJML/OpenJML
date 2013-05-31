@@ -482,21 +482,15 @@ public class JmlCompiler extends JavaCompiler {
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
-            if (JmlOption.isOption(context,JmlOption.CUSTOM)){
-                
-                newtree = new JmlRac(context,env).translate(env.tree);
-                
-            } else  {
-                if (JmlOption.isOption(context,JmlOption.SHOW)) {
-                    log.noticeWriter.println("ORIGINAL");
-                    log.noticeWriter.println(JmlPretty.write(env.tree,true));
-                    log.noticeWriter.println("");
-                }
-                newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
-                if (JmlOption.isOption(context,JmlOption.SHOW)) {
-                    log.noticeWriter.println("TRANSLATED RAC");
-                    log.noticeWriter.println(JmlPretty.write(newtree,true));
-                }
+            if (JmlOption.isOption(context,JmlOption.SHOW)) {
+                log.noticeWriter.println("ORIGINAL");
+                log.noticeWriter.println(JmlPretty.write(env.tree,true));
+                log.noticeWriter.println("");
+            }
+            newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
+            if (JmlOption.isOption(context,JmlOption.SHOW)) {
+                log.noticeWriter.println("TRANSLATED RAC");
+                log.noticeWriter.println(JmlPretty.write(newtree,true));
             }
 
                 
@@ -531,9 +525,9 @@ public class JmlCompiler extends JavaCompiler {
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
         if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
-        if (Options.instance(context).get("-custom") != null) {
-            new JmlTranslator(context).translate(env);
-        }
+//        if (Options.instance(context).get("-custom") != null) {
+//            new JmlTranslator(context).translate(env);
+//        }
         //log.noticeWriter.println(JmlPretty.write(env.tree));
 
         JmlEsc esc = JmlEsc.instance(context);

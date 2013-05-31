@@ -120,7 +120,8 @@ public class trace {
         int k = 5;
         int j = 0;
         int i = 0;
-        //@ loop_invariant j == 2*i && 0 <= i && i <= k;
+        //@ loop_invariant j == 2*i && 0 <= i && i < k;
+        //@ decreases k-i;
         do {
             j += 2;
             ++i;
@@ -133,7 +134,7 @@ public class trace {
         int k = 5;
         int j = 1;
         int i = 0;
-        //@ loop_invariant j == 2*i && 0 <= i && i <= k;
+        //@ loop_invariant j == 2*i && 0 <= i && i < k;
         do {
             j += 2;
             ++i;
@@ -146,7 +147,7 @@ public class trace {
         int k = 5;
         int j = 0;
         int i = 0;
-        //@ loop_invariant j == 2*i && 0 <= i && i <= k;
+        //@ loop_invariant j == 2*i && 0 <= i && i < k;
         do {
             j += 3;
             ++i;

@@ -1359,9 +1359,10 @@ public class api {
                     null,
                     option,
                     "-noPurityCheck");
-            if (option.equals("-custom")) {
-                m.addOptions("openjml.defaultProver","yices");
-            } else if (option.equals("-boogie")) {
+//            if (option.equals("-custom")) {
+//                m.addOptions("openjml.defaultProver","yices");
+//            } else 
+            if (option.equals("-boogie")) {
                 m.addOptions("openjml.defaultProver","z3_4_3");
             } else {
                 m.addOptions("openjml.defaultProver","z3_4_3");
