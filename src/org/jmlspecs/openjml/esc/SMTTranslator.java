@@ -105,9 +105,14 @@ public class SMTTranslator extends JmlTreeScanner {
     protected ISort jmlTypeSort;
     protected ISort intSort;
     protected ISort boolSort;
-    protected IExpr.ISymbol nullRef;
-    protected IExpr.ISymbol lengthRef;
-    protected IExpr.ISymbol thisRef;
+    protected ISort realSort;
+    protected IExpr.ISymbol nullSym;
+    protected IExpr.ISymbol lengthSym;
+    protected IExpr.ISymbol arraySym;
+    protected IExpr.ISymbol thisSym;
+    protected IExpr.ISymbol eqSym;
+    protected IExpr.ISymbol impliesSym;
+    protected IExpr.ISymbol selectSym;
     
     
     /** The SMTLIB script as it is being constructed */
@@ -136,6 +141,8 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String JAVATYPESORT = "JavaTypeSort";
     public static final String JMLTYPESORT = "JMLTypeSort";
     public static final String length = "length";
+    public static final String arrays_ = "arrays_";
+    public static final String Array = "Array"; // Name of SMT Array sort
     
     public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
@@ -148,15 +155,20 @@ public class SMTTranslator extends JmlTreeScanner {
         treeutils = JmlTreeUtils.instance(context);
         
         F = new org.smtlib.impl.Factory();
-        nullRef = F.symbol(NULL);
-        thisRef = F.symbol(this_);
+        nullSym = F.symbol(NULL);
+        thisSym = F.symbol(this_);
         refSort = F.createSortExpression(F.symbol(REF));
         boolSort = F.createSortExpression(F.symbol("Bool"));
         intSort = F.createSortExpression(F.symbol("Int"));
+        realSort = F.createSortExpression(F.symbol("Real"));
         stringSort = F.createSortExpression(F.symbol(STRINGSORT));
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
-        lengthRef = F.symbol(length);
+        lengthSym = F.symbol(length);
+        arraySym = F.symbol(Array);
+        eqSym = F.symbol("="); // Name determined by SMT Core theory
+        impliesSym = F.symbol("=>"); // Name determined by SMT Core theory
+        selectSym = F.symbol("select"); // Name determined by SMT Array Theory
         
     }
     
@@ -203,39 +215,20 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_sort(F.symbol(JMLTYPESORT),F.numeral(0));
         commands.add(c);
-        c = new C_declare_fun(nullRef,emptyList, refSort);
+        c = new C_declare_fun(nullSym,emptyList, refSort);
         commands.add(c);
-        c = new C_declare_fun(thisRef,emptyList, refSort);
+        c = new C_declare_fun(thisSym,emptyList, refSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("stringEquals"),Arrays.asList(stringSort,stringSort), boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("stringConcat"),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
-        c = new C_assert(F.fcn(F.symbol("distinct"), thisRef, nullRef));
+        c = new C_assert(F.fcn(F.symbol("distinct"), thisSym, nullSym));
         commands.add(c);
-        c = new C_declare_fun(lengthRef,
+        c = new C_declare_fun(lengthSym,
                 emptyList, 
-                F.createSortExpression(F.symbol("Array"),
-                refSort,
-                F.createSortExpression(F.symbol("Int"))));
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("length_REF"),
-                emptyList, 
-                F.createSortExpression(F.symbol("Array"),
-                  F.createSortExpression(F.symbol("Array"),intSort,refSort),
-                  F.createSortExpression(F.symbol("Int"))));
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("length_Int"),
-                emptyList, 
-                F.createSortExpression(F.symbol("Array"),
-                  F.createSortExpression(F.symbol("Array"),intSort,intSort),
-                  F.createSortExpression(F.symbol("Int"))));
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("length_Bool"),
-                emptyList, 
-                F.createSortExpression(F.symbol("Array"),
-                  F.createSortExpression(F.symbol("Array"),intSort,boolSort),
-                  F.createSortExpression(F.symbol("Int"))));
+                F.createSortExpression(arraySym,refSort,intSort)
+                );
         commands.add(c);
         try {
             c = smt.smtConfig.smtFactory.createParser(smt.smtConfig,smt.smtConfig.smtFactory.createSource("(assert (forall ((o REF)) (>= (select length o) 0)))",null)).parseCommand();
@@ -246,13 +239,13 @@ public class SMTTranslator extends JmlTreeScanner {
             throw new RuntimeException(e);
         }
         List<ISort> args = Arrays.asList(refSort);
-        c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),F.createSortExpression(F.symbol("Int"))));
+        c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(arraySym,intSort,intSort));
         commands.add(c);
-        c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(F.symbol("Array"),F.createSortExpression(F.symbol("Int")),refSort));
+        c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(arraySym,intSort,refSort));
         commands.add(c);
-        c = new C_declare_fun(F.symbol("intValue"),args, F.createSortExpression(F.symbol("Int")));
+        c = new C_declare_fun(F.symbol("intValue"),args, intSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("boolValue"),args, F.createSortExpression(F.symbol("Bool")));
+        c = new C_declare_fun(F.symbol("boolValue"),args, boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("javaTypeOf"),args, javaTypeSort);
         commands.add(c);
@@ -260,51 +253,79 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(F.symbol("javaSubType"),
                 Arrays.asList(new ISort[]{javaTypeSort,javaTypeSort}), 
-                F.createSortExpression(F.symbol("Bool")));
+                boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("jmlSubType"),
                 Arrays.asList(new ISort[]{jmlTypeSort,jmlTypeSort}), 
-                F.createSortExpression(F.symbol("Bool")));
+                boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("erasure"),
                 Arrays.asList(new ISort[]{jmlTypeSort}), 
                 javaTypeSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("length"),
+        c = new C_declare_fun(lengthSym,
                 Arrays.asList(new ISort[]{refSort}), 
                 intSort);
-        c = new C_define_fun(F.symbol("nonnullelements"),
-                Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort),
-                        F.declaration(F.symbol("arrays"),
-                                F.createSortExpression(F.symbol("Array"),
-                                        refSort,
-                                        F.createSortExpression(F.symbol("Array"),intSort,refSort)))}), 
-                boolSort,
-                F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
-                      F.fcn(F.symbol("=>"),
-                        F.fcn(F.symbol("and"),
-                           F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
-                           F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(F.symbol("select"),F.symbol("length"),F.symbol("a")))
-                           ),
-                        F.fcn(F.symbol("distinct"),
-                          F.symbol(NULL),
-                          F.fcn(F.symbol("select"),
-                             F.fcn(F.symbol("select"),F.symbol("arrays"),F.symbol("a")),
-                             F.symbol("i"))))));
-        commands.add(c);
-//        c = new C_declare_fun(F.symbol("nonnullelements"),
-//                Arrays.asList(new ISort[]{refSort}), 
-//                boolSort);
-//      commands.add(c);
-//        c = new C_assert(
-//                F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort)}),
-//                  F.fcn(F.symbol("="),
-//                      F.fcn(F.symbol("nonnullelements"), F.symbol("a")),
-//                      F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
-//                        F.fcn(F.symbol("distinct"),
-//                          F.symbol(NULL),
-//                          F.fcn(F.symbol("select"),F.fcn(F.symbol("asREFArray"), F.symbol("a")),F.symbol("i")))))));
-//        commands.add(c);
+        // The declaration + assertion form is nominally equivalent to the define_fcn form, but works better
+        // for SMT solvers with modest (or no) support for quantifiers (like yices2)
+        if (false) {
+            // (define_fcn nonnullelements ((a REF)(arrays (Array REF (Array Int REF)))) 
+            //                             Bool
+            //                             (forall ((i Int)) (=> (and (<= 0 i) (< i (length a))) (distinct NULL (select (select arrays a) i)))))
+            c = new C_define_fun(F.symbol("nonnullelements"),
+                    Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort),
+                            F.declaration(F.symbol("arrays"),
+                                    F.createSortExpression(arraySym,
+                                            refSort,
+                                            F.createSortExpression(arraySym,intSort,refSort)))}), 
+                    boolSort,
+                    F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
+                            F.fcn(impliesSym,
+                                    F.fcn(F.symbol("and"),
+                                            F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
+                                            F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
+                                            ),
+                                    F.fcn(F.symbol("distinct"),
+                                            nullSym,
+                                            F.fcn(selectSym,
+                                                    F.fcn(selectSym,F.symbol("arrays"),F.symbol("a")),
+                                                    F.symbol("i"))))));
+            commands.add(c);
+        } else {
+            // (declare_fcn nonnullelements ((a REF)(arrays (Array REF (Array Int REF)))) Bool)
+            // (assert (forall ((a REF)(arrays (Array REF (Array Int REF)))) (= (nonnullelements a arrays)
+            //                             (forall ((i Int)) (=> (and (<= 0 i) (< i (length a))) (distinct NULL (select (select arrays a) i)))))
+            c = new C_declare_fun(F.symbol("nonnullelements"),
+                    Arrays.asList(new ISort[]{refSort,
+                            F.createSortExpression(arraySym,
+                                    refSort,
+                                    F.createSortExpression(arraySym,intSort,refSort))}), 
+                    boolSort);
+            commands.add(c);
+            c = new C_assert(
+                    F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort),
+                                                              F.declaration(F.symbol("arrays"),
+                                                                      F.createSortExpression(arraySym,
+                                                                              refSort,
+                                                                              F.createSortExpression(arraySym,intSort,refSort)))
+                                                             }),
+                            F.fcn(eqSym,
+                                    F.fcn(F.symbol("nonnullelements"), F.symbol("a"), F.symbol("arrays")),
+                                    F.forall(Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("i"),intSort)}),
+                                            F.fcn(impliesSym,
+                                                    F.fcn(F.symbol("and"),
+                                                            F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
+                                                            F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
+                                                            ),
+                                                    F.fcn(F.symbol("distinct"),
+                                                            F.symbol(NULL),
+                                                            F.fcn(selectSym,F.fcn(selectSym,F.symbol("arrays"),F.symbol("a")),F.symbol("i"))
+                                                            )
+                                                    )
+                                             )
+                                    )));
+            commands.add(c);
+        }
         
         int loc = commands.size();
         
@@ -328,21 +349,18 @@ public class SMTTranslator extends JmlTreeScanner {
         
         defined.add(names.fromString(this_));
         defined.add(names.fromString(length));
-        defined.add(names.fromString(length+"_REF"));
-        defined.add(names.fromString(length+"_Int"));
-        defined.add(names.fromString(length+"_Bool"));
         for (JCIdent id: program.declarations) {
             if (defined.add(id.name)) {
                 try {
                     ISort sort = convertSort(id.type);
                     String nm = id.name.toString();
                     if (id.sym.owner instanceof Symbol.ClassSymbol && !id.sym.isStatic() && !id.sym.name.toString().equals("this")) {
-                        sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
-                    } else if (nm.startsWith("arrays_")) { // FIXME - use the constant string
+                        sort = F.createSortExpression(arraySym,refSort,sort);
+                    } else if (nm.startsWith(arrays_)) { // FIXME - use the constant string
                         sort = convertSort(((Type.ArrayType)id.type).getComponentType());
                         ISort intSort = convertSort(syms.intType); // FIXME: Make this a constant like Bool?
-                        sort = F.createSortExpression(F.symbol("Array"),intSort,sort); 
-                        sort = F.createSortExpression(F.symbol("Array"),refSort,sort);
+                        sort = F.createSortExpression(arraySym,intSort,sort); 
+                        sort = F.createSortExpression(arraySym,refSort,sort);
                     }
                     ISymbol sym = F.symbol(nm);
                     c = new C_declare_fun(sym,
@@ -393,7 +411,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         cc = new C_push(F.numeral(1));
         commands.add(cc);
-        cc = new C_assert(F.fcn(F.symbol("="),F.symbol(JmlAssertionAdder.assumeCheckVar),F.numeral(0)));
+        cc = new C_assert(F.fcn(eqSym,F.symbol(JmlAssertionAdder.assumeCheckVar),F.numeral(0)));
         commands.add(cc);
         cc = new C_push(F.numeral(1));
         commands.add(cc);
@@ -413,7 +431,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     emptyList,
                     jmlTypeSort));
             tcommands.add(new C_assert(F.fcn(
-                    F.symbol("="), 
+                    eqSym, 
                     F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
                     javaTypeSymbol(ti))));
 
@@ -477,7 +495,7 @@ public class SMTTranslator extends JmlTreeScanner {
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(F.symbol(block.id.toString()));
         args.add(ex);
-        ex = F.fcn(F.symbol("="),args);
+        ex = F.fcn(eqSym,args);
         commands.add(new C_assert(ex));
     }
     
@@ -518,7 +536,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
                     args.add(exx);
                     args.add(ex);
-                    return F.fcn(F.symbol("=>"), args);
+                    return F.fcn(impliesSym, args);
                 } else if (s.token == JmlToken.ASSERT) {
                     IExpr exx = convertExpr(s.expression);
                     LinkedList<IExpr> args = new LinkedList<IExpr>();
@@ -551,17 +569,17 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (t.tag == TypeTags.BOOLEAN) {
             return F.Bool();
         } else if (t.tag == TypeTags.INT) { 
-            return F.createSortExpression(F.symbol("Int"));
+            return intSort;
         } else if (t.tag == syms.objectType.tag) {
             return refSort;
         } else if (t.tag == TypeTags.SHORT) { 
-            return F.createSortExpression(F.symbol("Int"));
+            return intSort;
         } else if (t.tag == TypeTags.CHAR) { 
-            return F.createSortExpression(F.symbol("Int"));
+            return intSort;
         } else if (t.tag == TypeTags.BYTE) { 
-            return F.createSortExpression(F.symbol("Int"));
+            return intSort;
         } else if (t.tag == TypeTags.LONG) { 
-            return F.createSortExpression(F.symbol("Int"));
+            return intSort;
         } else if (t.tag == TypeTags.FLOAT) { 
             return F.createSortExpression(F.symbol("Real"));
         } else if (t.tag == TypeTags.DOUBLE) { 
@@ -574,7 +592,7 @@ public class SMTTranslator extends JmlTreeScanner {
             return refSort;
 //            ArrayType atype = (ArrayType)t;
 //            Type elemtype = atype.getComponentType();
-//            return F.createSortExpression(F.symbol("Array"), F.createSortExpression(F.symbol("Int")), convertSort(elemtype));
+//            return F.createSortExpression(arraySym, intSort, convertSort(elemtype));
         } else {
             return F.createSortExpression(javaTypeSymbol(t)); // FIXME - use the common method for translating to type names?
 //            log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
@@ -626,12 +644,12 @@ public class SMTTranslator extends JmlTreeScanner {
                         convertExpr(tree.args.get(2)),
                         convertExpr(tree.args.get(3))
                         );
-                result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
+                result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
                 return;
             }
             else if (tree instanceof JmlBBArrayAssignment) {
                 // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
-                IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+                IExpr.IFcnExpr sel = F.fcn(selectSym,
                         convertExpr(tree.args.get(1)),
                         convertExpr(tree.args.get(2))
                         );
@@ -646,7 +664,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         convertExpr(tree.args.get(2)),
                         newarray
                         );
-                result = F.fcn(F.symbol("="), convertExpr(tree.args.get(0)),right);
+                result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
                 return;
             }
         }
@@ -741,7 +759,7 @@ public class SMTTranslator extends JmlTreeScanner {
         args.add(rhs);
         switch (op) {
             case JCTree.EQ:
-                result = F.fcn(F.symbol("="), args);
+                result = F.fcn(eqSym, args);
                 break;
             case JCTree.NE:
                 result = F.fcn(F.symbol("distinct"), args);
@@ -830,7 +848,7 @@ public class SMTTranslator extends JmlTreeScanner {
         IExpr e = convertExpr(tree.expr);
         // instanceof is always false if the argument is null
         // and javaTypeOf is not defined for null arguments
-        IExpr r1 = F.fcn(F.symbol("distinct"), e, nullRef);
+        IExpr r1 = F.fcn(F.symbol("distinct"), e, nullSym);
         IExpr r2 = F.fcn(F.symbol("javaSubType"),
                 F.fcn(F.symbol("javaTypeOf"), e),
                 javaTypeSymbol(tree.clazz.type));
@@ -842,11 +860,11 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree instanceof JmlBBArrayAccess) {
             JmlBBArrayAccess aa = (JmlBBArrayAccess)tree;
             // select(select(arraysId,a).i)
-            IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+            IExpr.IFcnExpr sel = F.fcn(selectSym,
                     convertExpr(aa.arraysId),
                     convertExpr(aa.indexed)
                     );
-            sel = F.fcn(F.symbol("select"),
+            sel = F.fcn(selectSym,
                     sel,
                     convertExpr(aa.index)
                     );
@@ -859,15 +877,15 @@ public class SMTTranslator extends JmlTreeScanner {
         IExpr array = result;
         scan(tree.index);
         IExpr index = result;
-        result = F.fcn(F.symbol("select"),result,array);
-        result = F.fcn(F.symbol("select"),result,index);
+        result = F.fcn(selectSym,result,array);
+        result = F.fcn(selectSym,result,index);
 
 //        if (tree.type.tag == syms.intType.tag) {
 //            result = F.fcn(F.symbol("asIntArray"), array);
-//            result = F.fcn(F.symbol("select"),result,index);
+//            result = F.fcn(selectSym,result,index);
 //        } else if (!tree.type.isPrimitive()) {
 //            result = F.fcn(F.symbol("asREFArray"), array);
-//            result = F.fcn(F.symbol("select"),result,index);
+//            result = F.fcn(selectSym,result,index);
 //        } else {
 //            notImpl(tree);
 //            result = null;
@@ -893,7 +911,7 @@ public class SMTTranslator extends JmlTreeScanner {
     protected void doFieldAccess(JCFieldAccess tree, JCExpression object, Name name, Symbol field) {
         if (field != syms.lengthVar) {
             if (defined.add(name)) {
-                ISort arrsort = F.createSortExpression(F.symbol("Array"),refSort,convertSort(field.type));
+                ISort arrsort = F.createSortExpression(arraySym,refSort,convertSort(field.type));
                 ICommand c = new C_declare_fun(F.symbol(name.toString()),
                         emptyList,arrsort);
                 commands.add(c);
@@ -902,7 +920,7 @@ public class SMTTranslator extends JmlTreeScanner {
             Type t = ((ArrayType)object.type).getComponentType();
             ISort s = convertSort(t);
             name = Names.instance(context).fromString("length");
-//          IExpr.IFcnExpr sel = F.fcn(F.symbol("select"),
+//          IExpr.IFcnExpr sel = F.fcn(selectSym,
 //          convertExpr(((JmlTree.JmlBBFieldAccess)tree).arraysId),
 //          convertExpr(object)
 //          );
@@ -910,14 +928,14 @@ public class SMTTranslator extends JmlTreeScanner {
 //                    convertExpr(object)
 //                    );
             IExpr sel = convertExpr(object);
-            result = F.fcn(F.symbol("select"),F.symbol(name.toString()),sel);
+            result = F.fcn(selectSym,F.symbol(name.toString()),sel);
             return;
         }
         if (field.isStatic()) { // FIXME - isJMLStatic?
             result = F.symbol(name.toString());
         } else {
-            result = F.fcn(F.symbol("select"),F.symbol(name.toString()),
-                    object == null ? thisRef: convertExpr(object));
+            result = F.fcn(selectSym,F.symbol(name.toString()),
+                    object == null ? thisSym: convertExpr(object));
         }
         
     }
@@ -947,7 +965,7 @@ public class SMTTranslator extends JmlTreeScanner {
             long k = Long.parseLong(tree.value.toString());
             result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
         } else if (tree.typetag == TypeTags.BOT) {
-            result = nullRef;
+            result = nullSym;
         } else if (tree.typetag == TypeTags.CLASS) {
             // FIXME - every literal is different and we don't remember the value
             ISymbol sym = F.symbol("STRINGLIT"+(++stringCount)); 
@@ -1009,10 +1027,10 @@ public class SMTTranslator extends JmlTreeScanner {
             scan(that.value);
             IExpr value = result;
             if (that.op == JmlToken.BSFORALL) {
-                if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+                if (range != null) value = F.fcn(impliesSym,range,value);
                 result = F.forall(params,value);
             } else if (that.op == JmlToken.BSEXISTS) {
-                if (range != null) value = F.fcn(F.symbol("=>"),range,value);
+                if (range != null) value = F.fcn(impliesSym,range,value);
                 result = F.forall(params,value);
             } else {
                 notImpl(that);
@@ -1025,7 +1043,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 ISymbol tmp = F.symbol("_JMLSMT_tmp_" + (++uniqueCount));
                 ICommand c = new C_declare_fun(tmp,emptyList,boolSort);
                 commands.add(c);
-                c = new C_assert(F.fcn(F.symbol("="),  tmp, result));
+                c = new C_assert(F.fcn(eqSym,  tmp, result));
                 commands.add(c);
                 //ICommand c = new C_define_fun(tmp,new LinkedList<IDeclaration>(),boolSort,result);
                 //commands.add(c);

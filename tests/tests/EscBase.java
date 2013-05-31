@@ -20,8 +20,6 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
-    static boolean enableOldTests = false;
-    
     static public String[] solvers = { 
         null, 
         "z3_4_3", 
@@ -44,7 +42,6 @@ public abstract class EscBase extends JmlTestCase {
         // "yices", 
         // "simplify" 
     };
-    static public boolean isCustom = false;
     
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
@@ -70,7 +67,6 @@ public abstract class EscBase extends JmlTestCase {
 
     static public  Collection<String[]> onlyOldData() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        if (enableOldTests) for (String s: oldsolvers) data.add(new String[]{"-custom",s});
         return data;
     }
 
@@ -80,7 +76,6 @@ public abstract class EscBase extends JmlTestCase {
     public EscBase(String option, String solver) {
         this.option = option;
         this.solver = solver;
-        isCustom = option.equals("-custom");
     }
     
     public void printDiagnostics() {
@@ -121,10 +116,10 @@ public abstract class EscBase extends JmlTestCase {
         } else if (option.equals("-boogie")) {
             main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-        } else if (option.equals("-custom")) {
-            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-            options.put(JmlOption.NEWESC.optionName(),null);
-            main.addUncheckedOption("openjml.defaultProver=yices");
+//        } else if (option.equals("-custom")) {
+//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
+//            options.put(JmlOption.NEWESC.optionName(),null);
+//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
             main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
@@ -137,10 +132,10 @@ public abstract class EscBase extends JmlTestCase {
         } else if (option.equals("-boogie")) {
             main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-        } else if (option.equals("-custom")) {
-            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-            options.put(JmlOption.NEWESC.optionName(),null);
-            main.addUncheckedOption("openjml.defaultProver=yices");
+//        } else if (option.equals("-custom")) {
+//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
+//            options.put(JmlOption.NEWESC.optionName(),null);
+//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
             main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
@@ -210,7 +205,7 @@ public abstract class EscBase extends JmlTestCase {
                     } else {
                         if (j < collector.getDiagnostics().size()) {
                             assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
-//                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
                         }
                         j++;
                     }

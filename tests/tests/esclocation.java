@@ -124,13 +124,10 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 // FIXME - check constructor
-                ,!option.equals("-custom") ? "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>"
-                                           : "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
-                ,!option.equals("-custom") ? "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m"
-                                           : "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Invariant) in method m"
-                                               ,13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     
@@ -149,7 +146,7 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7:17
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     
@@ -170,7 +167,7 @@ public class esclocation extends EscBase {
                 +"}"
                 // FIXME - normalize column
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",!option.equals("-custom") ? 7: 18
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
                 );
     }
     

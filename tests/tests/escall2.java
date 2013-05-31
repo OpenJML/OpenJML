@@ -1,15 +1,9 @@
 package tests;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class escall2 extends EscBase {
@@ -733,135 +727,6 @@ public class escall2 extends EscBase {
                 );
     }
 
-    @Test 
-    public void testFieldAssign() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  int i; static int j;\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 2; \n"
-                +"  public int m1bad(boolean b) {\n"
-                +"    i = 1;\n"
-                +"    if (b) i = 2;\n"
-                +"    return i;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 2; \n"
-                +"  public int m1good(boolean b) {\n"
-                +"    i = 1;\n"
-                +"    if (b) i = 2;\n"
-                +"    return i;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 10; \n"
-                +"  public int m2bad(boolean b) {\n"
-                +"    j = 1;\n"
-                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) this.j = j + 1;\n"
-                +"    return tt.TestJava.j;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 10; \n"
-                +"  public int m2good(boolean b) {\n"
-                +"    j = 1;\n"
-                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) this.j = j + 1;\n"
-                +"    return tt.TestJava.j;\n"
-                +"  }\n"
-                
-                +"  //@ requires o != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 1; \n"
-                +"  public int m3bad(TestJava o) {\n"
-                +"    o.i = 1;\n"
-                +"    i = 2;\n"
-                +"    return o.i;\n"
-                +"  }\n"
-                
-                +"  //@ requires this != o && o != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 1; \n"
-                +"  public int m3good(TestJava o) {\n"
-                +"    o.i = 1;\n"
-                +"    i = 2;\n"
-                +"    return o.i;\n"
-                +"  }\n"
-                
-                
-                +"}"
-                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                    ,"/tt/TestJava.java:20: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                    ,"/tt/TestJava.java:39: warning: Associated declaration",7
-                );
-    }
-    
-    @Test
-    public void testArrayAssign() {
-        if (isCustom) return;
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  int i; static int j[];\n"
-                
-                +"  //@ requires a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  public int m0bada(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  public int m0badb(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n"
-                +"  public int m0badc(int[] a) {\n"
-                +"    a[-1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n" // Line 26
-                +"  public int m1good(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3 && i >= 0 && i <= 1; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n"
-                +"  public int m1bad(int[] a, int i) {\n"
-                +"    a[i] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m0bada",17
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",!isCustom?6:10
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",!isCustom?8:11
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:33: warning: Associated declaration",7
-                );
-    }
-    
     @Test
     public void testInvariant1() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -906,9 +771,7 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                ,!isCustom ? 
-                new Object[]{
-                "/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
                 ,"/tt/TestJava.java:6: warning: Associated declaration",7
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
                 ,"/tt/TestJava.java:7: warning: Associated declaration",14
@@ -917,15 +780,7 @@ public class escall2 extends EscBase {
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
                 ,"/tt/TestJava.java:7: warning: Associated declaration",14
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14}
-        :       new Object[]{"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Invariant) in method <init>",8
-                        ,"/tt/TestJava.java:7: warning: Associated declaration",24
-                        ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Invariant) in method m1bad",15
-                        ,"/tt/TestJava.java:6: warning: Associated declaration",17
-                        ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Invariant) in method m2bad",15
-                        ,"/tt/TestJava.java:7: warning: Associated declaration",24
-                        ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Invariant) in method m3bad",22
-                        ,"/tt/TestJava.java:7: warning: Associated declaration",24}
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
                 );
     }
     
@@ -974,11 +829,11 @@ public class escall2 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",!isCustom?7:18
+                ,"/tt/TestJava.java:6: warning: Associated declaration",7
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",!isCustom?14:25
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",!isCustom?14:25
+                ,"/tt/TestJava.java:7: warning: Associated declaration",14
                 );
     }
     
@@ -1024,28 +879,6 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test
-    public void testArrayAccess() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NullableByDefault public class TestJava { \n"
-                
-                +"  public void m1() {\n"
-                +"    int[] a = null;\n"
-                +"    a[0] = 0;\n" // ERROR 
-                +"  }\n"
-                
-                +"  public void m2() {\n"
-                +"    int[] a = null;\n"
-                +"    int i = (a)[0];\n" // ERROR 
-                +"  }\n"
-                
-                +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",!option.equals("-custom")? 5 : 6
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
-                );
-    }
-   
     @Test
     public void testAssignable() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -1173,7 +1006,7 @@ public class escall2 extends EscBase {
                 
                 +"}" // Warning is duplicated because it can occur through either specification case - but not for custom option
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,(option.equals("-custom")) ? null : "/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    
@@ -1210,20 +1043,12 @@ public class escall2 extends EscBase {
         
         
                 +"}"
-                ,!isCustom?
-                        new Object[] {
-                        "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
-                        ,"/tt/TestJava.java:7: warning: Associated declaration",30
-                        ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
-                        ,"/tt/TestJava.java:7: warning: Associated declaration",30
-                        ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
-                        }
-                        : new Object[] {  // FIXME - could enhance the custom version to check undefinedness
-                                "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",9
-                                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
-                        }
-                );
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
+                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
+                ,"/tt/TestJava.java:7: warning: Associated declaration",30
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                 );
     }
    
 

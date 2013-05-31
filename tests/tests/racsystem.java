@@ -88,18 +88,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,!option.equals("-custom") ? new String[]{
-                 "Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"               ,"\tat tt.TestJava.m(TestJava.java:6)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)" }
-            :
-                new String[]{
-                        "Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:5: JML signals condition is false"
-                       ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
-                       ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:35)"
-                       ,"\tat tt.TestJava.m(TestJava.java:5)"
-                       ,"\tat tt.TestJava.main(TestJava.java:3)" }                
+                ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
     }
 
@@ -118,18 +110,10 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,!option.equals("-custom") ? new String[]{
-                 "Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError$Precondition: /tt/TestJava.java:3: JML precondition is false"
+                ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError$Precondition: /tt/TestJava.java:3: JML precondition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)" }
-            :
-                new String[]{
-                        "Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:5: JML precondition is false"
-                       ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
-                       ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:35)"
-                       ,"\tat tt.TestJava.m(TestJava.java:1)"
-                       ,"\tat tt.TestJava.main(TestJava.java:3)" }                
+                ,"\tat tt.TestJava.main(TestJava.java:3)"            
                 );
     }
 
@@ -148,23 +132,13 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,!option.equals("-custom") ? new String[]{
-                 "CAUGHT ASSERTION"
+                ,"CAUGHT ASSERTION"
                 ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
-                ,"END" }
-        :
-            new String[]{
-                        "CAUGHT ASSERTION"
-                        ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:5: JML signals condition is false"
-                        ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
-                        ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:35)"
-                        ,"\tat tt.TestJava.m(TestJava.java:5)"
-                        ,"\tat tt.TestJava.main(TestJava.java:3)"
-                        ,"END" }
+                ,"END"
                 );
     }
     
@@ -185,25 +159,12 @@ public class racsystem extends RacBase {
                 +"}"
                 +"}"
                 
-                ,!option.equals("-custom") ? new String[]{
-                 "/tt/TestJava.java:6: JML assertion is false"
+                ,"/tt/TestJava.java:6: JML assertion is false"
                 ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:27)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
-        }
-        :
-            new String[]{
-                        "/tt/TestJava.java:6: JML assertion is false"
-                        ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
-                        ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:27)"
-                        ,"\tat org.jmlspecs.utils.Utils.assertionFailure(Utils.java:35)"
-                        ,"\tat tt.TestJava.m(TestJava.java:6)"
-                        ,"\tat tt.TestJava.main(TestJava.java:3)"
-                        ,"END"
-                }
-
                 );
     }
     

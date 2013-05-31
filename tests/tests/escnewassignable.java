@@ -613,7 +613,6 @@ public class escnewassignable extends EscBase {
 
     @Test 
     public void testAssignableM1bug() {
-        if (option.equals("-custom")) return;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"

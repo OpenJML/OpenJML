@@ -2929,7 +2929,7 @@ public class esc extends EscBase {
                 +"  public int m1a(int a) { return m(-1); }\n" // Precondition ERROR
                 +"}",
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Precondition) in method m1a",35,
-                "/tt/TestJava.java:15: warning: Associated declaration",(option.equals("-custom") ? 16 : 7)
+                "/tt/TestJava.java:15: warning: Associated declaration",7
         );
     }
 

@@ -264,9 +264,9 @@ public class racnewLoops extends RacBase {
                 "    //@ decreases i; \n" +
                 "    /*@ loop_invariant i + \\index == \\old(i); */" +
                 "    do {  --i; --i; } while (i>0); \n" +
+                "    //@ assert i == -1;\n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
                 ,"END"
                 );
     }
@@ -283,14 +283,11 @@ public class racnewLoops extends RacBase {
                 "} " +
                 "}"
                 ,"VALUE 5"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
                 ,"VALUE 0"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
                 ,"VALUE -1"
                 ,"/tt/TestJava.java:5: JML loop invariant is false before entering loop"
                 ,"/tt/TestJava.java:5: JML loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:6: JML loop variant is negative"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
                 ,"END"
                 );
     }

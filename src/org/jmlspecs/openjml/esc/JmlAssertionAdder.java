@@ -4195,7 +4195,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             JCFieldAccess newfa = treeutils.makeLength(array.pos(),array);
             e = treeutils.makeBinary(index.pos, JCTree.GT, newfa, index);
-            if (javaChecks) addAssert(that.lhs.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
+            if (javaChecks) addAssert(aa.index.pos(), Label.POSSIBLY_TOOLARGEINDEX, e);
             
             // FIXME - test this
             for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
@@ -4892,9 +4892,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.name.toString().equals("charArray")) {
-            System.out.println(that.name + " " + utils.isJMLStatic(that.sym) );
-        }
         if (pureCopy) {
             result = eresult = treeutils.makeIdent(that.pos, that.sym);
             treeutils.copyEndPosition(eresult, that);
@@ -5458,7 +5455,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperCheckNegative(decreasesIDs, that.pos());
         
         // Then translate the original loop body
-        // Have to do some footwork to get the Block object before constructing its contents
         
         loopHelperMakeBody(that.body);
         
@@ -5469,13 +5465,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // increment the index
         loopHelperIncrementIndex(indexDecl);
         
+        // In a do-while loop we test the condition before the invariants
+        
+        // Construct the loop test and the exit block. 
+        loopHelperMakeBreak(that.loopSpecs,cond,loop,that.pos());
+
         // After the loop, check the invariants and check that the variants have decreased
         loopHelperAssertInvariants(that.loopSpecs,decreasesIDs);
         
-        // Construct the loop test and the exit block. The loop invariant is
-        // tested again, though it is the same test as immediately above.
-        loopHelperMakeBreak(that.loopSpecs,cond,loop,that.pos());
-
         // Finish up the new loop body
         // Finish up the output block
         loopHelperFinish(loop,that);

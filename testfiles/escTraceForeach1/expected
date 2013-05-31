@@ -3,63 +3,14 @@ Starting proof of trace.mforeach1(int[]) with prover z3_4_3
 
 TRACE of trace.mforeach1(int[])
 
-testfiles\escTraceLoops\trace.java:167:  	requires a != null; 
+testfiles\escTraceLoops\trace.java:168:  	requires a != null; 
 			VALUE: a	 === REF!val!2
 			VALUE: null	 === null
 			VALUE: a != null	 === true
-testfiles\escTraceLoops\trace.java:168:  	int j = 0
+testfiles\escTraceLoops\trace.java:169:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
-			VALUE: j	 === 0
-			VALUE: 0	 === 0
-			VALUE: j == 0	 === true
-			VALUE: 0	 === 0
-			VALUE: \index	 === 0
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 0
-			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 1
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:170:  	Begin loop check
-testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
-			VALUE: j	 === 0
-			VALUE: 0	 === 0
-			VALUE: j == 0	 === true
-			VALUE: 0	 === 0
-			VALUE: \index	 === 1
-			VALUE: 0 <= \index	 === true
-			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 1
-			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 1
-			VALUE: \index <= a.length	 === true
-			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:170:  	Loop test
-			VALUE: \index	 === 1
-			VALUE: _JML__tmp87	 === 1
-			VALUE: \index < _JML__tmp87	 === false
-testfiles\escTraceLoops\trace.java:173:  	assert Assert j == a.length;
-			VALUE: j	 === 0
-			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 1
-			VALUE: j == a.length	 === false
-testfiles\escTraceLoops\trace.java:173: warning: The prover cannot establish an assertion (Assert) in method mforeach1
-        //@ assert j == a.length;
-            ^
-
-TRACE of trace.mforeach1(int[])
-
-testfiles\escTraceLoops\trace.java:167:  	requires a != null; 
-			VALUE: a	 === REF!val!2
-			VALUE: null	 === null
-			VALUE: a != null	 === true
-testfiles\escTraceLoops\trace.java:168:  	int j = 0
-			VALUE: 0	 === 0
-			VALUE: j	 === 0
-testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
@@ -69,39 +20,88 @@ testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \ind
 			VALUE: j == 0 && 0 <= \index	 === true
 			VALUE: \index	 === 0
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2
+			VALUE: a.length	 === 1237
 			VALUE: \index <= a.length	 === true
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:170:  	Begin loop check
-testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:171:  	Begin loop check
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 0
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === true
 			VALUE: 0	 === 0
-			VALUE: \index	 === 1
+			VALUE: \index	 === 1236
 			VALUE: 0 <= \index	 === true
 			VALUE: j == 0 && 0 <= \index	 === true
-			VALUE: \index	 === 1
+			VALUE: \index	 === 1236
 			VALUE: a	 === REF!val!2
-			VALUE: a.length	 === 2
+			VALUE: a.length	 === 1237
 			VALUE: \index <= a.length	 === true
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
-testfiles\escTraceLoops\trace.java:170:  	Loop test
-			VALUE: \index	 === 1
-			VALUE: _JML__tmp87	 === 2
-			VALUE: \index < _JML__tmp87	 === true
-testfiles\escTraceLoops\trace.java:170:  	Begin loop body
-testfiles\escTraceLoops\trace.java:171:  	j += 1
+testfiles\escTraceLoops\trace.java:171:  	Loop test
+			VALUE: \index	 === 1236
+			VALUE: _JML__tmp89	 === 1237
+			VALUE: \index < _JML__tmp89	 === true
+testfiles\escTraceLoops\trace.java:171:  	Begin loop body
+testfiles\escTraceLoops\trace.java:172:  	j += 1
 			VALUE: 1	 === 1
 			VALUE: j += 1	 === 1
-testfiles\escTraceLoops\trace.java:169:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
 			VALUE: j	 === 1
 			VALUE: 0	 === 0
 			VALUE: j == 0	 === false
 			VALUE: j == 0 && 0 <= \index	 === false
 			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === false
-testfiles\escTraceLoops\trace.java:169: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
+testfiles\escTraceLoops\trace.java:170: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
         //@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+            ^
+
+TRACE of trace.mforeach1(int[])
+
+testfiles\escTraceLoops\trace.java:168:  	requires a != null; 
+			VALUE: a	 === REF!val!3
+			VALUE: null	 === null
+			VALUE: a != null	 === true
+testfiles\escTraceLoops\trace.java:169:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 0
+			VALUE: 0	 === 0
+			VALUE: j == 0	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 0
+			VALUE: 0 <= \index	 === true
+			VALUE: j == 0 && 0 <= \index	 === true
+			VALUE: \index	 === 0
+			VALUE: a	 === REF!val!3
+			VALUE: a.length	 === 1
+			VALUE: \index <= a.length	 === true
+			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+testfiles\escTraceLoops\trace.java:171:  	Begin loop check
+testfiles\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 0
+			VALUE: 0	 === 0
+			VALUE: j == 0	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 1
+			VALUE: 0 <= \index	 === true
+			VALUE: j == 0 && 0 <= \index	 === true
+			VALUE: \index	 === 1
+			VALUE: a	 === REF!val!3
+			VALUE: a.length	 === 1
+			VALUE: \index <= a.length	 === true
+			VALUE: j == 0 && 0 <= \index && \index <= a.length	 === true
+testfiles\escTraceLoops\trace.java:171:  	Loop test
+			VALUE: \index	 === 1
+			VALUE: _JML__tmp89	 === 1
+			VALUE: \index < _JML__tmp89	 === false
+testfiles\escTraceLoops\trace.java:174:  	assert Assert j == a.length;
+			VALUE: j	 === 0
+			VALUE: a	 === REF!val!3
+			VALUE: a.length	 === 1
+			VALUE: j == a.length	 === false
+testfiles\escTraceLoops\trace.java:174: warning: The prover cannot establish an assertion (Assert) in method mforeach1
+        //@ assert j == a.length;
             ^
 Completed proof of trace.mforeach1(int[]) with prover z3_4_3 - with warnings
 Completed proving methods in trace

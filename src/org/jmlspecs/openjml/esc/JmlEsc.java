@@ -40,7 +40,7 @@ import com.sun.tools.javac.util.PropagatedException;
  * <P>
  * To use, instantiate an instance of JmlEsc, and then call either visitClassDef
  * or visitMethodDef; various options from JmlOptions will be used. In particular,
- * the -custom and -boogie options affect which implementation of ESC is used,
+ * the -boogie option affects which implementation of ESC is used,
  * and the -prover and -exec options (and the openjml.prover... properties)
  * determine which prover is used.
  * 
@@ -112,13 +112,11 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public void check(JCTree tree) {
-        if (!JmlOption.isOption(context,"-custom")) {
-            //new JmlAssertionAdder.PositionChecker().check(log,tree);
-            this.assertionAdder = new JmlAssertionAdder(context, true,false);
-            assertionAdder.convert(tree); // get at the converted tree through the map
-            //log.noticeWriter.println("TRANSLATED CHECK");
-            //new JmlAssertionAdder.PositionChecker().check(log,assertionAdder.bimap.getf(tree));
-        }
+        //new JmlAssertionAdder.PositionChecker().check(log,tree);
+        this.assertionAdder = new JmlAssertionAdder(context, true,false);
+        assertionAdder.convert(tree); // get at the converted tree through the map
+        //log.noticeWriter.println("TRANSLATED CHECK");
+        //new JmlAssertionAdder.PositionChecker().check(log,assertionAdder.bimap.getf(tree));
         proverToUse = pickProver();
         tree.accept(this);
     }
@@ -129,8 +127,7 @@ public class JmlEsc extends JmlTreeScanner {
         String proverToUse = JmlOption.value(context,JmlOption.PROVER);
         if (proverToUse == null) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
         if (proverToUse == null) {
-            if (JmlOption.isOption(context,JmlOption.CUSTOM)) proverToUse = YicesProver.NAME;
-            else proverToUse = "z3_4_3";
+            proverToUse = "z3_4_3";
         }
         return proverToUse;
     }
@@ -207,10 +204,8 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res;
         if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
             res = new MethodProverBoogie(this).prove(mdecl);
-        } else if (!JmlOption.isOption(context, JmlOption.CUSTOM)) {
-            res = new MethodProverSMT(this).prove(mdecl);
         } else {
-            res = new MethodProverOld(this).prove(mdecl);
+            res = new MethodProverSMT(this).prove(mdecl);
         }
         
         progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
