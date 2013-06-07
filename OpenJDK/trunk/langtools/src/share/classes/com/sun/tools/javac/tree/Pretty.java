@@ -97,7 +97,7 @@ public class Pretty extends JCTree.Visitor {
      *  the output even though that detail would not be valid java
      *  source.
      */
-    protected final boolean sourceOutput; // DRC - changed from private to protected
+    protected boolean sourceOutput; // DRC - changed from private to protected, removed final
 
     /** The output stream on which trees are printed.
      */

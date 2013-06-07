@@ -88,15 +88,15 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mm1",7
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mm1",8
                 );
     }
     
     @Test public void testReceiver1good() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = a.m(2); \n"
@@ -107,8 +107,8 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver1bad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n"
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n"
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = a.m(1); \n"
@@ -121,8 +121,8 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver2good() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = m(1); \n"
@@ -133,8 +133,8 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver2bad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n"
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n"
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = m(2); \n"
@@ -147,8 +147,8 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver3good() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = this.m(1); \n"
@@ -159,8 +159,8 @@ public class escnew2 extends EscBase {
     @Test public void testReceiver3bad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i;\n"
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i;\n"
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = this.m(2); \n"
@@ -278,8 +278,8 @@ public class escnew2 extends EscBase {
     @Test public void testReturn1good() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = a.m(2); \n"
@@ -291,8 +291,8 @@ public class escnew2 extends EscBase {
     @Test public void testReturn1bad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public void mm(A a) { boolean z; \n"
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = a.m(2); \n"
@@ -305,10 +305,10 @@ public class escnew2 extends EscBase {
     @Test public void testSuper() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
-                +"   //@ ensures i == 3;\n"
+                +"   //@ assignable i; ensures i == 3;\n"
                 +"   public B() { super(3); }\n"
                 +"}}"
                 );
@@ -317,24 +317,24 @@ public class escnew2 extends EscBase {
     @Test public void testSuperbad2() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
-                +"   //@ ensures i == 2;\n"
+                +"   //@ assignable i; ensures i == 2;\n"
                 +"   public B() { super(3); }\n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Postcondition) in method <init>",11
-                ,"/tt/A.java:6: warning: Associated declaration",8
+                ,"/tt/A.java:6: warning: Associated declaration",22
                 );
     }
 
     @Test public void testSuperbad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"static class B extends A {\n"
-                +"   //@ ensures i == 3;\n"
+                +"   //@ assignable i; ensures i == 3;\n"
                 +"   public B() { super(0); }\n"
                 +"}}"
                 ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method <init>",22
@@ -345,9 +345,9 @@ public class escnew2 extends EscBase {
     @Test public void testThis() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
-                +"//@ ensures i == 1; \n "
+                +"//@ assignable i; ensures i == 1; \n "
                 +"public A() { this(1); } \n"
                 +"}"
                 );
@@ -356,9 +356,9 @@ public class escnew2 extends EscBase {
     @Test public void testThisBad() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
-                +"//@ ensures i == 2; \n"
+                +"//@ ensures i == 2; assignable i; \n"
                 +"public A() { this(1); } \n"
                 +"}"
                 ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Postcondition) in method <init>",8
@@ -369,7 +369,7 @@ public class escnew2 extends EscBase {
     @Test public void testThisBad2() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
-                +"//@ requires k > 0; ensures i == k; \n "
+                +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; }\n"
                 +"//@ ensures i == 0; \n"
                 +"public A() { this(0); }\n"

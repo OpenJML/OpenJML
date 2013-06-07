@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Scope;
@@ -196,8 +197,10 @@ public class JmlEnter extends Enter {
 
         } else {
 
+            // FIXME - explain what we are doing here
+            
             ListBuffer<List<JCTree>> prev = currentParentSpecList;
-            ListBuffer<List<JCTree>> newlist = currentParentSpecList = new ListBuffer<List<JCTree>>();
+            currentParentSpecList = new ListBuffer<List<JCTree>>();
             {
                 JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
                 jcu.packge = jmltree.packge; // FIXME - should we check that the packages are the same? why is this not set when it is parsed?
@@ -256,11 +259,11 @@ public class JmlEnter extends Enter {
                 if (name.equals(def.getSimpleName())) {
                     matched = specsClass;
                     if (def.specsDecls == null) {
-                        def.specsDecls = List.<JmlClassDecl>of(specsClass);
+                        def.specsDecls = specsClass;
                     } else {
                         JavaFileObject prev = log.useSource(specsClass.source());
                         log.error(matched.pos,"jml.duplicate.jml.class.decl",matched.name);
-                        log.error(def.specsDecls.get(0).pos,"jml.associated.decl.cf",
+                        log.error(def.specsDecls.pos,"jml.associated.decl.cf",
                         		utils.locationString(matched.pos));
                         log.useSource(prev);
                     }
@@ -299,17 +302,18 @@ public class JmlEnter extends Enter {
         
         JmlClassDecl jmltree = (JmlClassDecl)that;
         
-        if (jmltree.specsDecls != null) {
-            for (JCTree t: that.defs) {
-                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree.toplevel;
-            }
-            for (JmlClassDecl parent: jmltree.specsDecls) { 
-                for (JCTree t: parent.defs) {
-                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = parent.toplevel;
-                }
-            }
-            matchClasses(that.defs, jmltree.specsDecls.get(0).defs, jmltree.typeSpecs.modelTypes);
+        for (JCTree t: that.defs) {
+            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree.toplevel;
         }
+        
+        if (jmltree.specsDecls != null) {
+            JmlClassDecl parent = jmltree.specsDecls;
+            for (JCTree t: parent.defs) {
+                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = parent.toplevel;
+            }
+            matchClasses(that.defs, jmltree.specsDecls.defs, jmltree.typeSpecs.modelTypes);
+        }
+        
         super.visitClassDef(that);
         if (that.sym == null) return; // Bad error in defining the class
         
@@ -317,39 +321,36 @@ public class JmlEnter extends Enter {
         jmltree.env = localEnv;
         
         if (jmltree.specsDecls != null) {
-            for (JmlClassDecl specDecl : jmltree.specsDecls) {
-                if (specDecl != jmltree) {
-                    specDecl.sym = that.sym;
-                    specDecl.env = classEnv(specDecl,localEnv); // Requires specDecl.sym to be set
-                    // FIXME - not sure about the following
-                    enterTypeParametersForBinary(that.sym,specDecl,localEnv);
-                }
+            JmlClassDecl specDecl = jmltree.specsDecls;
+            if (specDecl != jmltree) {
+                specDecl.sym = that.sym;
+                specDecl.env = classEnv(specDecl,localEnv); // Requires specDecl.sym to be set
+                // FIXME - not sure about the following
+                enterTypeParametersForBinary(that.sym,specDecl,localEnv);
             }
         }
         
         List<JmlClassDecl> nestedModelTypes = collectNestedModelTypes(jmltree.specsDecls).toList();
         for (JmlClassDecl modelType: nestedModelTypes) {
-            LinkedList<JmlClassDecl> list = new LinkedList<JmlClassDecl>();
-            list.add(modelType);
-            modelType.specsDecls = list;
+            modelType.specsDecls = modelType;
             modelType.toplevel = jmltree.toplevel;
             Utils.instance(context).setJML(modelType.mods); // FIXME - is this already set?
             classEnter(modelType,localEnv);
         }
 
-        java.util.List<JmlClassDecl> selflist = jmltree.specsDecls;
+        JmlClassDecl specsDecl = jmltree.specsDecls;
         Env<AttrContext> localenv = typeEnvs.get(that.sym);
         boolean wasNull = localenv == null;
         JmlClassDecl principalDecl;
         if (localenv != null) {
             // Typically a java class with or without specs
             principalDecl = (JmlClassDecl)localenv.tree;
-        } else if (selflist != null && !selflist.isEmpty()) {
+        } else if (specsDecl != null) {
             // A binary class with specs - JDK did not register an env because
             // there is no Java source.  We put in one for the most refined
             // spec file
-            principalDecl = selflist.get(0);
-            localenv = selflist.get(0).env;
+            principalDecl = specsDecl;
+            localenv = specsDecl.env;
         } else {
             principalDecl = null;
             // This happens for a binary class with no specs for the given type
@@ -358,7 +359,7 @@ public class JmlEnter extends Enter {
             // binary) the most refined specs declaration
 
         JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs(that.sym);
-        combinedTypeSpecs.refiningSpecDecls = selflist;
+        combinedTypeSpecs.refiningSpecDecls = specsDecl;
         if (principalDecl == null) {
             combinedTypeSpecs.modifiers = null;
             combinedTypeSpecs.decl = null;
@@ -528,7 +529,6 @@ public class JmlEnter extends Enter {
             // binary) the most refined specs declaration
 
         JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs(classToMatch);
-        combinedTypeSpecs.refiningSpecDecls = selflist;
         if (principalDecl == null) {
             combinedTypeSpecs.modifiers = null;
             combinedTypeSpecs.decl = null;
@@ -537,6 +537,7 @@ public class JmlEnter extends Enter {
             combineSpecs(classToMatch,principalDecl);
             principalDecl.typeSpecsCombined = combinedTypeSpecs; // FIXME - is this already the case
         }
+        combinedTypeSpecs.refiningSpecDecls = principalDecl;
 
         // Determine an env for this class if it does not have one
         // We need to have some sort of declaration to do so - we use the
@@ -566,11 +567,12 @@ public class JmlEnter extends Enter {
      * @return A list of JML types (they should be model) directly nested in
      * the elements of the argument
      */
-    protected ListBuffer<JmlClassDecl> collectNestedModelTypes(@Nullable java.util.List<JmlClassDecl> selflist) {
+    protected ListBuffer<JmlClassDecl> collectNestedModelTypes(@Nullable JmlClassDecl specs) {
         ListBuffer<JmlClassDecl> collected = new ListBuffer<JmlClassDecl>();
-        if (selflist == null) return collected;
+        if (specs == null) return collected;
         HashSet<Name> names = new HashSet<Name>();
-        for (JmlClassDecl jcd: selflist) {  // this order or reverse order? FIXME
+        JmlClassDecl jcd = specs; 
+        {  // this order or reverse order? FIXME
             for (JmlClassDecl mdecl: jcd.typeSpecs.modelTypes) {
                 if (!names.add(mdecl.name)) {
                     // already contains this name
@@ -696,7 +698,7 @@ public class JmlEnter extends Enter {
                     // an error will be issued during modifier checking that is part of type checking
 
                     // Model class declarations are their own specification
-                    specTypeDeclaration.specsDecls = List.<JmlClassDecl>of(specTypeDeclaration);
+                    specTypeDeclaration.specsDecls =specTypeDeclaration;
                     currentParentSpecList = new ListBuffer<List<JCTree>>();
                     currentParentSpecList.append(List.<JCTree>of(specTypeDeclaration));
                     
@@ -747,8 +749,8 @@ public class JmlEnter extends Enter {
         }
 
         JmlSpecs.TypeSpecs nspecs = null;
-        if (tspecs.refiningSpecDecls != null && !tspecs.refiningSpecDecls.isEmpty()) {
-            nspecs = tspecs.refiningSpecDecls.get(0).typeSpecs;  // first or last - current usage there is only ever one
+        if (tspecs.refiningSpecDecls != null) {
+            nspecs = tspecs.refiningSpecDecls.typeSpecs;  // first or last - current usage there is only ever one
         } else if (specTypeDecl != null) {
             // This can happen when we are using source files for runtime Utils classes, which probably happens
             // only in test scenarios
@@ -948,92 +950,93 @@ public class JmlEnter extends Enter {
 
         // Then enter this class's model types     // FIXME - should we use the combined list?
         JmlSpecs.TypeSpecs combinedTypeSpecs = specs.getSpecs(csymbol);
-        for (JmlClassDecl cd : combinedTypeSpecs.refiningSpecDecls) {
+        JmlClassDecl cd = combinedTypeSpecs.refiningSpecDecls;
+        if (cd != null) {
             enterModelTypes(cd.typeSpecs.modelTypes,cd.env);
         }
 
 }
 
-    /** Checks that the inheritance relationships in the specification
-     * declaration match those in the class.  Presumes all types have been
-     * entered and have symbols assigned.
-     * @param specTypeDeclaration the spec declaration to check
-     */
-    private void checkSpecInheritance(JmlClassDecl specTypeDeclaration) {
-
-        ClassSymbol matchingCSymbol = specTypeDeclaration.sym;
-        
-        // Check that the package is correct
-        if (specTypeDeclaration.toplevel.packge != matchingCSymbol.packge()) {
-            log.error(specTypeDeclaration.toplevel.pid.pos,"jml.mismatched.package",  // TODO _ test this
-                    specTypeDeclaration.toplevel.packge,matchingCSymbol.packge());
-        }
-        // FIXME - use type comparison here
-        
-        // Check that the specification has the correct super types
-        if (!matchingCSymbol.equals(syms.objectType.tsym) && !matchingCSymbol.isInterface()) {
-            JCTree sup = specTypeDeclaration.extending;
-            Type suptype = matchingCSymbol.getSuperclass();
-            Name s = suptype.tsym.getQualifiedName();
-            if (sup == null && !suptype.tsym.equals(syms.objectType.tsym)) {
-                log.error("jml.missing.spec.superclass",matchingCSymbol.getQualifiedName().toString(),s.toString());
-            } else if (sup instanceof JCTree.JCIdent) {
-                if ( s != null && !s.toString().endsWith(((JCTree.JCIdent)sup).name.toString()) ) {
-                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCIdent)sup).name.toString(),s.toString());
-                }
-            } else if (sup instanceof JCTree.JCFieldAccess) {
-                if ( !s.toString().endsWith(((JCTree.JCFieldAccess)sup).name.toString()) ) {
-                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCFieldAccess)sup).name.toString(),s.toString());
-                }
-            }
-        }
-
-        // Check the interfaces
-
-        List<Type> interfaces = matchingCSymbol.getInterfaces();
-        Collection<Type> copy = new LinkedList<Type>();
-        for (Type t: interfaces) copy.add(t);
-
-        for (JCTree.JCExpression e : specTypeDeclaration.implementing) {
-            // FIXME - should match types
-            Name nm = null;
-            if (e instanceof JCTree.JCIdent) {
-                nm = ((JCTree.JCIdent)e).name;
-            } else if (e instanceof JCTree.JCFieldAccess) {
-                nm = ((JCTree.JCFieldAccess)e).name;
-            } else if (e instanceof JCTree.JCTypeApply){
-                JCTree.JCExpression ee = e;
-                while (ee instanceof JCTree.JCTypeApply) ee = ((JCTree.JCTypeApply)ee).clazz;
-                if (ee instanceof JCTree.JCIdent) nm = ((JCTree.JCIdent)ee).name;
-                if (ee instanceof JCTree.JCFieldAccess) nm = ((JCTree.JCFieldAccess)ee).name;
-            } else {
-                log.noticeWriter.println("UNSUPPORTED IMPLEMENTS TYPE (" + matchingCSymbol + "): " + e.getClass() + " " + e);
-                // ERROR - FIXME
-            }
-            if (nm != null) {
-                boolean found = false;
-                java.util.Iterator<Type> iter = copy.iterator();
-                while (iter.hasNext()) {
-                    Name nmm = iter.next().tsym.getQualifiedName();
-                    if (nmm.toString().contains(nm.toString())) {
-                        iter.remove();
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    log.error("jml.missing.spec.interface",matchingCSymbol.getQualifiedName().toString(),nm.toString());
-                }
-            }
-        }
-        for (Type t: copy) {
-            if (t.toString().equals("java.lang.annotation.Annotation") && matchingCSymbol.isInterface()) continue;
-            log.error("jml.unimplemented.spec.interface",matchingCSymbol.getQualifiedName().toString(),t.toString());
-        }
-
-        // FIXME - should do thte above from resolved symbols
-        // FIXME - need to check modifiers
-    }
+//    /** Checks that the inheritance relationships in the specification
+//     * declaration match those in the class.  Presumes all types have been
+//     * entered and have symbols assigned.
+//     * @param specTypeDeclaration the spec declaration to check
+//     */
+//    private void checkSpecInheritance(JmlClassDecl specTypeDeclaration) {
+//
+//        ClassSymbol matchingCSymbol = specTypeDeclaration.sym;
+//        
+//        // Check that the package is correct
+//        if (specTypeDeclaration.toplevel.packge != matchingCSymbol.packge()) {
+//            log.error(specTypeDeclaration.toplevel.pid.pos,"jml.mismatched.package",  // TODO _ test this
+//                    specTypeDeclaration.toplevel.packge,matchingCSymbol.packge());
+//        }
+//        // FIXME - use type comparison here
+//        
+//        // Check that the specification has the correct super types
+//        if (!matchingCSymbol.equals(syms.objectType.tsym) && !matchingCSymbol.isInterface()) {
+//            JCTree sup = specTypeDeclaration.extending;
+//            Type suptype = matchingCSymbol.getSuperclass();
+//            Name s = suptype.tsym.getQualifiedName();
+//            if (sup == null && !suptype.tsym.equals(syms.objectType.tsym)) {
+//                log.error("jml.missing.spec.superclass",matchingCSymbol.getQualifiedName().toString(),s.toString());
+//            } else if (sup instanceof JCTree.JCIdent) {
+//                if ( s != null && !s.toString().endsWith(((JCTree.JCIdent)sup).name.toString()) ) {
+//                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCIdent)sup).name.toString(),s.toString());
+//                }
+//            } else if (sup instanceof JCTree.JCFieldAccess) {
+//                if ( !s.toString().endsWith(((JCTree.JCFieldAccess)sup).name.toString()) ) {
+//                    log.error("jml.incorrect.spec.superclass",matchingCSymbol.getQualifiedName().toString(),((JCTree.JCFieldAccess)sup).name.toString(),s.toString());
+//                }
+//            }
+//        }
+//
+//        // Check the interfaces
+//
+//        List<Type> interfaces = matchingCSymbol.getInterfaces();
+//        Collection<Type> copy = new LinkedList<Type>();
+//        for (Type t: interfaces) copy.add(t);
+//
+//        for (JCTree.JCExpression e : specTypeDeclaration.implementing) {
+//            // FIXME - should match types
+//            Name nm = null;
+//            if (e instanceof JCTree.JCIdent) {
+//                nm = ((JCTree.JCIdent)e).name;
+//            } else if (e instanceof JCTree.JCFieldAccess) {
+//                nm = ((JCTree.JCFieldAccess)e).name;
+//            } else if (e instanceof JCTree.JCTypeApply){
+//                JCTree.JCExpression ee = e;
+//                while (ee instanceof JCTree.JCTypeApply) ee = ((JCTree.JCTypeApply)ee).clazz;
+//                if (ee instanceof JCTree.JCIdent) nm = ((JCTree.JCIdent)ee).name;
+//                if (ee instanceof JCTree.JCFieldAccess) nm = ((JCTree.JCFieldAccess)ee).name;
+//            } else {
+//                log.noticeWriter.println("UNSUPPORTED IMPLEMENTS TYPE (" + matchingCSymbol + "): " + e.getClass() + " " + e);
+//                // ERROR - FIXME
+//            }
+//            if (nm != null) {
+//                boolean found = false;
+//                java.util.Iterator<Type> iter = copy.iterator();
+//                while (iter.hasNext()) {
+//                    Name nmm = iter.next().tsym.getQualifiedName();
+//                    if (nmm.toString().contains(nm.toString())) {
+//                        iter.remove();
+//                        found = true;
+//                        break;
+//                    }
+//                }
+//                if (!found) {
+//                    log.error("jml.missing.spec.interface",matchingCSymbol.getQualifiedName().toString(),nm.toString());
+//                }
+//            }
+//        }
+//        for (Type t: copy) {
+//            if (t.toString().equals("java.lang.annotation.Annotation") && matchingCSymbol.isInterface()) continue;
+//            log.error("jml.unimplemented.spec.interface",matchingCSymbol.getQualifiedName().toString(),t.toString());
+//        }
+//
+//        // FIXME - should do thte above from resolved symbols
+//        // FIXME - need to check modifiers
+//    }
 
     /** Compares the type parameters for the Java class denoted by csym and the 
      * type parameters in the given type declaration (typically from a 
@@ -1098,7 +1101,7 @@ public class JmlEnter extends Enter {
         if (jfo.getKind() == JavaFileObject.Kind.SOURCE) return super.classNameMatchesFileName(c, env);
         // FIXME: Actually we are loose in our comparison
         String filename = jfo.getName();
-        return filename.endsWith(classname + ".jml"); // FIXME - put in Strings file or a better test on suffix
+        return filename.endsWith(classname + Strings.specsSuffix); // FIXME - what if classname is just the tail of the filename
     }
 
     /** Overrides Enter.main simply to add to the list of compilation units 

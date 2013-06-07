@@ -213,8 +213,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 checkTypeMatch(jtree,jtree); // Still need to check modifiers
                 return;
             }
-            // FIXME to handle whole specs sequence
-            if (jtree.specsDecls.size() == 0) {
+
+            if (jtree.specsDecls == null) {
                 // This happens for classes nested in org.jmlspecs.utils.Utils, since
                 // they have no specs within the corresponding .jml file - perhaps they should.  TODO
                 
@@ -223,9 +223,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 
                 // The class should at least have been given itself as specs
                 // We try to recover at this point by doing so
-                jtree.specsDecls.add(jtree);
+                jtree.specsDecls = jtree;
             }
-            JmlClassDecl specsDecl = jtree.specsDecls.get(0);  // This match was made in JmlEnter; but only one (at most) match is kept - needs to be a sequence FIXME
+            
+            
+            JmlClassDecl specsDecl = jtree.specsDecls;
+
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
             
             // First we scan through the Java parts of the spec file
@@ -371,7 +374,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JmlMethodDecl m = (JmlMethodDecl)t;
                     m.methodSpecsCombined = specs.getSpecs(m.sym);
                     if (m.methodSpecsCombined == null) {
-                        JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
+                        JmlSpecs.MethodSpecs defaultSpecs = specs.defaultSpecs(m);
                         m.methodSpecsCombined = defaultSpecs;
                         defaultSpecs.cases.decl = m;
                         JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
@@ -394,7 +397,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         JmlMethodDecl m = (JmlMethodDecl)tcd.decl;
                         m.methodSpecsCombined = specs.getSpecs(m.sym);
                         if (m.methodSpecsCombined == null) {
-                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
+                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(context,m.sym,m.pos);
                             m.methodSpecsCombined = defaultSpecs;
                             defaultSpecs.cases.decl = m;
                             JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
@@ -624,7 +627,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         } else {
             
             if (specsMethodDecl == null) {
-                combinedSpecs = JmlSpecs.defaultSpecs(0);  // FIXME
+                combinedSpecs = JmlSpecs.defaultSpecs(context,matchSym,0);  // FIXME
             } else {
                 combinedSpecs = new JmlSpecs.MethodSpecs(specsMethodDecl.mods,specsMethodDecl.cases);
             }
@@ -827,7 +830,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JmlMethodDecl m = (JmlMethodDecl)t;
                     m.methodSpecsCombined = specs.getSpecs(m.sym);
                     if (m.methodSpecsCombined == null) {
-                        JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m);
+                        JmlSpecs.MethodSpecs defaultSpecs = specs.defaultSpecs(m);
                         m.methodSpecsCombined = defaultSpecs;
                         defaultSpecs.cases.decl = m;
                         JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
@@ -850,7 +853,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         JmlMethodDecl m = (JmlMethodDecl)tcd.decl;
                         m.methodSpecsCombined = specs.getSpecs(m.sym);
                         if (m.methodSpecsCombined == null) {
-                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(m.pos);
+                            JmlSpecs.MethodSpecs defaultSpecs = JmlSpecs.defaultSpecs(context,m.sym,m.pos);
                             m.methodSpecsCombined = defaultSpecs;
                             defaultSpecs.cases.decl = m;
                             JmlSpecs.instance(context).putSpecs(m.sym, m.methodSpecsCombined);
@@ -2521,7 +2524,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         super.visitVarDef(tree);
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.noticeWriter.println("Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-        specs.putSpecs(tree.sym,new JmlSpecs.FieldSpecs(tree.mods));
+        specs.putSpecs(tree.sym,new JmlSpecs.FieldSpecs(tree.mods)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
         if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
                 && utils.isJML(tree.mods)) {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final

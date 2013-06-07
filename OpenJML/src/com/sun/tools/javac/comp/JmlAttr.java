@@ -551,7 +551,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     isInJmlDeclaration = prevIsInJmlDeclaration;
                     ((JmlCheck)chk).setInJml(isInJmlDeclaration);
                     // FIXME - this should not be null
-                    if (tspecs.refiningSpecDecls != null && tspecs.refiningSpecDecls.get(0).source() != null) log.useSource(tspecs.refiningSpecDecls.get(0).source()); // FIXME - this comparison is a bit mixed up
+                    if (tspecs.refiningSpecDecls != null && tspecs.refiningSpecDecls.source() != null) log.useSource(tspecs.refiningSpecDecls.source()); // FIXME - this comparison is a bit mixed up
                     checkClassMods(c.owner,tspecs.decl,tspecs.modifiers);
                 } else {
                     log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c);
@@ -749,7 +749,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
         checkForConflict(specsModifiers,PURE,QUERY);
-        if (javaDecl.specsDecls != null) checkSameAnnotations(javaDecl.sym,javaDecl.specsDecls.get(0).mods); // Use combined modifiers - FIXME
+        if (javaDecl.specsDecls != null) checkSameAnnotations(javaDecl.sym,javaDecl.specsDecls.mods); // Use combined modifiers - FIXME
     }
     
     //public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
@@ -767,7 +767,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         // Check that every specification class declaration (e.g. class decl in a .jml file) has
         // Java modifiers that match the modifiers in the Java soursce or class file.
-        if (combinedTypeSpecs.refiningSpecDecls != null) for (JmlClassDecl specsDecl: combinedTypeSpecs.refiningSpecDecls) {
+        JmlClassDecl specsDecl = combinedTypeSpecs.refiningSpecDecls;
+        if (specsDecl != null) {
             // FIXME - no way to skip the loop if the specsDecl is the javaDecl
             
             // Check that modifiers are the same
@@ -1311,7 +1312,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // the modifiers are added into the symbol
     // FIXME - check everything for position information
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlSpecs.MethodSpecs msp) {
-        //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym);
+        //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym + decl.toString());
         if (msp == null) return;
         JmlMethodSpecs methodSpecs = msp.cases;
         Env<AttrContext> prevEnv = env;
@@ -1492,11 +1493,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (cl.token == JmlToken.SIGNALS_ONLY) anySOClause = true;
         }
         if (!anySOClause) {
-            List<JCExpression> list = decl.thrown;
-            if (list == null) list = List.<JCExpression>nil();
             DiagnosticPosition p = decl.pos();
             if (decl.thrown != null && !decl.thrown.isEmpty()) p = decl.thrown.get(0).pos();
-            JmlMethodClauseSignalsOnly cl = (factory.at(p).JmlMethodClauseSignalsOnly(JmlToken.SIGNALS_ONLY, list));
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            if (decl.thrown != null) list.addAll(decl.thrown);
+            list.add(factory.at(p).Type(syms.runtimeExceptionType));
+            JmlMethodClauseSignalsOnly cl = (factory.at(p).JmlMethodClauseSignalsOnly(JmlToken.SIGNALS_ONLY, list.toList()));
             cl.sourcefile = log.currentSourceFile();
             prefix.add(cl);
         }
@@ -3641,7 +3643,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             List<JCTree> defs = List.<JCTree>of(methodDecl);
             JmlClassDecl classDecl = (JmlClassDecl)F.AnonymousClassDef(F.Modifiers(0), defs) ;
-            classDecl.specsDecls = List.of(classDecl);
+            classDecl.specsDecls = classDecl;
             classDecl.typeSpecs = new JmlSpecs.TypeSpecs(classDecl);
             classDecl.toplevel = ((JmlClassDecl)enclosingClassEnv.enclClass).toplevel;
             JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),constructName,List.<JCExpression>nil(),classDecl); 
@@ -4967,7 +4969,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                // Warn for non-local classes
 //                log.error("jml.internal.notsobad","A non-local class's specsDecl field was unexpectedly null in JmlAtt.visitJmlClassDecl: " + that.name);
 //            }
-            that.specsDecls = List.<JmlClassDecl>of(that);
+            that.specsDecls = that;
             that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         

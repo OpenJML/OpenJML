@@ -292,6 +292,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testNNAssign() {
+        // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
+        main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -360,7 +362,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign2() {
-       // main.addOptions("-show","-method=m4b");
+        main.addOptions("-noInternalSpecs");
+        //main.addOptions("-show","-method=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -433,6 +436,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign3() {
+        main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
@@ -733,11 +737,11 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
-                +"  static int ii;\n"
-                +"  int i;\n"
+                +"  static public int ii;\n"
+                +"  public int i;\n"
                 
-                +"  //@ invariant i >= 0;\n"
-                +"  //@ static invariant ii >= 0;\n"
+                +"  //@ public invariant i >= 0;\n"
+                +"  //@ static public invariant ii >= 0;\n"
                 
                 +"  //@ assignable \\everything; \n"
                 +"  public void m1bad() {\n"
@@ -772,15 +776,15 @@ public class escall2 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
-                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:6: warning: Associated declaration",14
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",21
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:6: warning: Associated declaration",14
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",21
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",21
                 );
     }
     
@@ -790,11 +794,11 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
-                +"  static int ii;\n"
-                +"  int i;\n"
+                +"  static public int ii;\n"
+                +"  public int i;\n"
                 
-                +"  //@ constraint i >= \\old(i);\n"
-                +"  //@ static constraint ii >= \\old(ii);\n"
+                +"  //@ public constraint i >= \\old(i);\n"
+                +"  //@ static public constraint ii >= \\old(ii);\n"
                 
                 +"  //@ assignable \\everything; \n"
                 +"  public void m1bad() {\n"
@@ -829,11 +833,11 @@ public class escall2 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:6: warning: Associated declaration",14
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",21
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: Associated declaration",21
                 );
     }
     

@@ -885,7 +885,7 @@ public class JmlParser extends EndPosParser {
                     JmlClassDecl jcd = (JmlClassDecl) tree;
                     typeSpecs.modelTypes.append(jcd);
                     // model types are their own specs
-                    jcd.specsDecls = List.<JmlClassDecl> of(jcd);
+                    jcd.specsDecls = jcd;
                     tree = null; // model types are not in clauses
                     // OK
                 } else {

@@ -219,9 +219,13 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(thisSym,emptyList, refSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("stringEquals"),Arrays.asList(stringSort,stringSort), boolSort);
+        c = new C_declare_fun(F.symbol("equals"),Arrays.asList(refSort,refSort), boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("stringConcat"),Arrays.asList(refSort,refSort), refSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("lessThan"),Arrays.asList(refSort,refSort), boolSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), intSort);
         commands.add(c);
         c = new C_assert(F.fcn(F.symbol("distinct"), thisSym, nullSym));
         commands.add(c);
@@ -450,22 +454,44 @@ public class SMTTranslator extends JmlTreeScanner {
                 tcommands.add(new C_assert(comp));
             }
         }
+        {
+            List<IDeclaration> params = new LinkedList<IDeclaration>();
+            params.add(F.declaration(F.symbol("t1"),javaTypeSort));
+            params.add(F.declaration(F.symbol("t2"),javaTypeSort));
+            params.add(F.declaration(F.symbol("t3"),javaTypeSort));
+            IExpr e = F.forall(params, 
+                    F.fcn(F.symbol("=>"), 
+                          F.fcn(F.symbol("and"), 
+                                  F.fcn(F.symbol("javaSubType"),F.symbol("t1"),F.symbol("t2")),
+                                  F.fcn(F.symbol("javaSubType"),F.symbol("t2"),F.symbol("t3"))
+                                  ),
+                          F.fcn(F.symbol("javaSubType"),F.symbol("t1"),F.symbol("t3"))
+                          ));
+            tcommands.add(new C_assert(e));
+        }
         commands.addAll(loc,tcommands);
         
         return script;
     }
     
+    public String typeString(Type t) {
+        if (t.tag == TypeTags.ARRAY){
+            return typeString(((ArrayType)t).elemtype) + "_A_";
+        }
+        return t.toString().replace(".", "_");
+    }
+    
     public IExpr.ISymbol javaTypeSymbol(Type t) {
         //String s = "|T_" + t.toString() + "|";
         if (t.tag == TypeTags.BOT) t = syms.objectType;
-        String s = ("T_" + t.toString() + "").replace(".", "_");
+        String s = "T_" + typeString(t);
         return F.symbol(s);
     }
     
     public IExpr.ISymbol jmlTypeSymbol(Type t) {
         if (t.tag == TypeTags.BOT) t = syms.objectType;
         //String s = "|JMLT_" + t.toString() + "|" ;
-        String s = ("JMLT_" + t.toString() + "").replace(".", "_") ;
+        String s = "JMLT_" + typeString(t);
         return F.symbol(s);
     }
     
@@ -529,7 +555,7 @@ public class SMTTranslator extends JmlTreeScanner {
                  if (decl.ident != null) bimap.put(decl.ident, sym);
                  return convert(iter,tail);
             } else if (stat instanceof JmlStatementExpr) {
-                IExpr ex = convert(iter,tail);
+                IExpr ex = convert(iter,tail); // FIXME - this make a big stack for a long list of commands
                 JmlStatementExpr s = (JmlStatementExpr)stat;
                 if (s.token == JmlToken.ASSUME) {
                     IExpr exx = convertExpr(s.expression);
@@ -621,22 +647,24 @@ public class SMTTranslator extends JmlTreeScanner {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
             String name = ((JCIdent)m).name.toString();
-            if (name.equals(BasicBlocker2.STOREString)) {
-                result = F.fcn(F.symbol("store"),
-                        convertExpr(tree.args.get(0)),
-                        convertExpr(tree.args.get(1)),
-                        convertExpr(tree.args.get(2))
-                        );
-                return;
+            String newname;
+            if (name.equals(BasicBlocker2.SELECTString)) {
+                newname = "select";
+            } else if (name.equals("equals")) {
+                newname = "equals";
+            } else if (name.equals("equal")) {
+                newname = "equals";
+            } else {
+                newname = name;
             }
-//            if (name.equals("equals")) {
-//                result = F.fcn(F.symbol("stringEquals"),
-//                        convertExpr(tree.meth.),
-//                        convertExpr(tree.args.get(1)),
-//                        convertExpr(tree.args.get(2))
-//                        );
-//                
-//            }
+            List<IExpr> newargs = new LinkedList<IExpr>();
+            for (JCExpression arg: tree.args) {
+                scan(arg);
+                newargs.add(convertExpr(arg));
+            }
+            result = F.fcn(F.symbol(newname),newargs);
+            return;
+
         } else if (m == null) {
             if (tree instanceof JmlBBFieldAssignment) {
                 IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
@@ -648,28 +676,60 @@ public class SMTTranslator extends JmlTreeScanner {
                 return;
             }
             else if (tree instanceof JmlBBArrayAssignment) {
-                // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
-                IExpr.IFcnExpr sel = F.fcn(selectSym,
-                        convertExpr(tree.args.get(1)),
-                        convertExpr(tree.args.get(2))
-                        );
-                IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
-                                sel,
-                                convertExpr(tree.args.get(3)),
-                                convertExpr(tree.args.get(4))
-                                );
+                if (tree.args.length() > 3) {
+                    // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
+                    IExpr.IFcnExpr sel = F.fcn(selectSym,
+                            convertExpr(tree.args.get(1)),
+                            convertExpr(tree.args.get(2))
+                            );
+                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                            sel,
+                            convertExpr(tree.args.get(3)),
+                            convertExpr(tree.args.get(4))
+                            );
 
-                IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
-                        convertExpr(tree.args.get(1)),
-                        convertExpr(tree.args.get(2)),
-                        newarray
-                        );
-                result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+                    IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            convertExpr(tree.args.get(2)),
+                            newarray
+                            );
+                    result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
+                } else {
+                    // [0] = store([1],[2], select([0],[2]))
+                    IExpr arg0 = convertExpr(tree.args.get(0));
+                    IExpr arg2 = convertExpr(tree.args.get(2));
+                    IExpr.IFcnExpr sel = F.fcn(selectSym,
+                            arg0,
+                            arg2
+                            );
+
+                    IExpr.IFcnExpr newarray = F.fcn(F.symbol("store"),
+                            convertExpr(tree.args.get(1)),
+                            arg2,
+                            sel
+                            );
+                    result = F.fcn(eqSym, arg0,newarray);                    
+                }
                 return;
             }
+        } else if (m instanceof JCFieldAccess) {
+            String name = ((JCFieldAccess)m).name.toString();
+            String newname = null;
+            if (name.equals("length")) {
+                newname = "stringLength";
+            } else if (name.equals("equals")) {
+                newname = "equals";
+            } else {
+                newname = name;
+            }
+            List<IExpr> newargs = new LinkedList<IExpr>();
+            newargs.add(convertExpr(((JCFieldAccess)m).selected));
+            for (JCExpression arg: tree.args) {
+                newargs.add(convertExpr(arg));
+            }
+            result = F.fcn(F.symbol(newname),newargs);
+            
         }
-        notImpl(tree);
-        super.visitApply(tree);
     }
     
     @Override

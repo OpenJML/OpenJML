@@ -2932,7 +2932,7 @@ public class BasicBlocker extends JmlTreeScanner {
             // The specs may be null because none were ever written (and there
             // was not even a declaration of the method to which an empty spec
             // was attached).
-            mspecs = JmlSpecs.defaultSpecs(0); // FIXME - review - argument was
+            mspecs = JmlSpecs.defaultSpecs(context,msym,0); // FIXME - review - argument was
                                                // null and used to work
         }
         // Note: The mspecs.decl may be null if the original class is only
@@ -4752,7 +4752,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 // If there is no declaration of the method in the spec file,
                 // then an empty JmlMethodSpecs structure will have been put
                 // in the specs database.
-                mspecs = JmlSpecs.defaultSpecs(0).cases;
+                mspecs = JmlSpecs.defaultSpecs(context,sym,0).cases;
             } else {
                 decl = mspecs.decl;
             }
@@ -4890,7 +4890,7 @@ public class BasicBlocker extends JmlTreeScanner {
                 // method.
                 // log.noticeWriter.println("NO SPECS FOR METHOD CALL(A) " +
                 // sym.owner + "." + sym);
-                mspecs = JmlSpecs.defaultSpecs(pos).cases;
+                mspecs = JmlSpecs.defaultSpecs(context,methodSym,pos).cases;
             } // else
             {
                 boolean isStaticCalled = methodSym.isStatic();
@@ -6728,7 +6728,7 @@ public class BasicBlocker extends JmlTreeScanner {
             Symbol.MethodSymbol sym = (MethodSymbol) that.constructor;
             JmlSpecs.MethodSpecs mspecs = specs.getSpecs(sym);
             if (mspecs == null) {
-                mspecs = JmlSpecs.defaultSpecs(0); // FIXME - is this OK
+                mspecs = JmlSpecs.defaultSpecs(context,methodDecl.sym,0); // FIXME - is this OK
                 // Log.instance(context).error("jml.internal","Unexpected failure to find specifications (even an empty spec) for method "
                 // + sym.owner + "." + sym);
                 // throw new JmlInternalError();

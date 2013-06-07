@@ -17,23 +17,14 @@ import org.junit.runners.Parameterized.Parameters;
  * put the new system classes (in jdkbin) in the bootclasspath ahead of the regular
  * java classes.
  */
-@RunWith(Parameterized.class)
 public class racsystem extends RacBase {
 
-    String option;
-    
-    @Parameters
-    static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-newesc"}); 
-        data.add(new String[]{"-custom"}); 
-        return data;
-    }
-    
-    public racsystem(String o) {
-        option = o;
-    }
-
+//    String option;
+//    
+//    public racsystem(String o) {
+//        option = o;
+//    }
+//
     
     /** The command-line to use to run RACed programs - note the inclusion of the
      * RAC-compiled JDK library classes ahead of the regular Java libaray classes
@@ -48,7 +39,7 @@ public class racsystem extends RacBase {
         //noCollectDiagnostics = true;
         super.setUp();
         options.put("-noPurityCheck",""); // To shut off complaints about misuse of purity in Java specifications
-        options.put(option,"");//print = true;
+//        options.put(option,"");//print = true;
     }
 
     // FIXME - not testing rac-compiled JDK files
@@ -105,7 +96,7 @@ public class racsystem extends RacBase {
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
                 +"System.out.println(\"END\"); } \n"
                 +"/*@ requires false;*/ \n"
-                +"static void m() {\n"
+                +"static public void m() {\n"
                 +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
                 +"}"
                 +"}"
@@ -171,7 +162,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile3() {
         expectedNotes =  0; // 2
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-noInternalSpecs","-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }\n"

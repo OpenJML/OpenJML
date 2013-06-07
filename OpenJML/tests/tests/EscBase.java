@@ -29,24 +29,9 @@ public abstract class EscBase extends JmlTestCase {
         // "simplify" 
     };
     
-    static public String[] nonullsolvers = { 
-        "z3_4_3", 
-        "cvc4",
-        "yices2" , 
-        // "yices", 
-        // "simplify" 
-    };
-    
-    static public String[] oldsolvers = { 
-        null, 
-        // "yices", 
-        // "simplify" 
-    };
-    
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
         data.addAll(noOldData());
-        data.addAll(onlyOldData());
         return data;
     }
     
@@ -62,11 +47,6 @@ public abstract class EscBase extends JmlTestCase {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) data.add(new String[]{"-newesc",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
-        return data;
-    }
-
-    static public  Collection<String[]> onlyOldData() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
         return data;
     }
 

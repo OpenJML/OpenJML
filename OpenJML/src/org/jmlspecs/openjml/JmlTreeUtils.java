@@ -6,6 +6,8 @@ import static com.sun.tools.javac.code.Flags.STATIC;
 
 import java.util.Map;
 
+import javax.lang.model.type.TypeKind;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
@@ -789,6 +791,31 @@ public class JmlTreeUtils {
         m.type = arg.type;
         return m;
     }
+    
+    public JCExpression makeThrownPredicate(DiagnosticPosition pos, JCIdent exceptionId, JCMethodDecl methodDecl) {
+        JCExpression rex = makeType(pos.getPreferredPosition(),syms.runtimeExceptionType);
+        JCExpression condd = factory.at(pos).TypeTest(exceptionId, rex).setType(syms.booleanType);
+        for (JCExpression ex: methodDecl.thrown) {
+            if (pos == null) pos = ex.pos();
+            JCExpression tc = factory.at(ex.pos()).TypeTest(exceptionId, ex).setType(syms.booleanType);
+            condd = makeOr(ex.pos, condd, tc);
+        }
+        return condd;
+    }
+   
+    public JCExpression makeThrownPredicate(DiagnosticPosition pos, JCIdent exceptionId, MethodSymbol sym) {
+        int p = pos.getPreferredPosition();
+        JCExpression rex = makeType(p,syms.runtimeExceptionType);
+        JCExpression ex = makeType(p,syms.exceptionType);
+        JCExpression condd = factory.at(pos).TypeTest(exceptionId, rex).setType(syms.booleanType);
+        JCExpression conde = factory.at(pos).TypeTest(exceptionId, ex).setType(syms.booleanType);
+        condd = makeAnd(p,condd,conde);
+        for (Type t: sym.getThrownTypes()) {
+            JCExpression tc = factory.at(pos).TypeTest(exceptionId, makeType(p,t)).setType(syms.booleanType);
+            condd = makeOr(p, condd, tc);
+        }
+        return condd;
+    }
    
     /** Makes a Java method invocation using the given MethodSymbol, on the given receiver,
      * with the given arguments, at the given position; no varargs, no typeargs.
@@ -835,6 +862,16 @@ public class JmlTreeUtils {
         ownerClass.members_field.enter(msym);
         return mdecl;
     }
+    
+    public JCTree.JCInstanceOf makeInstanceOf(int pos, JCExpression expr, JCExpression clazz) {
+        JCTree.JCInstanceOf t = factory.at(pos).TypeTest(expr, clazz);
+        t.type = syms.booleanType;
+        return t;
+    }
+
+    public JCTree.JCInstanceOf makeInstanceOf(int pos, JCExpression expr, Type t) {
+        return makeInstanceOf(pos,expr,makeType(pos,t));
+    }
 
     /** Makes a JML \typeof expression, with the given expression as the argument */
     public JCExpression makeTypeof(JCExpression e) {
@@ -845,11 +882,37 @@ public class JmlTreeUtils {
     
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCIdent id, Type type) {
         int p = pos.getPreferredPosition();
+        JCExpression nn = makeEqObject(p,id,nullLit);
         JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
-        return makeAnd(p,makeEqObject(p,lhs,rhs),
+        JCExpression expr = makeAnd(p,makeEqObject(p,lhs,rhs),
                 makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs));
+        {
+            Type t = types.erasure(type);
+            if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
+                JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
+                expr = makeAnd(p,tt,expr);
+            }
+        }
+        return makeOr(p,nn,expr);
+    }
+    
+    public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCIdent id, Type type) {
+        int p = pos.getPreferredPosition();
+        JCExpression nn = makeEqObject(p,id,nullLit);
+        JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
+        JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
+        rhs.type = JmlTypes.instance(context).TYPE;
+        JCExpression expr = makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs);
+        {
+            Type t = types.erasure(type);
+            if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
+                JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
+                expr = makeAnd(p,tt,expr);
+            }
+        }
+        return makeOr(p,nn,expr);
     }
     
     /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,

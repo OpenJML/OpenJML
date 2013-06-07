@@ -165,7 +165,7 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",5
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",6
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
                 );
     }
@@ -201,7 +201,7 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
+                +"  //@ requires a.length > 5; \n" // Line 25
                 +"  public void m1good(int[] a, int[] b) {\n"
                 +"    a[1] = 5;\n"
                 +"    //@ assume a == b ;\n"
@@ -211,8 +211,8 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",7
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
                 );
     }
@@ -265,8 +265,8 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m0bada",17
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",7
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",7
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",6
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",6
                 ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:33: warning: Associated declaration",7
                 );
@@ -423,7 +423,6 @@ public class escall3 extends EscBase {
     
     @Test
     public void testNullThrow() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -555,7 +554,7 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",14
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
                 );
     }
@@ -608,9 +607,9 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",14
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badc",14
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badc",13
                 );
     }
 
@@ -703,7 +702,7 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires j != 0;\n"
                 +"  public int m2good(int j) {\n"
-                +"    int i = j ;\n"
+                +"    int i = j ;\n"  // Line 20
                 +"    return (i/=j) ;\n"
                 +"  }\n"
                 
@@ -727,7 +726,7 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires t != null;\n"
                 +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
+                +"  //@ assignable \\everything;\n"  // Line 40
                 +"  public void m3good(TestJava t, int i) {\n"
                 +"    t.f /= i ;\n"
                 +"  }\n"
@@ -781,128 +780,17 @@ public class escall3 extends EscBase {
 //                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assignable) in method m3",9
 //                ,"/tt/TestJava.java:23: warning: Associated declaration",7
                 ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",9
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-10
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-10
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-10
-                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",11
-                ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",10
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",6
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
+                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
+                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",6
+                ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",6
                 ,"/tt/TestJava.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
                 );
     }
 
-    @Test
-    public void testAssignOp1() {
-        main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ ensures \\result == j;\n"
-                +"  public int m1bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i+=1) ;\n"
-                +"  }\n"
-                
-                +"  //@ ensures \\result == j+j+1;\n"
-                +"  public int m1good(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i+=j+1) ;\n"
-                +"  }\n"
-                
-                +"  public int m2bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i/=j) ;\n"
-                +"  }\n"
-                
-                +"  //@ requires j != 0;\n"
-                +"  public int m2good(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i/=j) ;\n"
-                +"  }\n"
-                
-                +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0;\n"
-                +"  public void m3bad(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ assignable t.f;\n"
-                +"  //@ requires t != null;\n"
-                +"  public void m3badb(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m3badc(@Nullable TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m3good(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i != 0 && (a != null ==> a.length > 1);\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4bad(@Nullable int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badb(@NonNull int[] a, int i) {\n"
-                +"    a[-1] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badc(@NonNull int[] a, int i) {\n"
-                +"    a[4] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badd(@NonNull int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4good(@NonNull int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  public void m10ok(boolean i) {\n"
-                +"    int x = 10 ;\n"
-                +"    int y = 20 ;\n"
-                +"    x = (y += x + 1) + 2 ;\n"
-                +"    //@ assert x == 33 ;\n"
-                +"    //@ assert y == 31 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",9
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",10
-                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",11
-                ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",10
-                ,"/tt/TestJava.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
-                );
-    }
-
+  
     @Ignore
     @Test public void testArrays() {
         helpTCX("tt.TestJava","package tt; \n"
