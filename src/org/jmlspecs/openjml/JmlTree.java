@@ -766,7 +766,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlCompilationUnit extends JCTree.JCCompilationUnit {
         
         /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
-         *  This field will be null if 'this' is the compilation unit of the specs file itself. */
+         *  This field may point to 'this' if the compilation unit is its own specs file. */
         public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
         
         /** This list contains the top-level model types declared in this compilation unit; this
@@ -957,7 +957,7 @@ public class JmlTree implements IJmlTree {
          * will at most have one element (which may be the original class definition from the
          * .java file itself)
          */
-        public /*@Nullable*/ java.util.List<JmlClassDecl> specsDecls;
+        public /*@Nullable*/ JmlClassDecl specsDecls;
 
         /** This field is the combination of specifications from all
          * specification sources (valid for the Java declaration, or, for
@@ -3331,8 +3331,8 @@ public class JmlTree implements IJmlTree {
             list.append(newarrs);
             list.append(oldarrs);
             list.append(arr);
-            list.append(index);
-            list.append(rhs);
+            if (index != null) list.append(index);
+            if (rhs != null) list.append(rhs);
             args = list.toList();
         }
         
@@ -3344,7 +3344,7 @@ public class JmlTree implements IJmlTree {
         
         @Override
         public int getEndPosition(Map<JCTree,Integer> table) {
-            return args.get(4).getEndPosition(table); // rhs
+            return args.get(args.length()-1).getEndPosition(table); // rhs
         }        
     }
     

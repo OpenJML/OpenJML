@@ -112,41 +112,46 @@ public class esclocation extends EscBase {
     @Test
     public void testLocationInvariant() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
-                +"  //@ invariant i>=0;\n"
+                +"  //@ public invariant i>=0;\n"
                 +"}"
                 );
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 
+                +"  //@ assignable i;\n"
                 +"  public void m() {\n"
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
                 // FIXME - check constructor
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 );
     }
     
     @Test
     public void testLocationInitially() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
-                +"  //@ initially i>=0;\n"
+                +"  //@ public initially i>=0;\n"
+                
+                +"  //@ assignable i;\n"
+                +"  public TestJava();\n"
+
                 +"}"
                 );
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 
                 +"  public TestJava() {\n"
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 );
     }
     
@@ -154,12 +159,14 @@ public class esclocation extends EscBase {
     @Test
     public void testLocationConstraint() {
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
-                +"  //@ constraint i>=\\old(i);\n"
+                +"  //@ public constraint i>=\\old(i);\n"
+                +"  //@ assignable i;\n"
+                +"  public void m();\n"
                 +"}"
                 );
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static int i;\n"
+                +"  static public int i;\n"
                 
                 +"  public void m() {\n"
                 +"    i = -1; return; \n"
@@ -167,7 +174,7 @@ public class esclocation extends EscBase {
                 +"}"
                 // FIXME - normalize column
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",7
+                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 );
     }
     

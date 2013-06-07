@@ -206,7 +206,7 @@ public class counterexamples extends EscBase {
                 +"      return -z;\n"
                 +"  }\n"
                 
-                +"  //@ normal_behavior requires z > 0; ensures \\result == -z;\n"
+                +"  //@ public normal_behavior requires z > 0; ensures \\result == -z;\n"
                 +"  /*@ pure */ public int cc(int z) {\n"
                 +"      return -z;\n"
                 +"  }\n"
@@ -309,7 +309,7 @@ public class counterexamples extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  //@ normal_behavior requires i>=0; ensures k==0;\n"
+                +"  //@ public normal_behavior requires i>=0; ensures k==0;\n"
                 +"  public void m1(int i) {\n"
                 +"      cc(i);\n"
                 +"  }\n"
@@ -335,7 +335,7 @@ public class counterexamples extends EscBase {
                 +"}\n"
                 
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1",9
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",14
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m2",15
                 ,"/tt/TestJava.java:7: warning: Associated declaration",22
                 );

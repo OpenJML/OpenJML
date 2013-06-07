@@ -58,7 +58,7 @@ public class escnewBoxing extends EscBase {
                 +"  public void m2good() {\n"
                 +"    Integer i = 5;\n"
                 +"    //@ assert i != null ;\n"
-                +"    //@ assert \\typeof(i) == \\type(Integer) ;\n"
+                +"    //@ assert \\typeof(i) == \\type(Integer) ;\n" // Line 25
                 +"  }\n"
                 
 

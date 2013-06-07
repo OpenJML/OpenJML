@@ -1,5 +1,15 @@
 Done:
 
+ToDo:
+- Multidimensional arrays
+- Array initializers
+- \fresh
+- strings
+- errors in field initializers, initializers
+- using initializers as part of constructors
+
+BUG: esc.testMethodCallWithExceptions
+
 Fix
 - tracing 
 - review foreach loops once more
@@ -10,6 +20,7 @@ Fix
 - what other things need Invariants assumed/checked
 - what about invariants of parents of type variables
 - fix default assignable for constructors
+- new arrays inside JML expressions, especially quantifiers
 
 Soon
 - loop modifies, and general block modifies

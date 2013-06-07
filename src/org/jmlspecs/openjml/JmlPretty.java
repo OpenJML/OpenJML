@@ -358,7 +358,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print("; ");
             if (that.range != null) that.range.accept(this);
             print("; ");
-            that.value.accept(this);
+            if (that.value != null) that.value.accept(this);
+            else print("????:");
         } catch (IOException e) { perr(that,e); }
     }
 
@@ -828,7 +829,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         // We need the following to get the combined annotations
         // but we don't want both?
         // if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
+        
+        // Do some shenanigans with sourceOuput to get default constructors printed
+        boolean wasSourceOutput = sourceOutput;
+        if (that.name == that.name.table.names.init &&
+                sourceOutput) sourceOutput = false;
+
         visitMethodDef(that);
+        sourceOutput = wasSourceOutput;
     }
 
     public void visitJmlVariableDecl(JmlVariableDecl that) {

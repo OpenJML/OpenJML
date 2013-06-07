@@ -27,23 +27,30 @@ import javax.tools.JavaFileObject;
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -941,22 +948,52 @@ public class JmlSpecs {
     }
     
     // TODO - document
-    public static MethodSpecs defaultSpecs(JmlMethodDecl m) {
+    // FIXME - this needs to be made consistent with the below
+    public MethodSpecs defaultSpecs(JmlMethodDecl m) {
+        // FIXME - should use a factory
+        JmlTree.Maker M = JmlTree.Maker.instance(context);
         JmlMethodSpecs ms = new JmlMethodSpecs();
-        MethodSpecs mspecs = new MethodSpecs(m.mods,ms);
-        ms.pos = m.pos;
-        ms.decl = m;
-        ms.deSugared = null;// FIXME - was ms?
+        MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
+        ms.pos =  m.pos;
+        ms.decl = null;
+        ms.deSugared = null; // FIXME- was ms?
+
+        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+        // sym can be null if the method call is in a field initializer (and not in the body of a method)
+        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
+        // material from a field initializer
+        for (JCExpression t: m.thrown) {
+            list.add(t);
+        }
+        list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
+        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlToken.SIGNALS_ONLY, list.toList());
+        JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
+        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         return mspecs;
     }
 
     // TODO - document
-    public static MethodSpecs defaultSpecs(int pos) {
+    public static MethodSpecs defaultSpecs(Context context, MethodSymbol sym, int pos) {
+        // FIXME - should use a factory
+        JmlTree.Maker M = JmlTree.Maker.instance(context);
         JmlMethodSpecs ms = new JmlMethodSpecs();
         MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
         ms.decl = null;
         ms.deSugared = null; // FIXME- was ms?
+
+        ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+        // sym can be null if the method call is in a field initializer (and not in the body of a method)
+        // Not sure when sym.type is null - but possibly when an initializer block is created to hold translated
+        // material from a field initializer
+        if (sym != null && sym.type != null) for (Type t: sym.getThrownTypes()) {
+            JCExpression e = JmlTreeUtils.instance(context).makeType(pos, t);
+            list.add(e);
+        }
+        list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
+        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(pos,JmlToken.SIGNALS_ONLY, list.toList());
+        JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
+        mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         return mspecs;
     }
 
@@ -991,11 +1028,11 @@ public class JmlSpecs {
         /** The Symbol for the type these specs belong to*/
         public ClassSymbol csymbol;
         
-        /** A list of the declarations from specification files that provide the
+        /** The AST from specification files that provide the
          * specs for the class this TypeSpecs object documents.  This is only
          * valid for a TypeSpecs object holding combined specifications.
          */
-        public java.util.List<JmlClassDecl> refiningSpecDecls = new java.util.LinkedList<JmlClassDecl>();
+        public JmlClassDecl refiningSpecDecls = null;
         
         /** The source file for the modifiers, not necessarily for the rest of the specs
          * if these are the combined specs */

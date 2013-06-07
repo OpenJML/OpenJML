@@ -219,7 +219,7 @@ public class racnew2 extends RacBase {
         expectedRACExit = 1;
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) throws Exception { \n" +
                 "new A().m(); }\n " +
-                "public void m() { /*@ nullable*/ Object o = null; int i; \n " +
+                "public void m() throws RuntimeException { /*@ nullable*/ Object o = null; int i; \n " +
                 "synchronized (o) { i = 0; } \n}}"
                 ,"/tt/A.java:4: JML An object may be illegally null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException"
@@ -640,9 +640,9 @@ public class racnew2 extends RacBase {
         options.put("-noRacSource", null);
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
-                " System.out.println(\"END\"); } static int k = 0; \n" +
+                " System.out.println(\"END\"); } static public int k = 0; \n" +
                 " /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ \n" +
-                " static void m(int i) { System.out.println(\"i = \" + i ); k = i; } " +
+                " static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } " +
                 "}"
                 ,"i = 1"
                 ,"LABEL ENS = true"
@@ -650,8 +650,8 @@ public class racnew2 extends RacBase {
                 ,"i = 0"
                 ,"LABEL ENS = false"
                 ,"/tt/TestJava.java:5: JML postcondition is false"
-                ," static void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
-                ,"             ^"
+                ," static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
+                ,"                    ^"
                 ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5: "
                 ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
                 ,"                             ^"
@@ -670,9 +670,9 @@ public class racnew2 extends RacBase {
     @Test public void testLabel2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
-                " System.out.println(\"END\"); } static int k = 0; \n" +
+                " System.out.println(\"END\"); } static public int k = 0; \n" +
                 " /*@ assignable \\everything; ensures (\\lblneg ENS (\\lbl RES k) == 1); */ \n" +
-                " static void m(int i) { k = i; return; } " +
+                " static public void m(int i) { k = i; return; } " +
                 "}"
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 1"
@@ -797,9 +797,9 @@ public class racnew2 extends RacBase {
     
     @Test public void testNoWarn() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"static int i = 0;  \n "
+                +"static public int i = 0;  \n "
                 +"//@ ensures i == 0; \n "
-                +"static void m(int j) { i = j; }  \n "
+                +"static public void m(int j) { i = j; }  \n "
                 +"public static void main(String[] args) { \n"
                 +"m(1); \n"
                 +"System.out.println(\"MID\"); \n"
@@ -837,8 +837,8 @@ public class racnew2 extends RacBase {
 
     @Test public void testNoWarn1() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ invariant i == 0; \n "
-                +"int i = 0;  \n "
+                +"//@ public invariant i == 0; \n "
+                +"public int i = 0;  \n "
                 +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
                 +"public static void main(String[] args) { \n"
                 +"new A().m(1); \n"
@@ -852,8 +852,8 @@ public class racnew2 extends RacBase {
 
     @Test public void testNoWarn2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ invariant i == 0; \n "
-                +"int i = 0;  \n "
+                +"//@ public invariant i == 0; \n "
+                +"public int i = 0;  \n "
                 +"void m(int j) { i = j; }  //@ nowarn ; \n "
                 +"public static void main(String[] args) { \n"
                 +"new A().m(1); \n"
@@ -867,8 +867,8 @@ public class racnew2 extends RacBase {
 
     @Test public void testNoWarn3() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"//@ invariant i == 0; \n "
-                +"int i = 0;  \n "
+                +"//@ public invariant i == 0; \n "
+                +"public int i = 0;  \n "
                 +"void m(int j) { i = j; }  //@ nowarn Precondition ; \n "
                 +"public static void main(String[] args) { \n"
                 +"new A().m(1); \n"
@@ -898,8 +898,8 @@ public class racnew2 extends RacBase {
     @Test public void testReceiver1() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public static void main(String[] args) { boolean z; \n"
                 +"A a = new A(1);\n"
                 +"A b = new A(2);\n"
@@ -918,8 +918,8 @@ public class racnew2 extends RacBase {
     @Test public void testReceiver2() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"static int i;  \n "
-                +"/*@ requires i == j; ensures \\result; */ boolean m(int j) { return true; }\n "
+                +"static public int i;  \n "
+                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public static void main(String[] args) { boolean z; \n"
                 +"A a = new A(1);\n"
                 +"A b = new A(2);\n"
@@ -938,8 +938,8 @@ public class racnew2 extends RacBase {
     @Test public void testReceiver3() { 
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
-                +"static int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ static boolean m(int j) { return true; }\n "
+                +"static public int i; \n "
+                +"/*@ requires i == j; ensures \\result; */ static public boolean m(int j) { return true; }\n "
                 +"public static void main(String[] args) { boolean z; \n"
                 +"A a = new A(1);\n"
                 +"A b = new A(2);\n"

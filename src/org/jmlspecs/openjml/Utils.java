@@ -20,6 +20,8 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Kinds;
+import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
@@ -541,26 +543,48 @@ public class Utils {
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
     }
 
-    /** Returns true if a declaration with the given flags is visible in the
-     * 'base' class when declared in the 'parent' class. 
+    /** Returns true if a declaration in the 'parent' class with the given flags 
+     * is visible in a method in the
+     * 'base' class and the method has the given 'methodFlags'. 
      */
     public boolean jmlvisible(Symbol base, Symbol parent, long flags, long methodFlags) {
         if (!visible(base,parent,flags)) return false;
+        
         // In JML the clause must be at least as visible to clients as the method
-//        flags &= Flags.AccessFlags;
-//        methodFlags &= Flags.AccessFlags;
-//        if (flags == methodFlags) return true;
-//        if (flags == Flags.PUBLIC) return true;
-//        if (methodFlags == Flags.PRIVATE) return true;
-//        if (methodFlags == Flags.PUBLIC) return false;
-//        if (flags == Flags.PROTECTED) return true;
-        // FIXME - this is not quite right for protected inheritance
+        flags &= Flags.AccessFlags;
+        methodFlags &= Flags.AccessFlags;
+        // If target is public, then it is jml-visible
+        if (flags == Flags.PUBLIC) return true;
+        if (methodFlags == Flags.PUBLIC) return false;
+        
+        if (methodFlags == Flags.PRIVATE) return true;
+        if (flags == Flags.PRIVATE) return false;
+        
+        if (flags == 0) return methodFlags == 0;
+        // Here flags must be PROTECTED
+        // and methodFlags is PROTECTED or package
+        
+        // Must be in the same package
+        return (base.owner == parent.owner);
         // The rule is that the clause has to be visible wherever the method is visible
         // If a protected method can see a protected clause by Java rules, then either
         // the clause is in the same package OR in the same or a super class.
         // But if both the clause and method are to be visible to a client, then 
         // the clause has to be in the same package AND in the same or a super class
-        return true;
+
+    }
+    
+    public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol base, long baseVisibility, boolean forStatic) {
+        List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
+        for (TypeSymbol csym: parents(base)) {
+            for (Symbol s: csym.members().getElements()) {
+                if (s.kind != Kinds.VAR) continue;
+                if (isJMLStatic(s) != forStatic) continue;
+                if (!jmlvisible(base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
+                list.add((Symbol.VarSymbol)s);
+            }
+        }
+        return list;
     }
 
     /** Returns the owning class declaration of a method declaration */

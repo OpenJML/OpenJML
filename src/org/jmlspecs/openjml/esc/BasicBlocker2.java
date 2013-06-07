@@ -410,10 +410,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         STORE = names.fromString(STOREString);
     }
     
-    /** This tracks single-assignment versions - it is incremented whenever
-     * a new version of a variable is needed (globally across all variables).
-     */
-    protected static long saversion = 0;
+//    /** This tracks single-assignment versions - it is incremented whenever
+//     * a new version of a variable is needed (globally across all variables).
+//     */
+//    protected static long saversion = 0;
     
     /** This class implements a map from variable (as a Symbol) to a unique name
      * as used in Single-Assignment form. At any given point in the program there is
@@ -798,7 +798,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCIdent n = factory.at(incarnationPosition).Ident(encodedArrayName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
-        currentMap.putSAVersion(vsym,n.name, saversion);
+        currentMap.putSAVersion(vsym,n.name, unique);
         if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
@@ -1398,7 +1398,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            result = that;
         } else {
             // FIXME - not implemented
-            log.warning("esc.not.implemented","BasicBlocker.visitApply for " + that.meth.getClass());
+            log.warning("esc.not.implemented","BasicBlocker.visitApply for " + that);
             msym = null;
             obj = null;
             result = trueLiteral;
@@ -1415,9 +1415,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
         ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
         for (JCExpression arg: that.args) {
-            JCExpression n = (arg);
-            newargs.append(n);
+            scan(arg);
+            newargs.append(result);
         }
+        
+        that.args = newargs.toList();
+        result = that;
 
 //        pushTypeArgs();
 //        if (tfa != null) {
@@ -1443,7 +1446,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //        }
 
         //popTypeArgs();
-        toLogicalForm.put(that,result);
+//        toLogicalForm.put(that,result);
         return;
     }
 
@@ -1556,8 +1559,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //    }
 
     
-    // FIXME - review and document
-    protected void havocAssignables(int pos, JmlMethodInfo mi) {
+//    // FIXME - review and document
+//    protected void havocAssignables(int pos, JmlMethodInfo mi) {
 ////        * a store-ref
 ////        *  is a JCIdent, a JCSelect (potentially with a null field), or a JmlStoreRefArrayRange;
 ////        *  there may be more than one use of a JmlStoreRefArrayRange, e.g. a[2..3][4..5] or
@@ -1703,7 +1706,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //                }
 //            }
 //        }
-    }
+//    }
     
     // FIXME - review and document
     private JCExpression fullRange;
@@ -1748,80 +1751,67 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         }
     }
     
-    // FIXME - review and document
-    protected void havocField(VarSymbol vsym, JCExpression selected, int pos, int npos, Type type, JCExpression preCondition) {
-        JCIdent oldid = newIdentUse(vsym,pos);
-        JCFieldAccess oldaccess = new JmlBBFieldAccess(oldid,selected);
-        oldaccess.pos = pos;
-        oldaccess.type = type;
-
-        JCIdent newid = newIdentIncarnation(oldid,npos);
-        JCFieldAccess newaccess = new JmlBBFieldAccess(newid,selected);
-        newaccess.pos = pos;
-        newaccess.type = type;
-
-        JCExpression right = factory.at(pos).Conditional(preCondition,newaccess,oldaccess);
-        right.type = type;
-        
-        JCExpression expr = new JmlBBFieldAssignment(newid,oldid,selected,right);
-        expr.pos = pos;
-        expr.type = type;
-
-        addAssume(pos,Label.HAVOC,expr,currentBlock.statements);
-
-    }
+//    // FIXME - review and document
+//    protected void havocField(VarSymbol vsym, JCExpression selected, int pos, int npos, Type type, JCExpression preCondition) {
+//        JCIdent oldid = newIdentUse(vsym,pos);
+//        JCFieldAccess oldaccess = new JmlBBFieldAccess(oldid,selected);
+//        oldaccess.pos = pos;
+//        oldaccess.type = type;
+//
+//        JCIdent newid = newIdentIncarnation(oldid,npos);
+//        JCFieldAccess newaccess = new JmlBBFieldAccess(newid,selected);
+//        newaccess.pos = pos;
+//        newaccess.type = type;
+//
+//        JCExpression right = factory.at(pos).Conditional(preCondition,newaccess,oldaccess);
+//        right.type = type;
+//        
+//        JCExpression expr = new JmlBBFieldAssignment(newid,oldid,selected,right);
+//        expr.pos = pos;
+//        expr.type = type;
+//
+//        addAssume(pos,Label.HAVOC,expr,currentBlock.statements);
+//
+//    }
     
     // FIXME - review and document
     protected void havoc(JCExpression storeref) {
         if (storeref instanceof JCIdent) {
-            JCIdent id = newIdentIncarnation((JCIdent)storeref,storeref.pos);
-            //program.declarations.add(id);
-            //} else if (e instanceof JCFieldAccess) {
-            //} else if (e instanceof JCArrayAccess) {
+            newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
         } else if (storeref instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)storeref;
             if (fa.name == null) {
-                JCExpression e = fa.selected;
-                if (e == null) {
-                    log.noticeWriter.println("UNIMPLEMENTED HAVOC  " + storeref.getClass());
+                    // Should not come here - as a store-ref of the form o.*
+                    // should have been expanded into the actual list of 
+                    // non-wildcard locations
+                    log.error(fa.pos,"jml.internal","Unexpected wildcard store-ref in havoc call");
                     
-                } else {
-                    Symbol own = e.type.tsym;
-                    Symbol s = e instanceof JCIdent ? ((JCIdent)e).sym : e instanceof JCFieldAccess ? ((JCFieldAccess)e).sym : null;
-                    if (s instanceof ClassSymbol) {
-                        for (VarSymbol vsym: currentMap.keySet()) {
-                            if (vsym.owner == own && vsym.isStatic()) {
-                                newIdentIncarnation(vsym, storeref.pos);
-                            }
-                        }
-                    } else {
-                        for (VarSymbol vsym: currentMap.keySet()) {
-                            // FIXME - should we omit vsym.isStatic
-                            if (vsym.owner == own && !vsym.name.toString().equals("this")) { // FIXME _ need a better way to avoid 'this'
-//                                JCIdent oldid = treeutils.makeIdent(storeref.pos,vsym);
-//                                JCIdent id = newIdentIncarnation(vsym, storeref.pos);
-////                                JCIdent newfield = newIdentIncarnation(oldfield,pos);
-////                                if (isDefined.add(newfield.name)) {
-////                                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
-////                                    addDeclaration(newfield);
-////                                }
-//                                JCFieldAccess rhs = treeutils.makeSelect(fa.pos,fa.selected,vsym);
-//                                rhs.name = id.name;
-//                                JCExpression expr = new JmlBBFieldAssignment(id,oldid,fa.selected,rhs);
-//                                expr.pos = storeref.pos;
-//                                expr.type = id.type;
-//
-//                                // FIXME - set line and source and position
-//                                addAssume(storeref.pos,Label.ASSIGNMENT,expr,currentBlock.statements);
-                                newIdentIncarnation(vsym, storeref.pos);
-
-                            }
-                        }
-                    }
-                }
             } else {
-                newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
+                if (fa.sym.isStatic()) { // FIXME - isJMLStatic?
+                    newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
+                } else {
+                    int sp = fa.pos;
+                    scan(fa.selected);
+                    JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
+                    if (isDefined.add(oldfield.name)) {
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
+                        addDeclaration(oldfield);
+                    }
+                    JCIdent newfield = newIdentIncarnation(oldfield,sp);
+                    if (isDefined.add(newfield.name)) {
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
+                        addDeclaration(newfield);
+                    }
+                    JmlBBFieldAccess acc = new JmlBBFieldAccess(newfield,fa.selected);
+                    acc.pos = sp;
+                    acc.type = fa.type;
+                    JmlBBFieldAssignment expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,acc);
+                    expr.pos = sp;
+                    expr.type = fa.type;
+                    addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+
+                }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
             JmlToken t = ((JmlStoreRefKeyword)storeref).token;
@@ -1831,46 +1821,148 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // The owner of a local symbol is a MethodSymbol
                     if (vsym.owner instanceof ClassSymbol) newIdentIncarnation(vsym, storeref.pos);
                 }
+                // FIXME - symbols added after this havoc \everything will not have new incarnations???
+            }
+        } else if (storeref instanceof JCArrayAccess) { // Array Access
+            JCArrayAccess aa = (JCArrayAccess)storeref;
+            int sp = storeref.pos;
+            JCIdent arr = getArrayIdent(aa.type);
+            JCExpression ex = aa.indexed;
+            JCExpression index = aa.index;
+            JCIdent nid = newArrayIncarnation(aa.type,sp);
+            
+            JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
+            rhs.pos = sp;
+            rhs.type = aa.type;
+            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,rhs);
+            expr.pos = sp;
+            expr.type = aa.type;
+            treeutils.copyEndPosition(expr, aa);
+            scan(expr);
+
+            // FIXME - set line and source
+            addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+            log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
+        } else if (storeref instanceof JmlStoreRefArrayRange) { // Array Access
+            int sp = storeref.pos;
+            JmlStoreRefArrayRange aa = (JmlStoreRefArrayRange)storeref;
+            if (aa.lo == aa.hi && aa.lo != null) {
+                // Single element
+                JCIdent arr = getArrayIdent(aa.type);
+                JCExpression ex = aa.expression;
+                JCExpression index = aa.lo;
+                JCIdent nid = newArrayIncarnation(aa.type,sp);
+                
+                scan(ex); ex = result;
+                scan(index); index = result;
+                
+                Name nm = names.fromString("__BBtmp_" + (++unique));
+                JCVariableDecl decl = treeutils.makeVarDef(aa.type, nm, null, sp);
+                JCIdent id = treeutils.makeIdent(sp,decl.sym);
+                addDeclaration(id);
+                
+                JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
+                rhs.pos = sp;
+                rhs.type = aa.type;
+                JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,id);
+                expr.pos = sp;
+                expr.type = aa.type;
+                treeutils.copyEndPosition(expr, aa);
+
+                // FIXME - set line and source
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+            } else if (aa.lo == null && aa.hi == null) {
+                // Entire array
+                JCIdent arr = getArrayIdent(aa.type);
+                JCExpression ex = aa.expression;
+                JCIdent nid = newArrayIncarnation(aa.type,sp);
+                
+                scan(ex); ex = result;
+                
+                JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
+                expr.pos = sp;
+                expr.type = aa.type;
+                treeutils.copyEndPosition(expr, aa);
+
+                // FIXME - set line and source
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+            } else {
+                // Range of array
+                JCIdent arr = getArrayIdent(aa.type);
+                JCExpression ex = aa.expression;
+                JCIdent nid = newArrayIncarnation(aa.type,sp);
+                
+                scan(ex); ex = result;
+                
+                JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
+                expr.pos = sp;
+                expr.type = aa.type;
+                treeutils.copyEndPosition(expr, aa);
+                
+                int p = aa.pos;
+                scan(aa.lo);
+                JCExpression lo = result;
+                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+                JCIdent ind = treeutils.makeIdent(p, decl.sym);
+                JCExpression comp = treeutils.makeBinary(p,JCTree.LT,treeutils.intltSymbol,ind,lo);
+                JCExpression newelem = new JmlBBArrayAccess(nid,ex,ind);
+                newelem.pos = p;
+                newelem.type = aa.type;
+                JCExpression oldelem = new JmlBBArrayAccess(arr,ex,ind);
+                oldelem.pos = p;
+                oldelem.type = aa.type;
+                JCExpression eq = treeutils.makeEquality(p,newelem,oldelem);
+                
+                if (aa.hi != null) {
+                    scan(aa.hi);
+                    JCExpression hi = result;
+                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.LT,treeutils.intltSymbol,hi,ind));
+                }
+                
+                // FIXME - set line and source
+                expr = factory.at(p).JmlQuantifiedExpr(JmlToken.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
+                expr.setType(syms.booleanType);
+                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                //log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
             }
         } else {
-            // FIXME - havoc in loops
-            log.noticeWriter.println("UNIMPLEMENTED HAVOC  " + storeref.getClass());
+            log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
         }
 
     }
     
 
     
-    // FIXME - review and document
-    protected void havocEverything(JCExpression preCondition, int newpos) {
-        // FIXME - if the precondition is true, then we do not need to add the 
-        // assumptions - we just need to call newIdentIncarnation to make a new
-        // value in the map.  This would shorten the VC.  How often is this
-        // really the case?  Actually the preCondition does not need to be true,
-        // it just needs to encompass all allowed cases.
-        
-        // FIXME - check on special variables - should they/are they havoced?
-        // this
-        // terminationVar
-        // exceptionVar
-        // resultVar
-        // exception
-        // others?
-        
-        // Change everything in the current map
-        for (VarSymbol vsym : currentMap.keySet()) {
-            if (vsym.owner == null || vsym.owner.type.tag != TypeTags.CLASS) {
-                continue;
-            }
-            JCIdent oldid = newIdentUse(vsym,newpos);
-            JCIdent newid = newIdentIncarnation(vsym,newpos);
-            JCExpression e = factory.at(newpos).Conditional(preCondition,newid,oldid);
-            e.type = vsym.type;
-            e = treeutils.makeEquality(newpos,newid,e);
-            addAssume(newpos,Label.HAVOC,e,currentBlock.statements);
-        }
-        //currentMap.everythingSAversion = newpos; // FIXME - this now applies to every not-yet-referenced variable, independent of the preCondition
-    }
+//    // FIXME - review and document
+//    protected void havocEverything(JCExpression preCondition, int newpos) {
+//        // FIXME - if the precondition is true, then we do not need to add the 
+//        // assumptions - we just need to call newIdentIncarnation to make a new
+//        // value in the map.  This would shorten the VC.  How often is this
+//        // really the case?  Actually the preCondition does not need to be true,
+//        // it just needs to encompass all allowed cases.
+//        
+//        // FIXME - check on special variables - should they/are they havoced?
+//        // this
+//        // terminationVar
+//        // exceptionVar
+//        // resultVar
+//        // exception
+//        // others?
+//        
+//        // Change everything in the current map
+//        for (VarSymbol vsym : currentMap.keySet()) {
+//            if (vsym.owner == null || vsym.owner.type.tag != TypeTags.CLASS) {
+//                continue;
+//            }
+//            JCIdent oldid = newIdentUse(vsym,newpos);
+//            JCIdent newid = newIdentIncarnation(vsym,newpos);
+//            JCExpression e = factory.at(newpos).Conditional(preCondition,newid,oldid);
+//            e.type = vsym.type;
+//            e = treeutils.makeEquality(newpos,newid,e);
+//            addAssume(newpos,Label.HAVOC,e,currentBlock.statements);
+//        }
+//        //currentMap.everythingSAversion = newpos; // FIXME - this now applies to every not-yet-referenced variable, independent of the preCondition
+//    }
 
     /** This method is not called for top-level classes, since the BasicBlocker is invoked
      * directly for each method.
@@ -2267,7 +2359,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         result = that; 
     }
     
-    public void visitTypeArray(JCArrayTypeTree that)     { notImpl(that); }
+    public void visitTypeArray(JCArrayTypeTree that)     { 
+        result = that; 
+    }
+    
+    
     public void visitTypeApply(JCTypeApply that)         { 
         // This is the application of a generic type to its parameters
         // e.g., List<Integer> or List<T>
