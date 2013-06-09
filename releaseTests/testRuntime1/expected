@@ -52,6 +52,9 @@ package java.lang;
 openjml.jar(specs17/java/lang/Exception.jml):26: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
+openjml.jar(specs17/java/lang/Throwable.jml):55: error: package org.jmlspecs.annotation does not exist
+        public pure helper model boolean standardThrowable();
+                    ^
 openjml.jar(specs17/java/lang/CloneNotSupportedException.jml):3: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
@@ -309,4 +312,4 @@ C.java:1: error: cannot access Utils
 import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
                                             ^
   class file for org.jmlspecs.utils.Utils not found
-98 errors
+99 errors
