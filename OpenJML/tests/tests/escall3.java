@@ -74,6 +74,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
+        main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
@@ -275,6 +276,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testFieldAssign() {
+        main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  

@@ -236,20 +236,23 @@ public class JmlEsc extends JmlTreeScanner {
      * and the verbosity is high enough.
      * */
     public boolean filter(JCMethodDecl methodDecl) {
-        String fully_qualified_name = utils.qualifiedMethodName(methodDecl.sym) ;
+        String fullyQualifiedName = utils.qualifiedMethodName(methodDecl.sym);
+        if (methodDecl.sym.isConstructor()) fullyQualifiedName = fullyQualifiedName.replace("<init>", methodDecl.sym.owner.name.toString());
+        String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
         if (methodsToDo != null) {
             match: {
                 for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$
-                    if (fully_qualified_name.equals(methodToDo) ||
+                    if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(methodDecl.name.toString()) ||
-                            Pattern.matches(methodToDo,fully_qualified_name)) {
+                            Pattern.matches(methodToDo,fullyQualifiedName) ||
+                            fullyQualifiedSig.equals(methodToDo)) {
                         break match;
                     }
                 }
                 if (Utils.instance(context).jmlverbose > Utils.PROGRESS) {
-                    log.noticeWriter.println("Skipping " + fully_qualified_name + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+                    log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
             }
@@ -258,11 +261,12 @@ public class JmlEsc extends JmlTreeScanner {
         String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
         if (excludes != null) {
             for (String exclude: excludes.split(",")) { //$NON-NLS-1$
-                if (fully_qualified_name.equals(exclude) ||
+                if (fullyQualifiedName.equals(exclude) ||
+                        fullyQualifiedSig.equals(exclude) ||
                         exclude.equals(methodDecl.name.toString()) ||
-                        Pattern.matches(exclude,fully_qualified_name)) {
+                        Pattern.matches(exclude,fullyQualifiedName)) {
                     if (Utils.instance(context).jmlverbose > Utils.PROGRESS)
-                        log.noticeWriter.println("Skipping " + fully_qualified_name + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }
             }

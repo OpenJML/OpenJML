@@ -110,7 +110,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-noInternalSpecs","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-noInternalSpecs","-progress","-escMaxWarnings=1");
     }
 
     @Test
@@ -165,13 +165,13 @@ public class escfiles extends EscBase {
     @Test 
     public void testDemoChangeCase() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","testfiles/escDemoChangeCase","-noInternalSpecs","-subexpressions","-progress","-method=changeCase");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","testfiles/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions" );
     }
 
     @Test
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress");
     }
 
 
@@ -330,6 +330,24 @@ public class escfiles extends EscBase {
     public void testTraceBS() {
         expectedExit = 0;
         helpTCF("testfiles/escTraceBS","testfiles/escTraceBS","-subexpressions","-progress");
+    }
+
+    @Test @Ignore // FIXME - order of errors is too non-deterministic
+    public void testBag() {
+        expectedExit = 0;
+        helpTCF("testfiles/bag","testfiles/bag");
+    }
+
+    @Test
+    public void testBagModified() {
+        expectedExit = 0;
+        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress");//,"-noInternalSpecs");//,"-show","-method=sv_esc.Bag.Bag(sv_esc.Bag)");
+    }
+
+    @Test
+    public void testLoopExercises() {
+        expectedExit = 0;
+        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");
     }
 
 

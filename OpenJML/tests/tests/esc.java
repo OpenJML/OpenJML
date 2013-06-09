@@ -1368,7 +1368,7 @@ public class esc extends EscBase {
                 +"  public void c4(int i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:44: warning: The prover cannot establish an assertion (Assignable) in method m6a",16
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a",7
                 ,"/tt/TestJava.java:20: warning: Associated declaration",7
                 ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
                 ,"/tt/TestJava.java:43: warning: Associated declaration",7

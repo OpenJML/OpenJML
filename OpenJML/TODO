@@ -8,7 +8,11 @@ ToDo:
 - errors in field initializers, initializers
 - using initializers as part of constructors
 
-BUG: esc.testMethodCallWithExceptions
+To fix for release
+- recursive use of invariant - racfiles.testBug1
+- better handling of strings
+- invariants in RAC?
+- tracing
 
 Fix
 - tracing 
@@ -21,6 +25,7 @@ Fix
 - what about invariants of parents of type variables
 - fix default assignable for constructors
 - new arrays inside JML expressions, especially quantifiers
+- problems with quantified expressions as invariants in RAC
 
 Soon
 - loop modifies, and general block modifies

@@ -39,6 +39,10 @@ TRACE of openjml.demo.ChangeCase.changeCase(char)
 			VALUE: (c >= 'a' && c <= 'z')	 === true
 			VALUE: !(c >= 'a' && c <= 'z')	 === false
 			VALUE: !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')	 === false
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:13:  	AssumeCheck assertion: __JML_AssumeCheck_ != 1
+			VALUE: __JML_AssumeCheck_	 === ???
+			VALUE: 1	 === ???
+			VALUE: __JML_AssumeCheck_ != 1	 === ???
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:14:  	char result = ' '
 			VALUE: ' '	 === 32
 			VALUE: result	 === 32

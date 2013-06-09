@@ -930,7 +930,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.isDefined.clear();
         unique = 0;
         if (classDecl.sym == null) {
-            log.error("jml.internal","The class declaration in BasicBlocker.convertMethodBody appears not to be typechecked");
+            log.error("jml.internal","The class declaration in BasicBlocker2.convertMethodBody appears not to be typechecked");
             return null;
         }
 
@@ -974,7 +974,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (this.methodDecl._this != null) {
 //            currentMap.putSAVersion(this.methodDecl._this, this.methodDecl._this.name, 0);
 //            thisId = newAuxIdent(this.methodDecl._this.name.toString(),methodDecl.sym.owner.type,pos,false);
-            JCIdent thisId = assertionAdder.thisIds.get(classDecl.sym);
+            JCIdent thisId = assertionAdder.getThisId(classDecl.sym);
             //Name n = names.fromString("THIS");
             currentMap.putSAVersion((VarSymbol)thisId.sym, 0);
             //thisId = newAuxIdent(n,methodDecl.sym.owner.type,Position.NOPOS,false); // FIXME - this creates a new symbol?
@@ -1398,7 +1398,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            result = that;
         } else {
             // FIXME - not implemented
-            log.warning("esc.not.implemented","BasicBlocker.visitApply for " + that);
+            log.warning("esc.not.implemented","BasicBlocker2.visitApply for " + that);
             msym = null;
             obj = null;
             result = trueLiteral;
@@ -1569,7 +1569,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            JCExpression preCondition = trSpecExpr(entry.pre,log.currentSourceFile()); // FIXME - fix this
 //            for (JCTree sr: entry.storerefs) {
 //                if (sr == null) {
-//                    log.error(pos,"jml.internal","Unexpected null store-ref in BasicBlocker.havocAssignables");
+//                    log.error(pos,"jml.internal","Unexpected null store-ref in BasicBlocker2.havocAssignables");
 //                    continue;
 //                }
 //                int npos = pos*100000 + sr.pos;
@@ -1702,7 +1702,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //                        havocEverything(preCondition,sr.pos);
 //                    }
 //                } else {
-//                    log.error(sr.pos,"jml.internal","Unexpected kind of store-ref in BasicBlocker.havocAssignables: " + sr.getClass());
+//                    log.error(sr.pos,"jml.internal","Unexpected kind of store-ref in BasicBlocker2.havocAssignables: " + sr.getClass());
 //                }
 //            }
 //        }
@@ -1831,6 +1831,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression index = aa.index;
             JCIdent nid = newArrayIncarnation(aa.type,sp);
             
+            scan(ex); ex = result;
+            scan(index); index = result;
+            
             JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index);
             rhs.pos = sp;
             rhs.type = aa.type;
@@ -1838,11 +1841,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             expr.pos = sp;
             expr.type = aa.type;
             treeutils.copyEndPosition(expr, aa);
-            scan(expr);
 
             // FIXME - set line and source
             addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
-            log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
+            //log.error(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
         } else if (storeref instanceof JmlStoreRefArrayRange) { // Array Access
             int sp = storeref.pos;
             JmlStoreRefArrayRange aa = (JmlStoreRefArrayRange)storeref;
@@ -2003,6 +2005,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.optionalExpression = result;
             st.associatedPos = that.associatedPos;
             st.associatedSource = that.associatedSource;
+            st.description = that.description;
             //st.line = that.line;
             st.source = that.source;
             st.type = that.type;
@@ -2256,7 +2259,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 newExpr = left;
             }
         } else {
-            log.error("jml.internal","Unexpected case in BasicBlocker.doAssignment: " + left.getClass() + " " + left);
+            log.error("jml.internal","Unexpected case in BasicBlocker2.doAssignment: " + left.getClass() + " " + left);
             return null;
         }
         pathmap.put(statement,newStatement);

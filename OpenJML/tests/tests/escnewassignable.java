@@ -601,11 +601,11 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1bad",18
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assignable) in method m1bad",6
                 ,"/tt/TestJava.java:5: warning: Associated declaration",7
-                ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Assignable) in method m3bad",18
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m3bad",7
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:77: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",11
                 ,"/tt/TestJava.java:75: warning: Associated declaration",7
                 
                 );
@@ -653,7 +653,7 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",18
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad",11
                 ,"/tt/TestJava.java:25: warning: Associated declaration",7
                 
                 );
