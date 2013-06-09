@@ -25,6 +25,12 @@ testfiles\escTraceLoops\trace.java:73:  	//@ loop_invariant j == i && 0 <= i && 
 			VALUE: k	 === 5
 			VALUE: i <= k	 === true
 			VALUE: j == i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:73:  	LoopInvariantBeforeLoop assertion: j == i && 0 <= i && i <= k
+			VALUE: j	 === ???
+			VALUE: i	 === ???
+			VALUE: j == i	 === ???
+			VALUE: j == i && 0 <= i	 === ???
+			VALUE: j == i && 0 <= i && i <= k	 === ???
 testfiles\escTraceLoops\trace.java:75:  	Begin loop check
 testfiles\escTraceLoops\trace.java:73:  	//@ loop_invariant j == i && 0 <= i && i <= k;
 			VALUE: j	 === 4
@@ -49,9 +55,13 @@ testfiles\escTraceLoops\trace.java:75:  	Loop test
 			VALUE: i	 === 4
 			VALUE: k	 === 5
 			VALUE: i < k	 === true
+testfiles\escTraceLoops\trace.java:1:  	LoopDecreasesNonNegative assertion: 0 <= _JML__tmp45
+			VALUE: 0	 === ???
+			VALUE: _JML__tmp45	 === ???
+			VALUE: 0 <= _JML__tmp45	 === ???
 testfiles\escTraceLoops\trace.java:74: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m6
         //@ decreases k-j-2;
-                      ^
+            ^
 Completed proof of trace.m6() with prover z3_4_3 - with warnings
 Completed proving methods in trace
 1 warning

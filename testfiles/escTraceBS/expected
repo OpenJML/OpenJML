@@ -21,6 +21,11 @@ testfiles\escTraceBS\trace.java:5:  	assert Assert i == 0 && \nonnullelements(a)
 			VALUE: a	 === REF!val!2
 			VALUE: \nonnullelements(a)	 === false
 			VALUE: i == 0 && \nonnullelements(a)	 === false
+testfiles\escTraceBS\trace.java:5:  	Assert assertion: i == 0 && (a != null && \nonnullelements(a))
+			VALUE: i	 === ???
+			VALUE: 0	 === ???
+			VALUE: i == 0	 === ???
+			VALUE: i == 0 && (a != null && \nonnullelements(a))	 === ???
 testfiles\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
         //@ assert i == 0 && \nonnullelements(a);
             ^
@@ -30,8 +35,14 @@ Starting proof of trace.mnotmodified(int) with prover z3_4_3
 TRACE of trace.mnotmodified(int)
 
 testfiles\escTraceBS\trace.java:10:  	assert Assert \not_modified(i);
-			VALUE: i	 === 5
+			VALUE: i	 === 6
 			VALUE: \not_modified(i)	 === true
+testfiles\escTraceBS\trace.java:10:  	Assert assertion: i == \old(\old(i))
+			VALUE: i	 === ???
+			VALUE: i	 === ???
+			VALUE: \old(i)	 === ???
+			VALUE: \old(\old(i))	 === ???
+			VALUE: i == \old(\old(i))	 === ???
 testfiles\escTraceBS\trace.java:11:  	i = 4
 			VALUE: 4	 === 4
 			VALUE: i = 4	 === 4
@@ -42,6 +53,11 @@ testfiles\escTraceBS\trace.java:12:  	assert Assert i == 4 && \not_modified(i);
 			VALUE: i	 === 4
 			VALUE: \not_modified(i)	 === false
 			VALUE: i == 4 && \not_modified(i)	 === false
+testfiles\escTraceBS\trace.java:12:  	Assert assertion: i == 4 && i == \old(\old(i))
+			VALUE: i	 === ???
+			VALUE: 4	 === ???
+			VALUE: i == 4	 === ???
+			VALUE: i == 4 && i == \old(\old(i))	 === ???
 testfiles\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
         //@ assert i == 4 && \not_modified(i);
             ^

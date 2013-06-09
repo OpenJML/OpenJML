@@ -590,6 +590,8 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.scan(s.init);
                         if (toTrace != null && showSubexpressions) tracer.scan(s.ident);
                         break ifstat;
+                    } else if (comment.startsWith("AssumeCheck assertion")) {
+                    	break ifstat;
                     } else {
                         toTrace = origStat;
                     }
@@ -655,6 +657,9 @@ public class MethodProverSMT {
                     JCExpression optional = assertStat.optionalExpression;
                     if (optional != null) {
                         if (optional instanceof JCTree.JCLiteral) extra = ": " + ((JCTree.JCLiteral)optional).getValue().toString(); //$NON-NLS-1$
+                    }
+                    if (assertStat.description != null) {
+                        extra = ": " + assertStat.description;
                     }
                     
                     

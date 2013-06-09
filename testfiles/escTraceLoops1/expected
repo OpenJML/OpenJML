@@ -19,6 +19,12 @@ testfiles\escTraceLoops\trace.java:16:  	//@ loop_invariant j == i && 0 <= i && 
 			VALUE: j == i	 === false
 			VALUE: j == i && 0 <= i	 === false
 			VALUE: j == i && 0 <= i && i <= k	 === false
+testfiles\escTraceLoops\trace.java:16:  	LoopInvariantBeforeLoop assertion: j == i && 0 <= i && i <= k
+			VALUE: j	 === ???
+			VALUE: i	 === ???
+			VALUE: j == i	 === ???
+			VALUE: j == i && 0 <= i	 === ???
+			VALUE: j == i && 0 <= i && i <= k	 === ???
 testfiles\escTraceLoops\trace.java:16: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m1
         //@ loop_invariant j == i && 0 <= i && i <= k;
             ^

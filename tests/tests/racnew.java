@@ -777,8 +777,8 @@ public class racnew extends RacBase {
     }
     
 
+    // FIXME  shortcut evaluation is no longer working - should it?
     @Test public void testNonnullelement() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
                 "String[] s2null = new String[]{null,\"B\"}; \n" +
                 "String[] s2 = new String[]{\"A\",\"B\"}; \n" +
@@ -2874,7 +2874,7 @@ public class racnew extends RacBase {
                 +"    setj(1);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/A.java:7: JML An item is assigned that is not in the assignable statement"
+                ,"/tt/A.java:7: JML An item is assigned that is not in the assignable statement: .tt.A.j"
                 ,"/tt/A.java:4: Associated declaration" // FIXME - this does not make sense
         );
     }

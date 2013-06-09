@@ -1,0 +1,5 @@
+Received from Wojciech Mostowski.
+The specs and implementation are not entirely correct.
+A revised version is in bagModified.
+
+The order of errors is too non-deterministic to make this a sensible test.

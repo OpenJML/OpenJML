@@ -705,6 +705,7 @@ public class racnew2 extends RacBase {
     
     /** Checks select expressions. */
     @Test public void testSelect() {
+        main.addOptions("-show");
         expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " //@ assert a[0] == 0; \n" +
