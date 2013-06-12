@@ -294,6 +294,64 @@ public class escm extends EscBase {
                 );
     }
 
+    @Test
+    public void testMethodsInSpecs2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { static public boolean b; \n"
+
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   ensures mm(\\result) + 1 == mm(k);\n"
+                    +"  //@ pure\n"
+                    +"  public int m(int k) {\n"
+                    +"       return k-1;\n"
+                    +"  }\n"
+
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   ensures \\result == k+1;\n"
+                    +"  //@ pure\n"
+                    +"  public int mm(int k) {\n"
+                    +"       return k+1;\n"
+                    +"  }\n"
+
+                    +"  //@ ensures \\result == 2 + m(j+1) - 1; \n"
+                    +"  public int m1(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+
+                    +"}\n"
+                );
+    }
+
+    @Test
+    public void testMethodsInSpecs3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { static public boolean b; \n"
+
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   ensures mm(\\result) + 1 == mm(k);\n"
+                    +"  //@ pure\n"
+                    +"  public int m(int k) {\n"
+                    +"       return k-1;\n"
+                    +"  }\n"
+
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   ensures \\result == k+1;\n"
+                    +"  //@ pure\n"
+                    +"  //@ model public int mm(int k);\n"
+
+                    +"  //@ ensures \\result == 2 + m(j+1) - 1; \n"
+                    +"  public int m1(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+
+                    +"}\n"
+                );
+    }
+
         // TODO
         // Need to check anonymous classes within specs
         // Need to check non-static inner classes 

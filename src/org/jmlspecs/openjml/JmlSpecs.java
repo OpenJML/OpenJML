@@ -955,7 +955,7 @@ public class JmlSpecs {
         JmlMethodSpecs ms = new JmlMethodSpecs();
         MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
         ms.pos =  m.pos;
-        ms.decl = null;
+        ms.decl = m;
         ms.deSugared = null; // FIXME- was ms?
 
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
@@ -979,7 +979,7 @@ public class JmlSpecs {
         JmlMethodSpecs ms = new JmlMethodSpecs();
         MethodSpecs mspecs = new MethodSpecs(null,ms); // FIXME - empty instead of null modifiers?
         ms.pos = pos;
-        ms.decl = null;
+        ms.decl = null; // FIXME - this needs filling in?
         ms.deSugared = null; // FIXME- was ms?
 
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();

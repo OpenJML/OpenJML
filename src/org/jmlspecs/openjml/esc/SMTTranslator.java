@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.smtlib.ICommand;
@@ -358,7 +359,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 try {
                     ISort sort = convertSort(id.type);
                     String nm = id.name.toString();
-                    if (id.sym.owner instanceof Symbol.ClassSymbol && !id.sym.isStatic() && !id.sym.name.toString().equals("this")) {
+                    if (id.sym.owner instanceof Symbol.ClassSymbol && !Utils.instance(context).isJMLStatic(id.sym) && !id.sym.name.toString().equals("this")) {
                         sort = F.createSortExpression(arraySym,refSort,sort);
                     } else if (nm.startsWith(arrays_)) { // FIXME - use the constant string
                         sort = convertSort(((Type.ArrayType)id.type).getComponentType());
@@ -991,7 +992,7 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(selectSym,F.symbol(name.toString()),sel);
             return;
         }
-        if (field.isStatic()) { // FIXME - isJMLStatic?
+        if (Utils.instance(context).isJMLStatic(field)) { // FIXME - isJMLStatic?
             result = F.symbol(name.toString());
         } else {
             result = F.fcn(selectSym,F.symbol(name.toString()),
@@ -1002,7 +1003,7 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitIdent(JCIdent tree) {
-//        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !tree.sym.isStatic()) {
+//        if (tree.sym != null && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && !Utils.instance(context).isJMLStatic(tree.sym)) {
 //            // a select from this
 //            // This is defensive programming - all implicit uses of this are
 //            // supposed to have been made explicit

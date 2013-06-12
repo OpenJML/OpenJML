@@ -1592,7 +1592,7 @@ public class esc extends EscBase {
     
     @Test
     public void testStrings() {
-        //main.addOptions("-method=m","-show");
+        //main.addOptions("-method=m1","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  String s;\n"
