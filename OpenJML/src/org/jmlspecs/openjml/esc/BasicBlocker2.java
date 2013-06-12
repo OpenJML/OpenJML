@@ -1370,7 +1370,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (  ((JCIdent)now).sym instanceof MethodSymbol) {
 
                 msym = (MethodSymbol)((JCIdent)now).sym;
-                if (msym.isStatic()) obj = null;
+                if (utils.isJMLStatic(msym)) obj = null;
                 else obj = currentThisId;
 
             } else { msym=null; obj = null; } // FIXME - this shouldn't really happen - there is a mis translation in creating makeTYPE expressions
@@ -1378,17 +1378,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (that.meth instanceof JCFieldAccess) {
             JCFieldAccess fa = (JCFieldAccess)that.meth;
             msym = (MethodSymbol)(fa.sym);
-            if (msym == null || msym.isStatic()) obj = null; // msym is null for injected methods such as box and unbox
+            if (msym == null || utils.isJMLStatic(msym)) obj = null; // msym is null for injected methods such as box and unbox
             else {
                 obj = ( fa.selected );
                 // FIXME - should do better than converting to String
                 //if (!fa.selected.type.toString().endsWith("JMLTYPE")) checkForNull(obj,fa.pos,trueLiteral,null);
             }
             
-            // Special case for Strings
-            if (fa.name.toString().equals("equals")) {
-                System.out.println("HERE");
-            }
 //        } else if (that.token == null) {
 //            super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
 //            scan(that.typeargs);
@@ -1788,7 +1784,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     log.error(fa.pos,"jml.internal","Unexpected wildcard store-ref in havoc call");
                     
             } else {
-                if (fa.sym.isStatic()) { // FIXME - isJMLStatic?
+                if (utils.isJMLStatic(fa.sym)) { // FIXME - isJMLStatic?
                     newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
                 } else {
                     int sp = fa.pos;
@@ -2127,7 +2123,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
-        if (that.sym.isStatic()) {
+        if (utils.isJMLStatic(that.sym)) {
             that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
             id.name = that.name;
@@ -2137,15 +2133,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
             result = id;
             
-        } else if (that.name.toString().equals("length")) {
-            scan(that.selected);
-            JmlBBFieldAccess fa = new JmlBBFieldAccess(lengthIdent,result);
-            fa.pos = that.pos;
-            fa.type = that.type;
-            fa.name = that.name;
-            fa.sym = that.sym;
-            fa.arraysId = getArrayIdent(((ArrayType)that.selected.type).getComponentType());
-            result = fa;
+//        } else if (that.name.toString().equals("length")) {
+//            scan(that.selected);
+//            JmlBBFieldAccess fa = new JmlBBFieldAccess(lengthIdent,result);
+//            fa.pos = that.pos;
+//            fa.type = that.type;
+//            fa.name = that.name;
+//            fa.sym = that.sym;
+//            fa.arraysId = getArrayIdent(((ArrayType)that.selected.type).getComponentType());
+//            result = fa;
         } else {
             that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             if (isDefined.add(that.name)) {
@@ -2227,7 +2223,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newExpr = left;
         } else if (left instanceof JCFieldAccess) {
             VarSymbol sym = (VarSymbol)selectorSym(left);
-            if (sym.isStatic()) {
+            if (utils.isJMLStatic(sym)) {
                 JCIdent id = newIdentUse(sym,sp);
                 JCIdent newid = newIdentIncarnation(id,sp);
                 // currentBlock.statements.add(treeutils.makeVarDef(newid.type, newid.name, id.sym.owner, pos));

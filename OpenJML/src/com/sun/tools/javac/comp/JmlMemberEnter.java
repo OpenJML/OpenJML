@@ -636,7 +636,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 // TODO - is there a better way to find a declaration for a method symbol?
                 JmlMethodDecl javaMatch = null;
                 for (JCTree t: javaDecl.defs) {
-                    if (t instanceof JmlMethodDecl && (javaMatch=(JmlMethodDecl)t).sym == matchSym) break;
+                    if (t instanceof JmlMethodDecl && ((JmlMethodDecl)t).sym == matchSym) {
+                        javaMatch = (JmlMethodDecl)t;
+                        break;
+                    }
                 }
                 if (javaMatch != null) {
                     // The specs file declaration corresponds to
@@ -648,6 +651,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     combinedSpecs.cases.decl = javaMatch;
                 } else {
                     // Lack of match already complained about in matchMethod
+                    // Could be because it is a model method.
+                    combinedSpecs.cases.decl = specsMethodDecl;
                     specsMethodDecl.methodSpecsCombined = combinedSpecs;
                 }
             } else {
@@ -2216,6 +2221,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         // Model methods have their own specs
                         if (vd.cases == null) vd.cases = specs.defaultSpecs(vd).cases;
                         vd.methodSpecsCombined = new JmlSpecs.MethodSpecs(vd.mods,vd.cases);
+                        vd.cases.decl = vd;
                         specs.putSpecs(vd.sym,vd.methodSpecsCombined);
                     }
                 } else {

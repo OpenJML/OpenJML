@@ -327,6 +327,14 @@ public class Utils {
         }
         return null;
     }
+    
+    public Symbol findMember(TypeSymbol sym, String name) {
+        Name n = Names.instance(context).fromString(name);
+        for (Symbol s: sym.getEnclosedElements()) {
+            if (s.name.equals(n)) return s;
+        }
+        return null;
+    }
 
     /** Returns true if the given String ends with a valid JML suffix, including the
      * period; there are no further checks that the argument is a sensible filename.

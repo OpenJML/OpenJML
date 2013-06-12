@@ -24,6 +24,7 @@ import org.jmlspecs.openjml.provers.YicesProver;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -154,6 +155,7 @@ public class JmlEsc extends JmlTreeScanner {
      * the translation mechanism.  
      */
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
+        if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
             log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
             return;
