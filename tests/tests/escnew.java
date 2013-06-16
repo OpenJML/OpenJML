@@ -1,13 +1,10 @@
 package tests;
 
-import java.util.Collection;
-
 import org.jmlspecs.openjml.JmlOption;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 
 @RunWith(Parameterized.class)
@@ -1296,6 +1293,7 @@ public class escnew extends EscBase {
     }
     @Test
     public void testChangedParam() {
+        main.addOptions("-show","-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1370,6 +1368,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testExplicitAssert() {
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1412,7 +1411,9 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",5
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb: m2badb fails",5
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb",5
+                // FIXME - what to do with the additional info in Java assert statements
+                //,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb: m2badb fails",5
                 );
     }
     

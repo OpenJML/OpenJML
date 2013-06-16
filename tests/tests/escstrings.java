@@ -42,6 +42,7 @@ public class escstrings extends EscBase {
     /** Tests String equality  */
     @Test
     public void testStringEquals() {
+        //main.addOptions("-method=m","-show","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -238,8 +239,9 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",25
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",-25
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",-25
                 );
     }
    
@@ -288,7 +290,6 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcat1() {
-        main.addOptions("-show","-method=m","-subexpressions","-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -348,7 +349,7 @@ public class escstrings extends EscBase {
                 
                 +"}"  // FIXME - need more semantics of concat and equals
                 ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
-                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",19
+                    "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",12
                 );
     }
 
@@ -376,6 +377,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcat3() {
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -385,16 +387,18 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME - Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
 
     /** Tests String concatenation */
     @Test
     public void testStringConcat3a() {
+        main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -404,10 +408,11 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss);\n" // FIXME - Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
