@@ -133,6 +133,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testTypeParameter() {
+        main.addOptions("-show","-method=ma");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

@@ -1592,7 +1592,6 @@ public class esc extends EscBase {
     
     @Test
     public void testStrings() {
-        //main.addOptions("-method=m1","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  String s;\n"
@@ -1671,10 +1670,14 @@ public class esc extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8 // nothing sets bstatic true
                 ,"/tt/TestJava.java:8: warning: Associated declaration",21
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8 // nothings sets binstance true
-                ,"/tt/TestJava.java:9: warning: Associated declaration",14
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",8 // nothing sets binstance2 true
-                ,"/tt/TestJava.java:10: warning: Associated declaration",14
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
+                ,"/tt/TestJava.java:9: warning: Associated declaration",-14
+                ,"/tt/TestJava.java:10: warning: Associated declaration",-14
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
+                ,"/tt/TestJava.java:9: warning: Associated declaration",-14
+                ,"/tt/TestJava.java:10: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
                 ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55
                 ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method insy",64 // binstance is false

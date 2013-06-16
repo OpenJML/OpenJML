@@ -245,6 +245,18 @@ public class Utils {
         return true;
     }
 
+    public boolean isJMLStatic(JCModifiers mods, ClassSymbol csym) {
+        // non-static Simple identifier is OK
+        // If the owner of the field is an interface, it
+        // is by default static. However, it might be a
+        // JML field marked as instance.
+        if ((csym.flags() & Flags.INTERFACE) != 0) {
+            // TODO - should cleanup this reference to JmlAttr from Utils
+            if (JmlAttr.instance(context).findMod(mods,JmlToken.INSTANCE) != null) return false;
+        } 
+        return ((mods.flags & Flags.STATIC) != 0);
+    }
+
     // FIXME - document
     public Object envString(/*@ non_null */Env<AttrContext> env) {
         return (env.tree instanceof JCCompilationUnit ? 

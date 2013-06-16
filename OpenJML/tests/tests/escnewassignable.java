@@ -365,7 +365,7 @@ public class escnewassignable extends EscBase {
                 +"public class TestJava { \n"
                 +"  public int[] z;\n"
                 +"  //@ public invariant z != null && z.length > 10;\n"
-
+                
                 +"  //@ requires a != null && a.length > 10; assignable a[1]; \n"
                 +"  public void m1good(int i, int[] a) {\n"
                 +"    a[1] = 0 ;\n"
