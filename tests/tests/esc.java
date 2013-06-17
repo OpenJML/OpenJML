@@ -1611,7 +1611,7 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ assignable b; */ TestJava() { b = true; }\n"
-                +"  public TestJava(int i) {}\n"  // fails
+                +"  public TestJava(int i) {}\n"  // static invariant is assumed true at start of constructor, remains true at end
                 +"  //@ requires false;\n"
                 +"  public static boolean bf(boolean bb) { return true; }\n"
                 +"  //@ requires true;\n"
@@ -1621,8 +1621,6 @@ public class esc extends EscBase {
                 +"  //@ requires !b;\n"
                 +"  public static boolean bq(boolean bb) { return true; }\n"
                 +"}",
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",10,
-                "/tt/TestJava.java:10: warning: Associated declaration",21,
                 "/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bf(boolean)",25,
                 "/tt/TestJava.java:12: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.bq(boolean)",25);
     }
@@ -1669,7 +1667,8 @@ public class esc extends EscBase {
                 +"  public Object insz(int ii) { binstance = ii == 0;            return o; }\n"
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8 // nothing sets bstatic true
-                ,"/tt/TestJava.java:8: warning: Associated declaration",21
+                ,"/tt/TestJava.java:8: warning: Associated declaration",-21
+                ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
@@ -3737,7 +3736,7 @@ public class esc extends EscBase {
                 );
     }
     
-    @Test
+    @Test // FIXME - needs erasure
     public void testTypes3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

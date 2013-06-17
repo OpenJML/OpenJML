@@ -470,7 +470,50 @@ public class typechecking extends TCBase {
                 "/A.java:4: bad operand types for binary operator '<'\n  first type:  int\n  second type: java.lang.Object",35,
                 "/A.java:4: incompatible types\n  required: boolean\n  found:    long",16);
     }
+
+    @Test public void testQuantifierInv() {
+        helpTCF("A.java","public class A {  \n //@ invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > -1) ; \n void m() {}}"
+
+                );
+    }
     
+    @Test public void testQuantifierInv1() {
+        helpTCF("A.java","public class A { int m; static int s; \n //@ invariant (\\exists int i; 0 < i && i <10;  i > m) ; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > m) ; \n void m() {}}"
+                ,"/A.java:3: non-static variable m cannot be referenced from a static context",60
+                );
+    }
+    
+    @Test public void testQuantifierInv2() {
+        helpTCF("A.java","public class A { int m; static int s; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > s) ; \n //@ static invariant (\\exists int i; 0 < i && i <10;  i > s) ; \n void m() {}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierInit() {
+        helpTCF("A.java","public class A { int m; static int s; \n //@ ghost boolean b = (\\exists int i; 0 < i && i <10;  i > m) ; \n //@ static ghost boolean bb = (\\exists int i; 0 < i && i <10;  i > m) ; \n //@ requires b && bb;\n void m() {}}"
+                ,"/A.java:3: non-static variable m cannot be referenced from a static context",69
+                );
+    }
+    
+    @Test public void testQuantifierInit1() {
+        helpTCF("A.java","public class A { int m; static int s; \n //@ ghost boolean b = (\\exists int i; 0 < i && i <10;  i > s) ; \n //@ static ghost boolean bb = (\\exists int i; 0 < i && i <10;  i > s) ; \n //@ requires b && bb;\n void m() {}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierReq() {
+        helpTCF("A.java","public class A {  \n //@ requires (\\exists int i; 0 < i && i <10;  i > -1) ; \n  void m() {}}"
+
+                );
+    }
+    
+    @Test public void testQuantifierReq2() {
+        helpTCF("A.java","public class A {  \n //@ requires (\\exists int i; 0 < i && i <10;  i > -1) ; \n  static void m() {}}"
+
+                );
+    }
+    
+
     @Test public void testLet() {
         helpTCF("A.java","public class A { void m() { //@ assert (\\let int i = 0; i != 0); \n}}"
                 );

@@ -10,6 +10,7 @@ import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+import static com.sun.tools.javac.code.Flags.asFlagSet;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
@@ -3380,21 +3381,50 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * but can see out into the enclosing environment; you need to call leave()
      * when you leave this scope to get rid of new declarations.
      * An initEnv for example,
-     * does not allow new declarations, and a raw new Scope will not inherit 
+     * does not allow new declarations, and a raw new Scope or method env will not inherit 
      * the outer declarations.  This is used in particular by quantified
      * expressions and set comprehensions.
      * @param that the expression that occasions this new scope
      * @param env the current env
      * @return the new env
      */
-    protected Env<AttrContext> envForExpr(JCTree that, Env<AttrContext> env) {
+    protected Env<AttrContext> envForExpr(JCTree tree,  Env<AttrContext> env) {
+        Env<AttrContext> localEnv;
+        // We can't use a delegated scope - they are used for variable initializers
+        // and don;'t accept any new variable declarations.
         Scope sco = env.info.scope;
-        // DelegatedScopes are created for a variable initialization
         while (sco instanceof Scope.DelegatedScope) sco = ((Scope.DelegatedScope)sco).next;
-        Scope sc = sco.dup(sco.owner);
-        //sc.next = env.info.scope; // FIXME-FIXES - should this go back in?
-        Env<AttrContext> localEnv =
-            env.dup(that, env.info.dup(sc));
+
+        long flags = 0L;
+        if (sco.owner.kind != MTH) {
+            // Block is a static or instance initializer;
+            // let the owner of the environment be a freshly
+            // created BLOCK-method.
+            
+            localEnv =
+                env.dup(tree, env.info.dup(sco.dupUnshared()));
+            localEnv.info.scope.owner =
+                new MethodSymbol(flags | BLOCK, names.empty, null,
+                                 sco.owner);
+            if ((flags & STATIC) != 0) localEnv.info.staticLevel++;
+        } else {
+            // Create a new local environment with a local scope.
+            localEnv =
+                env.dup(tree, env.info.dup(sco.dup()));
+            // For this kind of scope, you have to eventually call
+            //             localEnv.info.scope.leave();
+        }
+
+//        // Previous
+//        Scope sco = env.info.scope;
+//        // DelegatedScopes are created for a variable initialization
+//        while (sco instanceof Scope.DelegatedScope) sco = ((Scope.DelegatedScope)sco).next;
+//        Scope sc = sco.dup(sco.owner);
+//        //sc.next = env.info.scope; // FIXME-FIXES - should this go back in?
+//        Env<AttrContext> localEnv = env.dup(that, env.info.dup(sc));
+////        Env<AttrContext> localEnv = env.dup(that, env.info.dup(sc.dupUnshared()));
+////        Env<AttrContext> localEnv =
+////                env.dup(that, env.info.dup(env.info.scope.dupUnshared()));
         return localEnv;
     }
     
@@ -3411,6 +3441,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribAnnotationTypes(mods.annotations,env);
             allAllowed(mods.annotations, JmlToken.typeModifiers, "quantified expression");
             utils.setExprLocal(mods);
+//            if (utils.hasAny(mods,Flags.STATIC)) {
+//                log.error(that.pos,
+//                        "mod.not.allowed.here", asFlagSet(Flags.STATIC));
+//            }
+//            //if (Resolve.isStatic(env)) mods.flags |= Flags.STATIC;  // FIXME - this is needed for variables declared in quantified expressions in invariants - will need to ignore this when pretty printing?
             memberEnter.memberEnter(decl, localEnv);
             decl.type = decl.vartype.type; // FIXME not sure this is needed
         }

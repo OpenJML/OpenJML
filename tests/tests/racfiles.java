@@ -126,7 +126,7 @@ public class racfiles extends RacBase {
     }
 
     /** Testing using system specs */
-    @Test  // FIXME - problems with library specs
+    @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
         expectedExit = 0;
         expectedRACExit = 0;
@@ -146,7 +146,7 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/firstTest","FirstTest");
     }
 
-    @Test
+    @Test  // FIXME - crashes - quantifier expressions in invariants are not supported
     public void testUniqueList() {
         expectedExit = 0;
         helpTCF("testfiles/uniqueList","UniqueList");
