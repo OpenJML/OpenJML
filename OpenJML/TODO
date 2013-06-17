@@ -13,6 +13,7 @@ To fix for release
 - better handling of strings
 - invariants in RAC?
 - tracing
+- quantifiers for static methods, invariants
 
 Fix
 - tracing 

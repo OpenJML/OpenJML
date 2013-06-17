@@ -69,6 +69,11 @@ public class escfiles extends EscBase {
             args.add("-noPurityCheck");
             args.add("-dir");
             args.add(sourceDirname);
+            if (solver != null) args.add("-prover="+solver);
+            if (option != null) {
+                for (String o: option.split(" ")) if (!o.isEmpty()) args.add(o);
+            }
+            
             args.addAll(Arrays.asList(opts));
             
             PrintWriter pw = new PrintWriter(actCompile);
