@@ -1155,7 +1155,7 @@ public class JmlSpecs {
      * Note that the default nullity for the class is cached in the class specs once
      * computed, to avoid recompuation.
      * @param csymbol the class whose default nullity is to be determined; if
-     *   null the default system nullity setting (pre the command-line) is returned
+     *   null the default system nullity setting (per the command-line) is returned
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
      */
     //@ ensures \result != null;
@@ -1171,8 +1171,8 @@ public class JmlSpecs {
                 return JmlToken.NONNULL;
             }
         }
-        TypeSpecs spec = get(csymbol);
-        if (spec.defaultNullity == null) {
+        TypeSpecs spec = get(csymbol); // FIXME - why would spec be null?
+        if (spec == null || spec.defaultNullity == null) {
             JmlToken t = null;
             if (csymbol.getAnnotationMirrors() != null) {
                 if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
@@ -1189,6 +1189,7 @@ public class JmlSpecs {
                     t = defaultNullity(null);
                 }
             }
+            if (spec == null) return t;
             spec.defaultNullity = t;
         }
         return spec.defaultNullity;
@@ -1206,6 +1207,10 @@ public class JmlSpecs {
      * @param csymbol the enclosing class, from which any default comes
      * @return true if the symbol is non-null explicitly or by default
      */
+    public boolean isNonNull(Symbol symbol) {
+        return isNonNull(symbol,symbol.enclClass());
+    }
+    
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (symbol.type.isPrimitive()) return false;
         if (nonnullAnnotationSymbol == null) {

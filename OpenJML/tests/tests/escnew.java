@@ -1393,7 +1393,7 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires true;\n"
-                +"  public void m2badb(int i) {\n"
+                +"  public void m2badb(int i) {\n"  // Line 20
                 +"    assert i == 0 : \"m2badb fails\" ;\n"
                 +"  }\n"
                 
@@ -1411,9 +1411,7 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m2bad",5
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb",5
-                // FIXME - what to do with the additional info in Java assert statements
-                //,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb: m2badb fails",5
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m2badb: m2badb fails",5
                 );
     }
     

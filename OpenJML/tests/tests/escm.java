@@ -307,6 +307,73 @@ public class escm extends EscBase {
     }
 
     @Test
+    public void testFunctionsInSpecs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { static public boolean b; \n"
+
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   ensures \\result == k+1;\n"
+                    +"  //@ pure\n"
+                    +"  public static int m(int k) {\n"
+                    +"       return k+1;\n"
+                    +"  }\n"
+
+                    +"  //@ ensures \\result == 2 + m(j+1) - 3; \n"
+                    +"  public int m1(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+                    +"  //@ ensures \\result == 2 + m(j+1) - 2; \n"
+                    +"  public int m1bad(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+                    +"  //@ requires m(j) == 3; \n"
+                    +"  //@ ensures \\result == 3; \n"
+                    +"  public int m3b(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"  // Line 22
+
+                    +"  public void m2(int j) {\n"
+                    +"       j = j+1;\n"
+                    +"       //@ assert m(j) == \\old(j) + 2;\n"
+                    +"  }\n"
+                    
+                    +"  //@ public normal_behavior\n"
+                    +"  //@   requires b;\n"
+                    +"  //@   ensures \\result == k+1;\n"
+                    +"  //@ pure\n"
+                    +"  public static int mm(int k) {\n"
+                    +"       return k+1;\n"
+                    +"  }\n" // Line 33
+
+                    +"  //@ ensures \\result == mm(j); \n" // Postcondition error - undefined precondition for mm
+                    +"  public int m4bad(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+                    +"  //@ requires b; \n"
+                    +"  //@ ensures \\result == mm(j); \n"
+                    +"  public int m4(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+                    +"  //@ ensures b ==> \\result == mm(j); \n"
+                    +"  public int m4a(int j) {\n"
+                    +"       return j+1;\n"
+                    +"  }\n"
+
+
+                    +"}\n"
+                    ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",8
+                    ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
+                    ,"/tt/TestJava.java:28: warning: Associated declaration",9
+                );
+    }
+
+    @Test
     public void testMethodsInSpecs2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

@@ -4,6 +4,7 @@ import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.lang.model.type.TypeKind;
@@ -252,6 +253,17 @@ public class JmlTreeUtils {
         m.sym = ms;
         m.type = m.sym.type;
         return m;
+    }
+    
+    public Symbol getSym(JCTree tree) {
+        if (tree instanceof JCMethodInvocation) tree = ((JCMethodInvocation)tree).meth;
+        if (tree instanceof JCIdent) {
+            return ((JCIdent)tree).sym;
+        } else if (tree instanceof JCFieldAccess) {
+            return ((JCFieldAccess)tree).sym;
+        } else {
+            return null;
+        }
     }
     
 
@@ -831,7 +843,24 @@ public class JmlTreeUtils {
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, MethodSymbol sym, JCExpression ... args) {
         JCExpression meth = factory.at(pos).Ident(sym);
         if (receiver != null) meth = makeSelect(pos.getPreferredPosition(), receiver, sym);
-        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(), meth, List.<JCExpression>nil());
+        List<JCExpression> nargs;
+        if (args.length == 0) {
+            nargs = List.<JCExpression>nil();
+        } else {
+            ListBuffer<JCExpression> a = new ListBuffer<JCExpression>();
+            for (JCExpression arg: args) a.add(arg);
+            nargs = a.toList();
+        }
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(), meth, nargs);
+        call.type = sym.type.getReturnType();
+        call.varargsElement = null;
+        return call;
+    }
+    
+    public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, MethodSymbol sym, List<JCExpression> nargs) {
+        JCExpression meth = factory.at(pos).Ident(sym);
+        if (receiver != null) meth = makeSelect(pos.getPreferredPosition(), receiver, sym);
+        JCMethodInvocation call = factory.at(pos).Apply(List.<JCExpression>nil(), meth, nargs);
         call.type = sym.type.getReturnType();
         call.varargsElement = null;
         return call;
@@ -871,6 +900,18 @@ public class JmlTreeUtils {
         return mdecl;
     }
     
+    public MethodSymbol makeMethodSym(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass, List<Type> argtypes) {
+
+        MethodType mtype = new MethodType(List.<Type>nil(),resultType,argtypes,ownerClass);
+
+        return new MethodSymbol(
+                mods.flags, 
+                methodName, 
+                mtype, 
+                ownerClass);
+
+    }
+    
     public JCTree.JCInstanceOf makeInstanceOf(int pos, JCExpression expr, JCExpression clazz) {
         JCTree.JCInstanceOf t = factory.at(pos).TypeTest(expr, clazz);
         t.type = syms.booleanType;
@@ -906,10 +947,10 @@ public class JmlTreeUtils {
         return makeOr(p,nn,expr);
     }
     
-    public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCIdent id, Type type) {
+    public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
-        JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
+        JCExpression lhs = makeTypeof(id); // FIXME - copy?
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs);

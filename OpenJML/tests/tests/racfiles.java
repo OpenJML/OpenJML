@@ -52,12 +52,12 @@ public class racfiles extends RacBase {
      * @param classname The fully-qualified classname for the test class (where main is)
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCF(String dirname, String classname, String ... opts) {
+    public void helpTCF(String dirname, String outputdir, String classname, String ... opts) {
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
-            String actCompile = dirname + "/actual-compile";
-            String actRun = dirname + "/actual-run";
+            String actCompile = outputdir + "/actual-compile";
+            String actRun = outputdir + "/actual-run";
             new File(actCompile).delete();
             new File(actRun).delete();
             List<String> args = new LinkedList<String>();
@@ -73,7 +73,7 @@ public class racfiles extends RacBase {
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
             pw.close();
             
-            String diffs = compareFiles(dirname + "/expected-compile", actCompile);
+            String diffs = compareFiles(outputdir + "/expected-compile", actCompile);
             if (diffs != null) {
                 System.out.println(diffs);
 //                fail("Files differ: " + diffs);
@@ -96,7 +96,7 @@ public class racfiles extends RacBase {
             ex = p.exitValue();
             String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
             if (print) System.out.println(output);
-            diffs = compareText(dirname + "/expected-run",output);
+            diffs = compareText(outputdir + "/expected-run",output);
             if (diffs != null) {
                 BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
                 b.write(output);
@@ -122,7 +122,7 @@ public class racfiles extends RacBase {
     public void test1() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF("testfiles/rac1","Bug1","-noInternalSpecs");
+        helpTCF("testfiles/rac1","testfiles/rac1","Bug1","-noInternalSpecs");
     }
 
     /** Testing using system specs */
@@ -130,50 +130,56 @@ public class racfiles extends RacBase {
     public void test1a() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF("testfiles/rac1a","Bug1");
+        helpTCF("testfiles/rac1a","testfiles/rac1a","Bug1");
     }
 
     @Test // Stack overflow because of recursive check of invariant
     public void testBug1() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF("testfiles/racbug1","Add");
+        helpTCF("testfiles/racbug1","testfiles/racbug1","Add");
     }
 
     @Test
     public void testFirstTest() {
         expectedExit = 0;
-        helpTCF("testfiles/firstTest","FirstTest");
+        helpTCF("testfiles/firstTest","testfiles/firstTest","FirstTest");
     }
 
     @Test  // FIXME - crashes - quantifier expressions in invariants are not supported
     public void testUniqueList() {
         expectedExit = 0;
-        helpTCF("testfiles/uniqueList","UniqueList");
+        helpTCF("testfiles/uniqueList","testfiles/uniqueList","UniqueList");
     }
 
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("testfiles/sv_rac","sv_rac/Decimal");
+        helpTCF("testfiles/sv_rac","testfiles/sv_rac","sv_rac/Decimal");
     }
 
     @Test
     public void testDecimal2() {
         expectedExit = 0;
-        helpTCF("testfiles/sv_rac_mod","sv_rac/Decimal");
+        helpTCF("testfiles/sv_rac_mod","testfiles/sv_rac_mod","sv_rac/Decimal");
     }
 
     @Test
     public void testbigint() {
         expectedExit = 0;
-        helpTCF("testfiles/racbigint","bigint");
+        helpTCF("testfiles/racbigint","testfiles/racbigint","bigint");
     }
 
     @Test
     public void testreal() {
         expectedExit = 0;
-        helpTCF("testfiles/racreal","real");
+        helpTCF("testfiles/racreal","testfiles/racreal","real");
+    }
+
+    @Test
+    public void demoStudent() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/student","testfiles/demoStudent","ExecuteCStudent2");
     }
 
 

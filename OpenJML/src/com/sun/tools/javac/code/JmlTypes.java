@@ -16,14 +16,19 @@ import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Warner;
 
 
+/** Extends Types to provide JML specific behavior, in particular support for
+ * JML primitive types.
+ */
 public class JmlTypes extends Types {
 
-    protected Context context;
+    /** The owning compilation context - not to be changed after construction */
+    final protected Context context;
 
     final public JmlType TYPE = new JmlType(JmlToken.BSTYPEUC,null); 
     final public JmlType REAL = new JmlType(JmlToken.BSREAL,null);
     final public JmlType BIGINT = new JmlType(JmlToken.BSBIGINT,null);
 
+    /** Returns the singleton instance of JmlTypes for this compilation context. */
     public static JmlTypes instance(Context context) {
         JmlTypes instance = (JmlTypes)context.get(typesKey);
         if (instance == null)
@@ -31,6 +36,7 @@ public class JmlTypes extends Types {
         return instance;
     }
     
+    /** Called to register the class to be used in the tool chain. */
     public static void preRegister(Context context) {
         context.put(Types.typesKey, new Context.Factory<Types>() {
             @Override
@@ -40,6 +46,10 @@ public class JmlTypes extends Types {
         });
     }
     
+    /** Constructs a new instance - should be used only by instance(), not called
+     * directly; adds all function symbols for operations on JML primitive types.
+     * @param context
+     */
     protected JmlTypes(Context context) {
         super(context);
         this.context = context;
@@ -48,9 +58,6 @@ public class JmlTypes extends Types {
         syms.initType(BIGINT,"\\bigint");
         syms.initType(TYPE,"\\TYPE");
         syms.initType(REAL,"\\real");
-//        TYPE.repSym = repSym(TYPE);
-//        BIGINT.repSym = repSym(BIGINT);
-//        REAL.repSym = repSym(REAL);
         
         enterBinop("==", TYPE, TYPE, syms.booleanType);
         enterBinop("!=", TYPE, TYPE, syms.booleanType);
@@ -92,6 +99,7 @@ public class JmlTypes extends Types {
         enterBinop("%", REAL, REAL, REAL);
     }
     
+    /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override
     public boolean isSameType(Type t, Type s) {
         if (t == s) return true;
@@ -99,6 +107,7 @@ public class JmlTypes extends Types {
         return super.isSameType(t, s);
     }
     
+    /** Overrides Types.disjointType with functionality for JML primitive types. */
     @Override
     public boolean disjointType(Type t, Type s) {
         boolean bt = t instanceof JmlType;
@@ -108,31 +117,37 @@ public class JmlTypes extends Types {
         return t != s;
     }
     
+    /** Overrides Types.isAssignable with functionality for JML primitive types. */
+    @Override
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (s == BIGINT) {
             int tag = t.tag;
             if (isIntegral(tag)) return true;
             if (repSym((JmlType)s) == t.tsym) return true;
-            return false; // FIXME - call the warner?
+            return false;
         }
         if (s == REAL) {
             int tag = t.tag;
             if (isNumeric(tag)) return true; 
             if (repSym((JmlType)s) == t.tsym) return true;
-            return false; // FIXME - call the warner?
+            return false;
         }
         return super.isAssignable(t, s, warn);
     }
     
+    /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(int tag) {
         return tag >= TypeTags.BYTE && tag <= TypeTags.DOUBLE;
     }
     
+    /** True if the Java tag is an integral type (not for JML types). */
     public boolean isIntegral(int tag) {
         return tag >= TypeTags.BYTE && tag <= TypeTags.LONG;
     }
     
+    /** Overrides Types.isConvertible with functionality for JML primitive types. */
+    @Override
     public boolean isConvertible(Type t, Type s, Warner warn) {
         if (s instanceof JmlType) {
             if (s == BIGINT && isIntegral(t.tag)) return true;
@@ -143,6 +158,7 @@ public class JmlTypes extends Types {
         return super.isConvertible(t, s, warn);
     }
     
+    /** Overrides Types.isSubtypeUnchecked with functionality for JML primitive types. */
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
         if (s instanceof JmlType) {
@@ -152,7 +168,8 @@ public class JmlTypes extends Types {
         return super.isSubtypeUnchecked(t, s, warn);
     }
         
-    
+    /** Overrides Types.boxedClass with functionality for JML primitive types. */
+    @Override
     public ClassSymbol boxedClass(Type t) {
         if (t instanceof JmlType) {
             return repSym((JmlType)t);
@@ -160,6 +177,8 @@ public class JmlTypes extends Types {
         return reader.enterClass(syms.boxedName[t.tag]);
     }
 
+    /** Overrides Types.unboxedType with functionality for JML primitive types. */
+    @Override
     public Type unboxedType(Type t) {
         if (t.tsym == repSym(BIGINT)) return BIGINT;
         if (t.tsym == repSym(REAL)) return REAL;
@@ -167,6 +186,7 @@ public class JmlTypes extends Types {
     	return super.unboxedType(t);
     }
 
+    /** Overrides Types.isSubtype with functionality for JML primitive types. */
     @Override
     public boolean isSubtype(Type t, Type s, boolean capture) {
         if (t == s) return true;
@@ -174,6 +194,7 @@ public class JmlTypes extends Types {
         return super.isSubtype(t, s, capture);
     }
     
+    /** Overrides Types.containsType with functionality for JML primitive types. */
     @Override
     public boolean containsType(Type t, Type s) {
         if (t == s) return true;
@@ -181,6 +202,7 @@ public class JmlTypes extends Types {
         return super.containsType(t, s);
     }
     
+    /** Local method to create a binary operation on JML types */
     private OperatorSymbol enterBinop(String name,
             Type left, Type right, Type res) {
         OperatorSymbol opsym = new OperatorSymbol(
@@ -194,6 +216,7 @@ public class JmlTypes extends Types {
         return opsym;
     }
     
+    /** Local method to create a unary operation on JML types */
     private OperatorSymbol enterUnop(String name,
             Type arg,
             Type res) {
@@ -210,48 +233,56 @@ public class JmlTypes extends Types {
     }
 
     
+    /** Overrides Types.isCastable with functionality for JML primitive types;
+     * true if Type t is castable to Type s. */
     @Override
     public boolean isCastable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (s == BIGINT) {
             if (isIntegral(t.tag)) return true;
-            return false; // FIXME - call the warner?
+            return false;
         }
         if (t == BIGINT) {
             if (isIntegral(s.tag)) return true;
-            return false; // FIXME - call the warner?
+            return false;
         }
         if (s == REAL) {
             if (isNumeric(t.tag)) return true;
-            return false; // FIXME - call the warner?
+            if (t == BIGINT) return true;
+            return false;
         }
         if (t == REAL) {
             if (isNumeric(s.tag)) return true;
-            return false; // FIXME - call the warner?
+            if (s == BIGINT) return true;
+            return false;
         }
-        return super.isCastable(t, s,warn);
+        return super.isCastable(t, s, warn);
     }
     
+    /** Overrides Types.lowerBound with functionality for JML primitive types. */
     @Override
     public Type lowerBound(Type t) {
         if (t instanceof JmlType) return t;
         return super.lowerBound(t);
     }
 
+    /** Overrides Types.upperBound with functionality for JML primitive types. */
     @Override
     public Type upperBound(Type t) {
         if (t instanceof JmlType) return t;
         return super.upperBound(t);
     }
     
+    /** Returns an AST for the type representing the given JML primitive type */
     public JCExpression repType(DiagnosticPosition pos, JmlType t) {
         ClassSymbol sym = repSym(t);
         return JmlTree.Maker.instance(context).at(pos).Type(sym.type);
     }
     
+    /** Returns the ClassSymbol for the RAC representation of the given JML primitive type */
     public ClassSymbol repSym(JmlType t) {
         if (t.repSym == null) {
-            JmlToken token = t.jmlTypeTag;
+            JmlToken token = t.jmlTypeTag();
             String n;
             if (token == JmlToken.BSTYPEUC) {
                 n = "org.jmlspecs.utils.IJMLTYPE";
@@ -261,17 +292,19 @@ public class JmlTypes extends Types {
                 n = "org.jmlspecs.lang.Real";
             } else {
                 n = null;
-                // FIXME
+                // FIXME - error message?
             }
             t.repSym = JmlAttr.instance(context).createClass(n);
         }
         return t.repSym;
     }
     
+    /** Returns true if the given type is a JML primitive type. */
     public boolean isJmlType(Type t) {
         return t.tag == TypeTags.UNKNOWN;
     }
     
+    /** Returns true if the given token is the token for a JML primitive type. */
     public boolean isJmlTypeToken(JmlToken t) {
         return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT || t == JmlToken.BSREAL;
     }

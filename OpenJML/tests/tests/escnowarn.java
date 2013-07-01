@@ -112,8 +112,8 @@ public class escnowarn extends EscBase {
     
     @Test
     public void testLocationSignals() {
-//        options.put("-progress","");
-//        options.put("-jmlverbose","");
+        main.addOptions("-show","-method=m");
+        main.addOptions("-counterexample");
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   signals (Exception) false;\n"
                 +"  public void m();\n"

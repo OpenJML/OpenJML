@@ -358,7 +358,7 @@ public class JmlTree implements IJmlTree {
         @Override
         public JCExpression Type(Type t) {
             if (!(t instanceof JmlType)) return super.Type(t);
-            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag);
+            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlTypeTag());
         }
 
         

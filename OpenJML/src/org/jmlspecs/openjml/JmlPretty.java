@@ -471,6 +471,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     print(" ");
                 }
                 printExpr(that.expression); 
+                if (that.optionalExpression != null) {
+                    print(" : ");
+                    printExpr(that.optionalExpression);
+                }
                 print(";");
                 if (useJMLComments) print("*/");
                 //println();

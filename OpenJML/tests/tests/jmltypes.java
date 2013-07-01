@@ -46,7 +46,7 @@ public class jmltypes extends TCBase {
     }
 
     @Test
-    public void testOK1() {
+    public void testOK1() { // FIXME - needs erasure
         helpTCF("A.java",
                 "public class A { \n" +
                 " void m() {\n" +
@@ -62,7 +62,7 @@ public class jmltypes extends TCBase {
     }
 
     @Test
-    public void testOK2() {
+    public void testOK2() { // FIXME - needs numargs
         helpTCF("A.java",
                 "public class A { \n" +
                 " void m() {\n" +

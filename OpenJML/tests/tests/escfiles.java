@@ -349,7 +349,7 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/bagModified","testfiles/bagModified","-progress");//,"-noInternalSpecs");//,"-show","-method=sv_esc.Bag.Bag(sv_esc.Bag)");
     }
 
-    @Test
+    @Test @Ignore // FIXME - hangs up sometimes with some solvers
     public void testLoopExercises() {
         expectedExit = 0;
         helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");

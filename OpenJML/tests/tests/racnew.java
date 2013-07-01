@@ -605,9 +605,9 @@ public class racnew extends RacBase {
     
 
     @Test public void testTypeOf() {  // FIXME _ need to handle erasure
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i).erasure()) == Object.class; \n" +
+                " //@ requires informal(\"asd\") && (\\lbl CLS org.jmlspecs.lang.JML.erasure(\\typeof(i))) == Object.class; \n" +
                 " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.lang.Object"
@@ -1248,7 +1248,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testStaticInvariant2() { 
-        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ static public invariant i == 0; \n "
                 +"public void m(); \n"
@@ -1450,7 +1449,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
-        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"
@@ -2835,7 +2833,6 @@ public class racnew extends RacBase {
     }
     
     @Test public void testAssignable() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static public int j=0,k;\n"
                 +"  //@ requires i > 0;\n"

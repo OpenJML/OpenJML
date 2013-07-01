@@ -25,7 +25,7 @@ public class escnewassignable extends EscBase {
     
     @Parameters
     static public  Collection<String[]> datax() {
-        return noOldData();
+        return makeData();
     }
     
     @Override

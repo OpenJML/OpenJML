@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml;
 
+import com.sun.tools.javac.util.Name;
+
 /** This class holds (almost) all explicit strings or other constant data used in OpenJML,
  * particularly that data that is customer visible. */
 public class Strings {
@@ -210,5 +212,6 @@ public class Strings {
     
     /** Name used to represent the 'this' object for non-static methods */
     public final static String thisName = "THIS";
+    
     
 }

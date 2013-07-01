@@ -13,14 +13,13 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
-import com.sun.tools.javac.main.OptionName;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Options;
 
 /* NOTE: - oddities in the Scanner class
  It seems that if the first character of a token is unicode, then pos is
