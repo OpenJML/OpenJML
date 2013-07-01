@@ -13,7 +13,7 @@ public class escnewBoxing extends EscBase {
 
     @Parameters
     static public  Collection<String[]> datax() {
-        return noOldData();
+        return makeData();
     }
     
     public escnewBoxing(String option, String solver) {

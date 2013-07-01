@@ -1592,6 +1592,7 @@ public class esc extends EscBase {
     
     @Test
     public void testStrings() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  String s;\n"

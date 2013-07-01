@@ -942,6 +942,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         
         Set<VarSymbol> vsyms = GetSymbols.collectSymbols(block,assertionAdder.classBiMap.getf(classDecl));
+//        Iterator<VarSymbol> iter = vsyms.iterator(); while (iter.hasNext()) if (iter.next().toString().equals("length")) iter.remove();
 //        for (VarSymbol v: vsyms) System.out.print(" " + v.toString());
 //        System.out.println("  ENDSYMS");
         
@@ -985,7 +986,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // FIXME - these no longer belong here, I think
         newIdentIncarnation(heapVar,0);
 //        newIdentIncarnation(allocSym,0);
-        currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), -1); // TODO: Some places use 'length' without encoding, so we store an unencoded name
+//        currentMap.putSAVersion(syms.lengthVar, names.fromString(LENGTH), -1); // TODO: Some places use 'length' without encoding, so we store an unencoded name
 
         for (JCVariableDecl d: methodDecl.params) {
             currentMap.putSAVersion(d.sym, 0);
@@ -1417,6 +1418,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         that.args = newargs.toList();
         result = that;
+        
 
 //        pushTypeArgs();
 //        if (tfa != null) {
@@ -1994,7 +1996,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
         } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
             scan(that.expression);
-            //that.expression = result;
+            that.expression = result;
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,result);
             st.id = that.id;
             scan(that.optionalExpression);
@@ -2539,7 +2541,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         public void visitSelect(JCFieldAccess that) {
             if (that.sym instanceof VarSymbol &&
-                    that.sym.owner instanceof ClassSymbol) syms.add((VarSymbol)that.sym);
+                    that.sym.owner instanceof ClassSymbol &&
+                    !that.sym.toString().equals("length")) syms.add((VarSymbol)that.sym);
         }
     }
 

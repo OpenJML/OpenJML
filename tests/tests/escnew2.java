@@ -17,7 +17,7 @@ public class escnew2 extends EscBase {
     
     @Parameters
     static public  Collection<String[]> datax() {
-        return noOldData();
+        return makeData();
     }
     
     @Override

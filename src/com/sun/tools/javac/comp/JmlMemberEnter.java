@@ -1030,41 +1030,40 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
-//            JCExpression ex = jmlF.Ident(names._super);
-//            ex = jmlF.Select(ex,names.fromString(JmlRac.invariantMethodString));
-//            ex = jmlF.Apply(List.<JCExpression>nil(),ex,List.<JCExpression>nil());
-//            JCStatement st = jmlF.Exec(ex);
-        //JCVariableDecl tp = jmlF.VarDef(jmlF.Modifiers(0),names.fromString("_JML$$this"),jmlF.Type(sym.type),null);
-//        if (JmlOption.isOption(context,"-custom")) {
-//            
-//        JmlTree.JmlMethodDecl m = jmlF.MethodDef(
-//                jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
-//                names.fromString(JmlRac.invariantMethodString + "$$" + sym.flatName().toString().replace(".","$")),
-//                vd,
-//                List.<JCTypeParameter>nil(),
-//                List.<JCVariableDecl>nil(),
-//                List.<JCExpression>nil(),
-//                jmlF.Block(0,List.<JCStatement>nil()), 
-//                null);
-//        m.specsDecl = m;
-//        JmlTree.JmlMethodDecl ms = jmlF.MethodDef(
-//                jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),
-//                names.fromString(JmlRac.staticinvariantMethodString),
-//                vd,
-//                List.<JCTypeParameter>nil(),
-//                List.<JCVariableDecl>nil(),
-//                List.<JCExpression>nil(),
-//                jmlF.Block(0,List.<JCStatement>nil()), 
-//                null);
-//        ms.specsDecl = ms;
-//        
-//        utils.setJML(m.mods);
-//        utils.setJML(ms.mods);
-//        JCAnnotation a = tokenToAnnotationAST(JmlToken.MODEL);
-//        // FIXME - should not rely on this, but use the annotations associated with the method symbol
-//        m.mods.annotations = m.mods.annotations.append(a);
-//        ms.mods.annotations = ms.mods.annotations.append(a);
-//        
+            
+        JmlTree.JmlMethodDecl m = jmlF.MethodDef(
+                jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
+                names.fromString(org.jmlspecs.utils.Utils.invariantMethodString),
+                vd,
+                List.<JCTypeParameter>nil(),
+                List.<JCVariableDecl>nil(),
+                List.<JCExpression>nil(),
+                jmlF.Block(0,List.<JCStatement>nil()), 
+                null);
+        m.specsDecl = m;
+        JmlTree.JmlMethodDecl ms = jmlF.MethodDef(
+                jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),
+                names.fromString(org.jmlspecs.utils.Utils.staticinvariantMethodString),
+                vd,
+                List.<JCTypeParameter>nil(),
+                List.<JCVariableDecl>nil(),
+                List.<JCExpression>nil(),
+                jmlF.Block(0,List.<JCStatement>nil()), 
+                null);
+        ms.specsDecl = ms;
+        
+        utils.setJML(m.mods);
+        utils.setJML(ms.mods);
+        JCAnnotation a = tokenToAnnotationAST(JmlToken.HELPER);
+        m.mods.annotations = m.mods.annotations.append(a);
+        ms.mods.annotations = ms.mods.annotations.append(a);
+        a = tokenToAnnotationAST(JmlToken.PURE);
+        m.mods.annotations = m.mods.annotations.append(a);
+        ms.mods.annotations = ms.mods.annotations.append(a);
+        a = tokenToAnnotationAST(JmlToken.MODEL);
+        m.mods.annotations = m.mods.annotations.append(a);
+        ms.mods.annotations = ms.mods.annotations.append(a);
+        
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(m));
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(ms));
 //        tsp.checkInvariantDecl = m;
@@ -1073,7 +1072,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        memberEnter(ms,env);
 //        setDefaultCombinedMethodSpecs(m);
 //        setDefaultCombinedMethodSpecs(ms);
-//        }
         
         HashSet<Name> modelMethodNames = new HashSet<Name>();
         for (JmlTypeClause t : tsp.clauses) {

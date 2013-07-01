@@ -1007,7 +1007,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 
-                +"}" // Warning is duplicated because it can occur through either specification case - but not for custom option
+                +"}" 
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );

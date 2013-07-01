@@ -8,6 +8,7 @@ public class typechecking extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
+        useSystemSpecs = true;
         super.setUp();
         options.put("-noPurityCheck", "");
     }

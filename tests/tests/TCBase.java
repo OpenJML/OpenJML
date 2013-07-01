@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
 public abstract class TCBase extends JmlTestCase {
 
     static String z = java.io.File.pathSeparator;
-    static String testspecpath1 = "$A"+z+"$B";
+    static String testspecpath1 = "$A"+z+"$B"+z+"bin-runtime";
     protected String testspecpath;
     int expectedExit = -1;
     boolean useSystemSpecs = false;
@@ -39,6 +39,7 @@ public abstract class TCBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-sourcepath",   testspecpath);
+        main.addOptions("-classpath",   "bin-runtime");
         if (!useSystemSpecs) main.addOptions("-noInternalSpecs");
         main.addOptions(JmlOption.NOPURITYCHECK.optionName());
 

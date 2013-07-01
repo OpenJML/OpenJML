@@ -20,30 +20,34 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
-    static public String[] solvers = { 
-        null, 
+    static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
         "z3_4_3", 
         "cvc4",
         "yices2" , 
         // "yices", 
         // "simplify" 
-    };
+        });
     
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        data.addAll(noOldData());
+        data.addAll(makeData(solvers));
+        data.addAll(makeData((String)null)); // FIXME - Boogie twice?
         return data;
     }
     
     @Parameters
     static public  Collection<String[]> nonnulldatax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.addAll(noOldData());
-        data.remove(null);
-        return data;
+        return (makeData(solvers));
     }
     
-    static public  Collection<String[]> noOldData() {
+    static public  Collection<String[]> makeData(java.util.List<String> solvers) {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        // FIXME: data.add(new String[]{"-boogie",null}); 
+        return data;
+    }
+
+    static public  Collection<String[]> makeData(String... solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) data.add(new String[]{"-newesc",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 

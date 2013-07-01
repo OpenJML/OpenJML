@@ -175,6 +175,7 @@ public class MethodProverSMT {
         this.showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
+        log.useSource(methodDecl.sourcefile);
 
         boolean print = jmlesc.verbose;
         boolean printPrograms = JmlOption.isOption(context, JmlOption.SHOW);
@@ -405,8 +406,8 @@ public class MethodProverSMT {
 
     public void populateConstantMap(SMT smt, ISolver solver, Map<JCTree,String> cemap,
             SMTTranslator smttrans) {
-        addToConstantMap(treeutils.nullLit,cemap);
-        addToConstantMap("THIS",smt,solver,cemap);
+        addToConstantMap(smttrans.NULL,smt,solver,cemap);
+        addToConstantMap(smttrans.thisSym.toString(),smt,solver,cemap);
         for (Type t : smttrans.javaTypes) {
             String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer
             addToConstantMap(s,smt,solver,cemap);
@@ -425,9 +426,9 @@ public class MethodProverSMT {
 
     }
     
-    public void addToConstantMap(JCExpression e, Map<JCTree,String> cemap) {
+    public void addToConstantMap(JCExpression e, Map<JCTree,String> cemap, SMTTranslator smttrans) {
         String result = cemap.get(e);
-        String expr = e.toString();// TODO - use the pretty printer?
+        String expr = smttrans.convertExpr(e).toString();// TODO - use the pretty printer?
         if (result != null) constantTraceMap.put(result,e.toString()); 
         if (utils.jmlverbose  >= Utils.JMLVERBOSE) log.noticeWriter.println("\t\t\tVALUE: " + expr + "\t === " + 
                  result);
@@ -676,7 +677,8 @@ public class MethodProverSMT {
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
                     // a literal string, it is printed with quotes around it.
-                    if (prev != null) log.useSource(prev);
+                    if (assertStat.source != null) log.useSource(prev);
+                    
                     if (assertStat.associatedPos != Position.NOPOS) {
                         if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
                         log.warning(assertStat.associatedPos, 
@@ -857,7 +859,7 @@ public class MethodProverSMT {
          * more intuitive.
          */
         public void scanLHS(JCTree that) {
-            if (that instanceof JCIdent) {
+            if (that == null || that instanceof JCIdent) {
                 // skip
             } else if (that instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)that;

@@ -4,8 +4,10 @@
  */
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.TypeTags.FORALL;
+
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.JmlToken;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -13,12 +15,8 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Warner;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-
-import org.jmlspecs.annotation.*;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.Utils;
+import com.sun.tools.javac.util.Warner;
 
 /** The Check class is specialized for JML in order to avoid unchecked-cast warnings
  * for uses of casts in JML expressions.  JML checks these logically. Also adjusts
