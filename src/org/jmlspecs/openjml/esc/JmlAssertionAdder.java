@@ -72,6 +72,8 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
+import org.smtlib.ISolver;
+import org.smtlib.SMT;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -1192,6 +1194,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? classDecl.sym : methodDecl.sym,translatedExpr);
         if (esc) {
+
             String extra = Strings.empty;
             for (Object o: args) {
                 extra = extra + " " + o.toString();
@@ -1207,7 +1210,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(st.expression, translatedExpr);
             treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
 
-            if (trace) addTraceableComment(st,convertCopy(translatedExpr),label + " assertion: " + translatedExpr.toString());
+            if (trace && false) {
+                JCExpression newexpr = convertCopy(translatedExpr);
+                assertDecl.init = newexpr;
+                addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
+            }
+
             currentStatements.add(assertDecl);
             currentStatements.add(st);
             return st;
@@ -1620,7 +1628,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     if (!isConstructor || isPost) doit = true; // pre and postcondition case
                                     if (isConstructor && clauseIsStatic) doit = true;
                                     if (doit) {
-                                        t = (JmlTypeClauseExpr)clause;
+                                        t = (JmlTypeClauseExpr)convertCopy(clause);
                                         addTraceableComment(t.expression,clause.toString());
                                         JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
                                         if (assume) addAssume(pos,invariantLabel,
@@ -1967,7 +1975,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 ex = convertJML(ex,preident,true);
                                 ex = treeutils.makeImplies(clause.pos, preident, ex);
                                 // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
-                                addAssert(methodDecl.pos(),Label.POSTCONDITION,ex,clause.pos(),clause.sourcefile);
+                                addAssert(false,methodDecl.pos(),Label.POSTCONDITION,ex,clause.pos(),clause.sourcefile,null);
                                 addStat(popBlock(0,clause.pos()));
                                 break;
                             }
@@ -7854,7 +7862,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlTypeClauseExpr cl = M.at(that.pos()).JmlTypeClauseExpr(mods, that.token, expr);
         cl.setType(that.type);
         cl.source = that.source;
-        classDefs.add(cl);
+        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
         result = cl;
     }
 
@@ -8373,5 +8381,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         }
     }
+
+    public void record(JCTree that) {
+        idmapper.scan(that);
+    }
+
+    final public IdentityMap idmapper = new IdentityMap();
+    
+
+    // Not static 
+    public class IdentityMap extends JmlTreeScanner {
+        
+        public void scan(JCTree that) {
+            super.scan(that);
+            exprBiMap.put(that, that);
+        }
+        
+    }
+    
+
 }
 

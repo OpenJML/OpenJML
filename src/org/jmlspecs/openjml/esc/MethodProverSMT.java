@@ -430,6 +430,7 @@ public class MethodProverSMT {
         String result = cemap.get(e);
         String expr = smttrans.convertExpr(e).toString();// TODO - use the pretty printer?
         if (result != null) constantTraceMap.put(result,e.toString()); 
+        if (e.type.tag == TypeTags.CHAR) result = showChar(result); 
         if (utils.jmlverbose  >= Utils.JMLVERBOSE) log.noticeWriter.println("\t\t\tVALUE: " + expr + "\t === " + 
                  result);
 
@@ -749,7 +750,16 @@ public class MethodProverSMT {
         e.accept(tracer);
     }
 
-    
+    protected String showChar(String userString) {
+        try {
+            int i = Integer.parseInt(userString);
+            userString = "'" + (char)i + "' (" + userString + ')';
+        } catch (Exception e) {
+            // do nothing
+        }
+        return userString;
+    }
+        
    
     /** This class walks the expression subtrees, printing out the value of each
      * subexpression. It is used by creating an instance of the Tracer (using
@@ -786,6 +796,7 @@ public class MethodProverSMT {
                     String sv = cemap.get(that);
                     String userString = sv == null ? "???" : constantTraceMap.get(sv);
                     if (userString == null) userString = sv;
+                    if (that.type.tag == TypeTags.CHAR) userString = showChar(userString);
                     log.noticeWriter.println("\t\t\tVALUE: " + expr + "\t === " + userString);
                 }
                 else print = true;
@@ -805,6 +816,7 @@ public class MethodProverSMT {
                 //log.noticeWriter.println("\t\t\t\tVALUE Retrieved: " + n + " = " + sv);
                 cemap.put(e, sv);
             }
+            if (e.type.tag == TypeTags.CHAR) sv = showChar(sv); 
             log.noticeWriter.println("\t\t\tVALUE: " + e.sym + " = " + 
                         (sv == null ? "???" : sv));
 

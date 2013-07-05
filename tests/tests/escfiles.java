@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -109,62 +110,62 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-subexpressions","-progress");
     }
 
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-noInternalSpecs","-progress","-escMaxWarnings=1");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-progress","-escMaxWarnings=1","-jmltesting");
     }
 
     @Test
     public void testDemoA() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemoA","-noInternalSpecs","-subexpressions","-progress","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemoA","-subexpressions","-progress","-method=tick");
     }
 
     @Test
     public void testDemoA1() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemoA1","-noInternalSpecs","-subexpressions","-progress","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemoA1","-subexpressions","-progress","-method=tick");
     }
 
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
     public void testDemoB1() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB1.java","testfiles/escDemoB1",
-                "-noInternalSpecs","-progress",enableSubexpressions ? "-subexpressions" : "");
+                "-progress",enableSubexpressions ? "-subexpressions" : "","-jmltesting");
     }
 
     @Test
     public void testDemoB2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","testfiles/escDemoB2","-noInternalSpecs","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","testfiles/escDemoB2","-progress","-jmltesting");
     }
 
     @Test
     public void testDemoB3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3",enableSubexpressions ? "-subexpressions" : "","-progress","-jmltesting");
     }
 
     @Test
     public void testDemoC() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-subexpressions","-progress","-jmltesting");
     }
 
     @Test @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void testDemoPaths() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","testfiles/escDemoPaths","-noInternalSpecs","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","testfiles/escDemoPaths","-subexpressions","-progress");
     }
 
     @Test 
@@ -176,7 +177,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress","-jmltesting");
     }
 
 
@@ -196,7 +197,7 @@ public class escfiles extends EscBase {
     @Test
     public void testTrace3() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace3","testfiles/escTrace3","-progress", enableSubexpressions ? "-subexpressions" : "");
+        helpTCF("testfiles/escTrace3","testfiles/escTrace3","-progress", enableSubexpressions ? "-subexpressions" : "", "-jmltesting");
     }
 
     @Test
@@ -208,25 +209,25 @@ public class escfiles extends EscBase {
     @Test
     public void testTrace5() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace5","testfiles/escTrace5","-method=m","-progress", enableSubexpressions ? "-subexpressions" : "");
+        helpTCF("testfiles/escTrace5","testfiles/escTrace5","-method=m","-progress", enableSubexpressions ? "-subexpressions" : "","-jmltesting");
     }
 
     @Test
     public void testTrace6() {
         expectedExit = 0;
-        helpTCF("testfiles/escTrace6","testfiles/escTrace6","-progress", "-subexpressions" );
+        helpTCF("testfiles/escTrace6","testfiles/escTrace6","-progress", "-subexpressions","-jmltesting");
     }
 
     @Test
     public void testTraceloops() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops","-method=mgood","-progress", "-subexpressions");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops","-method=mgood","-progress", "-subexpressions","-jmltesting");
     }
 
     @Test
     public void testTraceloops1() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops1","-method=m1","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops1","-method=m1","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
@@ -250,7 +251,7 @@ public class escfiles extends EscBase {
     @Test
     public void testTraceloops5() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops5","-method=m5","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceLoops5","-method=m5","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
@@ -262,7 +263,7 @@ public class escfiles extends EscBase {
     @Test
     public void testTraceWhile() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceWhile","-method=mwhile","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceWhile","-method=mwhile","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
@@ -280,13 +281,13 @@ public class escfiles extends EscBase {
     @Test
     public void testTraceDo() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo","-method=mdo","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo","-method=mdo","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
     public void testTraceDo1() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo1","-method=mdo1","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceDo1","-method=mdo1","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
@@ -316,7 +317,7 @@ public class escfiles extends EscBase {
     @Test
     public void testTraceForeach3() {
         expectedExit = 0;
-        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach3","-method=mforeach3","-subexpressions","-progress");
+        helpTCF("testfiles/escTraceLoops","testfiles/escTraceForeach3","-method=mforeach3","-subexpressions","-progress","-jmltesting");
     }
 
     @Test
@@ -346,7 +347,7 @@ public class escfiles extends EscBase {
     @Test
     public void testBagModified() {
         expectedExit = 0;
-        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress");//,"-noInternalSpecs");//,"-show","-method=sv_esc.Bag.Bag(sv_esc.Bag)");
+        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress","-jmltesting");//,"-noInternalSpecs");//,"-show","-method=sv_esc.Bag.Bag(sv_esc.Bag)");
     }
 
     @Test @Ignore // FIXME - hangs up sometimes with some solvers

@@ -1,0 +1,50 @@
+Proving methods in trace
+Starting proof of trace.trace() with prover cvc4
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of trace.trace() with prover cvc4 - no warnings
+Starting proof of trace.mnonnullelements(int[]) with prover cvc4
+
+TRACE of trace.mnonnullelements(int[])
+
+testfiles\escTraceBS\trace.java:3:  	requires a != null; 
+			VALUE: a	 === @uc_REF_2
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+testfiles\escTraceBS\trace.java:4:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceBS\trace.java:5:  	assert Assert i == 0 && \nonnullelements(a);
+			VALUE: i	 === 0
+			VALUE: 0	 === 0
+			VALUE: i == 0	 === true
+			VALUE: a	 === @uc_REF_2
+			VALUE: \nonnullelements(a)	 === false
+			VALUE: i == 0 && \nonnullelements(a)	 === false
+testfiles\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
+        //@ assert i == 0 && \nonnullelements(a);
+            ^
+Completed proof of trace.mnonnullelements(int[]) with prover cvc4 - with warnings
+Starting proof of trace.mnotmodified(int) with prover cvc4
+
+TRACE of trace.mnotmodified(int)
+
+testfiles\escTraceBS\trace.java:10:  	assert Assert \not_modified(i);
+			VALUE: i	 === ( - 1 )
+			VALUE: \not_modified(i)	 === true
+testfiles\escTraceBS\trace.java:11:  	i = 4
+			VALUE: 4	 === 4
+			VALUE: i = 4	 === 4
+testfiles\escTraceBS\trace.java:12:  	assert Assert i == 4 && \not_modified(i);
+			VALUE: i	 === 4
+			VALUE: 4	 === 4
+			VALUE: i == 4	 === true
+			VALUE: i	 === 4
+			VALUE: \not_modified(i)	 === false
+			VALUE: i == 4 && \not_modified(i)	 === false
+testfiles\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
+        //@ assert i == 4 && \not_modified(i);
+            ^
+Completed proof of trace.mnotmodified(int) with prover cvc4 - with warnings
+Completed proving methods in trace
+2 warnings

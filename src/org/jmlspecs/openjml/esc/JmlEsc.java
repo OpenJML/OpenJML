@@ -176,7 +176,7 @@ public class JmlEsc extends JmlTreeScanner {
         boolean print = this.verbose;
         boolean printPrograms = print || JmlOption.isOption(context, JmlOption.SHOW);
 
-        progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + proverToUse); //$NON-NLS-1$ //$NON-NLS-2$
+        progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         
         // print the body of the method to be proved
         if (printPrograms) {
@@ -211,7 +211,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-                + " with prover " + proverToUse  //$NON-NLS-1$ 
+                + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                 + (res.isSat() ? " - with warnings" : " - no warnings")  //$NON-NLS-1$ //$NON-NLS-2$
                 );
         proverResults.put(methodDecl.sym,res);
