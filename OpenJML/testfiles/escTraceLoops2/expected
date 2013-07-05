@@ -54,8 +54,6 @@ testfiles\escTraceLoops\trace.java:29:  	if (j == 3) ...
 				Condition = true
 testfiles\escTraceLoops\trace.java:30:  	assert Assert false;
 			VALUE: false	 === false
-testfiles\escTraceLoops\trace.java:30:  	Assert assertion: false
-			VALUE: false	 === ???
 testfiles\escTraceLoops\trace.java:30: warning: The prover cannot establish an assertion (Assert) in method m2
                 //@ assert false;
                     ^

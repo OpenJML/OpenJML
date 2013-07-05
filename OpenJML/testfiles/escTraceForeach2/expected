@@ -4,8 +4,8 @@ Starting proof of trace.mforeach2(int[]) with prover z3_4_3
 TRACE of trace.mforeach2(int[])
 
 testfiles\escTraceLoops\trace.java:177:  	requires a != null; 
-			VALUE: a	 === REF!val!2
-			VALUE: null	 === null
+			VALUE: a	 === REF!val!1
+			VALUE: null	 === NULL
 			VALUE: a != null	 === true
 testfiles\escTraceLoops\trace.java:178:  	int j = 0
 			VALUE: 0	 === 0
@@ -19,7 +19,7 @@ testfiles\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <=
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
 			VALUE: \index	 === 0
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!1
 			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
@@ -33,14 +33,14 @@ testfiles\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <=
 			VALUE: 0 <= \index	 === true
 			VALUE: j == \index && 0 <= \index	 === true
 			VALUE: \index	 === 1
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!1
 			VALUE: a.length	 === 2
 			VALUE: \index <= a.length	 === true
 			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
 testfiles\escTraceLoops\trace.java:180:  	Loop test
 			VALUE: \index	 === 1
-			VALUE: _JML__tmp93	 === 2
-			VALUE: \index < _JML__tmp93	 === true
+			VALUE: _JML__tmp94	 === 2
+			VALUE: \index < _JML__tmp94	 === true
 testfiles\escTraceLoops\trace.java:180:  	Begin loop body
 testfiles\escTraceLoops\trace.java:181:  	j = j + j + 1
 			VALUE: j	 === 1

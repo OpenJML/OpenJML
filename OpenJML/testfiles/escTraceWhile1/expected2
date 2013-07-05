@@ -1,0 +1,28 @@
+Proving methods in trace
+Starting proof of trace.mwhile1() with prover cvc4
+
+TRACE of trace.mwhile1()
+
+testfiles\escTraceLoops\trace.java:95:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:96:  	int j = 1
+			VALUE: 1	 === 1
+			VALUE: j	 === 1
+testfiles\escTraceLoops\trace.java:97:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:98:  	//@ loop_invariant j == 2 * i && 0 <= i && i <= k;
+			VALUE: j	 === 1
+			VALUE: 2	 === 2
+			VALUE: i	 === 0
+			VALUE: 2 * i	 === 0
+			VALUE: j == 2 * i	 === false
+			VALUE: j == 2 * i && 0 <= i	 === false
+			VALUE: j == 2 * i && 0 <= i && i <= k	 === false
+testfiles\escTraceLoops\trace.java:98: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mwhile1
+        //@ loop_invariant j == 2*i && 0 <= i && i <= k;
+            ^
+Completed proof of trace.mwhile1() with prover cvc4 - with warnings
+Completed proving methods in trace
+1 warning

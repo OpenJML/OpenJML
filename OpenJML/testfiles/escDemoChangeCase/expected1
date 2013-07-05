@@ -1,92 +1,57 @@
 Proving methods in openjml.demo.ChangeCase
-Starting proof of openjml.demo.ChangeCase.changeCase(char) with prover z3_4_3
+Starting proof of openjml.demo.ChangeCase.changeCase(char) with prover yices2
 
 TRACE of openjml.demo.ChangeCase.changeCase(char)
 
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:5:  	requires c >= 'A' && c <= 'Z'; 
-			VALUE: c	 === 97
-			VALUE: 'A'	 === 65
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'A'	 === 'A' (65)
 			VALUE: c >= 'A'	 === true
-			VALUE: c	 === 97
-			VALUE: 'Z'	 === 90
-			VALUE: c <= 'Z'	 === false
-			VALUE: c >= 'A' && c <= 'Z'	 === false
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === true
+			VALUE: c >= 'A' && c <= 'Z'	 === true
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:8:  	requires c >= 'a' && c <= 'z'; 
-			VALUE: c	 === 97
-			VALUE: 'a'	 === 97
-			VALUE: c >= 'a'	 === true
-			VALUE: c	 === 97
-			VALUE: 'z'	 === 122
-			VALUE: c <= 'z'	 === true
-			VALUE: c >= 'a' && c <= 'z'	 === true
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: c >= 'a'	 === false
+			VALUE: c >= 'a' && c <= 'z'	 === false
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:11:  	requires !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z'); 
-			VALUE: c	 === 97
-			VALUE: 'A'	 === 65
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'A'	 === 'A' (65)
 			VALUE: c >= 'A'	 === true
-			VALUE: c	 === 97
-			VALUE: 'Z'	 === 90
-			VALUE: c <= 'Z'	 === false
-			VALUE: c >= 'A' && c <= 'Z'	 === false
-			VALUE: (c >= 'A' && c <= 'Z')	 === false
-			VALUE: !(c >= 'A' && c <= 'Z')	 === true
-			VALUE: c	 === 97
-			VALUE: 'a'	 === 97
-			VALUE: c >= 'a'	 === true
-			VALUE: c	 === 97
-			VALUE: 'z'	 === 122
-			VALUE: c <= 'z'	 === true
-			VALUE: c >= 'a' && c <= 'z'	 === true
-			VALUE: (c >= 'a' && c <= 'z')	 === true
-			VALUE: !(c >= 'a' && c <= 'z')	 === false
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === true
+			VALUE: c >= 'A' && c <= 'Z'	 === true
+			VALUE: (c >= 'A' && c <= 'Z')	 === true
+			VALUE: !(c >= 'A' && c <= 'Z')	 === false
 			VALUE: !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')	 === false
-..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:13:  	AssumeCheck assertion: __JML_AssumeCheck_ != 1
-			VALUE: __JML_AssumeCheck_	 === ???
-			VALUE: 1	 === ???
-			VALUE: __JML_AssumeCheck_ != 1	 === ???
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:14:  	char result = ' '
-			VALUE: ' '	 === 32
-			VALUE: result	 === 32
+			VALUE: ' '	 === ' ' (32)
+			VALUE: result	 === ' ' (32)
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:15:  	if (c >= 'Z') ...
-			VALUE: c	 === 97
-			VALUE: 'Z'	 === 90
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
 			VALUE: c >= 'Z'	 === true
 			VALUE: (c >= 'Z')	 === true
 				Condition = true
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:16:  	result = c
-			VALUE: c	 === 97
-			VALUE: result = c	 === 97
+			VALUE: c	 === 'Z' (90)
+			VALUE: result = c	 === 'Z' (90)
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26:  	return result;
-			VALUE: result	 === 97
+			VALUE: result	 === 'Z' (90)
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:  	ensures \result >= 'a' && \result <= 'z'; 
-			VALUE: \result	 === 97
-			VALUE: 'a'	 === 97
-			VALUE: \result >= 'a'	 === true
-			VALUE: \result	 === 97
-			VALUE: 'z'	 === 122
-			VALUE: \result <= 'z'	 === true
-			VALUE: \result >= 'a' && \result <= 'z'	 === true
-..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:  	Postcondition assertion: !Pre_1 || _JML___result >= 'a' && _JML___result <= 'z'
-			VALUE: Pre_1	 === ???
-			VALUE: !Pre_1	 === ???
-			VALUE: !Pre_1 || _JML___result >= 'a' && _JML___result <= 'z'	 === ???
-..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9:  	ensures \result >= 'A' && \result <= 'Z'; 
-			VALUE: \result	 === 97
-			VALUE: 'A'	 === 65
-			VALUE: \result >= 'A'	 === true
-			VALUE: \result	 === 97
-			VALUE: 'Z'	 === 90
-			VALUE: \result <= 'Z'	 === false
-			VALUE: \result >= 'A' && \result <= 'Z'	 === false
-..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9:  	Postcondition assertion: !Pre_2 || _JML___result >= 'A' && _JML___result <= 'Z'
-			VALUE: Pre_2	 === ???
-			VALUE: !Pre_2	 === ???
-			VALUE: !Pre_2 || _JML___result >= 'A' && _JML___result <= 'Z'	 === ???
+			VALUE: \result	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: \result >= 'a'	 === false
+			VALUE: \result >= 'a' && \result <= 'z'	 === false
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: warning: The prover cannot establish an assertion (Postcondition) in method changeCase
 		return result;
 		^
-..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
-	//@   ensures \result >= 'A' && \result <= 'Z';
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
+	//@   ensures \result >= 'a' && \result <= 'z';
 	      ^
-Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover z3_4_3 - with warnings
+Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover yices2 - with warnings
 Completed proving methods in openjml.demo.ChangeCase
 2 warnings
