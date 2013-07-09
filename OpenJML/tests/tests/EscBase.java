@@ -23,7 +23,7 @@ public abstract class EscBase extends JmlTestCase {
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
         "z3_4_3", 
         "cvc4",
-        "yices2" , 
+        // "yices2" , // FIXME - needs quantifiers
         // "yices", 
         // "simplify" 
         });

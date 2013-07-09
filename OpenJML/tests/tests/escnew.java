@@ -313,6 +313,69 @@ public class escnew extends EscBase {
                 );
     }
     
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int i;\n"
+                
+                +"  //@ public normal_behavior ensures i == \\old(i) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures i == \\old(i) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                
+                +"  //@ public normal_behavior assignable i; ensures i == \\old(i) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++i;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    // Tests use of \old token in called methods
+    @Test
+    public void testPostcondition5a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static int i;\n"
+                
+                +"  //@ public normal_behavior ensures i == \\old(i) + 3;\n"
+                +"  public void m1() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                +"  //@ public normal_behavior ensures i == \\old(i) + 3;\n"
+                +"  public void m1bad() {\n"
+                +"         inc();\n"
+                +"         inc();\n"
+                +"  }\n"
+                
+                // Default is assignable \everything
+                +"  //@ public normal_behavior ensures i == \\old(i) + 1;\n"
+                +"  public void inc()  {\n"
+                +"         ++i;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:10: warning: Associated declaration",30
+                );
+    }
+    
     // FIXME - add checks on object fields, quantifier variables
     // FIXME - need attribute checks on scopes of variables
     @Test

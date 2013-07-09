@@ -3,9 +3,7 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -19,12 +17,10 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.provers.YicesProver;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -87,9 +83,6 @@ public class JmlEsc extends JmlTreeScanner {
     /** The assertion adder instance used to translate */
     public JmlAssertionAdder assertionAdder;
     
-//    /** The prover instance most recently used */
-//    static public IProver mostRecentProver = null; 
-    
     /** The most recent program whose proof was attempted. */ // TODO - REVIEW
     static public BasicProgram mostRecentProgram = null;
     
@@ -107,7 +100,6 @@ public class JmlEsc extends JmlTreeScanner {
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         
-        escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG; // FIXME - clean this up?
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
     }

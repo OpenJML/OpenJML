@@ -467,10 +467,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (s == null) {
                 s = encodedName(vsym,vsym.pos);
                 for (VarMap map: blockmaps.values()) {
-                    map.putSAVersion(vsym,s,0L);
+                    if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
                 }
                 for (VarMap map: labelmaps.values()) {
-                    map.putSAVersion(vsym,s,0L);
+                    if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
                 }
 
                 //System.out.println("ADDING SYMBOL-A " + vsym.getQualifiedName() + " " + s);
@@ -802,7 +802,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         if (isDefined.add(n.name)) addDeclaration(n);
         return n;
     }
+
+    // FIXME - document
+    protected JCIdent newArrayIncarnation(Type componentType, int usePosition) {
+        JCIdent id = getArrayIdent(componentType,usePosition);
+        id = newArrayIdentIncarnation((VarSymbol)id.sym,usePosition);
+        return id;
+    }
     
+
     // FIXME - review and document
     protected JCIdent newIdentIncarnation(TypeSymbol id, int incarnation) {
         JCIdent n = factory.at(incarnation).Ident(encodedTypeName(id,incarnation));
@@ -826,14 +834,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name);
         return n;
-    }
-    
-    // FIXME - document
-    protected JCIdent newArrayIncarnation(Type componentType, int usePosition) {
-        JCIdent id = getArrayIdent(componentType);
-        id = newArrayIdentIncarnation((VarSymbol)id.sym,usePosition);
-        //currentMap.put((VarSymbol)id.sym,Integer.valueOf(usePosition),id.name);
-        return id;
     }
     
     // FIXME - review
@@ -1105,27 +1105,27 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     // FIXME - review and document
-    private Map<String,JCIdent> arrayIdMap = new HashMap<String,JCIdent>();
+    private Map<String,VarSymbol> arrayBaseSym = new HashMap<String,VarSymbol>();
     
-    // FIXME - review and document
-    protected JCIdent getArrayIdent(Type componentType) {
+    protected VarSymbol getArrayBaseSym(Type componentType) {
         String s = "arrays_" + encodeType(componentType);
-        JCIdent id = arrayIdMap.get(s);
-        if (id == null) {
-            id = factory.Ident(names.fromString(s));
+        VarSymbol vsym = arrayBaseSym.get(s);
+        if (vsym == null) {
+            JCIdent id = factory.Ident(names.fromString(s));
             id.pos = 0;
             id.type = new ArrayType(componentType,syms.arrayClass);
             VarSymbol sym = new VarSymbol(0,id.name,id.type,null);
             sym.pos = 0;
             id.sym = sym;
-            arrayIdMap.put(s,id);
+            vsym = sym;
+            arrayBaseSym.put(s,vsym);
         }
-        id = newIdentUse((VarSymbol)id.sym,0);
-//
-//        JCIdent n = factory.at(0).Ident(id.name);
-//        n.sym = id.sym;
-//        n.type = id.type;
-        return id;
+        return vsym;
+    }
+    // FIXME - review and document
+    protected JCIdent getArrayIdent(Type componentType, int pos) {
+        VarSymbol vsym = getArrayBaseSym(componentType);
+        return newIdentUse(vsym,pos);
     }
     
    
@@ -1484,7 +1484,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
             scan(that.args.get(0));
             JCExpression arg = result;
-            JCExpression argarrays = getArrayIdent(syms.objectType);
+            JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
             result = that;
         } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF) {
@@ -1784,9 +1784,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     // should have been expanded into the actual list of 
                     // non-wildcard locations
                     log.error(fa.pos,"jml.internal","Unexpected wildcard store-ref in havoc call");
-                    
             } else {
-                if (utils.isJMLStatic(fa.sym)) { // FIXME - isJMLStatic?
+                if (utils.isJMLStatic(fa.sym)) {
                     newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
                 } else {
                     int sp = fa.pos;
@@ -1801,14 +1800,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
                         addDeclaration(newfield);
                     }
-                    JmlBBFieldAccess acc = new JmlBBFieldAccess(newfield,fa.selected);
-                    acc.pos = sp;
-                    acc.type = fa.type;
-                    JmlBBFieldAssignment expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,acc);
-                    expr.pos = sp;
-                    expr.type = fa.type;
-                    addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
-
+                    if (fa.selected != null) {
+                        JmlBBFieldAccess acc = new JmlBBFieldAccess(newfield,fa.selected);
+                        acc.pos = sp;
+                        acc.type = fa.type;
+                        JmlBBFieldAssignment expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,acc);
+                        expr.pos = sp;
+                        expr.type = fa.type;
+                        addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+                    }
                 }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
@@ -1824,7 +1824,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         } else if (storeref instanceof JCArrayAccess) { // Array Access
             JCArrayAccess aa = (JCArrayAccess)storeref;
             int sp = storeref.pos;
-            JCIdent arr = getArrayIdent(aa.type);
+            JCIdent arr = getArrayIdent(aa.type,aa.pos);
             JCExpression ex = aa.indexed;
             JCExpression index = aa.index;
             JCIdent nid = newArrayIncarnation(aa.type,sp);
@@ -1848,7 +1848,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JmlStoreRefArrayRange aa = (JmlStoreRefArrayRange)storeref;
             if (aa.lo == aa.hi && aa.lo != null) {
                 // Single element
-                JCIdent arr = getArrayIdent(aa.type);
+                JCIdent arr = getArrayIdent(aa.type,aa.pos);
                 JCExpression ex = aa.expression;
                 JCExpression index = aa.lo;
                 JCIdent nid = newArrayIncarnation(aa.type,sp);
@@ -1873,7 +1873,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             } else if (aa.lo == null && aa.hi == null) {
                 // Entire array
-                JCIdent arr = getArrayIdent(aa.type);
+                JCIdent arr = getArrayIdent(aa.type,aa.pos);
                 JCExpression ex = aa.expression;
                 JCIdent nid = newArrayIncarnation(aa.type,sp);
                 
@@ -1888,7 +1888,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
             } else {
                 // Range of array
-                JCIdent arr = getArrayIdent(aa.type);
+                JCIdent arr = getArrayIdent(aa.type,aa.pos);
                 JCExpression ex = aa.expression;
                 JCIdent nid = newArrayIncarnation(aa.type,sp);
                 
@@ -2162,7 +2162,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression indexed = result;
         scan(that.index);
         JCExpression index = result;
-        JCIdent arr = getArrayIdent(that.type);
+        JCIdent arr = getArrayIdent(that.type,that.pos);
         if (that instanceof JmlBBArrayAccess) {
             that.indexed = indexed;
             that.index = index;
@@ -2205,7 +2205,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr);
             newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
-            JCIdent arr = getArrayIdent(right.type);
+            JCIdent arr = getArrayIdent(right.type,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
             JCIdent nid = newArrayIncarnation(right.type,sp);

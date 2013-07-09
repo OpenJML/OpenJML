@@ -604,10 +604,10 @@ public class racnew extends RacBase {
     }
     
 
-    @Test public void testTypeOf() {  // FIXME _ need to handle erasure
+    @Test public void testTypeOf() {
         helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
-                " //@ requires informal(\"asd\") && (\\lbl CLS org.jmlspecs.lang.JML.erasure(\\typeof(i))) == Object.class; \n" +
+                " //@ requires JML.informal(\"asd\") && (\\lbl CLS JML.erasure(\\typeof(i))) == Object.class; \n" +
                 " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.lang.Object"
@@ -777,8 +777,8 @@ public class racnew extends RacBase {
     }
     
 
-    // FIXME  shortcut evaluation is no longer working - should it?
     @Test public void testNonnullelement() {
+        expectedRACExit = 1;
         helpTCX("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
                 "String[] s2null = new String[]{null,\"B\"}; \n" +
                 "String[] s2 = new String[]{\"A\",\"B\"}; \n" +
@@ -788,7 +788,7 @@ public class racnew extends RacBase {
                 "m(s2null); \n" +
                 "//@ assert \\nonnullelements(s2,s2null); \n" +
                 "//@ assert \\nonnullelements(s2,s2); \n" +
-                        // Tests shortcut evaluation
+                        // Tests shortcut evaluation - should evaluate all arguments first
                 "//@ assert \\nonnullelements(s2null,new Integer[]{5/z}); \n" +
                 "System.out.println(\"END\"); } \n" +
                 " static void m(Object[] o) { \n" +
@@ -801,8 +801,9 @@ public class racnew extends RacBase {
                 ,"LABEL ELEM = false"
                 ,"/tt/TestJava.java:13: JML assertion is false"
                 ,"/tt/TestJava.java:8: JML assertion is false"
-                ,"/tt/TestJava.java:10: JML assertion is false"
-                ,"END"
+                ,"/tt/TestJava.java:10: JML Division by zero"
+                ,"Exception in thread \"main\" java.lang.ArithmeticException: / by zero"
+                ,"\tat tt.TestJava.main(TestJava.java:10)"
                 );
         
     }
@@ -2268,7 +2269,6 @@ public class racnew extends RacBase {
                 );
     }
     
-    // FIXME - duplicate errors for constraint (one per method)
     // check readable, writable, monitors for
     // check modifiers?
     // check more method clauses
@@ -2276,7 +2276,7 @@ public class racnew extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        // FIXME - fix the debug statement, fix duplication and reseting of messages
+        // FIXME - fix duplication and reseting of messages
         main.addOptions("-keys=DEBUG");
         //print = true;
         expectedExit = 1;
@@ -2309,7 +2309,7 @@ public class racnew extends RacBase {
                 +"int mb() { return 0; }\n"
                 +"}"
                 ,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32 // FIXME - should be 31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25

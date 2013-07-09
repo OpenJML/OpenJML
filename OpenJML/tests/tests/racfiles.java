@@ -152,10 +152,22 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/uniqueList","testfiles/uniqueList","UniqueList");
     }
 
+    @Test 
+    public void testUniqueList1() {
+        expectedExit = 0;
+        helpTCF("testfiles/uniqueListBug1","testfiles/uniqueListBug1","UniqueListBug1");
+    }
+
+    @Test 
+    public void testUniqueList2() {
+        expectedExit = 0;
+        helpTCF("testfiles/uniqueListBug2","testfiles/uniqueListBug2","UniqueListBug2");
+    }
+
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("testfiles/sv_rac","testfiles/sv_rac","sv_rac/Decimal");
+        helpTCF("testfiles/sv_rac","testfiles/sv_rac","sv_rac/Decimal","-show");
     }
 
     @Test
