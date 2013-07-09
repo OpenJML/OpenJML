@@ -929,10 +929,10 @@ public class JmlTreeUtils {
         return typeof;
     }
     
-    public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCIdent id, Type type) {
+    public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
-        JCExpression lhs = makeTypeof(makeIdent(p, id.sym));
+        JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeAnd(p,makeEqObject(p,lhs,rhs),

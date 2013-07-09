@@ -10,15 +10,19 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.Options;
 
-// These tests are only used with the old implementation - so we don't worry about them too much
-
 // FIXME - these were old tests - are they duplicates? should we use them?
 
+// FIXME - restore parameterization when CVC is fixed
+//@RunWith(Parameterized.class)
 public class esc extends EscBase {
 
     public esc() {
         super("-newesc",null);
     }
+
+//    public esc(String option, String solver) {
+//        super(option,solver);
+//    }
     
     // FIXME - the -custom option fails significantly when escdebug and -trace are on
     // FIXME = significant failures in boogie and newesc
@@ -596,7 +600,7 @@ public class esc extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3(Object p) {\n"
                 +"    Object pp = c2(p);\n"
-                +"    //@ assert pp != this;\n"  // BAD
+                +"    //@ assert pp != this;\n"  // BAD // Line 20
                 +"  }\n"
                 
                 +"  //@ requires p != null && p != this;\n"
@@ -608,7 +612,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 
                 +"  //@ requires p != null && p != this;\n"
-                +"  //@ modifies \\everything;\n"
+                +"  //@ modifies \\everything;\n"   // Line 30
                 +"  public void m5(Object p) {\n"
                 +"    Object pp = c2(p);\n"
                 +"    Object q = new Object();\n"
@@ -619,7 +623,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result != null && \\fresh(\\result);\n"
                 +"  //@ ensures \\result != p && \\result != this;\n"
                 +"  public Object m6(Object p) {\n"
-                +"    return new Object();\n"
+                +"    return new Object();\n"  // Line 40
                 +"  }\n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -3742,7 +3746,7 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/Object o) {\n"
-                +"    //@ assert \\typeof(o).erasure() == o.getClass();\n"
+                +"    //@ assert JML.erasure(\\typeof(o)) == o.getClass();\n"
                 +"  }\n"
                 +"}"
                 );
