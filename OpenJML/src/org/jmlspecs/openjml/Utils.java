@@ -545,6 +545,7 @@ public class Utils {
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by log.currentSource(). */
     public String locationString(int pos) {
+        // USE JCDiagnostic.NO_SOURCE ? FIXME
         JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
         String msg = diag.noSource().replace("Note: ", "");
         return msg;

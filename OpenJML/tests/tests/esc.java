@@ -1675,10 +1675,12 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:8: warning: Associated declaration",-21
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:10: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:10: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14

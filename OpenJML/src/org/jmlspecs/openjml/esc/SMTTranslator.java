@@ -220,6 +220,8 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(thisSym,emptyList, refSort);
         commands.add(c);
+        c = new C_declare_fun(F.symbol("equals"),Arrays.asList(refSort,refSort), boolSort);
+        commands.add(c);
         c = new C_declare_fun(F.symbol("stringConcat"),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), intSort);

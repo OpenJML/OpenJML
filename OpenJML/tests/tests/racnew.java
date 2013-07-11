@@ -1341,13 +1341,13 @@ public class racnew extends RacBase {
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { \n"
-                +"public int i = 0;  \n"
+                +"public int i = 0; static int j; \n"
                 +"public void m() { i = 1-i; }  \n"
                 +"public static void main(String[] args) { \n"
                 +"new A().m();\n"
-                +"System.out.println(\"MID\");\n"
+                +"j = 0; System.out.println(\"MID\"); j = 1;\n"
                 +"new A().m();\n"
-                +"System.out.println(\"END\");\n"
+                +"j = 2; System.out.println(\"END\");\n"
                 +"}}"
                 
                 ,"/tt/A.java:3: JML invariant is false on leaving method" // Leaving m(), Line 5
