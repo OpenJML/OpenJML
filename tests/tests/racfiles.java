@@ -136,7 +136,7 @@ public class racfiles extends RacBase {
     @Test // Stack overflow because of recursive check of invariant
     public void testBug1() {
         expectedExit = 0;
-        expectedRACExit = 0;
+        expectedRACExit = 1;
         helpTCF("testfiles/racbug1","testfiles/racbug1","Add");
     }
 
@@ -192,6 +192,12 @@ public class racfiles extends RacBase {
     public void demoStudent() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/student","testfiles/demoStudent","ExecuteCStudent2");
+    }
+
+    @Test
+    public void purseCardTest() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","purse.CardTest","-show");
     }
 
 

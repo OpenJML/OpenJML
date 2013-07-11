@@ -775,7 +775,6 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                // The first two associated declarations can occur in opposite order
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
                 ,"/tt/TestJava.java:6: warning: Associated declaration",14
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method m1bad",15

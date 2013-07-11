@@ -356,5 +356,17 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");
     }
 
+    @Test @Ignore // FIXME _ hangs up on sign
+    public void testPurseCard() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-exclude=sign,check");
+    }
+
+    @Test @Ignore // FIXME - hangs, particularly in CVC4
+    public void testPurseCardMod() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
+    }
+
 
 }

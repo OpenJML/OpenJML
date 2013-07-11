@@ -3032,6 +3032,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!isPure && !JmlOption.isOption(context,JmlOption.NOPURITYCHECK)) {
                     log.warning(tree.pos,"jml.non.pure.method",msym);
                 }
+                if (isPure && currentClauseType == JmlToken.INVARIANT
+                        && msym.owner == enclosingClassEnv.enclClass.sym
+                        && !isHelper(msym)
+                        && utils.rac) {
+                    log.warning(tree.pos,"jml.possibly.recursive.invariant",msym);
+                }
             } else {
                 // We are expecting that the expression that is the method
                 // receiver (tree.meth) is either a JCIdent or a JCFieldAccess
@@ -3489,6 +3495,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         if (utils.rac) {
             if (that.racexpr == null) createRacExpr(that,localEnv,resultType);
+//            if (that.racexpr == null) {
+//                System.out.println("NO QUANT");
+//            }
         }
         } finally {
             quantifiedExprs.remove(quantifiedExprs.size()-1);
@@ -3534,7 +3543,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         try {
             // If there is no range, we will not try to execute the expression
-            if (q.range == null) return; // FIXME - is this executable?
+            if (q.range == null) {
+                return; // FIXME - is this executable?
+            }
             
             JmlTree.Maker F = factory;
             Type restype = q.type; // Result type of the expression
@@ -3628,7 +3639,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
             JCExpression innerexpr = determineRacBounds(decls,newrange,bounds);
-            if (innerexpr == null) return;
+            if (innerexpr == null) {
+                return;
+            }
             
             // Here we create declarations that will be needed. These are 
             // unattributed; they are attributed below, and then the attributed
@@ -4541,6 +4554,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(pureAnnotationSymbol)!=null;
         return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
+
+    }
+    
+    /** Returns true if the given symbol has a pure annotation 
+     * @param symbol the symbol to check
+     * @return true if the symbol has a model annotation, false otherwise
+     */
+    public boolean isHelper(Symbol symbol) {
+        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
+        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
 
     }
     
