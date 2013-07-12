@@ -2203,6 +2203,10 @@ public class racnew extends RacBase {
                 +"   A.ooo = null;\n"
                 +"System.out.println(\"END\"); "
                 +"}} class B { //@ model  int i; represents i = 0; \n}"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"END"
                 );
@@ -2211,6 +2215,7 @@ public class racnew extends RacBase {
 
     @Test public void testNullReference() {
         expectedRACExit = 1;
+        main.addOptions("-show");
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A  { \n"
                 +"/*@nullable*/static A a = null;\n"
                 +"/*@nullable*/ A b = null;\n"
@@ -2246,6 +2251,12 @@ public class racnew extends RacBase {
                 +"}} "
                 ,"/tt/A.java:2: JML null initialization of non_null field oo"
                 ,"/tt/A.java:4: JML null initialization of non_null field oooo"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:4: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:4: JML non-null field is null"
                 ,"/tt/A.java:6: JML null initialization of non_null field local"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
@@ -2263,6 +2274,8 @@ public class racnew extends RacBase {
                 +"System.out.println(\"END\"); "
                 +"}} class B { \n}"
                 ,"/tt/A.java:3: JML null initialization of non_null field ooo"
+                ,"/tt/A.java:3: JML non-null field is null"
+                ,"/tt/A.java:3: JML non-null field is null"
                 ,"/tt/A.java:6: JML non-null field is null"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
