@@ -3461,6 +3461,7 @@ public class esc extends EscBase {
                 +"  //@ public invariant t.j ==1 ? true: true;\n"
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25
         );
     }
@@ -3509,7 +3510,6 @@ public class esc extends EscBase {
         );
     }
     
-    // FIXME - need to process the field initializers when chekcing the constructors
     @Test 
     public void testUndefinedInSpec5() {
         main.addOptions("-nullableByDefault");
@@ -3518,7 +3518,7 @@ public class esc extends EscBase {
                 +"  static TestJava t;\n"
                 +"  int j = t.j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2",19
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method <init>",12
         );
     }
 

@@ -125,9 +125,6 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                // FIXME - check constructor
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 );

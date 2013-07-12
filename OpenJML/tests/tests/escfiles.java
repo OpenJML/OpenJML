@@ -68,7 +68,7 @@ public class escfiles extends EscBase {
             List<String> args = new LinkedList<String>();
             args.add("-esc");
             args.add("-noPurityCheck");
-            args.add("-dir");
+            if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
             if (solver != null) args.add("-prover="+solver);
             if (option != null) {
@@ -362,10 +362,16 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-exclude=sign,check");
     }
 
+    @Test @Ignore  // FIXME - hangs, particularly in CVC4
+    public void testPurseCardMod2() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
+    }
+
     @Test @Ignore // FIXME - hangs, particularly in CVC4
     public void testPurseCardMod() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod/Terminal.java","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
     }
 
 
