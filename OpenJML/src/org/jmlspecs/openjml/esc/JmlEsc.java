@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Main;
@@ -65,9 +64,6 @@ public class JmlEsc extends JmlTreeScanner {
     /** Used to obtain cached symbols, such as basic types */
     @NonNull Symtab syms;
     
-    /** The database of JML specifications for methods, classes, fields, ... */
-    @NonNull JmlSpecs specs;
-    
     /** The tool to log problem reports */ 
     @NonNull Log log;
     
@@ -96,20 +92,17 @@ public class JmlEsc extends JmlTreeScanner {
     public JmlEsc(Context context) {
         this.context = context;
         this.syms = Symtab.instance(context);
-        this.specs = JmlSpecs.instance(context);
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
     }
-    
+
+    /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
-        //new JmlAssertionAdder.PositionChecker().check(log,tree);
-        this.assertionAdder = new JmlAssertionAdder(context, true,false);
+        this.assertionAdder = new JmlAssertionAdder(context, true, false);
         assertionAdder.convert(tree); // get at the converted tree through the map
-        //log.noticeWriter.println("TRANSLATED CHECK");
-        //new JmlAssertionAdder.PositionChecker().check(log,assertionAdder.bimap.getf(tree));
         proverToUse = pickProver();
         tree.accept(this);
     }
@@ -125,14 +118,8 @@ public class JmlEsc extends JmlTreeScanner {
         return proverToUse;
     }
     
-    /** Returns the prover exec specified by the options */
-    public String pickProverExec(String proverToUse) {
-        String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
-        if (exec == null) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
-        return exec;
-    }
-
     /** Visit a class definition */
+    @Override
     public void visitClassDef(JCClassDecl node) {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
@@ -146,6 +133,7 @@ public class JmlEsc extends JmlTreeScanner {
      * we do not walk into the method any further from this call, only through
      * the translation mechanism.  
      */
+    @Override
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
@@ -164,25 +152,14 @@ public class JmlEsc extends JmlTreeScanner {
                 
     }
     
-    protected IProverResult doMethod(@NonNull JCMethodDecl methodDecl) {
-        boolean print = this.verbose;
-        boolean printPrograms = print || JmlOption.isOption(context, JmlOption.SHOW);
+    /** Do the actual work of proving the method */
+    protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
+        boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
 
         progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         
-        // print the body of the method to be proved
-        if (printPrograms) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(methodDecl.body));
-        }
-        
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
-        // We don't check abstract or native methods (no source)
-        // nor synthetic methods.
         
         boolean isConstructor = methodDecl.sym.isConstructor();
         boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
@@ -193,13 +170,20 @@ public class JmlEsc extends JmlTreeScanner {
         if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
         if (!doEsc) return null; // FIXME - SKIPPED?
 
+        // print the body of the method to be proved
+        if (printPrograms) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(methodDecl.body));
+        }
         
-        JmlMethodDecl mdecl = (JmlMethodDecl)methodDecl;
         IProverResult res;
         if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
-            res = new MethodProverBoogie(this).prove(mdecl);
+            res = new MethodProverBoogie(this).prove(methodDecl);
         } else {
-            res = new MethodProverSMT(this).prove(mdecl);
+            res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
         }
         
         progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
@@ -231,7 +215,12 @@ public class JmlEsc extends JmlTreeScanner {
      * */
     public boolean filter(JCMethodDecl methodDecl) {
         String fullyQualifiedName = utils.qualifiedMethodName(methodDecl.sym);
-        if (methodDecl.sym.isConstructor()) fullyQualifiedName = fullyQualifiedName.replace("<init>", methodDecl.sym.owner.name.toString());
+        String simpleName = methodDecl.name.toString();
+        if (methodDecl.sym.isConstructor()) {
+            String constructorName = methodDecl.sym.owner.name.toString();
+            fullyQualifiedName = fullyQualifiedName.replace("<init>", constructorName);
+            simpleName = simpleName.replace("<init>", constructorName);
+        }
         String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
@@ -239,13 +228,13 @@ public class JmlEsc extends JmlTreeScanner {
             match: {
                 for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$
                     if (fullyQualifiedName.equals(methodToDo) ||
-                            methodToDo.equals(methodDecl.name.toString()) ||
+                            methodToDo.equals(simpleName) ||
                             Pattern.matches(methodToDo,fullyQualifiedName) ||
                             fullyQualifiedSig.equals(methodToDo)) {
                         break match;
                     }
                 }
-                if (Utils.instance(context).jmlverbose > Utils.PROGRESS) {
+                if (utils.jmlverbose > Utils.PROGRESS) {
                     log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
@@ -257,53 +246,14 @@ public class JmlEsc extends JmlTreeScanner {
             for (String exclude: excludes.split(",")) { //$NON-NLS-1$
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
-                        exclude.equals(methodDecl.name.toString()) ||
+                        simpleName.equals(exclude) ||
                         Pattern.matches(exclude,fullyQualifiedName)) {
-                    if (Utils.instance(context).jmlverbose > Utils.PROGRESS)
+                    if (utils.jmlverbose > Utils.PROGRESS)
                         log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }
             }
         }
-
-
-//      Pattern doPattern = 
-//          null; 
-//      //Pattern.compile("escjava[.]ast[.]ArrayRangeRefExpr[.]getTag[(].*"); 
-//      //Pattern.compile("escjava[.]sortedProver[.]Lifter[.]FnTerm[.]dump[(].*"); 
-//      Pattern[] avoids = {
-////             Pattern.compile(".*anonymous.*"),
-//
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]FnTerm[.]printTo[(].*"), // too much time
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]Term[.]toString[(].*"), // too much time
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]Term[.]printTo[(].*"), // too much time
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]QuantVariableRef[.]printTo[(].*"), // too much time
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]FnTerm[.]dump[(].*"), // too much memory
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]SortVar[.]toString[(].*"), // too much time
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]warn[(].*"), // failed to write to prover
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]convert[(].*"), // failed to write to prover
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]newMethod[(].*"), // binary generic
-////              Pattern.compile("escjava[.]sortedProver[.]Lifter[.]Lifter[(].*"), // failed to write to prover
-////            Pattern.compile("javafe[.]ast[.][a-zA-Z]*[.]getTag[(].*"), // too much time
-////              Pattern.compile("javafe[.]ast[.]CompoundName[.]prefix[(].*"), // out of resources
-////              Pattern.compile("javafe[.]ast[.]BinaryExpr[.]getStartLoc[(].*"), // out of resources
-////              Pattern.compile("javafe[.]ast[.]BinaryExpr[.]postCheck[(].*"), // out of resources
-////              Pattern.compile("javafe[.]ast[.]BinaryExpr[.]accept[(].*"), // out of resources
-////              Pattern.compile("javafe[.]Options[.]processOption[(].*"), // out of resources
-////              Pattern.compile("javafe[.]parser[.]Token[.]ztoString[(].*"), // out of resources
-////
-////              Pattern.compile("javafe[.]ast[.].*[.]toString[(].*"), // out of resources
-////              Pattern.compile("escjava[.]AnnotationHandler[.]NestedPragmaParser[.]parseAlsoSeq[(].*"), // out of resources
-////              Pattern.compile("escjava[.]AnnotationHandler[.]NestedPragmaParser[.]parseSeq[(].*"), // out of resources
-//      
-//      };
-//      if (doPattern != null) {
-//          if (!doPattern.matcher(fully_qualified_name).matches()) return;//{log.noticeWriter.println("skipping " + name); return; }
-//      }
-//      for (Pattern avoid: avoids) {
-//          if (avoid.matcher(fully_qualified_name).matches()) {log.noticeWriter.println("skipping " + fully_qualified_name); return; }
-//      }
-
 
         return true;
     }

@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -27,8 +28,11 @@ import com.sun.tools.javac.util.Position;
 
 public class MethodProverBoogie extends MethodProverSMT {
 
+    protected JmlSpecs specs;
+    
     public MethodProverBoogie(JmlEsc jmlesc) {
         super(jmlesc);
+        this.specs = JmlSpecs.instance(context);
     }
 
     // FIXME: REVIEW THIS
@@ -57,7 +61,7 @@ public class MethodProverBoogie extends MethodProverSMT {
         if (tree.sym == null) {
             log.error("jml.internal.notsobad", "Unexpected null symbol for " + decl.name);
         }
-        JmlMethodSpecs denestedSpecs = tree.sym == null ? null : jmlesc.specs.getDenestedSpecs(tree.sym);
+        JmlMethodSpecs denestedSpecs = tree.sym == null ? null : specs.getDenestedSpecs(tree.sym);
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
         JCBlock newblock = assertionAdder.convertMethodBody(tree,currentClassDecl);

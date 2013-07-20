@@ -131,6 +131,9 @@ public class Label {
     /** Used for explicit, user-specified assert statements */
     /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
     
+    /** Used for asserts generated from user-specified reachable statements */
+    /*@ non_null*/ public final static Label REACHABLE = new Label("Reachable");
+    
     /** Used for asserts generated from user-specified unreachable statements */
     /*@ non_null*/ public final static Label UNREACHABLE = new Label("Unreachable");
     

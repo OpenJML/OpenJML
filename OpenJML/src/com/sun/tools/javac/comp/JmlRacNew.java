@@ -2042,6 +2042,12 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
                     break;
                 }
 
+                case REACHABLE:
+                {  
+                    result = factory.at(tree.pos).Skip();
+                    break;
+                }
+
                 case HENCE_BY:
                     result = factory.at(tree.pos).Skip();
                     notImplemented(tree.pos(),"hence_by statement");

@@ -4,7 +4,7 @@
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJDK"/>
 	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/models/package.html|org/jmlspecs/models/resolve/package.html|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="org/jmlspecs/openjml/old/**" kind="src" path="src"/>
 	<classpathentry excluding="specs/|src/" kind="src" path="demos"/>
 	<classpathentry kind="src" output="bin-tests" path="tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>

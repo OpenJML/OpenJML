@@ -69,12 +69,10 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -221,14 +219,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //        return instance;
 //    }
     
-    // Options
-    
-    /** This static field controls whether (user) assume statements are turned into assumptions tracked
-     * with the assume count variable; if so, then there is an easy mechanism to test whether 
-     * the assumptions are feasible.
-     */
-    public static boolean useAssumeDefinitions = false;
-    
 
     // THE FOLLOWING ARE ALL FIXED STRINGS
     
@@ -237,39 +227,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Standard name for the variable that represents the heap (which excludes local variables) */
     public static final @NonNull String HEAP_VAR = "_heap__";
-    
-    /** Standard name for the variable that tracks allocations */
-    public static final @NonNull String ALLOC_VAR = "_alloc__";
-    
-    /** Prefix for assumptions defined in the basic block */
-    public static final String ASSUMPTION_PREFIX = "assumption";
-    
-//    /** Name of the encoded this variable */
-//    public static final String THIS = "THIS_";
-//    
-//    /** The prefix of the variables used in checking assumptions */
-//    public static final String ASSUME_CHECK_PREFIX = "ASSUMECHECK_";
-//    
-    /** A variable name used in checking assumptions */
-    public static final String ASSUME_CHECK_COUNT = "__assumeCheckCount";
-    
-//    /** The prefix for names of switch expressions */
-//    public static final String SWITCH_EXPR_PREFIX = "__switch_expression__";
-    
-    /** Name of length field */
-    public static final String LENGTH = "length";
-    
-    /** Name of the SELECT function for arrays. */
-    public static final String SELECTString = "SELECT";
-    
-    /** The Name of the SELECT function for arrays. */
-    public final Name SELECT;
-    
-    /** String of the STORE function for arrays. */
-    public static final String STOREString = "STORE";
-    
-    /** The Name of the STORE function for arrays. */
-    public final Name STORE;
     
     //-----------------------------------------------------------------
     // Names for various basic blocks
@@ -306,7 +263,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @NonNull final protected JmlTree.Maker factory;
 
     // Caution - the following are handy, but they are shared, so they won't
-    // have proper position information
+    // have proper position information - which is OK for esc at this point
     
     /** Holds an AST node for a boolean true literal, initialized in the constructor */
     @NonNull final protected JCLiteral trueLiteral;
@@ -314,12 +271,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Holds an AST node for a boolean false literal, initialized in the constructor */
     @NonNull final protected JCLiteral falseLiteral;
     
-//    /** Identifier of a synthesized object field holding the allocation time of the object, initialized in the constructor */
-//    @NonNull protected JCIdent allocIdent;
-//
-//    /** Symbol of a synthesized object field holding the allocation time of the object, initialized in the constructor */
-//    @NonNull protected VarSymbol allocSym;
-
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
     @NonNull protected JCIdent lengthIdent;
 
@@ -371,7 +322,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 
-        an \old */
+        a \pre (or an \old without a label) */
     @NonNull protected VarMap premap;
     
     /** Contains names for which a declaration has been issued. */
@@ -379,7 +330,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     /** The constructor, but use the instance() method to get a new instance,
      * in order to support extension.  This constructor should only be
-     * invoked by a derived class constructor.
+     * invoked by a derived class constructor or the instance() method.
      * @param context the compilation context
      */
     protected BasicBlocker2(@NonNull Context context) {
@@ -398,22 +349,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         trueLiteral = treeutils.trueLit;
         falseLiteral = treeutils.falseLit;
         
-//        // This is the field name used to access the allocation time of an object
-//        allocSym = newVarSymbol(0,ALLOC_VAR,syms.intType,0);
-//        allocIdent = newAuxIdent(allocSym,0);
-
         // This is the symbol to access the length of an array 
         lengthSym = syms.lengthVar;
         lengthIdent = newAuxIdent(lengthSym,0);
         
-        SELECT = names.fromString(SELECTString);
-        STORE = names.fromString(STOREString);
     }
-    
-//    /** This tracks single-assignment versions - it is incremented whenever
-//     * a new version of a variable is needed (globally across all variables).
-//     */
-//    protected static long saversion = 0;
     
     /** This class implements a map from variable (as a Symbol) to a unique name
      * as used in Single-Assignment form. At any given point in the program there is
@@ -442,15 +382,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         private Map<VarSymbol,Long> mapSAVersion = new HashMap<VarSymbol,Long>();
         private Map<TypeSymbol,Long> maptypeSAVersion = new HashMap<TypeSymbol,Long>();
         private Map<Symbol,Name> mapname = new HashMap<Symbol,Name>();
-        //long everythingSAversion = 0;
         
-        /** Makes a checkpoint copy of the map */
+        /** Returns a copy of the map */
         public VarMap copy() {
             VarMap v = new VarMap();
             v.mapSAVersion.putAll(this.mapSAVersion);
             v.maptypeSAVersion.putAll(this.maptypeSAVersion);
             v.mapname.putAll(this.mapname);
-            //v.everythingSAversion = this.everythingSAversion;
             return v;
         }
         
@@ -465,6 +403,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         public /*@NonNull*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
             if (s == null) {
+                // If there was no mapping at all, we add the name to 
+                // all existing maps, with an incarnation number of 0.
+                // This makes sure that any maps at labels have a definition
+                // of the variable.
+                // FIXME - this does not handle a havoc between labels, 
                 s = encodedName(vsym,vsym.pos);
                 for (VarMap map: blockmaps.values()) {
                     if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
@@ -473,9 +416,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     if (map.mapname.get(vsym) == null) map.putSAVersion(vsym,s,0L);
                 }
 
-                //System.out.println("ADDING SYMBOL-A " + vsym.getQualifiedName() + " " + s);
                 if (isDefined.add(s)) {
-                    //System.out.println("AddedC " + sym + " " + n);
                     JCIdent idd = treeutils.makeIdent(vsym.pos,s,vsym);
                     addDeclaration(idd);
                 }
@@ -515,12 +456,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 for (VarMap map: labelmaps.values()) {
                     map.putSAVersion(vsym,n,0L);
                 }
+                if (isDefined.add(n)) {
+                    JCIdent id = treeutils.makeIdent(vsym.pos,n,vsym);
+                    addDeclaration(id);
+                }
                 i = 0L;
-                JCIdent id = treeutils.makeIdent(vsym.pos,n,vsym);
-                addDeclaration(id);
-
-                System.out.println("ADDING SYMBOL-B " + vsym.getQualifiedName() + " " + n);
-                //mapSAVersion.put(vsym,(i=0L));
             }
             return i;
         }
@@ -534,12 +474,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
             return i;
         }
-        
-//        /** Stores a new SA version of a symbol */
-//        public void putSAVersion(VarSymbol vsym, Name s) {
-//            mapSAVersion.put(vsym,++saversion);
-//            mapname.put(vsym,s);
-//        }
         
         /** Stores a new SA version of a symbol */
         public void putSAVersion(VarSymbol vsym, Name s, long version) {
@@ -618,11 +552,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
 
     public void scanList(com.sun.tools.javac.util.List<JCExpression> trees) {
-        if (trees != null)
-        for (com.sun.tools.javac.util.List<JCExpression> l = trees; l.nonEmpty(); l = l.tail) {
-            scan(l.head);
-            l.head = result;
+        if (trees != null) {
+            for (com.sun.tools.javac.util.List<JCExpression> l = trees; l.nonEmpty(); l = l.tail) {
+                scan(l.head);
+                l.head = result;
+            }
         }
+        result = null; // Defensive
     }
 
     /** Should not need this when everything is implemented */
@@ -638,7 +574,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
 
-    /** Creates an encoded name from a symbol and an incarnation position.
+    /** Creates an encoded name from a symbol and an incarnation position and the
+     * current value of unique - so each call of this method returns a different
+     * name, even with the same arguments.
      * If the symbol has a null owner (which is illegal if being compiled for RAC),
      * the symbol is considered to be a one-time-use temporary and the name is
      * not encoded.
@@ -658,7 +596,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             return names.fromString(
                     sym.getQualifiedName() 
                     + (sym.pos < 0 ? "_" : ("_" + sym.pos + "_")) // declaration position
-                    + incarnationPosition // use position
+                    + incarnationPosition // new definition position
                     + "___" 
                     + (++unique) // unique suffix
                     );
@@ -694,39 +632,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return names.fromString(sym.flatName() + "_" + declarationPosition + "__" + (++unique));
     }
     
-    /** Cached value of the SELECT symbol */
-    protected Symbol selectSym = null;
-    /** Cached value of the STORE Symbol. */
-    protected Symbol storeSym = null;
-    
-    // FIXME - review and document
-    protected JCExpression makeSelect(JCExpression array, JCExpression index) {
-        if (selectSym == null) {
-            selectSym = new VarSymbol(0,SELECT,null,null); // FIXME - OK to have no type or owner?
-        }
-        JCMethodInvocation app = factory.Apply(
-                com.sun.tools.javac.util.List.<JCExpression>nil(),
-                treeutils.makeIdent(Position.NOPOS, selectSym),
-                com.sun.tools.javac.util.List.<JCExpression>of(index));
-        return app;
-    }
-    
-    // FIXME - review and document
-    protected JCExpression makeStore(JCExpression array, JCExpression index, JCExpression value) {
-        if (storeSym == null) {
-            storeSym = new VarSymbol(0,STORE,null,null);
-        }
-        JCMethodInvocation app = factory.Apply(
-                com.sun.tools.javac.util.List.<JCExpression>nil(),
-                treeutils.makeIdent(Position.NOPOS, storeSym),
-                com.sun.tools.javac.util.List.<JCExpression>of(array,index,value));
-        return app;
-    }
-    
 
-    /** Creates a new Ident node, but in this case we are not using the name from
-     * the current incarnation map - so we supply the name. This is just used for
-     * DSA assignments.
+    /** Creates a new Ident node, but in this case we supply the nam
+     * rather than using the name from the current incarnation map. 
+     * This is just used for DSA assignments.
      */
     protected JCIdent newIdentUse(VarMap map, VarSymbol sym, int useposition) {
         Name name = map.getCurrentName(sym); // Creates a name if one has not yet been created
@@ -770,7 +679,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return newIdentIncarnation((VarSymbol)id.sym,incarnationPosition);
     }
     
-    /** Creates a new incarnation of a variable, with unique id added */
+    /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
@@ -778,19 +687,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         currentMap.putSAVersion(vsym,n.name,unique); // FIXME - should unique be incremented
         if (isDefined.add(n.name)) addDeclaration(n);
         return n;
-    }
-    
-    // FIXME - review
-    /** Creates a newly incarnated variable corresponding to the given declaration.
-     * The incarnation number will be the position of the declaration for some
-     * declarations, but not, for example, for a formal argument of a method call -
-     * then it would be the position of the actual parameter expression.
-     * @param id the original declaration
-     * @param incarnation the incarnation number to use
-     * @return the new variable node
-     */
-    protected JCIdent newIdentIncarnation(JCVariableDecl id, int incarnation) {
-        return newIdentIncarnation(id.sym, incarnation);
     }
     
     // FIXME - review and document
@@ -811,23 +707,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
 
-    // FIXME - review and document
-    protected JCIdent newIdentIncarnation(TypeSymbol id, int incarnation) {
-        JCIdent n = factory.at(incarnation).Ident(encodedTypeName(id,incarnation));
-        n.sym = id;
-        n.type = id.type;
-        // FIXME - end information?
-        currentMap.putSAVersion(id,n.name);
-        if (isDefined.add(n.name)) {
-            //System.out.println("AddedC " + sym + " " + n);
-//            JCIdent idd = treeutils.makeIdent(0, id);
-//            idd.name = n.name;
-            addDeclaration(n);
-        }
-        return n;
-    }
-    
-    // FIXME - review and document
+    // FIXME - review and document - not used now, but should be for generics
     protected JCIdent newTypeVarIncarnation(TypeSymbol vsym, int incarnationPosition) {
         JCIdent n = factory.at(incarnationPosition).Ident(encodedTypeName(vsym,incarnationPosition));
         n.type = JmlTypes.instance(context).TYPE;
@@ -902,6 +782,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         super.setCurrentBlock(b);
         currentMap = blockmaps.get(b);
         if (currentMap == null) currentMap = initMap(currentBlock); // FIXME - under what circumstances is the currentMap already available?
+        else log.error("jml.internal","The currentMap is unexpectedly already defined for block " + b.id.name);
     }
     
     /** Files away a completed block, adding it to the blocksCompleted list and
@@ -910,11 +791,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     @Override
     protected void completeBlock(@NonNull BasicBlock b) {
-//        if (super.completed(b)) return true;
         super.completeBlock(b);
         currentMap = null; // Defensive - so no inadvertent assignments
-        //log.noticeWriter.println("Completed block " + b.id);
-//        return false;
     }
     
     /** Converts the top-level block of a method into the elements of a BasicProgram 
@@ -941,10 +819,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         heapVar = newAuxIdent(HEAP_VAR,syms.intType,0,true); // FIXME - would this be better as its own uninterpreted type?
         
+        // Get the set of variable symbols mentioned in the method body
         Set<VarSymbol> vsyms = GetSymbols.collectSymbols(block,assertionAdder.classBiMap.getf(classDecl));
-//        Iterator<VarSymbol> iter = vsyms.iterator(); while (iter.hasNext()) if (iter.next().toString().equals("length")) iter.remove();
-//        for (VarSymbol v: vsyms) System.out.print(" " + v.toString());
-//        System.out.println("  ENDSYMS");
         
         // Define the start block
         int pos = methodDecl.pos;
@@ -1058,24 +934,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        if (useAssumeDefinitions) {
-            JCIdent id = factory.at(pos).Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
-            id.type = syms.booleanType;
-            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
-            that = id;
-        }
         return super.addAssume(pos,label,that,statements);
     }
     
     /** Adds an assumption to the given statement list */ 
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
-        if (useAssumeDefinitions) {
-            if (startpos < 0) startpos = that.pos; 
-            JCIdent id = factory.at(startpos).Ident(names.fromString(ASSUMPTION_PREFIX+(unique++)));
-            id.type = syms.booleanType;
-            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- start, end position?
-            that = id;
-        }
         return super.addAssume(startpos,endpos,label,that,statements);
     }
     
@@ -2274,7 +2137,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK -= except FIXME - review newIdentIncarnation
     public void visitVarDef(JCVariableDecl that) { 
         currentBlock.statements.add(comment(that));
-        JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
+        JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
         isDefined.add(lhs.name);
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + lhs.sym + " " + lhs.name);
         if (that.init != null) {
@@ -2302,7 +2165,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(that.ident);
         } else {
             // FIXME - why not make a declaration?
-            JCIdent lhs = newIdentIncarnation(that,that.getPreferredPosition());
+            JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);
             that.name = lhs.name;
             scan(that.ident);

@@ -459,17 +459,21 @@ public class JmlParser extends EndPosParser {
                     ste.source = log.currentSourceFile();
                     //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                } else if (jtoken == HENCE_BY || jtoken == UNREACHABLE) {
+                } else if (jtoken == HENCE_BY || jtoken == UNREACHABLE || jtoken == REACHABLE) {
                     S.setJmlKeyword(false);
                     S.nextToken();
                     JCExpression t = null;
-                    if (jtoken != UNREACHABLE) t = parseExpression();
+                    if (jtoken != UNREACHABLE && jtoken != REACHABLE) t = parseExpression();
                     JmlTree.JmlStatementExpr ste = to(jmlF.at(pos)
-                            .JmlExpressionStatement(jtoken, Label.UNREACHABLE,
+                            .JmlExpressionStatement(jtoken, 
+                                    jtoken == REACHABLE ? Label.REACHABLE : Label.UNREACHABLE,
                                     t));
                     ste.source = log.currentSourceFile();
                     //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
+                    if (jtoken == REACHABLE && JmlOption.isOption(context, JmlOption.STRICT)) {
+                        log.warning(ste.pos,"jml.not.strict",jtoken.internedName());
+                    }
                 } else if (jtoken == DECREASES || jtoken == LOOP_INVARIANT) {
                     S.setJmlKeyword(false);
                     S.nextToken();

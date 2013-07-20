@@ -131,5 +131,11 @@ public class demofiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/verifythis/SumAndMax.java","testfiles/demoSumAndMax","-progress");
     }
 
+    @Test
+    public void testEScTest() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","testfiles/demoEscTest","-progress");
+    }
+
 
 }
