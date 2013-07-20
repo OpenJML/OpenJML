@@ -2494,7 +2494,7 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class represents JML statements within the body of a method
-     * that take an expression, such as assert, assume, unreachable
+     * that take an expression, such as assert, assume, unreachable, reachable
      */
     public static class JmlStatementExpr extends JmlAbstractStatement {
         /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... */

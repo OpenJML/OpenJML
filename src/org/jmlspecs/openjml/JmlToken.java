@@ -33,6 +33,7 @@ public enum JmlToken {
     LOOP_INVARIANT("loop_invariant"),
     HENCE_BY("hence_by"),
     REFINING("refining"),
+    REACHABLE("reachable"),
     UNREACHABLE("unreachable"), // Keep this one last of the method statement tokens
 
     // These are modifiers

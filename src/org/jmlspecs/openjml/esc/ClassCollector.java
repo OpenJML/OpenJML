@@ -1,36 +1,34 @@
 package org.jmlspecs.openjml.esc;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 
+/** This class collects all mentions of classes within the ASTs scanned. */
 class ClassCollector extends JmlTreeScanner {
     
-    public static ClassCollector collect(JmlClassDecl cd, JmlMethodDecl md) {
+    /** Static method that is the entry point to the functionality the collector */
+    public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md) {
         ClassCollector collector = new ClassCollector();
         collector.doMethods = false;
-        //System.out.println("COLLECTING FOR CLASS " + cd.sym);
         collector.scan(cd);
-        //System.out.println("COLLECTING FOR METHOD " + md.sym);
         if (md != null) {
             collector.doMethods = true;
             collector.scan(md);
@@ -39,16 +37,28 @@ class ClassCollector extends JmlTreeScanner {
     }
     
     boolean doMethods;
-    Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
-    Collection<JCTree> literals = new ArrayList<JCTree>();
+    public final Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
     
     public ClassCollector() {
+        // scan all the specifications as well
         scanMode = AST_SPEC_MODE;
     }
     
+    // FIXME - what about generic type variables
+    protected void save(Type tt) {
+        if (tt != null && tt.tag != TypeTags.VOID && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
+            ClassSymbol c = (ClassSymbol)tt.tsym;
+            classes.add(c);
+        }
+    }
+    
+    protected void save(Symbol sym) {
+        if (sym instanceof ClassSymbol) save(sym.type);
+    }
+    
+    // Note - we do not include parent classes and interfaces
     @Override
     public void visitClassDef(JCClassDecl tree) {
-        //System.out.println("ADDING-CD " + tree.sym);
         classes.add(tree.sym);
         super.visitClassDef(tree);
     }
@@ -57,6 +67,12 @@ class ClassCollector extends JmlTreeScanner {
     public void visitMethodDef(JCMethodDecl tree) {
         if (!doMethods) return;
         super.visitMethodDef(tree);
+    }
+    
+    @Override
+    public void visitJmlVariableDecl(JmlVariableDecl tree) {
+        save(tree.sym.type);
+        super.visitJmlVariableDecl(tree);
     }
     
     @Override
@@ -72,49 +88,29 @@ class ClassCollector extends JmlTreeScanner {
     }
     
     @Override
-    public void visitIndexed(JCArrayAccess tree) {
-        save(tree.indexed.type);
-        super.visitIndexed(tree);
-    }
-    
-    @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
-        // FIXME - return types ?
+        save(tree.type);
         super.visitJmlMethodInvocation(tree);
     }
     
     @Override
     public void visitApply(JCMethodInvocation tree) {
-        com.sun.tools.javac.code.Type tt = tree.type;
-        save(tt);
+        save(tree.type);
         super.visitApply(tree);
     }
-    
-    protected void save(Type tt) {
-        if (tt != null && tt.tag != TypeTags.VOID && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
-            ClassSymbol c = (ClassSymbol)tt.tsym;
-            classes.add(c);
-        }
+
+    @Override
+    public void visitTypeCast(JCTypeCast tree) {
+        save(tree.type);
+        super.visitTypeCast(tree);
+    }
+
+    @Override
+    public void visitTypeTest(JCInstanceOf tree) {
+        save(tree.clazz.type);
+        super.visitTypeTest(tree);
     }
     
-    protected void save(Symbol sym) {
-        if (sym instanceof ClassSymbol) save(sym.type);
-    }
-    
-//    static public class JmlDiagnostic extends JCDiagnostic {
-//        public JmlDiagnostic(DiagnosticFormatter<JCDiagnostic> formatter,
-//                       DiagnosticType dt,
-//                       boolean mandatory,
-//                       DiagnosticSource source,
-//                       DiagnosticPosition pos,
-//                       String key,
-//                       Object ... args) {
-//            super(formatter,dt,mandatory,source,pos,key,args);
-//        }
-//        
-//        static JmlDiagnostic warning(int pos, String key, Object ... args) {
-//            return new JmlDiagnostic(formatter, WARNING, false, source, pos, qualify(WARNING, key), args);
-//            
-//        }
-//    }
+    // FIXME - generic visitType... methods
+
 }

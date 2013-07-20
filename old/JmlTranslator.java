@@ -1173,6 +1173,8 @@ public class JmlTranslator extends JmlTreeTranslator {
             that.expression = translate(that.expression);
             that.optionalExpression = translate(that.optionalExpression);
             result = that;
+        } else if (that.token == JmlToken.REACHABLE) {
+            result = factory.at(that.pos).Skip();
         } else {
             log.error("log.internal","Unexpected and unimplemented case in JmlTranslator.visitJmlStatementExpr for token " + that.token.internedName());
             result = that;

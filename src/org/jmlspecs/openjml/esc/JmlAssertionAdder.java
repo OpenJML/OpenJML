@@ -248,6 +248,8 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlAssertionAdder extends JmlTreeScanner {
 
+    static final public String preconditionAssumeCheckDescription = "end of preconditions";
+    
     // Parameters of this instance of JmlAssertionAdder 
     
     /** If true then every part of every AST is copied; if false then items
@@ -811,7 +813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // We'll add the block into the right spot later.
             // Other checks will be created during addPrePostConditions
             pushBlock();
-            addAssumeCheck(methodDecl,currentStatements,"end of preconditions"); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
+            addAssumeCheck(methodDecl,currentStatements,preconditionAssumeCheckDescription); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
             JCStatement preconditionAssumeCheck = popBlock(0,methodDecl.pos());
 
             pushBlock();
@@ -3763,6 +3765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (useMethodAxioms && translatingJML) {
             } else if ((a instanceof JCIdent) && ((JCIdent)a).name.toString().startsWith(Strings.tmpVarString)) {
             } else if ((a instanceof JCIdent) && localVariables.contains(((JCIdent)a).sym)) {
+            } else if (!localVariables.isEmpty()) {
             } else {
                 // This check is a hack and a bit expensive. It makes sure that
                 // every argument is represented by a temporary variable. 
@@ -4411,7 +4414,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
                         bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
                         currentStatements.add( wrapRuntimeException(cs.pos(), bl, "JML undefined precondition while checking postconditions - exception thrown", null));
-                        if (esc) {
+                        if (esc && (!utils.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
                             JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
                             JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
                             addStat(havoc);
@@ -4425,7 +4428,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCExpression f = M.at(cs.pos()).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
                                 addAssume(cs.pos(),Label.IMPLICIT_ASSUME,f);
                             }
-                            if (resultId != null && !resultId.type.isPrimitive()) newAllocation2(that.pos(),resultId);
+                            newAllocation2(that.pos(),resultId);
                         }
 
                         // FIXME - is that the right statement list?
@@ -8063,6 +8066,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case UNREACHABLE:
                 addTraceableComment(that);
                 result = addAssert(that.pos(),Label.UNREACHABLE,treeutils.falseLit);
+                break;
+            case REACHABLE:
+                addTraceableComment(that);
+                addAssumeCheck(that,currentStatements,"at reachable statement");
                 break;
             case HENCE_BY:
                 // FIXME - implement HENCE_BY

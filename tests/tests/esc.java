@@ -980,11 +980,14 @@ public class esc extends EscBase {
                 +"  //@ modifies \\nothing;\n"
                 +"  public void c1(int i) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3a",-17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m3a",-9
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",-17
+                , new AnyOrder(
+                        new Object[]{
+                                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3a",17}
+                        ,new Object[]{
+                                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m3a",17}
+                        ,new Object[]{
+                                "/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                        })
                 );
     }
 
@@ -1034,13 +1037,11 @@ public class esc extends EscBase {
                 +"  public void c1(int i) { } \n"
                 +"}"
                 // Should be just three messages, but in an arbitrary order
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4a",-18
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m4a",-9
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4a",-18
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",-18
+                , new AnyOrder(
+                    new Object[]{"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m4a",18}
+                    ,new Object[]{"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m4a",18}
+                    ,new Object[]{"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m4a",9}
+                    )
                 );
     }
     
@@ -1372,10 +1373,12 @@ public class esc extends EscBase {
                 +"  public void c4(int i) {}\n"
                 +"}"
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a",7
-                ,"/tt/TestJava.java:20: warning: Associated declaration",7
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
-                ,"/tt/TestJava.java:43: warning: Associated declaration",7
+                , new AnyOrder(
+                        new Object[]{"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a",7
+                                    ,"/tt/TestJava.java:20: warning: Associated declaration",7}
+                        ,new Object[]{"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
+                                    ,"/tt/TestJava.java:43: warning: Associated declaration",7}
+                        )
                 );
     }
     
@@ -1670,7 +1673,7 @@ public class esc extends EscBase {
                 +"  //@ requires ii == 10;\n"
                 +"  //@ ensures true;\n"
                 +"  public Object insz(int ii) { binstance = ii == 0;            return o; }\n"
-                +"}"
+                +"}" // FIXME - use Optional etc.
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8 // nothing sets bstatic true
                 ,"/tt/TestJava.java:8: warning: Associated declaration",-21
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
@@ -1751,7 +1754,7 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",142,
                 "/tt/TestJava.java:15: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",153
                 ,"/tt/TestJava.java:15: warning: There is no feasible path to program point at program exit in method tt.TestJava.bassumeMULT(boolean,boolean)",22
-        );
+        ); // FIXME - use Optional etc.
     }
 
     @Ignore // FIXME - rejuvenate dead branch detection some time
@@ -1803,7 +1806,7 @@ public class esc extends EscBase {
     }
 
     @Test
-    public void testOld() {
+    public void testOld() { // FIXME - fix static constraints and invariants for constructors
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public  int i;\n"
@@ -3290,8 +3293,10 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"}",
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",14,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",-14,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",-14,  // FIXME - does need to have one of these errors in m1
+                new AnyOrder(
+                        new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",14}
+                        ,new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",14}
+                        ),
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2",14,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3",14,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4",14,
@@ -3382,8 +3387,9 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"}",
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17,
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",-17, // Sometimes found
-                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",-17, // Sometimes found
+                new AnyOrder(
+                        new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",17},
+                        new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",17}),
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",17,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17,

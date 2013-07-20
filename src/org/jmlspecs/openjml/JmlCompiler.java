@@ -14,7 +14,6 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
-import org.jmlspecs.openjml.esc.JmlTranslator;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -24,7 +23,6 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
-import com.sun.tools.javac.comp.JmlRac;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.main.JavaCompiler;
@@ -34,7 +32,6 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Pair;
 
 /**

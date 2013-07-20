@@ -28,7 +28,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.esc.BasicBlocker;
+import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
@@ -772,8 +772,10 @@ public class API implements IAPI {
     public String getBasicBlockProgram(MethodSymbol msym) {
         JmlMethodDecl tree = getMethodDecl(msym);
         JmlClassDecl cdecl = getClassDecl((ClassSymbol)msym.owner);
-        BasicProgram program = BasicBlocker.convertToBasicBlocks(context(), tree, JmlSpecs.instance(context()).getSpecs(msym).cases.deSugared, cdecl);
-        return "BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n" + program.toString();
+        // FIXME
+        return "";
+//        BasicProgram program = BasicBlocker2.convertToBasicBlocks(context(), tree, JmlSpecs.instance(context()).getSpecs(msym).cases.deSugared, cdecl);
+//        return "BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n" + program.toString();
     }
     
     // TODO - move these two methods to Utils?

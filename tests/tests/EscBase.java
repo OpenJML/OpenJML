@@ -168,10 +168,92 @@ public abstract class EscBase extends JmlTestCase {
             int ex = main.compile(args, null, context, files, null);
             
             if (print) printDiagnostics();
-            int j = 0; // counts the errors in list, accounting for optional or null entries
-            int i = 0;
-            while (i < list.length) {
-                if (list[i] == null) { i+=2; continue; }
+//            int j = 0; // counts the errors in list, accounting for optional or null entries
+//            int i = 0;
+//            while (i < list.length) {
+//                if (list[i] == null) { i+=2; continue; }
+//                int col = ((Integer)list[i+1]).intValue();
+//                if (col < 0) {
+//                    // allowed to be optional
+//                    if (j >= collector.getDiagnostics().size()) {
+//                        // OK - just skip
+//                    } else if (list[i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
+//                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
+//                        j++;
+//                    } else {
+//                        // Not equal and the expected error is optional so just skip
+//                    }
+//                } else {
+//                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
+//                        // OK - skip
+//                    } else {
+//                        if (j < collector.getDiagnostics().size()) {
+//                            assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
+//                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+//                        }
+//                        j++;
+//                    }
+//                }
+//                i += 2;
+//            }
+            expectedErrors = compareResults(list);
+            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
+            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            fail("Exception thrown while processing test: " + e);
+        } catch (AssertionError e) {
+            if (!print && !noExtraPrinting) printDiagnostics();
+            throw e;
+        }
+    }
+    
+    protected interface Special {}
+    
+    protected class Optional implements Special {
+        public Object[] list;
+        public Optional(Object[] list) {
+            this.list = list;
+        }
+    }
+    
+    protected class OneOf implements Special {
+        public Object[][] lists;
+        public OneOf(Object[] ... lists) {
+            this.lists = lists;
+        }
+    }
+    
+    protected class AnyOrder implements Special {
+        public Object[][] lists;
+        public AnyOrder(Object[] ... lists) {
+            this.lists = lists;
+        }
+    }
+    
+    protected boolean comparePair(Object[] list, int i, int j) {
+        int col = ((Integer)list[i+1]).intValue();
+        if (!list[i].toString().equals(noSource(collector.getDiagnostics().get(j)))) {
+            failureLocation = j;
+            failureString = list[i].toString();
+            return false;
+        } else if (col != Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
+            failureLocation = j;
+            failureString = null;
+            failureCol = col;
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    protected int compareResults(Object[] list) {
+        int j = 0; // counts the errors in list, accounting for optional or null entries
+        int i = 0;
+        while (i < list.length) {
+            if (list[i] == null) { i+=2; continue; }
+            if (!(list[i] instanceof Special)) {
                 int col = ((Integer)list[i+1]).intValue();
                 if (col < 0) {
                     // allowed to be optional
@@ -188,25 +270,111 @@ public abstract class EscBase extends JmlTestCase {
                         // OK - skip
                     } else {
                         if (j < collector.getDiagnostics().size()) {
-                            assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
-                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                            if (!comparePair(list,i,j)) {
+                                assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
+                                assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                            }
                         }
                         j++;
                     }
                 }
                 i += 2;
+            } else if (list[i] instanceof AnyOrder) {
+                j = compareAnyOrder(((AnyOrder)list[i]).lists, j);
+                ++i;
+            } else if (list[i] instanceof OneOf) {
+                j = compareOneOf(((OneOf)list[i]).lists, j);
+                ++i;
+            } else if (list[i] instanceof Optional) {
+                j = compareOptional(((Optional)list[i]).list, j);
+                ++i;
             }
-            expectedErrors = j;
-            assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printDiagnostics();
-            throw e;
         }
+        return j;
+    }
+    
+    int failureLocation;
+    String failureString;
+    int failureCol;
+    
+    protected int compareOptional(Object[] list, int j) {
+        int i = 0;
+        int jj = j;
+        while (i < list.length) {
+            if (!comparePair(list,i,j)) {
+                // Comparison failed - failureLocation set
+                return jj;
+            }
+            i += 2;
+            j++;
+        }
+        return j;
+    }
+
+    protected int compareOneOf(Object[][] lists, int j) {
+        // None of lists[i] may be null or empty
+        int i = 0;
+        int jj = j;
+        int latestFailure = -2;
+        String latestString = null;
+        int latestCol = 0;
+        while (i < lists.length) {
+            int jjj = compareOptional(lists[i],j);
+            if (jjj > j) {
+                // Matched
+                return jjj;
+            }
+            i++;
+            if (failureLocation > latestFailure) {
+                latestFailure = failureLocation;
+                latestString = failureString;
+                latestCol = failureCol;
+            }
+        }
+        failureLocation = latestFailure;
+        // None matched;
+        assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+        assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+        return jj;
+    }
+
+    protected int compareAnyOrder(Object[][] lists, int j) {
+        // None of lists[i] may be null or empty
+        boolean[] used = new boolean[lists.length];
+        for (int i=0; i<used.length; ++i) used[i] = false;
+        
+        int latestFailure = -2;
+        String latestString = null;
+        int latestCol = 0;
+        int toMatch = lists.length;
+        more: while (toMatch > 0) {
+            for (int i = 0; i < lists.length; ++i) {
+                if (used[i]) continue;
+                int jjj = compareOptional(lists[i],j);
+                if (jjj > j) {
+                    // Matched
+                    j = jjj;
+                    used[i] = true;
+                    toMatch--;
+                    continue more;
+                } else {
+                    if (failureLocation > latestFailure) {
+                        latestFailure = failureLocation;
+                        latestString = failureString;
+                        latestCol = failureCol;
+                    }
+                }
+            }
+            // No options match
+            break;
+        }
+        if (toMatch > 0) {
+            failureLocation = latestFailure;
+            // None matched;
+            assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+            assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+        }
+        return j;
     }
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 
