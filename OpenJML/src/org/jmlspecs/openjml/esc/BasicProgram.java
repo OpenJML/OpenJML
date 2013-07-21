@@ -89,8 +89,8 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
      */
     protected List<Definition> definitions = new ArrayList<Definition>();
     
-    /** Axioms - that is, assertions that do not rely on declarations within the basic block program */
-    protected List<JCExpression> pdefinitions = new ArrayList<JCExpression>();
+//    /** Axioms - that is, assertions that do not rely on declarations within the basic block program */
+//    protected List<JCExpression> pdefinitions = new ArrayList<JCExpression>();
 
     /** A map of expressions and ids that are the assumptions to be checked for vacuity. */
     //@ non_null
@@ -117,9 +117,6 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
         return background;
     }
     
-    
-    // FIXME - document
-    public Map<JCTree,JCTree> toLogicalForm = null;
     
     // FIXME -document
     public JCIdent assumeCheckVar;
@@ -163,11 +160,6 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 e.id.accept(pw);
                 pw.print(" ::: ");
                 if (e.value != null) e.value.accept(pw);
-                pw.println();
-                w.flush();
-            }
-            for (JCExpression e: pdefinitions) {
-                e.accept(pw);
                 pw.println();
                 w.flush();
             }

@@ -3873,6 +3873,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (meth instanceof JCIdent) {
                 JCIdent id = (JCIdent)meth; // There is no conversion for method names
+                if (utils.isJMLStatic(id.sym)) meth = convertExpr(meth); 
                 isSuper = id.name.equals(names._super);
                 
                 typeargs = convert(typeargs);
@@ -3989,7 +3990,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     result = eresult = treeutils.makeMethodInvocation(that.pos(),null,newCalleeSym,ntrArgs);
                 } else {
-                    result = eresult = treeutils.makeMethodInvocation(that.pos(),newThisExpr,calleeMethodSym,trArgs);
+                    if (utils.isJMLStatic(calleeMethodSym)) {
+                        result = eresult = trExpr;
+                    } else {
+                        result = eresult = treeutils.makeMethodInvocation(that.pos(),newThisExpr,calleeMethodSym,trArgs);
+                    }
                 }
                 
                 
@@ -4874,7 +4879,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newparams.add(treeutils.makeIntLiteral(Position.NOPOS,heapCount));
             }
             if (!isStatic) {
-                JCVariableDecl newDecl = treeutils.makeVarDef(syms.objectType, names.fromString("THIS"), methodDecl.sym, pos);
+                // FIXME _ why are we doing the translation to THIS here, rather than in BasicBlocker2
+                JCVariableDecl newDecl = treeutils.makeVarDef(syms.objectType, names.fromString(Strings.thisName), methodDecl.sym, pos);
                 newDecls.add(newDecl);
                 JCIdent id = M.at(callLocation).Ident(newDecl.sym);
                 newparams.add(convertCopy(id));
@@ -6407,7 +6413,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public JCIdent makeThisId(int pos, Symbol sym)  {
         VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),sym.type, Position.NOPOS);
-        THISSym.owner = sym;
+        THISSym.owner = esc ? null : sym; 
+            // In esc, the owner is null (instead of sym) to indicate
+            // that this new symbol is a synthetic variable that will not ever
+            // be assigned to.
         JCIdent id = treeutils.makeIdent(pos,THISSym);
         this.thisIds.put(sym, id);
         exprBiMap.put(id,id);
