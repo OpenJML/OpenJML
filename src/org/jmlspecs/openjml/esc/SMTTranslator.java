@@ -140,7 +140,9 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
-/** This class translates a BasicBlock program into SMTLIB. 
+/** This class translates a BasicBlock program into SMTLIB;
+ *  a new instance of the class is needed for each BasicBlock program translated.
+ *  <P>
  * The input program is a BasicBlock program, which may consist of the
  * following kinds of statements:
  * <UL>
@@ -164,25 +166,22 @@ public class SMTTranslator extends JmlTreeScanner {
     protected Context context;
     
     /** The error log */
-    protected Log log;
+    final protected Log log;
     
     /** The symbol table for this compilation context */
-    protected Symtab syms;
+    final protected Symtab syms;
     
     /** The Names table for this compilation context */
-    protected Names names;
+    final protected Names names;
     
     /** Cached value of the types tool */
-    protected javax.lang.model.util.Types types;
+    final protected javax.lang.model.util.Types types;
     
     /** Cached instance of the JmlTreeUtils tool for the context. */
-    protected JmlTreeUtils treeutils;
+    final protected JmlTreeUtils treeutils;
     
     /** The factory for creating SMTLIB expressions */
-    protected Factory F;
-    
-    /** SMTLIB subexpressions - the result of each visit call */
-    protected IExpr result;
+    final protected Factory F;
     
     /** Commonly used SMTLIB expressions - using these shares structure */
     final protected ISort refSort;
@@ -201,6 +200,25 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol selectSym;
     final protected IExpr.INumeral zero;
     
+    // These are strings that are part of our modeling of Java+JML and are
+    // more or less arbitrary. Strings like these that are used only once
+    // may be simply used in place.
+    // Strings that are defined by SMTLIB are used explicitly in place.
+    public static final String NULL = "NULL";
+    public static final String this_ = Strings.thisName; // Must be the same as the id used in JmlAssertionAdder
+    public static final String REF = "REF"; // SMT sort for Java references
+    public static final String JAVATYPESORT = "JavaTypeSort";
+    public static final String JMLTYPESORT = "JMLTypeSort";
+    public static final String JAVASUBTYPE = "javaSubType";
+    public static final String JMLSUBTYPE = "jmlSubType";
+    public static final String arrayLength = "__JMLlength"; // array length
+    public static final String arrays_ = BasicBlocker2.ARRAY_BASE_NAME; // Must match BasicBlocker2
+    public static final String concat = "stringConcat";
+    public static final String nonnullelements = "nonnullelements";
+    
+    
+    /** SMTLIB subexpressions - the result of each visit call */
+    protected IExpr result;
     
     /** The SMTLIB script as it is being constructed */
     protected IScript script;
@@ -209,42 +227,34 @@ public class SMTTranslator extends JmlTreeScanner {
     protected List<ICommand> commands;
     
     /** A list that accumulates all the Java type constants used */
-    protected Set<Type> javaTypes = new HashSet<Type>();
-    protected Set<String> javaTypeSymbols = new HashSet<String>();
+    final protected Set<Type> javaTypes = new HashSet<Type>();
+
+    /** A list that accumulates all the Java type names as used in SMT */
+    final protected Set<String> javaTypeSymbols = new HashSet<String>();
     
+    /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
+    /** A counter used to make double literal identifiers unique */
     int doubleCount = 0;
+    /** A counter used to make identifiers unique */
     int uniqueCount = 0;
+    
+    /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
-    // These are strings that are part of our modeling of Java+JML and are
-    // more or less arbitrary. Strings like these that are used only once
-    // may be simply used in place.
-    // Some of the Strings that follow are first used in the input program
-    // Strings that are defined by SMTLIB are used explicitly in place.
-    public static final String NULL = "NULL";
-    public static final String this_ = "THIS"; // Must be the same as the id used in JmlAssertionAdder
-    public static final String REF = "REF"; // SMT sort for Java references
-//    public static final String STRINGSORT = "_STRING_";
-    public static final String JAVATYPESORT = "JavaTypeSort";
-    public static final String JMLTYPESORT = "JMLTypeSort";
-    public static final String JAVASUBTYPE = "javaSubType";
-    public static final String JMLSUBTYPE = "jmlSubType";
-    public static final String arrayLength = "__JMLlength"; // array length
-    public static final String arrays_ = "arrays_"; // Must match BasicBlocker2
-    public static final String concat = "stringConcat";
-    public static final String nonnullelements = "nonnullelements"; // The value here must match what is used in the input program
-    
     public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
+    /** The constructor - create a new instance for each Basic Program to be translated */
     public SMTTranslator(Context context) {
         this.context = context;
+        // OpenJDK tools
         log = Log.instance(context);
         syms = Symtab.instance(context);
         names = Names.instance(context);
         types = JavacTypes.instance(context);
         treeutils = JmlTreeUtils.instance(context);
         
+        // SMT factory and commonly used objects
         F = new org.smtlib.impl.Factory();
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
         intSort = F.createSortExpression(F.symbol("Int")); // From SMT
@@ -324,9 +334,9 @@ public class SMTTranslator extends JmlTreeScanner {
         // define THIS as a REF: (declare-fun THIS () REF)
         c = new C_declare_fun(thisSym,emptyList, refSort);
         commands.add(c);
-        // define equals between REFs: (declare-fun THIS (REF,REF) Bool)
-        c = new C_declare_fun(F.symbol("equals"),Arrays.asList(refSort,refSort), boolSort); // FIXME - distinguish this as an arbitrary name
-        commands.add(c);
+//        // define equals between REFs: (declare-fun THIS (REF,REF) Bool)
+//        c = new C_declare_fun(F.symbol("equals"),Arrays.asList(refSort,refSort), boolSort); // FIXME - distinguish this as an arbitrary name
+//        commands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
@@ -848,16 +858,8 @@ public class SMTTranslator extends JmlTreeScanner {
         JCExpression m = tree.meth;
         if (m instanceof JCIdent) {
             String name = ((JCIdent)m).name.toString();
-            String newname;
-            // FIXME - clean up this use of equals/equal - use constant Strings as well
-            if (!JmlAssertionAdder.useMethodAxioms && name.equals("equals")) {
-                newname = "equals";
-            } else if (!JmlAssertionAdder.useMethodAxioms && name.equals("equal")) {
-                newname = "equals";
-            } else {
-                newname = name;
-                addFcn(newname,tree);
-            }
+            String newname = name;
+            addFcn(newname,tree);
             List<IExpr> newargs = new LinkedList<IExpr>();
             if (JmlAssertionAdder.useMethodAxioms && !Utils.instance(context).isJMLStatic(treeutils.getSym(tree))) {
                 JCExpression e = ((JCFieldAccess)tree.meth).selected;
@@ -922,7 +924,12 @@ public class SMTTranslator extends JmlTreeScanner {
             JCFieldAccess fa = (JCFieldAccess)m;
             String name = fa.name.toString();
             String newname = null;
-            {
+            if (Utils.instance(context).isJMLStatic(fa.sym)) {
+                // FIXME The fully qualifiedness should be done in BasicBlocking
+                newname = "_" + m.toString();
+                addFcn(newname,tree);
+            } else {
+                // FIXME - the non-static should have a fiully qualified name as well
                 newname = name;
                 addFcn(newname,tree);
             }

@@ -146,7 +146,7 @@ import com.sun.tools.javac.util.Position;
  * @typeparam P basic block program type
  * @author David Cok
  */
-abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends BasicProgramParent<T>> extends JmlTreeScanner {
+abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends BasicProgramParent<T>> extends JmlTreeScanner {
 
     // THE FOLLOWING ARE ALL FIXED STRINGS
     
@@ -292,10 +292,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
 
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be
-    // shared across the visitor methods.
+    // shared across the visitor methods. Other such fields are declared close
+    // to their points of use in the remainder of this file.
     
     /** A map of names to blocks */
-    protected java.util.Map<String,T> blockLookup;
+    final protected java.util.Map<String,T> blockLookup = new java.util.HashMap<String,T>();
     
     /** A variable to hold the block currently being processed */
     protected T currentBlock;
@@ -607,8 +608,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** A helper initialization routine for derived classes, called internally at
      * the start of converting a method body
      */
-    protected @NonNull void initialize(@NonNull JCMethodDecl methodDecl, 
-           @NonNull JCClassDecl classDecl, JmlAssertionAdder assertionAdder) {
+    protected void initialize(@NonNull JCMethodDecl methodDecl, 
+           @NonNull JCClassDecl classDecl, @NonNull JmlAssertionAdder assertionAdder) {
         this.methodDecl = (JmlMethodDecl)methodDecl;
         this.program = newProgram(context);
         this.program.methodDecl = methodDecl;
@@ -617,9 +618,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
         if (classDecl.sym == null) {
             log.error("jml.internal","The class declaration in convertMethodBody appears not to be typechecked");
         }
-        this.blockLookup = new java.util.HashMap<String,T>();
         this.terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
         this.exceptionSym = (VarSymbol)assertionAdder.exceptionSymbols.get(methodDecl);
+        this.blockLookup.clear();
+        this.loopStack.clear();
+        this.continueMap.clear();
+        this.breakBlocks.clear();
+        this.breakStack.clear();
+        this.catchStack.clear();
+        this.finallyStack.clear();
+        this.blockCount = 0;
+        // Fields that do not need initialization: result, remainingStatements, currentBlock
     }
 
     /** Associates end position information with newnode, taking the information
@@ -859,10 +868,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     public void visitCase(JCCase that) { shouldNotBeCalled(that); }
     
     /** Stack to hold Blocks for catch clauses, when try statements are nested */
-    protected java.util.List<T> catchStack = new java.util.LinkedList<T>();
+    final protected java.util.List<T> catchStack = new java.util.LinkedList<T>();
     
     /** Stack to hold Blocks for finally clauses, when try statements are nested */
-    protected java.util.List<T> finallyStack = new java.util.LinkedList<T>();
+    final protected java.util.List<T> finallyStack = new java.util.LinkedList<T>();
 
     // This sets up a complicated arrangement of blocks
     //
@@ -1042,12 +1051,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     /** This is a stack of loops and switch statements - anything that can 
      * contain a break statement
      */
-    protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
+    final protected java.util.List<JCTree> breakStack = new java.util.LinkedList<JCTree>();
     
     /** This is a map of label to Block, giving the block to which a labelled break
      * should jump - which is the Block after the labelled statement.
      */
-    protected java.util.Map<Name,T> breakBlocks = new java.util.HashMap<Name,T>();
+    final protected java.util.Map<Name,T> breakBlocks = new java.util.HashMap<Name,T>();
     
     @Override // OK
     public void visitBreak(JCBreak that) { 
@@ -1218,10 +1227,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>,P extends Basi
     }
     
     /** A stack of the (nested) loops encountered */
-    protected List<JCTree> loopStack = new LinkedList<JCTree>();
+    final protected List<JCTree> loopStack = new LinkedList<JCTree>();
     
     /** A map of labels to loops for continue statements */
-    protected Map<Name,JCTree> continueMap = new HashMap<Name,JCTree>();
+    final protected Map<Name,JCTree> continueMap = new HashMap<Name,JCTree>();
     
     /* for (Init; Test; Update) S
      * becomes

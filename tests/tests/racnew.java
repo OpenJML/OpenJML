@@ -1,7 +1,5 @@
 package tests;
 
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
