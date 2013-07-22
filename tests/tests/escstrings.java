@@ -34,7 +34,6 @@ public class escstrings extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testSimpleString() {
-        main.addOptions("-show","-method=m1","-subexpressions","-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -394,7 +393,7 @@ public class escstrings extends EscBase {
     @Test
     public void testStringConcat3() {
         main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-method=m","-show");
+        main.addOptions("-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -573,7 +572,6 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength3() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

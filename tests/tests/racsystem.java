@@ -162,7 +162,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile3() {
         expectedNotes =  0; // 2
-        main.addOptions("-noInternalSpecs","-show");
+        main.addOptions("-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }\n"

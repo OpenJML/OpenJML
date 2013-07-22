@@ -419,9 +419,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new name
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
-        if (incarnationPosition == 0 || sym.owner == null) {
+        Symbol own = sym.owner;
+        if (incarnationPosition == 0 || own == null) {
             Name n = sym.getQualifiedName();
             if (sym.pos >= 0 && !n.toString().equals(Strings.thisName)) n = names.fromString(n.toString() + ("_" + sym.pos));
+            if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
+                Name s = own.getQualifiedName();
+                n = names.fromString(s.toString() + "." + n.toString());
+            }
             return n;
         } else
             return names.fromString(
@@ -1339,6 +1344,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         }
     }
     
+    
+    protected boolean isFinal(Symbol sym) {
+        return (sym.flags() & Flags.FINAL) != 0;
+    }
+    
 
     // Visit methods for Expressions for the most part just use the super class's
     // visit methods. These just call visitors on each subexpression.
@@ -1353,13 +1363,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitIdent(JCIdent that) {
         if (that.sym instanceof Symbol.VarSymbol){ 
-            if (localVars.contains(that.sym)) {
-                // no change to lcoal vars (e.g. quantifier and let decls)
+            Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+            if (localVars.contains(vsym)) {
+                // no change to local vars (e.g. quantifier and let decls)
             } else {
-                Symbol.VarSymbol vsym = (Symbol.VarSymbol)that.sym;
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + that.sym + " " + that.name);
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + vsym + " " + that.name);
                     addDeclaration(that);
                 }
             }
@@ -1388,31 +1398,28 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
+        VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+        Name n;
+        if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
+            n = labelmaps.get(null).getName(vsym);
+        } else {
+            n = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
+        }
+        that.name = n;
+        
         if (utils.isJMLStatic(that.sym)) {
-            that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
-            id.name = that.name;
-            if (isDefined.add(that.name)) {
+            id.name = n;
+            if (isDefined.add(n)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 addDeclaration(id);
             }
             result = id;
-            
-//        } else if (that.name.toString().equals("length")) {
-//            scan(that.selected);
-//            JmlBBFieldAccess fa = new JmlBBFieldAccess(lengthIdent,result);
-//            fa.pos = that.pos;
-//            fa.type = that.type;
-//            fa.name = that.name;
-//            fa.sym = that.sym;
-//            fa.arraysId = getArrayIdent(((ArrayType)that.selected.type).getComponentType());
-//            result = fa;
         } else {
-            that.name = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
-            if (isDefined.add(that.name)) {
+            if (isDefined.add(n)) {
                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
-                id.name = that.name;
+                id.name = n;
                 addDeclaration(id);
             }
             scan(that.selected);

@@ -30,6 +30,7 @@ public class escgeneric extends EscBase {
     // FIXME - disabled until we get generic types implemented better
     @Test
     public void testConstructor() {
+        main.addOptions("-show","-method=mx","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -133,7 +134,6 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testTypeParameter() {
-        main.addOptions("-show","-method=ma");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

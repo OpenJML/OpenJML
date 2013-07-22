@@ -116,7 +116,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-progress","-escMaxWarnings=1","-jmltesting","-show");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-progress","-escMaxWarnings=1","-jmltesting");
     }
 
     @Test

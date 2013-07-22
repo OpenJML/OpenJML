@@ -1046,7 +1046,7 @@ public class JmlTree implements IJmlTree {
         public JmlMethodDecl specsDecl;
         public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
         public JmlSpecs.MethodSpecs methodSpecsCombined;
-        public JmlClassDecl owner;
+        //public JmlClassDecl owner;
         public JavaFileObject sourcefile;
         public String docComment = null; // FIXME - clarify why needed
         public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;

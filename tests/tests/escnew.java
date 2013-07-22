@@ -1356,7 +1356,6 @@ public class escnew extends EscBase {
     }
     @Test
     public void testChangedParam() {
-        main.addOptions("-show","-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
