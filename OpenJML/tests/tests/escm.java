@@ -216,7 +216,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnon() {
-        main.addOptions("-checkFeasibility=none","-show");
+        main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -240,7 +240,6 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs() {
-        //main.addOptions("-show","-method=m1","-subexpressions","-noInternalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"

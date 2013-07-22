@@ -47,7 +47,6 @@ public class escnowarn extends EscBase {
     
     @Test
     public void testNowarnRequiresNW() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { public boolean b;  \n"
                 +"  //@   requires b;\n"  
@@ -112,8 +111,6 @@ public class escnowarn extends EscBase {
     
     @Test
     public void testLocationSignals() {
-        main.addOptions("-show","-method=m");
-        main.addOptions("-counterexample");
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   signals (Exception) false;\n"
                 +"  public void m();\n"

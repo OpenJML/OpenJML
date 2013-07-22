@@ -167,7 +167,7 @@ public class racfiles extends RacBase {
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("testfiles/sv_rac","testfiles/sv_rac","sv_rac/Decimal","-show");
+        helpTCF("testfiles/sv_rac","testfiles/sv_rac","sv_rac/Decimal");
     }
 
     @Test

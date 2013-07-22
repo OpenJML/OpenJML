@@ -343,7 +343,6 @@ public class escnew2 extends EscBase {
     }
     
     @Test public void testThis() { 
-        main.addOptions("-show","-method=tt.A.A(),<init>");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "

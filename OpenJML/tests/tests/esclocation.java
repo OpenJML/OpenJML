@@ -90,9 +90,6 @@ public class esclocation extends EscBase {
     
     @Test
     public void testLocationSignals() {
-        main.addOptions("-show","-method=m","-subexpressions");
-//        options.put("-progress","");
-//        options.put("-jmlverbose","");
         addMockFile("$A/tt/TestJava.jml","package tt; public class TestJava {\n"
                 +"  //@   signals (Exception) false;\n"
                 +"  public void m();\n"

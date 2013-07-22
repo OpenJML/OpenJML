@@ -1500,6 +1500,67 @@ public class esc extends EscBase {
     }
     
     @Test
+    public void testFinal() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static final int fa = 13;\n"
+                +"  public static int a = 15;\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void z() {\n"
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    //@ assume a == 15 && fa == 13;\n"
+                +"    z();\n"
+                +"    //@ assert fa == 13;\n" // Should be OK
+                +"    //@ assert a == 15;\n" // Should fail
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m1",9
+                );
+    }
+    
+    @Test
+    public void testFinal2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static final int fsa = 13;\n"
+                +"  public final int fa = 15;\n"
+                +"  public final int fb;\n"
+                +"  public int a = 17;\n"
+                
+                +"  public TestJava() {\n"
+                +"    //@ assert fsa == 13;\n" // OK
+                +"    //@ assert fa == 15;\n" // OK
+                +"    fb = 16;\n"
+                +"  }\n"
+
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    //@ assert fsa == 13;\n" // Should be OK
+                +"    //@ assert fa == 15;\n" // Should be OK
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2() {\n"
+                +"    //@ assert a == 17;\n" // Not necessarily OK
+                +"  }\n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3() {\n"
+                +"    //@ assert fb == 16;\n" // Not necessarily OK
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m2",9
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Assert) in method m3",9
+                );
+    }
+    
+    @Test
     public void testMethodCallsWithExceptions() {
 //        main.addOptions("-show","-method=m3");
 //        main.addOptions("-progress");
@@ -1599,7 +1660,6 @@ public class esc extends EscBase {
     
     @Test
     public void testStrings() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  String s;\n"
@@ -2496,7 +2556,6 @@ public class esc extends EscBase {
     @Test
     public void testNewArrayMD1() { 
         main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-show","-method=inst0");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst0() { Object o = new int[2][3]; o = new int[2][]; o = new int[][] {{2}, {3,4,5}}; int[][] oo = {{1},{2,3}}; /*@ assert oo[0] != oo[1]; */}\n" 
@@ -3831,7 +3890,6 @@ public class esc extends EscBase {
 
     @Test
     public void testSignals4() {
-        main.addOptions("-method=m4","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"

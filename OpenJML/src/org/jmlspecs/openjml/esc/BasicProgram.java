@@ -150,9 +150,9 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 w.flush();
             }
             for (JCIdent e: declarations) {
-                pw.print(e.name.toString());
+                pw.print(e.name);
                 pw.print(" : ");
-                pw.print(e.type.toString());
+                pw.print(e.type);
                 pw.println();
                 w.flush();
             }

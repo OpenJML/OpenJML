@@ -724,10 +724,6 @@ public class JmlTreeUtils {
     /** Makes an attributed variable declaration for the given VarSymbol; 
      * the declaration has no modifiers; position
      * is set to that of the init expression.
-     * @param sym  the VarSymbol to declare
-     * @param owner the owner of the new variable (e.g. a MethodSymbol or ClassSymbol)
-     * @param init  the initialization expression for the new AST
-     * @return the AST for the declaration
      */
     public JCVariableDecl makeVariableDecl(VarSymbol var, @Nullable JCExpression init) {
         JCVariableDecl d = factory.VarDef(var,init);
