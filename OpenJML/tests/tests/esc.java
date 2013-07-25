@@ -1678,13 +1678,13 @@ public class esc extends EscBase {
     public void testRequires() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  /*@ assignable b; */ TestJava() { b = true; }\n"
+                +"  TestJava() { }\n"
                 +"  public TestJava(int i) {}\n"  // static invariant is assumed true at start of constructor, remains true at end
                 +"  //@ requires false;\n"
                 +"  public static boolean bf(boolean bb) { return true; }\n"
                 +"  //@ requires true;\n"
                 +"  public static boolean bt(boolean bb) { return true; }\n"
-                +"  static public boolean b;\n"
+                +"  static public boolean b = true;\n"
                 +"  //@ static public invariant b;\n"
                 +"  //@ requires !b;\n"
                 +"  public static boolean bq(boolean bb) { return true; }\n"
@@ -1866,7 +1866,7 @@ public class esc extends EscBase {
     }
 
     @Test
-    public void testOld() { // FIXME - fix static constraints and invariants for constructors
+    public void testOld() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public  int i;\n"
@@ -1875,8 +1875,6 @@ public class esc extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public static void bok() { i = i - 1; }\n"
                 +"}",
-                "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method <init>",8,
-                "/tt/TestJava.java:4: warning: Associated declaration", 21,
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok",22,
                 "/tt/TestJava.java:4: warning: Associated declaration", 21
         );
