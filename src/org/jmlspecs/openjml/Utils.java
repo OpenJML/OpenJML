@@ -613,7 +613,7 @@ public class Utils {
         return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
     }
     
-    /** Returns a method signature with a full-qualified method name */
+    /** Returns a method signature with a fully-qualified method name */
     public String qualifiedMethodSig(MethodSymbol sym) {
         return sym.owner.getQualifiedName() + "." + sym;
     }

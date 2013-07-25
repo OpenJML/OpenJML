@@ -1,6 +1,5 @@
 package tests;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.junit.Ignore;
@@ -273,7 +272,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
@@ -294,7 +293,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss); \n" // FIXME Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss); \n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"

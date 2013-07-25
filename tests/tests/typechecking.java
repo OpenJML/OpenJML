@@ -304,7 +304,7 @@ public class typechecking extends TCBase {
                 );
     }
     
-    @Test public void testSubtype5() { // OK
+    @Test public void testSubtype5() { // FIXME - needs erasure
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures JML.erasure(t) <: c;\nvoid m() {}}");
     }
     
