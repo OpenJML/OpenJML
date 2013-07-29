@@ -1,5 +1,5 @@
 Proving methods in openjml.demo.ChangeCase
-Starting proof of openjml.demo.ChangeCase.changeCase(char) with prover z3_4_3
+Starting proof of openjml.demo.ChangeCase.changeCase(char) with prover !!!!
 
 TRACE of openjml.demo.ChangeCase.changeCase(char)
 
@@ -52,6 +52,6 @@ TRACE of openjml.demo.ChangeCase.changeCase(char)
 ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
 	//@   ensures \result >= 'a' && \result <= 'z';
 	      ^
-Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover z3_4_3 - with warnings
+Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover !!!! - with warnings
 Completed proving methods in openjml.demo.ChangeCase
 2 warnings

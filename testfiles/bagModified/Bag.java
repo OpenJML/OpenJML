@@ -5,6 +5,10 @@ package sv_esc;
 
 */
 
+// NOTE: no specification yet that the elements of the Bag.contents array are
+// what they are supposed tdo be (e.g. only slightly changed by add, remove,
+// properly initalized by initializers).
+
 class Bag {
 
   int[] contents; //@ invariant contents != null;
@@ -13,6 +17,7 @@ class Bag {
   //@ invariant n <= contents.length;
 
   //@ requires input != null;
+  // default assignable includes this.n and this.contents and this.contents[*]
   Bag(int[] input) {
     n = input.length;
     contents = new int[n];
@@ -22,7 +27,7 @@ class Bag {
   //@ requires b != null;
   Bag(Bag b) {
     contents = new int[0]; // error in code corrected
-    n = 0; // added by DRC
+    n = 0; // added by DRC, so that invariants hold before a method call
     this.add(b);
   }
 

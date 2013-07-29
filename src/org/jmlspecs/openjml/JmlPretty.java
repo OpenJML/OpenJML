@@ -461,7 +461,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try { 
             if (that.token == JmlToken.COMMENT) {
                 print("// ");
-                print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
+                if (that.expression != null) print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
+                else {
+                    print("[ERROR: NULL COMMENT EXPRESSION]");
+                }
             } else {
                 if (useJMLComments) print ("/*@ ");  // FIXME - this is needed in lots more places
                 print(that.token.internedName());

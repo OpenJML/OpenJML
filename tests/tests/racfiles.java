@@ -73,10 +73,10 @@ public class racfiles extends RacBase {
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
             pw.close();
             
-            String diffs = compareFiles(outputdir + "/expected-compile", actCompile);
-            if (diffs != null) {
-                System.out.println(diffs);
-//                fail("Files differ: " + diffs);
+            String compdiffs = compareFiles(outputdir + "/expected-compile", actCompile);
+            if (compdiffs != null) {
+                System.out.println(compdiffs);
+//                fail("Files differ: " + compdiffs);
             } else {
                 new File(actCompile).delete();
             }
@@ -96,7 +96,7 @@ public class racfiles extends RacBase {
             ex = p.exitValue();
             String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
             if (print) System.out.println(output);
-            diffs = compareText(outputdir + "/expected-run",output);
+            String diffs = compareText(outputdir + "/expected-run",output);
             if (diffs != null) {
                 BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
                 b.write(output);
@@ -105,6 +105,7 @@ public class racfiles extends RacBase {
                 fail("Unexpected output: " + diffs);
             }
             if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
+            if (compdiffs != null) fail("Files differ: " + compdiffs);
 
         } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -133,7 +134,7 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/rac1a","testfiles/rac1a","Bug1");
     }
 
-    @Test // Stack overflow because of recursive check of invariant
+    @Test // Originally a Stack overflow because of recursive check of invariant
     public void testBug1() {
         expectedExit = 0;
         expectedRACExit = 1;
@@ -198,6 +199,12 @@ public class racfiles extends RacBase {
     public void purseCardTest() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","purse.CardTest");
+    }
+
+    @Test
+    public void purseModTest() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","purse.CardTest","-show");
     }
 
 

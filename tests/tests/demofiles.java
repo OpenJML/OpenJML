@@ -121,7 +121,7 @@ public class demofiles extends EscBase {
 
     @Test
     public void testMaxByElimination() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/verifythis/MaxByElimination.java","testfiles/demoMaxByElimination","-progress");
     }
 
@@ -132,9 +132,9 @@ public class demofiles extends EscBase {
     }
 
     @Test
-    public void testEScTest() {
+    public void testEscTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","testfiles/demoEscTest","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","testfiles/demoEscTest","-progress","-subexpressions");
     }
 
 

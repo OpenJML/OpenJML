@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.esc;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
@@ -229,9 +230,15 @@ public class JmlEsc extends JmlTreeScanner {
                 for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
-                            Pattern.matches(methodToDo,fullyQualifiedName) ||
                             fullyQualifiedSig.equals(methodToDo)) {
                         break match;
+                    }
+                    try {
+                        if (Pattern.matches(methodToDo,fullyQualifiedName)) break match;
+                    } catch(PatternSyntaxException e) {
+                        // The methodToDo can be a regular string and does not
+                        // need to be legal Pattern expression
+                        // skip
                     }
                 }
                 if (utils.jmlverbose > Utils.PROGRESS) {

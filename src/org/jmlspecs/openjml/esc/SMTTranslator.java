@@ -1202,7 +1202,7 @@ public class SMTTranslator extends JmlTreeScanner {
             long k = Long.parseLong(v.toString());
             result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
         } else if (tree.typetag == TypeTags.CHAR) {
-            long k = Long.parseLong(v.toString());
+            long k = (v instanceof Character) ? (long) ((Character)v).charValue() : Long.parseLong(v.toString());
             result = F.numeral(k);
         } else if (tree.typetag == TypeTags.BOT) {
             result = nullSym;
@@ -1278,7 +1278,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 result = F.forall(params,value);
             } else {
-                notImpl("JML Quantified expression using " + that.op.name());
+                notImpl("JML Quantified expression using " + that.op.internedName());
             }
             if (!prev) {
                 // Because SMTLIB does not allow getValue to have arguments containing
