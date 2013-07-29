@@ -171,7 +171,7 @@ public class escfiles extends EscBase {
     @Test 
     public void testDemoChangeCase() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","testfiles/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions" );
+        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","testfiles/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
     }
 
     @Test
@@ -338,7 +338,7 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escTraceBS","testfiles/escTraceBS","-subexpressions","-progress");
     }
 
-    @Test @Ignore // FIXME - order of errors is too non-deterministic
+    @Test // FIXME - order of errors is too non-deterministic
     public void testBag() {
         expectedExit = 0;
         helpTCF("testfiles/bag","testfiles/bag");
@@ -347,11 +347,12 @@ public class escfiles extends EscBase {
     @Test
     public void testBagModified() {
         expectedExit = 0;
-        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress","-jmltesting");//,"-noInternalSpecs");//,"-show","-method=sv_esc.Bag.Bag(sv_esc.Bag)");
+        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress","-jmltesting");
     }
 
-    @Test @Ignore // FIXME - hangs up sometimes with some solvers
+    @Test // FIXME - hangs up sometimes with some solvers
     public void testLoopExercises() {
+        if (!"z3_4_3".equals(solver)) fail("Some solvers hang");
         expectedExit = 0;
         helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");
     }

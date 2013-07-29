@@ -1,26 +1,2 @@
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\CharSequence.jml:52: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall char[] a; a!=null ; equal(a,a));
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\CharSequence.jml:53: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall char[] a,b; a!=null && b !=null; equal(a,b) <==> equal(b,a));
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\CharSequence.jml:54: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall char[] a,b,c; a!=null && b !=null && c != null; (equal(a,b) && equal(b,c))==>equal(a,c)); 
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\String.jml:279: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall String s,ss; s.equals(ss) ==>s.length() == ss.length());
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\String.jml:393: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall String s,ss; equals(s,ss) ==> s.length() == ss.length());
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\String.jml:395: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall String s,ss; equals(s,ss) ==> equals(ss,s));
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\String.jml:397: Note: Not implemented for runtime assertion checking: axiom clause
-    //@ axiom (\forall String s1,s2,s3; equals(s1,s2) ==> (equals(s1,s3) <==> equals(s2,s3)));
-        ^
-C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\String.jml:509: Note: Not implemented for runtime assertion checking: axiom clause
-    /*@ axiom (\forall char[] s1, s2; s1 != null && s2 != null;
-        ^
 Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.

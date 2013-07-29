@@ -3550,7 +3550,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlTree.Maker F = factory;
             Type restype = q.type; // Result type of the expression
 
-            // Attroibuted statements that return true or false
+            // Attributed statements that return true or false
             JCReturn rettrue = F.Return(treeutils.trueLit); //F.Literal(TypeTags.BOOLEAN, 1).setType(syms.booleanType));
             JCReturn retfalse = F.Return(treeutils.falseLit); //F.Literal(TypeTags.BOOLEAN, 0).setType(syms.booleanType));
             
@@ -5287,6 +5287,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         @Override
         public void visitJmlSingleton(JmlSingleton that) {
             if (that.token == JmlToken.BSRESULT) {
+                // external
+                if (checkInternal) throw new RCheckEx();
+            }
+        }
+        
+        @Override
+        public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+            if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPAST || that.token == JmlToken.BSPRE) {
                 // external
                 if (checkInternal) throw new RCheckEx();
             }

@@ -590,6 +590,9 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
     public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null) {
+            System.out.println("BAD ANBD");
+        }
         return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
     }
 
