@@ -844,7 +844,7 @@ public class racnew2 extends RacBase {
                 +"new A().m(1); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: JML invariant is false on leaving method"
+                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );
@@ -859,7 +859,7 @@ public class racnew2 extends RacBase {
                 +"new A().m(1); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:6: JML invariant is false on leaving method"
+                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );
@@ -874,9 +874,9 @@ public class racnew2 extends RacBase {
                 +"new A().m(1); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}}"
-                ,"/tt/A.java:4: JML invariant is false on leaving method"
+                ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.m(int)"
                 ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on leaving method"
+                ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.m(int), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"END"
                 );

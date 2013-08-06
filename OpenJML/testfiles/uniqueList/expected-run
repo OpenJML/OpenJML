@@ -1,0 +1,12 @@
+OUT:
+testfiles\uniqueList\UniqueList.java:64: JML precondition is false
+		list.add(6);
+		        ^
+testfiles\uniqueList\UniqueList.java:30: Associated declaration: testfiles\uniqueList\UniqueList.java:64: 
+	/*@ requires length < 10;
+	    ^
+testfiles\uniqueList\UniqueList.java:30: JML precondition is false
+	/*@ requires length < 10;
+	    ^
+
+ERR:

@@ -8,10 +8,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -644,5 +646,30 @@ public class Utils {
         System.out.println(s);
         return true;
     }
+    
+    public static class DoubleMap<T1,T2,TR> {
+        Map<T1, Map<T2,TR>> map = new HashMap<T1, Map<T2,TR>>();
+        
+        public TR get(T1 t1, T2 t2) {
+            Map<T2,TR> m = map.get(t1);
+            if (m == null) return null;
+            return m.get(t2);
+        }
+        
+        public void put(T1 t1, T2 t2, TR tr) {
+            Map<T2,TR> m = map.get(t1);
+            if (m == null) {
+                m = new HashMap<T2,TR>();
+                map.put(t1, m);
+            }
+            m.put(t2, tr);
+        }
+        
+        public void clear() {
+            map.clear();
+        }
+    }
+    
+    
 
 }

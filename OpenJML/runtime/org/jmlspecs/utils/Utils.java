@@ -1,11 +1,11 @@
-package org.jmlspecs.utils;
+package org.jmlspecs.utils;// FIXME add copyright at top
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.jmlspecs.lang.Real;
-// Keep this to match the .jml file, for now - FIXME add copyright at top
 /** 
  * This class contains utility methods used in internal translations for both
  * ESC and RAC.  In RAC, these functions are executed to provide the built-in
@@ -679,5 +679,41 @@ public class Utils {
         return (float)a.doubleValue();
     }
 
-
+    public static <T> T[] copyArray(T[] o) {
+        T[] n = Arrays.copyOf(o,o.length);
+        return n;
+    }
+    
+    public static byte[] copyByteArray(byte[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static int[] copyIntArray(int[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static short[] copyShortArray(short[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static char[] copyCharArray(char[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static boolean[] copyBooleanArray(boolean[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static double[] copyDoubleArray(double[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public static float[] copyFloatArray(float[] o) {
+        return Arrays.copyOf(o,o.length);
+    }
+    
+    public boolean print(String msg) {
+        System.out.println(msg);
+        return true;
+    }
 }

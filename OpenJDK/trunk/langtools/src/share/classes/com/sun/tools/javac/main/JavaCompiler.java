@@ -521,7 +521,7 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
             return ecs != null && ecs.isDone(cs);
         }
     }
-    private CompileStates compileStates = new CompileStates();
+    protected CompileStates compileStates = new CompileStates(); // DRC - changed from private to protected
 
     /** The set of currently compiled inputfiles, needed to ensure
      *  we don't accidentally overwrite an input file when -s is set.

@@ -501,6 +501,7 @@ public class JmlCompiler extends JavaCompiler {
             while (t.head != null) {
                 if (t.head == env.tree) {
                     env.tree = newtree;
+                    //reattribute(env);
                     t.head = newtree;
                     break;
                 }
@@ -648,4 +649,25 @@ public class JmlCompiler extends JavaCompiler {
 //            return set.iterator();
 //        }
 //    }
+    
+    public void reattribute(Env<AttrContext> env) {
+        compileStates.put(env,null);
+        (new ClearAttributes()).scan(env.tree);
+        attribute(env);
+    }
+    
+    public class ClearAttributes extends JmlTreeScanner {
+        @Override
+        public void visitJmlClassDecl(JmlTree.JmlClassDecl that) {
+            that.mods.flags |= Flags.UNATTRIBUTED;
+            that.sym.flags_field |= Flags.UNATTRIBUTED;
+            super.visitJmlClassDecl(that);
+        }
+        
+        @Override
+        public void visitIdent(JCTree.JCIdent that) {
+            that.sym = null;
+            super.visitIdent(that);
+        }
+    }
 }
