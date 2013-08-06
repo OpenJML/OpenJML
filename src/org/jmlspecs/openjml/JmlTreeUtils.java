@@ -994,8 +994,45 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         list.appendArray(args);
         JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(),meth,list.toList());
-        call.type = ((MethodType)meth.type).getReturnType();
+        if (meth.type instanceof MethodType)
+            call.type = ((MethodType)meth.type).getReturnType();
+        else
+            call.type = ((Type.ForAll)meth.type).getReturnType();
         return call;
+    }
+    
+    public JCExpression copyArray(int pos, JCExpression ad) {
+        Type t = ((Type.ArrayType)ad.type).getComponentType(); 
+        JCExpression a = null;
+        switch (t.tag) {
+            case TypeTags.INT:
+                a = makeUtilsMethodCall(pos,"copyIntArray",ad);
+                break;
+            case TypeTags.BOOLEAN:
+                a = makeUtilsMethodCall(pos,"copyBooleanArray",ad);
+                break;
+            case TypeTags.CLASS:
+                a = makeUtilsMethodCall(pos,"copyArray",ad);
+                break;
+            case TypeTags.SHORT:
+                a = makeUtilsMethodCall(pos,"copyShortArray",ad);
+                break;
+            case TypeTags.CHAR:
+                a = makeUtilsMethodCall(pos,"copyCharArray",ad);
+                break;
+            case TypeTags.BYTE:
+                a = makeUtilsMethodCall(pos,"copyByteArray",ad);
+                break;
+            case TypeTags.FLOAT:
+                a = makeUtilsMethodCall(pos,"copyFloatArray",ad);
+                break;
+            case TypeTags.DOUBLE:
+                a = makeUtilsMethodCall(pos,"copyDoubleArray",ad);
+                break;
+            default:
+                a = null; // FIXME - error
+        }
+        return a;
     }
 
     // FIXME - review & document - for ESC

@@ -109,7 +109,7 @@ public class demofiles extends EscBase {
 
     @Test
     public void testBinarySearch() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java","testfiles/demoBinarySearch","-progress","-noInternalSpecs");
     }
 
@@ -134,7 +134,7 @@ public class demofiles extends EscBase {
     @Test
     public void testEscTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","testfiles/demoEscTest","-progress","-subexpressions");
+        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","testfiles/demoEscTest","-progress","-subexpressions","-method=zero_matrix","-show");
     }
 
 

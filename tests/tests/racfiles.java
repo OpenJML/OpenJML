@@ -198,13 +198,13 @@ public class racfiles extends RacBase {
     @Test
     public void purseCardTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","purse.CardTest");
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","CardTest");
     }
 
     @Test
     public void purseModTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","purse.CardTest","-show");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","CardTest");
     }
 
 

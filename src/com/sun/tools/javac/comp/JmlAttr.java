@@ -2652,6 +2652,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         labelEnvs.put(tree.label,labelenv);
         super.visitLabelled(tree);
     }
+    
+    protected Name currentEnvLabel = null;
 
     public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         JmlToken token = tree.token;
@@ -2675,6 +2677,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSPRE:
                 // The argument can be a JML spec-expression
                 // Expect one argument, result type is the same type
+                Name savedLabel = currentEnvLabel;
                 n = tree.args.size();
                 if (!(n == 1 || (token != JmlToken.BSPRE && n == 2))) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),
@@ -2710,6 +2713,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         label = ((JCTree.JCIdent)tr).getName();
                     }
                 }
+                // label == empty ==> pre state; label == null ==> current state
+                currentEnvLabel = label == null ? names.empty : label;
                 if (n == 0 || t == syms.errType) {
                     t = syms.errType;
                 } else if (env.enclMethod == null) { // FIXME - what about types declared within methods
@@ -2760,6 +2765,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                 }
                 result = check(tree, t, VAL, pkind, pt);
+                currentEnvLabel = savedLabel;
                 break;
                 
             case BSMAX:
@@ -3053,6 +3059,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This handles JML statements such as assert and assume and unreachable and hence_by. */
     public void visitJmlStatementExpr(JmlTree.JmlStatementExpr tree) {
+        if (tree.token == JmlToken.COMMENT) { result = null; return; }
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         boolean prev = pureEnvironment;
         pureEnvironment = true;
@@ -4097,6 +4104,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // identifier y must be at least as visible as x (i.e., as V)
                 if (!moreOrEqualVisibleThan(v,jmlVisibility)) {
                     log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                }
+
+            } else if (currentClauseType == JmlToken.ENSURES || currentClauseType == JmlToken.SIGNALS) {
+                // An identifier mentioned in a clause must be at least as visible as the clause itself.
+                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,tree.sym)) {
+                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                }
+                
+                if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
+                    if (!tree.sym.isStatic()) log.error(tree,  "jml.no.old.in.constructor", tree.sym);
                 }
 
             } else  {
