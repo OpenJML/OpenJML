@@ -1,5 +1,4 @@
-// Reported as a bug, but actually appropriately finds the error in 
-// the specs of remove.
+// Despite the buggy code, this case works
 
 public class UniqueListBug2 {
 

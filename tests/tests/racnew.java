@@ -2567,6 +2567,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testStaticInhInvariant() {
+        main.addOptions("-show");
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@ static public invariant i == 2; \n"
                 +"}\n"
@@ -2581,9 +2582,9 @@ public class racnew extends RacBase {
                 +" static public void m() {}\n"
                 +"public static void main(String[] args) { \n"
                 +"System.out.println(\"A\"); \n"
-                +"   A.m(); \n"  // m is in tt.C
+                +"   A.m(); \n"
                 +"System.out.println(\"B\"); \n"
-                +"   tt.B.m(); \n"  // m is in tt.C
+                +"   tt.B.m(); \n"
                 +"System.out.println(\"C\"); \n"
                 +"   tt.C.m(); \n"
                 +"System.out.println(\"END\"); \n"
@@ -2600,10 +2601,6 @@ public class racnew extends RacBase {
                 ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:1: JML static initialization may not be correct: invariant is false"
                 ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.main(java.lang.String[])"
-                ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.main(java.lang.String[])"
-                ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on entering method tt.A.main(java.lang.String[])"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on entering method tt.A.main(java.lang.String[])"
@@ -2627,10 +2624,10 @@ public class racnew extends RacBase {
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
-                ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
-                ,"/$A/tt/B.java:2: Associated declaration"
+//                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
+//                ,"/$A/tt/C.java:3: Associated declaration"
+//                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
+//                ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()"
