@@ -28,6 +28,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
+import org.jmlspecs.openjml.utils.ProverConfigurationException;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -39,7 +40,6 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.util.Context;
@@ -342,6 +342,14 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code
      */
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
+        
+        //
+        // Before starting the compiler, see if we should reconfigure the prover settings
+        //
+        if(Utils.shouldReconfigure(args)){
+            Utils.configureProvers();
+        }
+        
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
@@ -717,6 +725,27 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         
+       
+        //
+        // Validate static checking options
+        //
+        
+        // Don't initiate the checks unless we will actually do static checking
+        // TODO Possibly add Boogie?
+        boolean staticCheckingConfigurationDone = !(utils.esc);
+        
+        while(staticCheckingConfigurationDone==false){
+            try {
+                Utils.validateStaticCheckingProps(options);
+                staticCheckingConfigurationDone = true;
+            }catch(ProverConfigurationException e){
+                // give the user a chance to fix things
+                Utils.configureProvers();
+                // update the options
+                Utils.mergeStaticCheckingProperties(Utils.findProperties(context), options);
+            }
+        }
+        
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null) {
             options.put(JmlOption.FEASIBILITY.optionName(),"all");
@@ -882,6 +911,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (files != null && !files.isEmpty()) {
                 Log.instance(context).warning("jml.ignore.extra.material",files.iterator().next().getName());
             }
+            
+            
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }

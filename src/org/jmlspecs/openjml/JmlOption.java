@@ -80,9 +80,13 @@ public enum JmlOption implements IOption {
     NO_RAC_SOURCE("-noRacSource",false,"RAC: Error messages will not include source information",null),
     NO_RAC_CHECK_ASSUMPTIONS("-noRacCheckAssumptions",false,"RAC: Disables checking that assumptions hold",null),
     NO_RAC_JAVA_CHECKS("-noRacJavaChecks",false,"RAC: Disables explicit checking of Java language checks",null),
-    RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,"RAC: Compiles JML checks as Java asserts",null)
+    RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,"RAC: Compiles JML checks as Java asserts",null),
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
+    RECONFIGURE("-reconfigure",false,"Reconfigure the default provers used by OpenJML",null),
+
     ;
+    
+
     
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' character.
