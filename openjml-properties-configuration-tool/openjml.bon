@@ -1,0 +1,434 @@
+-- ===================================================================
+-- System Chart
+-- ===================================================================
+system_chart OPENJML
+  indexing
+    author: "David Cok";
+    creation_date: "2008";
+    keywords: "JML", "OpenJDK";
+  explanation "A JML infrastructure built on top of the OpenJDK."
+  cluster BUILT_IN_TYPES
+    description
+      "The built-in BON types."
+  cluster JAVA_AST
+    description
+      "TBW."
+  cluster JAVA_FRONTEND
+    description
+      "TBW."
+  cluster JAVA_COMPILER
+    description
+      "TBW."
+  cluster OPENJML_PARSER
+    description
+      "TBW."
+  cluster OPENJML_COMPILER
+    description
+      "TBW."
+  cluster OPENJML_PROVERS
+    description
+      "TBW."
+  cluster OPENJML_EXTENDED_STATIC_CHECKER
+    description
+      "TBW."
+  cluster OPENJML_UTILS
+    description
+      "TBW."
+  cluster OPENJMLDOC
+    description "A JML-aware javadoc called jmldoc built on top of the OpenJDK."
+end
+      
+-- ===================================================================
+-- Cluster Charts
+-- ===================================================================
+
+-- ===================================================================
+-- Built-in BON types
+-- ===================================================================
+
+cluster_chart BUILT_IN_TYPES
+  class TUPLE
+    description "A tuple of typed values."
+  class BOOLEAN
+    description "The boolean type."
+  class VALUE
+    description "A generic value type that is comparable."
+  class INTEGER
+    description "The integer type."
+  class REAL
+    description "The real type."
+  class STRING
+    description "The string type."
+  class SEQUENCE
+    description "The sequence type."
+  class SET
+    description "The set type."
+  class BAG
+    description "The bag type."
+end
+
+cluster_chart JAVA_AST
+  indexing
+    author: "Sun Microsystems";
+    refines_to: "comsun.source.tree";
+end
+
+cluster_chart JAVA_FRONTEND
+  indexing
+    author: "Sun Microsystems";
+  class JAVA_DOCUMENTATION_SCANNER
+    description "A scanner for documentation comments written in the Java programming\
+   \ language."
+  class JAVA_KEYWORDS
+    description "Maps from names to tokens and tokens to strings."
+  class JAVA_PARSER
+    description "A parser for the Java programming language."
+  class JAVA_SCANNER
+    description "A scanner for the Java programming language."
+  class JAVA_TOKEN
+    description "An enumeration of all tokens in the Java programming language."
+end
+
+cluster_chart JAVA_COMPILER
+  indexing
+    author: "Sun Microsystems";
+  class JAVA_ATTRIBUTION
+    description "Performs attribution, mainly name resolution and type checking, of AST nodes."
+  class JAVA_ENTER_SYMBOL_TABLE
+    description "Creates symbols for all types mentioned in parse trees."
+  class JAVA_FLOW_ANALYSIS
+    description "Performs dataflow analysis including liveness, exception, definite assignment, etc."
+  class JAVA_TREE_TRANSLATOR
+    description "Recursive in-place translation of an AST."
+  class JAVA_NAME_RESOLVER
+    description "Name resolver used mainly during attribution."
+end
+
+cluster_chart OPENJML_PARSER
+  indexing
+    author: "David Cok";
+  class JML_PARSER
+    description "A parser for the Java Modeling Language (JML)."
+  class JML_SCANNER
+    description "A scanner for the Java Modeling Language (JML)."
+  class JML_TREE_PRINTER
+    description "Prints out the AST for a JML-annotated Java program."
+  class JML_TREE_SCANNER
+    description "To be reviewed."
+end
+
+cluster_chart OPENJML_COMPILER
+  indexing
+    author: "David Cok";
+  class JML_ATTRIBUTION
+    description "Performs attribution on JML specifications."
+  class JML_ENTER_SYMBOL_TABLE
+    description "Creates symbols for all JML types mentioned in parse trees."
+  class JML_FLOW_ANALYSIS
+    description "Performs dataflow analysis on JML specifications."
+  class JML_RUNTIME_ASSERTION_CHECKER
+    description "Compiles assertions into runtime checks."
+  class JML_NAME_RESOLVER
+    description "Name resolver for names in JML specifications."
+end
+
+cluster_chart OPENJML_PROVERS
+  indexing
+    author: "David Cok, Radu Grigore, Michael Moskal, Clement Hurlin, Joe Kiniry, Cesare Tinelli";
+  class PROOF_STRATEGY
+    description "TBW."
+  class PROVER_EXCEPTION
+    description "TBW."
+  class PROVER_INTERFACE
+    description "TBW."
+  class PROVER_RESULT
+    description "TBW."
+  class SIMPLIFY_PROVER
+    description "TBW."
+  class SMT_TERM
+    description "TBW."
+  class SORT
+    description "TBW."
+  class TERM
+    description "TBW."
+  class TERM_DEFINITION
+    description "TBW."
+  class YICES_PROVER
+    description "TBW."
+end
+
+cluster_chart OPENJML_EXTENDED_STATIC_CHECKER
+  indexing
+    author: "David Cok";
+end
+
+cluster_chart OPENJML_UTILS
+  indexing
+    creation: "Unclear status."
+  class UTILS
+    description "Error reporting interface and related helper methods."
+end
+
+-- ===================================================================
+-- Built-in BON types
+-- ===================================================================
+
+class_chart TUPLE
+end
+
+class_chart BOOLEAN
+end
+
+class_chart VALUE
+end
+
+class_chart INTEGER
+end
+
+class_chart REAL
+end
+
+class_chart STRING
+end
+
+class_chart SEQUENCE
+end
+
+class_chart SET
+end
+
+class_chart BAG
+end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- JAVA_PARSER cluster classes
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class_chart JAVA_DOCUMENTATION_SCANNER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.DocCommentScanner";
+  explanation
+    "A scanner for documentation comments written in the Java programming\
+   \ language."
+  inherit JAVA_SCANNER
+end
+
+class_chart JAVA_KEYWORDS
+  indexing
+    refines_to: "com.sun.tools.javac.parser.Keywords";
+   explanation
+     "Maps from names to tokens and tokens to strings."
+end
+
+class_chart JAVA_PARSER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.Parser";
+  explanation
+    "A parser for the Java programming language.  Maps a token sequence\
+   \ into an abstract syntax tree (AST)."
+end
+
+class_chart JAVA_SCANNER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.Scanner";
+  explanation
+    "A scanner for the Java programming language.  Maps an input stream\
+   \ of characters into a token sequence."
+end
+
+class_chart JAVA_TOKEN
+  indexing
+    refines_to: "com.sun.tools.javac.parser.Token";
+  explanation
+    "An enumeration of all tokens in the Java programming language."
+end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- JAVA_COMPILER cluster classes
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class_chart JAVA_ATTRIBUTION
+  indexing
+    refines_to: "com.sun.tools.javac.comp.Attr";
+end
+
+class_chart JAVA_ENTER_SYMBOL_TABLE
+  indexing
+    refines_to: "com.sun.tools.javac.comp.Enter";
+end
+
+class_chart JAVA_FLOW_ANALYSIS
+  indexing
+    refines_to: "com.sun.tools.javac.comp.Flow";
+end
+
+class_chart JAVA_TREE_TRANSLATOR
+  indexing
+    refines_to: "com.sun.tools.javac.tree.TreeTranslator";
+end
+
+class_chart JAVA_NAME_RESOLVER
+  indexing
+    refines_to: "com.sun.tools.javac.comp.Resolve";
+end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- OPENJML_PARSER cluster classes
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class_chart JML_PARSER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.JmlParser";
+    review: "No comment.";
+  explanation
+    "TBD"
+  inherit JAVA_PARSER
+end
+
+class_chart JML_SCANNER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.JmlScanner";
+    review: "No comment.";
+  explanation
+    "TBD"
+  inherit JAVA_SCANNER
+end
+
+class_chart JML_TREE_PRINTER
+  indexing
+    refines_to: "com.sun.tools.javac.parser.JmlDebugTreePrinter";
+    review: "No comment.";
+  explanation
+    "Prints out the AST for a JML-annotated Java program."
+  inherit JML_TREE_SCANNER
+end
+
+class_chart JML_TREE_SCANNER
+end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- OPENJML_COMPILER cluster classes
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class_chart JML_ATTRIBUTION
+  indexing
+    refines_to: "com.sun.tools.javac.comp.JmlAttr";
+    review: "Contains the main visitor methods for entire AST.";
+  explanation
+    "The main context-dependent analysis phase of the compiler\
+   \ Attribution encompases name resolution, type checking, and\
+   \ constant folding.  This class is an extension of the Attr\
+   \ class; it adds visitors methods so that as the Attr class\
+   \ walks the entire AST, attributing all nodes (that is doing\
+   \ name lookup and type assignment), the JML parts of the source\
+   \ tree are attributed and checked as well."
+  inherit JAVA_ATTRIBUTION
+  query
+    "Placeholder."
+  command
+    "Placeholder."
+  constraint
+    "Placeholder."
+end
+
+class_chart JML_ENTER_SYMBOL_TABLE
+  indexing
+    refines_to: "com.sun.tools.javac.comp.JmlEnter";
+    review: "No comment.";
+  explanation
+    "This class extends Enter, which has the job of creating symbols\
+   \ for all the types mentioned in a set of parse trees.  It creates\
+   \ symbols for all JML types mentioned in specifications.  Also\
+   \ responsible for finding and walking specification files."
+  inherit JAVA_ENTER_SYMBOL_TABLE
+  query
+    "Placeholder."
+  command
+    "Placeholder."
+  constraint
+    "Placeholder."
+end
+
+class_chart JML_FLOW_ANALYSIS
+  indexing
+    refines_to: "com.sun.tools.javac.comp.JmlFlow";
+    review: "No Comment.";
+  explanation
+    "This extends Flow to add flow checks to specifications, particularly\
+   \ for ghosts and models."
+  inherit JAVA_FLOW_ANALYSIS
+  query
+    "Placeholder."
+  command
+    "Placeholder."
+  constraint
+    "Placeholder."
+end
+
+class_chart JML_RUNTIME_ASSERTION_CHECKER
+  indexing
+    refines_to: "com.sun.tools.javac.comp.JmlRac";
+    review: "Missing any documentation.";
+  explanation
+    "Compiles assertions into runtime checks.  Defined in terms of a tree\
+   \ translator that is designed as a visitor."
+  inherit JAVA_TREE_TRANSLATOR
+  query
+    "Placeholder."
+  command
+    "Placeholder."
+  constraint
+    "Placeholder."
+end
+
+class_chart JML_NAME_RESOLVER
+  indexing
+    refines_to: "com.sun.tools.javac.comp.JmlResolve";
+    review: "Methods to perform lookups are cut-and-pasted from parent class.";
+  explanation
+    "Perform name resolution for JML names."
+  inherit JAVA_NAME_RESOLVER
+  query
+    "Placeholder."
+  command
+    "Placeholder."
+  constraint
+    "Placeholder."
+end
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- OPENJML_UTILS cluster classes
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class_chart UTILS
+end
+
+class_chart PROOF_STRATEGY
+end
+
+class_chart PROVER_EXCEPTION
+end
+
+class_chart PROVER_INTERFACE
+end
+
+class_chart PROVER_RESULT
+end
+
+class_chart SIMPLIFY_PROVER
+end
+
+class_chart SMT_TERM
+end
+
+class_chart SORT
+end
+
+class_chart TERM
+end
+
+class_chart TERM_DEFINITION
+end
+
+class_chart YICES_PROVER
+end

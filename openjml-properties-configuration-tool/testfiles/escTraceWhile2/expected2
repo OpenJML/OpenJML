@@ -1,0 +1,69 @@
+Proving methods in trace
+Starting proof of trace.mwhile2() with prover yices2
+
+TRACE of trace.mwhile2()
+
+testfiles\escTraceLoops\trace.java:107:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:108:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:109:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:110:  	//@ loop_invariant j == 2 * i && 0 <= i && i <= k;
+			VALUE: j	 === 0
+			VALUE: 2	 === 2
+			VALUE: i	 === 0
+			VALUE: 2 * i	 === 0
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == 2 * i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:111:  	Begin loop check
+testfiles\escTraceLoops\trace.java:110:  	//@ loop_invariant j == 2 * i && 0 <= i && i <= k;
+			VALUE: j	 === 0
+			VALUE: 2	 === 2
+			VALUE: i	 === 0
+			VALUE: 2 * i	 === 0
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == 2 * i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:111:  	Loop test
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: (i < k)	 === true
+testfiles\escTraceLoops\trace.java:111:  	Begin loop body
+testfiles\escTraceLoops\trace.java:112:  	j += 3
+			VALUE: 3	 === 3
+			VALUE: j += 3	 === 3
+testfiles\escTraceLoops\trace.java:113:  	++i
+			VALUE: i	 === 1
+			VALUE: ++i	 === 1
+testfiles\escTraceLoops\trace.java:110:  	//@ loop_invariant j == 2 * i && 0 <= i && i <= k;
+			VALUE: j	 === 3
+			VALUE: 2	 === 2
+			VALUE: i	 === 1
+			VALUE: 2 * i	 === 2
+			VALUE: j == 2 * i	 === false
+			VALUE: j == 2 * i && 0 <= i	 === false
+			VALUE: j == 2 * i && 0 <= i && i <= k	 === false
+testfiles\escTraceLoops\trace.java:110: warning: The prover cannot establish an assertion (LoopInvariant) in method mwhile2
+        //@ loop_invariant j == 2*i && 0 <= i && i <= k;
+            ^
+Completed proof of trace.mwhile2() with prover yices2 - with warnings
+Completed proving methods in trace
+1 warning

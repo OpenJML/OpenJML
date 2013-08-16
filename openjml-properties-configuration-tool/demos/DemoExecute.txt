@@ -1,0 +1,4 @@
+DemoExecute.java:9: error: ';' expected
+            String[] args = new String[]{"-check","src/demo/Err.java"}
+                                                                      ^
+1 error

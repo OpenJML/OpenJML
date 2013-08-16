@@ -1,0 +1,59 @@
+#! /bin/bash 
+
+## This file checks that the demos operate as expected
+## It uses the most recent build or openjml*.jar in the parent directory
+
+## Execute any local setup
+if [[ -n "${LOCAL_SETUP}" ]]; then
+    echo Executing local setup ${LOCAL_SETUP}
+	source ${LOCAL_SETUP}
+fi
+
+NAME=`ls -t ../openjml*.gz | head -1`
+gunzip -c $NAME > temp.tar
+tar xf temp.tar openjml.jar
+rm temp.tar
+
+Z=:
+if [[ "$COMSPEC" != "" ]] ; then
+Z=';'
+fi
+
+VER=`echo $NAME | sed -e 'sx../openjml-xx' -e 'sx.tar.gzxx'`
+echo OpenJML-$VER > DemoVersion.txt
+
+export CLASSPATH=".${Z}openjml.jar"
+export CLASSPATH=".;../../OpenJML/bin;../../OpenJDK/bin;../../OpenJML/bin-runtime;../../JMLAnnotations/bin;../../Specs/java7"
+
+if [ -z "$1" ] ; then
+  TODO=`echo Demo*.java`
+else
+  TODO="$@"
+fi
+
+for f in $TODO ; do
+n=`echo $f | sed -e s/.java//`
+echo Checking $n
+CM=`head -1 $f | sed -e 'sx// xx'`
+if [ "$CM" != "$f" ] ; then
+  echo "COMMENT IS INCORRECT IN $f : $CM"
+fi
+javac $f > $n.actual 2>&1
+RET=$?
+if [ "$RET" == "0" ] ; then
+  java -Dopenjml.eclipseSpecsProjectLocation=../../Specs $n >> $n.actual
+  RET=$?
+  if [ "$RET" != "0" ] ; then
+    echo ReturnCode $RET
+  fi
+else
+  echo "COMPILATION FAILED"
+fi
+
+if [ -e $n.txt ] ; then
+    ( diff -b $n.actual $n.txt && rm $n.actual && echo SUCCESS ) || echo FAILED
+else
+    echo NO COMPARISON FILE $n.txt
+    cat $n.actual
+fi
+done

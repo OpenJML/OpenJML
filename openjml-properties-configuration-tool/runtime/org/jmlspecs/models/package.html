@@ -1,0 +1,347 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!-- $Id: package.html,v 1.20 2005/07/07 21:03:09 leavens Exp $ -->
+<title>JML Modeling Types</title>
+</head>
+<body bgcolor="white">
+
+<p>
+This package is a collection of types with immutable objects; it also
+enumerators (which have mutable objects) for the types of the
+immutable collections 
+in the package.  An object is <em>immutable</em> if it has no
+time-varying state.  The methods defined for objects of such types
+thus return other objects instead of making changes in place, as would
+occur for a mutable object.</p>
+
+<p>
+The types of the immutable objects in this package are all
+<em>pure</em>, meaning that none of their specified methods have any
+user-visible side-effects (although a few inherited from
+{@link java.lang.Object} do have side effects).  Their pure methods,
+are designed for use in JML specifications.
+When using such methods you have to do something with the result
+returned by the method, as in functional programming.
+The original object's state is never changed by a pure method.
+</p>
+
+<p>
+For example, to insert an element, <em>e</em>, into a set, <em>s</em>,
+one might execute <em>s</em><kbd>.insert(</kbd><em>e</em><kbd>)</kbd>,
+but this does not change the object <em>s</em> in any way;
+instead, it returns a set that contains all the old elements of
+<em>s</em> as well as <em>e</em>.  At first you shouldn't
+worry about the time and space used to do make such a set --
+remember that specifications are not mainly designed to be executed.
+If you're worried about efficiency, you aren't using the right frame
+of mind.
+(However, there are legitimate reasons to worry about the efficiency
+of executing specifications for testing and debugging purposes.)
+
+</p>
+
+<p>
+The enumerator types (such as 
+<kbd><a href="JMLObjectSetEnumerator.html">JMLObjectSetEnumerator</a></kbd>)
+are mutable objects and some of their methods are not pure.
+These impure methods can't be used in specifications in JML.
+
+<h2>Overview</h2>
+
+<p>
+There are several kinds of types in this package.  These include
+various kinds of collections, reflections of types in java.lang that
+are useful as elements of these collections, and other types useful in
+various styles of specification.  These are described below.
+</p>
+
+<h3>Collections</h3>
+
+<p>
+Perhaps the most useful model types are the various kinds of
+collections.  All of the collections implement the interface
+<kbd><a href="JMLCollection.html">JMLCollection</a></kbd>.
+This interface is different from {@link java.util.Collection},
+because that interface assumes collections are mutable objects.
+These can be divided into to three broad classes: the ``object'',
+``value'', and ``equals'' collections.</P>
+
+<h4>Object collections</h4>
+
+<p>
+The <em>object</em> collections contain object references.  These include
+<kbd><a href="JMLObjectSet.html">JMLObjectSet</a></kbd>, 
+<kbd><a href="JMLObjectSequence.html">JMLObjectSequence</a></kbd>,
+<kbd><a href="JMLObjectBag.html">JMLObjectBag</a></kbd>, 
+and so on. All of these
+treat their elements as object references (addresses) and don't care
+about the values of these objects. For
+example, objects of type
+<kbd><a href="JMLObjectSet.html">JMLObjectSet</a></kbd> are sets of object
+references. When an object is inserted into such a set, it is not
+cloned.  The equality test used by the has method uses Java's <kbd>==</kbd>
+operator to compare addresses of these objects.
+</p>
+
+<h4>Value collections</h4>
+
+<p>
+In contrast, the <em>value</em> collections,
+such as <kbd><a href="JMLValueSet.html">JMLValueSet</a></kbd>,
+<kbd><a href="JMLValueSequence.html">JMLValueSequence</a></kbd>,
+and <kbd><a href="JMLValueBag.html">JMLValueBag</a></kbd>,
+contain object values.  The objects
+references stored in such a collection are merely representatives of
+the corresponding equivalence classes (of all objects with the same
+value). For
+example, objects of type
+<kbd><a href="JMLValueSet.html">JMLValueSet</a></kbd>
+are sets of values.
+When an object is inserted into such a set, it is
+cloned, so that later changes to the object do not affect its value.
+The equality test used by the has method uses the <kbd>.equals</kbd> method of
+the object's class.
+</p>
+
+<p>
+To support cloning, all of the value collection types contain elements
+that implement the <kbd><a href="JMLType.html">JMLType</a></kbd> interface.
+The requirement that the elements of a value collection implement this
+interface is an unfortunate limitation of this scheme, which is necessitated by
+Java's type system.
+</p>
+
+<h4>Equals Collections</h4>
+
+<p>
+The ``equals'' collections are hybrids of the object and value
+collections.  They are collections of object identities, however, like
+the value collections, the
+operations all use Java's <kbd>equals</kbd> method to compare
+elements.</p>
+
+<p>
+These types are inherently unsafe when the elements are mutable,
+because if the elements are mutated in ways that change their
+equivalence class (i.e., in ways that change the way that they compare
+with respect to the <kbd>equals</kbd> method), then the collection can
+be changed without invoking any of the elements of the collection.  So
+it is best not to use such collections to relate pre- and post-states
+of methods, except when the elements are known not to be mutated.
+</p>
+
+<h4>Relations and Maps</h4>
+
+<p>The relation and map types come in nine (9) kinds.
+These relate either objects or values to either objects or values, and
+the objects may be compared using either <kbd>==</kbd> or the
+<kbd>equals</kbd> method
+For example, <kbd><a href="JMLObjectToValueRelation.html">JMLObjectToValueRelation</a></kbd> relates objects to
+values, using <kbd>==</kbd> to compare the left hand side objects, while
+<kbd><a href="JMLEqualsToValueRelation.html">JMLValueToObjectRelation</a></kbd>
+relates objects to values, but uses the <kbd>equals</kbd> method to
+relate all elements.
+</p>
+
+<h4>Model Sets</h4>
+
+<p>
+The types <kbd><a href="JMLModelObjectSet.html">JMLModelObjectSet</a></kbd> and <kbd><a href="JMLModelValueSet.html">JMLModelValueSet</a></kbd>
+are designed for use in JML's set comprehensions.  They provide
+methods that return, for a given type, the set of all objects (or values)
+that type.  The returned sets can then be filtered
+in a set comprehension.  Note, however, that most of these methods are
+model methods, and will render assertions that use them nonexecutable.
+</p>
+
+<h3>Reflections of java.lang classes</h3>
+
+<p>
+Because of the need for types that implement the <kbd><a href="JMLType.html">JMLType</a></kbd>
+interface, this package also has reflections of various types in the
+<kbd>java.lang</kbd> package that implement the <kbd><a href="JMLType.html">JMLType</a></kbd>
+interface.  For example, <kbd><a href="JMLShort.html">JMLShort</a></kbd> is something like
+{@link java.lang.Short}, but implements <kbd><a href="JMLType.html">JMLType</a></kbd>.
+Other such types are <kbd><a href="JMLInteger.html">JMLInteger</a></kbd>, <kbd><a href="JMLLong.html">JMLLong</a></kbd>,
+<kbd><a href="JMLFloat.html">JMLFloat</a></kbd>, <kbd><a href="JMLDouble.html">JMLDouble</a></kbd>, <kbd><a href="JMLByte.html">JMLByte</a></kbd>,
+<kbd><a href="JMLChar.html">JMLChar</a></kbd>, and <kbd><a href="JMLString.html">JMLString</a></kbd>.
+</p>
+
+<p>
+The numeric types that reflect types in <kbd>java.lang</kbd>, such as
+<kbd><a href="JMLShort.html">JMLShort</a></kbd>, have one other advantage over their counterparts
+in <kbd>java.lang</kbd>.  This advantage is that they also have
+methods to do arithmetic.  For example, one can add and subtract
+objects of types <kbd><a href="JMLShort.html">JMLShort</a></kbd>.
+
+<h3>Types that support various specification styles</h3>
+
+<p>
+The type <kbd><a href="JMLInfiniteInteger.html">JMLInfiniteInteger</a></kbd> is useful for specification
+&agrave;
+la Eric Hehner of time and space properties.
+Also useful for such purposes is <kbd><a href="JMLResources.html">JMLResources</a></kbd>.
+</p>
+
+<p>
+See also the package <kbd>org.jmlspecs.models.resolve</kbd> for types
+that support the RESOLVE specification style.
+</p>
+
+<h3>Convenience or Abbreviation Types</h3>
+
+<p>
+Several types are provided as conveniences and provide ways to shorten
+specifications of common idioms.</p>
+
+The type
+<kbd><a href="JMLArrayOps.html">JMLArrayOps</a></kbd>
+provides a operations to search for and count elements in arrays,
+using either <kbd>==</kbd> or the <kbd>equals</kbd> method for
+comparisons to the elements.</p>
+
+The type
+<kbd><a href="JMLNullSafe.html">JMLNullSafe</a></kbd>
+provides a static method that can perform <kbd>equals</kbd> on two
+objects that may be null. It also has methods that
+perform a <kbd>toString</kbd> or <kbd>hashCode</kbd> call
+on a possibly null object, returning a sensible result.
+</p>
+
+<h2>Specification Style</h2>
+
+<p>
+These types are intended to be bullet-proof; i.e., they are not
+designed for trusted clients.  The reason is to help ensure the
+semantics of normal logic in assertion evaluation.  That is, when a
+method's precondition is not met, an exception must
+be thrown, so that tools have a chance to catch the exception.
+Often this exception is actually specified behavior of the type,
+although for certain kinds of non null arguments and for some
+finiteness issues it suffices to make sure that the code will signal
+an exception, as opposed to specifying it.
+</p>
+
+<p>
+The types are also intended to be used by both JML and ESC/Java.
+The reason for this is that we have used ESC/Java to help debug the
+specifications and implementations, and also that clients of these
+types might like to use ESC/Java.  To this end the specifications
+contain some amount of redundancy (over and above the use of
+implications and examples).
+One of the ways that this shows up is in the use of the JML-only
+annotation markers of the form
+</kbd>//+@</kbd>
+and <kbd>/*+@ ... @+*/</kbd>.
+We try to give a complete specification in the these annotations.
+The annotations marked by
+</kbd>//@</kbd>
+and <kbd>/*@ ... @*/</kbd>
+are intended mostly for ESC/Java. Some of these are quite redundant
+with the JML specifications, but not from the point of view of
+ESC/Java.
+We have tried to use <kbd>non_null</kbd> annotations in many cases
+to avoid some of this redundancy (although technically that still
+introduces some redundancy).
+We also use ESC/Java's <kbd>nowarn</kbd> pragmas in a few places, so
+that the code checks without any warnings.
+</p>
+
+<h2>Coding and the Makefiles</h2>
+
+<p>
+The main problem of coding in this package is how to avoid duplication
+between similar object, value, and equals types, for example between
+<kbd><a href="JMLObjectSet.html">JMLObjectSet</a></kbd>,
+<kbd><a href="JMLValueSet.html">JMLValueSet</a></kbd>, and
+<kbd><a href="JMLEqualsSet.html">JMLEqualsSet</a></kbd>.
+The way this is done is by coding these types once, and using a
+<kbd>sed</kbd> script to make the object, value, and equals versions of a type.
+For example, 
+<kbd><a href="JMLObjectSet.html">JMLObjectSet</a></kbd>,
+<kbd><a href="JMLValueSet.html">JMLValueSet</a></kbd>, and
+<kbd><a href="JMLEqualsSet.html">JMLEqualsSet</a></kbd>
+are generated by the file <kbd>JMLSet.java-generic</kbd> using the
+script <kbd>JMLSet.sh</kbd>.
+This script also generates the related enumeration types:
+<kbd><a href="JMLObjectSetEnumerator.html">JMLObjectSetEnumerator</a></kbd>,
+<kbd><a href="JMLValueSetEnumerator.html">JMLValueSetEnumerator</a></kbd>, and
+<kbd><a href="JMLEqualsSetEnumerator.html">JMLEqualsSetEnumerator</a></kbd>.
+Similarly, <kbd><a href="JMLObjectBag.html">JMLObjectBag</a></kbd>
+<kbd><a href="JMLValueBag.html">JMLValueBag</a></kbd>, and
+<kbd><a href="JMLEqualsBag.html">JMLEqualsBag</a></kbd>
+are generated by the file <kbd>JMLBag.java-generic</kbd> using the
+script <kbd>JMLBag.sh</kbd>.
+This script also generates the related bag enumeration types.
+Fragments of code that must be different in each type are defined
+using one of the strings in the <kbd>sed</kbd> script.
+Thus, it is important, when making changes to these types, to change
+the <kbd>.java-generic</kbd> file, instead of the generated
+<kbd>.java</kbd> files.  The <kbd>Makefile</kbd> is designed to make the
+generated files read-only to prevent editing the wrong files.
+</p>
+
+<p>
+Following the <kbd>Makefile</kbd>, use <kbd>make generate</kbd> to generate
+the files using the scripts.</p>
+
+<p>
+To make sure that the pure types are pure, we only use final fields
+in the pure types.  However, because the pure types have immutable
+objects, we can have <kbd>clone</kbd> return the receiver unchanged
+(since the aliasing can't be detected).  Similarly, we play lots of
+other tricks with sharing to reduce space usage.  Although time and
+space don't matter in some abstract sense, we make some concessions to
+efficiency, for the sake of the runtime assertion checker.  However,
+when push comes to shove, the most important aspect of these types is
+their clarity and correctness.
+</p>
+
+<p>
+In the test cases (the <kbd>_JML_TestData.java</kbd> files), we take
+advantage of the fact that the types are pure to speed up the
+JUnit-based testing.  We also sometimes take advantage of the fact
+that other test data, particularly of type Object and JMLType are
+either not mutated by the tests or are actually immutable objects.  (Note
+that <kbd>new Object()</kbd> produces a new immutable object!)
+Typically, the tests don't call any methods on the objects in the
+collections that would mutate them, so this is okay.
+</p>
+
+<p>
+The source code for this package uses the GNU Lesser General Public
+License, since it is part of the JML runtime libraries.
+</p>
+
+<h2>Acknowledgments</h2>
+
+<p>
+These types were designed by Gary T. Leavens, Clyde Ruby, and Albert
+L. Baker, originally.  Others contributing specifications are Curtis
+Clifton and Brandon Shilling.  They have been refined under the
+supervision of Gary T. Leavens, with help from many JML users,
+including Rustan Leino, David Cok, Erik Poll, Jan Dockx, Roy Tan,
+and Marko van Doreen.  David Cok in particular has made several
+improvements and deserves special thanks for his work; thanks David!
+The specification of the enumerators builds on work done for ESC/Java
+by Rustan Leino's group at HP SRC (which was Compaq SRC at the time).
+</p>
+
+<p>
+At Iowa State, the development of JML was partially funded by
+a grant from <A HREF="http://www.rockwell.com/">
+Rockwell International Corporation</A>
+and by
+the (US)
+<A HREF="http://www.nsf.gov">National Science Foundation</A>
+under grants CCR-9503168, CCR-9803843, CCR-0097907, and CCR-0113181.
+</p>
+
+<!-- Put @see and @since tags down here. -->
+
+@see org.jmlspecs.lang.JMLDataGroup
+
+</body>
+</html>

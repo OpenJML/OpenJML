@@ -1,0 +1,80 @@
+Proving methods in openjml.demo.ChangeCase
+Starting proof of openjml.demo.ChangeCase.changeCase(char) with prover !!!!
+
+TRACE of openjml.demo.ChangeCase.changeCase(char)
+
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:5:  	requires c >= 'A' && c <= 'Z'; 
+			VALUE: c	 === 'z' (122)
+			VALUE: 'A'	 === 'A' (65)
+			VALUE: c >= 'A'	 === true
+			VALUE: c	 === 'z' (122)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === false
+			VALUE: c >= 'A' && c <= 'Z'	 === false
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:8:  	requires c >= 'a' && c <= 'z'; 
+			VALUE: c	 === 'z' (122)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: c >= 'a'	 === true
+			VALUE: c	 === 'z' (122)
+			VALUE: 'z'	 === 'z' (122)
+			VALUE: c <= 'z'	 === true
+			VALUE: c >= 'a' && c <= 'z'	 === true
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:11:  	requires !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z'); 
+			VALUE: c	 === 'z' (122)
+			VALUE: 'A'	 === 'A' (65)
+			VALUE: c >= 'A'	 === true
+			VALUE: c	 === 'z' (122)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === false
+			VALUE: c >= 'A' && c <= 'Z'	 === false
+			VALUE: (c >= 'A' && c <= 'Z')	 === false
+			VALUE: !(c >= 'A' && c <= 'Z')	 === true
+			VALUE: c	 === 'z' (122)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: c >= 'a'	 === true
+			VALUE: c	 === 'z' (122)
+			VALUE: 'z'	 === 'z' (122)
+			VALUE: c <= 'z'	 === true
+			VALUE: c >= 'a' && c <= 'z'	 === true
+			VALUE: (c >= 'a' && c <= 'z')	 === true
+			VALUE: !(c >= 'a' && c <= 'z')	 === false
+			VALUE: !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')	 === false
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:14:  	char result = ' '
+			VALUE: ' '	 === ' ' (32)
+			VALUE: result	 === ' ' (32)
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:15:  	if (c >= 'Z') ...
+			VALUE: c	 === 'z' (122)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c >= 'Z'	 === true
+			VALUE: (c >= 'Z')	 === true
+				Condition = true
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:16:  	result = c
+			VALUE: c	 === 'z' (122)
+			VALUE: result = c	 === 'z' (122)
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26:  	return result;
+			VALUE: result	 === 'z' (122)
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:  	ensures \result >= 'a' && \result <= 'z'; 
+			VALUE: \result	 === 'z' (122)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: \result >= 'a'	 === true
+			VALUE: \result	 === 'z' (122)
+			VALUE: 'z'	 === 'z' (122)
+			VALUE: \result <= 'z'	 === true
+			VALUE: \result >= 'a' && \result <= 'z'	 === true
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9:  	ensures \result >= 'A' && \result <= 'Z'; 
+			VALUE: \result	 === 'z' (122)
+			VALUE: 'A'	 === 'A' (65)
+			VALUE: \result >= 'A'	 === true
+			VALUE: \result	 === 'z' (122)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: \result <= 'Z'	 === false
+			VALUE: \result >= 'A' && \result <= 'Z'	 === false
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: warning: The prover cannot establish an assertion (Postcondition) in method changeCase
+		return result;
+		^
+..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9: warning: Associated declaration: ..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
+	//@   ensures \result >= 'A' && \result <= 'Z';
+	      ^
+Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover !!!! - with warnings
+Completed proving methods in openjml.demo.ChangeCase
+2 warnings
