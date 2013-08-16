@@ -6,48 +6,54 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.utils.Prover;
+import org.jmlspecs.openjml.utils.ProverConfigurationException;
+import org.jmlspecs.openjml.utils.ProverValidator;
+import org.jmlspecs.openjml.utils.ui.ConfigureSMTProversDialog;
+import org.jmlspecs.openjml.utils.ui.ConfigureSMTProversDialog.SMTPersistenceSetting;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
 /** This class holds a number of utility methods.  They could often be
  * static, but we make this a registerable tool, so that it can be 
@@ -428,40 +434,47 @@ public class Utils {
 
         // On the system classpath
         {
-            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
-            if (url2 != null) {
-                String s = url2.getFile();
+            File f = getClassPathPropertiesFile();
+            
+            if (f != null) {
+                
                 try {
-                    boolean found = readProps(properties,s);
-                    if (found && verbose) 
-                        Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+                    readProps(properties,f);
+                    
+                    if (verbose) 
+                        Log.instance(context).noticeWriter.println("Properties read from system classpath: " + f.getAbsolutePath());
+                    
                 } catch (java.io.IOException e) {
-                    Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                    Log.instance(context).noticeWriter.println("Failed to read property file " + f.getAbsolutePath()); // FIXME - review
                 }
             }
         }
 
         // In the user's home directory
         {
-            String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
+            File f = getUserPropertiesFile();
             try {
-                boolean found = readProps(properties,s);
-                if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+                readProps(properties,f);
+                
+                if (verbose) 
+                    Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + f.getAbsolutePath());
+                
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                Log.instance(context).noticeWriter.println("Failed to read property file " + f.getAbsolutePath()); // FIXME - review
             }
         }
 
         // In the working directory
         {
-            String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
+            File f = getProjectPropertiesFile(); 
             try {
-                boolean found = readProps(properties,s);
-                if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+                readProps(properties,f);
+                
+                if (verbose) 
+                    Log.instance(context).noticeWriter.println("Properties read from working directory: " + f.getAbsolutePath());
+                
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                Log.instance(context).noticeWriter.println("Failed to read property file " + f.getAbsolutePath()); // FIXME - review
             }
         }
 
@@ -481,20 +494,183 @@ public class Utils {
         return properties;
     }
 
-    /** Reads properties from the given file into the given Properties object.
-     * @param properties the object to add properties to
-     * @param filename the file to read properties from
-     * @return true if the file was found and read successfully
+    /**
+     * Reads the properties into the given properties object. 
+     * 
+     * @param properties The properties to read into
+     * @param f The file to read from
+     * @throws java.io.IOException Thrown if the file can't be found or can't be read.
      */
-    public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
-        File f = new File(filename);
-        // Options may not be set yet
-        if (f.exists()) {
-            properties.load(new FileInputStream(f));
-            return true;
+    public static void readProps(Properties properties, File f) throws java.io.IOException {
+        properties.load(new FileInputStream(f));
+    }
+
+    /**
+     * Get the openjml.properties file on the classpath.
+     *  
+     * @return The file, otherwise null if it can't be found.
+     */
+    public static File getClassPathPropertiesFile()
+    {
+        URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+        if (url2 != null) {
+            return new File(url2.getFile());
+        }
+        
+        return null;
+    }
+
+    /**
+     * Gets the openjml.properties file in the user's home directory. 
+     * 
+     * @return A new File object pointing to the openjml.properties file in the user's home directory.
+     */
+    public static File getUserPropertiesFile()
+    {
+        return new File(System.getProperty("user.home") + "/" + Strings.propertiesFileName);
+    }
+   
+    /**
+     * Gets the openjml.properties file in the current working directory. 
+     * 
+     * @return A new File object pointing to the openjml.properties file in the current working directory.
+     */
+    public static File getProjectPropertiesFile()
+    {
+        return new File(System.getProperty("user.dir") + "/" + Strings.propertiesFileName);
+    }
+    
+    /**
+     * Determines if the graphical configuration utility in {@link #configureProvers()} should run. It determines this by requiring that the -reconfigure option is present. 
+     * 
+     * @param args The list of arguments as passed in from the command line. Note that this method should generally execute before the compiler is configured.  
+     * @return true if the RECONFIGURE option is present on the command line.
+     */
+    public static boolean shouldReconfigure(String args[]){
+
+        for(String arg : args){
+            if(JmlOption.RECONFIGURE.optionName().equalsIgnoreCase(arg)){
+                return true;
+            }
         }
         return false;
     }
+    
+    public static void validateStaticCheckingProps(Options options) throws ProverConfigurationException {
+                        
+        //
+        // Validate the settings, most notably the provers.  
+        //
+        String proverName = options.get(Strings.defaultProverProperty);
+        
+        if(proverName==null){
+            throw new ProverConfigurationException("Default prover not specified.");
+        }
+        
+        String proverExecutable = options.get(Strings.proverPropertyPrefix + Prover.getProver(proverName, null).getPropertiesName());
+        
+        if(proverExecutable==null){
+            throw new ProverConfigurationException("Executable for prover "+ proverName +  " not specified.");
+        }
+        
+        Prover p = Prover.getProver(proverName, proverExecutable);
+        
+        if(ProverValidator.proverValid(p)==false){
+            throw new ProverConfigurationException("Executable for prover "+ proverName +  " did not respond with the proper version string.");
+        }
+    }
+
+    /**
+     * Takes the contents of the given Properties object and merges the settings pertaining to static checking into the given Options object.
+     * 
+     * @param properties The Properties object to copy from
+     * @param options The Options object to copy to
+     */
+    public static void mergeStaticCheckingProperties(Properties properties, Options options){
+        
+        options.put(Strings.defaultProverProperty, properties.getProperty(Strings.defaultProverProperty));
+        
+        for(Object key : properties.keySet()){
+            
+            if(key instanceof String){
+                
+                String k = (String)key;
+                
+                if(k.startsWith(Strings.proverPropertyPrefix)){
+                    options.put(k, properties.getProperty(k));
+                }
+            }
+        }
+    }
+
+    /**
+     * Display a graphical configuration dialog to the user.
+     * 
+     * @return A File that points to the location of the newly configured settings.
+     */
+    public static File configureProvers(){
+        
+        try {
+            ConfigureSMTProversDialog dialog = new ConfigureSMTProversDialog();
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.setLocationRelativeTo(null);
+            dialog.setVisible(true);
+            
+            Prover p = dialog.getProver();
+
+            //
+            // Write out these settings to an options file
+            //
+            File f = File.createTempFile("openjml", "properties");
+            FileOutputStream os = new FileOutputStream(f);
+            
+            Properties properties = new Properties();
+            
+            //
+            // Two kinds of persistence may be requested, USER, and PROJECT.
+            // 
+            File existingFile = (dialog.getPersistenceType()==SMTPersistenceSetting.USER) ? getUserPropertiesFile() : getProjectPropertiesFile();
+            
+            //
+            // If the selected destination file exists, merge the exisitng settings
+            //
+            if(existingFile.exists()){
+                FileInputStream fis = new FileInputStream(existingFile);
+                properties.load(fis);
+                fis.close();
+            }
+            
+            
+            //
+            // This is the minimal set of settings required for the static checker.
+            //
+            properties.setProperty(Strings.defaultProverProperty,p.getPropertiesName());
+            properties.setProperty(Strings.proverPropertyPrefix + p.getPropertiesName(), p.getExecutable());
+            
+            properties.store(os, "This file was automatially generated by OpenJML.");
+            
+            os.close();
+            
+            //
+            // Write it out to an options file
+            //
+            f.renameTo(existingFile);
+            
+            return existingFile;
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Encountered an internal error while configuring provers. Message: " + e.getMessage(),
+                    "Configuration Error",
+                    JOptionPane.ERROR_MESSAGE);
+            
+            System.exit(1);
+
+        }
+        
+        return null;
+    }
+
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct) {
