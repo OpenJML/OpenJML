@@ -651,7 +651,8 @@ public class JmlCompiler extends JavaCompiler {
 //    }
     
     public void reattribute(Env<AttrContext> env) {
-        compileStates.put(env,null);
+        // FIXME: Error from HEAD introduced in revsion 2963
+        //compileStates.put(env,null);
         (new ClearAttributes()).scan(env.tree);
         attribute(env);
     }
