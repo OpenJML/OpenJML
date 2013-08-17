@@ -31,7 +31,7 @@ public class Decimal extends Object{
     /**
      *	Nombre � virgule trop grand
      */
-    public static final short DECIMAL_OVERFLOW   = (short)0x9F15;
+    public static final short DECIMAL_OVERFLOW   = -(short)(0x60EB); //(0x9F15);
     public static final short MAX_DECIMAL_NUMBER = (short)32767;
     
     /** save stack maximum length */

@@ -177,6 +177,11 @@ public class Strings {
      */
     final static public String exceptionVarString = "_JML___exception"; //$NON-NLS-1$
     
+    /** A String used as a local Java variable for a thrown exception, hopefully obfuscated
+     * enough that no one will ever actually use a Java variable with this name.
+     */
+    final static public String exceptionLocalVarString = "_JML___exception_L_"; //$NON-NLS-1$
+    
     /** A String used as the name of the exception variable when catching 
      * runtime exceptions that may happen while evaluating JML expressions
      * during RAC.

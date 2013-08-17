@@ -122,6 +122,44 @@ public class escnewBoxing extends EscBase {
     }
     
     @Test
+    public void testSwitchShort() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                
+                +"  public void m(short i) {;\n"
+                +"  Short k = i ; int m = 0;\n"
+                +"  switch (k) {\n"
+                
+                +"    case 1: m = 1; break;\n"
+                +"    case 2: m = i; break;\n"
+                +"    default: m = i; break;\n"
+
+                +"  } //@ assert m == i; \n"
+
+                +"}}"
+                );
+    }
+    
+    @Test
+    public void testSwitchByte() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                
+                +"  public void m(byte i) {;\n"
+                +"  Byte k = i ; int m = 0;\n"
+                +"  switch (k) {\n"
+                
+                +"    case 1: m = 1; break;\n"
+                +"    case 2: m = i; break;\n"
+                +"    default: m = i; break;\n"
+
+                +"  } //@ assert m == i; \n"
+
+                +"}}"
+                );
+    }
+    
+    @Test
     public void testSwitchNull() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"

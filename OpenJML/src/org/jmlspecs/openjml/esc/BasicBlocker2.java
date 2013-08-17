@@ -420,7 +420,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
-        if (incarnationPosition == 0 || own == null) {
+        if (incarnationPosition <= 0 || own == null) {
             Name n = sym.getQualifiedName();
             if (sym.pos >= 0 && !n.toString().equals(Strings.thisName)) n = names.fromString(n.toString() + ("_" + sym.pos));
             if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
@@ -1398,10 +1398,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
+        if (that.sym.toString().equals("length")) Utils.print("");
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
         Name n;
         if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
-            n = labelmaps.get(null).getName(vsym);
+            n = labelmaps.get(null).getCurrentName(vsym);
         } else {
             n = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
         }

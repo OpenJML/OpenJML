@@ -139,12 +139,14 @@ public class JmlTreeUtils {
     final public Symbol intplusSymbol;
     final public Symbol inteqSymbol;
     final public Symbol intneqSymbol;
+    final public Symbol intgtSymbol;
     final public Symbol intltSymbol;
     final public Symbol intleSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
     final public JCLiteral one;
+    final public JCLiteral longone;
     final public JCLiteral nullLit;
     final public JCLiteral maxIntLit;
 
@@ -192,12 +194,14 @@ public class JmlTreeUtils {
         intplusSymbol = findOpSymbol(JCTree.PLUS,syms.intType);
         inteqSymbol = findOpSymbol(JCTree.EQ,syms.intType);
         intneqSymbol = findOpSymbol(JCTree.NE,syms.intType);
+        intgtSymbol = findOpSymbol(JCTree.GT,syms.intType);
         intltSymbol = findOpSymbol(JCTree.LT,syms.intType);
         intleSymbol = findOpSymbol(JCTree.LE,syms.intType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
         one = makeLit(0,syms.intType,1);
+        longone = makeLit(0,syms.longType,Long.valueOf(1L));
         nullLit = makeLit(0,syms.botType, null);
         maxIntLit = makeLit(0,syms.intType,Integer.MAX_VALUE);
 
@@ -591,7 +595,7 @@ public class JmlTreeUtils {
     /** Makes an attributed AST for a short-circuit boolean AND expression */
     public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
         if (lhs == null) {
-            System.out.println("BAD ANBD");
+            System.out.println("BAD AND");
         }
         return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
     }
@@ -928,9 +932,9 @@ public class JmlTreeUtils {
         return typeof;
     }
     
+    /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
-        JCExpression nn = makeEqObject(p,id,nullLit);
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
@@ -943,9 +947,11 @@ public class JmlTreeUtils {
                 expr = makeAnd(p,tt,expr);
             }
         }
-        return makeOr(p,nn,expr);
+        return expr;
     }
     
+    // FIXME - is the initial id == null check redundant?
+    /** Returns the AST for id == null || ( \typeof(id) <: \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);

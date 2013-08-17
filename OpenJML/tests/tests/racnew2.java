@@ -444,6 +444,167 @@ public class racnew2 extends RacBase {
         );        
     }
 
+    /** Tests switch statement */
+    @Test public void testSwitchShort() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(short i) { \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchShort2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(short s) { Short i = new Short(s); \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchByte() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(byte i) { \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchByte2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(byte s) { Byte i = new Byte(s); \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchInteger2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m(0); m(1); m(2); m(3); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int s) { Integer i = new Integer(s); \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchInteger2Null() {
+        helpTCX("tt.TestJava","package tt; /*@ nullable_by_default*/public class TestJava { public static void main(String[] args) { \n" +
+                "  try { m(0); } catch (Exception e) { System.out.println(\"EXCEPTION THROWN\"); } \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(int s) { Integer i = null; \n" +
+                "  switch (i) { \n" +
+                "  case 0: //@ assert i == 0; \n break; \n" +
+                "  case 1: //@ assert i == 0; \n break; \n" +
+                "  case 2: //@ assert i == 2; \n break; \n" +
+                "  default: //@ assert i == 0; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:6: JML Attempt to unbox a null object"
+                ,"EXCEPTION THROWN"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchChar() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m('a'); m('b'); m('c'); m('d'); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(char i) { \n" +
+                "  switch (i) { \n" +
+                "  case 'a': //@ assert i == 'a'; \n break; \n" +
+                "  case 'b': //@ assert i == 'a'; \n break; \n" +
+                "  case 'c': //@ assert i == 'c'; \n break; \n" +
+                "  default: //@ assert i == 'a'; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+    /** Tests switch statement */
+    @Test public void testSwitchChar2() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                "  m('a'); m('b'); m('c'); m('d'); \n" +
+                "  System.out.println(\"END\"); \n" +
+                "  } \n" + 
+                "  static void m(char s) { Character i = new Character(s);\n" +
+                "  switch (i) { \n" +
+                "  case 'a': //@ assert i == 'a'; \n break; \n" +
+                "  case 'b': //@ assert i == 'a'; \n break; \n" +
+                "  case 'c': //@ assert i == 'c'; \n break; \n" +
+                "  default: //@ assert i == 'a'; \n break; \n" +
+                "  }}\n" +
+                "}"
+                ,"/tt/TestJava.java:9: JML assertion is false"
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"END"
+        );        
+    }
+
+
     /** Tests type test and type cast expressions */
     @Test public void testTypeCast() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +

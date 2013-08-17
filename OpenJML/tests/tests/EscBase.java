@@ -225,13 +225,26 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
     
+    protected class Seq implements Special {
+        public Object[] list;
+        public Seq(Object ... list) {
+            this.list = list;
+        }
+    }
+    
     protected class AnyOrder implements Special {
         public Object[][] lists;
         public AnyOrder(Object[] ... lists) {
             this.lists = lists;
         }
     }
+
+    protected OneOf oneof(Object[] ... lists) { return new OneOf(lists); }
+    protected AnyOrder anyorder(Object[] ... lists) { return new AnyOrder(lists); }
+    protected Optional optional(Object[] ... lists) { return new Optional(lists); }
+    protected Object[] seq(Object ... list) { return list; }
     
+
     protected boolean comparePair(Object[] list, int i, int j) {
         int col = ((Integer)list[i+1]).intValue();
         if (!list[i].toString().equals(noSource(collector.getDiagnostics().get(j)))) {

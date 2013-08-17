@@ -1,4 +1,4 @@
-// Despite the buggy code, this case works
+// Code is buggy
 
 public class UniqueListBug2 {
 
@@ -55,7 +55,7 @@ public class UniqueListBug2 {
 			values[index] = values[index] + 1; 
 		}
 		length -= 1;
-		System.out.println("value: " + value);
+		System.out.println("value: " + value + " " + index + " " + values[index]);
 		return index;
 	}
 	

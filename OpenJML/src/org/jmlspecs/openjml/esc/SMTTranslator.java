@@ -189,7 +189,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort jmlTypeSort;
     final protected ISort intSort;
     final protected ISort boolSort;
-    final protected ISort realSort;
+          protected ISort realSort;
     final protected IExpr.ISymbol distinctSym;
     final protected IExpr.ISymbol nullSym;
     final protected IExpr.ISymbol lengthSym;
@@ -258,7 +258,6 @@ public class SMTTranslator extends JmlTreeScanner {
         F = new org.smtlib.impl.Factory();
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
         intSort = F.createSortExpression(F.symbol("Int")); // From SMT
-        realSort = F.createSortExpression(F.symbol("Real")); // From SMT
         arraySym = F.symbol("Array"); // From SMT Array theory
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         distinctSym = F.symbol("distinct"); // Name determined by SMT Core theory
@@ -274,6 +273,15 @@ public class SMTTranslator extends JmlTreeScanner {
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
         lengthSym = F.symbol(arrayLength);
         
+    }
+    
+    protected void addReal() {
+        if (realSort == null) {
+            realSort = F.createSortExpression(F.symbol("Real")); // From SMT
+            List<ISort> args = Arrays.asList(refSort); // List of one element 
+            ICommand c = new C_declare_fun(F.symbol("realValue"),args, realSort);
+            commands.add(c);
+        }
     }
     
     /** This is called by visit methods, and super.scan calls accept methods;
@@ -373,7 +381,7 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.add(c);
         c = new C_declare_fun(F.symbol("intValue"),args, intSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("boolValue"),args, boolSort);
+        c = new C_declare_fun(F.symbol("booleanValue"),args, boolSort);
         commands.add(c);
         c = new C_declare_fun(F.symbol("javaTypeOf"),args, javaTypeSort);
         commands.add(c);
@@ -787,8 +795,10 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (t.tag == TypeTags.LONG) { 
             return intSort;
         } else if (t.tag == TypeTags.FLOAT) { 
+            addReal();
             return realSort;
         } else if (t.tag == TypeTags.DOUBLE) { 
+            addReal();
             return realSort;
         } else if (t.tag == TypeTags.ARRAY) {
             return refSort;
@@ -968,8 +978,11 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
             result = F.fcn(F.symbol(nonnullelements), newargs);
         } else if (that.meth != null) {
-            // FIXME - what is this?
-            result = F.fcn(F.symbol(that.meth.toString()),newargs);
+            // Built-in methods
+            String n = that.meth.toString();
+            if (n.equals("shortValue") || n.equals("byteValue") || n.equals("charValue") || n.equals("longValue")) n = "intValue";
+            else if (n.equals("floatValue") || n.equals("doubleValue")) n = "realValue";
+            result = F.fcn(F.symbol(n),newargs);
         } else {
             result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
         }
@@ -1100,9 +1113,59 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitTypeCast(JCTypeCast tree) {
-        // For reference types, ignore the cast; we presume any check about the
-        // validity of the cast is already performed.
         result = convertExpr(tree.expr);
+        if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
+            // If this is a cast from primitive type to primitive type, we can ignore it
+            int tagr = tree.type.tag;
+            int tage = tree.expr.type.tag;
+            if (!tree.type.isPrimitive()) {
+                // If this is a cast from reference type to reference type, we can ignore it
+            } else if (tree.expr instanceof JCLiteral) {
+                Object v = ((JCLiteral)tree.expr).getValue();
+                if (tage == tagr) {
+                    // OK
+                } else if ((tage <= TypeTags.LONG) == (tagr <= TypeTags.LONG)) {
+                    // Both integral or both floating point
+                    // OK
+                } else if (tage <= TypeTags.LONG) {
+                    java.math.BigInteger val = ((IExpr.INumeral)result).value();
+                    result = makeRealValue(val.doubleValue());
+                } else if (tage > TypeTags.LONG) {
+                    // FIXME - cast from double to integral
+                }
+            } else {
+                if (tage <= TypeTags.LONG && tagr > TypeTags.LONG) {
+                    // integral to real
+                } else {
+                    
+                }
+            }
+            if (tree.expr instanceof JCLiteral) {
+                
+            } else {
+                result = convertExpr(tree.expr);
+            }
+        } else if (!tree.type.isPrimitive()) {
+            // Cast from primitive to object
+            log.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
+        } else {
+            // unboxing cast from object to primitive
+            int tag = tree.type.tag;
+            switch (tag) {
+                case TypeTags.INT:
+                case TypeTags.LONG:
+                case TypeTags.SHORT:
+                case TypeTags.BYTE:
+                case TypeTags.CHAR:
+                case TypeTags.DOUBLE:
+                case TypeTags.FLOAT:
+                case TypeTags.BOOLEAN:
+                    break;
+                default:
+                    log.error(tree,"jml.internal","Unknown type tag in translating an unboxing cast: " + tag + " " + JmlPretty.write(tree));
+                    
+            }
+        }
     }
 
     @Override
@@ -1213,21 +1276,25 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(c);
             result = sym;
         } else if (tree.typetag == TypeTags.FLOAT || tree.typetag == TypeTags.DOUBLE) {
-            // FIXME - we don't remember the value
-            String id = reals.get(v);
-            if (id == null) {
-                id = "REALLIT"+(++doubleCount);
-                reals.put((Double)v, id);
-            }
-            ISymbol sym = F.symbol(id); 
-            ICommand c = new C_declare_fun(sym,emptyList, 
-                    F.createSortExpression(F.symbol("Real")));
-            commands.add(c);
-            result = sym;
+            result = makeRealValue((Double)v);
         } else {
             notImpl(tree);
             super.visitLiteral(tree);
         }
+    }
+    
+    ISymbol makeRealValue(Double v) {
+        // FIXME - we don't remember the value
+        String id = reals.get(v);
+        if (id == null) {
+            id = "REALLIT"+(++doubleCount);
+            reals.put(v, id);
+        }
+        ISymbol sym = F.symbol(id);
+        addReal();
+        ICommand c = new C_declare_fun(sym,emptyList,realSort);
+        commands.add(c);
+        return sym;
     }
 
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe

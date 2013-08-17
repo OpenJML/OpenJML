@@ -2235,7 +2235,7 @@ public class JmlTree implements IJmlTree {
     /** This class represents JML expression constructs which do not have arguments (syntactically). */
     public static class JmlSingleton extends JmlExpression {
         public JmlToken token;
-        public Symbol symbol;  // Convenience for some node types
+        //public Symbol symbol;  // Convenience for some node types
         public Object info = null;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -2696,7 +2696,7 @@ public class JmlTree implements IJmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
-        public VarSymbol sym; // FIXME - put this in the copy constructors etc. - what is it for?
+        //public VarSymbol sym; // FIXME - put this in the copy constructors etc. - what is it for?
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoop(int pos, JmlToken token, JCTree.JCExpression expression) {

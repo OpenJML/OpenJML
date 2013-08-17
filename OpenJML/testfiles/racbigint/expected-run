@@ -10,7 +10,7 @@ testfiles\racbigint\bigint.java:35: JML Division by zero
 java.lang.ArithmeticException: BigInteger divide by zero
 	at java.math.MutableBigInteger.divide(MutableBigInteger.java:883)
 	at java.math.BigInteger.divide(BigInteger.java:1342)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:559)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:592)
 	at bigint.main(bigint.java:35)
 testfiles\racbigint\bigint.java:40: JML Division by zero
             //@ set prod = prod / 0;
@@ -18,7 +18,7 @@ testfiles\racbigint\bigint.java:40: JML Division by zero
 java.lang.ArithmeticException: BigInteger divide by zero
 	at java.math.MutableBigInteger.divide(MutableBigInteger.java:883)
 	at java.math.BigInteger.divide(BigInteger.java:1342)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:559)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:592)
 	at bigint.main(bigint.java:40)
 LABEL BBB = -417
 

@@ -597,6 +597,186 @@ public class escnew2 extends EscBase {
     }
     
     @Test
+    public void testSwitchShort() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m1good(short i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 0; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m1bad(short i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 0; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m2bad(short i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 0; \n"
+                +"  public int m3bad(short i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: warning: Associated declaration",7
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
+    public void testSwitchByte() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m1good(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 0; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m1bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 0; \n"
+                +"  //@ ensures i == 2 ==> \\result == 5; \n"
+                +"  public int m2bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 0 ==> \\result == 2; \n"
+                +"  //@ ensures i == 1 ==> \\result == 3; \n"
+                +"  //@ ensures i == 2 ==> \\result == 0; \n"
+                +"  public int m3bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i==1) { k=3; break;} else break; \n"
+                +"        case 2: k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: warning: Associated declaration",7
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
+    public void testSwitchChar() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures i == 'z' ==> \\result == 2; \n"
+                +"  //@ ensures i == 'a' ==> \\result == 3; \n"
+                +"  //@ ensures i == 'b' ==> \\result == 5; \n"
+                +"  public int m1good(char i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i=='a') { k=3; break;} else break; \n"
+                +"        case 'b': k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 'z' ==> \\result == 0; \n"
+                +"  //@ ensures i == 'a' ==> \\result == 3; \n"
+                +"  //@ ensures i == 'b' ==> \\result == 5; \n"
+                +"  public int m1bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i=='a') { k=3; break;} else break; \n"
+                +"        case 'b': k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 'z' ==> \\result == 2; \n"
+                +"  //@ ensures i == 'a' ==> \\result == 0; \n"
+                +"  //@ ensures i == 'b' ==> \\result == 5; \n"
+                +"  public int m2bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i=='a') { k=3; break;} else break; \n"
+                +"        case 'b': k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                +"  //@ ensures i == 'z' ==> \\result == 2; \n"
+                +"  //@ ensures i == 'a' ==> \\result == 3; \n"
+                +"  //@ ensures i == 'b' ==> \\result == 0; \n"
+                +"  public int m3bad(byte i) throws Exception {\n"
+                +"      int k = 2;\n"
+                +"       switch (i) {\n"
+                +"        default: if (i=='a') { k=3; break;} else break; \n"
+                +"        case 'b': k = 5; \n"
+                +"       } return k;\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: warning: Associated declaration",7
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                );
+    }
+    
+    @Test
     public void testTryNested() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

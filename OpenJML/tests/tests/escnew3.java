@@ -248,6 +248,173 @@ public class escnew3 extends EscBase {
                 );
     }
     
+    @Test
+    public void testCast() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static long l;\n"
+                +"  public static int i;\n"
+                +"  public static short s;\n"
+                +"  public static char c;\n"
+                +"  public static byte b;\n"
+                
+                +"  //@ requires i == 6;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m0() {\n"
+                +"    s = (short)i;\n"
+                +"    //@ assert s == i;\n"  // OK
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"  // OK
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"  // OK
+                +"    l = (long)i;\n"
+                +"    //@ assert l == i;\n"  // OK 
+                +"    int ii = (int)i;\n"
+                +"    //@ assert ii == i;\n"  // OK
+                
+                +"    //@ assert i == (short)i;\n"
+                +"    //@ assert i == (long)i;\n"
+                +"    //@ assert i == (char)i;\n"
+                +"    //@ assert i == (byte)i;\n"
+                +"    //@ assert i == (int)i;\n"
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0bad() {\n"
+                +"    s = (short)i;\n"  // Line 30
+                +"    //@ assert s == i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0badx() {\n"
+                +"    //@ assert i == (short)i;\n" // BAD
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m1badx() {\n"
+                +"    //@ assert i == (byte)i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m2badx() {\n"
+                +"    //@ assert i == (char)i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m1bad() {\n"
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m2bad() {\n"
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"
+                +"  }\n"
+                 
+                +"}"
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0bad",9
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0badx",21
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1badx",21
+                ,"/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2badx",21
+                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1bad",9
+                ,"/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2bad",9
+                );
+    }
+    
+    @Test
+    public void testCast1() {
+        main.addOptions("-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m0() {\n"
+                +"    {/*@ nullable */ Short s = null;\n"
+                +"    short ss = (short)s;\n"  
+                +"    //@ assert 0 == (short)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    {/*@ nullable */ Integer s = null;\n"
+                +"    int ss = (int)s;\n"  
+                +"    //@ assert 0 == (int)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2() {\n"
+                +"    {/*@ nullable */ Long s = null;\n"
+                +"    long ss = (long)s;\n"  
+                +"    //@ assert 0L == (long)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3() {\n"
+                +"    {/*@ nullable */ Byte s = null;\n"
+                +"    byte ss = (byte)s;\n"  
+                +"    //@ assert 0 == (byte)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m4() {\n"
+                +"    {/*@ nullable */ Character s = null;\n"
+                +"    char ss = (char)s;\n"  
+                +"    //@ assert 0 == (char)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m7() {\n"
+                +"    {/*@ nullable */ Boolean s = null;\n"
+                +"    boolean ss = (boolean)s;\n"  
+                +"    //@ assert (boolean)s;\n}"  
+                +"  }\n"
+                                  
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m0",16
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1",14
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2",15
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m3",15
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m4",15
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m7",18
+                );
+    }
+    
+    @Test
+    public void testCast1real() {
+        if ("cvc4".equals(solver)) return; // FIXME - cannot retrievve values
+        main.addOptions("-logic=AUFNIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m5() {\n"
+                +"    {/*@ nullable */ Double s = null;\n"
+                +"    double ss = (double)s;\n"  
+                +"    //@ assert 0 == (double)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m6() {\n"
+                +"    {/*@ nullable */ Float s = null;\n"
+                +"    float ss = (float)s;\n"  
+                +"    //@ assert 0.0 == (float)s;\n}"  
+                +"  }\n"
+                                  
+                +"}"
+                ,"cvc4".equals(solver)? null :
+                    seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
+                    ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16)
+                );
+    }
+    
     // TODO - test not_modified and old nested in each other; remember to test definedness            
 
 

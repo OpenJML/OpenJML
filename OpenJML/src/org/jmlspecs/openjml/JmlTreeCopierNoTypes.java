@@ -343,7 +343,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         JmlSingleton r = M.at(that.pos).JmlSingleton(that.token);
         r.type = that.type;
         r.info = that.info;
-        r.symbol = that.symbol;
+        //r.symbol = that.symbol;
         return r;
     }
 
