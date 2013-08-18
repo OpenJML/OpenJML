@@ -2,7 +2,6 @@ package org.jmlspecs.openjml.utils.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
@@ -11,21 +10,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -33,11 +35,23 @@ import javax.swing.event.DocumentListener;
 import org.jmlspecs.openjml.utils.Prover;
 import org.jmlspecs.openjml.utils.ProverValidator;
 import org.jmlspecs.openjml.utils.ui.res.ApplicationMessages.ApplicationMessageKey;
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
+import javax.swing.SwingConstants;
 
 
 public class ConfigureSMTProversDialog extends JDialog {
+    
+    static {
+        //
+        // The JDK on OS X will automatically set this up. On other platforms we do it explicitly.
+        //
+        try {
+           if(System.getProperty("os.name").contains("OS X")==false){
+               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+           }
+        } catch (Exception e) {
+            // Not worth reporting this.
+        }
+    }
     
     public enum SMTPersistenceSetting {
         USER, PROJECT;
@@ -79,10 +93,11 @@ public class ConfigureSMTProversDialog extends JDialog {
      * Create the dialog.
      */
     public ConfigureSMTProversDialog() {
+        setResizable(false);
         
         setModal(true);
         
-        setBounds(100, 100, 616, 444);
+        setBounds(100, 100, 622, 444);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -133,9 +148,10 @@ public class ConfigureSMTProversDialog extends JDialog {
         panel.setLayout(gl_panel);
 
         JPanel panel_1 = new JPanel();
-        contentPanel.add(panel_1, BorderLayout.WEST);
+        contentPanel.add(panel_1, BorderLayout.CENTER);
 
         JLabel lblNewLabel_1 = new JLabel(MessageUtil.getMessage(ApplicationMessageKey.MsgInvalidProverConfiguration));
+        lblNewLabel_1.setHorizontalTextPosition(SwingConstants.LEADING);
         JLabel lblNewLabel_2 = new JLabel("Default Prover:");
 
         comboProver = new JComboBox();
@@ -247,26 +263,26 @@ public class ConfigureSMTProversDialog extends JDialog {
         GroupLayout gl_panel_1 = new GroupLayout(panel_1);
         gl_panel_1.setHorizontalGroup(
             gl_panel_1.createParallelGroup(Alignment.LEADING)
-                .addGroup(gl_panel_1.createSequentialGroup()
+                .addGroup(Alignment.TRAILING, gl_panel_1.createSequentialGroup()
                     .addContainerGap()
-                    .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-                        .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE)
-                        .addGroup(gl_panel_1.createSequentialGroup()
+                    .addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
+                        .addComponent(lblNewLabel_1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 802, Short.MAX_VALUE)
+                        .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
                             .addComponent(lblNewLabel_2)
                             .addGap(40)
                             .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
                                 .addComponent(comboProver, GroupLayout.PREFERRED_SIZE, 204, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(setForUserRadioButton)
                                 .addComponent(setForProjectRadioButton)))
-                        .addGroup(gl_panel_1.createSequentialGroup()
+                        .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
                             .addComponent(lblExecutable, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                             .addGap(23)
                             .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-                                .addComponent(textFieldProverPath, GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
+                                .addComponent(textFieldProverPath, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
                                 .addComponent(statusMsg))
                             .addPreferredGap(ComponentPlacement.RELATED)
                             .addComponent(btnBrowse))
-                        .addComponent(separator, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE))
+                        .addComponent(separator, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE))
                     .addContainerGap())
         );
         gl_panel_1.setVerticalGroup(
@@ -291,7 +307,7 @@ public class ConfigureSMTProversDialog extends JDialog {
                         .addComponent(btnBrowse))
                     .addPreferredGap(ComponentPlacement.RELATED)
                     .addComponent(statusMsg)
-                    .addContainerGap(349, Short.MAX_VALUE))
+                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panel_1.setLayout(gl_panel_1);
         {
