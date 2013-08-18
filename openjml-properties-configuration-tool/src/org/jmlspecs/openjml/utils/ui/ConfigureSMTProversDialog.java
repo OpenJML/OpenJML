@@ -36,6 +36,11 @@ import org.jmlspecs.openjml.utils.Prover;
 import org.jmlspecs.openjml.utils.ProverValidator;
 import org.jmlspecs.openjml.utils.ui.res.ApplicationMessages.ApplicationMessageKey;
 import javax.swing.SwingConstants;
+import java.awt.GridLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.border.BevelBorder;
 
 
 public class ConfigureSMTProversDialog extends JDialog {
@@ -97,55 +102,49 @@ public class ConfigureSMTProversDialog extends JDialog {
         
         setModal(true);
         
-        setBounds(100, 100, 622, 444);
+        setBounds(100, 100, 746, 451);
         getContentPane().setLayout(new BorderLayout());
+        
+                JPanel panel = new JPanel();
+                getContentPane().add(panel, BorderLayout.NORTH);
+                panel.setPreferredSize(new Dimension(10, 80));
+                panel.setMinimumSize(new Dimension(10, 80));
+                panel.setBackground(Color.WHITE);
+                
+                        JLabel lblConfigureOpenjml = new JLabel("Configure OpenJML");
+                        lblConfigureOpenjml.setFont(new Font("Lucida Grande", Font.PLAIN, 25));
+                        
+                                JLabel lblNewLabel = new JLabel("");
+                                lblNewLabel
+                                        .setIcon(new ImageIcon(
+                                                ConfigureSMTProversDialog.class
+                                                        .getResource("/org/jmlspecs/openjml/utils/ui/res/jml-logo-small64.png")));
+                                GroupLayout gl_panel = new GroupLayout(panel);
+                                gl_panel.setHorizontalGroup(
+                                    gl_panel.createParallelGroup(Alignment.LEADING)
+                                        .addGroup(gl_panel.createSequentialGroup()
+                                            .addContainerGap()
+                                            .addComponent(lblConfigureOpenjml)
+                                            .addPreferredGap(ComponentPlacement.RELATED, 450, Short.MAX_VALUE)
+                                            .addComponent(lblNewLabel)
+                                            .addContainerGap())
+                                );
+                                gl_panel.setVerticalGroup(
+                                    gl_panel.createParallelGroup(Alignment.LEADING)
+                                        .addGroup(gl_panel.createSequentialGroup()
+                                            .addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
+                                                .addGroup(gl_panel.createSequentialGroup()
+                                                    .addGap(24)
+                                                    .addComponent(lblConfigureOpenjml))
+                                                .addGroup(gl_panel.createSequentialGroup()
+                                                    .addGap(8)
+                                                    .addComponent(lblNewLabel)))
+                                            .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                );
+                                panel.setLayout(gl_panel);
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout(0, 0));
-
-        JPanel panel = new JPanel();
-        panel.setPreferredSize(new Dimension(10, 80));
-        panel.setMinimumSize(new Dimension(10, 80));
-        panel.setBackground(Color.WHITE);
-        contentPanel.add(panel, BorderLayout.NORTH);
-
-        JLabel lblConfigureOpenjml = new JLabel("Configure OpenJML");
-        lblConfigureOpenjml.setFont(new Font("Lucida Grande", Font.PLAIN, 25));
-
-        JLabel lblNewLabel = new JLabel("");
-        lblNewLabel
-                .setIcon(new ImageIcon(
-                        ConfigureSMTProversDialog.class
-                                .getResource("/org/jmlspecs/openjml/utils/ui/res/jml-logo-small64.png")));
-        GroupLayout gl_panel = new GroupLayout(panel);
-        gl_panel.setHorizontalGroup(gl_panel.createParallelGroup(
-                Alignment.LEADING).addGroup(
-                Alignment.TRAILING,
-                gl_panel.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(lblConfigureOpenjml)
-                        .addPreferredGap(ComponentPlacement.RELATED, 235,
-                                Short.MAX_VALUE).addComponent(lblNewLabel)
-                        .addContainerGap()));
-        gl_panel.setVerticalGroup(gl_panel
-                .createParallelGroup(Alignment.LEADING)
-                .addGroup(
-                        gl_panel.createSequentialGroup()
-                                .addGroup(
-                                        gl_panel.createParallelGroup(
-                                                Alignment.LEADING)
-                                                .addGroup(
-                                                        gl_panel.createSequentialGroup()
-                                                                .addContainerGap()
-                                                                .addComponent(
-                                                                        lblNewLabel))
-                                                .addGroup(
-                                                        gl_panel.createSequentialGroup()
-                                                                .addGap(25)
-                                                                .addComponent(
-                                                                        lblConfigureOpenjml)))
-                                .addContainerGap(10, Short.MAX_VALUE)));
-        panel.setLayout(gl_panel);
 
         JPanel panel_1 = new JPanel();
         contentPanel.add(panel_1, BorderLayout.CENTER);
@@ -262,28 +261,28 @@ public class ConfigureSMTProversDialog extends JDialog {
         setForUserRadioButton.setSelected(true);
         GroupLayout gl_panel_1 = new GroupLayout(panel_1);
         gl_panel_1.setHorizontalGroup(
-            gl_panel_1.createParallelGroup(Alignment.LEADING)
-                .addGroup(Alignment.TRAILING, gl_panel_1.createSequentialGroup()
+            gl_panel_1.createParallelGroup(Alignment.TRAILING)
+                .addGroup(gl_panel_1.createSequentialGroup()
                     .addContainerGap()
-                    .addGroup(gl_panel_1.createParallelGroup(Alignment.TRAILING)
-                        .addComponent(lblNewLabel_1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 802, Short.MAX_VALUE)
-                        .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
+                    .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+                        .addComponent(lblNewLabel_1, GroupLayout.DEFAULT_SIZE, 582, Short.MAX_VALUE)
+                        .addGroup(gl_panel_1.createSequentialGroup()
                             .addComponent(lblNewLabel_2)
                             .addGap(40)
                             .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
                                 .addComponent(comboProver, GroupLayout.PREFERRED_SIZE, 204, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(setForUserRadioButton)
                                 .addComponent(setForProjectRadioButton)))
-                        .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
+                        .addGroup(gl_panel_1.createSequentialGroup()
                             .addComponent(lblExecutable, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                             .addGap(23)
                             .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
-                                .addComponent(textFieldProverPath, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
+                                .addComponent(textFieldProverPath, GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
                                 .addComponent(statusMsg))
                             .addPreferredGap(ComponentPlacement.RELATED)
                             .addComponent(btnBrowse))
-                        .addComponent(separator, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE))
-                    .addContainerGap())
+                        .addComponent(separator, GroupLayout.DEFAULT_SIZE, 582, Short.MAX_VALUE))
+                    .addGap(12))
         );
         gl_panel_1.setVerticalGroup(
             gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -307,35 +306,60 @@ public class ConfigureSMTProversDialog extends JDialog {
                         .addComponent(btnBrowse))
                     .addPreferredGap(ComponentPlacement.RELATED)
                     .addComponent(statusMsg)
-                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addContainerGap(21, Short.MAX_VALUE))
         );
         panel_1.setLayout(gl_panel_1);
         {
             JPanel buttonPane = new JPanel();
-            buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
+            GridBagLayout gbl_buttonPane = new GridBagLayout();
+            gbl_buttonPane.columnWidths = new int[]{740, 0};
+            gbl_buttonPane.rowHeights = new int[] {2, 35, 0};
+            gbl_buttonPane.columnWeights = new double[]{0.0, Double.MIN_VALUE};
+            gbl_buttonPane.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+            buttonPane.setLayout(gbl_buttonPane);
+            
+            JSeparator separator_1 = new JSeparator();
+            separator_1.setSize(new Dimension(0, 2));
+            separator_1.setMinimumSize(new Dimension(0, 2));
+            separator_1.setMaximumSize(new Dimension(32767, 2));
+            GridBagConstraints gbc_separator_1 = new GridBagConstraints();
+            gbc_separator_1.fill = GridBagConstraints.BOTH;
+            gbc_separator_1.insets = new Insets(0, 0, 5, 0);
+            gbc_separator_1.gridx = 0;
+            gbc_separator_1.gridy = 0;
+            buttonPane.add(separator_1, gbc_separator_1);
             {
+                
+                JPanel panel_2 = new JPanel();
+                FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
+                flowLayout.setAlignment(FlowLayout.RIGHT);
+                GridBagConstraints gbc_panel_2 = new GridBagConstraints();
+                gbc_panel_2.fill = GridBagConstraints.BOTH;
+                gbc_panel_2.gridx = 0;
+                gbc_panel_2.gridy = 1;
+                buttonPane.add(panel_2, gbc_panel_2);
                 cancelButton = new JButton("Exit");
+                panel_2.add(cancelButton);
                 cancelButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         System.exit(1);
                     }
                 });
                 cancelButton.setActionCommand("Cancel");
-                buttonPane.add(cancelButton);
-            }
-            {
-                okButton = new JButton("Continue");
-                okButton.setEnabled(false);
-                okButton.addActionListener(new ActionListener() {
-                    // continue, and optionally save the settings.
-                    public void actionPerformed(ActionEvent e) {
-                        dispose();
-                    }
-                });
-                okButton.setActionCommand("OK");
-                buttonPane.add(okButton);
-                getRootPane().setDefaultButton(okButton);
+                {
+                    okButton = new JButton("Continue");
+                    panel_2.add(okButton);
+                    okButton.setEnabled(false);
+                    okButton.addActionListener(new ActionListener() {
+                        // continue, and optionally save the settings.
+                        public void actionPerformed(ActionEvent e) {
+                            dispose();
+                        }
+                    });
+                    okButton.setActionCommand("OK");
+                    getRootPane().setDefaultButton(okButton);
+                }
             }
         }
         
