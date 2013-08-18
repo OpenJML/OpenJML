@@ -5,6 +5,7 @@
 
 package org.jmlspecs.openjml;
 
+import java.awt.HeadlessException;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,6 +30,8 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.utils.ProverConfigurationException;
+import org.jmlspecs.openjml.utils.ui.MessageUtil;
+import org.jmlspecs.openjml.utils.ui.res.ApplicationMessages.ApplicationMessageKey;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -347,7 +350,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Before starting the compiler, see if we should reconfigure the prover settings
         //
         if(Utils.shouldReconfigure(args)){
-            Utils.configureProvers();
+            Utils.configureProvers(null);
         }
         
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
@@ -733,19 +736,27 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Don't initiate the checks unless we will actually do static checking
         // TODO Possibly add Boogie?
         boolean staticCheckingConfigurationDone = !(utils.esc);
-        
-        while(staticCheckingConfigurationDone==false){
+
+        while (staticCheckingConfigurationDone == false) {
             try {
+                
                 Utils.validateStaticCheckingProps(options);
                 staticCheckingConfigurationDone = true;
-            }catch(ProverConfigurationException e){
+                
+            } catch (ProverConfigurationException e) {
+                Log.instance(context).noticeWriter.println(e.getMessage());
+
                 // give the user a chance to fix things
-                Utils.configureProvers();
-                // update the options
-                Utils.mergeStaticCheckingProperties(Utils.findProperties(context), options);
+                if(Utils.configureProvers(context)!=null){
+                    // update the options
+                    Utils.mergeStaticCheckingProperties(Utils.findProperties(context), options);
+                }else{
+                    return false;
+                }
+
             }
         }
-        
+
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null) {
             options.put(JmlOption.FEASIBILITY.optionName(),"all");

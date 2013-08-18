@@ -36,7 +36,16 @@ public class ApplicationMessages extends ListResourceBundle {
     }
 
     public enum ApplicationMessageKey {
-        MsgProverExecutable, MsgInvalidProverExecutable, MsgValidProverExecutable, MsgInvalidProverConfiguration, MsgCantReadPropertiesFile;
+        MsgProverExecutable, 
+        MsgInvalidProverExecutable, 
+        MsgValidProverExecutable, 
+        MsgInvalidProverConfiguration, 
+        MsgCantReadPropertiesFile,
+        MsgHeadlessError,
+        MsgProverNotProvided,
+        MsgExecutableForProverNotProvided,
+        MsgInvalidProverVersionProvided,
+        MsgStartingConfiguration;
     }
 
     @Override
@@ -46,8 +55,14 @@ public class ApplicationMessages extends ListResourceBundle {
                 {ApplicationMessageKey.MsgInvalidProverExecutable.toString(), "The specified path is not a valid %s prover"},
                 {ApplicationMessageKey.MsgValidProverExecutable.toString(), "The specified path is a valid %s prover"},
                 {ApplicationMessageKey.MsgInvalidProverConfiguration.toString(), proverConfigurationHelper},
-                {ApplicationMessageKey.MsgCantReadPropertiesFile.toString(), "Can't read the properties file %s because it may not exist or this is the first time running OpenJML. Please configure your prover settings now."}
+                {ApplicationMessageKey.MsgCantReadPropertiesFile.toString(), "Can't read the properties file %s because it may not exist or this is the first time running OpenJML. Please configure your prover settings now."},
+                {ApplicationMessageKey.MsgHeadlessError.toString(), "[SMTConfigurationTool] Your SMT configuration is currently incorrect (or you have explicitly requested to reconfigure it with the -reconfigure option) however you are running OpenJML in a non-graphic mode and thus graphical configuration tools will not be available. Please check the configuration of your openjml.properties file and try again."},
+                {ApplicationMessageKey.MsgProverNotProvided.toString(), "[SMTConfigurationValidation] Default prover not specified."},
+                {ApplicationMessageKey.MsgExecutableForProverNotProvided.toString(), "[SMTConfigurationValidation] Executable for prover %s not specified."},
+                {ApplicationMessageKey.MsgInvalidProverVersionProvided.toString(), "[SMTConfigurationValidation] Executable for prover %s did not respond with the proper version string."},
+                {ApplicationMessageKey.MsgStartingConfiguration.toString(), "[SMTConfigurationValidation] Starting SMT Configuration Utility..."} 
 
+                    
 
 
 
