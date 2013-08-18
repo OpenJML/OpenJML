@@ -346,13 +346,6 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
         
-        //
-        // Before starting the compiler, see if we should reconfigure the prover settings
-        //
-        if(Utils.shouldReconfigure(args)){
-            Utils.configureProvers(null);
-        }
-        
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
@@ -373,6 +366,14 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else {
+                    
+                    //
+                    // Before starting the compiler, see if we should reconfigure the prover settings
+                    //
+                    if(Utils.shouldReconfigure(args)){
+                        Utils.configureProvers(new Context());
+                    }
+                    
                     // We create an instance of main through which to call the
                     // actual compile method. Note though that the compile method
                     // does its own initialization (in the super class). Thus the
@@ -381,6 +382,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     // the options to a private variable, just to be able to
                     // apply them in the compile() call below.
                     Main compiler = new Main(Strings.applicationName, writer, diagListener, options, emptyArgs);
+                    
+                    
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
                     errorcode = compiler.compile(args); // context and new options are created in here
