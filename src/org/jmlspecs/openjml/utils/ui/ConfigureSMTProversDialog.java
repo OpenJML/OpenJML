@@ -42,10 +42,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.factories.FormFactory;
 import javax.swing.BoxLayout;
 
 
@@ -108,7 +104,7 @@ public class ConfigureSMTProversDialog extends JDialog {
         
         setModal(true);
         
-        setBounds(100, 100, 746, 451);
+        setBounds(100, 100, 618, 451);
         getContentPane().setLayout(new BorderLayout());
         
                 JPanel panel = new JPanel();
