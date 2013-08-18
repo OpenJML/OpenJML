@@ -41,6 +41,12 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EtchedBorder;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.RowSpec;
+import com.jgoodies.forms.factories.FormFactory;
+import javax.swing.BoxLayout;
 
 
 public class ConfigureSMTProversDialog extends JDialog {
@@ -312,33 +318,19 @@ public class ConfigureSMTProversDialog extends JDialog {
         {
             JPanel buttonPane = new JPanel();
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
-            GridBagLayout gbl_buttonPane = new GridBagLayout();
-            gbl_buttonPane.columnWidths = new int[]{740, 0};
-            gbl_buttonPane.rowHeights = new int[] {2, 35, 0};
-            gbl_buttonPane.columnWeights = new double[]{0.0, Double.MIN_VALUE};
-            gbl_buttonPane.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
-            buttonPane.setLayout(gbl_buttonPane);
+            buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.Y_AXIS));
             
             JSeparator separator_1 = new JSeparator();
             separator_1.setSize(new Dimension(0, 2));
             separator_1.setMinimumSize(new Dimension(0, 2));
             separator_1.setMaximumSize(new Dimension(32767, 2));
-            GridBagConstraints gbc_separator_1 = new GridBagConstraints();
-            gbc_separator_1.fill = GridBagConstraints.BOTH;
-            gbc_separator_1.insets = new Insets(0, 0, 5, 0);
-            gbc_separator_1.gridx = 0;
-            gbc_separator_1.gridy = 0;
-            buttonPane.add(separator_1, gbc_separator_1);
+            buttonPane.add(separator_1);
             {
                 
                 JPanel panel_2 = new JPanel();
                 FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
                 flowLayout.setAlignment(FlowLayout.RIGHT);
-                GridBagConstraints gbc_panel_2 = new GridBagConstraints();
-                gbc_panel_2.fill = GridBagConstraints.BOTH;
-                gbc_panel_2.gridx = 0;
-                gbc_panel_2.gridy = 1;
-                buttonPane.add(panel_2, gbc_panel_2);
+                buttonPane.add(panel_2);
                 cancelButton = new JButton("Exit");
                 panel_2.add(cancelButton);
                 cancelButton.addActionListener(new ActionListener() {
