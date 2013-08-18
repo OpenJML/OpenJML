@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml;
 
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,7 +29,9 @@ import org.jmlspecs.openjml.utils.Prover;
 import org.jmlspecs.openjml.utils.ProverConfigurationException;
 import org.jmlspecs.openjml.utils.ProverValidator;
 import org.jmlspecs.openjml.utils.ui.ConfigureSMTProversDialog;
+import org.jmlspecs.openjml.utils.ui.MessageUtil;
 import org.jmlspecs.openjml.utils.ui.ConfigureSMTProversDialog.SMTPersistenceSetting;
+import org.jmlspecs.openjml.utils.ui.res.ApplicationMessages.ApplicationMessageKey;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -564,19 +568,19 @@ public class Utils {
         String proverName = options.get(Strings.defaultProverProperty);
         
         if(proverName==null){
-            throw new ProverConfigurationException("Default prover not specified.");
+            throw new ProverConfigurationException(MessageUtil.getMessage(ApplicationMessageKey.MsgProverNotProvided));
         }
         
         String proverExecutable = options.get(Strings.proverPropertyPrefix + Prover.getProver(proverName, null).getPropertiesName());
         
         if(proverExecutable==null){
-            throw new ProverConfigurationException("Executable for prover "+ proverName +  " not specified.");
+            throw new ProverConfigurationException(String.format(MessageUtil.getMessage(ApplicationMessageKey.MsgExecutableForProverNotProvided), proverName));
         }
         
         Prover p = Prover.getProver(proverName, proverExecutable);
         
         if(ProverValidator.proverValid(p)==false){
-            throw new ProverConfigurationException("Executable for prover "+ proverName +  " did not respond with the proper version string.");
+            throw new ProverConfigurationException(String.format(MessageUtil.getMessage(ApplicationMessageKey.MsgInvalidProverVersionProvided), proverName));
         }
     }
 
@@ -608,9 +612,16 @@ public class Utils {
      * 
      * @return A File that points to the location of the newly configured settings.
      */
-    public static File configureProvers(){
+
+    public static File configureProvers(Context context){
         
         try {
+            
+            GraphicsEnvironment.isHeadless();
+            
+            Log.instance(context).noticeWriter.println(MessageUtil
+                    .getMessage(ApplicationMessageKey.MsgStartingConfiguration));
+
             ConfigureSMTProversDialog dialog = new ConfigureSMTProversDialog();
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             dialog.setLocationRelativeTo(null);
@@ -658,12 +669,20 @@ public class Utils {
             
             return existingFile;
             
+        } catch (HeadlessException e) {
+            if (context != null) {
+                Log.instance(context).errWriter.println(MessageUtil
+                        .getMessage(ApplicationMessageKey.MsgHeadlessError));
+            } else {
+                System.err.println(MessageUtil
+                        .getMessage(ApplicationMessageKey.MsgHeadlessError));
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null,
-                    "Encountered an internal error while configuring provers. Message: " + e.getMessage(),
-                    "Configuration Error",
+                    "Encountered an internal error while configuring provers. Message: "
+                            + e.getMessage(), "Configuration Error",
                     JOptionPane.ERROR_MESSAGE);
-            
+
             System.exit(1);
 
         }
