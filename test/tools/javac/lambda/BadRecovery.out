@@ -1,0 +1,2 @@
+BadRecovery.java:17:77: compiler.err.cant.resolve.location: kindname.variable, f, , , (compiler.misc.location: kindname.class, BadRecovery, null)
+1 error
