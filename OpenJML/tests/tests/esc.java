@@ -2273,7 +2273,7 @@ public class esc extends EscBase {
                 +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
                 +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
                 +"  //@ ensures \\result == 6;\n"
-                +"  public int inst() { return o.m() + p.m() + j; }\n"
+                +"  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
                 
                 +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
                 +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"

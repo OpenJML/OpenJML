@@ -424,6 +424,15 @@ public class Utils {
         return makeTYPE0(t.erasure().getComponentType());
     }
     
+    
+    public static String getClassName(Object o) {
+        return o.getClass().getName();
+    }
+    
+    public static String concat(String s1, String s2) {
+        return s1 + s2;
+    }
+    
     public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
         try {
             return tt.erasure().isAssignableFrom(t.erasure());
@@ -628,6 +637,14 @@ public class Utils {
         return a.compareTo(BigInteger.ZERO) != 0;
     }
 
+    public static float bigint_tofloat(BigInteger a) {
+        return a.floatValue();
+    }
+
+    public static double bigint_todouble(BigInteger a) {
+        return a.doubleValue();
+    }
+
     public static long bigint_tolong(BigInteger a) {
         return a.longValue();
     }
@@ -642,6 +659,10 @@ public class Utils {
 
     public static byte bigint_tobyte(BigInteger a) {
         return a.byteValue();
+    }
+
+    public static Real bigint_toreal(BigInteger a) {
+        return new Real(a.doubleValue());
     }
 
     public static BigInteger bigint_valueOf(long i) {

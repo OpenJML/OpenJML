@@ -355,9 +355,9 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only \\nothing; */\n"
                 +"static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause" // check by callee
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check by callee
                 ,"/tt/TestJava.java:7: Associated declaration"
-                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause" // postcondition check by caller
+                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check of postcondition assumption by caller
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -385,9 +385,9 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.lang.Exception"
                 ,"/tt/TestJava.java:7: Associated declaration"
-                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.lang.Exception"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
