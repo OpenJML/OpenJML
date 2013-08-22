@@ -1,7 +1,8 @@
 
 PDF="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe"
 BIB="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/bibtex.exe"
-HEV="HEVEA.BAT"
+HEV="C:/Hevea/HEVEA.BAT"
+HACHA="C:/Hevea/HACHA.BAT"
 ARGS="macro.hva"
 
 R=OpenJMLUserGuide
@@ -22,7 +23,7 @@ html:
 	${HEV} ${ARGS} $R.tex
 	${HEV} ${ARGS} $R.tex
 	javac Transform.java && java -cp "." Transform $R.html
-	HACHA.BAT $R.html
+	${HACHA} $R.html
 
 bib:
 	${BIB} $R
