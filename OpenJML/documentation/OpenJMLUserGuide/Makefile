@@ -1,8 +1,8 @@
 
 PDF="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe"
 BIB="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/bibtex.exe"
-HEV="C:/Hevea/HEVEA.BAT"
-HACHA="C:/Hevea/HACHA.BAT"
+HEV="C:/cygwin/home/dcok/mybin/HEVEA.BAT"
+HACHA="C:/hevea/HACHA.BAT"
 ARGS="macro.hva"
 
 R=OpenJMLUserGuide
