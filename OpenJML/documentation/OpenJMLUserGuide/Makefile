@@ -20,8 +20,7 @@ pdf:
 
 
 html:
-	${HEV} ${ARGS} $R.tex
-	${HEV} ${ARGS} $R.tex
+	${HEV} -fix ${ARGS} $R.tex |& grep -v "Warning: minipage"
 	javac Transform.java && java -cp "." Transform $R.html
 	${HACHA} $R.html
 
@@ -29,5 +28,5 @@ bib:
 	${BIB} $R
 
 clean:
-	rm *.log *.aux *.out *.pdf *.bbl *.blg *.toc *.html
+	rm *.log *.aux *.out *.pdf *.bbl *.blg *.toc *.html *.haux *.class *.css *backup *.htoc
 
