@@ -92,6 +92,8 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
+        JmlDeclassifyClause JmlDeclassifyClause(JmlToken t, JCTree.JCExpression e, JCTree.JCMethodInvocation p);
+
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression predicate);
@@ -610,6 +612,12 @@ public class JmlTree implements IJmlTree {
         public JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e) {
             return new JmlMethodClauseExpr(pos,t,e);
         }
+        
+        @Override
+        public JmlDeclassifyClause JmlDeclassifyClause(JmlToken t, JCTree.JCExpression e, JCMethodInvocation policy) {
+            return new JmlDeclassifyClause(pos,t,e, policy);
+        }
+        
         
         @Override
         public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
@@ -1826,6 +1834,52 @@ public class JmlTree implements IJmlTree {
             }
         }
     }
+    
+    public static class JmlDeclassifyClause extends JmlMethodClause {
+
+        public JCTree.JCExpression expression;
+        public JCTree.JCMethodInvocation policy;
+
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        protected JmlDeclassifyClause(int pos, JmlToken token, JCTree.JCExpression expression, JCTree.JCMethodInvocation policy) {
+            this.pos = pos;
+            this.token = token;
+            this.expression = expression;
+            this.policy = policy;
+        }
+
+        @Override
+        public int getTag() {
+            return JMLMETHODCLAUSEEXPR;
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+//        
+//        @Override
+//        public void accept(Visitor v) {
+//            if (v instanceof IJmlVisitor) {
+//                ((IJmlVisitor)v).visitJmlMethodClauseExpr(this); 
+//            } else {
+//                //System.out.println("A JmlMethodClauseExpr expects an IJmlVisitor, not a " + v.getClass());
+//                super.accept(v);
+//            }
+//        }
+//
+//        @Override
+//        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+//            if (v instanceof JmlTreeVisitor) {
+//                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseExpr(this, d);
+//            } else {
+//                System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+//                return super.accept(v,d);
+//            }
+//        }
+//        
+    }
+    
     
     /** This represents the sequence of method specs lists that are the sequence
      * of nested specs

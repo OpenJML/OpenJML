@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
@@ -1575,6 +1576,10 @@ public class JmlParser extends EndPosParser {
                     res = parseExprClause();
                     break;
 
+                case DECLASSIFY:
+                    res = parseDeclassifyClause();
+                    break;
+                    
                 case SIGNALS: // signals (Exception e) parseExpression ;
                     res = parseSignals();
                     break;
@@ -1680,6 +1685,73 @@ public class JmlParser extends EndPosParser {
             S.nextToken(); // skip SEMI
         }
         JmlMethodClauseExpr cl = jmlF.at(pos).JmlMethodClauseExpr(jt, e);
+        return toP(cl);
+    }
+    
+
+    /**
+     * Parses a declassification clause. The declassify clause is 
+     * a top level clause of the form:
+     * 
+     * declassify <expr> usingPolicy <methodInvocation>
+     * 
+     * expr - should be a valid program statement
+     * methodInvocation - should be formatted like a method invocation and have a valid policy in the policy file
+     * 
+     * @return the parsed JmlMethodClauseExpr
+     */
+    public JmlDeclassifyClause parseDeclassifyClause() {
+        
+        // Used to construct the JmlDeclassifyClause
+        JCExpression e;
+        JCExpression policy;
+        JmlToken jt = S.jmlToken();
+        int pos = S.pos();
+
+        S.nextToken();
+        S.setJmlKeyword(true);
+        
+
+        
+        
+        // the bailout error when this fails is pretty scary so we do a quick
+        // sanity check here to see if we should even bother to see if this is a valid
+        // expression
+        if(S.token()==Token.LPAREN || S.token()==Token.IDENTIFIER){
+            e = parseExpression();            
+        }else{
+            syntaxError(S.pos()-1, null, "jml.declassify.missing.where.expression");
+            return null;            
+        }
+        
+        if( e instanceof JCErroneous){
+            syntaxError(S.pos(), null, "jml.declassify.missing.where.expression");
+            return null;
+        }
+        
+        JmlToken pt = S.jmlToken();
+        
+        if(pt!=JmlToken.USINGPOLICY){
+            syntaxError(S.pos()-1, null, "jml.declassify.missing.policy.keyword");
+            return null;
+        }
+        
+        S.nextToken();
+        
+        policy = this.parseExpression();
+        
+        if(policy instanceof JCMethodInvocation == false){
+            syntaxError(S.pos()-1, null, "jml.declassify.missing.policy");
+            return null;            
+        }
+        
+        if (S.token() != Token.SEMI) {
+            syntaxError(S.pos()-1, null, "jml.invalid.expression.or.missing.semi");
+            skipThroughSemi();
+        } else {
+            S.nextToken(); // skip SEMI
+        }
+        JmlDeclassifyClause cl = jmlF.at(pos).JmlDeclassifyClause(jt, e, (JCMethodInvocation)policy);
         return toP(cl);
     }
 
