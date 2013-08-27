@@ -73,7 +73,7 @@ JML options:
   -counterexample            ESC: Enables output of complete, raw counterexample
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
-  -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
+  -roots                     Enables the Reflective Object-Oriented Testing System
   -showRacSource             RAC: Error messages will include source information [-noRacSource=false]
   -noRacSource               RAC: Error messages will not include source information
   -noRacCheckAssumptions     RAC: Disables checking that assumptions hold
