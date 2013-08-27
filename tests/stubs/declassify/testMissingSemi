@@ -1,0 +1,6 @@
+public class A {
+    //@ declassify (username.equals(password)) usingPolicy foo(a,b) 
+    void valid() {}  
+}
+####
+/A.java:2: The expression is invalid or not terminated by a semicolon

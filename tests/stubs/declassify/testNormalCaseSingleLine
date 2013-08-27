@@ -1,6 +1,4 @@
 public class A {
-    //@ declassify (username.equals(password)) usingPolicy foo(a,b) 
+    //@ declassify (username.equals(password)) usingPolicy foo(a,b); 
     void valid() {}  
 }
----
-EXPECTED OUTPUT

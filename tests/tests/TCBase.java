@@ -1,7 +1,12 @@
 package tests;
-import java.net.URI;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -13,13 +18,6 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
-
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 
 
@@ -132,12 +130,83 @@ public abstract class TCBase extends JmlTestCase {
         }
     }
     
-    // A useful function if your source files require some kind of complex formatting
-    public String fromStub(String test) throws IOException {
+  /**
+   * These functions simplify loading test cases. You format your test file like this:
+   * 
+   * public class MyTest {
+   * 
+   * ..
+   * 
+   * }
+   * ####
+   * Expected Compiler Message Goes Here.
+   *
+   *
+   * Everything above the line will be passed in as the test case. Everything BELOW the line is the content that should be compared with the actual 
+   * compiler output.
+   *
+   */
+    
+    private static final String caseSeperator = "####";
+    
+    /**
+     * Gets the test stub content. 
+     * 
+     * @param test The name of the test. Keep in mind that this will be resolved relative to the test name. 
+     *        For example, if your class name is "Declassify," the tool will look in stubs/declassify/yourname for the test file.
+     * @return all the lines of the stub file.
+     * @throws IOException
+     */
+    public java.util.List<String> fromStub(String test) throws IOException {
+        
         String[] splits = this.getClass().toString().toLowerCase().split("\\.");
-        return new String(Files.readAllBytes(Paths.get(String.format("tests/stubs/%s/testNormalCaseMultiline", splits[splits.length-1]))));
+        
+        return Files.readAllLines(Paths.get(String.format("tests/stubs/%s/%s", splits[splits.length-1], test)), Charset.defaultCharset());    
     }
 
+    public String caseFromStub(String test) throws IOException {
+        
+        java.util.List<String> lines = fromStub(test);
+    
+        // read everything UP to the ####
+        StringBuffer buffer = new StringBuffer();
+        
+        for(String s : lines){
+            if(s.startsWith(caseSeperator)==false){
+                buffer.append(s + "\n");
+            }else{
+                break;
+            }
+        }
+        
+        return buffer.toString();
+    }
+
+    public Object[] expectedFromStub(String test) throws IOException {
+
+        java.util.List<String> lines = fromStub(test);
+        java.util.List<Object> pairs = new ArrayList<Object>();
+        
+        // read everything UP to the ####
+        boolean after = false;
+
+        for(String s : lines){
+            
+            if(after){
+                pairs.add(s.trim());
+                pairs.add(s.trim().length()-1);
+            }
+            
+            if(s.startsWith(caseSeperator)){
+                after=true;
+            }
+        }
+        
+        return pairs.toArray();
+
+    }
+
+    
 //    /** Used to add a pseudo file to the file system. Note that for testing, a 
 //     * typical filename given here might be #B/A.java, where #B denotes a 
 //     * mock directory on the specification path
