@@ -74,7 +74,7 @@ public enum JmlOption implements IOption {
     COUNTEREXAMPLE("-counterexample",false,"ESC: Enables output of complete, raw counterexample",null),
     SUBEXPRESSIONS("-subexpressions",false,"ESC: Enables tracing with subexpressions",null),
     FEASIBILITY("-checkFeasibility",true,"ESC: Check feasibility of assumptions",null),
-    ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
+    ROOTS("-roots",false,"Enables the Reflective Object-Oriented Testing System",null),
     
     SHOW_RAC_SOURCE("-showRacSource",false,"RAC: Error messages will include source information","-noRacSource=false"),
     NO_RAC_SOURCE("-noRacSource",false,"RAC: Error messages will not include source information",null),
