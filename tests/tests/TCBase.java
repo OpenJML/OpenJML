@@ -1,5 +1,7 @@
 package tests;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -11,7 +13,14 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+
 import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 
 
 /** This is a base class for all tests that parse and typecheck a
@@ -121,6 +130,12 @@ public abstract class TCBase extends JmlTestCase {
             if (!print && !noExtraPrinting) printDiagnostics();
             throw e;
         }
+    }
+    
+    // A useful function if your source files require some kind of complex formatting
+    public String fromStub(String test) throws IOException {
+        String[] splits = this.getClass().toString().toLowerCase().split("\\.");
+        return new String(Files.readAllBytes(Paths.get(String.format("tests/stubs/%s/testNormalCaseMultiline", splits[splits.length-1]))));
     }
 
 //    /** Used to add a pseudo file to the file system. Note that for testing, a 
