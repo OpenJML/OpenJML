@@ -257,6 +257,7 @@ public class JmlScanner extends DocCommentScanner {
     // beginning of the comment, set jml to true, and let the scanner proceed.
     @Override
     protected void processComment(CommentStyle style) {
+        
         // The range pos() to endPos() does include the opening and closing
         // comment characters.
         // It does not include line ending for line comments, so
@@ -690,6 +691,7 @@ public class JmlScanner extends DocCommentScanner {
         super.scanIdent();
         if (!jml || !jmlkeyword)
             return;
+
         Token t = token();
         if (t == Token.IDENTIFIER) {
             String s = stringVal();

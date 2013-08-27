@@ -97,6 +97,10 @@ public enum JmlToken {
     // These are the method clause types
     REQUIRES("requires"),   // Keep this one first
     ENSURES("ensures"),
+    // needed for information flow
+    DECLASSIFY("declassify"),
+    USINGPOLICY("usingPolicy"),
+    
     SIGNALS("signals"),
     SIGNALS_ONLY("signals_only"),
     DIVERGES("diverges"),
