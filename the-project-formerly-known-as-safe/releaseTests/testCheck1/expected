@@ -1,0 +1,6 @@
+./A.java:1: error: incompatible types
+public class A { /*@ invariant 0; */ }
+                               ^
+  required: boolean
+  found:    int
+1 error

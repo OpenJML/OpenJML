@@ -1,0 +1,217 @@
+-- ===================================================================
+-- Cluster Charts
+-- ===================================================================
+
+cluster_chart OPENJMLDOC
+  explanation
+    "A JML-aware javadoc called jmldoc built on top of the OpenJDK."
+  cluster JAVADOC
+    description "Sun's implementation of javadoc."
+  cluster JMLDOC
+    description "David's implementation of jmldoc."
+end
+
+cluster_chart JAVADOC
+  indexing
+    author: "Sun Microsystems";
+  explanation "Sun's implementation of javadoc."
+  class OUTPUT_CONFIGURATION
+    description "Configures output for javadoc tools."
+  class OUTPUT_CONFIGURATION_IMPL
+    description "Configures the output for javadoc based upon the command-line."
+  cluster WRITERS
+    description "Writers for each substructure of a Java module."
+end
+
+cluster_chart WRITERS
+  indexing
+    author: "Sun Microsystems";
+  explanation "Writers for each substructure of a Java module."
+  class ANNOTATION_TYPE_OPTIONAL_MEMBER_WRITER
+    description "TBD"
+  class ANNOTATION_TYPE_REQUIRED_MEMBER_WRITER
+    description "TBD"
+  class ANNOTATION_TYPE_WRITER
+    description "TBD"
+  class CLASS_WRITER
+    description "TBD"
+  class CONSTANTS_SUMMARY_WRITER
+    description "TBD"
+  class CONSTRUCTOR_WRITER
+    description "TBD"
+  class ENUM_CONSTANT_WRITER
+    description "TBD"
+  class FIELD_WRITER
+    description "TBD"
+  class MEMBER_SUMMARY_WRITER
+    description "TBD"
+  class METHOD_WRITER
+    description "TBD"
+  class NESTED_CLASS_WRITER
+    description "TBD"
+  class PACKAGE_SUMMARY_WRITER
+    description "TBD"
+  class SERIALIZED_FORM_WRITER
+    description "TBD"
+end
+
+cluster_chart JMLDOC
+  indexing
+    author: "David R. Cok";
+  explanation "David's implementation of jmldoc."
+  class OUTPUT_CONFIGURATION_JML
+    description "Configures the output for jmldoc based upon command-line options."
+  class HTML_JML_DOCLET
+    description "A doclet supporting HTML generation of JML specifications."
+  class JML_START 
+    description "An alternate class to initiate the standard doclet."
+  class OPENJMLDOC_MAIN
+    description "The main entry points of the jmldoc tool."
+  class JMLDOC_UTILS
+    description "Utility functions on which jmldoc depends."
+  class SPECIFICATION_QUALITY_ANNOTATION
+    description "A Java annotation used to indicate the subjective \
+               \ quality of a JML specification."
+  cluster JML_WRITERS
+    description "Writers supporting JML annotation doc generation."
+end
+
+cluster_chart JML_WRITERS
+  indexing
+    author: "David R. Cok";
+  explanation "Writers supporting JML annotation doc generation."
+  class CLASS_WRITER_JML
+    description "Writes JML specifications associated with classes (e.g., invariant-like things)."
+  class CONSTRUCTOR_WRITER_JML
+    description "Writes JML specifications associated with (model) constructors."
+  class FIELD_WRITER_JML
+    description "Writes JML specifications associated with (model) fields."
+  class METHOD_WRITER_JML
+    description "Writes JML specifications associated with (model) methods."
+  class NESTED_CLASS_WRITER_JML
+    description "Writes JML specifications associated with nested (model) modules."
+  class WRITER_FACTORY_JML
+    description "A factory for JML writers."
+end
+
+class_chart OPENJMLDOC_MAIN
+  indexing
+    author: "David R. Cok";
+  explanation "This is the class containing the entry points for the jmldoc tool."
+  query
+    "What is the compilation context used for JML parsing?",
+    "What are the jmldoc-specific command-line arguments?"
+  command
+    "Execute the jmldoc tool with these command-line arguments.",
+    "Process these jmldoc-specific command-line arguments."
+end
+
+class_chart JML_START
+  indexing
+    author: "David R. Cok";
+  explanation "An alternate class to initiate the standard doclet. \
+             \ It simply provides additional usage information for \
+             \ the command-line options."
+  command
+    "What are jmldoc's switches and usage?"
+end
+
+class_chart JMLDOC_UTILS
+  indexing
+    author: "David R. Cok";
+  explanation "Utility functions on which jmldoc depends."
+  query
+    "Where and how are JML annotations defined?",
+    "What is the printable representation of this JML annotation?",
+    "Does the following method have interesting specifications?",
+    "What is the class symbol representing this class documentation?",
+    "What is the list of Java modules from which this class symbol \
+   \ subclasses or subtypes?",
+    "Should this symbol be listed as inherited from that class symbol?"
+  command
+    "Write a colored header for a given class document."
+end
+
+class_chart OUTPUT_CONFIGURATION_JML
+  indexing
+    author: "David R. Cok";
+  explanation "Configures the output for jmldoc based upon command-line options."
+  query
+    "What is this doclet's build date?",
+end
+
+class_chart SPECIFICATION_QUALITY_ANNOTATION
+  indexing
+    author: "Joseph Kiniry"
+  explanation "A Java annotation used to indicate the subjective \
+             \ quality of a JML specification.  These annotations \
+             \ are included in generated documentation and are stored \
+             \ in classfiles."
+  query
+    "What is the quality of this specification?",
+    "Who has contributed to this specification?",
+    "When was this specification last changed in a significant way?"
+  constraint
+    "Quality is one of `missing', `poor', `ok', `good', or `excellent'."
+end
+
+-- ===================================================================
+-- Static Diagrams
+-- ===================================================================
+
+static_diagram OPENJMLDOC_STRUCTURE
+  component
+    -- top-levels 
+    class OPENJMLDOC_MAIN
+    class OPENJML_MAIN
+    class JAVAC_MAIN
+    OPENJMLDOC_MAIN inherit OPENJML_MAIN
+    OPENJML_MAIN inherit JAVAC_MAIN 
+    -- doclets
+    class JML_START
+    class START
+    JML_START inherit START
+    -- writers
+    class CLASS_WRITER
+    class CLASS_WRITER_IMPL
+    class CLASS_WRITER_JML
+    CLASS_WRITER_JML inherit CLASS_WRITER_IMPL
+    CLASS_WRITER_IMPL inherit CLASS_WRITER
+    class FIELD_WRITER
+    class METHOD_WRITER
+    class CONSTRUCTOR_WRITER
+    class NESTED_CLASS_WRITER
+    -- factories
+    deferred class WRITER_FACTORY
+    class WRITER_FACTORY_IMPL
+    class WRITER_FACTORY_JML
+    -- configurations
+    deferred class OUTPUT_CONFIGURATION
+    class OUTPUT_CONFIGURATION_IMPL
+    class OUTPUT_CONFIGURATION_JML
+    OUTPUT_CONFIGURATION_JML inherit OUTPUT_CONFIGURATION_IMPL
+    OUTPUT_CONFIGURATION_IMPL inherit OUTPUT_CONFIGURATION
+    -- compilation contexts
+    class CONTEXT
+    OPENJMLDOC_MAIN client CONTEXT
+    -- doclets
+    class HTML_JML_DOCLET
+    class HTML_DOCLET
+    class ABSTRACT_DOCLET
+    HTML_JML_DOCLET inherit HTML_DOCLET
+    HTML_DOCLET inherit ABSTRACT_DOCLET
+end
+
+creation_chart OPENJMLDOC
+  indexing
+    author: "Joseph Kiniry";
+  explanation
+    "Ownership relations between classifiers in this system."
+end
+	 
+scenario_chart JOHNNY_CASH
+  indexing
+    author: "Joseph Kiniry";
+  explanation
+    "Mandatory scenarios for the OpenJML jmldoc tool."
+end
