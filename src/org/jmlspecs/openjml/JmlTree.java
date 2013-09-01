@@ -2510,7 +2510,7 @@ public class JmlTree implements IJmlTree {
         }
     }
 
-    public static class JmlLevelStatement extends JmlAbstractStatement {
+    public static class JmlLevelStatement extends JmlMethodClause {
         public JmlToken token;
         public JCIdent   level;
         

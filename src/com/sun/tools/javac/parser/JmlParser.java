@@ -486,6 +486,8 @@ public class JmlParser extends EndPosParser {
                 level = (JmlLevelStatement)s;
                 continue;
             } else if(s instanceof JmlVariableDecl){
+                // if additional decorators are needed here you should probably 
+                // test the level decorator. 
                 ((JmlVariableDecl)s).levelType = level;
                 level = null;
             } else {
@@ -1672,7 +1674,10 @@ public class JmlParser extends EndPosParser {
                 case WHEN:
                     res = parseExprClause();
                     break;
-
+                    
+                case LEVEL:
+                     res = parseLevelStatement();
+                     break;
                 case DECLASSIFY:
                     res = parseDeclassifyClause();
                     break;
