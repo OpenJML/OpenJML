@@ -12,12 +12,14 @@ import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
@@ -491,5 +493,17 @@ public class JmlFlow extends Flow implements IJmlVisitor {
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
         Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlModelProgramStatement");
+    }
+
+    @Override
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void visitJmlLevelStatement(JmlLevelStatement that) {
+        // TODO Auto-generated method stub
+        
     }
 }

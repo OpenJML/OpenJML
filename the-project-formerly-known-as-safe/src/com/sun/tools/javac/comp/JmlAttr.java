@@ -15,7 +15,6 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
-
 import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
@@ -40,12 +39,14 @@ import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -5316,6 +5317,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (checkInternal) throw new RCheckEx();
             }
         }
+    }
+
+    @Override
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void visitJmlLevelStatement(JmlLevelStatement that) {
+        // TODO Auto-generated method stub
+        
     }
 
 

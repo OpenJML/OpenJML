@@ -5,6 +5,8 @@
 package org.jmlspecs.openjml;
 
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
@@ -792,5 +794,17 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     public JCTree visitOther(Tree node, Void p) {
         return super.visitOther(node,p).setType(((JCTree)node).type);
+    }
+
+    @Override
+    public JCTree visitJmlDeclassifyClause(JmlDeclassifyClause that, Void p) {
+        JmlDeclassifyClause copy = M.at(that.pos).JmlDeclassifyClause(that.token, that.expression, that.policy);
+        return copy;    
+    }
+
+    @Override
+    public JCTree visitJmlLevelStatement(JmlLevelStatement that, Void p) {
+        JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
+        return copy;
     }
 }

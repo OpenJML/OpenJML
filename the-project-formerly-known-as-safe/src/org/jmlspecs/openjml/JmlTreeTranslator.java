@@ -8,6 +8,8 @@ package org.jmlspecs.openjml;
 
 import java.util.ArrayList;
 
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -499,5 +501,23 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.item = translate(that.item);
         result = r;
     }
+
+    @Override
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) {
+        // Since we aren't part of the normal JML flow we don't implement anything by default.
+        // If the security types became a normal part of JML, we could move the logic for that here.
+        // This would require (at a minimum) that the classes be extended to have a "type" parameter unique to security 
+        // typing.
+    }
+
+    @Override
+    public void visitJmlLevelStatement(JmlLevelStatement that) {
+        // Since we aren't part of the normal JML flow we don't implement anything by default.
+        // If the security types became a normal part of JML, we could move the logic for that here.
+        // This would require (at a minimum) that the classes be extended to have a "type" parameter unique to security 
+        // typing.
+    }
+
+    
 
 }

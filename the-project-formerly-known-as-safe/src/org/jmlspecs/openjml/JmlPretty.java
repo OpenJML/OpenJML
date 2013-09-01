@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -929,5 +930,37 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
         try { notImpl(that);  // FIXME
         } catch (IOException e) { perr(that,e); }
+    }
+
+    @Override
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) {
+        
+        try {
+            print(that.token);
+            that.expression.accept(this);
+            print(JmlToken.USINGPOLICY);
+            that.policy.accept(this);
+            print("; ");
+        } catch(IOException e){
+            perr(that,e);
+        }
+        
+    }
+
+    @Override
+    public void visitJmlLevelStatement(JmlLevelStatement that) {
+        
+        try {
+            
+            print(JmlToken.LEVEL);
+            print(Token.LPAREN);
+            print(that.level);
+            print(Token.RPAREN);
+            
+        }catch(IOException e){
+            perr(that,e);
+        }
+        
+        
     }
 }

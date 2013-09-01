@@ -65,5 +65,8 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) ;
     public void visitJmlVariableDecl(JmlVariableDecl that)         ;
     public void visitJmlWhileLoop(JmlWhileLoop that)               ;
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) ;
+    public void visitJmlLevelStatement(JmlLevelStatement that)     ;
+
 
 }

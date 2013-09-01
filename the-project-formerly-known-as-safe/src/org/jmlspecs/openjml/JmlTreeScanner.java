@@ -6,6 +6,8 @@ package org.jmlspecs.openjml;
 
 import java.util.Iterator;
 
+import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -333,6 +335,17 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public void visitJmlWhileLoop(JmlWhileLoop that) {
         scan(that.loopSpecs);
         visitWhileLoop(that);
+    }
+
+    @Override
+    public void visitJmlDeclassifyClause(JmlDeclassifyClause that) {
+        scan(that.expression);
+        scan(that.policy);
+    }
+
+    @Override
+    public void visitJmlLevelStatement(JmlLevelStatement that) {
+        scan(that.level);
     }
     
 }

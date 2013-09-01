@@ -97,9 +97,12 @@ public enum JmlToken {
     // These are the method clause types
     REQUIRES("requires"),   // Keep this one first
     ENSURES("ensures"),
+    
     // needed for information flow
     DECLASSIFY("declassify"),
     USINGPOLICY("usingPolicy"),
+    CHANNEL("channel"),
+    LEVEL("level"),
     
     SIGNALS("signals"),
     SIGNALS_ONLY("signals_only"),
@@ -193,6 +196,8 @@ public enum JmlToken {
     BSTYPEUC("\\TYPE"),
     BSREAL("\\real"),
     BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
+    
+    
     
     // These are JML operators (in expressions)
     EQUIVALENCE("<==>"),
