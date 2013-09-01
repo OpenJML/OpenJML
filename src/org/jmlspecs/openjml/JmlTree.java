@@ -93,6 +93,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
         JmlDeclassifyClause JmlDeclassifyClause(JmlToken t, JCTree.JCExpression e, JCTree.JCMethodInvocation p);
+        JmlLevelStatement JmlLevelStatement(JmlToken t, JCIdent level);
 
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
@@ -618,6 +619,10 @@ public class JmlTree implements IJmlTree {
             return new JmlDeclassifyClause(pos,t,e, policy);
         }
         
+        @Override
+        public JmlLevelStatement JmlLevelStatement(JmlToken t, JCIdent level) {
+            return new JmlLevelStatement(pos, level);
+        }
         
         @Override
         public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
@@ -753,7 +758,9 @@ public class JmlTree implements IJmlTree {
     public static final int JMLSTOREREFIDENT = JMLSTOREREFLISTEXPR + 1;
     public static final int JMLSTOREREFFIELD = JMLSTOREREFIDENT + 1;
     public static final int JMLSTOREREFARRAYRANGE = JMLSTOREREFFIELD + 1;
-    public static final int JMLLASTTAG = JMLSTOREREFARRAYRANGE;
+    public static final int JMLDECLASSIFYCLAUSE = JMLSTOREREFARRAYRANGE + 1;
+    public static final int JMLLEVELSTATEMENT   = JMLDECLASSIFYCLAUSE + 1;
+    public static final int JMLLASTTAG = JMLLEVELSTATEMENT;
 
     /** The system-defined end of line character string */
     static public final String eol = System.getProperty("line.separator");
@@ -1110,6 +1117,9 @@ public class JmlTree implements IJmlTree {
         public JmlSpecs.FieldSpecs fieldSpecs;
         public JmlSpecs.FieldSpecs fieldSpecsCombined;
         public JavaFileObject sourcefile;
+        //
+        public JmlLevelStatement levelType;
+        
         public String docComment = null; // FIXME - why?
         
         /** A fixed ident used in ESC */
@@ -1840,7 +1850,6 @@ public class JmlTree implements IJmlTree {
         public JCTree.JCExpression expression;
         public JCTree.JCMethodInvocation policy;
 
-        /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlDeclassifyClause(int pos, JmlToken token, JCTree.JCExpression expression, JCTree.JCMethodInvocation policy) {
             this.pos = pos;
             this.token = token;
@@ -1850,34 +1859,34 @@ public class JmlTree implements IJmlTree {
 
         @Override
         public int getTag() {
-            return JMLMETHODCLAUSEEXPR;
+            return JMLDECLASSIFYCLAUSE;
         }
         
         @Override
         public Kind getKind() { 
             return Kind.OTHER; // See note above
         }
-//        
-//        @Override
-//        public void accept(Visitor v) {
-//            if (v instanceof IJmlVisitor) {
-//                ((IJmlVisitor)v).visitJmlMethodClauseExpr(this); 
-//            } else {
-//                //System.out.println("A JmlMethodClauseExpr expects an IJmlVisitor, not a " + v.getClass());
-//                super.accept(v);
-//            }
-//        }
-//
-//        @Override
-//        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-//            if (v instanceof JmlTreeVisitor) {
-//                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseExpr(this, d);
-//            } else {
-//                System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
-//                return super.accept(v,d);
-//            }
-//        }
-//        
+        
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlDeclassifyClause(this); 
+            } else {
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlDeclassifyClause(this, d);
+            } else {
+                //TODO -- do we need these?
+                System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+        
     }
     
     
@@ -2501,6 +2510,50 @@ public class JmlTree implements IJmlTree {
         }
     }
 
+    public static class JmlLevelStatement extends JmlAbstractStatement {
+        public JmlToken token;
+        public JCIdent   level;
+        
+        protected JmlLevelStatement(int pos, JCIdent level){
+            this.pos = pos;
+            this.token = JmlToken.LEVEL;
+            this.level = level;
+        }
+        
+        @Override
+        public int getTag() {
+            return JMLLEVELSTATEMENT;
+        }
+        
+        @Override
+        public Kind getKind() { 
+            return Kind.OTHER; // See note above
+        }
+    
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlLevelStatement(this); 
+            } else {
+                super.accept(v);            
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlLevelStatement(this, d);
+            } else {
+                //TODO -- do we need these?
+                System.out.println("A JmlLevelStatement expects an JmlTreeVisitor, not a " + v.getClass());
+                return super.accept(v,d);
+            }
+        }
+
+        
+        
+    }
+    
     /** This class represents JML ghost declarations and model local class
      * declarations (FIXME _ local class?)
      */

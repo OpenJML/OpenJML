@@ -776,4 +776,16 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     public JCTree visitOther(Tree node, Void p) {
         return super.visitOther(node,p);
     }
+    
+    @Override
+    public JCTree visitJmlDeclassifyClause(JmlDeclassifyClause that, Void p) {
+        JmlDeclassifyClause copy = M.at(that.pos).JmlDeclassifyClause(that.token, that.expression, that.policy);
+        return copy;    
+    }
+
+    @Override
+    public JCTree visitJmlLevelStatement(JmlLevelStatement that, Void p) {
+        JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
+        return copy;
+    }
 }

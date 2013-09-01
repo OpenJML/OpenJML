@@ -4,14 +4,69 @@
  */
 package com.sun.tools.javac.parser;
 
-import static com.sun.tools.javac.parser.Token.*;
+import static com.sun.tools.javac.parser.Token.BAR;
+import static com.sun.tools.javac.parser.Token.COMMA;
+import static com.sun.tools.javac.parser.Token.CUSTOM;
+import static com.sun.tools.javac.parser.Token.DOT;
+import static com.sun.tools.javac.parser.Token.EOF;
+import static com.sun.tools.javac.parser.Token.ERROR;
+import static com.sun.tools.javac.parser.Token.IDENTIFIER;
+import static com.sun.tools.javac.parser.Token.IMPORT;
+import static com.sun.tools.javac.parser.Token.INSTANCEOF;
+import static com.sun.tools.javac.parser.Token.LBRACE;
+import static com.sun.tools.javac.parser.Token.LBRACKET;
+import static com.sun.tools.javac.parser.Token.LPAREN;
+import static com.sun.tools.javac.parser.Token.LT;
+import static com.sun.tools.javac.parser.Token.QUES;
+import static com.sun.tools.javac.parser.Token.RBRACE;
+import static com.sun.tools.javac.parser.Token.RPAREN;
+import static com.sun.tools.javac.parser.Token.SEMI;
+import static com.sun.tools.javac.parser.Token.STAR;
 import static com.sun.tools.javac.util.ListBuffer.lb;
-import static org.jmlspecs.openjml.JmlToken.*;
+import static org.jmlspecs.openjml.JmlToken.ALSO;
+import static org.jmlspecs.openjml.JmlToken.AXIOM;
+import static org.jmlspecs.openjml.JmlToken.BSEVERYTHING;
+import static org.jmlspecs.openjml.JmlToken.BSMAX;
+import static org.jmlspecs.openjml.JmlToken.BSNOTHING;
+import static org.jmlspecs.openjml.JmlToken.BSNOTSPECIFIED;
+import static org.jmlspecs.openjml.JmlToken.BSREACH;
+import static org.jmlspecs.openjml.JmlToken.CONSTRAINT;
+import static org.jmlspecs.openjml.JmlToken.CONSTRUCTOR;
+import static org.jmlspecs.openjml.JmlToken.DECREASES;
+import static org.jmlspecs.openjml.JmlToken.DOT_DOT;
+import static org.jmlspecs.openjml.JmlToken.ENDJMLCOMMENT;
+import static org.jmlspecs.openjml.JmlToken.FIELD;
+import static org.jmlspecs.openjml.JmlToken.HENCE_BY;
+import static org.jmlspecs.openjml.JmlToken.IN;
+import static org.jmlspecs.openjml.JmlToken.INFORMAL_COMMENT;
+import static org.jmlspecs.openjml.JmlToken.INITIALIZER;
+import static org.jmlspecs.openjml.JmlToken.INITIALLY;
+import static org.jmlspecs.openjml.JmlToken.INVARIANT;
+import static org.jmlspecs.openjml.JmlToken.LOOP_INVARIANT;
+import static org.jmlspecs.openjml.JmlToken.MAPS;
+import static org.jmlspecs.openjml.JmlToken.METHOD;
+import static org.jmlspecs.openjml.JmlToken.MODEL_PROGRAM;
+import static org.jmlspecs.openjml.JmlToken.MONITORS_FOR;
+import static org.jmlspecs.openjml.JmlToken.REACHABLE;
+import static org.jmlspecs.openjml.JmlToken.READABLE;
+import static org.jmlspecs.openjml.JmlToken.REPRESENTS;
+import static org.jmlspecs.openjml.JmlToken.SPEC_GROUP_END;
+import static org.jmlspecs.openjml.JmlToken.SPEC_GROUP_START;
+import static org.jmlspecs.openjml.JmlToken.STATIC_INITIALIZER;
+import static org.jmlspecs.openjml.JmlToken.UNREACHABLE;
+import static org.jmlspecs.openjml.JmlToken.WRITABLE;
+import static org.jmlspecs.openjml.JmlToken.methodClauseTokens;
+import static org.jmlspecs.openjml.JmlToken.specCaseTokens;
 
 import java.io.PrintStream;
 import java.util.Iterator;
 
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.Extensions;
+import org.jmlspecs.openjml.JmlInternalError;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -22,7 +77,7 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -53,14 +108,27 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
+import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.main.OptionName;
-import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCErroneous;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -309,6 +377,7 @@ public class JmlParser extends EndPosParser {
      */
     @Override
     public List<JCStatement> blockStatements() {
+
         ListBuffer<JCStatement> list = new ListBuffer<JCStatement>();
         int pos = -1;
         JCModifiers mods = null;
@@ -394,6 +463,7 @@ public class JmlParser extends EndPosParser {
         // Run through the list to combine any loop statements
         ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
         ListBuffer<JmlStatementLoop> loops = new ListBuffer<JmlStatementLoop>();
+        JmlLevelStatement level = null;
         int endPos = -1;
         for (JCStatement s : list) {
             if (s instanceof JmlStatementLoop) {
@@ -412,15 +482,32 @@ public class JmlParser extends EndPosParser {
             } else if (s instanceof JmlDoWhileLoop) {
                 ((JmlDoWhileLoop) s).loopSpecs = loops.toList();
                 loops = new ListBuffer<JmlStatementLoop>();
+            } else if(s instanceof JmlLevelStatement){
+                level = (JmlLevelStatement)s;
+                continue;
+            } else if(s instanceof JmlVariableDecl){
+                ((JmlVariableDecl)s).levelType = level;
+                level = null;
             } else {
+            
                 if (loops.size() != 0) {
                     jmlerror(getStartPos(loops.first()), loops.first().pos,
                             endPos, "jml.loop.spec.misplaced");
                     loops = new ListBuffer<JmlStatementLoop>();
                 }
             }
+            
+            // make sure that any level specification had an associated variable declaration 
+            if(level!=null){
+                jmlerror(getStartPos(level), level.pos, endPos,
+                        "jml.level.misplaced"); 
+            }
+            
             newlist.append(s);
         }
+        
+        
+        
         if (loops.size() != 0) {
             jmlerror(getStartPos(loops.first()), loops.first().pos, endPos,
                     "jml.loop.spec.misplaced");
@@ -431,6 +518,8 @@ public class JmlParser extends EndPosParser {
     /** Overridden to parse JML statements */
     @Override
     public JCStatement parseStatement() {
+        
+        
         JCStatement st;
         String reason = null;
         if (S.token() == Token.CUSTOM) { // Note that declarations may start
@@ -524,6 +613,12 @@ public class JmlParser extends EndPosParser {
                     S.setJmlKeyword(true); // This comes a token too late.
                     needSemi = false;
 
+                } else if(jtoken == JmlToken.LEVEL){     
+                    // this has to happen BEFORE methodClauseTokens.contains to catch block level statements. 
+                    st = parseLevelStatement();
+                    needSemi = false;
+                    S.setJmlKeyword(true);
+                    
                 } else if (methodClauseTokens.contains(jtoken)) {
                     // TODO - if strict JML, requires a REFINING token first
                     JCModifiers mods = jmlF.Modifiers(0);
@@ -628,9 +723,11 @@ public class JmlParser extends EndPosParser {
 
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlToken t) {
-        return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT
+        return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT 
                 || t == JmlToken.BSREAL;
     }
+    
+
 
     /** Parses a choose statement (the choose token is already read) */
     public JmlChoose parseChoose() {
@@ -1579,7 +1676,7 @@ public class JmlParser extends EndPosParser {
                 case DECLASSIFY:
                     res = parseDeclassifyClause();
                     break;
-                    
+
                 case SIGNALS: // signals (Exception e) parseExpression ;
                     res = parseSignals();
                     break;
@@ -1688,6 +1785,87 @@ public class JmlParser extends EndPosParser {
         return toP(cl);
     }
     
+    
+   
+    /**
+     * Parses a level statement. The level statement is a statement that may be applied to 
+     * declarations, formal parameters, and function signatures. The statements are of the form: 
+     * 
+     * level(<level>)
+     * 
+     * level - is a free form string identifier. Case does not matter. 
+     * 
+     * @return the parsed JmlLevelStatement
+     */
+    public JmlLevelStatement parseLevelStatement(){
+        
+        JmlToken jt = S.jmlToken();
+        JCIdent levelIdentifier = null;
+        int pos = S.pos();
+
+        S.nextToken();
+        S.setJmlKeyword(true);
+        
+        if(S.token()!=Token.LPAREN){
+            syntaxError(S.pos()-1, null, "jml.level.missing.lparen");
+            return null;            
+        }
+
+        S.nextToken();
+        
+        if(S.token()!=Token.IDENTIFIER){
+            syntaxError(S.pos()-1, null, "jml.level.missing.identifier");
+            return null;    
+        }
+
+        JCExpression ex = term();
+        
+        if(ex instanceof JCIdent == false){
+            syntaxError(S.pos()-1, null, "jml.level.missing.identifier");
+            return null;   
+            
+        }else{
+            levelIdentifier = (JCIdent)ex;
+        }
+        
+        if(S.token()!=Token.RPAREN){
+            syntaxError(S.pos()-1, null, "jml.level.missing.rparen");
+            return null;            
+        }
+
+        JmlLevelStatement cl = jmlF.at(pos).JmlLevelStatement(jt,levelIdentifier);
+        
+        S.nextToken();
+        
+        return cl;
+    }
+
+    public JmlDeclassifyClause parseChannelClause(){
+        
+        JmlToken jt = S.jmlToken();
+        Token levelIdentifier;
+        int pos = S.pos();
+
+        S.nextToken();
+        S.setJmlKeyword(true);
+        
+        if(S.token()!=Token.LPAREN){
+            syntaxError(S.pos()-1, null, "jml.declassify.missing.where.expression");
+            return null;            
+        }
+
+        S.nextToken();
+        
+        if(S.token()!=Token.IDENTIFIER){
+            
+        }
+        
+        levelIdentifier = S.token();
+        
+        
+        return null;
+    }
+
 
     /**
      * Parses a declassification clause. The declassify clause is 
@@ -1701,7 +1879,7 @@ public class JmlParser extends EndPosParser {
      * @return the parsed JmlMethodClauseExpr
      */
     public JmlDeclassifyClause parseDeclassifyClause() {
-        
+                
         // Used to construct the JmlDeclassifyClause
         JCExpression e;
         JCExpression policy;
