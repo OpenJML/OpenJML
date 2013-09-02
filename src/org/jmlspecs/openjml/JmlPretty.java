@@ -963,4 +963,23 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         
         
     }
+    
+    @Override
+    public void visitJmlChannelStatement(JmlChannelStatement that) {
+        
+        try {
+            
+            print(JmlToken.CHANNEL);
+            print(Token.LPAREN);
+            print(that.level);
+            print(Token.RPAREN);
+            
+        }catch(IOException e){
+            perr(that,e);
+        }
+        
+        
+    }
+    
+    
 }

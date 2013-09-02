@@ -20,6 +20,8 @@ import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
+import org.jmlspecs.openjml.JmlTree.JmlChannelStatement;
+
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
@@ -506,4 +508,10 @@ public class JmlFlow extends Flow implements IJmlVisitor {
         // TODO Auto-generated method stub
         
     }
+    @Override
+    public void visitJmlChannelStatement(JmlChannelStatement that) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

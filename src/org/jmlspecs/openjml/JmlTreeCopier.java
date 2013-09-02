@@ -807,4 +807,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
         return copy;
     }
+    
+    @Override
+    public JCTree visitJmlChannelStatement(JmlChannelStatement that, Void p) {
+        JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
+        return copy;
+    }
 }
