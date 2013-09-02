@@ -8,6 +8,7 @@ import static com.sun.tools.javac.parser.Token.BAR;
 import static com.sun.tools.javac.parser.Token.COMMA;
 import static com.sun.tools.javac.parser.Token.CUSTOM;
 import static com.sun.tools.javac.parser.Token.DOT;
+import static com.sun.tools.javac.parser.Token.ELLIPSIS;
 import static com.sun.tools.javac.parser.Token.EOF;
 import static com.sun.tools.javac.parser.Token.ERROR;
 import static com.sun.tools.javac.parser.Token.IDENTIFIER;
@@ -2350,7 +2351,66 @@ public class JmlParser extends EndPosParser {
         }
         return t;
     }
+    
+    /**
+     * formalParameters is overridden here because the security types may be specified 
+     * in method signatures and we need to be able to parse them here.
+     */
 
+    /** FormalParameters = "(" [ FormalParameterList ] ")"
+     *  FormalParameterList = [ FormalParameterListNovarargs , ] LastFormalParameter
+     *  FormalParameterListNovarargs = [ FormalParameterListNovarargs , ] FormalParameter
+     */
+    @Override
+    List<JCVariableDecl> formalParameters() {
+        ListBuffer<JCVariableDecl> params = new ListBuffer<JCVariableDecl>();
+        JmlVariableDecl lastParam = null;
+        
+        JCVariableDecl lastParamTmp = null;
+        JmlLevelStatement level = null;
+        accept(LPAREN);
+        if (S.token() != RPAREN) {
+
+            if(S.jmlToken()==JmlToken.LEVEL){
+                level = parseLevelStatement();
+            }
+            
+            // get the parameter
+            lastParamTmp = formalParameter();
+            // convert it to a jml type
+            
+            lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
+            
+            if(level!=null){
+                lastParam.levelType = level;
+                level = null;
+            }
+            
+            params.append(lastParam);
+            while ((lastParam.mods.flags & Flags.VARARGS) == 0 && S.token() == COMMA) {
+                S.nextToken();
+                
+                if(S.jmlToken()==JmlToken.LEVEL){
+                    level = parseLevelStatement();
+                }
+                
+                // get the parameter
+                lastParamTmp = formalParameter();
+                // convert it to a jml type
+                
+                lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
+                
+                if(level!=null){
+                    lastParam.levelType = level;
+                    level = null;
+                }
+                params.append(lastParam);
+            }
+        }
+        accept(RPAREN);
+        return params.toList();
+    }
+    
     protected JCModifiers pushBackModifiers = null;
 
     /**
@@ -2791,7 +2851,7 @@ public class JmlParser extends EndPosParser {
                 default:
                     jmlerror(p, S.endPos(), "jml.bad.type.expression",
                             "( token " + jt.internedName()
-                                    + " in JmlParser.term3())");
+                                    + " in JmlParser.term3() )");
                     return toP(jmlF.at(p).Erroneous());
             }
         }
