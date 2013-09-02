@@ -347,5 +347,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     public void visitJmlLevelStatement(JmlLevelStatement that) {
         scan(that.level);
     }
+
+    @Override
+    public void visitJmlChannelStatement(JmlChannelStatement that) {
+        scan(that.level);
+    }
     
 }

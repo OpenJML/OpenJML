@@ -79,6 +79,8 @@ import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
+import org.jmlspecs.openjml.JmlTree.JmlChannelStatement;
+
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -1675,10 +1677,17 @@ public class JmlParser extends EndPosParser {
                 case WHEN:
                     res = parseExprClause();
                     break;
+
+                // Statements from the SAFE project.
                     
                 case LEVEL:
                      res = parseLevelStatement();
                      break;
+
+                case CHANNEL:
+                    res = parseChannelStatement();
+                    break;
+
                 case DECLASSIFY:
                     res = parseDeclassifyClause();
                     break;
@@ -1846,30 +1855,47 @@ public class JmlParser extends EndPosParser {
         return cl;
     }
 
-    public JmlDeclassifyClause parseChannelClause(){
+    public JmlChannelStatement parseChannelStatement(){
         
         JmlToken jt = S.jmlToken();
-        Token levelIdentifier;
+        JCIdent levelIdentifier = null;
         int pos = S.pos();
 
         S.nextToken();
         S.setJmlKeyword(true);
         
         if(S.token()!=Token.LPAREN){
-            syntaxError(S.pos()-1, null, "jml.declassify.missing.where.expression");
+            syntaxError(S.pos()-1, null, "jml.channel.missing.lparen");
             return null;            
         }
 
         S.nextToken();
         
         if(S.token()!=Token.IDENTIFIER){
+            syntaxError(S.pos()-1, null, "jml.channel.missing.identifier");
+            return null;    
+        }
+
+        JCExpression ex = term();
+        
+        if(ex instanceof JCIdent == false){
+            syntaxError(S.pos()-1, null, "jml.channel.missing.identifier");
+            return null;   
             
+        }else{
+            levelIdentifier = (JCIdent)ex;
         }
         
-        levelIdentifier = S.token();
+        if(S.token()!=Token.RPAREN){
+            syntaxError(S.pos()-1, null, "jml.missing.channel.rparen");
+            return null;            
+        }
+
+        JmlChannelStatement cl = jmlF.at(pos).JmlChannelStatement(jt,levelIdentifier);
         
+        S.nextToken();
         
-        return null;
+        return cl;
     }
 
 
@@ -2373,12 +2399,15 @@ public class JmlParser extends EndPosParser {
 
             if(S.jmlToken()==JmlToken.LEVEL){
                 level = parseLevelStatement();
+            }else if(S.jmlToken()==JmlToken.CHANNEL){
+                level = parseChannelStatement();
             }
+            
             
             // get the parameter
             lastParamTmp = formalParameter();
+
             // convert it to a jml type
-            
             lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
             
             if(level!=null){
@@ -2392,12 +2421,14 @@ public class JmlParser extends EndPosParser {
                 
                 if(S.jmlToken()==JmlToken.LEVEL){
                     level = parseLevelStatement();
+                }else if(S.jmlToken()==JmlToken.CHANNEL){
+                    level = parseChannelStatement();
                 }
                 
                 // get the parameter
                 lastParamTmp = formalParameter();
+
                 // convert it to a jml type
-                
                 lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
                 
                 if(level!=null){

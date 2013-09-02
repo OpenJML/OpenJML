@@ -788,4 +788,11 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
         return copy;
     }
+
+    @Override
+    public JCTree visitJmlChannelStatement(JmlChannelStatement that, Void p) {
+        JmlChannelStatement copy = M.at(that.pos).JmlChannelStatement(that.token, that.level);
+        return copy;
+    }
+
 }
