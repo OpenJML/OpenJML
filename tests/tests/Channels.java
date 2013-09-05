@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
-public class Channel extends TCBase {
+public class Channels extends TCBase {
 
     String eol = "\n";  
     
@@ -36,10 +36,14 @@ public class Channel extends TCBase {
     }
     
     // we don't allow this.
-//    @Test
-//    public void testOnLocalVariable() throws IOException{
-//        helpTCF("A.java", caseFromStub("testNormalCaseSingleLine"));
-//    }
+    @Test
+    public void testOnLocalVariable() throws IOException{
+        
+        helpTCF("A.java", caseFromStub("testOnLocalVariable"),
+                "/A.java:4: A channel assignment may only be used in the formal parameters to a method or as a function return type",
+                21);
+        
+    }
     
     
 }
