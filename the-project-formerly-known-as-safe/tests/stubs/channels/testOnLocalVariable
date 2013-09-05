@@ -1,7 +1,7 @@
 public class A {
 
 	public void foo(){
-		int /* channel(UI) */ a = 34;
+		/*@ channel(UI) */ int  a = 34;
 	}
 
 }
