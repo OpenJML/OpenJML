@@ -40,7 +40,7 @@ public class Declassify extends TCBase {
     @Test
     public void testMissingPolicyName() throws IOException{
         helpTCF("A.java", caseFromStub("testMissingPolicyName"),
-                "/A.java:2: The type or expression near here is invalid (or not implemented): ( token <JMLEND> in JmlParser.term3())",
+                "/A.java:2: The type or expression near here is invalid (or not implemented): ( token <JMLEND> in JmlParser.term3() )",
                 70,
                 "/A.java:2: Missing a policy expression within a declassification clause (hint: myPolicy(arg1, arg2))",
                 69);
