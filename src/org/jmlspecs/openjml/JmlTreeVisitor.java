@@ -72,7 +72,5 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
     R visitJmlWhileLoop(JmlWhileLoop that, P p)               ;
     R visitJmlDeclassifyClause(JmlDeclassifyClause that, P p)               ;
-    R visitJmlLevelStatement(JmlLevelStatement that, P p)               ;
-    R visitJmlChannelStatement(JmlChannelStatement that, P p)               ;
 
 }

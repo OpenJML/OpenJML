@@ -6,7 +6,6 @@ package org.jmlspecs.openjml;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.JmlDeclassifyClause;
-import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
@@ -802,15 +801,5 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;    
     }
 
-    @Override
-    public JCTree visitJmlLevelStatement(JmlLevelStatement that, Void p) {
-        JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
-        return copy;
-    }
-    
-    @Override
-    public JCTree visitJmlChannelStatement(JmlChannelStatement that, Void p) {
-        JmlLevelStatement copy = M.at(that.pos).JmlLevelStatement(that.token, that.level);
-        return copy;
-    }
+   
 }

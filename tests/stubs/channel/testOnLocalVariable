@@ -1,0 +1,7 @@
+public class A {
+
+	public void foo(){
+		int /* channel(UI) */ a = 34;
+	}
+
+}

@@ -93,9 +93,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
         JmlDeclassifyClause JmlDeclassifyClause(JmlToken t, JCTree.JCExpression e, JCTree.JCMethodInvocation p);
-        JmlLevelStatement JmlLevelStatement(JmlToken t, JCIdent level);
-        JmlLevelStatement JmlChannelStatement(JmlToken t, JCIdent level);
-
+        
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression predicate);
@@ -620,15 +618,7 @@ public class JmlTree implements IJmlTree {
             return new JmlDeclassifyClause(pos,t,e, policy);
         }
         
-        @Override
-        public JmlLevelStatement JmlLevelStatement(JmlToken t, JCIdent level) {
-            return new JmlLevelStatement(pos, level);
-        }
-
-        @Override
-        public JmlChannelStatement JmlChannelStatement(JmlToken t, JCIdent level) {
-            return new JmlChannelStatement(pos, level);
-        }
+        
         
         @Override
         public JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword) {
@@ -1124,8 +1114,6 @@ public class JmlTree implements IJmlTree {
         public JmlSpecs.FieldSpecs fieldSpecs;
         public JmlSpecs.FieldSpecs fieldSpecsCombined;
         public JavaFileObject sourcefile;
-        //
-        public JmlLevelStatement levelType;
         
         public String docComment = null; // FIXME - why?
         
@@ -2517,91 +2505,8 @@ public class JmlTree implements IJmlTree {
         }
     }
 
-    /**
-     * There is essentially no difference between ChannelStatements and LevelStatements. We just
-     * include a subclass here to make it easier to decide if we can resolve this type.
-     */
-    public static class JmlChannelStatement extends JmlLevelStatement {
-        protected JmlChannelStatement(int pos, JCIdent level){
-            super(pos, level);
-        }
-        
-        @Override
-        public int getTag() {
-            return JMLCHANNELSTATEMENT;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
-        public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlChannelStatement(this); 
-            } else {
-                super.accept(v);            
-            }
-        }
-
-        @Override
-        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlChannelStatement(this, d);
-            } else {
-                //TODO -- do we need these?
-                System.out.println("A JmlLevelStatement expects an JmlTreeVisitor, not a " + v.getClass());
-                return super.accept(v,d);
-            }
-        }
-
-    }
-    
-    public static class JmlLevelStatement extends JmlMethodClause {
-        public JmlToken token;
-        public JCIdent   level;
-        
-        protected JmlLevelStatement(int pos, JCIdent level){
-            this.pos = pos;
-            this.token = JmlToken.LEVEL;
-            this.level = level;
-        }
-        
-        @Override
-        public int getTag() {
-            return JMLLEVELSTATEMENT;
-        }
-        
-        @Override
-        public Kind getKind() { 
-            return Kind.OTHER; // See note above
-        }
-    
-        @Override
-        public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlLevelStatement(this); 
-            } else {
-                super.accept(v);            
-            }
-        }
-
-        @Override
-        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlLevelStatement(this, d);
-            } else {
-                //TODO -- do we need these?
-                System.out.println("A JmlLevelStatement expects an JmlTreeVisitor, not a " + v.getClass());
-                return super.accept(v,d);
-            }
-        }
-
         
         
-    }
-    
     /** This class represents JML ghost declarations and model local class
      * declarations (FIXME _ local class?)
      */

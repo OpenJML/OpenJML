@@ -63,6 +63,8 @@ public enum JmlToken {
     CODE_BIGINT_MATH("code_bigint_math"), // Keep this one the last of the standard modifiers (see the modifiers Map below)
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+    CHANNEL("channel", org.jmlspecs.annotation.Channel.class),
+    LEVEL("level", org.jmlspecs.annotation.Level.class),
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
@@ -101,8 +103,6 @@ public enum JmlToken {
     // needed for information flow
     DECLASSIFY("declassify"),
     USINGPOLICY("usingPolicy"),
-    CHANNEL("channel"),
-    LEVEL("level"),
     
     SIGNALS("signals"),
     SIGNALS_ONLY("signals_only"),
@@ -268,7 +268,7 @@ public enum JmlToken {
     }
     
     /** This is a set of the modifiers that may be used to characterize a type. */
-    public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY};
+    public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY,CHANNEL,LEVEL};
     
     /** This is a set of all of the tokens that begin method specification clauses,
      * defined so that it is quick and easy to test for a given token.

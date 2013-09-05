@@ -78,9 +78,6 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLevelStatement;
-import org.jmlspecs.openjml.JmlTree.JmlChannelStatement;
-
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -125,6 +122,7 @@ import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
@@ -466,7 +464,6 @@ public class JmlParser extends EndPosParser {
         // Run through the list to combine any loop statements
         ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
         ListBuffer<JmlStatementLoop> loops = new ListBuffer<JmlStatementLoop>();
-        JmlLevelStatement level = null;
         int endPos = -1;
         for (JCStatement s : list) {
             if (s instanceof JmlStatementLoop) {
@@ -485,14 +482,6 @@ public class JmlParser extends EndPosParser {
             } else if (s instanceof JmlDoWhileLoop) {
                 ((JmlDoWhileLoop) s).loopSpecs = loops.toList();
                 loops = new ListBuffer<JmlStatementLoop>();
-            } else if(s instanceof JmlLevelStatement){
-                level = (JmlLevelStatement)s;
-                continue;
-            } else if(s instanceof JmlVariableDecl){
-                // if additional decorators are needed here you should probably 
-                // test the level decorator. 
-                ((JmlVariableDecl)s).levelType = level;
-                level = null;
             } else {
             
                 if (loops.size() != 0) {
@@ -501,13 +490,7 @@ public class JmlParser extends EndPosParser {
                     loops = new ListBuffer<JmlStatementLoop>();
                 }
             }
-            
-            // make sure that any level specification had an associated variable declaration 
-            if(level!=null){
-                jmlerror(getStartPos(level), level.pos, endPos,
-                        "jml.level.misplaced"); 
-            }
-            
+                      
             newlist.append(s);
         }
         
@@ -618,13 +601,7 @@ public class JmlParser extends EndPosParser {
                     S.setJmlKeyword(true); // This comes a token too late.
                     needSemi = false;
 
-                } else if(jtoken == JmlToken.LEVEL){     
-                    // this has to happen BEFORE methodClauseTokens.contains to catch block level statements. 
-                    st = parseLevelStatement();
-                    needSemi = false;
-                    S.setJmlKeyword(true);
-                    
-                } else if (methodClauseTokens.contains(jtoken)) {
+                }  else if (methodClauseTokens.contains(jtoken)) {
                     // TODO - if strict JML, requires a REFINING token first
                     JCModifiers mods = jmlF.Modifiers(0);
                     JmlMethodSpecs specs = parseMethodSpecs(mods);
@@ -1678,16 +1655,6 @@ public class JmlParser extends EndPosParser {
                     res = parseExprClause();
                     break;
 
-                // Statements from the SAFE project.
-                    
-                case LEVEL:
-                     res = parseLevelStatement();
-                     break;
-
-                case CHANNEL:
-                    res = parseChannelStatement();
-                    break;
-
                 case DECLASSIFY:
                     res = parseDeclassifyClause();
                     break;
@@ -1802,17 +1769,25 @@ public class JmlParser extends EndPosParser {
     
     
    
+   
+   
     /**
-     * Parses a level statement. The level statement is a statement that may be applied to 
-     * declarations, formal parameters, and function signatures. The statements are of the form: 
+     * Parses a level or channel modifier. The level modifier may be applied to 
+     * declarations, formal parameters, and function signatures. Channels may only appear in formal parameters. 
+     * The statements are of the form: 
      * 
      * level(<level>)
+     * channel(<channel>)
      * 
-     * level - is a free form string identifier. Case does not matter. 
+     * <level> := LITERAL | "LITERAL"
+     * <channel> := LITERAL | "LITERAL"
+     * 
+     * level - is a free form string identifier. Case does not matter. Quotes are optional. 
+     * channel - is a free form string identifier. Case does not matter. Quotes are optional.
      * 
      * @return the parsed JmlLevelStatement
      */
-    public JmlLevelStatement parseLevelStatement(){
+    public JCLiteral parseLevelOrChannelName(){
         
         JmlToken jt = S.jmlToken();
         JCIdent levelIdentifier = null;
@@ -1828,11 +1803,18 @@ public class JmlParser extends EndPosParser {
 
         S.nextToken();
         
+        
+        // we can bail out here if the user is using the quoted style.
+        if(S.token()==Token.STRINGLITERAL){ 
+            return (JCLiteral)literal(null);
+        }
+        
         if(S.token()!=Token.IDENTIFIER){
             syntaxError(S.pos()-1, null, "jml.level.missing.identifier");
             return null;    
         }
-
+        
+        
         JCExpression ex = term();
         
         if(ex instanceof JCIdent == false){
@@ -1848,55 +1830,23 @@ public class JmlParser extends EndPosParser {
             return null;            
         }
 
-        JmlLevelStatement cl = jmlF.at(pos).JmlLevelStatement(jt,levelIdentifier);
+        // we do a little slight of hand here
+        // to convert this to a usable literal, since the symbol we are using won't be 
+        // defined anywhere.
         
-        S.nextToken();
+        JCLiteral lit = F.at(pos).Literal(
+                TypeTags.CLASS,
+                levelIdentifier.name.toString());
         
-        return cl;
+//        Jml cl = jmlF.at(pos).JC
+//                
+//                JmlChannelStatement(jt,levelIdentifier);
+//        
+        return lit;
     }
 
-    public JmlChannelStatement parseChannelStatement(){
-        
-        JmlToken jt = S.jmlToken();
-        JCIdent levelIdentifier = null;
-        int pos = S.pos();
-
-        S.nextToken();
-        S.setJmlKeyword(true);
-        
-        if(S.token()!=Token.LPAREN){
-            syntaxError(S.pos()-1, null, "jml.channel.missing.lparen");
-            return null;            
-        }
-
-        S.nextToken();
-        
-        if(S.token()!=Token.IDENTIFIER){
-            syntaxError(S.pos()-1, null, "jml.channel.missing.identifier");
-            return null;    
-        }
-
-        JCExpression ex = term();
-        
-        if(ex instanceof JCIdent == false){
-            syntaxError(S.pos()-1, null, "jml.channel.missing.identifier");
-            return null;   
-            
-        }else{
-            levelIdentifier = (JCIdent)ex;
-        }
-        
-        if(S.token()!=Token.RPAREN){
-            syntaxError(S.pos()-1, null, "jml.missing.channel.rparen");
-            return null;            
-        }
-
-        JmlChannelStatement cl = jmlF.at(pos).JmlChannelStatement(jt,levelIdentifier);
-        
-        S.nextToken();
-        
-        return cl;
-    }
+    
+    
 
 
     /**
@@ -2387,60 +2337,60 @@ public class JmlParser extends EndPosParser {
      *  FormalParameterList = [ FormalParameterListNovarargs , ] LastFormalParameter
      *  FormalParameterListNovarargs = [ FormalParameterListNovarargs , ] FormalParameter
      */
-    @Override
-    List<JCVariableDecl> formalParameters() {
-        ListBuffer<JCVariableDecl> params = new ListBuffer<JCVariableDecl>();
-        JmlVariableDecl lastParam = null;
-        
-        JCVariableDecl lastParamTmp = null;
-        JmlLevelStatement level = null;
-        accept(LPAREN);
-        if (S.token() != RPAREN) {
-
-            if(S.jmlToken()==JmlToken.LEVEL){
-                level = parseLevelStatement();
-            }else if(S.jmlToken()==JmlToken.CHANNEL){
-                level = parseChannelStatement();
-            }
-            
-            
-            // get the parameter
-            lastParamTmp = formalParameter();
-
-            // convert it to a jml type
-            lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
-            
-            if(level!=null){
-                lastParam.levelType = level;
-                level = null;
-            }
-            
-            params.append(lastParam);
-            while ((lastParam.mods.flags & Flags.VARARGS) == 0 && S.token() == COMMA) {
-                S.nextToken();
-                
-                if(S.jmlToken()==JmlToken.LEVEL){
-                    level = parseLevelStatement();
-                }else if(S.jmlToken()==JmlToken.CHANNEL){
-                    level = parseChannelStatement();
-                }
-                
-                // get the parameter
-                lastParamTmp = formalParameter();
-
-                // convert it to a jml type
-                lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
-                
-                if(level!=null){
-                    lastParam.levelType = level;
-                    level = null;
-                }
-                params.append(lastParam);
-            }
-        }
-        accept(RPAREN);
-        return params.toList();
-    }
+//    @Override
+//    List<JCVariableDecl> formalParameters() {
+//        ListBuffer<JCVariableDecl> params = new ListBuffer<JCVariableDecl>();
+//        JmlVariableDecl lastParam = null;
+//        
+//        JCVariableDecl lastParamTmp = null;
+//        JmlLevelStatement level = null;
+//        accept(LPAREN);
+//        if (S.token() != RPAREN) {
+//
+//            if(S.jmlToken()==JmlToken.LEVEL){
+//                level = parseLevelStatement();
+//            }else if(S.jmlToken()==JmlToken.CHANNEL){
+//                level = parseChannelStatement();
+//            }
+//            
+//            
+//            // get the parameter
+//            lastParamTmp = formalParameter();
+//
+//            // convert it to a jml type
+//            lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
+//            
+//            if(level!=null){
+//                lastParam.levelType = level;
+//                level = null;
+//            }
+//            
+//            params.append(lastParam);
+//            while ((lastParam.mods.flags & Flags.VARARGS) == 0 && S.token() == COMMA) {
+//                S.nextToken();
+//                
+//                if(S.jmlToken()==JmlToken.LEVEL){
+//                    level = parseLevelStatement();
+//                }else if(S.jmlToken()==JmlToken.CHANNEL){
+//                    level = parseChannelStatement();
+//                }
+//                
+//                // get the parameter
+//                lastParamTmp = formalParameter();
+//
+//                // convert it to a jml type
+//                lastParam = jmlF.at(lastParamTmp.pos).VarDef(lastParamTmp.mods, lastParamTmp.name, lastParamTmp.vartype, null);
+//                
+//                if(level!=null){
+//                    lastParam.levelType = level;
+//                    level = null;
+//                }
+//                params.append(lastParam);
+//            }
+//        }
+//        accept(RPAREN);
+//        return params.toList();
+//    }
     
     protected JCModifiers pushBackModifiers = null;
 
@@ -2510,13 +2460,23 @@ public class JmlParser extends EndPosParser {
     protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlToken jt,
             int position, int endpos) {
         Class<?> c = jt.annotationType;
+        JCLiteral arg = null;
+        
         if (c == null) return null;
         JCExpression t = to(F.at(position).Ident(names.fromString("org")));
         t = to(F.at(position).Select(t, names.fromString("jmlspecs")));
         t = to(F.at(position).Select(t, names.fromString("annotation")));
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        
+        
+        // if we are parsing JML here we need to allow for an argument to these 
+        if(jt==JmlToken.LEVEL || jt==JmlToken.CHANNEL){
+            arg = parseLevelOrChannelName();
+        }
+        
         JCAnnotation ann = to(F.at(position).Annotation(t,
-                List.<JCExpression> nil()));
+                (arg!=null ? List.<JCExpression> of(arg): List.<JCExpression> nil())));
+        
         storeEnd(ann, endpos);
         return ann;
     }
