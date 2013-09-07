@@ -57,7 +57,7 @@ public class LatticeParser {
 
             // don't allow duplicates
             if (levels.contains(e.getTextTrim())) {
-                uninitializedLog().error("jml.lattice.dupulicate.level",e.getTextTrim());
+                uninitializedLog().error("jml.lattice.dupulicate.level", config.getName(), e.getTextTrim());
                 throw new DuplicateLevelException();
             }
 
@@ -94,7 +94,7 @@ public class LatticeParser {
                 nseen.add(v);
                 verifyGraph(v, matrix, nseen);
             } else {
-                uninitializedLog().error("jml.lattice.hascycles", root, v);
+                uninitializedLog().error("jml.lattice.hascycles", config.getName(), root, v);
                 throw new CyclicSubclassGraphException();
             }
 
@@ -118,7 +118,7 @@ public class LatticeParser {
             List<Element> nameNodes = e.selectNodes("./name");
 
             if (nameNodes.size() != 1) {
-                uninitializedLog().error("jml.lattice.invalid.number.of.nodes");
+                uninitializedLog().error("jml.lattice.invalid.number.of.nodes", config.getName());
                 throw new MissingNameNodesException();
             }
 
@@ -129,7 +129,7 @@ public class LatticeParser {
             for (Element subclass : subClasses) {
 
                 if (levels.contains(subclass.getTextTrim()) == false) {
-                    uninitializedLog().error("jml.lattice.undeclared.level", subclass.getTextTrim() );
+                    uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), subclass.getTextTrim() );
                     throw new MissingNameNodesException();
                 }
 
