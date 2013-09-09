@@ -1106,6 +1106,8 @@ public class Pretty extends JCTree.Visitor {
         try {
             switch (tree.typetag) {
                 case TypeTags.INT:
+                case TypeTags.SHORT:
+                case TypeTags.BYTE:
                     print(tree.value.toString());
                     break;
                 case TypeTags.LONG:
@@ -1124,7 +1126,8 @@ public class Pretty extends JCTree.Visitor {
                             "\'");
                     break;
                 case TypeTags.BOOLEAN:
-                    print(((Number)tree.value).intValue() == 1 ? "true" : "false");
+                    if (tree.value instanceof Number) print(((Number)tree.value).intValue() == 1 ? "true" : "false");
+                    else print(tree.value);
                     break;
                 case TypeTags.BOT:
                     print("null");

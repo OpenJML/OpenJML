@@ -366,11 +366,15 @@ public class JmlTreeUtils {
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
         switch (type.tag) {
             case TypeTags.CHAR:
-                return makeLit(pos,type,0x0000);
+                return makeLit(pos,type,(char)0x0000);
             case TypeTags.LONG:
+                return makeLit(pos,type,(long)0);
             case TypeTags.INT:
+                return makeLit(pos,type,0);
             case TypeTags.SHORT:
+                return makeLit(pos,type,(short)0);
             case TypeTags.BYTE:
+                return makeLit(pos,type,(byte)0);
             case TypeTags.BOOLEAN:
                 return makeLit(pos,type,0);
             case TypeTags.FLOAT:

@@ -1398,7 +1398,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
-        if (that.sym.toString().equals("length")) Utils.print("");
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
         Name n;
         if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
@@ -1571,15 +1570,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Name n = encodedName(that.sym,0L);
             that.name = n;
             isDefined.add(n);
-            currentMap.putSAVersion(that.sym,n,0); // FIXME - should unique be incremented
+            currentMap.putSAVersion(that.sym,n,0);
             currentBlock.statements.add(that);
-            scan(that.ident);
+            scan(that.ident); // FIXME - is this needed since we already set the encodedname
         } else {
             // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);
             that.name = lhs.name;
-            scan(that.ident);
+            scan(that.ident); // FIXME - is this needed since we already set the encodedname
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;

@@ -1060,6 +1060,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testUndefined() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); m(2); System.out.println(\"END\"); } \n" +
                 " //@ requires 10/i != 0; \n" +
@@ -1367,6 +1368,8 @@ public class racnew extends RacBase {
                 +"//@ public initially j == 1; \n "
                 +"//@ public invariant i == j; \n "
                 +" public void m(); \n"
+                +"/*@ assignable i,j; */\n "
+                +"public A();  \n"
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { \n"

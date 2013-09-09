@@ -105,7 +105,7 @@ NAMEZ=openjml-${VERSION}.zip
     
 ##### Collect other files for the tar file
     cp legal/* ${TEMPJAR}
-        (echo Building user manual; cd documentation/OpenJMLUserGuide; rm *.pdf; make all > build.log )
+        (echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
     if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
         cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
     else

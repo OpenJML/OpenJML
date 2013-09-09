@@ -1078,7 +1078,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testReceiver2() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"public A(int k) { i = k; } \n "
+                +"/*@ assignable i; */ public A(int k) { i = k; } \n "
                 +"static public int i;  \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
                 +"public static void main(String[] args) { boolean z; \n"
@@ -1098,7 +1098,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testReceiver3() { 
         helpTCX("tt.A","package tt; public class A { \n"
-                +"public A(int k) { i = k; } \n "
+                +"/*@ assignable i; */ public A(int k) { i = k; } \n "
                 +"static public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ static public boolean m(int j) { return true; }\n "
                 +"public static void main(String[] args) { boolean z; \n"

@@ -731,9 +731,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Map<Symbol,JCExpression> savedParamActuals = paramActuals;
         java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
-        addAxioms(-1,null);
+        boolean isModel = isModel(pmethodDecl.sym);
+        if (!isModel) addAxioms(-1,null);
         
         try {
+            if (isModel && (pmethodDecl.mods.flags & Flags.SYNTHETIC) != 0) {
+                return convertMethodBodyNoInitModel(pmethodDecl, pclassDecl);
+            }
             assumeCheckCount = 0;
             this.methodDecl = pmethodDecl;
             this.classDecl = pclassDecl != null ? pclassDecl : utils.getOwner(methodDecl) ;
@@ -769,7 +773,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (esc) {
                     // THIS is an id that is a proxy for the this object on which a method is called;
                     // we need to distinguish it from uses of 'this' in the text
-                	// FIXME - should make this NonNull
+                    // FIXME - should make this NonNull
 //                    VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),classDecl.sym.type, Position.NOPOS);
 //                    THISSym.owner = classDecl.sym;
 //                    this.currentThisId = treeutils.makeIdent(classDecl.pos,THISSym);
@@ -790,19 +794,65 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
                 addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
             }
+            
+            boolean callingSuper = false;
+            boolean callingThis = false;
+            Iterator<JCStatement> iter = null;
+            if (methodDecl.body != null) {
+                iter = methodDecl.body.stats.iterator();
+                if (iter.hasNext()) {
+                    JCStatement st = methodDecl.body.stats.get(0);
+                    if (st instanceof JCExpressionStatement && 
+                            ((JCExpressionStatement)st).expr instanceof JCMethodInvocation) {
+                        JCMethodInvocation mi = (JCMethodInvocation)((JCExpressionStatement)st).expr;
+                        if (mi.meth instanceof JCIdent) {
+                            JCIdent id = (JCIdent)mi.meth;
+                            if (id.name.equals(names._this)) callingThis = true;
+                            else if (id.name.equals(names._super)) callingSuper = true;
+                        }
+                    }
+                }
+            }
+
 
             if (isConstructor && rac) {
-                ListBuffer<JCStatement> newstats = new ListBuffer<JCStatement>();
+                pushBlock();
+                if (callingThis || callingSuper) {
+                    convertCopy(iter.next());
+                }
+                JCBlock bl = popBlock(0,methodDecl);
+                
                 if (!pureCopy) addPrePostConditions(initialStatements,outerFinalizeStats);
                 // FIXME - need to fix RAC So it can check preconditions etc.
-                newstats.addAll(methodDecl.body.stats);
-                newstats.addAll(initialStatements);
-                newstats.addAll(outerFinalizeStats);
+                pushBlock();
+                while (iter.hasNext()) {
+                    convert(iter.next());
+                }
+                JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body);
                 
-                return M.at(methodDecl.body).Block(methodDecl.body.flags,newstats.toList());
-                // FIXME - skip constructors until we have them working correctly
+                
+                // The outerTryStatement just has a finally clause in which the
+                // postconditions and exceptional postconditions are checked.
+                JCCatch c;
+                {
+                    // global catch block
+                    JCVariableDecl ex = treeutils.makeVarDef(syms.exceptionType,names.fromString("_JML__ex"),methodDecl.sym,methodDecl.pos);
+                    pushBlock();
+                    addStat(treeutils.makeAssignStat(methodDecl.pos, treeutils.makeIdent(methodDecl.pos,exceptionSym), treeutils.makeIdent(methodDecl.pos, ex.sym)));
+                    addStat(M.at(methodDecl.pos).Throw(treeutils.makeIdent(methodDecl.pos, ex.sym)));
+                    JCBlock bbl = popBlock(0,methodDecl);
+                    c = M.at(methodDecl.pos).Catch(ex, bbl);
+                }
+                JCTry outerTryStatement = M.at(methodDecl).Try(
+                                newMainBody,
+                                esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
+                                M.Block(0, outerFinalizeStats.toList()));
+                
+                initialStatements.add(outerTryStatement);
+                bl.stats = bl.stats.appendList(initialStatements);
+                return M.at(methodDecl.body).Block(methodDecl.body.flags,bl.stats);
             }
-            
+
             // The form of the translated method is this:
             //     assume invariants and preconditions, assigning precondition
             //         values to designated identifiers  [initialStatements]
@@ -836,23 +886,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             addStat( comment(methodDecl,"Method Body"));
             if (methodDecl.body != null) {
-                boolean callingSuper = false;
-                boolean callingThis = false;
-                Iterator<JCStatement> iter = methodDecl.body.stats.iterator();
-                if (iter.hasNext()) {
-                    JCStatement st = methodDecl.body.stats.get(0);
-                    if (st instanceof JCExpressionStatement && 
-                        ((JCExpressionStatement)st).expr instanceof JCMethodInvocation) {
-                        JCMethodInvocation mi = (JCMethodInvocation)((JCExpressionStatement)st).expr;
-                        if (mi.meth instanceof JCIdent) {
-                            JCIdent id = (JCIdent)mi.meth;
-                            if (id.name.equals(names._this)) callingThis = true;
-                            else if (id.name.equals(names._super)) callingSuper = true;
-                        }
-                    }
-                }
                 if (callingThis || callingSuper) {
-                    scan(iter.next());
+                    convert(iter.next());
                 }
                 // FIXME - do default constructor if !callingThis
                 if (isConstructor && esc && !callingThis) {
@@ -876,6 +911,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JmlTypeClauseDecl vdj = (JmlTypeClauseDecl)t;
                         if (!(vdj.decl instanceof JCVariableDecl)) continue;
                         JCVariableDecl vd = (JCVariableDecl)vdj.decl;
+                        if (isModel(vd.sym)) continue;
                         JCExpression receiver;
                         receiver = treeutils.makeIdent(vd.pos, vd.sym);
                         receiver = convertJML(receiver);
@@ -888,7 +924,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 while (iter.hasNext()) {
-                    scan(iter.next());
+                    convert(iter.next());
                 }
             }
             JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body);
@@ -897,8 +933,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // The outerTryStatement just has a finally clause in which the
             // postconditions and exceptional postconditions are checked.
             if (esc && (JmlOption.value(context,JmlOption.FEASIBILITY).equals("all") ||
-            		JmlOption.value(context,JmlOption.FEASIBILITY).equals("exit"))) {
-            	addAssumeCheck(methodDecl,outerFinalizeStats,"at program exit");
+                    JmlOption.value(context,JmlOption.FEASIBILITY).equals("exit"))) {
+                addAssumeCheck(methodDecl,outerFinalizeStats,"at program exit");
             }
             JCCatch c;
             {
@@ -944,6 +980,102 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.completedInvariants = savedCompletedInvariants;
             this.inProcessInvariants = savedInProcessInvariants;
         }
+    }
+    
+    /** Internal method to do the method body conversion */
+    protected JCBlock convertMethodBodyNoInitModel(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
+            assumeCheckCount = 0;
+            this.methodDecl = pmethodDecl;
+            this.classDecl = pclassDecl != null ? pclassDecl : utils.getOwner(methodDecl) ;
+            this.initialStatements = new ListBuffer<JCStatement>();
+            ListBuffer<JCStatement> outerFinalizeStats = new ListBuffer<JCStatement>();
+            boolean isConstructor = methodDecl.sym.isConstructor();
+            oldStatements = initialStatements;
+            currentStatements = initialStatements;
+            
+            if (methodDecl.restype.type.tag != TypeTags.VOID) {
+                // The compiler complains that the result variable might not be
+                // initialized on every path, even in programs in which it appears
+                // obvious that it is. So we initialize it here to a null-like value.
+                JCVariableDecl d = treeutils.makeVarDef(methodDecl.restype.type,resultName,methodDecl.sym,
+                        treeutils.makeZeroEquivalentLit(methodDecl.pos,methodDecl.restype.type));
+                resultSym = d.sym;
+                initialStatements.add(d);
+            }
+            initialize2(0L);
+//            if (allocSym == null) {
+//                allocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.allocName), syms.intType, classDecl.pos);
+//                allocSym.owner = classDecl.sym;
+//                isAllocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.isAllocName), syms.booleanType, classDecl.pos);;
+//                isAllocSym.owner = classDecl.sym;
+//
+//                if (esc) {
+//                    // THIS is an id that is a proxy for the this object on which a method is called;
+//                    // we need to distinguish it from uses of 'this' in the text
+//                    // FIXME - should make this NonNull
+////                    VarSymbol THISSym = treeutils.makeVarSymbol(Flags.STATIC,names.fromString(Strings.thisName),classDecl.sym.type, Position.NOPOS);
+////                    THISSym.owner = classDecl.sym;
+////                    this.currentThisId = treeutils.makeIdent(classDecl.pos,THISSym);
+////                    this.thisIds.put(classDecl.sym, this.currentThisId);
+////                    exprBiMap.put(this.currentThisId, this.currentThisId);
+//                    this.currentThisId = makeThisId(classDecl.pos,classDecl.sym);
+//                    this.currentThisExpr = this.currentThisId;
+//                } else { // rac
+//                    // For RAC we use the actual 'this'   FIXME - not sure about this design - perhaps just need to be cautious about what is translated and what is not
+//                    this.currentThisId = treeutils.makeIdent(classDecl.pos, classDecl.thisSymbol);
+//                    this.currentThisExpr = this.currentThisId;
+//                    this.thisIds.put(classDecl.sym, currentThisId);
+//                }
+//            }
+//            if (esc && (isConstructor || !utils.isJMLStatic(methodDecl.sym))) {
+//                currentStatements = initialStatements;
+//                JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
+//                addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
+//                addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
+//            }
+
+            
+            pushBlock();
+//            if (!pureCopy) {
+//
+//                outerFinalizeStats.add( comment(methodDecl,"Check Postconditions"));
+//                addPrePostConditions(initialStatements, outerFinalizeStats);
+//
+//                pushBlock();
+//                addAssumeCheck(methodDecl,currentStatements,preconditionAssumeCheckDescription); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
+//                JCStatement preconditionAssumeCheck = popBlock(0,methodDecl);
+//                addStat(initialStatements,preconditionAssumeCheck);
+//                
+//            }
+
+            
+            addStat( comment(methodDecl,"Method Body"));
+            if (methodDecl.body != null) {
+                Iterator<JCStatement> iter = methodDecl.body.stats.iterator();
+                while (iter.hasNext()) {
+                    scan(iter.next());
+                }
+            }
+            JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body);
+            
+            
+            JCCatch c;
+            {
+                // global catch block
+                JCVariableDecl ex = treeutils.makeVarDef(syms.exceptionType,names.fromString("_JML__ex"),methodDecl.sym,methodDecl.pos);
+                pushBlock();
+                addStat(treeutils.makeAssignStat(methodDecl.pos, treeutils.makeIdent(methodDecl.pos,exceptionSym), treeutils.makeIdent(methodDecl.pos, ex.sym)));
+                addStat(M.at(methodDecl.pos).Throw(treeutils.makeIdent(methodDecl.pos, ex.sym)));
+                JCBlock bl = popBlock(0,methodDecl);
+                c = M.at(methodDecl.pos).Catch(ex, bl);
+            }
+            JCTry outerTryStatement = M.at(methodDecl).Try(
+                            newMainBody,
+                            esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
+                            M.Block(0, outerFinalizeStats.toList()));
+            
+            initialStatements.add(outerTryStatement);
+            return M.at(methodDecl).Block(0,initialStatements.toList());
     }
     
     
@@ -1681,6 +1813,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns true if the given symbol has a Helper annotation */
     public boolean isHelper(Symbol symbol) {
         return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
+
+    }
+    
+    /** Returns true if the given symbol has a Pure annotation */
+    public boolean isPure(Symbol symbol) {
+        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
 
     }
     
@@ -3986,7 +4124,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected List<JCExpression> defaultStoreRefs(DiagnosticPosition pos, MethodSymbol base) {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (VarSymbol vsym : utils.listJmlVisibleFields((TypeSymbol)base.owner, base.flags() & Flags.AccessFlags, utils.isJMLStatic(base))) {
-            newlist.add(M.at(pos).Select(getThisId(base.owner), vsym));
+            newlist.add(M.at(pos).Select(currentThisExpr, vsym));
         }
         return newlist.toList();
     }
@@ -4345,7 +4483,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCStatement> saved = currentStatements;
             oldStatements = currentStatements;
             
-            {
+            if (!isHelper(calleeMethodSym)) {
                 addStat(comment(that, "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym)));
                 if (!(meth instanceof JCIdent && ((JCIdent)meth).name.equals(names._super))) {
                     addInvariants(that,classDecl.sym,callerReceiver,currentStatements,
@@ -4370,7 +4508,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = newThisExpr;
             JCExpression collectedInvariants = treeutils.trueLit; // FIXME - do we need this - do we include this in the 'condition' ?
             
-            {   // Iterate through parent classes and interfaces, adding relevant invariants
+            if (!isHelper(calleeMethodSym)) {   // Iterate through parent classes and interfaces, adding relevant invariants
                 String msg = utils.qualifiedMethodSig(calleeMethodSym) + " from " + utils.qualifiedMethodSig(methodDecl.sym);
                 addStat(comment(that, "Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym)));
                 addInvariants(that,calleeClass,newThisExpr,currentStatements,
@@ -4466,6 +4604,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // and we create a block that checks the assignable statements
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                        JCIdent preId = newTemp(treeutils.trueLit);
+                        pushBlock();
                         JCExpression pre = translatingJML ? convertCopy(savedCondition) : treeutils.trueLit;
                         try {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
@@ -4487,8 +4627,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             notImplemented("requires clause containing ",e); // FIXME - clause source
                             pre = treeutils.falseLit;
                         }
-                        preExpressions.put(cs,pre); // Add to the list of spec cases, in order of declaration
-                        combinedPrecondition = combinedPrecondition == treeutils.falseLit ? pre : treeutils.makeOr(pre.pos, combinedPrecondition, pre);
+                        preId.pos = pre.pos;
+                        addStat(treeutils.makeAssignStat(pre.pos,treeutils.makeIdent(pre.pos,preId.sym),pre));
+                        addStat(wrapRuntimeException(pre,popBlock(0L,pre),
+                                "JML undefined precondition - exception thrown",
+                                null));
+                        preExpressions.put(cs,preId); // Add to the list of spec cases, in order of declaration
+                        combinedPrecondition = combinedPrecondition == treeutils.falseLit ? preId : treeutils.makeOr(preId.pos, combinedPrecondition, preId);
                         if ((!translatingJML || rac) && methodDecl != null && methodDecl.sym != null) {  // FIXME - not quite sure of this guard // FIXME - what should we check for field initializers
                             // Handle assignable clauses
                             pushBlock(); // A block for assignable tests
@@ -4502,7 +4647,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     if (clause.token == JmlToken.ASSIGNABLE) {
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression item: storerefs) {
-                                            checkAgainstCallerSpecs(that, item ,pre, savedThisId, newThisId);
+                                            checkAgainstCallerSpecs(that, item ,preId, savedThisId, newThisId);
                                         }
                                         anyAssignableClauses = true;
                                     }
@@ -4525,11 +4670,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                                 } else {
                                     // the default is \\everything
-                                    checkAgainstCallerSpecs(that, M.at(cs).JmlStoreRefKeyword(JmlToken.BSEVERYTHING),pre, savedThisId, newThisId);
+                                    checkAgainstCallerSpecs(that, M.at(cs).JmlStoreRefKeyword(JmlToken.BSEVERYTHING),preId, savedThisId, newThisId);
                                 }
                             }
                             JCBlock bl = popBlock(0,cs); // Ending the assignable tests block
-                            if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
+                            if (!bl.stats.isEmpty()) addStat( M.at(cs).If(preId, bl, null) );
                         }
                     }
                     paramActuals = null;
@@ -4643,7 +4788,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Be sure to do assignable (havoc) clauses before the invariant and postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-                        JCExpression pre = preExpressions.get(cs);
+                        JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
                         pushBlock();
@@ -4718,13 +4863,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 String msg = utils.qualifiedMethodSig(calleeMethodSym) + ", returning to " + utils.qualifiedMethodSig(methodDecl.sym);
                 currentStatements.add(comment(that, "Assuming callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
-                addInvariants(that,calleeClass,newThisExpr,currentStatements,
+                if (!isHelper(calleeMethodSym)) addInvariants(that,calleeClass,newThisExpr,currentStatements,
                         false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
                         msg);
                 addConstraintInitiallyChecks(that,calleeClass,newThisExpr,currentStatements,
                         false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
                         msg);
-                for (JCExpression arg: trArgs) {
+                if (!isHelper(calleeMethodSym)) for (JCExpression arg: trArgs) {
                     if (arg.type.isPrimitive()) continue;
                     currentStatements.add(comment(arg, "Assuming invariants for callee parameter after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
                     JCIdent id = (JCIdent)arg;
@@ -4760,20 +4905,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
 
-                currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
-                addInvariants(that,classDecl.sym,callerReceiver,currentStatements,
-                        false,methodDecl.sym.isConstructor(),isSuper,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                if (!isHelper(calleeMethodSym)) {
+                    currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
+                    addInvariants(that,classDecl.sym,callerReceiver,currentStatements,
+                            false,methodDecl.sym.isConstructor(),isSuper,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 
-                // Note that methodDecl.params will be null for initalizer blocks
-                if (methodDecl.params != null) for (JCVariableDecl v: methodDecl.params) {
-                    if (v.type.isPrimitive()) continue;
-                    // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
-                    // FIXME - for now we check the invariants of the parameters in the prestate
-                    JCVariableDecl d = preparams.get(v.sym);
-                    JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-                    currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
-                    addInvariants(v,v.type.tsym,id,currentStatements,
-                            false,false,false,false,false,true,Label.INVARIANT_REENTER_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                    // Note that methodDecl.params will be null for initalizer blocks
+                    if (methodDecl.params != null) for (JCVariableDecl v: methodDecl.params) {
+                        if (v.type.isPrimitive()) continue;
+                        // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
+                        // FIXME - for now we check the invariants of the parameters in the prestate
+                        JCVariableDecl d = preparams.get(v.sym);
+                        JCIdent id = treeutils.makeIdent(v.pos,d.sym);
+                        currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym)));
+                        addInvariants(v,v.type.tsym,id,currentStatements,
+                                false,false,false,false,false,true,Label.INVARIANT_REENTER_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                    }
                 }
                 
                 // FIXME - could optimize if the block is empty except comments
@@ -4804,7 +4951,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
-                        JCExpression pre = preExpressions.get(cs);
+                        JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
                         for (JmlMethodClause clause : cs.clauses) {
@@ -5543,7 +5690,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (javaChecks) {
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
-                newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
+                newfa = treeutils.makeSelect(that.pos, convertCopy(obj), fa.sym);
                 //Map<JCTree,Integer> table = log.currentSource().getEndPosTable();
                 //log.noticeWriter.println("FA " + fa.getStartPosition() + " " + fa.getEndPosition(table) + " " + newfa.getStartPosition() + " " + newfa.getEndPosition(table));
             } else {
@@ -6569,7 +6716,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
                             if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
                                 JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                                JCMethodInvocation app = treeutils.makeMethodInvocation(that,null,md.sym);
+                                JCMethodInvocation app = treeutils.makeMethodInvocation(that,currentThisExpr,md.sym);
                                 result = eresult = app;
                                 treeutils.copyEndPosition(eresult, that);
                                 return;
@@ -6663,7 +6810,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // It is a non-static class field, so we prepend 'this'
             // FIXME - do we need to use the current this?
             JCExpression cId = currentThisExpr != null ? currentThisExpr : getThisId(classDecl.sym); // FIXME - why would this be null - it cat be at least if we are checking a single method
-            if (rac && cId.toString().equals("THIS")) Utils.print("");
+//            if (rac && cId.toString().equals("THIS")) Utils.print("");
             JCExpression fa = treeutils.makeSelect(that.pos,cId,that.sym);
             if (that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(that.sym, classDecl.sym) && !localVariables.isEmpty()) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, fa, treeutils.nullLit);

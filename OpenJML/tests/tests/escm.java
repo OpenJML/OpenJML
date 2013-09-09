@@ -173,7 +173,7 @@ public class escm extends EscBase {
                 +"  }\n"
 
                 +"  /*@ ensures false;\n"
-                +"      model void mm() {}*/\n"
+                +"      model void mm() {}*/\n"  // Line 20
 
                 +"  /*@ model void mn() {  assert false;  }*/\n"
 
