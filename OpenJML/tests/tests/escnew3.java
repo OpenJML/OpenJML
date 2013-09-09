@@ -417,5 +417,75 @@ public class escnew3 extends EscBase {
     
     // TODO - test not_modified and old nested in each other; remember to test definedness            
 
+    @Test
+    public void testAssignableConstructor1() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable i;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:4: An identifier with private visibility may not be used in a assignable clause with public visibility",18
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable \\nothing;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor5() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable state; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
 
 }

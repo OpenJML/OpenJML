@@ -1003,7 +1003,9 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getSpecs(VarSymbol m) {
-        TypeSpecs t = getSpecs(m.enclClass());
+        ClassSymbol c = m.enclClass();
+        if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
+        TypeSpecs t = getSpecs(c);
         return t == null ? null : t.fields.get(m);
     }
     

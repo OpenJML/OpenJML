@@ -4015,13 +4015,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         attribAnnotationTypes(that.variable.mods.annotations,env);
 
         Env<AttrContext> localEnv = envForExpr(that,env);
+        JCModifiers mods = that.variable.mods;
+        utils.setExprLocal(mods);
 
         memberEnter.memberEnter(that.variable, localEnv);
         attribExpr(that.predicate,localEnv,syms.booleanType);
 
         localEnv.info.scope.leave();
        
-        JCModifiers mods = that.variable.mods;
         if (utils.hasOnly(mods,0)!=0) log.error(that.pos,"jml.no.java.mods.allowed","set comprehension expression");
         allAllowed(mods.annotations, JmlToken.typeModifiers, "set comprehension expression");
 
@@ -4059,9 +4060,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
         }// Could also be a method call, and error, a package, a class...
         
+        checkVisibility(tree, jmlVisibility, tree.sym);
+        result = saved;
+    }
+    
+    protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym) {
         if (jmlVisibility != -1) {
-            long v = (tree.sym.flags() & Flags.AccessFlags);
-            if (tree.sym instanceof ClassSymbol) {
+            long v = (sym.flags() & Flags.AccessFlags);
+            if (sym instanceof ClassSymbol) {
                 // FIXME - the code below crashes for class symbols. What should we do?
                 // FIXME - we also get this case for annotations on a clause
             } else {
@@ -4069,13 +4075,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    System.out.println("defaults");;
 //                }
                 JCModifiers mods = null;
-                if (tree.sym.owner != null && tree.sym.owner.kind == TYP) {
-                    if (tree.sym.kind == VAR) {
-                        FieldSpecs sp = specs.getSpecs((VarSymbol)tree.sym);
+                if (sym.owner != null && sym.owner.kind == TYP) {
+                    if (sym.kind == VAR) {
+                        VarSymbol vsym = (VarSymbol)sym;
+                        FieldSpecs sp = specs.getSpecs(vsym);
                         if (sp != null) mods = sp.mods;
                     }
-                    if (tree.sym.kind == MTH) {
-                        MethodSpecs sp = specs.getSpecs((MethodSymbol)tree.sym);
+                    if (sym.kind == MTH) {
+                        MethodSpecs sp = specs.getSpecs((MethodSymbol)sym);
                         if (sp != null) mods = sp.mods;
                     }
                 }
@@ -4088,13 +4095,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (currentClauseType == JmlToken.INVARIANT || currentClauseType == JmlToken.CONSTRAINT) {
                 // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
-                if (jmlVisibility != v && !utils.isExprLocal(tree.sym.flags()) && !special(v,tree.sym)) { 
-                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                if (sym.toString().equals("i")) Utils.print("");
+                // Is the symbol more visible? OK if the symbol is not a modifiable variable
+                if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
+                        && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)
+                        && (sym.flags() & Flags.FINAL)==0 ) { 
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                }
+                // Is the symbol less visible? not OK
+                if (jmlVisibility != v && !moreOrEqualVisibleThan(v,jmlVisibility)
+                        && !utils.isExprLocal(sym.flags()) && !special(v,sym)) { 
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
             } else if (currentClauseType == JmlToken.REPRESENTS) {
                 //log.error(tree.pos,"jml.internal","Case not handled in JmlAttr.visitIdent: " + currentClauseType.internedName());
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,tree.sym)) {
-                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
 
             } else if (currentClauseType == JmlToken.JMLDECL) {
@@ -4103,39 +4119,40 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // In    V type x; //@ in y;
                 // identifier y must be at least as visible as x (i.e., as V)
                 if (!moreOrEqualVisibleThan(v,jmlVisibility)) {
-                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
 
             } else if (currentClauseType == JmlToken.ENSURES || currentClauseType == JmlToken.SIGNALS) {
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,tree.sym)) {
-                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
                 
                 if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
-                    if (!tree.sym.isStatic()) log.error(tree,  "jml.no.old.in.constructor", tree.sym);
+                    if (!sym.isStatic()) log.error(pos,  "jml.no.old.in.constructor", sym);
                 }
 
             } else  {
                 // Default case
                 // An identifier mentioned in a clause must be at least as visible as the clause itself.
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,tree.sym)) {
-                    log.error(tree.pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
                 }
 
             }
         }
         
-        result = saved;
+
     }
     
+    // FIXME - not sure this is still needed
     boolean special(long v, Symbol sym) {
         if (sym instanceof TypeSymbol) return true;
         if (sym instanceof VarSymbol && sym.owner instanceof MethodSymbol) return true; // FIXME - not sure how to handle these various special names
         return sym.name.toString().equals("TYPE") || !(v != 0 || (!sym.name.equals(names._this) && !sym.name.equals(names._super)  && !sym.name.equals(names.length) && !sym.name.equals(names._class)));
     }
     
-    final static int order[] = { 2, 4, 1, 0, 3};
+    final static int order[] = { 2, 4, 1, 0, 3}; // package, public, private, -, protected
     static boolean moreOrEqualVisibleThan(long v1, long v2) {
         return order[(int)v1] >= order[(int)v2];
     }
@@ -4352,6 +4369,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             else  c = s.enclClass();
             if (c != null) addTodo(c);
         }
+        
+        if (tree.sym != null) checkVisibility(tree, jmlVisibility, tree.sym);
+
         // For selections that are fields with an enclosing class, we check whether it is readable
         // The check on the enclosing class omits fields such as .class
         if (tree.sym instanceof VarSymbol && tree.sym.enclClass() != null) {

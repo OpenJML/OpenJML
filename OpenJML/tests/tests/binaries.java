@@ -64,7 +64,7 @@ public class binaries extends TCBase {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ public static int i; }\n" + 
                 "public class File implements Serializable, Comparable<File> { \n" +
-                "/*@ invariant VVV.i; invariant TTT.j; */ \n" +
+                "/*@ public invariant VVV.i; public invariant TTT.j; */ \n" +
                 "//@model static class TTT { public static int j; } \n" +
                 "}\n ");
         helpTCF("java/io/A.java",
@@ -74,8 +74,8 @@ public class binaries extends TCBase {
                 "}"
                 ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",42
                 ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",69
-                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",18
-                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",35
+                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",25
+                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",49
         );
     }
 

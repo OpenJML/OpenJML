@@ -230,6 +230,43 @@ public class assignable extends TCBase {
     }
 
     @Test
+    public void testAssignableConstructor1() {
+        helpTCF("A.java","public class A { \n"
+                +"  private int i;\n"
+                +"  //@ assignable i;\n"
+                +"  public A() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new A(); }\n"
+                +"}"
+                ,"/A.java:3: An identifier with private visibility may not be used in a assignable clause with public visibility",18
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor2() {
+        helpTCF("A.java","public class A { \n"
+                +"  private int i;\n"
+                +"  //@ assignable \\nothing;\n"
+                +"  public A() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new A(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructorr3() {
+        helpTCF("A.java","public class A { \n"
+                +"  private int i;\n"
+                +"  \n" // default assignable
+                +"  public A() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new A(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
     public void testAccessibleIdent() {
         helpTC(" class A { int k; boolean b; \n//@ accessible k;\n void m(){} }");
     }
@@ -250,5 +287,6 @@ public class assignable extends TCBase {
         helpTC(" class A { int k; boolean b; \n//@ captures m;\n void m(){} }",
                 "/TEST.java:2: cannot find symbol\n  symbol:   variable m\n  location: class A",14);
     }
+    
 }
 
