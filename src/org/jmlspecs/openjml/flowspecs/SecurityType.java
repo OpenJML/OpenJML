@@ -12,11 +12,15 @@ import com.sun.tools.javac.code.Type;
 public class SecurityType extends Type {
 
     public String level;
+    private static final int NONE = 0;
     
-    public SecurityType(int tag, TypeSymbol tsym, String level) {
+    public SecurityType(int tag, TypeSymbol tsym) {
         super(tag, tsym);
+    }
+
+    public SecurityType(String level) {
+        this(NONE, null);
         this.level = level;
     }
 
-    
 }
