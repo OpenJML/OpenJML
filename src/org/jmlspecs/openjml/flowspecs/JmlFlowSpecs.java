@@ -178,7 +178,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         org.jmlspecs.openjml.Main.IProgressListener pr = context
                 .get(org.jmlspecs.openjml.Main.IProgressListener.class);
         boolean cancelled = pr == null ? false : pr.report(ticks, level,
-                String.format("[FLOWSPECS] ", message));
+                String.format("[FLOWSPECS] - %s", message));
         if (cancelled) {
             throw new PropagatedException(new Main.JmlCanceledException(
                     JmlOption.FLOWSPECS + " operation cancelled"));
@@ -211,7 +211,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void enterBlock(JCBlock tree) {
-        System.out.println(tree);
+        progress(1, 1, String.format("Entering Block\n----------------\n%s\n----------------",
+                tree.toString()));
 
     }
 
