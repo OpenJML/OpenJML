@@ -120,6 +120,9 @@ public class Utils {
     /** Do RAC - set by Main.setupOptions */
     public boolean rac = false;
 
+    /** Do Flowspec checking */
+    public boolean flowspecs = false;
+    
     /** Do JML check only - set by Main.setupOptions */
     public boolean check = false;
 
