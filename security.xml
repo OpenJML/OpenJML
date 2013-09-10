@@ -2,7 +2,7 @@
 
     <!-- all levels must first be declared -->
     <levels>
-        <level>Priate</level>
+        <level>Private</level>
         <level>UserTrusts</level>
         <level>User</level>
         <level>Public</level>
