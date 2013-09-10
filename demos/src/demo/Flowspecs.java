@@ -28,16 +28,18 @@ public class Flowspecs {
         
         /*@ level(PUBLIC) */ int b = 0;
    
-        
         // ok
         a = a+a;
         b = b+b;
         
         // also ok
         a = a + b;
+        a = b + a;
         a = a*2;
+        a = 2*a;
         
         // not ok
+        b = b+a;
         b = a+b;
         b = a*2;
         
