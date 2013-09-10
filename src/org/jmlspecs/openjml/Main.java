@@ -705,7 +705,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         // require that they specify -esc and -flowspecs together
         if(utils.flowspecs && !utils.esc){
-            Log.instance(context).error("jml.unimplemented.command",cmd);
+            Log.instance(context).error("jml.flowspecs.requires.esc",cmd);
             return false;            
         }
         
