@@ -14,6 +14,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.flowspecs.JmlFlowSpecs;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
@@ -382,6 +383,20 @@ public class JmlCompiler extends JavaCompiler {
             // nothing has been put in results, so no further compilation 
             // phases will be performed
         }
+        
+        //
+        // Do flowspec checking. Note that since our conditional policies get translated into contracts
+        // this should run after esc 
+        //
+
+        if(utils.flowspecs){
+            flowspecs(env);
+            
+            // similar to the above case, we produce nothing so 
+            // compilation will stop here
+        }
+        
+        
         if (utils.rac) {
             JCTree t = env.tree;
             env = rac(env);
@@ -533,6 +548,16 @@ public class JmlCompiler extends JavaCompiler {
 
         return;
     }
+    
+    
+    protected void flowspecs(Env<AttrContext> env) {
+        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
+        JmlFlowSpecs flowspecs = JmlFlowSpecs.instance(context);
+        flowspecs.check(env.tree);
+
+        return;
+    }
+    
 
 //    // FIXME - this statement no longer applies - what happens instead?
 //    /** This overrides JavaCompiler.compile simply to load java.lang.Object
