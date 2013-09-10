@@ -56,12 +56,12 @@ public class LatticeParser {
         for (Element e : list) {
 
             // don't allow duplicates
-            if (levels.contains(e.getTextTrim())) {
-                uninitializedLog().error("jml.lattice.dupulicate.level", config.getName(), e.getTextTrim());
+            if (levels.contains(e.getTextTrim().toUpperCase())) {
+                uninitializedLog().error("jml.lattice.dupulicate.level", config.getName(), e.getTextTrim().toUpperCase());
                 throw new DuplicateLevelException();
             }
 
-            levels.add(e.getTextTrim());
+            levels.add(e.getTextTrim().toUpperCase());
         }
 
 
@@ -122,18 +122,20 @@ public class LatticeParser {
                 throw new MissingNameNodesException();
             }
 
-            String levelName = nameNodes.get(0).getTextTrim();
+            String levelName = nameNodes.get(0).getTextTrim().toUpperCase();
 
             List<Element> subClasses = e.selectNodes("./trusts/level");
 
             for (Element subclass : subClasses) {
 
-                if (levels.contains(subclass.getTextTrim()) == false) {
-                    uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), subclass.getTextTrim() );
+                String scr = subclass.getTextTrim().toUpperCase();
+                
+                if (levels.contains(scr) == false) {
+                    uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), scr );
                     throw new MissingNameNodesException();
                 }
 
-                matrix.addEdge(levelName, subclass.getTextTrim());
+                matrix.addEdge(levelName, scr);
             }
         }
 

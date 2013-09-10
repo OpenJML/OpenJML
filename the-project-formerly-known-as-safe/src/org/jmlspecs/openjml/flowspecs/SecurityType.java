@@ -11,6 +11,8 @@ import com.sun.tools.javac.code.Type;
  */
 public class SecurityType extends Type {
 
+    public static int WRONG = 0;
+    public static String STR_WRONG = "WRONG";
     public String level;
     private static final int NONE = 0;
     
@@ -21,6 +23,18 @@ public class SecurityType extends Type {
     public SecurityType(String level) {
         this(NONE, null);
         this.level = level;
+    }
+    
+    public static SecurityType wrong(){
+        SecurityType t = new SecurityType("WRONG");
+        t.tag = WRONG;
+        return t;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return String.format("SecurityType[%s]", level);
     }
 
 }
