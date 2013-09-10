@@ -83,6 +83,7 @@ public enum JmlOption implements IOption {
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,"RAC: Compiles JML checks as Java asserts",null),
     //INTERACTIVE("-i",false,"Must be first, starts interactive mode"),  // FIXME- fix or remove
     RECONFIGURE("-reconfigure",false,"Reconfigure the default provers used by OpenJML",null),
+    FLOWSPECS("-flowspecs",false,"Turns on flowspec information flow checker",null),
 
     ;
     
