@@ -1,6 +1,8 @@
 package org.jmlspecs.openjml.flowspecs;
 
+import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.code.TypeTags.ERROR;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -65,7 +67,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     public EnumMap<JmlToken, Name> tokenToAnnotationName = new EnumMap<JmlToken, Name>(
                                                                  JmlToken.class);
 
-    private Lattice<String>                lattice;
+    private Lattice<String>        lattice;
 
     /**
      * The compilation context, needed to get common tools, but unique to this
@@ -260,71 +262,92 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         result = resolveType(tree);
     }
 
-    private Type resolveType(JCIdent tree) {
+    private SecurityType resolveType(JCIdent tree) {
 
-        Type t = null;
-        List<Attribute.Compound> annotations = tree.sym.getAnnotationMirrors();
-        for (Attribute.Compound c : annotations) {
+        SecurityType t = null;
+        if (tree.sym != null) {
+            for (Attribute.Compound c : tree.sym.getAnnotationMirrors()) {
 
-            // Case 1, they have an annotation of SOME kind specificed
-            if (c.type.tsym.flatName().equals(
-                    tokenToAnnotationName.get(JmlToken.LEVEL)) || c.type.tsym.flatName().equals(
+                // Case 1, they have an annotation of SOME kind specificed
+                if (c.type.tsym.flatName().equals(
+                        tokenToAnnotationName.get(JmlToken.LEVEL))
+                        || c.type.tsym.flatName().equals(
+                                tokenToAnnotationName.get(JmlToken.CHANNEL))) {
+
+                    // Our parser promises us this will exist.
+                    String label = extractSpecFromAnnotationValues(c);
+
+                    // do a little more work to figure out the type;
+                    if (c.type.tsym.flatName().equals(
                             tokenToAnnotationName.get(JmlToken.CHANNEL))) {
-                
-                // Our parser promises us this will exist.
-                String label = extractSpecFromAnnotationValues(c);
-            
-                // do a little more work to figure out the type;
-                if(c.type.tsym.flatName().equals(
-                            tokenToAnnotationName.get(JmlToken.CHANNEL))){
 
-                    // TODO write mapping between channels and levels (no really, this has to be done)
-                    
-                    
-                }else{
-                    t = new SecurityType(label);
+                        // TODO write mapping between channels and levels (no
+                        // really, this has to be done)
+
+                    } else {
+                        t = new SecurityType(label);
+                    }
+
                 }
-                
-            } 
+            }
         }
-        
         // Case 2, we need to infer it.
-        if(t==null) {
+        if (t == null) {
             t = new SecurityType(lattice.getTop());
         }
-        
+
         return t;
     }
-    
-    private String extractSpecFromAnnotationValues(Attribute.Compound c){
-        
+
+    private String extractSpecFromAnnotationValues(Attribute.Compound c) {
+
         String r = null;
-        
-        for(Pair<MethodSymbol,Attribute> p : c.values){
-            if(p.fst.equals("value()")){
-                r = p.snd.toString();
+
+        for (Pair<MethodSymbol, Attribute> p : c.values) {
+            if (p.fst.toString().equals("value()")) {
+                r = p.snd.toString().toUpperCase().replaceAll("\"", "");
                 break;
             }
         }
         return r;
     }
 
-    // public Attribute.Compound attribute(String sss) {
-    // for (Attribute.Compound a : getAnnotationMirrors())
-    // if (a.type.tsym == anno) return a;
-    // return null;
-    // }
-
     @Override
     public void visitAssign(JCAssign tree) {
 
-        Type owntype = attribTree(tree.lhs, env.dup(tree), VAR, Type.noType);
-        
-//           Type capturedType = capture(owntype);
-//         attribExpr(tree.rhs, env, owntype);
-//         result = check(tree, capturedType, VAL, pkind, pt);
+        SecurityType lt = attribTree(tree.lhs, null, VAR, Type.noType);
+
+        SecurityType rt = attribExpr(tree.rhs, env, lt);
+
+        //TODO abstract the checking function
+        result = check(tree, lt, rt);
+        //result = check(tree, lt, VAL, pkind, pt);
     }
 
+    SecurityType upperBound(SecurityType t1, SecurityType t2){
+        
+        if(t1.level.equals(t2)){
+            return t1;
+        }
+        
+        if(lattice.isSubclass(t1.level, t2.level)){
+            return t2;
+        }
+        
+        return t1;
+    }
+    
+    public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt){
+        
+        if(lt.level.equals(rt.level) || lattice.isSubclass(rt.level, lt.level)){
+            return upperBound(lt, rt);
+        }
+
+        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(), lt.toString());
+
+        return SecurityType.wrong();
+    }
+    
     final Resolve    rs;
 
     /**
@@ -350,7 +373,11 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     /**
      * Visitor result: the computed type.
      */
-    Type             result;
+    SecurityType             result;
+    
+    public SecurityType attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
+        return attribTree(tree, env, VAL, pt.tag != ERROR ? pt : Type.noType);
+    }
 
     /**
      * Visitor method: attribute a tree, catching any completion failure
@@ -365,11 +392,11 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      * @param pt
      *            The prototype visitor argument.
      */
-    Type attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt) {
+    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt) {
         return attribTree(tree, env, pkind, pt, "incompatible.types");
     }
 
-    Type attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt,
+    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt,
             String errKey) {
         Env<AttrContext> prevEnv = this.env;
         int prevPkind = this.pkind;
