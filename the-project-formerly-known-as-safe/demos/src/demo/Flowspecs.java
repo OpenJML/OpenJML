@@ -1,6 +1,6 @@
 package demo;
 import org.jmlspecs.annotation.*;
-public class A {
+public class Flowspecs {
     
     
     //
