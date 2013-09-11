@@ -514,18 +514,22 @@ public class MethodProverSMT {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
                 if (ns.startsWith(Strings.labelVarString)) {
+                    int k = ns.lastIndexOf("_");
                     if (ns.startsWith(prefix_lblpos)) {
                         Boolean b = getBoolValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblpos.length()),"is unknown"); //$NON-NLS-1$
-                        else if (b) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblpos.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lblpos.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else if (b) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else if (ns.startsWith(prefix_lblneg)) {
                         Boolean b = getBoolValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblneg.length()),"is unknown"); //$NON-NLS-1$
-                        else if (!b) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblneg.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lblneg.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else if (!b) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else if (ns.startsWith(prefix_lbl)) {
                         String b = getValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lbl.length()),"is unknown"); //$NON-NLS-1$
-                        else log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lbl.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lbl.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else {
                         log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                     }

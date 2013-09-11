@@ -2088,7 +2088,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
                                         addTraceableComment(tt.expression,clause.toString());
                                         JCExpression e = convertJML(tt.expression);
-                                        if (assume) addAssert(pos,Label.CONSTRAINT,
+                                        if (assume) addAssume(pos,Label.CONSTRAINT,
                                                 e,
                                                 cpos,
                                                 clause.source);
@@ -2461,7 +2461,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         clearInvariants();
         addInvariants(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
                 utils.qualifiedMethodSig(methodDecl.sym));
-        addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
+        addConstraintInitiallyChecks(methodDecl,owner,receiver,ensuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
                 utils.qualifiedMethodSig(methodDecl.sym));
         for (JCVariableDecl v: methodDecl.params) {
             if (v.type.isPrimitive()) continue;
@@ -2478,7 +2478,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         addInvariants(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
                 utils.qualifiedMethodSig(methodDecl.sym));
-        addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,Label.INVARIANT_EXIT,
+        addConstraintInitiallyChecks(methodDecl,owner,receiver,exsuresStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),true,false,null,
                 utils.qualifiedMethodSig(methodDecl.sym));
         for (JCVariableDecl v: methodDecl.params) {
             if (v.type.isPrimitive()) continue;
@@ -2486,7 +2486,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCIdent id = treeutils.makeIdent(v.pos,d.sym);
             addInvariants(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXIT,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
-            addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXIT,
+            addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,null,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
         }
 
@@ -3673,8 +3673,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int posp = pos.getPreferredPosition();
         JCExpression pfac = pstoreref instanceof JCFieldAccess && ((JCFieldAccess)pstoreref).sym == null ? 
                 pstoreref
-                : (rac && pstoreref instanceof JCIdent && isModel( ((JCIdent)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
-                : (rac && pstoreref instanceof JCFieldAccess && isModel( ((JCFieldAccess)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
+                : (pstoreref instanceof JCIdent && isModel( ((JCIdent)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
+                : (pstoreref instanceof JCFieldAccess && isModel( ((JCFieldAccess)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
                 : convertJML(pstoreref); // FIXME - isn't everything converted already? perhaps insist that it is
         if (pfac instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pfac).token;
@@ -4806,16 +4806,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         useDefault = false;
                                         addStat(comment(clause));
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
-                                        for (JCExpression location: convertJML(((JmlMethodClauseStoreRef)clause).list)) {
+                                        for (JCExpression location: (((JmlMethodClauseStoreRef)clause).list)) {
+                                            location = convertAssignable(location,(VarSymbol)currentThisId.sym);
                                             if (!(location instanceof JCFieldAccess)) { newlist.add(location); continue; }
                                             JCFieldAccess fa = (JCFieldAccess)location;
-                                            if (fa.sym != null) { newlist.add(location); continue; }
-                                            JCExpression e = fa.selected;
-                                            boolean isStatic = treeutils.isATypeTree(e);
-                                            for (VarSymbol v: utils.listJmlVisibleFields(classDecl.sym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
-                                                JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
-                                                JCExpression trfa= convertJML(newfa);
-                                                newlist.add(trfa);
+                                            if (fa.sym == null) {
+                                                JCExpression e = fa.selected;
+                                                boolean isStatic = treeutils.isATypeTree(e);
+                                                for (VarSymbol v: utils.listJmlVisibleFields(classDecl.sym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
+                                                    JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
+                                                    JCExpression trfa= convertJML(newfa);
+                                                    newlist.add(trfa);
+                                                }
+                                            } else if (isModel(fa.sym)){
+                                                JCExpression e = fa.selected;
+                                                boolean isStatic = treeutils.isATypeTree(e);
+                                                for (VarSymbol v: utils.listJmlVisibleFields(classDecl.sym, Flags.PRIVATE, isStatic)) {
+                                                    if (!isModel(v) && isContainedIn(v,(VarSymbol)fa.sym)) { 
+                                                        JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
+                                                        JCExpression trfa= convertJML(newfa);
+                                                        newlist.add(trfa);
+                                                    }
+                                                }
+                                            } else {
+                                                newlist.add(location); 
+                                                continue;
                                             }
                                         }
                                         JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
@@ -4873,7 +4888,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
                         msg);
                 addConstraintInitiallyChecks(that,calleeClass,newThisExpr,currentStatements,
-                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,Label.INVARIANT_EXIT,
+                        false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),true,true,null,
                         msg);
                 if (!isHelper(calleeMethodSym)) for (JCExpression arg: trArgs) {
                     if (arg.type.isPrimitive()) continue;
@@ -6575,7 +6590,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.pos = that.pos;
             fa.sym = null;
             result = eresult = fa;
-        } else if (translatingJML && attr.isModel(that.sym)) {
+        } else if (translatingJML && attr.isModel(that.sym) && !convertingAssignable) {
             JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
             if (rac) {
                 Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
@@ -6599,16 +6614,48 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // should have been created during the MemberEnter phase.
                 throw new NoModelMethod();
             }
-            JCFieldAccess fa = M.Select(sel, that.name);
-            fa.pos = that.pos;
-            fa.sym = that.sym;
-            fa.type = that.type;
-            result = eresult = fa;
-            if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
-                JCExpression nonnull = treeutils.makeNeqObject(that.pos,fa,treeutils.nullLit);
-                condition = treeutils.makeAnd(fa.pos, condition, nonnull);
+            if (esc) {
+                JCFieldAccess fa = M.Select(sel, that.name);
+                fa.pos = that.pos;
+                fa.sym = that.sym;
+                fa.type = that.type;
+                result = eresult = fa;
+                if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
+                    JCExpression nonnull = treeutils.makeNeqObject(that.pos,fa,treeutils.nullLit);
+                    condition = treeutils.makeAnd(fa.pos, condition, nonnull);
+                }
+                TypeSpecs tspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
+                for (JmlTypeClause tc : tspecs.clauses) {
+                    if (tc.token == JmlToken.REPRESENTS) {
+                        JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+
+                        if (((JCIdent)rep.ident).sym.equals(that.sym)) {
+                            // FIXME - why this?
+//                            if (oldenv == null) {
+//                                JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
+//                                addStat(st);
+//                            }
+                            if (rep.suchThat){
+                                addAssume(that,Label.IMPLICIT_ASSUME,
+                                        convertExpr(rep.expression));
+
+                            } else {
+                                // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
+//                                if (localVariables.isEmpty()) {
+//                                    addAssumeEqual(that,Label.IMPLICIT_ASSUME,
+//                                            convertExpr(rep.ident),
+//                                            convertExpr(rep.expression));
+//                                } else {
+                                    result = eresult = convertExpr(rep.expression);
+                                    // FIXME - we could get recursion here
+                                    return;
+//                                }
+                            }
+                        }
+                    }
+                }
+                return;
             }
-            return;
         } else if (that.sym instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
@@ -6732,7 +6779,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         error(that, "No corresponding model method for " + that.sym);
                         return;
                     }
-                    if (esc) {
+                    if (esc && !convertingAssignable) {
                         TypeSpecs tspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
                         for (JmlTypeClause tc : tspecs.clauses) {
                             if (tc.token == JmlToken.REPRESENTS) {
@@ -7992,6 +8039,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // FIXME - need to rewrite qualid - might have a *; might have a method name
         result = M.at(that).Import(that.qualid, that.staticImport).setType(that.type);
     }
+    
+    int lblUnique = 0;
 
     // OK
     @Override
@@ -8003,7 +8052,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         // The format of this string is important in interpreting it in JmlEsc
-        String nm = Strings.labelVarString + that.token.internedName().substring(1) + "_" + that.label;
+        String nm = Strings.labelVarString + that.token.internedName().substring(1) + "_" + that.label + "_" + (++lblUnique);
         JCIdent id = newTemp(that.getLabelPosition(),nm,expr);
         id.pos = that.pos;
         result = eresult = id;
