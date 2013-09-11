@@ -2500,19 +2500,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - need to compare these to the exceptions in the method declaration
     }
     
+    protected void checkIfLocal(JCTree e) {
+        if (e instanceof JCIdent && ((JCIdent)e).sym.owner instanceof MethodSymbol) {
+            log.error(e,"jml.no.formals.in.assignable",e.toString());
+        }
+    }
+    
     /** This is an implementation that does the type attribution for 
      * assignable/accessible/captures method specification clauses
      * @param tree the method specification clause being attributed
      */
+    @Override
     public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
+            checkIfLocal(e);
         }
         // FIXME - check the result
     }
 
     // FIXME - need JmlAttr implementation for CALLABLE clauses
     
+    @Override
     public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) {
         for (JCTree t: that.list) {
             attribExpr(t,env,Type.noType);
@@ -4095,7 +4104,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (currentClauseType == JmlToken.INVARIANT || currentClauseType == JmlToken.CONSTRAINT) {
                 // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
-                if (sym.toString().equals("i")) Utils.print("");
                 // Is the symbol more visible? OK if the symbol is not a modifiable variable
                 if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
                         && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)

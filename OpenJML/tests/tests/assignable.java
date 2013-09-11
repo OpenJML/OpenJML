@@ -151,6 +151,7 @@ public class assignable extends TCBase {
                 ,"/A.java:2: A this or super token must be followed by a field selection",39
                 ,"/A.java:2: Expected an identifier or star after the dot",52
                 ,"/A.java:2: A this or super token must be followed by a field selection",46
+                ,"/A.java:2: An assignable clause may not contain method formal parameters: b",35
                 );
     }
 
@@ -190,6 +191,7 @@ public class assignable extends TCBase {
                 ,"/A.java:2: Missing comma or otherwise ill-formed type name",18
                 ,"/A.java:2: Expected an identifier or star after the dot",26
                 ,"/A.java:2: A this or super token must be followed by a field selection",21
+                ,"/A.java:2: An assignable clause may not contain method formal parameters: b",18
                 );
     }
     

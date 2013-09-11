@@ -3671,11 +3671,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         DiagnosticPosition pos = fa;
         int posp = pos.getPreferredPosition();
-        JCExpression pfac = pstoreref instanceof JCFieldAccess && ((JCFieldAccess)pstoreref).sym == null ? 
-                pstoreref
-                : (pstoreref instanceof JCIdent && isModel( ((JCIdent)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
-                : (pstoreref instanceof JCFieldAccess && isModel( ((JCFieldAccess)pstoreref).sym )) ? pstoreref // FIXME - do we at least need to normalize with a leading this?
-                : convertJML(pstoreref); // FIXME - isn't everything converted already? perhaps insist that it is
+        JCExpression pfac = convertAssignable(pstoreref,targetThisSym);
         if (pfac instanceof JmlStoreRefKeyword) {
             JmlToken ptoken = ((JmlStoreRefKeyword)pfac).token;
             if (ptoken == JmlToken.BSEVERYTHING) return treeutils.trueLit;
@@ -4807,7 +4803,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         addStat(comment(clause));
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
                                         for (JCExpression location: (((JmlMethodClauseStoreRef)clause).list)) {
-                                            location = convertAssignable(location,(VarSymbol)currentThisId.sym);
+                                            location = convertAssignable(location,currentThisId == null ? null : (VarSymbol)currentThisId.sym);
                                             if (!(location instanceof JCFieldAccess)) { newlist.add(location); continue; }
                                             JCFieldAccess fa = (JCFieldAccess)location;
                                             if (fa.sym == null) {
@@ -6759,7 +6755,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // the corrresponding model method. We have to use model methods 
         // instead of just inlining the represents clause expression because
         // the model field/method may be overridden in derived classes.
-        if (attr.isModel(that.sym) && that.sym instanceof VarSymbol) {
+        if (attr.isModel(that.sym) && that.sym instanceof VarSymbol && !convertingAssignable) {
             if (!reps.contains(that.sym)) {
                 reps.add(0,that.sym);
                 try {
@@ -6779,7 +6775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         error(that, "No corresponding model method for " + that.sym);
                         return;
                     }
-                    if (esc && !convertingAssignable) {
+                    if (esc) {
                         TypeSpecs tspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
                         for (JmlTypeClause tc : tspecs.clauses) {
                             if (tc.token == JmlToken.REPRESENTS) {
@@ -8971,10 +8967,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             Bound b = new Bound();
             b.decl = decls.head;
-            b.lo = locomp.lhs;
-            b.hi = hicomp.rhs;
-            b.lo_equal = locomp.getTag() == JCTree.LE;
-            b.hi_equal = hicomp.getTag() == JCTree.LE;
+            int tag = locomp.getTag();
+            if (tag == JCTree.GE || tag == JCTree.GT) b.lo = locomp.rhs;
+            else b.lo = locomp.lhs;
+            b.lo_equal = tag == JCTree.LE || tag == JCTree.GE;
+            tag = hicomp.getTag();
+            if (tag == JCTree.GE || tag == JCTree.GT) b.hi = hicomp.lhs;
+            else b.hi = hicomp.rhs;
+            b.hi_equal = tag == JCTree.LE || tag == JCTree.GE;
             bounds.add(0,b);
         } catch (Exception e) {
             return null;
