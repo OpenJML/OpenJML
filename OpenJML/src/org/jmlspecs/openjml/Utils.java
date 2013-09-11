@@ -570,7 +570,7 @@ public class Utils {
      * is visible in a method in the
      * 'base' class and the method has the given 'methodFlags'. 
      */
-    public boolean jmlvisible(Symbol base, Symbol parent, long flags, long methodFlags) {
+    public boolean jmlvisible(Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
         if (!visible(base,parent,flags)) return false;
         
         // In JML the clause must be at least as visible to clients as the method
@@ -578,10 +578,14 @@ public class Utils {
         methodFlags &= Flags.AccessFlags;
         // If target is public, then it is jml-visible
         if (flags == Flags.PUBLIC) return true;
+        if (s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
+
         if (methodFlags == Flags.PUBLIC) return false;
         
         if (methodFlags == Flags.PRIVATE) return true;
-        if (flags == Flags.PRIVATE) return false;
+        if (flags == Flags.PRIVATE &&
+                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED)) == null
+                ) return false;
         
         if (flags == 0) return methodFlags == 0;
         // Here flags must be PROTECTED
@@ -603,7 +607,7 @@ public class Utils {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
-                if (!jmlvisible(base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
+                if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
             }
         }

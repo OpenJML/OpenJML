@@ -257,10 +257,22 @@ public class assignable extends TCBase {
     }
 
     @Test
-    public void testAssignableConstructorr3() {
+    public void testAssignableConstructor3() {
         helpTCF("A.java","public class A { \n"
                 +"  private int i;\n"
-                +"  \n" // default assignable
+                +"  \n" // default assignable with no spec case
+                +"  public A() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new A(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4() {
+        helpTCF("A.java","public class A { \n"
+                +"  private int i;\n"
+                +"  //@ requires true; \n" // default assignable
                 +"  public A() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new A(); }\n"

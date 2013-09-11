@@ -418,6 +418,19 @@ public class escnew3 extends EscBase {
     // TODO - test not_modified and old nested in each other; remember to test definedness            
 
     @Test
+    public void testAssignableConstructor0() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
     public void testAssignableConstructor1() {
         expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
@@ -462,6 +475,51 @@ public class escnew3 extends EscBase {
     }
 
     @Test
+    public void testAssignableConstructor3a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ requires true; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",22
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
     public void testAssignableConstructor4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model Object state;\n"
@@ -475,11 +533,141 @@ public class escnew3 extends EscBase {
     }
 
     @Test
+    public void testAssignableConstructor4e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ requires true;\n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
     public void testAssignableConstructor5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable state; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor5s() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable this.state; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ requires true; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor7() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  /*@ spec_public */ private int i; \n"
+                +"  //@ assignable i; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor7s() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  /*@ spec_public */ private int i; \n"
+                +"  //@ assignable this.i; \n"
                 +"  public TestJava() { i = 0; }\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"

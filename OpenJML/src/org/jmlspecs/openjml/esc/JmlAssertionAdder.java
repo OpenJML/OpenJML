@@ -3955,7 +3955,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (noSpecCases) {
-            // FIXME - do we need this case, and is this the correct default?
+            // Constructor default is handled within the call below
             JCExpression check = checkAssignable(assignPosition, lhs,M.at(methodDecl.pos).JmlSpecificationCase(null, false, null, null, List.<JmlMethodClause>nil()),currentThisId.sym,currentThisId.sym);
             if (!treeutils.isTrueLit(check)) {
                 addAssert(assignPosition,Label.ASSIGNABLE,check,methodDecl.pos,methodDecl.sourcefile,lhs.toString());
