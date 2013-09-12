@@ -27,13 +27,14 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
@@ -184,6 +185,15 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
                     JmlOption.FLOWSPECS + " operation cancelled"));
         }
     }
+    
+    @Override 
+    public void visitLiteral(JCLiteral tree){
+        //
+        // We don't need to implement this since we just assume any literal 
+        // we encounter has the same type as the thing that came before it. It is 
+        // provided here only for documentation and debugging purposes. 
+        //
+    }
 
     @Override
     public void enterExec(JCExpressionStatement tree) {
@@ -257,6 +267,14 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         // TODO Auto-generated method stub
 
     }
+    
+    @Override 
+    public void visitBinary(JCBinary tree){
+        SecurityType left  = attribExpr(tree.lhs, env);
+        SecurityType right = attribExpr(tree.rhs, env);
+        
+        result = check(tree, left, right);
+    }
 
     @Override
     public void visitIdent(JCIdent tree) {
@@ -322,7 +340,6 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
         //TODO abstract the checking function
         result = check(tree, lt, rt);
-        //result = check(tree, lt, VAL, pkind, pt);
     }
 
     SecurityType upperBound(SecurityType t1, SecurityType t2){
@@ -336,6 +353,21 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         }
         
         return t1;
+    }
+    
+    /**
+     * Checks binary expressions. Note that really, no binary expression is unallowed assuming a linear lattice model. If we wish to support fully lattices 
+     * we will need to modify the lattice class to identify that these elements are uncomparable and therefore generate a type checking error. 
+     * 
+     * Barring that situation, this will just find the upper bound of the two types. 
+     * 
+     * @param tree
+     * @param lt
+     * @param rt
+     * @return
+     */
+    public SecurityType check(JCBinary tree, SecurityType lt, SecurityType rt){
+        return upperBound(lt, rt);
     }
     
     public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt){
@@ -378,6 +410,10 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     
     public SecurityType attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         return attribTree(tree, env, VAL, pt.tag != ERROR ? pt : Type.noType);
+    }
+    
+    public SecurityType attribExpr(JCTree tree, Env<AttrContext> env) {
+        return attribTree(tree, env, VAL, Type.noType);
     }
 
     /**

@@ -5,6 +5,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
@@ -40,12 +41,10 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
 //    }
 
 //    @Override
-//    public void visitBinary(JCTree.JCBinary that) {
-//        allopcount++;
-//        System.out.println("Visiting Binary: " + that.toString());
+//    public void visitBinary(JCBinary that) {
 //        super.visitBinary(that);
 //    }
-
+//
     @Override
     public void visitExec(JCExpressionStatement tree){
         enterExec(tree);
