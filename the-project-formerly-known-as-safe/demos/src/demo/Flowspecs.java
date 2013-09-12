@@ -26,8 +26,6 @@ public class Flowspecs {
     void test2(int c){
         
         /*@ level(PRIVATE) */ int a = 3;
-        
-        
         /*@ level(PUBLIC) */ int b = 0;
    
         // ok
@@ -108,13 +106,56 @@ public class Flowspecs {
     }
 
     
-//    void test3(){}
-//    
-//    int test3a(){}
-//    
-//    int test3b(){}
-//    
+    void test9(/*@ level(PRIVATE) */int a, /*@ level(PUBLIC) */int b) {
+
+        a = 3;
+
+        b = 0;
+
+        // ok
+        a = a + a;
+        b = b + b;
+
+        // also ok
+        a = a + b;
+        a = b + a;
+        a = a * 2;
+        a = 2 * a;
+
+        // also ok!
+        b = 2 * b;
+        b = 2;
+        b = b * b;
+
+        // not ok
+        b = b + a;
+        b = a + b;
+        b = a * 2;
+
+        // also not ok
+        b = (a + a) * (b + b);
+
+    }
     
+    // fails
+    /*@ level(PUBLIC) */ int test10(/*@ level(PRIVATE) */ int a) {
+        return a;
+    }
+
+    // also fails
+    /*@ level(PUBLIC) */ int test11(int a) {
+        return a;
+    }
+
+    // OK
+    /*@ level(PUBLIC) */ int test12(/*@ level(PUBLIC) */ int a) {
+        return a;
+    }
+
+    // Warns
+    /*@ level(PRIVATE) */ int test13(/*@ level(PUBLIC) */  int a) {
+        return a;
+    }
 
 }
 
