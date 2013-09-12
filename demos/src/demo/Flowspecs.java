@@ -55,6 +55,59 @@ public class Flowspecs {
         
     }
 
+    // fails
+    /*@ level(PUBLIC) */ int test3() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        int b = 0;
+        
+        return b;
+    }
+    
+    // ok
+    /*@ level(PUBLIC) */ int test4() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        /*@ level(PUBLIC)  */ int b = 0;
+        
+        return b;
+    }
+
+    // implicitly ok
+    /*@ level(PRIVATE) */ int test5() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        /*@ level(PUBLIC)  */ int b = 0;
+        
+        return a;
+    }
+
+    // not ok
+    /*@ level(PUBLIC) */ int test6() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        /*@ level(PUBLIC)  */ int b = 0;
+        
+        return b*a;
+    }
+
+    // Possibly ok?
+    /*@ level(PUBLIC) */ int test7() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        
+        return 1;
+    }
+
+    // Possibly ok?
+    /*@ level(PRIVATE) */ int test8() {
+
+        /*@ level(PRIVATE) */ int a = 3;
+        
+        return 1;
+    }
+
+    
 //    void test3(){}
 //    
 //    int test3a(){}
