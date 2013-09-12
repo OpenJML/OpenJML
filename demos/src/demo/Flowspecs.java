@@ -10,7 +10,8 @@ public class Flowspecs {
     
     void test1() {
         
-         /*@ level(PRIVATE) */ int a = 3;
+        @Level("PRIVATE")
+        int a = 3;
          
          
          /*@ level(PUBLIC) */ int b = 0;
@@ -21,7 +22,8 @@ public class Flowspecs {
          b = a;
      }  
     
-    void test2(){
+    
+    void test2(int c){
         
         /*@ level(PRIVATE) */ int a = 3;
         
@@ -38,10 +40,18 @@ public class Flowspecs {
         a = a*2;
         a = 2*a;
         
+        // also ok!
+        b = 2*b;
+        b = 2;
+        b = b*b;
+        
         // not ok
         b = b+a;
         b = a+b;
         b = a*2;
+        
+        // also not ok
+        b = (a+a) * (b+b);
         
     }
 
