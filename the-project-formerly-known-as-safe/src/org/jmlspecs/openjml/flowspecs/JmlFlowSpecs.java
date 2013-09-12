@@ -37,6 +37,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
@@ -361,6 +362,12 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             }
         }
         return r;
+    }
+    
+    @Override
+    public void visitApply(JCMethodInvocation tree){
+        //TODO - check arguments when calling functions
+        
     }
 
     @Override

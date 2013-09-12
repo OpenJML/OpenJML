@@ -7,6 +7,12 @@ public class Flowspecs {
     // Typechecking Tests
     //
     
+
+    /*@ level(PRIVATE) */ private int aa = 3;
+    /*@ level(PUBLIC)  */ private int  bb = 3;
+    /*@ level(PUBLIC)  */ private int  cc = aa;
+    
+    
     
     void test1() {
         
@@ -155,6 +161,39 @@ public class Flowspecs {
     // Warns
     /*@ level(PRIVATE) */ int test13(/*@ level(PUBLIC) */  int a) {
         return a;
+    }
+    
+    
+    void test14(){
+        
+        /*@ level(PRIVATE) */ int a = 3;
+        /*@ level(PUBLIC) */  int b = 44;
+        
+        // fails
+        a = test12(a);
+        // ok
+        a = test12(b);
+        // fails
+        b = test12(a);
+        // ok
+        b = test12(b);
+        
+        
+    }
+    
+    
+    void test15(){
+        // ok
+        aa = bb;
+        // not ok
+        bb = aa;
+        
+        // OK
+        aa = bb = cc;
+        
+        // BUG
+        aa = bb = aa;
+
     }
 
 }
