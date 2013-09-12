@@ -1,16 +1,15 @@
 package org.jmlspecs.openjml.flowspecs;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 /**
@@ -97,7 +96,16 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
     public abstract void enterTopLevel(JCCompilationUnit tree);
     public abstract void exitTopLevel(JCCompilationUnit tree);
 
-
+    @Override
+    public void visitJmlMethodDecl(JmlMethodDecl tree){
+        enterJmlMethodDecl(tree);
+        super.visitJmlMethodDecl(tree);
+        exitJmlMethodDecl(tree);
+    }
+    
+    public abstract void enterJmlMethodDecl(JmlMethodDecl tree);
+    public abstract void exitJmlMethodDecl(JmlMethodDecl tree);
+    
     @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree){
         enterJmlMethodClauseDecl(tree);

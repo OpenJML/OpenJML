@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.flowspecs;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
 import static com.sun.tools.javac.code.TypeTags.ERROR;
+import static com.sun.tools.javac.code.TypeTags.VOID;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -13,11 +14,13 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.flowspecs.LatticeParser.LatticeParserException;
 
 import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symtab;
@@ -33,6 +36,8 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -112,7 +117,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         this.rs = Resolve.instance(context);
-
+        //FIXME - this is WRONG.
+        this.env = new Env(null, null);
         Names names = Names.instance(context);
 
         for (JmlToken t : JmlToken.modifiers) {
@@ -185,13 +191,14 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
                     JmlOption.FLOWSPECS + " operation cancelled"));
         }
     }
-    
-    @Override 
-    public void visitLiteral(JCLiteral tree){
+
+    @Override
+    public void visitLiteral(JCLiteral tree) {
         //
-        // We don't need to implement this since we just assume any literal 
-        // we encounter has the same type as the thing that came before it. It is 
-        // provided here only for documentation and debugging purposes. 
+        // We don't need to implement this since we just assume any literal
+        // we encounter has the same type as the thing that came before it. It
+        // is
+        // provided here only for documentation and debugging purposes.
         //
     }
 
@@ -221,7 +228,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void enterBlock(JCBlock tree) {
-        progress(1, 1, String.format("Entering Block\n----------------\n%s\n----------------",
+        progress(1, 1, String.format(
+                "Entering Block\n----------------\n%s\n----------------",
                 tree.toString()));
 
     }
@@ -267,25 +275,49 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         // TODO Auto-generated method stub
 
     }
-    
-    @Override 
-    public void visitBinary(JCBinary tree){
-        SecurityType left  = attribExpr(tree.lhs, env);
+
+    @Override
+    public void visitBinary(JCBinary tree) {
+        SecurityType left = attribExpr(tree.lhs, env);
         SecurityType right = attribExpr(tree.rhs, env);
-        
+
         result = check(tree, left, right);
     }
 
     @Override
-    public void visitIdent(JCIdent tree) {
-        result = resolveType(tree);
+    public void visitReturn(JCReturn tree) {
+
+        //
+        // We don't have to perform the same checks Java performs here.
+        // We just need to make sure the types match (or may be weakened) if they exist.
+        //
+        Symbol m = env.enclMethod.sym;
+        if (tree.expr != null & m.type.getReturnType().tag != VOID) {
+
+           // if the expr is a literal we just always let it pass
+           if(tree.expr instanceof JCLiteral == false){
+               SecurityType returnType = attribExpr(tree.expr, env);
+               SecurityType methodType = resolveType(m);
+
+               check(tree, returnType, methodType);
+           }
+           
+        }
+       
+
+        result = null;
     }
 
-    private SecurityType resolveType(JCIdent tree) {
+    @Override
+    public void visitIdent(JCIdent tree) {
+        result = resolveType(tree.sym);
+    }
+
+    private SecurityType resolveType(Symbol s) {
 
         SecurityType t = null;
-        if (tree.sym != null) {
-            for (Attribute.Compound c : tree.sym.getAnnotationMirrors()) {
+        if (s != null) {
+            for (Attribute.Compound c : s.getAnnotationMirrors()) {
 
                 // Case 1, they have an annotation of SOME kind specificed
                 if (c.type.tsym.flatName().equals(
@@ -338,49 +370,77 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
         SecurityType rt = attribExpr(tree.rhs, env, lt);
 
-        //TODO abstract the checking function
+        // TODO abstract the checking function
         result = check(tree, lt, rt);
     }
 
-    SecurityType upperBound(SecurityType t1, SecurityType t2){
-        
-        if(t1.level.equals(t2)){
+    SecurityType upperBound(SecurityType t1, SecurityType t2) {
+
+        if (t1.level.equals(t2)) {
             return t1;
         }
-        
-        if(lattice.isSubclass(t1.level, t2.level)){
+
+        if (lattice.isSubclass(t1.level, t2.level)) {
             return t2;
         }
-        
+
         return t1;
     }
-    
+
     /**
-     * Checks binary expressions. Note that really, no binary expression is unallowed assuming a linear lattice model. If we wish to support fully lattices 
-     * we will need to modify the lattice class to identify that these elements are uncomparable and therefore generate a type checking error. 
+     * Checks binary expressions. Note that really, no binary expression is
+     * unallowed assuming a linear lattice model. If we wish to support fully
+     * lattices we will need to modify the lattice class to identify that these
+     * elements are uncomparable and therefore generate a type checking error.
      * 
-     * Barring that situation, this will just find the upper bound of the two types. 
+     * Barring that situation, this will just find the upper bound of the two
+     * types.
      * 
      * @param tree
      * @param lt
      * @param rt
      * @return
      */
-    public SecurityType check(JCBinary tree, SecurityType lt, SecurityType rt){
+    public SecurityType check(JCBinary tree, SecurityType lt, SecurityType rt) {
         return upperBound(lt, rt);
     }
     
-    public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt){
+    public SecurityType check(JCReturn tree, SecurityType returnType, SecurityType methodType) {
         
-        if(lt.level.equals(rt.level) || lattice.isSubclass(rt.level, lt.level)){
-            return upperBound(lt, rt);
+        if(returnType.level.equals(methodType.level)){
+            return upperBound(returnType, methodType);
         }
-
-        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(), lt.toString());
+        
+        if (lattice.isSubclass(returnType.level, methodType.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", returnType.toString(),
+                    methodType.toString());
+    
+            return upperBound(returnType, methodType);
+        }
+        log.error(tree.pos, "jml.flowspecs.lattice.return.invalidflow", returnType.toString(),
+                methodType.toString());
 
         return SecurityType.wrong();
     }
-    
+
+    public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt) {
+
+        if(lt.level.equals(rt.level)){
+            return upperBound(lt, rt);
+        }
+        
+        if (lattice.isSubclass(rt.level, lt.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", rt.toString(),
+                    lt.toString());
+            return upperBound(lt, rt);
+        }
+
+        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(),
+                lt.toString());
+
+        return SecurityType.wrong();
+    }
+
     final Resolve    rs;
 
     /**
@@ -388,6 +448,9 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      */
     Env<AttrContext> env;
 
+    
+    JCMethodDecl prevMethod;
+    
     /**
      * Visitor argument: the currently expected proto-kind.
      */
@@ -406,12 +469,12 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     /**
      * Visitor result: the computed type.
      */
-    SecurityType             result;
-    
+    SecurityType     result;
+
     public SecurityType attribExpr(JCTree tree, Env<AttrContext> env, Type pt) {
         return attribTree(tree, env, VAL, pt.tag != ERROR ? pt : Type.noType);
     }
-    
+
     public SecurityType attribExpr(JCTree tree, Env<AttrContext> env) {
         return attribTree(tree, env, VAL, Type.noType);
     }
@@ -429,12 +492,13 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      * @param pt
      *            The prototype visitor argument.
      */
-    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt) {
+    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind,
+            Type pt) {
         return attribTree(tree, env, pkind, pt, "incompatible.types");
     }
 
-    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind, Type pt,
-            String errKey) {
+    SecurityType attribTree(JCTree tree, Env<AttrContext> env, int pkind,
+            Type pt, String errKey) {
         Env<AttrContext> prevEnv = this.env;
         int prevPkind = this.pkind;
         Type prevPt = this.pt;
@@ -478,6 +542,19 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         // }
         // tree.type = owntype;
         return owntype;
+    }
+
+    @Override
+    public void enterJmlMethodDecl(JmlMethodDecl tree) {
+        prevMethod = env.enclMethod;
+        env.enclMethod = tree;
+    }
+
+    @Override
+    public void exitJmlMethodDecl(JmlMethodDecl tree) {
+        env.enclMethod = prevMethod;
+        prevMethod = null;
+        
     }
 
 }
