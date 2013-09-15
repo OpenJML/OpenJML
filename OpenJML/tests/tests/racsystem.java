@@ -38,8 +38,7 @@ public class racsystem extends RacBase {
         jdkrac = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        options.put("-noPurityCheck",""); // To shut off complaints about misuse of purity in Java specifications
-//        options.put(option,"");//print = true;
+        main.addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
     }
 
     // FIXME - not testing rac-compiled JDK files
@@ -68,7 +67,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2a() {
         expectedRACExit = 1;
-        main.addOptions("-noRacSource","-noInternalSpecs");
+        main.addOptions("-no-showRacSource","-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -91,7 +90,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2pre() {
         expectedRACExit = 1;
-        main.addOptions("-noRacSource","-noInternalSpecs");
+        main.addOptions("-no-showRacSource","-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -113,7 +112,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2c() {
         expectedRACExit = 0;
-        main.addOptions("-noRacSource","-noInternalSpecs");
+        main.addOptions("-no-showRacSource","-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.useExceptions = true; \n"
                 +"try { m(); } catch (Error e) { System.out.println(\"CAUGHT ASSERTION\"); e.printStackTrace(System.out); } \n"
@@ -140,8 +139,8 @@ public class racsystem extends RacBase {
     public void testFile2d() {
         expectedRACExit = 0;
         expectedNotes = 0;
-        main.addOptions("-noInternalSpecs");
-        main.addOptions("-noRacSource");
+        main.addOptions("-no-internalSpecs");
+        main.addOptions("-no-showRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"m();\n"
@@ -163,7 +162,7 @@ public class racsystem extends RacBase {
     @Test
     public void testFile3() {
         expectedNotes =  0; // 2
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"try { m(); } catch (Exception e) { System.out.println(\"CAUGHT EXCEPTION\"); } \n"
                 +"System.out.println(\"END\"); }\n"
@@ -180,7 +179,7 @@ public class racsystem extends RacBase {
     @Test
     public void testHashCode() {
         expectedNotes =  0; // 2
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.utils.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
@@ -200,7 +199,7 @@ public class racsystem extends RacBase {
     @Test
     public void testMain() {
         expectedNotes = 2;
-        main.addOptions("-noRacSource");
+        main.addOptions("-no-showRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"
@@ -219,8 +218,8 @@ public class racsystem extends RacBase {
     @Test
     public void testMain2() {
         expectedNotes = 0;
-        main.addOptions("-noInternalSpecs");
-        main.addOptions("-noRacSource");
+        main.addOptions("-no-internalSpecs");
+        main.addOptions("-no-showRacSource");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"
                 +"  System.out.println(\"START\"); \n"

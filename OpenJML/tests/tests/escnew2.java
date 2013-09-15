@@ -23,12 +23,7 @@ public class escnew2 extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("-noPurityCheck");
-        //options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-counterexample",   "");
-        //options.put("-trace",   "");
+        main.addOptions("-purityCheck=false");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;

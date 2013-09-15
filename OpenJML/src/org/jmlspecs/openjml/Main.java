@@ -573,6 +573,11 @@ public class Main extends com.sun.tools.javac.main.Main {
         String res = "";
         String s = args[i++];
         if (s == null || s.isEmpty()) return i; // For convenience, allow but ignore null or empty arguments
+        boolean negate = false;
+        if (s.startsWith("-no-")) {
+            negate = true;
+            s = s.substring("-no".length());
+        }
         IOption o = JmlOption.find(s);
         while (o!=null && o.synonym()!=null) {
             s = o.synonym();
@@ -630,7 +635,15 @@ public class Main extends com.sun.tools.javac.main.Main {
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" (or any non-null) is true, null is false
-            options.put(s,res);
+            if (negate) {
+                if (o.defaultValue() instanceof Boolean) {
+                    JmlOption.setOption(context, o, false);
+                } else {
+                    options.put(s,o.defaultValue().toString());
+                }
+            } else {
+                options.put(s,res);
+            }
         }
         return i;
     }
@@ -692,16 +705,17 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
-        if (keysString != null) {
+        if (keysString != null && !keysString.isEmpty()) {
             String[] keys = keysString.split(",");
             for (String k: keys) utils.commentKeys.add(k);
         }
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
+        utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
-        if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
+        if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
         String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
         if (limit == null || limit.equals("all")) {
@@ -720,9 +734,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null) {
             options.put(JmlOption.FEASIBILITY.optionName(),"all");
-        } else if (check.equals("all") || 
+            check="all";
+        }
+        if (check.equals("all") || 
                 check.equals("preconditions") || 
                 check.equals("exit") || 
+                check.equals("postconditions") || 
+                check.equals("reachable") || 
                 check.equals("none")) {
             // continue
         } else {
@@ -799,6 +817,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions() in this class.
+        JmlOptions.preRegister(context);
         JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
@@ -894,7 +913,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     protected void coreDefaultOptions(Options opts) {
         opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
-        opts.put(JmlOption.NOPURITYCHECK.optionName(), "");
+        opts.put(JmlOption.PURITYCHECK.optionName(), null);
     }
     
     /** Adds additional options to those already present (which may change 

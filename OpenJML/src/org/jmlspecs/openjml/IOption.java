@@ -18,6 +18,12 @@ public interface IOption {
      */
     public boolean hasArg();
     
+    /** The default value of the option
+     * @return The default value of the option
+     */
+    /*@ nullable */
+    public Object defaultValue();
+    
     /** The help string for the option
      * @return The help string for the option
      */

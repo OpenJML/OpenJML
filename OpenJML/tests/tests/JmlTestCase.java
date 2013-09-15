@@ -202,7 +202,7 @@ public abstract class JmlTestCase {
         options = Options.instance(context);
         if (jmldebug) {  // FIXME - this is not the right way to set debugging
             Utils.instance(context).jmlverbose = Utils.JMLDEBUG; 
-            options.put("-jmlverbose", "4");
+            main.addOptions("-jmlverbose", "4");
         }
         print = false;
         mockFiles = new LinkedList<JavaFileObject>();

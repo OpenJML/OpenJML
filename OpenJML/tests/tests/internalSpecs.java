@@ -16,7 +16,7 @@ public class internalSpecs extends TCBase {
 //      jmldebug = true;
         useSystemSpecs = true;
         super.setUp();
-        options.put("-noPurityCheck",""); // FIXME - there are too many purity problems in the specs right now
+        main.addOptions("-no-purityCheck"); // FIXME - there are too many purity problems in the specs right now
     }
 
     /** Scan something very simple but use the internal spaces to see what 

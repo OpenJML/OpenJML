@@ -187,7 +187,7 @@ public class Main extends org.jmlspecs.openjml.Main {
         if (context != null) {
             // FIXME Utils.instance(context).jmlverbose = Options.instance(context).get(JmlOption.JMLDEBUG.optionName()) != null; 
             JmlSpecs.instance(context).initializeSpecsPath();
-            if (!JmlOption.isOption(context,JmlOption.NOINTERNALRUNTIME)) {
+            if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) {
             	appendRuntime(context);
             }
         }

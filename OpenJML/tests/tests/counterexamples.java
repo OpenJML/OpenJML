@@ -26,7 +26,7 @@ public class counterexamples extends EscBase {
     @Parameters // FIXME add back solver, boogie and custom tests
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        data.add(new String[]{"-newesc",null}); 
+        data.add(new String[]{"",null}); 
         return data;
     }
 

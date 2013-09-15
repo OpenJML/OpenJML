@@ -3044,7 +3044,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (msym != null) {
                 // FIXME - test that this works if the purity annotation is in a specs file and not the java file
                 boolean isPure = isPure(msym) || isPure(msym.enclClass());
-                if (!isPure && !JmlOption.isOption(context,JmlOption.NOPURITYCHECK)) {
+                if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
                     log.warning(tree.pos,"jml.non.pure.method",msym);
                 }
                 if (isPure && currentClauseType == JmlToken.INVARIANT

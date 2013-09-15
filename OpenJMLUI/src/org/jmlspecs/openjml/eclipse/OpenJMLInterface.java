@@ -932,7 +932,7 @@ public class OpenJMLInterface {
             opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
         }
         {
-            opts.add(JmlOption.NOPURITYCHECK.optionName() +eq+ Options.isOption(Options.noCheckPurityKey));
+            opts.add(JmlOption.PURITYCHECK.optionName() +eq+ !Options.isOption(Options.noCheckPurityKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
         if (cmd == Main.Cmd.ESC || cmd == null) {
@@ -946,9 +946,9 @@ public class OpenJMLInterface {
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
-            opts.add(JmlOption.NO_RAC_SOURCE.optionName() +eq+ Options.isOption(Options.racNoShowSource));
-            opts.add(JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racNoCheckAssumptions));
-            opts.add(JmlOption.NO_RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racNoCheckJavaFeatures));
+            opts.add(JmlOption.SHOW_RAC_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ !Options.isOption(Options.racNoCheckAssumptions));
+            opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ !Options.isOption(Options.racNoCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         
@@ -960,7 +960,7 @@ public class OpenJMLInterface {
         
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
         if (Options.isOption(Options.showNotExecutableKey)) opts.add(JmlOption.SHOW_NOT_EXECUTABLE.optionName());
-        if (!Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.NOCHECKSPECSPATH.optionName());
+        if (Options.isOption(Options.checkSpecsPathKey)) opts.add(JmlOption.CHECKSPECSPATH.optionName());
         opts.add(JmlOption.NULLABLEBYDEFAULT.optionName()+eq+Options.isOption(Options.nullableByDefaultKey));
             
         String other = Options.value(Options.otherOptionsKey);
@@ -980,7 +980,7 @@ public class OpenJMLInterface {
 
         // The plug-in adds the internal specs (or asks the user for external specs)
         // So, openjml itself never needs to
-        opts.add(JmlOption.NOINTERNALSPECS.optionName());
+        opts.add("-no"+JmlOption.INTERNALSPECS.optionName());
         opts.add(JmlOption.SPECS.optionName());
         opts.add(PathItem.getAbsolutePath(jproject,Env.specsKey));
 
@@ -1000,7 +1000,7 @@ public class OpenJMLInterface {
 
         // The runtime library is always either in the classpath or added 
         // here by the plugin, so openjml itself never adds it
-        opts.add(JmlOption.NOINTERNALRUNTIME.optionName());
+        opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
         if (!Options.isOption(Options.noInternalRuntimeKey)) {
         	String runtime = utils.findInternalRuntime();
         	if (runtime != null) {

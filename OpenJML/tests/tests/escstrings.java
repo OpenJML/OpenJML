@@ -82,7 +82,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs1a() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -105,7 +105,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs1() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -128,7 +128,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs2() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-internalSpecs=false");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -151,7 +151,7 @@ public class escstrings extends EscBase {
     /** Tests String equality */
     @Test
     public void testStringEqualsNoSpecs3() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -174,7 +174,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs1() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -195,7 +195,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs1a() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -216,7 +216,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs2() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -239,7 +239,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs2a() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -262,7 +262,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs3() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -283,7 +283,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcatNoSpecs3a() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

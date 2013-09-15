@@ -9,7 +9,7 @@ public class typecheckingvisibility extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        options.put("-noPurityCheck", "");
+        main.addOptions("-no-purityCheck");
     }
 
     @Test public void testLocalVisibility() {

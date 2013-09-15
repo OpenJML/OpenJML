@@ -1336,7 +1336,7 @@ public class api {
     
     @Test
     public void testESC() {
-        testESC("-newesc");
+        testESC("");
     }
     
     @Test @Ignore

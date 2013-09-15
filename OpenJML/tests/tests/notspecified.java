@@ -10,7 +10,7 @@ public class notspecified extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        options.put("-showNotImplemented", null);
+        main.addOptions("-showNotImplemented=false");
     }
 
     @Test

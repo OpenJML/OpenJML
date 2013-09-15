@@ -40,8 +40,8 @@ public abstract class TCBase extends JmlTestCase {
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-sourcepath",   testspecpath);
         main.addOptions("-classpath",   "bin-runtime");
-        if (!useSystemSpecs) main.addOptions("-noInternalSpecs");
-        main.addOptions(JmlOption.NOPURITYCHECK.optionName());
+        if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
+        main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
 
         JmlAttr.instance(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing

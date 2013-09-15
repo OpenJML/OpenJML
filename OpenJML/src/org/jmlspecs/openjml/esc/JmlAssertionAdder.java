@@ -562,9 +562,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
-        this.showRacSource = !JmlOption.isOption(context,JmlOption.NO_RAC_SOURCE.optionName());
-        this.racCheckAssumeStatements = !JmlOption.isOption(context,JmlOption.NO_RAC_CHECK_ASSUMPTIONS.optionName());
-        this.javaChecks = esc || (rac && !JmlOption.isOption(context,JmlOption.NO_RAC_JAVA_CHECKS.optionName()));
+        this.showRacSource = JmlOption.isOption(context,JmlOption.SHOW_RAC_SOURCE);
+        this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
+        this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
         this.count = 0;
         this.assertCount = 0;
         this.precount = 0;
@@ -4601,8 +4601,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                         JCIdent preId = null;
-                        if (rac) preId = newTemp(treeutils.trueLit);
-                        if (rac) pushBlock();
+                        if (rac) {
+                            preId = newTemp(treeutils.falseLit);
+                            pushBlock();
+                        }
                         JCExpression pre = translatingJML ? convertCopy(savedCondition) : treeutils.trueLit;
                         try {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case

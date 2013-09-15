@@ -423,8 +423,8 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = !JmlOption.isOption(context,JmlOption.NOCHECKSPECSPATH);
-        if (!JmlOption.isOption(context,JmlOption.NOINTERNALSPECS)) {
+        boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
+        if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
             todo.add("$SY");
         }
 

@@ -42,14 +42,14 @@ public abstract class EscBase extends JmlTestCase {
     
     static public  Collection<String[]> makeData(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        for (String s: solvers) data.add(new String[]{"",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
 
     static public  Collection<String[]> makeData(String... solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        for (String s: solvers) data.add(new String[]{"",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
@@ -82,7 +82,7 @@ public abstract class EscBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         setOption(option,solver);
         //main.setupOptions();
         specs = JmlSpecs.instance(context);
@@ -98,14 +98,8 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-//        } else if (option.equals("-custom")) {
-//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-//            options.put(JmlOption.NEWESC.optionName(),null);
-//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
     }
@@ -114,14 +108,8 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-//        } else if (option.equals("-custom")) {
-//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-//            options.put(JmlOption.NEWESC.optionName(),null);
-//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
         // solver == null means use the default

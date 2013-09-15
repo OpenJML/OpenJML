@@ -163,7 +163,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-noRacSource=false");
+        main.addOptions("-showRacSource=true");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -1060,7 +1060,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testUndefined() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); m(2); System.out.println(\"END\"); } \n" +
                 " //@ requires 10/i != 0; \n" +
@@ -1073,15 +1072,14 @@ public class racnew extends RacBase {
                 ,"JML undefined precondition - exception thrown" // FIXME - this should have a line number
                 ,"java.lang.ArithmeticException: / by zero"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"Runtime exception while evaluating preconditions - preconditions are undefined in JML"
                 ,"java.lang.ArithmeticException: / by zero"
                 ,"\tat tt.TestJava.m(TestJava.java:3)"
                 ,"\tat tt.TestJava.main(TestJava.java:2)"
                 ,"VALUE 0"
-                ,"JML undefined precondition while checking postconditions - exception thrown"
-                ,"java.lang.ArithmeticException: / by zero"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"VALUE 1"
                 ,"/tt/TestJava.java:4: JML Division by zero"
                 ,"Runtime exception while evaluating postconditions - postconditions are undefined in JML"
@@ -1317,7 +1315,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-noRacSource=false");
+        main.addOptions("-showRacSource=true");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"

@@ -154,8 +154,7 @@ public class escall2 extends EscBase {
     }
     @Test
     public void testNN4Param() {
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
@@ -200,8 +199,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN5Param() {
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
@@ -246,8 +244,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN6Param() {
-        options.put("-nullableByDefault",null);
-        options.put("-nonnullByDefault","");
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
@@ -293,7 +290,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign() {
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -362,7 +359,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign2() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("-no-internalSpecs");
         //main.addOptions("-show","-method=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -436,7 +433,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign3() {
-        main.addOptions("-noInternalSpecs");
+        main.addOptions("internalSpecs=false");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"

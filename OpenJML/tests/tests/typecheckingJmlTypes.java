@@ -9,7 +9,7 @@ public class typecheckingJmlTypes extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
     }
 
     @Test public void testBigint() {

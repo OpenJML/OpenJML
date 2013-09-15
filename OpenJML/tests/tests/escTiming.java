@@ -14,12 +14,8 @@ public class escTiming extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
-        //options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }

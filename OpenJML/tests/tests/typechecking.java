@@ -10,7 +10,7 @@ public class typechecking extends TCBase {
 //        jmldebug = true;
         useSystemSpecs = true;
         super.setUp();
-        options.put("-noPurityCheck", "");
+        main.addOptions("-no-purityCheck");
     }
 
     /** Test something very simple with no errors*/

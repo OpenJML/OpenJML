@@ -17,7 +17,7 @@ import com.sun.tools.javac.util.Options;
 public class esc extends EscBase {
 
     public esc() {
-        super("-newesc",null);
+        super("",null);
     }
 
 //    public esc(String option, String solver) {
@@ -31,7 +31,7 @@ public class esc extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         main.addOptions("-jmltesting");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-trace");

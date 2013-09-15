@@ -20,11 +20,8 @@ public class escnowarn extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
-        //options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
         //JmlEsc.escdebug = true;
         main.addOptions("-jmltesting");
     }

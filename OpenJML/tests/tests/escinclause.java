@@ -24,11 +24,11 @@ public class escinclause extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
-        //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        //options.put("-jmldebug",   "");
-        //options.put("-trace",   "");
+        main.addOptions("-no-purityCheck");
+        //main.addOptions("-jmlverbose");
+        //main.addOptions("-method",   "m2bad");
+        //main.addOptions("-jmldebug");
+        //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
