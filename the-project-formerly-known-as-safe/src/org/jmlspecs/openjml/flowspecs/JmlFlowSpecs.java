@@ -8,6 +8,7 @@ import static com.sun.tools.javac.code.TypeTags.VOID;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.EnumMap;
+import java.util.Iterator;
 
 import org.dom4j.DocumentException;
 import org.jmlspecs.annotation.NonNull;
@@ -392,7 +393,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             JCIdent methodIdent = (JCIdent) tree.meth;
             MethodSymbol methodSymbol = (MethodSymbol) methodIdent.sym;
 
-            VarSymbol referenceSymbol = methodSymbol.getParameters().get(0);
+            Iterator<VarSymbol> referenceIterator = methodSymbol.getParameters().iterator();
+            VarSymbol referenceSymbol = referenceIterator.hasNext() ? referenceIterator.next() : null;
             
             for (int i = 0; i < tree.getArguments().size(); i++) {
                 
@@ -404,12 +406,9 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
                 result = check(tree, lt, rt);
                 
                 //- possibly update the reference symbol.
-                if(methodSymbol.isVarArgs() && i==methodSymbol.getParameters().size()-1){
-                    continue;
-                }else{
-                    if(i+1 < tree.getArguments().size())
-                        referenceSymbol = methodSymbol.getParameters().get(i+1);                    
-                }
+                if(referenceIterator.hasNext())
+                        referenceSymbol = referenceIterator.next();                    
+            
 
             }
 
