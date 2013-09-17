@@ -8,10 +8,25 @@ public class Flowspecs {
     //
     
 
+    // ok
     /*@ level(PRIVATE) */ private int aa = 3;
+    // ok
     /*@ level(PUBLIC)  */ private int  bb = 3;
+    // fails
     /*@ level(PUBLIC)  */ private int  cc = aa;
+    // ok
+    /*@ level(PRIVATE)  */ private int  dd = bb;
     
+    
+    // ok
+    /*@ level(USERTRUSTS) */ private int foo = 100;
+    // fails
+    /*@ level(PUBLIC) */     private int a = foo;
+
+
+    // fails
+    /*@ level(PUBLIC) */     private int ad = (bb +foo);
+
     
     
     void test1() {
