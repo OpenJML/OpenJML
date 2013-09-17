@@ -23,6 +23,7 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -381,30 +382,39 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     
     @Override
     public void visitApply(JCMethodInvocation tree){
-        //TODO - check arguments when calling functions
         //TODO - does a constructor call make a difference? self calls?
         
-        
-//        scan(tree.typeargs);
-    //    scan(tree.args);
-        
-        attribExpr(tree.getMethodSelect(), null);
+        if(tree.meth instanceof JCIdent 
+                    && ((JCIdent)tree.meth).sym instanceof MethodSymbol 
+                    && tree.getArguments().size() >0
+                    ){
+            
+            JCIdent methodIdent = (JCIdent) tree.meth;
+            MethodSymbol methodSymbol = (MethodSymbol) methodIdent.sym;
 
-        for(JCExpression e : tree.getArguments()){
+            VarSymbol referenceSymbol = methodSymbol.getParameters().get(0);
+            
+            for (int i = 0; i < tree.getArguments().size(); i++) {
+                
+                JCExpression currentExpr = tree.getArguments().get(i);
+                
+                SecurityType lt = resolveType(referenceSymbol);
+                SecurityType rt = attribExpr(currentExpr, env, lt);
 
-            if(1==1){
-                System.out.println("test");
+                result = check(tree, lt, rt);
+                
+                //- possibly update the reference symbol.
+                if(methodSymbol.isVarArgs() && i==methodSymbol.getParameters().size()-1){
+                    continue;
+                }else{
+                    if(i+1 < tree.getArguments().size())
+                        referenceSymbol = methodSymbol.getParameters().get(i+1);                    
+                }
+
             }
-            
-            //env.enclMethod.getParameters()
-            
-          
+
         }
-        
-        
-        
-        
-        
+
     }
 
     @Override
@@ -490,6 +500,24 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         }
         log.error(tree.pos, "jml.flowspecs.lattice.return.invalidflow", returnType.toString(),
                 methodType.toString());
+
+        return SecurityType.wrong();
+    }
+    
+    public SecurityType check(JCMethodInvocation tree, SecurityType lt, SecurityType rt) {
+
+        if(lt.level.equals(rt.level)){
+            return upperBound(lt, rt);
+        }
+        
+        if (lattice.isSubclass(rt.level, lt.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", rt.toString(),
+                    lt.toString());
+            return upperBound(lt, rt);
+        }
+
+        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(),
+                lt.toString());
 
         return SecurityType.wrong();
     }
