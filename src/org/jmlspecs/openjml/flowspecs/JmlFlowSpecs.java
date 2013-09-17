@@ -33,6 +33,7 @@ import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
@@ -241,6 +242,20 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     }
 
+    @Override 
+    public void visitVarDef(JCVariableDecl tree){
+        
+        SecurityType lt = resolveType(tree.sym); 
+        result = lt;
+        
+        if(tree.init!=null){
+            SecurityType rt = attribExpr(tree.init, env, lt);
+            result = check(tree, lt, rt);
+        }else{
+            result = lt;
+        }
+    }
+    
     @Override
     public void enterVarDef(JCVariableDecl tree) {
         // TODO Auto-generated method stub
@@ -367,6 +382,28 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     @Override
     public void visitApply(JCMethodInvocation tree){
         //TODO - check arguments when calling functions
+        //TODO - does a constructor call make a difference? self calls?
+        
+        
+//        scan(tree.typeargs);
+    //    scan(tree.args);
+        
+        attribExpr(tree.getMethodSelect(), null);
+
+        for(JCExpression e : tree.getArguments()){
+
+            if(1==1){
+                System.out.println("test");
+            }
+            
+            //env.enclMethod.getParameters()
+            
+          
+        }
+        
+        
+        
+        
         
     }
 
@@ -410,6 +447,33 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      */
     public SecurityType check(JCBinary tree, SecurityType lt, SecurityType rt) {
         return upperBound(lt, rt);
+    }
+    
+    public SecurityType check(JCVariableDecl tree, SecurityType dest, SecurityType source){
+
+        // no checking needed
+        if(source==null){
+            return dest;
+        }
+        
+        if(dest.level.equals(source.level)){
+            return upperBound(source, dest);
+        }
+        
+        
+        // ok
+        if (lattice.isSubclass(source.level,dest.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", source.toString(),
+                    dest.toString());
+    
+            return upperBound(source, dest);
+        }
+        
+        // flow error
+        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", source.toString(),
+                dest.toString());
+
+        return SecurityType.wrong();
     }
     
     public SecurityType check(JCReturn tree, SecurityType returnType, SecurityType methodType) {
@@ -551,6 +615,10 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         return owntype;
     }
 
+
+  
+
+    
     @Override
     public void enterJmlMethodDecl(JmlMethodDecl tree) {
         prevMethod = env.enclMethod;
