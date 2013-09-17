@@ -3889,9 +3889,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected List<JCExpression> convertArgs(List<JCExpression> args, List<Type> argtypes) {
         ListBuffer<JCExpression> out = new ListBuffer<JCExpression>();
         Iterator<Type> iter = argtypes.iterator();
+        Type currentArgType = iter.hasNext() ? iter.next() : null;  
+        
         for (JCExpression a: args) {
             a = convertExpr(a);
-            a = addImplicitConversion(a.pos(),iter.next(),a);
+            a = addImplicitConversion(a.pos(),currentArgType,a);
             if (useMethodAxioms && translatingJML) {
             } else if ((a instanceof JCIdent) && ((JCIdent)a).name.toString().startsWith(Strings.tmpVarString)) {
             } else if ((a instanceof JCIdent) && localVariables.containsKey(((JCIdent)a).sym)) {
@@ -3905,6 +3907,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 a = newTemp(a);
             }
             out.add(a);
+            // varargs happen in the last position, so if we have additional 
+            // arguments but have run out of typeargs we are processing varargs.            
+            if(iter.hasNext()){
+                currentArgType = iter.next();
+            }
+        
         }
         return out.toList();
     }
@@ -4297,8 +4305,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     if (calleeSpecs.decl != null) {
                         Iterator<JCVariableDecl> iter = calleeSpecs.decl.params.iterator();
+                        JCVariableDecl currentDecl = iter.hasNext() ? iter.next() : null;
                         for (JCExpression arg: trArgs) {
-                            paramActuals.put(iter.next().sym, arg);
+                            paramActuals.put(currentDecl.sym, arg);
+                            // This handles the case that we are processing varargs.
+                            if(iter.hasNext())
+                                currentDecl = iter.next();
                         }
                     }
                     if (esc) {
