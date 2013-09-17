@@ -206,10 +206,100 @@ public class Flowspecs {
         // OK
         aa = bb = cc;
         
-        // BUG
+        // BUG -- Causes Compiler Crash!
         aa = bb = aa;
 
     }
+    
+    // fail
+    private void test16(){
+        
+        @Level("Private")
+        int a = 2;
+        
+        test16Helper1(a);
+        
+        
+        
+    }
+    
+    // ok
+    private void test16a(){
+        
+        @Level("Public")
+        int a = 2;
+        
+        test16Helper1(a);
+        
+    }
+
+    // ok
+    private void test16b(){
+        
+        @Level("Public")
+        int a = 2;
+        
+        test16Helper2(a);
+        
+    }
+
+    private void test16Helper1(/*@ level(PUBLIC) */ int a){}
+    private void test16Helper2(/*@ level(PRIVATE) */ int a){}
+
+    
+private void test17a(){        
+        
+        @Level("Public")
+        int a = 2;
+        @Level("Public")
+        int b = 2;
+        
+        test17Helper1(a,b);
+        test17Helper1(a,b,b);
+        test17Helper1(a,b,b,b,b,b,b,b,b,b,b,b,b,b);
+        
+    }
+    
+    private void test17aa(){        
+        
+        @Level("Public")
+        int a = 2;
+        @Level("Public")
+        int b = 2;
+        
+        test17Helper2(a,b);
+        test17Helper2(a,b,b);
+        test17Helper2(a,b,b,b,b,b,b,b,b,b,b,b,b,b);
+        
+    }
+    
+    private void test17b(){        
+        
+        @Level("Public")
+        int a = 2;
+        @Level("Private")
+        int b = 2;
+        
+        test17Helper1(a,b);
+        test17Helper1(a,b,b);
+        test17Helper1(a,b,b,b,b,b,b,b,b,b,b,b,b,b);        
+    }
+    
+    private void test17c(){        
+        
+        @Level("Public")
+        int a = 2;
+        @Level("Private")
+        int b = 2;
+
+        // make sure they don't try to slip something into the args...
+        test17Helper1(a,a);
+        test17Helper1(a,a,b,a,a,b);
+    }
+
+    private void test17Helper1(/*@ level(PUBLIC) */ int a, /*@ level(PUBLIC) */ int ...other){}
+    private void test17Helper2(/*@ level(PRIVATE) */ int a, /*@ level(PRIVATE) */ int ...other){}
+
 
 }
 
