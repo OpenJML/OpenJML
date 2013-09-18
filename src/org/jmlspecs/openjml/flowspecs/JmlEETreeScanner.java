@@ -10,6 +10,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 /**
@@ -105,6 +106,17 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
     
     public abstract void enterJmlMethodDecl(JmlMethodDecl tree);
     public abstract void exitJmlMethodDecl(JmlMethodDecl tree);
+
+    @Override
+    public void visitIf(JCIf tree){
+        enterIf(tree);
+        super.visitIf(tree);
+        exitIf(tree);
+    }
+    
+    public abstract void enterIf(JCIf tree);
+    public abstract void exitIf(JCIf tree);
+
     
     @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree){

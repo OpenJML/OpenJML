@@ -38,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
@@ -57,7 +58,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      * context
      */
     protected static final Context.Key<JmlFlowSpecs> flowspecsKey = new Context.Key<JmlFlowSpecs>();
-
+    protected final FlowStack<SecurityType> flowStack;
+    
     /**
      * The method used to obtain the singleton instance of JmlEsc for this
      * compilation context
@@ -123,6 +125,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         this.rs = Resolve.instance(context);
         //FIXME - this is WRONG.
         this.env = new Env(null, null);
+        this.flowStack = new FlowStack<SecurityType>(this);
         Names names = Names.instance(context);
 
         for (JmlToken t : JmlToken.modifiers) {
@@ -658,5 +661,22 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         prevMethod = null;
         
     }
+
+    // TODO 
+    // Implement flow for WHILE, FOR, ELSE IF, SWITCH, DOWHILE?, and perhaps see if the shortcut
+    // a ? true : false is a sugar. 
+    
+    @Override
+    public void enterIf(JCIf tree) {
+        flowStack.enter(tree.cond);
+    }
+
+    @Override
+    public void exitIf(JCIf tree) {
+        flowStack.exit();
+    }
+    
+    
+    
 
 }
