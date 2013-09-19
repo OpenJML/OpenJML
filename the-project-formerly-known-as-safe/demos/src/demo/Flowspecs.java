@@ -301,9 +301,14 @@ private void test17a(){
     private void test17Helper2(/*@ level(PRIVATE) */ int a, /*@ level(PRIVATE) */ int ...other){}
 
 
+
     //
     // Flow Checks
     //
+    
+    
+    
+    /// Testing IF
     void test18(){
       
         @Level("Public")
@@ -353,5 +358,186 @@ private void test17a(){
         }
         
     }
+
+    
+    /// Testing WHILE
+    
+    void test20(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        while(b==1){
+            a = c; // normally ok, not ok in flow context.
+        }
+        
+        while(b==1){
+            b = 2; // ok
+        }
+        
+    }
+
+    
+    void test22(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        // Tricky!
+        while(a==1){
+            a = c;  // ok
+            b = a ;  // also ok
+                    
+            while(b==1){
+                a = c; // not ok
+                b = 2; // ok
+                
+                while(a==1){
+                    a = c; // not ok
+                    b = 2; // ok
+                }
+            }
+        }
+    }
+
+    //// Testing DOWHILE
+    
+    void test23(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        do{
+            a = c; // normally ok, not ok in flow context.
+        }while(b==1);
+        
+        do{
+            b = 2; // ok
+        }while(b==1);
+        
+                
+    }
+    
+    
+    void test24(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        // Tricky!
+        do{
+            a = c;  // ok
+            b = a ;  // also ok
+                    
+            do{
+                a = c; // not ok
+                b = 2; // ok
+                
+                do{
+                    a = c; // not ok
+                    b = 2; // ok
+                }while(a==1);
+            }while(b==1);
+        }while(a==1);
+    }
+
+    
+    
+    /// Testing FOR
+    void test25(){
+      
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        for(;b==1;){
+            a = c; // normally ok, not ok in flow context.
+        }
+        
+        for(;b==1;){
+            b = 2; // ok
+        }
+        
+    }
+
+    void test26(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        // Tricky!
+        for(;a==1;){
+            a = c;  // ok
+            b = a ;  // also ok
+                    
+            for(;b==1;){
+                a = c; // not ok
+                b = 2; // ok
+                
+                for(;a==1;){
+                    a = c; // not ok
+                    b = 2; // ok
+                }
+            }
+        }
+    }
+
+    
+
+    /// Testing SWITCH
+    void test27(){
+      
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        switch(b){
+            case 1:
+                 a = c; // normally ok, not in flow
+                 break;
+        }
+        
+        switch(b){
+            case 1:
+                b = 2; // ok
+                break;
+        }
+        
+    }    
+    
+    
 }
 
