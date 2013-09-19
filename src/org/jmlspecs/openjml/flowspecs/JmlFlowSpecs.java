@@ -35,6 +35,7 @@ import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
@@ -748,6 +749,17 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void exitSwitch(JCSwitch tree) {
+        flowStack.exit();
+    }
+
+    // TODO -- implement these correctly.
+    @Override
+    public void enterConditional(JCConditional tree) {
+        flowStack.enter(tree.cond);
+    }
+
+    @Override
+    public void exitConditional(JCConditional tree) {
         flowStack.exit();
     }
 

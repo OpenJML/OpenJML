@@ -95,10 +95,18 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
     public void visitTopLevel(JCCompilationUnit tree){
         enterTopLevel(tree);
         exitTopLevel(tree);
-        
-        
     }
     
+    @Override
+    public void visitConditional(JCConditional tree){
+        enterConditional(tree);
+        super.visitConditional(tree);
+        exitConditional(tree);
+    }
+
+    public abstract void enterConditional(JCConditional tree);
+    public abstract void exitConditional(JCConditional tree);
+         
     public abstract void enterTopLevel(JCCompilationUnit tree);
     public abstract void exitTopLevel(JCCompilationUnit tree);
 
