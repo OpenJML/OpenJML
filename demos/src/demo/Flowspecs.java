@@ -301,5 +301,57 @@ private void test17a(){
     private void test17Helper2(/*@ level(PRIVATE) */ int a, /*@ level(PRIVATE) */ int ...other){}
 
 
+    //
+    // Flow Checks
+    //
+    void test18(){
+      
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        if(b==1){
+            a = c; // normally ok, not ok in flow context.
+        }
+        
+        if(b==1){
+            b = 2; // ok
+        }
+        
+    }
+
+    void test19(){
+        
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        // Tricky!
+        if(a==1){
+            a = c;  // ok
+            b = a ;  // also ok
+                    
+            if(b==1){
+                a = c; // not ok
+                b = 2; // ok
+                
+                if(a==1){
+                    a = c; // not ok
+                    b = 2; // ok
+                }
+                
+            }
+                    
+        }
+        
+    }
 }
 
