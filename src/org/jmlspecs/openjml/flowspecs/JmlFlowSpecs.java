@@ -216,20 +216,16 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     }
 
     @Override
-    public void enterExec(JCExpressionStatement tree) {
-    }
+    public void enterExec(JCExpressionStatement tree) {}
 
     @Override
-    public void exitExec(JCExpressionStatement tree) {
-    }
+    public void exitExec(JCExpressionStatement tree) {}
 
     @Override
-    public void enterIdent(JCIdent tree) {
-    }
+    public void enterIdent(JCIdent tree) {}
 
     @Override
-    public void exitIdent(JCIdent tree) {
-    }
+    public void exitIdent(JCIdent tree) {}
 
     @Override
     public void enterBlock(JCBlock tree) {
@@ -258,40 +254,22 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     }
 
     @Override
-    public void enterVarDef(JCVariableDecl tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void enterVarDef(JCVariableDecl tree) {}
 
     @Override
-    public void exitVarDef(JCVariableDecl tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void exitVarDef(JCVariableDecl tree) {}
 
     @Override
-    public void enterTopLevel(JCCompilationUnit tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void enterTopLevel(JCCompilationUnit tree) {}
 
     @Override
-    public void exitTopLevel(JCCompilationUnit tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void exitTopLevel(JCCompilationUnit tree) {}
 
     @Override
-    public void enterJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void enterJmlMethodClauseDecl(JmlMethodClauseDecl tree) {}
 
     @Override
-    public void exitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-        // TODO Auto-generated method stub
-
-    }
+    public void exitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {}
 
     @Override
     public void visitBinary(JCBinary tree) {
@@ -504,23 +482,47 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         return SecurityType.wrong();
     }
 
+    /**
+     * 
+     * @param tree
+     * @param lt The reference (formal) security type.
+     * @param rt The supplied (actual) security type.
+     * @return
+     */
     public SecurityType check(JCMethodInvocation tree, SecurityType lt,
             SecurityType rt) {
+        
+        SecurityType upperBound = null;
 
         if (lt.level.equals(rt.level)) {
-            return upperBound(lt, rt);
+            upperBound = upperBound(lt, rt);
         }
 
-        if (lattice.isSubclass(rt.level, lt.level)) {
+        else if (lattice.isSubclass(rt.level, lt.level)) {
             log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
                     rt.toString(), lt.toString());
-            return upperBound(lt, rt);
+            upperBound = upperBound(lt, rt);
+        }else{
+
+            log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(),
+                lt.toString());
         }
 
-        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(),
-                lt.toString());
+        //
+        // If we've made it here, we need to check the STRONGEST bound
+        //
+        if (isPossibleImplicitFlow() && upperBound != null) {
 
-        return SecurityType.wrong();
+            SecurityType flowBound = flowStack.currentTypeBoundary();
+
+            if (upperBound.level.equals(flowBound.level) == false
+                    && lattice.isSubclass(flowBound.level, upperBound.level) == false) {
+                log.error(tree.pos, "jml.flowspecs.lattice.invalidflow.cond",
+                        flowBound.toString(), upperBound.toString());
+            }
+        }
+        
+        return upperBound==null ? SecurityType.wrong() : upperBound;
     }
 
     public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt) {

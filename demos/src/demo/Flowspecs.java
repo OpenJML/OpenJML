@@ -560,5 +560,30 @@ private void test17a(){
                 
     }
     
+    void test29(){
+        
+        @Level("Private")
+        int a = 2;
+        @Level("Public")
+        int b = 1;
+        
+        if(a==2){
+            test29Helper1(a,a); //ok!
+        }
+        
+        if(a==2){
+            test29Helper1(a,b); //ok!
+        }
+        
+        if(a==2){
+            test29Helper2(a,b); //normally ok, not ok in flow!
+        }
+        
+        if(b==2){
+            test29Helper2(a,b); //ok!
+        }
+        
+    }
+    
 }
 
