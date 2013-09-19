@@ -8,10 +8,15 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 
 /**
  * A JML TreeScanner that uses the "enter" / "exit" pattern in the visitor. 
@@ -113,10 +118,51 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
         super.visitIf(tree);
         exitIf(tree);
     }
-    
+
     public abstract void enterIf(JCIf tree);
     public abstract void exitIf(JCIf tree);
 
+    @Override
+    public void visitDoLoop(JCDoWhileLoop tree) {
+        enterDoLoop(tree);
+        super.visitDoLoop(tree);
+        exitDoLoop(tree);
+    }
+    
+    public abstract void enterDoLoop(JCDoWhileLoop tree);
+    public abstract void exitDoLoop(JCDoWhileLoop tree);
+     
+
+    @Override
+    public void visitForLoop(JCForLoop tree) {
+        enterForLoop(tree);
+        super.visitForLoop(tree);
+        exitForLoop(tree);
+    }
+
+    public abstract void enterForLoop(JCForLoop tree);
+    public abstract void exitForLoop(JCForLoop tree);
+    
+    
+    @Override
+    public void visitSwitch(JCSwitch tree) {
+        enterSwitch(tree);
+        super.visitSwitch(tree);
+        exitSwitch(tree);
+    }
+
+    public abstract void enterSwitch(JCSwitch tree);
+    public abstract void exitSwitch(JCSwitch tree);
+    
+    @Override
+    public void visitWhileLoop(JCWhileLoop tree){
+        enterWhileLoop(tree);
+        super.visitWhileLoop(tree);
+        exitWhileLoop(tree);
+    }
+    
+    public abstract void enterWhileLoop(JCWhileLoop tree);
+    public abstract void exitWhileLoop(JCWhileLoop tree);
     
     @Override
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree){

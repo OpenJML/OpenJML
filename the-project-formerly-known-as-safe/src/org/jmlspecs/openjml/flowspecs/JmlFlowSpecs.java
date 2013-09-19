@@ -35,15 +35,19 @@ import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -703,6 +707,47 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void exitIf(JCIf tree) {
+        flowStack.exit();
+    }
+
+    @Override
+    public void enterWhileLoop(JCWhileLoop tree) {
+        flowStack.enter(tree.cond);
+    }
+
+    @Override
+    public void exitWhileLoop(JCWhileLoop tree) {
+        flowStack.exit();
+    }
+
+    @Override
+    public void enterDoLoop(JCDoWhileLoop tree) {
+        flowStack.enter(tree.cond);
+    }
+
+    @Override
+    public void exitDoLoop(JCDoWhileLoop tree) {
+        flowStack.exit();
+    }
+
+    @Override
+    public void enterForLoop(JCForLoop tree) {
+        flowStack.enter(tree.cond);
+    }
+
+    @Override
+    public void exitForLoop(JCForLoop tree) {
+        flowStack.exit();
+    }
+
+    @Override
+    public void enterSwitch(JCSwitch tree) {
+        // TODO make sure this is the right thing to check in a test.
+        flowStack.enter(tree.selector);
+    }
+
+    @Override
+    public void exitSwitch(JCSwitch tree) {
         flowStack.exit();
     }
 
