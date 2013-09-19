@@ -58,8 +58,9 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      * context
      */
     protected static final Context.Key<JmlFlowSpecs> flowspecsKey = new Context.Key<JmlFlowSpecs>();
-    protected final FlowStack<SecurityType> flowStack;
-    
+
+    protected final FlowStack                        flowStack;
+
     /**
      * The method used to obtain the singleton instance of JmlEsc for this
      * compilation context
@@ -123,9 +124,9 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         this.rs = Resolve.instance(context);
-        //FIXME - this is WRONG.
+        // FIXME - this is WRONG.
         this.env = new Env(null, null);
-        this.flowStack = new FlowStack<SecurityType>(this);
+        this.flowStack = new FlowStack(this);
         Names names = Names.instance(context);
 
         for (JmlToken t : JmlToken.modifiers) {
@@ -211,26 +212,18 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void enterExec(JCExpressionStatement tree) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void exitExec(JCExpressionStatement tree) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void enterIdent(JCIdent tree) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void exitIdent(JCIdent tree) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -243,24 +236,22 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void exitBlock(JCBlock tree) {
-        // TODO Auto-generated method stub
-
     }
 
-    @Override 
-    public void visitVarDef(JCVariableDecl tree){
-        
-        SecurityType lt = resolveType(tree.sym); 
+    @Override
+    public void visitVarDef(JCVariableDecl tree) {
+
+        SecurityType lt = resolveType(tree.sym);
         result = lt;
-        
-        if(tree.init!=null){
+
+        if (tree.init != null) {
             SecurityType rt = attribExpr(tree.init, env, lt);
             result = check(tree, lt, rt);
-        }else{
+        } else {
             result = lt;
         }
     }
-    
+
     @Override
     public void enterVarDef(JCVariableDecl tree) {
         // TODO Auto-generated method stub
@@ -299,6 +290,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void visitBinary(JCBinary tree) {
+
         SecurityType left = attribExpr(tree.lhs, env);
         SecurityType right = attribExpr(tree.rhs, env);
 
@@ -310,21 +302,21 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
         //
         // We don't have to perform the same checks Java performs here.
-        // We just need to make sure the types match (or may be weakened) if they exist.
+        // We just need to make sure the types match (or may be weakened) if
+        // they exist.
         //
         Symbol m = env.enclMethod.sym;
         if (tree.expr != null & m.type.getReturnType().tag != VOID) {
 
-           // if the expr is a literal we just always let it pass
-           if(tree.expr instanceof JCLiteral == false){
-               SecurityType returnType = attribExpr(tree.expr, env);
-               SecurityType methodType = resolveType(m);
+            // if the expr is a literal we just always let it pass
+            if (tree.expr instanceof JCLiteral == false) {
+                SecurityType returnType = attribExpr(tree.expr, env);
+                SecurityType methodType = resolveType(m);
 
-               check(tree, returnType, methodType);
-           }
-           
+                check(tree, returnType, methodType);
+            }
+
         }
-       
 
         result = null;
     }
@@ -383,35 +375,35 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         }
         return r;
     }
-    
+
     @Override
-    public void visitApply(JCMethodInvocation tree){
-        //TODO - does a constructor call make a difference? self calls?
-        
-        if(tree.meth instanceof JCIdent 
-                    && ((JCIdent)tree.meth).sym instanceof MethodSymbol 
-                    && tree.getArguments().size() >0
-                    ){
-            
+    public void visitApply(JCMethodInvocation tree) {
+        // TODO - does a constructor call make a difference? self calls?
+
+        if (tree.meth instanceof JCIdent
+                && ((JCIdent) tree.meth).sym instanceof MethodSymbol
+                && tree.getArguments().size() > 0) {
+
             JCIdent methodIdent = (JCIdent) tree.meth;
             MethodSymbol methodSymbol = (MethodSymbol) methodIdent.sym;
 
-            Iterator<VarSymbol> referenceIterator = methodSymbol.getParameters().iterator();
-            VarSymbol referenceSymbol = referenceIterator.hasNext() ? referenceIterator.next() : null;
-            
+            Iterator<VarSymbol> referenceIterator = methodSymbol
+                    .getParameters().iterator();
+            VarSymbol referenceSymbol = referenceIterator.hasNext() ? referenceIterator
+                    .next() : null;
+
             for (int i = 0; i < tree.getArguments().size(); i++) {
-                
+
                 JCExpression currentExpr = tree.getArguments().get(i);
-                
+
                 SecurityType lt = resolveType(referenceSymbol);
                 SecurityType rt = attribExpr(currentExpr, env, lt);
 
                 result = check(tree, lt, rt);
-                
-                //- possibly update the reference symbol.
-                if(referenceIterator.hasNext())
-                        referenceSymbol = referenceIterator.next();                    
-            
+
+                // - possibly update the reference symbol.
+                if (referenceIterator.hasNext())
+                    referenceSymbol = referenceIterator.next();
 
             }
 
@@ -460,61 +452,63 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     public SecurityType check(JCBinary tree, SecurityType lt, SecurityType rt) {
         return upperBound(lt, rt);
     }
-    
-    public SecurityType check(JCVariableDecl tree, SecurityType dest, SecurityType source){
+
+    public SecurityType check(JCVariableDecl tree, SecurityType dest,
+            SecurityType source) {
 
         // no checking needed
-        if(source==null){
+        if (source == null) {
             return dest;
         }
-        
-        if(dest.level.equals(source.level)){
+
+        if (dest.level.equals(source.level)) {
             return upperBound(source, dest);
         }
-        
-        
+
         // ok
-        if (lattice.isSubclass(source.level,dest.level)) {
-            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", source.toString(),
-                    dest.toString());
-    
+        if (lattice.isSubclass(source.level, dest.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
+                    source.toString(), dest.toString());
+
             return upperBound(source, dest);
         }
-        
+
         // flow error
-        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", source.toString(),
-                dest.toString());
+        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow",
+                source.toString(), dest.toString());
 
         return SecurityType.wrong();
     }
-    
-    public SecurityType check(JCReturn tree, SecurityType returnType, SecurityType methodType) {
-        
-        if(returnType.level.equals(methodType.level)){
+
+    public SecurityType check(JCReturn tree, SecurityType returnType,
+            SecurityType methodType) {
+
+        if (returnType.level.equals(methodType.level)) {
             return upperBound(returnType, methodType);
         }
-        
+
         if (lattice.isSubclass(returnType.level, methodType.level)) {
-            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", returnType.toString(),
-                    methodType.toString());
-    
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
+                    returnType.toString(), methodType.toString());
+
             return upperBound(returnType, methodType);
         }
-        log.error(tree.pos, "jml.flowspecs.lattice.return.invalidflow", returnType.toString(),
-                methodType.toString());
+        log.error(tree.pos, "jml.flowspecs.lattice.return.invalidflow",
+                returnType.toString(), methodType.toString());
 
         return SecurityType.wrong();
     }
-    
-    public SecurityType check(JCMethodInvocation tree, SecurityType lt, SecurityType rt) {
 
-        if(lt.level.equals(rt.level)){
+    public SecurityType check(JCMethodInvocation tree, SecurityType lt,
+            SecurityType rt) {
+
+        if (lt.level.equals(rt.level)) {
             return upperBound(lt, rt);
         }
-        
+
         if (lattice.isSubclass(rt.level, lt.level)) {
-            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", rt.toString(),
-                    lt.toString());
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
+                    rt.toString(), lt.toString());
             return upperBound(lt, rt);
         }
 
@@ -526,20 +520,47 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     public SecurityType check(JCAssign tree, SecurityType lt, SecurityType rt) {
 
-        if(lt.level.equals(rt.level)){
-            return upperBound(lt, rt);
-        }
-        
-        if (lattice.isSubclass(rt.level, lt.level)) {
-            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen", rt.toString(),
-                    lt.toString());
-            return upperBound(lt, rt);
+        //
+        // Two types of logic are employed here
+        //
+        // 1) If we are not in a possible high branch, typechecking proceeds as
+        // normal.
+        // 2) If we ARE in a possible high branch, the LHS of the expression is
+        // checked against the upper bound of the flow
+
+        SecurityType upperBound = null;
+
+        if (lt.level.equals(rt.level)) {
+            upperBound = upperBound(lt, rt);
         }
 
-        log.error(tree.pos, "jml.flowspecs.lattice.invalidflow", rt.toString(),
-                lt.toString());
+        else if (lattice.isSubclass(rt.level, lt.level)) {
+            log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
+                    rt.toString(), lt.toString());
+            upperBound = upperBound(lt, rt);
+        } else {
 
-        return SecurityType.wrong();
+            log.error(tree.pos, "jml.flowspecs.lattice.invalidflow",
+                    rt.toString(), lt.toString());
+        }
+
+        //
+        // here we check for implicit flow only if the normal rules would have
+        // allowed it
+        //
+        if (isPossibleImplicitFlow() && upperBound != null) {
+
+            SecurityType flowBound = flowStack.currentTypeBoundary();
+
+            if (lt.level.equals(flowBound.level) == false
+                    && lattice.isSubclass(flowBound.level, lt.level) == false) {
+                log.error(tree.pos, "jml.flowspecs.lattice.invalidflow.cond",
+                        flowBound.toString(), lt.toString());
+
+            }
+        }
+
+        return upperBound != null ? upperBound : SecurityType.wrong();
     }
 
     final Resolve    rs;
@@ -549,9 +570,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
      */
     Env<AttrContext> env;
 
-    
-    JCMethodDecl prevMethod;
-    
+    JCMethodDecl     prevMethod;
+
     /**
      * Visitor argument: the currently expected proto-kind.
      */
@@ -645,10 +665,6 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         return owntype;
     }
 
-
-  
-
-    
     @Override
     public void enterJmlMethodDecl(JmlMethodDecl tree) {
         prevMethod = env.enclMethod;
@@ -659,13 +675,27 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     public void exitJmlMethodDecl(JmlMethodDecl tree) {
         env.enclMethod = prevMethod;
         prevMethod = null;
-        
+
     }
 
-    // TODO 
-    // Implement flow for WHILE, FOR, ELSE IF, SWITCH, DOWHILE?, and perhaps see if the shortcut
-    // a ? true : false is a sugar. 
-    
+    //
+    // helper methods for information flow
+    //
+
+    private boolean isPossibleImplicitFlow() {
+
+        if (flowStack.isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // TODO
+    // Implement flow for WHILE, FOR, ELSE IF, SWITCH, DOWHILE?, and perhaps see
+    // if the shortcut
+    // a ? true : false is a sugar.
+
     @Override
     public void enterIf(JCIf tree) {
         flowStack.enter(tree.cond);
@@ -675,8 +705,5 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     public void exitIf(JCIf tree) {
         flowStack.exit();
     }
-    
-    
-    
 
 }
