@@ -34,7 +34,11 @@ public class SecurityType extends Type {
     @Override
     public String toString()
     {
-        return String.format("SecurityType[%s]", level);
+        //return String.format("SecurityType[%s]", level);
+        
+        //TODO - this is kinda ugly... better format?
+        return String.format("%s", level);
+
     }
 
 }
