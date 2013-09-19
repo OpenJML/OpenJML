@@ -599,7 +599,6 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 }
             }
-            if (s.equals(helpOption)) options.put(s,"");
         } else if (o.hasArg()) {
             if (i < args.length) {
                 res = args[i++];
@@ -628,8 +627,9 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (!file.isFile()) {
                     Log.instance(context).warning("jml.command.line.arg.not.a.file",file);
-                } else if (utils.hasJavaSuffix(file.getName())) { // FIXME - for now just ignoring .jml files - should replace it with the corresponding .java file to be sure both are checked together
-                    files.add(file.toString());
+                } else {
+                    String ss = file.toString();
+                    if (utils.hasValidSuffix(ss)) files.add(ss);
                 }
             }
         } else {
@@ -663,6 +663,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
+        if (options.get(helpOption) != null) {
+            return false;
+        }
+        
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         
@@ -757,10 +761,10 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
-    public Collection<File> processArgs(String[] args, String[] classNames) {
+    public Collection<File> processArgs(String[] oargs, String[] classNames) {
         Options options = Options.instance(this.context);
         ListBuffer<File> jmlfiles = new ListBuffer<File>();
-        args = processJmlArgs(args,options,jmlfiles);
+        String[] args = processJmlArgs(oargs,options,jmlfiles);
         if (filenames == null) filenames = new TreeSet<File>(); // needed when called from the API
         Collection<File> files = super.processArgs(args,classNames);
         if (files != null) files.addAll(jmlfiles);

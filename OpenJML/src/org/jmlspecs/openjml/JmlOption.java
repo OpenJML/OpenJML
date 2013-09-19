@@ -35,7 +35,7 @@ public enum JmlOption implements IOption {
     ESC("-esc",false,null,"Enables static checking","-command=esc"),
     BOOGIE("-boogie",false,false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
-    NOJML("-noJML",false,false,"When on, the JML compiler is used, but all JML constructs are ignored",null),
+    JML("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null),
     STRICT("-strictJML",false,false,"Disables any JML extensions in OpenJML",null),
 
     STOPIFERRORS("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null),
@@ -74,21 +74,21 @@ public enum JmlOption implements IOption {
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),
     FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
 
-    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
+//    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
-    SHOW_RAC_SOURCE("-showRacSource",false,true,"RAC: Error messages will include source information",null),
+    RAC_SHOW_SOURCE("-racShowSource",false,true,"RAC: Error messages will include source information",null),
     RAC_CHECK_ASSUMPTIONS("-racCheckAssumptions",false,true,"RAC: Enables runtime checking that assumptions hold",null),
     RAC_JAVA_CHECKS("-racJavaChecks",false,true,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
 
     // Obsolete
-    NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false"),
-    NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false"),
-    NOINTERNALSPECSX("-noInternalSpecs",false,false,"Disables automatically appending the internal specs directory to the specification path","-internalSpecs=false"),
-    NOINTERNALRUNTIMEX("-noInternalRuntime",false,false,"Disables automatically appending the internal JML runtime library to the classpath","-internalRuntime=false"),
-    NO_RAC_SOURCEX("-noRacSource",false,false,"RAC: Error messages will not include source information","-showRacSource=false"),
-    NO_RAC_CHECK_ASSUMPTIONSX("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","-racCheckAssumptions=false"),
-    NO_RAC_JAVA_CHECKSX("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false"),
+    NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
+    NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),
+    NOINTERNALSPECSX("-noInternalSpecs",false,false,"Disables automatically appending the internal specs directory to the specification path","-internalSpecs=false",true),
+    NOINTERNALRUNTIMEX("-noInternalRuntime",false,false,"Disables automatically appending the internal JML runtime library to the classpath","-internalRuntime=false",true),
+    NO_RAC_SOURCEX("-noRacSource",false,false,"RAC: Error messages will not include source information","-racShowSource=false",true),
+    NO_RAC_CHECK_ASSUMPTIONSX("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","-racCheckAssumptions=false",true),
+    NO_RAC_JAVA_CHECKSX("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false",true),
 
     ;
     
@@ -109,21 +109,44 @@ public enum JmlOption implements IOption {
     /** The canonical form for the option */
     final private String synonym;
     
+    /** If true, the option is obsolete */
+    final private boolean obsolete;
+    
     /** Private constructor to create Enum instances.
      * @param s The option name, including any leading - character
+     * @param defaultValue the default value for the option
      * @param hasArg Whether the option takes a (required) argument
      * @param help The associated help string
+     * @param synonym an equivalent command-line argument
      */
     private JmlOption(/*@ non_null */ String s, 
             boolean hasArg, 
             Object defaultValue,
             /*@ non_null */ String help,
             /*@ nullable */ String synonym) {
+        this(s,hasArg,defaultValue,help,synonym,false);
+    }
+    
+    /** Private constructor to create Enum instances.
+     * @param s The option name, including any leading - character
+     * @param defaultValue the default value for the option
+     * @param hasArg Whether the option takes a (required) argument
+     * @param help The associated help string
+     * @param synonym an equivalent command-line argument
+     * @param obsolete whether the option is obsolete
+     */
+    private JmlOption(/*@ non_null */ String s, 
+            boolean hasArg, 
+            Object defaultValue,
+            /*@ non_null */ String help,
+            /*@ nullable */ String synonym,
+            boolean obsolete) {
         this.name = s;
         this.hasArg = hasArg;
         this.defaultValue = defaultValue;
         this.help = help;
         this.synonym = synonym;
+        this.obsolete = obsolete;
     }
     
     /** Enables the given option
@@ -211,6 +234,9 @@ public enum JmlOption implements IOption {
      */
     public Object defaultValue() { return defaultValue; }
     
+    /* Whether the option is obsolete */
+    public boolean obsolete() { return obsolete; }
+    
     /**
      * @return the help string associated with this option
      */
@@ -267,6 +293,7 @@ public enum JmlOption implements IOption {
         StringBuilder sb = new StringBuilder();
         sb.append("JML options:").append(eol);
         for (IOption j : values()) {
+            if (j.obsolete()) continue;
             sb.append("  ").append(j.optionName()).append(" ");
             // The count up to 26 is just to make for nice formatting
             for (int i = j.optionName().length(); i<26; i++) {

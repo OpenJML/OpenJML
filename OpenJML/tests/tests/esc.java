@@ -3808,7 +3808,8 @@ public class esc extends EscBase {
     
     @Test // FIXME - needs erasure
     public void testTypes3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("-show");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.lang.JML; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/Object o) {\n"
                 +"    //@ assert JML.erasure(\\typeof(o)) == o.getClass();\n"

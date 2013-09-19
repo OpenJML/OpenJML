@@ -33,4 +33,8 @@ public interface IOption {
     /** The canonical form for the option */
     /*@ nullable */
     public String synonym();
+    
+    /* Whether the option is obsolete */
+    public boolean obsolete();
+
 }

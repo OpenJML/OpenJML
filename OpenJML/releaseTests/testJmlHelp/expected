@@ -41,8 +41,7 @@ JML options:
   -esc                       Enables static checking [-command=esc]
   -boogie                    Enables static checking with boogie
   -java                      When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)
-  -noJML                     When on, the JML compiler is used, but all JML constructs are ignored
-  -newesc                    When on, uses the new SMT-based implementation
+  -jml                       When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations
   -strictJML                 Disables any JML extensions in OpenJML
   -stopIfParseErrors         When enabled, stops after parsing if any files have parsing errors
   -method                    Comma-separated list of method name patterns on which to run ESC
@@ -53,12 +52,12 @@ JML options:
   -nonnullByDefault          Makes references non_null by default [-nullableByDefault=false]
   -nullableByDefault         Makes references nullable by default
   -specspath                 Specifies the directory path to search for specification files
-  -noCheckSpecsPath          When on, no warnings for non-existent specification path directories are issued
-  -noPurityCheck             When on, no warnings for use of impure methods are issued
-  -noInternalSpecs           Disables automatically appending the internal specs directory to the specification path
-  -noInternalRuntime         Disables automatically appending the internal JML runtime library to the classpath
-  -showNotImplemented        When on, warnings about unimplemented constructs are issued
-  -showNotExecutable         When on, warnings about non-executable constructs are issued
+  -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
+  -purityCheck               When on (the default), warnings for use of impure methods are issued
+  -internalSpecs             When on (the default), automatically appends the internal specs directory to the specification path
+  -internalRuntime           When on (the default), automatically appends the internal JML runtime library to the classpath
+  -showNotImplemented        When on (off by default), warnings about unimplemented constructs are issued
+  -showNotExecutable         When on (off by default), warnings about non-executable constructs are issued
   -verboseness               Level of verboseness (0=quiet...4=debug)
   -quiet                     Only output warnings and errors [-verboseness=0]
   -normal                    Limited output [-verboseness=1]
@@ -68,14 +67,12 @@ JML options:
   -jmltesting                Only used to generate tracing information during testing
   -trace                     ESC: Enables tracing of counterexamples
   -show                      Show intermediate programs
-  -ce                        ESC: Enables output of complete, raw counterexample [-counterexample]
   -escMaxWarnings            ESC: Maximum number of warnings to find per method
   -counterexample            ESC: Enables output of complete, raw counterexample
+  -ce                        ESC: Enables output of complete, raw counterexample [-counterexample]
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
-  -roots                     Enables the Reflective Object-Oriented Testing System---w00t!
-  -showRacSource             RAC: Error messages will include source information [-noRacSource=false]
-  -noRacSource               RAC: Error messages will not include source information
-  -noRacCheckAssumptions     RAC: Disables checking that assumptions hold
-  -noRacJavaChecks           RAC: Disables explicit checking of Java language checks
+  -racShowSource             RAC: Error messages will include source information
+  -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
+  -racJavaChecks             RAC: Enables explicit checking of Java language checks
   -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts

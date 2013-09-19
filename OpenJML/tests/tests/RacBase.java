@@ -83,7 +83,7 @@ public abstract class RacBase extends JmlTestCase {
         main.addOptions("-showNotImplemented");
         main.addOptions("-no-purityCheck"); // System specs have a lot of purity errors, so turn this off for now
         main.addOptions("-no-internalSpecs"); // Faster with this option; should work either way
-        main.addOptions("-no-showRacSource");
+        main.addOptions("-no-racShowSource");
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
         expectedRACExit = 0;

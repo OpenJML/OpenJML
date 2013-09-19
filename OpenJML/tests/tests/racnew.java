@@ -163,7 +163,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-showRacSource=true");
+        main.addOptions("-racShowSource=true");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -1315,7 +1315,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-showRacSource=true");
+        main.addOptions("-racShowSource=true");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"

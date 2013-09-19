@@ -562,7 +562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** (Public API) Reinitializes the object to start a new class or compilation unit or method */
     public void initialize() {
-        this.showRacSource = JmlOption.isOption(context,JmlOption.SHOW_RAC_SOURCE);
+        this.showRacSource = JmlOption.isOption(context,JmlOption.RAC_SHOW_SOURCE);
         this.racCheckAssumeStatements = JmlOption.isOption(context,JmlOption.RAC_CHECK_ASSUMPTIONS);
         this.javaChecks = esc || (rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS));
         this.count = 0;

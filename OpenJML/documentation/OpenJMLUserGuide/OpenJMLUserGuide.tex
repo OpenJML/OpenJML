@@ -322,37 +322,52 @@ processed by OpenJML, the corresponding {\tt .jml} file is automatically found (
 \hline
 -- & no more options \\ \hline
 -check & [\ref{OptionsTools}] typecheck only ({\tt -command check})\\ \hline
+-checkSpecsPath & [\ref{OptionsJML}] warn about non-existent specs path entries\\ \hline
 -command {\it <action>}& [\ref{OptionsTools}] which action to do: check esc rac compile\\ \hline
 -compile & [\ref{OptionsTools}] TBD\\ \hline
--counterexample & show a counterexample for failed static checks\\ \hline
--dir {\it <dir>} & argument is a folder of files \\ \hline
--dirs & remaining arguments are folders or files, up to an argument that begins with a hyphen\\ \hline
--esc & do static checking ({\tt -command esc}) [\ref{OptionsTools}]\\ \hline
--java & use the native OpenJDK tool [\ref{OptionsTools}]\\ \hline
--jmldebug & very verbose output (includes -progress) \\ \hline
--jmlverbose & JML-specific verbose output\\ \hline
--keys & \\ \hline
+-counterexample & [\ref{OptionsESC}] show a counterexample for failed static checks\\ \hline
+-dir {\it <dir>} & [\ref{OptionsJML}] argument is a folder or file \\ \hline
+-dirs & [\ref{OptionsJML}] remaining arguments are folders or files\\ \hline
+-esc & [\ref{OptionsTools}] do static checking ({\tt -command esc}) \\ \hline
+-internalRuntime & [\ref{OptionsJML}] add internal runtime library to classpath \\ \hline
+-internalSpecs & [\ref{OptionsJML}] add internal specs library to specspath \\ \hline
+-java & [\ref{OptionsTools}] use the native OpenJDK tool\\ \hline
+-jml & [\ref{OptionsTools}] process JML constructs \\ \hline
+-jmldebug & [\ref{OptionsDebugging}] very verbose output (includes -progress) \\ \hline
+-jmlverbose & [\ref{OptionsDebugging}] JML-specific verbose output\\ \hline
+-keys & [\ref{OptionsJML}] define keys for optional annotations \\ \hline
 -method & \\ \hline
--noCheckSpecsPath & ignore non-existent specs path entries\\ \hline
--noPurityCheck & do not check for purity \\ \hline
--noInternalSpecs & do not add internal specs library to specspath \\ \hline
--noInternalRuntime & do not add internal runtime library to classpath \\ \hline
--noJML & ignore JML constructs \\ \hline
--nonnullByDefault & values are not null by default \\ \hline
--nullableByDefault & values may be null by default\\ \hline
--progress & \\ \hline
+-nonnullByDefault & [\ref{OptionsJML}] values are not null by default \\ \hline
+-normal & [\ref{OptionsDebugging}] \\ \hline
+-nullableByDefault & [\ref{OptionsJML}] values may be null by default\\ \hline
+-progress & [\ref{OptionsDebugging}] \\ \hline
+-purityCheck & [\ref{OptionsJML}] check for purity \\ \hline
+-quiet & [\ref{OptionsDebugging}] no informational output \\ \hline
 -rac & [\ref{OptionsTools}] compile runtime assertion checks ({\tt -command rac})\\ \hline
--roots & \\ \hline
--showNotImplemented & warn if feature not implemented\\ \hline
--specspath & location of specs files\\ \hline
--stopIfParseErrors & stop if there are any parse errors \\ \hline
--subexpressions & show subexpression detail for failed static checks\\ \hline
--trace & show a trace for failed static checks\\ \hline
+-racCheckAssumptions & [\ref{OptionsRAC}] enables (default on) checking assume statements as if they were asserts \\ \hline
+-racCompileToJavaAssert & [\ref{OptionsRAC}] compile RAC checks using Java asserts \\ \hline
+-racJavaChecks & [\ref{OptionsRAC}] enables (default on) performing JML checking of violated Java features \\ \hline
 \end{tabular}
 }
 \qquad
 %%\centering
 \parbox{.5\textwidth}{
+
+\begin{tabular}{|l|p{1.4in}|}
+\hline
+\multicolumn{2}{|c|}{JML options, continued} \\
+\hline
+-racShowSource & [\ref{OptionsRAC}] includes source location in RAC warning messages \\ \hline
+-showNotImplemented & warn if feature not implemented\\ \hline
+-specspath & [\ref{OptionsJML}] location of specs files\\ \hline
+-stopIfParseErrors & stop if there are any parse errors \\ \hline
+-subexpressions & [\ref{OptionsESC}] show subexpression detail for failed static checks\\ \hline
+-trace & [\ref{OptionsESC}] show a trace for failed static checks\\ \hline
+
+\end{tabular}
+
+\vspace*{.5in}
+
 \begin{tabular}{|l|p{1.4in}|}
 \hline
 \multicolumn{2}{|c|}{Options inherited from Java} \\
@@ -549,6 +564,7 @@ The default is to use the OpenJML tool to do only typechecking of Java and JML i
 \end{itemize}
 
 \subsection{Options: OpenJML options applicable to all OpenJML tools }
+\label{OptionsJML}
 
 \begin{itemize}
 \item \textbf{-dir} \textit{<folder>} : abbreviation for listing on the command-line all of the .java files in the given folder, and its subfolders; if the argument is a file, use it as is
@@ -562,10 +578,11 @@ The default is to use the OpenJML tool to do only typechecking of Java and JML i
 \item \textbf{-nullableByDefault} : sets the global default to be that all declarations are implicitly \texttt{@Nullable}
 \item \textbf{-nonnullByDefault} : sets the global default to be that all 
 declarations are implicitly \texttt{@NonNull} (the default)
-\item \textbf{-noPurityCheck} : turns off purity checking (recommended since the Java library specifications are not complete for \texttt{@Pure} declarations)
+\item \textbf{-purityCheck} : turns on (default is on) purity checking (recommended since the Java library specifications are not complete for \texttt{@Pure} declarations)
 \end{itemize}
 
 \subsection{Options: Extended Static Checking}
+\label{OptionsESC}
 
 These options apply only when performing ESC:
 \begin{itemize}
@@ -577,22 +594,22 @@ check (default is all methods in all listed classes)
 \item \textbf{-exclude} \textit{<methodlist>} : a comma-separated list of method names to exclude from checking
 \item \textbf{-checkFeasibility} \textit{<where>} : checks feasibility of the program at various points --- a comma-separated list of
 one of <code>none</code>, <code>all</code>, <code>exit</code> [TBD, finish list,  give default]
-\item \textbf{-escMaxWarnings} \textit{<int>} : the maximum number of assertion violations to look for; the argument is either a positive integer or <code>All</code>
-\item \textbf{-trace} : prints out a counterexample trace for each failed assert
+\item \textbf{-escMaxWarnings} \textit{<int>} : the maximum number of assertion violations to look for; the argument is either a positive integer or <code>All</code>; the default is <code>All</code>
+\item \textbf{-counterexample} : prints out a counterexample for failed proofs
+\item \textbf{-trace} : prints out a counterexample trace for each failed assert (includes -counterexample)
 \item \textbf{-subexpressions} : prints out a counterexample trace with model values for each subexpression (includes -trace)
 \end{itemize}
 
 \subsection{Options: Runtime Assertion Checking}
-\label{OptionsVersion}
+\label{OptionsRAC}
 
 These options apply only when doing RAC:
 \begin{itemize}
-\item \textbf{-showNotExecutable} : warns about the use of features that are not executable (and thus ignored)
-\item \textbf{-noRacSource} : disables including source code information in RAC error messages (default is to include the source text)
-\item \textbf{-showRacSource} : synonym for {\tt -noRacSource=false}
-\item \textbf{-noRacCheckAssumptions} : disables checking \texttt{assume} statements as if they were asserts
-\item \textbf{-noRacJavaChecks} : disables performing JML checking of violated Java features (which will just proceed to throw an exception anyway)
-\item \textbf{-racCompileToJavaAssert} : compile RAC checks using Java asserts (which must then be enabled using \texttt{-ea})
+\item \textbf{-showNotExecutable} : warns about the use of features that are not executable (and thus ignored); turn off with \texttt{-no-shownotExecutable}
+\item \textbf{-showRacSource} : enables including source code information in RAC error messages (default is enabled; disable with \texttt{-no-showRacSource})
+\item \textbf{-racCheckAssumptions} : enables checking \texttt{assume} statements as if they were asserts (default is enabled; disable with\texttt{-no-racCheckAssumptions})
+\item \textbf{-racJavaChecks} : enables performing JML checking of violated Java features (which will just proceed to throw an exception anyway) (default is enabled; disable with \texttt{-no-racJavaChecks})
+\item \textbf{-racCompileToJavaAssert} : compile RAC checks using Java asserts (which must then be enabled using \texttt{-ea}) (default is disabled; disable with \texttt{-no-racCompileToJavaAssert})
 \end{itemize}
 
 \subsection{Options: Version of Java language or class files}
@@ -637,8 +654,8 @@ These Java options are discussed elsewhere in this document:
 \item \textbf{-cp} \textit{<path>} or \textbf{-classpath} \textit{<path>} : section \ref{OptionsPaths}
 \item \textbf{-sourcepath} \textit{<path>} : section \ref{OptionsPaths}
 \item \textbf{-verbose} : section \ref{OptionsDebugging}
-\item \textbf{-source} : section \ref{OptionsVersion}
-\item \textbf{-target} : section \ref{OptionsVersion}
+\item \textbf{-source} :  
+\item \textbf{-target} :  
 \end{itemize}
 
 
@@ -662,8 +679,10 @@ The following options provide different levels of verboseness. If more than one 
 
 Other debugging options:
 \begin{itemize}
-\item \textbf{-show} : prints out rewritten versions of the Java program files for informational and debugging purposes
-\item \textbf{-showNotImplemented} : prints warnings about JML features that are ignored because they are not implemented; the default behavior is to silently ignore unimplemented features.
+\item \textbf{-show} : prints out rewritten versions of the Java program files for informational and debugging purposes; disable
+with \texttt{-no-show}; the default is disabled
+\item \textbf{-showNotImplemented} : prints warnings about JML features that are ignored because they are not implemented; 
+disable with \texttt{-no-showNotImplemented}; the default is disabled.
 \end{itemize}
 
 
@@ -680,14 +699,14 @@ Other debugging options:
 \item -Werror
 \item -nowarn
 \item -stopIfParseError
-\item -noCheckSpecsPath
-\item -noPurityCheck
+\item -checkSpecsPath
+\item -purityCheck
 \item -nonnullbydefault
 \item -nullablebydefault
 \item -keys
 \end{itemize}
 
-\subsection{Options related to annotation processing}
+\subsection{Java options related to annotation processing}
 \begin{itemize}
 \item -proc
 \item -processor
@@ -696,8 +715,6 @@ Other debugging options:
 
 \subsection{Other JML Options}
 \begin{itemize}
-\item -showNotImplemented
-\item -crossRefAssociatedInfo
 \item -roots
 \end{itemize}
 

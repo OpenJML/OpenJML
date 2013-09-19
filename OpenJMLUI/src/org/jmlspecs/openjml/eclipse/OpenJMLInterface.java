@@ -946,7 +946,7 @@ public class OpenJMLInterface {
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
-            opts.add(JmlOption.SHOW_RAC_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
+            opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
             opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ !Options.isOption(Options.racNoCheckAssumptions));
             opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ !Options.isOption(Options.racNoCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));

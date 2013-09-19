@@ -64,7 +64,7 @@ public class racfiles extends RacBase {
             args.add("-rac");
             args.add("-d");
             args.add("testdata");
-            args.add("-noPurityCheck");
+            args.add("-no-purityCheck");
             args.add("-dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));

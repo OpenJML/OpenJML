@@ -351,12 +351,12 @@ public class JmlCompiler extends JavaCompiler {
     /** Overridden in order to put out some information about stopping */
     @Override
     protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
-        if (errorCount() != 0 && (utils.jmlverbose >= Utils.PROGRESS) ) {
+        if (errorCount() != 0) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
-                context.get(Main.IProgressListener.class).report(0,2,"Stopping because of parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Stopping because of parsing errors");
                 return List.<T>nil();
             } else {
-                context.get(Main.IProgressListener.class).report(0,2,"Continuing bravely despite parsing errors");
+                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Continuing bravely despite parsing errors");
             }
         }
         return list;

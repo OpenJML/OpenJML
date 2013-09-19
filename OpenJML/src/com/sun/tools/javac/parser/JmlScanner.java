@@ -131,7 +131,7 @@ public class JmlScanner extends DocCommentScanner {
          * @param j the JmlSCanner to initialize
          */
         protected void init(JmlScanner j) {
-            j.noJML = JmlOption.isOption(context, JmlOption.NOJML);
+            j.noJML = !JmlOption.isOption(context, JmlOption.JML);
             j.keys = Utils.instance(context).commentKeys;
             j.nowarns = Nowarns.instance(context);
         }
