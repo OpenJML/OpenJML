@@ -539,5 +539,26 @@ private void test17a(){
     }    
     
     
+    //
+    // NOT WORKING
+    //
+    // This is due to the fact that Assign is entered BEFORE Condition, when in reality we need it to be the other way. 
+    // We will have to add special checking logic to see if the RHS of something is dependent on a JCConditional and go from there.
+    public void test28()
+    {
+        @Level("Public")
+        int a = 1;
+        @Level("Public")
+        int c = 3;
+        
+        @Level("Private")
+        int b = 1;
+        
+        a = (b==1) ? c : 2; // (a=c) normally ok, not ok in flow context. b=2 is ok always.
+        
+        b = (b==1) ? 2 : 2; // (b=2) is ok
+                
+    }
+    
 }
 
