@@ -5,6 +5,9 @@ export TESTLOC=../releaseTests
 export CMD=$2
 
 echo TESTING ${TESTNAME}
+
+mkdir -p ${TESTLOC}/${TESTNAME}
+
 if [[ "${SWITCHSLASH}" != "" ]] ; then
 ${CMD} | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
 else

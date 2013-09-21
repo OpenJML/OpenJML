@@ -147,7 +147,7 @@ public class Main {
 
     /** Print a string that explains usage.
      */
-    void help() {
+    protected void help() { // DRC - changed to protected from package visibility
         Log.printLines(out, getLocalizedString("msg.usage.header", ownName));
         for (int i=0; i<recognizedOptions.length; i++) {
             recognizedOptions[i].help(out);
