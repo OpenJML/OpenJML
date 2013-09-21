@@ -2230,7 +2230,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
-    protected void addNullnessAllocationTypeCondition(JCVariableDecl d, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeCondition(JCVariableDecl d, boolean instanceBeingConstructed) {
+        boolean nnull = true;
         if (!d.sym.type.isPrimitive()) {
             JCExpression id = treeutils.makeIdent(d.pos, d.sym);
             id = convertJML(id);
@@ -2242,6 +2243,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (own instanceof MethodSymbol) own = own.owner;
             boolean nn = specs.isNonNull(d.sym, (Symbol.ClassSymbol)own) &&
                     !instanceBeingConstructed;
+            nnull = nn;
             if (nn) {
                 // assume id != null
                 addAssume(d,Label.NULL_CHECK,treeutils.makeNeqObject(d.pos, id, treeutils.makeNullLiteral(d.pos)));
@@ -2257,6 +2259,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(d,Label.IMPLICIT_ASSUME,treeutils.makeOr(d.pos, e1, e3));
             }
         }
+        return nnull;
     }
 
     /** Computes and adds checks for all the pre and postcondition clauses. */
@@ -2330,8 +2333,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             // For the parameters of the method
             addStat(comment(methodDecl,"Assume parameter type, allocation, and nullness"));
+            boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
+            boolean nn = true;
             for (JCVariableDecl d: methodDecl.params) {
-                addNullnessAllocationTypeCondition(d,false);
+                nn = addNullnessAllocationTypeCondition(d,false);
+            }
+            if (varargs && !nn) {
+                JCVariableDecl d = methodDecl.params.last();
+                JCIdent id = treeutils.makeIdent(d.pos,d.sym);
+                JCExpression nnex = treeutils.makeNeqObject(d.pos,id,treeutils.nullLit);
+                addAssume(d.pos(),Label.IMPLICIT_ASSUME,nnex);
             }
             
             int pos = methodDecl.pos;
@@ -4159,12 +4170,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         applyHelper(that);
     }
     
-    protected List<JCExpression> convertArgs(List<JCExpression> args, List<Type> argtypes) {
+    protected List<JCExpression> convertArgs(DiagnosticPosition pos, List<JCExpression> args, List<Type> argtypes, boolean hasVarArgs) {
+        // Note: because the declaration may have a last varargs element,
+        // args.size() may be greater than argtypes.size() But since everything
+        // has typechecked OK, it is OK to implicitly use the last element of
+        // argtypes for any additional args.
         ListBuffer<JCExpression> out = new ListBuffer<JCExpression>();
         Iterator<Type> iter = argtypes.iterator();
+        boolean last = false;
+        Type currentArgType = null;
+        boolean usedVarArgs = args.size() == 0 && argtypes.size() != 0 && hasVarArgs;
         for (JCExpression a: args) {
             a = convertExpr(a);
-            a = addImplicitConversion(a,iter.next(),a);
+            if (iter.hasNext()) currentArgType = iter.next(); // handles varargs
+            last = !iter.hasNext();
+            if (last && hasVarArgs && !(a.type instanceof Type.ArrayType)) {
+                currentArgType = ((Type.ArrayType)argtypes.last()).getComponentType();
+                a = addImplicitConversion(a,currentArgType,a);
+                usedVarArgs = true;
+            } else {
+                a = addImplicitConversion(a,currentArgType,a);
+            }
             if (useMethodAxioms && translatingJML) {
             } else if ((a instanceof JCIdent) && ((JCIdent)a).name.toString().startsWith(Strings.tmpVarString)) {
             } else if ((a instanceof JCIdent) && localVariables.containsKey(((JCIdent)a).sym)) {
@@ -4178,6 +4204,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 a = newTemp(a);
             }
             out.add(a);
+        }
+        if (usedVarArgs) {
+            ListBuffer<JCExpression> newout = new ListBuffer<JCExpression>();
+            int n = argtypes.length() - 1;
+            while (--n >= 0) {
+                newout.add(out.remove());
+            }
+            // create an array with the rest
+            currentArgType = ((Type.ArrayType)argtypes.last()).getComponentType();
+            List<JCExpression> dims = List.<JCExpression>nil(); // FIXME - what if the array is multi-dimensional
+            int p = pos.getPreferredPosition();
+            JCExpression t = treeutils.makeType(p,currentArgType);
+            JCExpression e = M.at(p).NewArray(t, dims, out.toList());
+            e.type = argtypes.last();
+            if (esc) e = convertExpr(e);
+            newout.add(newTemp(e)); // FIXME - see comment above about newTemp
+            out = newout;
         }
         return out.toList();
     }
@@ -4245,7 +4288,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression newThisExpr = null; // The translated receiver
             List<JCExpression> trArgs; // The translated arguments
             List<JCExpression> typeargs; // The translated type arguments
-            /*@ nullable*/ Type varargsElement;
             /*@ nullable*/ JCExpression meth = null; // the qualified method name, if this is a method call
             /*@ nullable*/ JCMethodInvocation apply = null; // non-null if this is a method call
             /*@ nullable*/ JCNewClass newclass = null; // non-null if this a new object call
@@ -4258,12 +4300,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 meth = apply.meth;
                 trArgs = apply.args;
                 typeargs = apply.typeargs;
-                varargsElement = apply.varargsElement;
             } else if (that instanceof JCNewClass) {
                 newclass = (JCNewClass) that;
                 trArgs = newclass.args;
                 typeargs = newclass.typeargs;
-                varargsElement = newclass.varargsElement;
             } else {
                 error(that,"Invalid argument type for JmlAssertionAdder.applyHelper");
                 return;
@@ -4280,13 +4320,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 isSuper = id.name.equals(names._super);
                 
                 typeargs = convert(typeargs);
-                trArgs = convertArgs(trArgs,meth.type.asMethodType().argtypes);
+                trArgs = convertArgs(that, trArgs,meth.type.asMethodType().argtypes, (id.sym.flags() & Flags.VARARGS) != 0 );
 
                 calleeMethodSym = (MethodSymbol)id.sym;
 
                 JCMethodInvocation mExpr = M.at(that).Apply(typeargs,meth,trArgs);
                 mExpr.setType(that.type);
-                mExpr.varargsElement = varargsElement;
+                mExpr.varargsElement = null; // We have combined the arargs elements into an array
                 trExpr = mExpr;
                 newThisExpr = newThisId = utils.isJMLStatic(id.sym) ? null : newTemp(convertExpr(currentThisExpr));  // FIXME - should this be a convertCopy or convertExpr
                 
@@ -4314,7 +4354,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
 
                 typeargs = convert(typeargs);
-                trArgs = convertArgs(trArgs,meth.type.asMethodType().argtypes);
+                trArgs = convertArgs(that, trArgs,meth.type.asMethodType().argtypes,  (fa.sym.flags() & Flags.VARARGS) != 0);
 
                 JCFieldAccess fameth = (JCFieldAccess)M.at(meth.pos).Select(
                         !utils.isJMLStatic(fa.sym) ? newThisExpr : convertedReceiver, fa.sym);
@@ -4322,7 +4362,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 JCMethodInvocation mExpr = M.at(that).Apply(typeargs,fameth,trArgs);
                 mExpr.setType(that.type);
-                mExpr.varargsElement = varargsElement; // a Type
+                mExpr.varargsElement = null; // We have combined the arargs elements into an array
                 trExpr = mExpr; // rewritten expression - for RAC
                 
             } else if (newclass != null) {
@@ -4340,7 +4380,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
 
                 typeargs = convert(typeargs);
-                trArgs = convertArgs(trArgs,calleeMethodSym.type.asMethodType().argtypes);
+                trArgs = convertArgs(that, trArgs,calleeMethodSym.type.asMethodType().argtypes,  (calleeMethodSym.flags() & Flags.VARARGS) != 0);
 
                 JCNewClass expr = M.at(that).NewClass(
                         convertedReceiver,
@@ -4350,7 +4390,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         convert(newclass.def));
                 expr.constructor = newclass.constructor;
                 expr.constructorType = newclass.constructorType;
-                expr.varargsElement = varargsElement;
+                expr.varargsElement =  null; // We have combined the arargs elements into an array
                 expr.setType(that.type);
                 trExpr = expr;
                 
@@ -4570,8 +4610,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     if (calleeSpecs.decl != null) {
                         Iterator<JCVariableDecl> iter = calleeSpecs.decl.params.iterator();
+                        JCVariableDecl currentDecl = null;
                         for (JCExpression arg: trArgs) {
-                            paramActuals.put(iter.next().sym, arg);
+                            if (iter.hasNext()) currentDecl = iter.next();
+                            paramActuals.put(currentDecl.sym, arg);
                         }
                     }
                     if (esc) {
@@ -5231,8 +5273,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
     protected void newAllocation(DiagnosticPosition pos, JCIdent resultId) {
-        newAllocation1(pos,resultId);
-        newAllocation2(pos,resultId);
+        newAllocation1(pos,convertCopy(resultId));
+        newAllocation2(pos,convertCopy(resultId));
     }
 
     // FIXME - review newClass
@@ -5509,18 +5551,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl decl = treeutils.makeVarDef(that.type,names.fromString(Strings.newArrayVarString + that.pos), null, that.pos);
             addStat(decl);
             JCIdent id = treeutils.makeIdent(that.pos, decl.sym);
-            result = eresult = id;
-            addAssume(that,Label.NULL_CHECK,treeutils.makeNeqObject(that.pos, eresult, treeutils.nullLit));
+            addAssume(that,Label.NULL_CHECK,treeutils.makeNeqObject(that.pos, id, treeutils.nullLit));
+
+            newAllocation(that,id);
+
             JCExpression size = null;
             if (that.dims != null && that.dims.length() > 0) { size = that.dims.get(0); }
             else if (that.elems != null) {
                 size = treeutils.makeIntLiteral(that.pos, that.elems.length());
             }
             if (size != null) {
-                addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeEquality(that.pos,treeutils.makeLength(that,eresult),convert(size)));
+                addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeEquality(that.pos,treeutils.makeLength(that,convertCopy(id)),convert(size)));
             }
-            
-            newAllocation(that,id);
+
+            result = eresult = convertCopy(id);
 
             // FIXME - need assertions about size of array and about any known array elements; about allocation time
             // also about type of the array

@@ -675,5 +675,38 @@ public class escnew3 extends EscBase {
                 );
     }
 
+    @Test
+    public void testVarargs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default */ public class TestJava { \n"
+                +"  //@ ensures \\result == ints.length;\n"
+                +"  //@ pure \n"
+                +"  public static int m(Integer ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    return ints.length; }\n"
+                
+                +"  public static void n(/*@ non_null*/Integer[] args) { \n"
+                +"    int i = m(args); \n"
+                +"    //@ assert i == args.length; \n"
+                +"    }\n"
+                
+                +"  public static void n0() { \n //@ reachable ; \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(1); \n"
+                +"    //@ assert i == 1; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(1,1); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+
 
 }

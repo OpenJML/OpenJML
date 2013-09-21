@@ -268,5 +268,27 @@ public class racnew3 extends RacBase {
                 );
     }
     
+    @Test
+    public void testVarargs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"    public static void main(String... args) {\n" 
+                +"       m1(args); \n" 
+                +"       m1(); \n" 
+                +"       m1(\"a\"); \n" 
+                +"       m1(\"a\",\"b\"); \n" 
+                +"    }\n" 
+                
+                +"  //@ requires args.length >= 0; \n"
+                +"  //@ ensures args.length == \\result; \n"
+                +"  public static int m1(String ... args) {\n"
+                +"    return args.length;\n" 
+                +"  }\n"
+                 
+                +"}"
+                );
+    }
+    
 
 }

@@ -463,7 +463,10 @@ public class JmlParser extends EndPosParser {
                     S.setJmlKeyword(false);
                     S.nextToken();
                     JCExpression t = null;
-                    if (jtoken == REACHABLE && S.token() != Token.SEMI) t = parseExpression();
+                    if (jtoken == REACHABLE) {
+                        if (S.token() != Token.SEMI) t = parseExpression();
+                        else t = toP(jmlF.at(S.pos()).Literal(TypeTags.BOOLEAN, 1)); // Boolean.TRUE;
+                    }
                     else if (jtoken != UNREACHABLE) t = parseExpression();
                     JmlTree.JmlStatementExpr ste = to(jmlF.at(pos)
                             .JmlExpressionStatement(jtoken, 
