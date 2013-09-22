@@ -76,3 +76,6 @@ JML options:
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
   -racJavaChecks             RAC: Enables explicit checking of Java language checks
   -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts
+  -reconfigure               Reconfigure the default provers used by OpenJML
+  -flowspecs                 Turns on flowspec information flow checker
+  
