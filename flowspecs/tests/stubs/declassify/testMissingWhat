@@ -1,0 +1,6 @@
+public class A {
+    //@ declassify 
+    void missingWhat(){}
+}
+####
+/A.java:2: Missing an expression to declassify

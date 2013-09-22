@@ -1,0 +1,10 @@
+../testfiles/testPath/data/TestPath.java:1: error: cannot find symbol
+public class TestPath extends TestPathS {
+                              ^
+  symbol: class TestPathS
+../testfiles/testPath/data/TestPath.java:3: error: cannot find symbol
+    //@ requires z ; // BAD
+                 ^
+  symbol:   variable z
+  location: class TestPath
+2 errors

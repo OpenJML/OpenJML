@@ -1,0 +1,15 @@
+import org.jmlspecs.annotation.*;
+
+public class A {
+
+	public  int myMethod1(/*@ channel(UI) */ int a){
+		return 0;
+	}
+
+
+
+	public int myMethod2(/*@ channel("UI") */ int a){
+		return 0;
+	}
+
+}

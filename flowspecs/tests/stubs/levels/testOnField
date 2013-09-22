@@ -1,0 +1,6 @@
+public class A {
+
+	public /*@ level(PRIVATE) */ int foo;
+	public /*@ level("PRIVATE") */ int foo2;
+
+}

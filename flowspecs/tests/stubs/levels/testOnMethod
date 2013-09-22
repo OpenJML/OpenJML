@@ -1,0 +1,21 @@
+public class A {
+
+	public /*@ level(PRIVATE) */ int myMethod1(int a){
+		return 0;
+	}
+
+    /*@ level(PRIVATE) */ public  int myMethod2(int a){
+		return 0;
+	}
+
+
+	public /*@ level("PRIVATE") */ int myMethod3(int a){
+		return 0;
+	}
+
+
+	/*@ level("PRIVATE") */ public int myMethod4(int a){
+		return 0;
+	}
+
+}

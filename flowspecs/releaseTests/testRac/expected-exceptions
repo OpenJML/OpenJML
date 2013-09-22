@@ -1,0 +1,4 @@
+START
+Exception in thread "main" org.jmlspecs.utils.JmlAssertionError: ../testfiles/testRac/A.java:4: JML assertion is false
+	at org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)
+	at A.main(A.java:4)

@@ -1,0 +1,6 @@
+public class A {
+    //@ declassify (username.equals(PasswordDB.username))   
+    void missingPolicyClause() {}  
+}
+####
+/A.java:2: Each declassify clause must have a policy that justifies the declassification (hint: use keyword "usingPolicy")

@@ -1,0 +1,6 @@
+public class A {
+
+	public /*@ channel(UI) */ int foo;
+	public /*@ channel("UI") */ int foo2;
+
+}
