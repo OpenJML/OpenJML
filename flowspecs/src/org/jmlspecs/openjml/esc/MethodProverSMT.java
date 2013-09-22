@@ -426,6 +426,8 @@ public class MethodProverSMT {
 
     }
     
+    Set<String> blocks = new java.util.HashSet<String>();
+    
     /** Iterates through the basic blocks to find and report the invalid assertion
      * that caused the SAT result from the prover.
      */
@@ -433,6 +435,7 @@ public class MethodProverSMT {
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap) {
         exprValues = new HashMap<JCTree,String>();
+        blocks.clear();
         JCExpression pathCondition = reportInvalidAssertion(program.startBlock(),smt,solver,decl,0, JmlTreeUtils.instance(context).falseLit,cemap,jmap,aaPathMap,bbPathMap);
         if (pathCondition == null) {
             log.warning("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
@@ -484,6 +487,9 @@ public class MethodProverSMT {
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap) {
         String id = block.id.name.toString();
+        if (!blocks.add(id)) {
+            Utils.print("Repeating " + id);
+        }
         Boolean value = getBoolValue(id,smt,solver);
         if (value == null) {
             // FIXME - error and what to do ?
@@ -508,18 +514,22 @@ public class MethodProverSMT {
                 Name n = ((JCVariableDecl)stat).name;
                 String ns = n.toString();
                 if (ns.startsWith(Strings.labelVarString)) {
+                    int k = ns.lastIndexOf("_");
                     if (ns.startsWith(prefix_lblpos)) {
                         Boolean b = getBoolValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblpos.length()),"is unknown"); //$NON-NLS-1$
-                        else if (b) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblpos.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lblpos.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else if (b) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else if (ns.startsWith(prefix_lblneg)) {
                         Boolean b = getBoolValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblneg.length()),"is unknown"); //$NON-NLS-1$
-                        else if (!b) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lblneg.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lblneg.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else if (!b) log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else if (ns.startsWith(prefix_lbl)) {
                         String b = getValue(ns,smt,solver);
-                        if (b == null) log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lbl.length()),"is unknown"); //$NON-NLS-1$
-                        else log.warning(stat.pos,"esc.label.value",ns.substring(prefix_lbl.length()),b); //$NON-NLS-1$
+                        String label = ns.substring(prefix_lbl.length(),k); 
+                        if (b == null) log.warning(stat.pos,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
+                        else log.warning(stat.pos,"esc.label.value",label,b); //$NON-NLS-1$
                     } else {
                         log.warning(stat.pos,"jml.internal.notsobad","Unknown label: " + ns); //$NON-NLS-1$
                     }

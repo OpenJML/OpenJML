@@ -64,7 +64,7 @@ public class racfiles extends RacBase {
             args.add("-rac");
             args.add("-d");
             args.add("testdata");
-            args.add("-noPurityCheck");
+            args.add("-no-purityCheck");
             args.add("-dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
@@ -204,7 +204,19 @@ public class racfiles extends RacBase {
     @Test
     public void purseModTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","CardTest");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","CardTest","-noRacJavaChecks","-noRacCheckAssumptions");
+    }
+
+    @Test
+    public void racTime() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","testfiles/racTime","Time");
+    }
+
+    @Test
+    public void racQueue() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Queue.java","testfiles/racQueue","Queue");
     }
 
 

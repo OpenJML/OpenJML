@@ -21,11 +21,11 @@ public class esclocation extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //options.put("-jmlverbose",   "");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
+        //main.addOptions("-jmlverbose");
+        //main.addOptions("-jmldebug");
+        //main.addOptions("-noInternalSpecs");
         //JmlEsc.escdebug = true;
         main.addOptions("-jmltesting");
     }

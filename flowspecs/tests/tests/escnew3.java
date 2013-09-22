@@ -248,7 +248,522 @@ public class escnew3 extends EscBase {
                 );
     }
     
+    @Test
+    public void testCast() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static long l;\n"
+                +"  public static int i;\n"
+                +"  public static short s;\n"
+                +"  public static char c;\n"
+                +"  public static byte b;\n"
+                
+                +"  //@ requires i == 6;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public void m0() {\n"
+                +"    s = (short)i;\n"
+                +"    //@ assert s == i;\n"  // OK
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"  // OK
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"  // OK
+                +"    l = (long)i;\n"
+                +"    //@ assert l == i;\n"  // OK 
+                +"    int ii = (int)i;\n"
+                +"    //@ assert ii == i;\n"  // OK
+                
+                +"    //@ assert i == (short)i;\n"
+                +"    //@ assert i == (long)i;\n"
+                +"    //@ assert i == (char)i;\n"
+                +"    //@ assert i == (byte)i;\n"
+                +"    //@ assert i == (int)i;\n"
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0bad() {\n"
+                +"    s = (short)i;\n"  // Line 30
+                +"    //@ assert s == i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0badx() {\n"
+                +"    //@ assert i == (short)i;\n" // BAD
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m1badx() {\n"
+                +"    //@ assert i == (byte)i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m2badx() {\n"
+                +"    //@ assert i == (char)i;\n" 
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m1bad() {\n"
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m2bad() {\n"
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"
+                +"  }\n"
+                 
+                +"}"
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0bad",9
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0badx",21
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1badx",21
+                ,"/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2badx",21
+                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1bad",9
+                ,"/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2bad",9
+                );
+    }
+    
+    @Test
+    public void testCast1() {
+        main.addOptions("-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m0() {\n"
+                +"    {/*@ nullable */ Short s = null;\n"
+                +"    short ss = (short)s;\n"  
+                +"    //@ assert 0 == (short)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m1() {\n"
+                +"    {/*@ nullable */ Integer s = null;\n"
+                +"    int ss = (int)s;\n"  
+                +"    //@ assert 0 == (int)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m2() {\n"
+                +"    {/*@ nullable */ Long s = null;\n"
+                +"    long ss = (long)s;\n"  
+                +"    //@ assert 0L == (long)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m3() {\n"
+                +"    {/*@ nullable */ Byte s = null;\n"
+                +"    byte ss = (byte)s;\n"  
+                +"    //@ assert 0 == (byte)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m4() {\n"
+                +"    {/*@ nullable */ Character s = null;\n"
+                +"    char ss = (char)s;\n"  
+                +"    //@ assert 0 == (char)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m7() {\n"
+                +"    {/*@ nullable */ Boolean s = null;\n"
+                +"    boolean ss = (boolean)s;\n"  
+                +"    //@ assert (boolean)s;\n}"  
+                +"  }\n"
+                                  
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m0",16
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1",14
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2",15
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m3",15
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m4",15
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m7",18
+                );
+    }
+    
+    @Test
+    public void testCast1real() {
+        if ("cvc4".equals(solver)) return; // FIXME - cannot retrievve values
+        main.addOptions("-logic=AUFNIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ modifies \\everything;\n"
+                +"  public void m5() {\n"
+                +"    {/*@ nullable */ Double s = null;\n"
+                +"    double ss = (double)s;\n"  
+                +"    //@ assert 0 == (double)s;\n}"  
+                +"  }\n"
+                                  
+                +"  //@ modifies \\everything;\n"
+                +"  public void m6() {\n"
+                +"    {/*@ nullable */ Float s = null;\n"
+                +"    float ss = (float)s;\n"  
+                +"    //@ assert 0.0 == (float)s;\n}"  
+                +"  }\n"
+                                  
+                +"}"
+                ,"cvc4".equals(solver)? null :
+                    seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
+                    ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16)
+                );
+    }
+    
     // TODO - test not_modified and old nested in each other; remember to test definedness            
+
+    @Test
+    public void testAssignableConstructor0() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor1() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable i;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:4: An identifier with private visibility may not be used in a assignable clause with public visibility",18
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable \\nothing;\n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ requires true; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",22
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor3e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  private int i;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method <init>",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ requires true;\n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor4ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor5() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable state; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor5s() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { //@ public model Object state;\n"
+                +"  private int i; //@ in state;\n"
+                +"  //@ assignable this.state; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ requires true; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6e() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor6ae() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava {\n"
+                +"  /*@ spec_public */ private int i;\n"
+                +"  //@ requires true; assignable this.*; \n" // default assignable
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor7() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  /*@ spec_public */ private int i; \n"
+                +"  //@ assignable i; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAssignableConstructor7s() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  /*@ spec_public */ private int i; \n"
+                +"  //@ assignable this.i; \n"
+                +"  public TestJava() { i = 0; }\n"
+                +"  //@ assignable \\everything;\n"
+                +"  public static void m() { new TestJava(); }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testVarargs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default */ public class TestJava { \n"
+                +"  //@ ensures \\result == ints.length;\n"
+                +"  //@ pure \n"
+                +"  public static int m(Integer ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    return ints.length; }\n"
+                
+                +"  public static void n(/*@ non_null*/Integer[] args) { \n"
+                +"    int i = m(args); \n"
+                +"    //@ assert i == args.length; \n"
+                +"    }\n"
+                
+                +"  public static void n0() { \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(1); \n"
+                +"    //@ assert i == 1; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(1,1); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testVarargs2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ pure \n"
+                +"  public static int m(int ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    if (ints.length > 0) return ints[0]; else return ints.length; }\n"
+                
+                +"  public static void n0() { \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(2); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(5,6); \n"
+                +"    //@ assert i == 5; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testVarargs3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires ints.length == 0 || ints[0] != null;\n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ pure \n"
+                +"  public static int m(Integer ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    if (ints.length > 0) return ints[0]; else return ints.length; }\n"
+                
+                +"  public static void n0() { \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(2); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(5,6); \n"
+                +"    //@ assert i == 5; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
 
 
 }

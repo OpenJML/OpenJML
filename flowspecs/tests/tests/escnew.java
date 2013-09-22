@@ -18,13 +18,8 @@ public class escnew extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-purityCheck=false");
         main.addOptions("-jmltesting");
-        //options.put("-jmlverbose",   "");
-        //options.put("-method",   "m2bad");
-        //options.put("-jmldebug",   "");
-        //options.put("-noInternalSpecs",   "");
-        //options.put("-trace",   "");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
@@ -694,7 +689,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testGhostSet() {
-        options.put(JmlOption.KEYS.optionName(), "DEBUG");
+        main.addOptions(JmlOption.KEYS.optionName(), "DEBUG");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

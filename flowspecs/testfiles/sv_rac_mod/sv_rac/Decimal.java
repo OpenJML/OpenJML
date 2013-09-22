@@ -31,7 +31,7 @@ public class Decimal extends Object{
     /**
      *	Nombre � virgule trop grand
      */
-    public static final short DECIMAL_OVERFLOW   = (short)0x9F15;
+    public static final short DECIMAL_OVERFLOW   = -(short)(0x60EB); //(0x9F15);
     public static final short MAX_DECIMAL_NUMBER = (short)32767;
     
     /** save stack maximum length */
@@ -105,7 +105,7 @@ public class Decimal extends Object{
       requires i == MAX_DECIMAL_NUMBER ==> d == 0;
       ensures intPart == i && decPart == d;
 //      ensures \fresh(this);
-      exsures (ISOException) false;
+      exsures (ISOException) false; assignable \everything;
     */   
     // Code modified by Nestor CATANO 23/05/2001
     // inclusion of throws clause
@@ -122,7 +122,7 @@ public class Decimal extends Object{
     }
 
     /*@ 
-      requires d != null; 
+      requires d != null; assignable \everything;
       ensures intPart == d.intPart && decPart == d.decPart;
 //      ensures \fresh(this);
       exsures (ISOException) false;

@@ -106,4 +106,189 @@ public class racnew3 extends RacBase {
 
  
     // FIXME - need tests for X.f X.* o.* a[*] a[1..3] a[1..]
+    
+    @Test
+    public void testCast() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public static double d;\n"
+                +"  public static float f;\n"
+                +"  public static long l;\n"
+                +"  public static int i;\n"
+                +"  public static short s;\n"
+                +"  public static char c;\n"
+                +"  public static byte b;\n"
+                
+                +"    public static void main(String... args) {\n" 
+                +"       i = 6; m0(); \n" 
+                +"       i = 100000; m0bad(); \n" 
+                +"    }\n" 
+                
+                +"  //@ requires i == 6;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0() {\n"
+                +"    s = (short)i;\n"
+                +"    //@ assert s == i;\n"  // OK
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"  // OK // Line 20
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"  // OK
+                +"    l = (long)i;\n"
+                +"    //@ assert l == i;\n"  // OK
+                +"    int ii = (int)i;\n"
+                +"    //@ assert ii == i;\n"  // OK
+
+                +"    //@ assert i == (short)i;\n"
+                +"    //@ assert i == (long)i;\n"
+                +"    //@ assert i == (char)i;\n"
+                +"    //@ assert i == (byte)i;\n"
+                +"    //@ assert i == (int)i;\n"
+                +"  }\n"
+                 
+                +"  //@ requires i == 100000;\n"
+                +"  //@ modifies \\everything;\n"
+                +"  public static void m0bad() {\n"
+                +"    s = (short)i;\n"
+                +"    //@ assert s == i;\n"  // BAD // Line 37
+                +"    b = (byte)i;\n"
+                +"    //@ assert b == i;\n"  // BAD
+                +"    c = (char)i;\n"
+                +"    //@ assert c == i;\n"  // BAD
+                +"    l = (long)i;\n"
+                +"    //@ assert l == i;\n"  // OK
+                +"    int ii = (int)i;\n"
+                +"    //@ assert ii == i;\n"  // OK
+
+                +"    //@ assert i == (short)i;\n" // BAD // Line
+                +"    //@ assert i == (long)i;\n"
+                +"    //@ assert i == (char)i;\n"
+                +"    //@ assert i == (byte)i;\n"
+                +"    //@ assert i == (int)i;\n"
+                +"  }\n"
+                 
+                +"}"
+                ,"/tt/TestJava.java:36: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:37: JML assertion is false"
+                ,"/tt/TestJava.java:38: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:39: JML assertion is false"
+                ,"/tt/TestJava.java:40: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:41: JML assertion is false"
+                ,"/tt/TestJava.java:46: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:46: JML assertion is false"
+                ,"/tt/TestJava.java:48: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:48: JML assertion is false"
+                ,"/tt/TestJava.java:49: JML argument to numeric cast is out of range of the target type"
+                ,"/tt/TestJava.java:49: JML assertion is false"
+                );
+    }
+    
+
+    @Test
+    public void testCast1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"    public static void main(String... args) {\n" 
+                +"       m0(); \n" 
+                +"    }\n" 
+                
+                +"  public static void m0() {\n"
+                +"    {/*@ nullable */ Short s = null;\n"
+                +"    try { //@ assert 0 == (short)s; \n} catch (NullPointerException e) {}\n" 
+                +"    try { short d = (Short)null; \n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Long s = null;\n"
+                +"    try { //@ assert 0 == (long)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { long d = (Long)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Byte s = null;\n"
+                +"    try { //@ assert 0 == (byte)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { byte d = (Byte)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Integer s = null;\n"
+                +"    try { //@ assert 0 == (int)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { int d = (Integer)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Character s = null;\n"
+                +"    try { //@ assert 0 == (char)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { char d = (Character)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Float s = null;\n"
+                +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { float d = (Float)null;}\n catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Double s = null;\n"
+                +"    try { //@ assert 0 == (double)s;\n} catch (NullPointerException e) {}\n"
+                +"    try { double d = (Double)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                +"    {/*@ nullable */ Boolean s = null;\n"
+                +"    try { //@ assert (boolean)s;\n} catch (NullPointerException e) {}\n"
+                +"    try { boolean d = (Boolean)null;\n} catch (NullPointerException e) {}\n"
+                +"    }\n"
+                
+                +"  }\n"
+                 
+                +"}"
+                ,"/tt/TestJava.java:8: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:10: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:14: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:16: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:20: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:22: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:26: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:28: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:32: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:34: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:38: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:40: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:44: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:46: JML Attempt to unbox a null object"
+                ,"/tt/TestJava.java:50: JML Attempt to unbox a null object within a JML expression"
+                ,"/tt/TestJava.java:52: JML Attempt to unbox a null object"
+                );
+    }
+    
+
+    @Test
+    public void testCast2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"    public static void main(String... args) {\n" 
+                +"       m1(); \n" 
+                +"    }\n" 
+                
+                +"  public static void m1() {\n"
+                +"    short s = (short)9;\n"
+                +"    //@ assert 9 == (Short)s;\n" 
+                +"  }\n"
+                 
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testVarargs() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"    public static void main(String... args) {\n" 
+                +"       m1(args); \n" 
+                +"       m1(); \n" 
+                +"       m1(\"a\"); \n" 
+                +"       m1(\"a\",\"b\"); \n" 
+                +"    }\n" 
+                
+                +"  //@ requires args.length >= 0; \n"
+                +"  //@ ensures args.length == \\result; \n"
+                +"  public static int m1(String ... args) {\n"
+                +"    return args.length;\n" 
+                +"  }\n"
+                 
+                +"}"
+                );
+    }
+    
+
 }

@@ -498,10 +498,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
         int exit = super.compile(args,context,fileObjects,processors);
-        if (args.length == 0 || Options.instance(context).get(helpOption) != null) {
-            helpJML(out);
-        }
+//        if (Options.instance(context).get(helpOption) != null) {
+//            helpJML(out);
+//        }
         return exit;
+    }
+    
+    @Override
+    protected void help() {
+        super.help();
+        helpJML(out);
     }
         
     /** This is a utility method to print out all of the JML help information */
@@ -534,7 +540,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         Iterator<String> iter = newargs.iterator();
         while (iter.hasNext()) {
             String s = iter.next();
-            if (s.endsWith(".jml") && (f=new File(s)).exists()) {
+            if (s.endsWith(Strings.specsSuffix) && (f=new File(s)).exists()) {
                 jmlfiles.add(f);
                 iter.remove();
             }
@@ -587,6 +593,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         String res = "";
         String s = args[i++];
         if (s == null || s.isEmpty()) return i; // For convenience, allow but ignore null or empty arguments
+        
+        if (s.length() > 1 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"') {
+            s = s.substring(1,s.length()-1);
+        }
+        
+        boolean negate = false;
+        if (s.startsWith("-no-")) {
+            negate = true;
+            s = s.substring("-no".length());
+        }
         IOption o = JmlOption.find(s);
         while (o!=null && o.synonym()!=null) {
             s = o.synonym();
@@ -608,10 +624,13 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 }
             }
-            if (s.equals(helpOption)) options.put(s,"");
         } else if (o.hasArg()) {
             if (i < args.length) {
                 res = args[i++];
+                if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
+                    res = res.substring(1,res.length()-1);
+                }
+
             } else {
                 res = "";
                 Log.instance(context).warning("jml.expected.parameter",s);
@@ -635,16 +654,23 @@ public class Main extends com.sun.tools.javac.main.Main {
                     for (File ff: file.listFiles()) {
                         todo.add(ff);
                     }
-                } else if (!file.isFile()) {
-                    Log.instance(context).warning("jml.command.line.arg.not.a.file",file);
-                } else if (utils.hasJavaSuffix(file.getName())) { // FIXME - for now just ignoring .jml files - should replace it with the corresponding .java file to be sure both are checked together
-                    files.add(file.toString());
+                } else if (file.isFile()) {
+                    String ss = file.toString();
+                    if (utils.hasValidSuffix(ss)) files.add(ss);
                 }
             }
         } else {
             // An empty string is the value of the option if it takes no arguments
             // That is, for boolean options, "" (or any non-null) is true, null is false
-            options.put(s,res);
+            if (negate) {
+                if (o.defaultValue() instanceof Boolean) {
+                    JmlOption.setOption(context, o, false);
+                } else {
+                    options.put(s,o.defaultValue().toString());
+                }
+            } else {
+                options.put(s,res);
+            }
         }
         return i;
     }
@@ -664,13 +690,23 @@ public class Main extends com.sun.tools.javac.main.Main {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
+//        if (options.get(helpOption) != null) {
+//            return false;
+//        }
+        
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
         
         utils.jmlverbose = Utils.NORMAL;
-        String levelstring = options.get(JmlOption.VERBOSENESS.optionName());
+        String n = JmlOption.VERBOSENESS.optionName().trim();
+        String levelstring = options.get(n);
         if (levelstring != null) {
-            utils.jmlverbose = Integer.parseInt(levelstring);
+            levelstring = levelstring.trim();
+            if (!levelstring.isEmpty()) try {
+                utils.jmlverbose = Integer.parseInt(levelstring);
+            } catch (NumberFormatException e) {
+                Log.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(1) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+            }
         }
         
         if (utils.jmlverbose >= Utils.PROGRESS) {
@@ -718,16 +754,17 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();
-        if (keysString != null) {
+        if (keysString != null && !keysString.isEmpty()) {
             String[] keys = keysString.split(",");
             for (String k: keys) utils.commentKeys.add(k);
         }
         
         if (utils.esc) utils.commentKeys.add("ESC"); 
         if (utils.rac) utils.commentKeys.add("RAC"); 
+        utils.commentKeys.add("OPENJML"); 
         JmlSpecs.instance(context).initializeSpecsPath();
 
-        if (options.get(JmlOption.NOINTERNALRUNTIME.optionName()) == null) appendRuntime(context);
+        if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
         String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
         if (limit == null || limit.equals("all")) {
@@ -775,9 +812,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null) {
             options.put(JmlOption.FEASIBILITY.optionName(),"all");
-        } else if (check.equals("all") || 
+            check="all";
+        }
+        if (check.equals("all") || 
                 check.equals("preconditions") || 
                 check.equals("exit") || 
+                check.equals("postconditions") || 
+                check.equals("reachable") || 
                 check.equals("none")) {
             // continue
         } else {
@@ -794,10 +835,10 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     // @edu.umd.cs.findbugs.annotations.SuppressWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     @Override
-    public Collection<File> processArgs(String[] args, String[] classNames) {
+    public Collection<File> processArgs(String[] oargs, String[] classNames) {
         Options options = Options.instance(this.context);
         ListBuffer<File> jmlfiles = new ListBuffer<File>();
-        args = processJmlArgs(args,options,jmlfiles);
+        String[] args = processJmlArgs(oargs,options,jmlfiles);
         if (filenames == null) filenames = new TreeSet<File>(); // needed when called from the API
         Collection<File> files = super.processArgs(args,classNames);
         if (files != null) files.addAll(jmlfiles);
@@ -854,6 +895,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions() in this class.
+        JmlOptions.preRegister(context);
         JmlSpecs.preRegister(context); // registering the specifications repository
         JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
         JmlScanner.JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
@@ -951,7 +993,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     protected void coreDefaultOptions(Options opts) {
         opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
-        opts.put(JmlOption.NOPURITYCHECK.optionName(), "");
+        opts.put(JmlOption.PURITYCHECK.optionName(), null);
     }
     
     /** Adds additional options to those already present (which may change 

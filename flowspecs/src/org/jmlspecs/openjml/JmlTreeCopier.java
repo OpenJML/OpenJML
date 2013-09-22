@@ -358,7 +358,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlSingleton r = M.at(that.pos).JmlSingleton(that.token);
         r.type = that.type;
         r.info = that.info;
-        r.symbol = that.symbol;
+        //r.symbol = that.symbol;
         return r;
     }
 

@@ -101,6 +101,9 @@ public class Label {
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label INVARIANT_EXIT_CALLER = new Label("InvariantLeaveCaller");
     
+    /** Out-of-range numerical conversion */
+    /*@ non_null */ public final static Label ARITHMETIC_RANGE = new Label("ArithmeticRange");
+    
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
     
@@ -208,6 +211,9 @@ public class Label {
     
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
+    
+    /** Used for assert statements generated from non-null checks when unboxing */
+    /*@ non_null*/ public final static Label UNDEFINED_NULL_UNBOX = new Label("UndefinedNullUnbox");
     
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_DEREFERENCE = new Label("PossiblyNullDeReference");

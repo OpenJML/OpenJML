@@ -209,7 +209,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // Other somewhat arbitrary identifier names or parts of names
     
-    /** Prefix for the names of the 2-dimensional arrays used to model Java's heap-based arrays */
+    /** Prefix for the names of the N-dimensional arrays used to model Java's heap-based arrays */
     public static final @NonNull String ARRAY_BASE_NAME = "arrays_";
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
@@ -420,7 +420,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
-        if (incarnationPosition == 0 || own == null) {
+        if (incarnationPosition <= 0 || own == null) {
             Name n = sym.getQualifiedName();
             if (sym.pos >= 0 && !n.toString().equals(Strings.thisName)) n = names.fromString(n.toString() + ("_" + sym.pos));
             if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
@@ -1401,7 +1401,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
         Name n;
         if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
-            n = labelmaps.get(null).getName(vsym);
+            n = labelmaps.get(null).getCurrentName(vsym);
         } else {
             n = currentMap.getCurrentName((Symbol.VarSymbol)that.sym);
         }
@@ -1478,7 +1478,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
             newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
-            JCIdent arr = getArrayIdent(right.type,right.pos);
+            Type ctype = left.type;
+            JCIdent arr = getArrayIdent(ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
             JCIdent nid = newArrayIncarnation(right.type,sp);
@@ -1488,7 +1489,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(right); right = result;
             
             //JCExpression rhs = makeStore(ex,index,right);
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right);
+            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
             expr.pos = pos;
             expr.type = restype;
             treeutils.copyEndPosition(expr, right);
@@ -1570,15 +1571,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Name n = encodedName(that.sym,0L);
             that.name = n;
             isDefined.add(n);
-            currentMap.putSAVersion(that.sym,n,0); // FIXME - should unique be incremented
+            currentMap.putSAVersion(that.sym,n,0);
             currentBlock.statements.add(that);
-            scan(that.ident);
+            scan(that.ident); // FIXME - is this needed since we already set the encodedname
         } else {
             // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);
             that.name = lhs.name;
-            scan(that.ident);
+            scan(that.ident); // FIXME - is this needed since we already set the encodedname
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;

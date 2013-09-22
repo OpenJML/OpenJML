@@ -42,14 +42,14 @@ public abstract class EscBase extends JmlTestCase {
     
     static public  Collection<String[]> makeData(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        for (String s: solvers) data.add(new String[]{"",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
 
     static public  Collection<String[]> makeData(String... solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"-newesc",s});
+        for (String s: solvers) data.add(new String[]{"",s});
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
@@ -82,7 +82,7 @@ public abstract class EscBase extends JmlTestCase {
         super.setUp();
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         setOption(option,solver);
         //main.setupOptions();
         specs = JmlSpecs.instance(context);
@@ -98,14 +98,8 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-//        } else if (option.equals("-custom")) {
-//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-//            options.put(JmlOption.NEWESC.optionName(),null);
-//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
     }
@@ -114,14 +108,8 @@ public abstract class EscBase extends JmlTestCase {
         if (option == null) {
             // nothing set
         } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-//        } else if (option.equals("-custom")) {
-//            main.addUncheckedOption(JmlOption.CUSTOM.optionName());
-//            options.put(JmlOption.NEWESC.optionName(),null);
-//            main.addUncheckedOption("openjml.defaultProver=yices");
         } else {
-            main.addUncheckedOption(JmlOption.NEWESC.optionName());
             main.addUncheckedOption("openjml.defaultProver=z3_4_3");
         }
         // solver == null means use the default
@@ -168,34 +156,6 @@ public abstract class EscBase extends JmlTestCase {
             int ex = main.compile(args, null, context, files, null);
             
             if (print) printDiagnostics();
-//            int j = 0; // counts the errors in list, accounting for optional or null entries
-//            int i = 0;
-//            while (i < list.length) {
-//                if (list[i] == null) { i+=2; continue; }
-//                int col = ((Integer)list[i+1]).intValue();
-//                if (col < 0) {
-//                    // allowed to be optional
-//                    if (j >= collector.getDiagnostics().size()) {
-//                        // OK - just skip
-//                    } else if (list[i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
-//                            -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
-//                        j++;
-//                    } else {
-//                        // Not equal and the expected error is optional so just skip
-//                    }
-//                } else {
-//                    if (noAssociatedDeclaration && list[i].toString().contains("Associated declaration")) {
-//                        // OK - skip
-//                    } else {
-//                        if (j < collector.getDiagnostics().size()) {
-//                            assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
-//                            assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
-//                        }
-//                        j++;
-//                    }
-//                }
-//                i += 2;
-//            }
             expectedErrors = compareResults(list);
             assertEquals("Errors seen",expectedErrors,collector.getDiagnostics().size());
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
@@ -225,13 +185,26 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
     
+    protected class Seq implements Special {
+        public Object[] list;
+        public Seq(Object ... list) {
+            this.list = list;
+        }
+    }
+    
     protected class AnyOrder implements Special {
         public Object[][] lists;
         public AnyOrder(Object[] ... lists) {
             this.lists = lists;
         }
     }
+
+    protected OneOf oneof(Object[] ... lists) { return new OneOf(lists); }
+    protected AnyOrder anyorder(Object[] ... lists) { return new AnyOrder(lists); }
+    protected Optional optional(Object[] ... lists) { return new Optional(lists); }
+    protected Object[] seq(Object ... list) { return list; }
     
+
     protected boolean comparePair(Object[] list, int i, int j) {
         int col = ((Integer)list[i+1]).intValue();
         if (!list[i].toString().equals(noSource(collector.getDiagnostics().get(j)))) {

@@ -719,7 +719,16 @@ public class API implements IAPI {
         
         if (JmlEsc.mostRecentProofResult != null) {
             String value = JmlEsc.mostRecentProofResult.counterexample().get(node);
-            if (value != null) out = out + "Value " + node.type + " : " + value;
+            if (value != null) {
+            	out = out + "Value " + node.type + " : " + value;
+            	if (node.type.tag == TypeTags.CHAR) {
+            	    try {
+            	        out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
+            	    } catch (NumberFormatException e) {
+            	        // ignore
+            	    }
+            	}
+            }
             else out = out + "Value is unknown (type " + node.type + ")";
             return out;
         }

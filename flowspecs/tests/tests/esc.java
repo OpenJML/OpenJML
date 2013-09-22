@@ -17,7 +17,7 @@ import com.sun.tools.javac.util.Options;
 public class esc extends EscBase {
 
     public esc() {
-        super("-newesc",null);
+        super("",null);
     }
 
 //    public esc(String option, String solver) {
@@ -31,7 +31,7 @@ public class esc extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         main.addOptions("-jmltesting");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-trace");
@@ -2273,7 +2273,7 @@ public class esc extends EscBase {
                 +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3;\n"
                 +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
                 +"  //@ ensures \\result == 6;\n"
-                +"  public int inst() { return o.m() + p.m() + j; }\n"
+                +"  public int inst() { return o.m() + p.m() + j; }\n" // Line 20
                 
                 +"  //@ requires o!=null && p != null && o.j == 1 && p.j == 2 && j == 3 && o!=this && p!= this;\n"
                 +"  //@ modifies j,sj,o.j,o.sj,p.j,p.sj;\n"
@@ -2542,12 +2542,23 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst4() { int[] o = new int[]{10,11,12}; /*@ assert o.length == 3; assert o[1] == 11;*/ }\n" 
-                +"  public void inst4a() { int[] o = new int[]{10,11,12}; /*@ assert o.length == 4; */ }\n"  // FALSE
-                +"  public void inst4b() { int[] o = new int[]{10,11,12}; /*@ assert o.length == 3; assert o[1] == 10;*/ }\n"  // FALSE
+                +"  public void inst4a() { int[] o = new int[]{10,11,12}; /*@ assert o.length == 4; */ }\n"
+                +"  public void inst4b() { int[] o = new int[]{10,11,12}; /*@ assert o.length == 3; assert o[1] == 10;*/ }\n"
                 +"  public void inst6() { int[] o = {10,11,12}; /*@ assert o != null; assert o.length == 3; assert o[1] == 11;*/ }\n" 
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst4a",61
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst4b",83
+        );
+    }
+
+    @Test
+    public void testNewArrayInit2() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  public void inst4() { int[][] o = new int[][]{{10,11},{12,13,14},{15}}; /*@ assert o.length == 3; assert o[1] != null; assert o[1].length == 3; assert o[1][2] == 14; assert o[0] != null; assert o[0].length == 2; assert o[0][1] == 11; */ }\n" 
+                +"  public void inst5() { int[][] o = {{10,11},{12,13,14},{15}}; /*@ assert o.length == 3; assert o[1] != null; assert o[1].length == 3; assert o[1][2] == 14; assert o[0] != null; assert o[0].length == 2; assert o[0][1] == 11; */ }\n" 
+                +"  public void inst6() { int[][] o = {{10,11},null,{15}}; /*@ assert o.length == 3; assert o[1] == null; assert o[2] != null; assert o[2].length == 1; assert o[2][0] == 15; */ }\n" 
+                +"}"
         );
     }
 
@@ -2633,10 +2644,11 @@ public class esc extends EscBase {
                 +"  public void inst3c(/*@non_null*/boolean[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 +"}"
                 ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Assert) in method inst3a",171
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst3b",171
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method inst3b",182
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3b",182
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
+                ,anyorder(
+                 seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst3b",171)
+                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method inst3b",182)
+                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3b",182)
+                ),"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
         );
     }
@@ -3444,9 +3456,9 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"}",
                 "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17,
-                new AnyOrder(
-                        new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",17},
-                        new Object[]{"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",17}),
+                anyorder(
+                        seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1",17),
+                        seq("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",17)),
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m2",17,
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17,
@@ -3808,7 +3820,8 @@ public class esc extends EscBase {
     
     @Test // FIXME - needs erasure
     public void testTypes3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("-show");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.lang.JML; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/Object o) {\n"
                 +"    //@ assert JML.erasure(\\typeof(o)) == o.getClass();\n"

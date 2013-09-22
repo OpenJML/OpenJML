@@ -163,7 +163,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullPrecondition() {
-        main.addOptions("-noRacSource=false");
+        main.addOptions("-racShowSource=true");
         helpTCX("tt.TestJava","package tt; public class TestJava { \n" + 
                 "public static void main(String[] args) { \n" +
                 " m(null,1); \n" +
@@ -305,7 +305,7 @@ public class racnew extends RacBase {
                 "}"
                 ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:24)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:57)"
                 ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
@@ -355,9 +355,9 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only \\nothing; */\n"
                 +"static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause" // check by callee
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check by callee
                 ,"/tt/TestJava.java:7: Associated declaration"
-                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause" // postcondition check by caller
+                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check of postcondition assumption by caller
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -385,9 +385,9 @@ public class racnew extends RacBase {
                 +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
                 +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } "
                 +"}"
-                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.lang.Exception"
                 ,"/tt/TestJava.java:7: Associated declaration"
-                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause"
+                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.lang.Exception"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"END"
                 );
@@ -1072,15 +1072,14 @@ public class racnew extends RacBase {
                 ,"JML undefined precondition - exception thrown" // FIXME - this should have a line number
                 ,"java.lang.ArithmeticException: / by zero"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
+                ,"/tt/TestJava.java:2: JML precondition is false"
+                ,"/tt/TestJava.java:3: Associated declaration"
                 ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"Runtime exception while evaluating preconditions - preconditions are undefined in JML"
                 ,"java.lang.ArithmeticException: / by zero"
                 ,"\tat tt.TestJava.m(TestJava.java:3)"
                 ,"\tat tt.TestJava.main(TestJava.java:2)"
                 ,"VALUE 0"
-                ,"JML undefined precondition while checking postconditions - exception thrown"
-                ,"java.lang.ArithmeticException: / by zero"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"VALUE 1"
                 ,"/tt/TestJava.java:4: JML Division by zero"
                 ,"Runtime exception while evaluating postconditions - postconditions are undefined in JML"
@@ -1316,7 +1315,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testInvariant() { 
-        main.addOptions("-noRacSource=false");
+        main.addOptions("-racShowSource=true");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ public invariant i == 0;\n"
                 +"public void m(); \n"
@@ -1367,6 +1366,8 @@ public class racnew extends RacBase {
                 +"//@ public initially j == 1; \n "
                 +"//@ public invariant i == j; \n "
                 +" public void m(); \n"
+                +"/*@ assignable i,j; */\n "
+                +"public A();  \n"
                 +"}"
                 );
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1383,14 +1384,14 @@ public class racnew extends RacBase {
                 +"}}"
                 ,"START"
                 ,"MID"
-                ,"/tt/A.java:4: JML initially clause is false at exit from constructor"
-                ,"/$A/tt/A.jml:3: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.A()"
                 ,"/$A/tt/A.jml:4: Associated declaration"
-                ,"/tt/A.java:10: JML initially clause is false at exit from constructor"
+                ,"/tt/A.java:4: JML initially clause is false at exit from constructor"
                 ,"/$A/tt/A.jml:3: Associated declaration"
                 ,"/tt/A.java:10: JML invariant is false on leaving method tt.A.A(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:4: Associated declaration"
+                ,"/tt/A.java:10: JML initially clause is false at exit from constructor"
+                ,"/$A/tt/A.jml:3: Associated declaration"
                 ,"/tt/A.java:10: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:4: Associated declaration"
                 ,"/tt/A.java:5: JML invariant is false on entering method tt.A.m()"

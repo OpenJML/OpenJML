@@ -1,4 +1,11 @@
-package org.jmlspecs.utils;// FIXME add copyright at top
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
+
+package org.jmlspecs.utils;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -6,6 +13,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.jmlspecs.lang.Real;
+
+
+
+
 /** 
  * This class contains utility methods used in internal translations for both
  * ESC and RAC.  In RAC, these functions are executed to provide the built-in
@@ -21,7 +32,29 @@ public class Utils {
     // This one is declared first to minimize changes to its location 
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static void assertionFailureL(String message, /*@ nullable */String label) {
-        if (useExceptions) { if ("Precondition".equals(label)) throw new JmlAssertionError.Precondition(message,label); else throw new JmlAssertionError(message,label);}
+        if (useExceptions) {
+            String exname = System.getProperty("org.openjml.exception."+label);
+            if (exname == null) {
+                exname = "org.jmlspecs.utils.JmlAssertionError" + "." + label;
+            }
+            Class<?> c;
+            try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }
+            if (c != null) {
+                try {
+                    Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
+                    Error e = cc.newInstance(message,label);
+                    throw e;
+                } catch (NoSuchMethodException e) {
+                    throw new JmlAssertionError(message,label);
+                } catch (InstantiationException e) {
+                    throw new JmlAssertionError(message,label);
+                } catch (InvocationTargetException e) {
+                    throw new JmlAssertionError(message,label);
+                } catch (IllegalAccessException e) {
+                    throw new JmlAssertionError(message,label);
+                }
+            }
+            if ("Precondition".equals(label)) throw new JmlAssertionError.Precondition(message,label); else throw new JmlAssertionError(message,label);}
         else if (useJavaAssert) assert false: message;
         else { System.out.println(message); System.out.flush();
             if (showStack) { Error e = ("Precondition".equals(label)) ? new JmlAssertionError.Precondition(message,label): new JmlAssertionError(message,label);
@@ -391,6 +424,15 @@ public class Utils {
         return makeTYPE0(t.erasure().getComponentType());
     }
     
+    
+    public static String getClassName(Object o) {
+        return o.getClass().getName();
+    }
+    
+    public static String concat(String s1, String s2) {
+        return s1 + s2;
+    }
+    
     public static boolean isSubTypeOf(IJMLTYPE t, IJMLTYPE tt) {
         try {
             return tt.erasure().isAssignableFrom(t.erasure());
@@ -595,6 +637,14 @@ public class Utils {
         return a.compareTo(BigInteger.ZERO) != 0;
     }
 
+    public static float bigint_tofloat(BigInteger a) {
+        return a.floatValue();
+    }
+
+    public static double bigint_todouble(BigInteger a) {
+        return a.doubleValue();
+    }
+
     public static long bigint_tolong(BigInteger a) {
         return a.longValue();
     }
@@ -609,6 +659,10 @@ public class Utils {
 
     public static byte bigint_tobyte(BigInteger a) {
         return a.byteValue();
+    }
+
+    public static Real bigint_toreal(BigInteger a) {
+        return new Real(a.doubleValue());
     }
 
     public static BigInteger bigint_valueOf(long i) {

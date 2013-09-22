@@ -28,9 +28,9 @@ public class JmlStart extends Start {
         super.usage();
         JmlOption[] addedOptions = { 
                 JmlOption.SPECS, 
-                JmlOption.NOINTERNALSPECS, 
-                JmlOption.NOINTERNALRUNTIME, 
-                JmlOption.NOCHECKSPECSPATH, 
+                JmlOption.INTERNALSPECS, 
+                JmlOption.INTERNALRUNTIME, 
+                JmlOption.CHECKSPECSPATH, 
                 JmlOption.DIRS,
                 JmlOption.DIR,
 //                JmlOptionName.ENDOPTIONS  // FIXME - implement this or not?

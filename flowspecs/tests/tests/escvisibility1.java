@@ -17,7 +17,7 @@ public class escvisibility1 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-noPurityCheck");
+        main.addOptions("-no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         main.addOptions("-classpath",   testspecpath);
@@ -108,18 +108,12 @@ public class escvisibility1 extends EscBase {
                 +"  //@ private invariant 0 == pa();\n"
                 +"  //@ private invariant 0 == pv();\n"
                 +"}"
-                ,"/tt/TestJava.java:7: An identifier with public visibility may not be used in a invariant clause with package visibility",22
-                ,"/tt/TestJava.java:8: An identifier with protected visibility may not be used in a invariant clause with package visibility",22
                 ,"/tt/TestJava.java:10: An identifier with private visibility may not be used in a invariant clause with package visibility",22
                 ,"/tt/TestJava.java:12: An identifier with protected visibility may not be used in a invariant clause with public visibility",29
                 ,"/tt/TestJava.java:13: An identifier with package visibility may not be used in a invariant clause with public visibility",29
                 ,"/tt/TestJava.java:14: An identifier with private visibility may not be used in a invariant clause with public visibility",29
-                ,"/tt/TestJava.java:15: An identifier with public visibility may not be used in a invariant clause with protected visibility",32
                 ,"/tt/TestJava.java:17: An identifier with package visibility may not be used in a invariant clause with protected visibility",32
                 ,"/tt/TestJava.java:18: An identifier with private visibility may not be used in a invariant clause with protected visibility",32
-                ,"/tt/TestJava.java:19: An identifier with public visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:20: An identifier with protected visibility may not be used in a invariant clause with private visibility",30
-                ,"/tt/TestJava.java:21: An identifier with package visibility may not be used in a invariant clause with private visibility",30
                 );
     }
     

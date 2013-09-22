@@ -54,6 +54,22 @@ ${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
 ## Checks the help message (when there is a -help option)
 ${RTH} testJmlHelp "java -jar openjml.jar -help" || RES=$(($RES+1))
 
+## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
+##${RTH} testJmlBad "java -jar openjml.jar -verboseness \"\"" || RES=$(($RES+1))
+
+## Checks when there is a bad verboseness argument
+${RTH} testJmlBad "java -jar openjml.jar -verboseness=" || RES=$(($RES+1))
+
+## Checks when there is a bad verboseness property
+${RTH} testJmlBad2 "java -Dorg.openjml.option.verboseness=x -jar openjml.jar -check" || RES=$(($RES+1))
+
+## Checks when there is a bad use of -java
+${RTH} testJmlBad3 "java -jar openjml.jar -check -java" || RES=$(($RES+1))
+
+## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
+#${RTH} testJmlBad "java -jar openjml.jar \"-verboseness= \"" || RES=$(($RES+1))
+
+
 
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java

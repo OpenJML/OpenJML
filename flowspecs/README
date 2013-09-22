@@ -1,291 +1,33 @@
-THIS IS OBSOLETE
 
-
-
-                                           DATE: 2 May 2009
+                                           DATE: 12 September 2013
                                            AUTHOR: David R. Cok
-                                           COPYRIGHT: (c) 2007-2009 David Cok
+                                           COPYRIGHT: (c) 2007-2013 David Cok
 
-This file describes a completely rewritten JML tool (called OpenJML) based
+OpenJML is a completely rewritten JML tool based
 on the OpenJDK release of the Java tool set (http://openjdk.java.net).  It is
 an extension of the GPL source available through OpenJDK.  The source code for
-OpenJML is kept at sourceforge (see www.jmlspecs.org, 
-http://sourceforge.net/projects/jmlspecs/, and
-http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/ ).
+OpenJML is kept at sourceforge (see www.openjml.org, www.jmlspecs.org, 
+sourceforge.net/projects/jmlspecs/, and
+http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/ ); documentation
+about OpenJML is available at http://www.openjml.org.
+Currently OpenJML is consistent with Java 1.7.
 
-The OpenJML tool is a JML syntax and semantics checker.  It also implements
-jmldoc, an extension to javadoc that adds JML information to javadoc pages.
-It does not (at present) do runtime assertion checking or static reasoning, 
-nor does it do Java code generation.  Also, it is only a command-line tool and 
-has no integration with any IDE.  It does intend to parse and check all aspects 
-of JML as they are defined in the JML reference manual 
-(cf. http://www.jmlspecs.org), though that is an ongoing project.
+The OpenJML tool is a 
+- JML syntax and semantics checker
+- an implementation of static checking for Java + JML
+- an implementation of runtime assertion checking for Java + JML
+It includes a Eclipse plug-in interface that allows working with JML
+specifications within a Java development tool set.
 
-OpenJML has so far been developed and tested under Cygwin (and Java 1.6).
-Comments on your experience on other platforms is welcome.  Java 1.6 is 
-required because OpenJDK is written for Java 1.6.
+Additional tools such as a JML documentation generator and test case generator
+are contemplated but not yet implemented.
 
 Your feedback regarding the value of this tool is welcome; please report any
 difficulties or bugs, to jmlspecs-interest@lists.sourceforge.net or
 jmlspecs-reloaded@lists.sourceforge.net or 
 jmlspecs-developers@lists.sourceforge.net as appropriate.
 
-As is the case for the OpenJDK code, the OpenJML tool is run with a 1.6
-version of Java.  At present it cannot be run to check files against a set
-of Java 1.4 libraries.
+The various releases of the tool, the status of development, the Eclipse plugin,
+and documentation about how to use the tool
+can be obtained from http://www.openjml.net.
 
-The various releases of the tool can be obtained from
-http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML/releases
-or directly from the Download section of the sourceforge page for the
-jmlspecs project:  http://sourceforge.net/projects/jmlspecs .
-The gzipped tar file containing a release of OpenJML contains
-	openjml.jar
-	jmlspecs.jar
-	jmlruntime.jar
-	README   (this file)
-
-INSTALLATION:
-
-To install OpenJML, simply gunzip and untar the distribution file into a 
-directory of your choice (call it $OPENJML).  Then you can run the syntax checker
-using the command (your java installation must be version 1.6):
-
-	java -jar $OPENJML/openjml.jar
-or
-        java -classpath $OPENJML/openjml.jar org.jmlspecs.openjml.Main
-        
-That command alone will show you a list of Java and JML command-line options.
-To run OpenJML on a specific set of files, you need to, in the conventional
-manner, specify
-	(optionally) the classpath to use, using the -classpath option 
-	(optionally) the sourcepath to use, using the -sourcepath option
-	(optionally) the specification files to use, using the -specs option
-	the files to check, listed on the command-line by file name,
-	       relative to the current working directory
-
-A typical simple scenario might be:
-	java -jar $OPENJML/openjml.jar -classpath . *.java
-
-To run jmldoc, use this command-line:
-        java -classpath $OPENJML/openjml.jar org.jmlspecs.openjml.jmldoc.Main [options] files
-
-THE FILES:
-
-      These are conventional Java files for which either
-a) the Java files contain JML specifications directly, or
-b) there are specification files on the specs path with names corresponding
-to the Java files names (e.g. A.jml for A.java).  If you mix Java files and
-specification files in the same directory, be careful of the precedence of
-JML file suffixes.  The files on the command-line are given with absolute
-path names or with paths relative to the current working directory.
-
-
-
-THE SPECS PATH:  
-
-    The openjml.jar contains an internal copy of some Java
-library specification files.  By default those will be used, but you can
-supply your own directories containing specifications for your own classes
-using the -specs option.  For example:
-	-specs ".;mySpecsDir;$OPENJML/jmlspecs.jar"
-By default, the internal specs are appended to any specifications you 
-provide (you can turn this off with -noInternalSpecs).  Also, if you do not
-provide an explicit -specs option, the value of org.jmlspecs.specspath is
-used, else the value of -sourcepath, else the value of -classpath, else the
-value of java.class.path.
-
-If you supply a value for the Java property org.jmlspecs.system.specs, that
-path will be used in place of the internal system specs.
-
-Typically, if you specify an explicit specs path, you will want to include
-on that path any directory entries from the classpath that contain your own
-source code and exclude 3rd party and system libraries.
-
-
-THE CLASSPATH:
-
-Just as when compiling source code with javac, the classpath lists
-directories in which one can find the Java files (by fully-qualified file
-name) that are referenced by the files that are being compiled.
-
-Note that the OpenJML tool needs a few classes to be available to it at
-runtime.  These are included in the openjml.jar and are appended to
-the classpath automatically.  The same files are present in jmlruntime.jar,
-in case it is desired to include them explicitly.  The internal files can
-be excluded using the -noInternalRuntime option.
-
-
-THE SOURCEPATH:
-
-The sourcepath is not commonly used, but can be used to distinguish where
-source (.java) files are to be found (the source path) and where class (.class)
-files are to be found (the classpath).
-
-
-THE jmlruntime.jar:
-
-This contains some compiled classes that the OpenJML tool needs on the 
-classpath.  These classes are included by appending them
-to the user's classpath automatically, so normally the user need not be
-concerned with this jar file.  If for some reason you use the -noInternalRuntime
-option, you may need to include jmlruntime.jar on the classpath explicitly.
-
-
-THE jmlspecs.jar:
-
-This file contains a copy of the 1.6 JML system specs, such as they are.
-This is by no means a complete set, and includes a number of unmodified files
-from 1.4 (which, if referenced, may give errors related to type generics).
-The system specs are also part of openjml.jar and are included automatically,
-so in simple uses the user need not be concerned with jmlspecs.jar.  However
-if you wish to alter the specs or supply your own, you may wish to make use
-of the contents of this jar file.
-
-STATUS OF THIS RELEASE
-
-This release is alpha quality.  Barring bugs, a valid Java/JML file will be
-parsed without errors, with at least these exceptions: 
-- whitespace must separate an integer literal from the .. token in array ranges
-        (e.g. a[0..5] will fail); 
-- name lookup and type checking for old constructs with a label; 
-- JML comments may not be terminated by @+*/ ;  
-- JML specs for anonymous classes are not read; 
-- matching of specs from a spec file to the signature in a Java file is fragile 
-        for generic methods.
-
-Some JML constructs are merely skipped over by the parser, including at least: 
-- model programs; 
-- callable clauses and \only_callable expressions; 
-- for suffix of constraint clauses; 
-- only the first file of a specification sequence is used; 
-- JML in javadoc comments is ignored, as are method specifications that follow 
-        the method signature; 
-- access modifiers on JML clauses are parsed but mostly ignored.
-
-Typechecking is in place for most JML constructs.  Omissions include at least:
-- accessible, callable, captures clauses and expressions; 
-- in and maps clauses
-- model programs.
-
-Although the -rac option is present, the implementation of runtime
-assertion checking is rudimentary and fragile.  
-
-The -esc option is also present, but this is very partial and preliminary.
-
-Your feedback and comments are welcome.
-
-
-NOTES FOR DEVELOPERS
-
-The following notes are for those who wish to inspect or work with the OpenJML
-source.
-
-The source code is hosted in the jmlspecs project at sourceforge, in a
-subversion repository.  It is organized to be easily used within Eclipse.  
-
-The OpenJML source consists of the OpenJML code itself, plus slight
-modifications of the OpenJDK source.  OpenJDK comes from
-https://openjdk.dev.java.net/svn/openjdk/jdk/trunk/langtools .
-This source code did need to be modified somewhat (but my aim is to avoid and 
-reduce the amount of such modification).  I've treated the original as "vendor" 
-code and made modifications in the versions incorporated into OpenJML.  More on 
-that below.  For now, just note that the OpenJML/trunk subdirectories hold the 
-development stream for the OpenJML tool; the OpenJML/vendor subdirectories hold 
-the original sources from the location indicated.
-
-Note that OpenJML has been developed under Eclipse RUNNING IN A CYGWIN
-ENVIRONMENT.  That is Eclipse is launched from a Cygwin shell, not from the
-Windows desktop.  Though much can be done from the windows desktop, some things
-(e.g. building and testing release packages) do not work in that environment.
-
-There are two easy ways to obtain a copy of the source and use it in Eclipse: 
-use Eclipse to download a copy, or download directly using svn and then attach
-to the subversion working copy with Eclipse.
-
-A) Using eclipse to create and attach to a working copy:
-
-- Start eclipse in a workspace location of your choosing
-- From the workbench, choose File->Import
-- Under "Other", choose "Checkout projects from SVN"
-- Choose "Create a new repository location"
-- Insert the URL: https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/OpenJML/trunk
-- Select all three folders to be checked out (OpenJML, OpenJDK, FreeBoogie)
-- Choose to check them out as projects
-- Specify, if desired, a location to which to check out the projects
-- Get a quick cup of coffee
-
-B) You can create a SVN working copy outside of Eclipse with the following
-steps:
-- Choose a filesystem folder in which to place the working copy - create it
-     if necessary and cd into it
-- execute the command: svn checkout https://jmlspecs.svn.sourceforge.net/svnroot/jmlspecs/OpenJML/trunk
-- within eclipse, select File->Import
-- in the Import dialog, select General->Existing Projects into Workspace
-- enter the root directory - the directory in which you did the checkout
-- the three projects OpenJML, OpenJDK, FreeBoogie should appear in the list;
-     leave them all selected, and press Finish
-
-Either of these procedures leave you with three new projects in your workspace.
-
-Building:  
-
-The build procedure is straightforward and automatic for OpenJML and
-OpenJDK.
-
-Launch configurations:
-
-There are two launch configurations saved as shared configurations.
-
-1) "OpenJML JUnit tests": this configuration runs the JUnit tests.  Note that
-it contains (on the Arguments tab of the configuration dialog) a VM
-argument of -Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} .  This
-is needed so that the JUnit tests know where to find the internal specs and
-runtime files.  If you create launch configurations for subsets of the JUnit
-tests, you will need to be sure this VM definition is present in those as well.
-
-2) "Make OpenJML Release" (under the External Tools menu): this runs a Makefile
-that builds the release package from a working and compiled set of projects.
-You may need to modify this configuration to identify the location of the
-'make' executable in your environment.
-
-Vendor branches:
-
-The vendor branch OpenJML/vendor/OpenJDK contains an export
-of the source of openjdk verbatim, for the 
-revisions identified in the commit comments.  The intent
-is to manage this vendor branch as described in the Subversion 
-documentation.  This verbatim copy was copied into the trunk branch and
-identified with the original revision number.  Then modifications to those
-sources were made and committed within the trunk.  When new versions of 
-OpenJDK are available they will be copied and committed into the
-vendor branch; then the changes that have occurred in the vendor branch will be
-merged into the trunk.  The procedure in detail:
-a) obtain a copy of the current build (or which ever one you want to update to)
-from http://download.java.net/openjdk/jdk7/ as a zip file on your machine
-b) open the OpenJDK-vendor project
-c) in a shell:
-        - find the 'langtools' directory within the OpenJDK-vendor project 
-        - create a new directory and unzip the jdk distribution into it
-        - copy the new files on top of the old
-        - remove any old files that are not in the new build
-        - commit the changes
-        - merge the difference from the last vendor update into the OpenJDK project
-        - resolve conflicts
-        - fix whatever has broken in OpenJML
-        - commit
-        (TODO: should provide a script for most of this)
-
-OpenJML Documentation Generation
-
-The OpenJML tool-suite contains a new version of jmldoc.  This documentation
-generation tool has a few new features under development that are used to track
-the quality and utility of specifications.
-
-Firstly, JML documentation is written either in normal block comments with the
-extra '@' symbol at the front, or in normal line comments with the extra '@'
-symbol at the front, thusly:
-  /*@ invariant i != 0;
-      invariant j == 0; */
-  //@ requires 0 <= k;
-Optionally, any specification can include a generic "tag" that describes the use
-of the annotation.  Tags are 

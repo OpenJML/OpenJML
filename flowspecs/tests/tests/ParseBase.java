@@ -42,8 +42,8 @@ abstract public class ParseBase extends JmlTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        options.put("compilePolicy","check");  // Don't do code generation
-        options.put("-specspath",   testspecpath);
+        main.addOptions("compilePolicy","check");  // Don't do code generation
+        main.addOptions("-specspath",   testspecpath);
         //main.register(context);
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing

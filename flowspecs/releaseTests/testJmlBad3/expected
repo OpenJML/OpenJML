@@ -1,0 +1,4 @@
+The -java option is ignored unless it is the first command-line argument
+openjml: no source files
+Usage: openjml <options> <source files>
+use -help for a list of possible options

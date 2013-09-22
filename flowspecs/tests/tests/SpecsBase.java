@@ -137,7 +137,7 @@ public class SpecsBase extends TCBase {
         useSystemSpecs = true;
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOption.putOption(context,JmlOption.NOPURITYCHECK);
+        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output
