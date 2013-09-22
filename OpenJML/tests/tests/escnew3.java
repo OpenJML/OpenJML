@@ -690,7 +690,7 @@ public class escnew3 extends EscBase {
                 +"    //@ assert i == args.length; \n"
                 +"    }\n"
                 
-                +"  public static void n0() { \n //@ reachable ; \n"
+                +"  public static void n0() { \n"
                 +"    int i = m(); \n"
                 +"    //@ assert i == 0; \n"
                 +"    }\n"
@@ -703,6 +703,63 @@ public class escnew3 extends EscBase {
                 +"  public static void n2() { \n"
                 +"    int i = m(1,1); \n"
                 +"    //@ assert i == 2; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testVarargs2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ pure \n"
+                +"  public static int m(int ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    if (ints.length > 0) return ints[0]; else return ints.length; }\n"
+                
+                +"  public static void n0() { \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(2); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(5,6); \n"
+                +"    //@ assert i == 5; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testVarargs3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ requires ints.length == 0 || ints[0] != null;\n"
+                +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : ints.length);\n"
+                +"  //@ pure \n"
+                +"  public static int m(Integer ... ints) { \n"
+                +"    //@ assert ints != null; \n"
+                +"    if (ints.length > 0) return ints[0]; else return ints.length; }\n"
+                
+                +"  public static void n0() { \n"
+                +"    int i = m(); \n"
+                +"    //@ assert i == 0; \n"
+                +"    }\n"
+                
+                +"  public static void n1() { \n"
+                +"    int i = m(2); \n"
+                +"    //@ assert i == 2; \n"
+                +"    }\n"
+                
+                +"  public static void n2() { \n"
+                +"    int i = m(5,6); \n"
+                +"    //@ assert i == 5; \n"
                 +"    }\n"
                 +"}"
                 );

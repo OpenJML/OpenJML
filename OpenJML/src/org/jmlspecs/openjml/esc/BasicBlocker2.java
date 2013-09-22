@@ -209,7 +209,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // Other somewhat arbitrary identifier names or parts of names
     
-    /** Prefix for the names of the 2-dimensional arrays used to model Java's heap-based arrays */
+    /** Prefix for the names of the N-dimensional arrays used to model Java's heap-based arrays */
     public static final @NonNull String ARRAY_BASE_NAME = "arrays_";
     
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
@@ -1478,7 +1478,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             newStatement = addAssume(sp,Label.ASSIGNMENT,expr,currentBlock.statements);
             newExpr = newid;
         } else if (left instanceof JCArrayAccess) {
-            JCIdent arr = getArrayIdent(right.type,right.pos);
+            Type ctype = left.type;
+            JCIdent arr = getArrayIdent(ctype,right.pos);
             JCExpression ex = ((JCArrayAccess)left).indexed;
             JCExpression index = ((JCArrayAccess)left).index;
             JCIdent nid = newArrayIncarnation(right.type,sp);
@@ -1488,7 +1489,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(right); right = result;
             
             //JCExpression rhs = makeStore(ex,index,right);
-            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right);
+            JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,index,right); // FIXME - implicit conversion?
             expr.pos = pos;
             expr.type = restype;
             treeutils.copyEndPosition(expr, right);

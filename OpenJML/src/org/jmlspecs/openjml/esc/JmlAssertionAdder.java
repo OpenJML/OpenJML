@@ -5532,7 +5532,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCExpression> elems = new ListBuffer<JCExpression>();
         if (that.elems != null) {
             for (JCExpression elem: that.elems) {
-                elems.add(convertExpr(elem));
+                elems.add(convertExpr(elem)); // FIXME - we need implicit conversions
             }
         } else {
             elems = null;
@@ -5551,23 +5551,95 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl decl = treeutils.makeVarDef(that.type,names.fromString(Strings.newArrayVarString + that.pos), null, that.pos);
             addStat(decl);
             JCIdent id = treeutils.makeIdent(that.pos, decl.sym);
-            addAssume(that,Label.NULL_CHECK,treeutils.makeNeqObject(that.pos, id, treeutils.nullLit));
 
-            newAllocation(that,id);
-
-            JCExpression size = null;
-            if (that.dims != null && that.dims.length() > 0) { size = that.dims.get(0); }
-            else if (that.elems != null) {
-                size = treeutils.makeIntLiteral(that.pos, that.elems.length());
-            }
-            if (size != null) {
-                addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeEquality(that.pos,treeutils.makeLength(that,convertCopy(id)),convert(size)));
-            }
+            addArrayElementAssumptions(id, dims, elems);
 
             result = eresult = convertCopy(id);
 
             // FIXME - need assertions about size of array and about any known array elements; about allocation time
             // also about type of the array
+        }
+    }
+    
+    protected void addArrayElementAssumptions(JCIdent array, ListBuffer<JCExpression> dims, ListBuffer<JCExpression> elems) {
+        JCExpression size = null;
+        if (dims != null && dims.length() > 0) { 
+            size = dims.first();
+        } else if (elems != null) {
+            size = treeutils.makeIntLiteral(array.pos, elems.length());
+        } else {
+            // ERROR
+        }
+        if (elems != null) {
+            Type ctype = ((Type.ArrayType)array.type).getComponentType();
+            addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
+            newAllocation(array,array);
+            if (size != null) {
+                addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
+            }
+            int i = 0;
+            for (JCExpression e: elems) {
+                JCLiteral index = treeutils.makeIntLiteral(e.pos, i);
+                e = addImplicitConversion(e,ctype,e);
+                JmlBBArrayAccess aa = new JmlBBArrayAccess(null,array,index); // FIXME - switch to factory
+                aa.pos = array.pos;
+                aa.setType(ctype);
+                aa.arraysId = null;
+
+                JCBinary b = treeutils.makeEquality(e.pos,aa,e);
+                addAssume(e.pos(),Label.IMPLICIT_ASSUME,b);
+                ++i;
+            }
+        } else {
+            if (dims.first() instanceof JCLiteral) {
+                JCExpression e = createNullInitializedArray(array.type, dims.toList());
+                JCBinary b = treeutils.makeEquality(e.pos,array,e);
+                addAssume(array,Label.IMPLICIT_ASSUME,b);
+            } else {
+                addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
+                newAllocation(array,array);
+                if (size != null) {
+                    addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
+                }
+                // FIXME - needs lost more im0lementation
+            }
+        }
+    }
+    
+    protected JCExpression createNullInitializedArray(Type type, List<JCExpression> dims) {
+        DiagnosticPosition pos = methodDecl;
+        int p = pos.getPreferredPosition();
+        if (!(type instanceof Type.ArrayType)) {
+            return treeutils.makeZeroEquivalentLit(p,type);
+        } else if (dims.head instanceof JCLiteral) {
+            Type ctype = ((Type.ArrayType)type).getComponentType();
+            int sz = (Integer)((JCLiteral)dims.head).value; // FIXME - long?
+            JCVariableDecl decl = newTempDecl(methodDecl, type);
+            addStat(decl);
+            JCIdent id = treeutils.makeIdent(p, decl.sym);
+            addAssume(pos,Label.IMPLICIT_ASSUME, treeutils.makeNeqObject(p, id, treeutils.nullLit));
+            newAllocation(pos,id);
+            addAssume(id,Label.IMPLICIT_ASSUME,treeutils.makeEquality(p,treeutils.makeLength(pos,convertCopy(id)),convertExpr(dims.head)));
+            for (int i=0; i<sz; ++i) {
+                JCLiteral index = treeutils.makeIntLiteral(p, i);
+                JmlBBArrayAccess aa = new JmlBBArrayAccess(null,id,index); // FIXME - switch to factory
+                aa.pos = p;
+                aa.setType(ctype);
+                aa.arraysId = null;
+                JCExpression e = createNullInitializedArray(ctype, dims.tail);
+                JCBinary b = treeutils.makeEquality(p,aa,e);
+                addAssume(pos,Label.IMPLICIT_ASSUME,b);
+            }
+            return id;
+        } else if (dims.head == null) {
+            return treeutils.nullLit;
+        } else {
+            JCVariableDecl decl = newTempDecl(methodDecl, type);
+            JCIdent id = treeutils.makeIdent(p, decl.sym);
+            // id != null && id.length == 'dims.head'
+            // (\forall int i; 0<=i && i < 'dims.head'; id[i] != null && TBD
+            // FIXME - not implemented
+            return id;
         }
     }
 
