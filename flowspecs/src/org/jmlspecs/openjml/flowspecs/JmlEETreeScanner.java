@@ -40,16 +40,7 @@ public abstract class JmlEETreeScanner extends JmlTreeScanner {
         super.scan(tree);
     }
     
-//    @Override
-//    public void visitJmlBinary(JmlTree.JmlBinary that) {
-//        super.visitJmlBinary(that);
-//    }
 
-//    @Override
-//    public void visitBinary(JCBinary that) {
-//        super.visitBinary(that);
-//    }
-//
     @Override
     public void visitExec(JCExpressionStatement tree){
         enterExec(tree);
