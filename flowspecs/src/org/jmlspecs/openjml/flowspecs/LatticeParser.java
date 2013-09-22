@@ -95,7 +95,7 @@ public class LatticeParser {
                 nseen.add(v);
                 verifyGraph(v, matrix, nseen);
             } else {
-                uninitializedLog().error("jml.lattice.hascycles", config.getName(), root, v);
+                uninitializedLog().error("jml.lattice.hascycles", config.getName(), root.toString(), v.toString());
                 throw new CyclicSubclassGraphException();
             }
 
