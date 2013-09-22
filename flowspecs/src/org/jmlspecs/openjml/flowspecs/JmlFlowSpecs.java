@@ -85,7 +85,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     public EnumMap<JmlToken, Name> tokenToAnnotationName = new EnumMap<JmlToken, Name>(
                                                                  JmlToken.class);
 
-    private Lattice<String>        lattice;
+    private Lattice<SecurityType>        lattice;
 
     /**
      * The compilation context, needed to get common tools, but unique to this
@@ -340,7 +340,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         }
         // Case 2, we need to infer it.
         if (t == null) {
-            t = new SecurityType(lattice.getTop());
+            t = lattice.getTop();
         }
 
         return t;
@@ -407,11 +407,11 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     SecurityType upperBound(SecurityType t1, SecurityType t2) {
 
-        if (t1.level.equals(t2)) {
+        if (t1.equals(t2)) {
             return t1;
         }
 
-        if (lattice.isSubclass(t1.level, t2.level)) {
+        if (lattice.isSubclass(t1, t2)) {
             return t2;
         }
 
@@ -444,12 +444,12 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             return dest;
         }
 
-        if (dest.level.equals(source.level)) {
+        if (dest.equals(source)) {
             return upperBound(source, dest);
         }
 
         // ok
-        if (lattice.isSubclass(source.level, dest.level)) {
+        if (lattice.isSubclass(source, dest)) {
             log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
                     source.toString(), dest.toString());
 
@@ -470,7 +470,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             return upperBound(returnType, methodType);
         }
 
-        if (lattice.isSubclass(returnType.level, methodType.level)) {
+        if (lattice.isSubclass(returnType, methodType)) {
             log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
                     returnType.toString(), methodType.toString());
 
@@ -494,11 +494,11 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         
         SecurityType upperBound = null;
 
-        if (lt.level.equals(rt.level)) {
+        if (lt.equals(rt)) {
             upperBound = upperBound(lt, rt);
         }
 
-        else if (lattice.isSubclass(rt.level, lt.level)) {
+        else if (lattice.isSubclass(rt, lt)) {
             log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
                     rt.toString(), lt.toString());
             upperBound = upperBound(lt, rt);
@@ -515,8 +515,8 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
             SecurityType flowBound = flowStack.currentTypeBoundary();
 
-            if (upperBound.level.equals(flowBound.level) == false
-                    && lattice.isSubclass(flowBound.level, upperBound.level) == false) {
+            if (upperBound.equals(flowBound) == false
+                    && lattice.isSubclass(flowBound, upperBound) == false) {
                 log.error(tree.pos, "jml.flowspecs.lattice.invalidflow.cond",
                         flowBound.toString(), upperBound.toString());
             }
@@ -537,11 +537,11 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
         SecurityType upperBound = null;
 
-        if (lt.level.equals(rt.level)) {
+        if (lt.equals(rt)) {
             upperBound = upperBound(lt, rt);
         }
 
-        else if (lattice.isSubclass(rt.level, lt.level)) {
+        else if (lattice.isSubclass(rt, lt)) {
             log.warning(tree.pos, "jml.flowspecs.lattice.strengthen",
                     rt.toString(), lt.toString());
             upperBound = upperBound(lt, rt);
@@ -560,7 +560,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             SecurityType flowBound = flowStack.currentTypeBoundary();
 
             if (lt.level.equals(flowBound.level) == false
-                    && lattice.isSubclass(flowBound.level, lt.level) == false) {
+                    && lattice.isSubclass(flowBound, lt) == false) {
                 log.error(tree.pos, "jml.flowspecs.lattice.invalidflow.cond",
                         flowBound.toString(), lt.toString());
 

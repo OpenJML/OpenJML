@@ -33,50 +33,51 @@ public class LatticeParser {
         this.config = config;
     }
 
-    public Lattice parse() throws MalformedURLException, DocumentException, LatticeParserException {
+    public Lattice<SecurityType> parse() throws MalformedURLException, DocumentException, LatticeParserException {
 
 
         SAXReader reader = new SAXReader();
         Document document = reader.read(config.toURI().toURL());
 
-        AdjacencyMatrix<String> matrix = parseDocument(document);
+        AdjacencyMatrix<SecurityType> matrix = parseDocument(document);
 
         // make sure there are no cycles
         checkGraphContainsCycles(matrix);
 
-        return new Lattice(matrix);
+        return new Lattice<SecurityType>(matrix);
     }
 
-    private List<String> getLevels(Document document) throws DuplicateLevelException {
+    private List<SecurityType> getLevels(Document document) throws DuplicateLevelException {
 
-        List<String> levels = new ArrayList<String>();
+        List<SecurityType> levels = new ArrayList<SecurityType>();
 
         List<Element> list = document.selectNodes("//levels/level");
 
         for (Element e : list) {
 
+            SecurityType thisType = new SecurityType(e.getTextTrim().toUpperCase()); 
             // don't allow duplicates
-            if (levels.contains(e.getTextTrim().toUpperCase())) {
-                uninitializedLog().error("jml.lattice.dupulicate.level", config.getName(), e.getTextTrim().toUpperCase());
+            if (levels.contains(thisType)) {
+                uninitializedLog().error("jml.lattice.dupulicate.level", config.getName(), thisType.toString());
                 throw new DuplicateLevelException();
             }
 
-            levels.add(e.getTextTrim().toUpperCase());
+            levels.add(thisType);
         }
 
 
         return levels;
     }
 
-    private boolean checkGraphContainsCycles(AdjacencyMatrix<String> matrix) throws CyclicSubclassGraphException {
+    private boolean checkGraphContainsCycles(AdjacencyMatrix<SecurityType> matrix) throws CyclicSubclassGraphException {
 
-        List<String> vertexes = matrix.getVertexList();
+        List<SecurityType> vertexes = matrix.getVertexList();
 
         // run a modified dfs forall vertexes
 
-        for (String vertex : vertexes) {
+        for (SecurityType vertex : vertexes) {
 
-            Set<String> seen = new HashSet<String>();
+            Set<SecurityType> seen = new HashSet<SecurityType>();
             seen.add(vertex);
             verifyGraph(vertex, matrix, seen);
         }
@@ -85,12 +86,12 @@ public class LatticeParser {
         return false;
     }
 
-    private void verifyGraph(String root, AdjacencyMatrix<String> matrix, Set<String> seen) throws CyclicSubclassGraphException {
+    private void verifyGraph(SecurityType root, AdjacencyMatrix<SecurityType> matrix, Set<SecurityType> seen) throws CyclicSubclassGraphException {
 
-        for (String v : matrix.getAdjacentVertexes(root)) {
+        for (SecurityType v : matrix.getAdjacentVertexes(root)) {
 
             if (seen.contains(v) == false) {
-                Set<String> nseen = new HashSet<String>(seen);
+                Set<SecurityType> nseen = new HashSet<SecurityType>(seen);
                 nseen.add(v);
                 verifyGraph(v, matrix, nseen);
             } else {
@@ -104,11 +105,11 @@ public class LatticeParser {
     }
 
 
-    private AdjacencyMatrix<String> parseDocument(Document document) throws  LatticeParserException {
+    private AdjacencyMatrix<SecurityType> parseDocument(Document document) throws  LatticeParserException {
 
-        List<String> levels = getLevels(document);
+        List<SecurityType> levels = getLevels(document);
 
-        AdjacencyMatrix<String> matrix = new AdjacencyMatrix<String>(levels);
+        AdjacencyMatrix<SecurityType> matrix = new AdjacencyMatrix<SecurityType>(levels);
 
         // work through the level specs, adding edges where needed.
         List<Element> list = document.selectNodes("//level-specs/level-spec");
@@ -122,16 +123,22 @@ public class LatticeParser {
                 throw new MissingNameNodesException();
             }
 
-            String levelName = nameNodes.get(0).getTextTrim().toUpperCase();
+            SecurityType levelName = new SecurityType(nameNodes.get(0).getTextTrim().toUpperCase());
 
+            if(levels.contains(levelName)==false){
+                uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), levelName.toString());
+                throw new MissingNameNodesException();
+
+            }
+            
             List<Element> subClasses = e.selectNodes("./trusts/level");
 
             for (Element subclass : subClasses) {
 
-                String scr = subclass.getTextTrim().toUpperCase();
+                SecurityType scr = new SecurityType(subclass.getTextTrim().toUpperCase());
                 
                 if (levels.contains(scr) == false) {
-                    uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), scr );
+                    uninitializedLog().error("jml.lattice.undeclared.level", config.getName(), scr.toString());
                     throw new MissingNameNodesException();
                 }
 

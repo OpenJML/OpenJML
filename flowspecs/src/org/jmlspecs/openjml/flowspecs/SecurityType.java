@@ -22,11 +22,12 @@ public class SecurityType extends Type {
 
     public SecurityType(String level) {
         this(NONE, null);
+        
         this.level = level;
     }
     
     public static SecurityType wrong(){
-        SecurityType t = new SecurityType("WRONG");
+        SecurityType t = new SecurityType(STR_WRONG);
         t.tag = WRONG;
         return t;
     }
@@ -34,11 +35,31 @@ public class SecurityType extends Type {
     @Override
     public String toString()
     {
-        //return String.format("SecurityType[%s]", level);
-        
-        //TODO - this is kinda ugly... better format?
+        //TODO - Better formatting??
         return String.format("%s", level);
 
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 0; //super.hashCode();
+        result = prime * result + ((level == null) ? 0 : level.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        //if (!super.equals(obj)) return false;
+        if (!(obj instanceof SecurityType)) return false;
+        SecurityType other = (SecurityType) obj;
+        if (level == null) {
+            if (other.level != null) return false;
+        } else if (!level.equals(other.level)) return false;
+        return true;
+    }
+    
+    
 
 }
