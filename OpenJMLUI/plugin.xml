@@ -792,7 +792,7 @@
     <specification
           annotationType="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeKey"
-          colorPreferenceValue="255,128,0"
+          colorPreferenceValue="255,192,0"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeKey"
           highlightPreferenceValue="true"
           icon="icons/jml_orange.gif"
@@ -809,7 +809,7 @@
     <specification
           annotationType="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpKey"
-          colorPreferenceValue="255,0,0"
+          colorPreferenceValue="255,64,64"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpKey"
           highlightPreferenceValue="true"
           icon="icons/jml_problem.gif"
@@ -826,7 +826,7 @@
     <specification
           annotationType="org.jmlspecs.OpenJMLUI.JMLWarningAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
-          colorPreferenceValue="255,255,0"
+          colorPreferenceValue="255,255,128"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpwKey"
           highlightPreferenceValue="true"
           icon="icons/jml_warning.gif"
@@ -843,7 +843,7 @@
     <specification
           annotationType="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
-          colorPreferenceValue="0,0,255"
+          colorPreferenceValue="192,192,255"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
           highlightPreferenceValue="true"
           icon="icons/jml_blue.gif"
