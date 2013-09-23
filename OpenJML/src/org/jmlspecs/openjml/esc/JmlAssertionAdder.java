@@ -5601,7 +5601,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (size != null) {
                     addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
                 }
-                // FIXME - needs lost more im0lementation
+                // FIXME - needs lots more implementation - quantified expressions
             }
         }
     }
@@ -5685,6 +5685,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         if (types.isSameType(newtype,expr.type)) return expr;
+        if (expr.type.tag == TypeTags.BOT) return expr;
         
 //        Type unboxed = unboxedType(expr.type);
 //        int tag = unboxed.tag;

@@ -184,22 +184,25 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected Factory F;
     
     /** Commonly used SMTLIB expressions - using these shares structure */
-    final protected ISort refSort;
-    final protected ISort javaTypeSort;
-    final protected ISort jmlTypeSort;
     final protected ISort intSort;
     final protected ISort boolSort;
           protected ISort realSort;
     final protected IExpr.ISymbol distinctSym;
-    final protected IExpr.ISymbol nullSym;
-    final protected IExpr.ISymbol lengthSym;
     final protected IExpr.ISymbol arraySym;
-    final protected IExpr.ISymbol thisSym;
     final protected IExpr.ISymbol eqSym;
     final protected IExpr.ISymbol impliesSym;
     final protected IExpr.ISymbol selectSym;
     final protected IExpr.INumeral zero;
     
+    /** Commonly used SMT terms that model Java+JML - using these shares structure */
+    final protected ISort refSort;
+    final protected ISort javaTypeSort;
+    final protected ISort jmlTypeSort;
+    final protected IExpr.ISymbol thisSym;
+    final protected IExpr.ISymbol nullSym;
+
+    final protected IExpr.ISymbol lengthSym;
+
     // These are strings that are part of our modeling of Java+JML and are
     // more or less arbitrary. Strings like these that are used only once
     // may be simply used in place.
@@ -215,7 +218,9 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String arrays_ = BasicBlocker2.ARRAY_BASE_NAME; // Must match BasicBlocker2
     public static final String concat = "stringConcat";
     public static final String nonnullelements = "nonnullelements";
-    
+
+    /** A convenience declaration, to avoid calling the constructor for every empty list */
+    public static final List<ISort> emptyList = new LinkedList<ISort>();
     
     /** SMTLIB subexpressions - the result of each visit call */
     protected IExpr result;
@@ -234,15 +239,18 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
+
     /** A counter used to make double literal identifiers unique */
     int doubleCount = 0;
+
     /** A counter used to make identifiers unique */
     int uniqueCount = 0;
     
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
-    public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
+    /** A mapping from Java expressions to/from SMT expressions */
+    final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     /** The constructor - create a new instance for each Basic Program to be translated */
     public SMTTranslator(Context context) {
@@ -265,7 +273,7 @@ public class SMTTranslator extends JmlTreeScanner {
         selectSym = F.symbol("select"); // Name determined by SMT Array Theory
         zero = F.numeral(0);
         
-        //        stringSort = F.createSortExpression(F.symbol(STRINGSORT));
+        // Names used in mapping Java/JML to SMT
         refSort = F.createSortExpression(F.symbol(REF));
         nullSym = F.symbol(NULL);
         thisSym = F.symbol(this_);
@@ -275,6 +283,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
+    /** Adds symbols for the theory of Reals, if they are used */
     protected void addReal() {
         if (realSort == null) {
             realSort = F.createSortExpression(F.symbol("Real")); // From SMT
@@ -306,9 +315,6 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    /** A convenience declaration, to avoid calling the constructor for every empty list */
-    public static final List<ISort> emptyList = new LinkedList<ISort>();
-    
     // TODO - want to be able to produce AUFBV programs as well
     // TODO - this converts the whole program into one big SMT program
     //  - might want the option to produce many individual programs, i.e.
@@ -320,20 +326,24 @@ public class SMTTranslator extends JmlTreeScanner {
         commands = script.commands();
         
         // FIXME - use factory for the commands?
-        // set the logic
+        // set any options
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
         commands.add(c);
         
+        // set the logic
         String s = JmlOption.value(context, JmlOption.LOGIC);
         c = new C_set_logic(F.symbol(s));
         commands.add(c);
         
         // add background statements
         // declare the sorts we use to model Java+JML
+        // (declare-sort REF 0)
         c = new C_declare_sort(F.symbol(REF),zero);
         commands.add(c);
+        // (declare-sort JavaTypeSort 0)
         c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
         commands.add(c);
+        // (declare-sort JMLTypeSort 0)
         c = new C_declare_sort(F.symbol(JMLTYPESORT),zero);
         commands.add(c);
         // define NULL as a REF: (declare-fun NULL () REF)
@@ -342,9 +352,6 @@ public class SMTTranslator extends JmlTreeScanner {
         // define THIS as a REF: (declare-fun THIS () REF)
         c = new C_declare_fun(thisSym,emptyList, refSort);
         commands.add(c);
-//        // define equals between REFs: (declare-fun THIS (REF,REF) Bool)
-//        c = new C_declare_fun(F.symbol("equals"),Arrays.asList(refSort,refSort), boolSort); // FIXME - distinguish this as an arbitrary name
-//        commands.add(c);
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
@@ -360,17 +367,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 F.createSortExpression(arraySym,refSort,intSort)
                 );
         commands.add(c);
-        try {
-            Configuration cf = smt.smtConfig;
+
             // array lengths are always non-negative
-            c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource("(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))",null)).parseCommand();
-            commands.add(c);
+        addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
             // result of string concatenation is always non-null
-            c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource("(assert (forall ((s1 "+REF+")(s2 "+REF+")) (distinct ("+concat+" s1 s2) "+NULL+")))",null)).parseCommand();
-            commands.add(c);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        addCommand(smt,"(assert (forall ((s1 "+REF+")(s2 "+REF+")) (distinct ("+concat+" s1 s2) "+NULL+")))");
+
         // The following functions model aspects of Java+JML;
         // The strings here are arbitrary except that they must not conflict with 
         // identifiers from the Java program as mapped into SMT identifiers
@@ -636,6 +638,17 @@ public class SMTTranslator extends JmlTreeScanner {
         commands.addAll(loc,tcommands);
         
         return script;
+    }
+    
+    /** Adds a command expressed as a string */
+    protected void addCommand(SMT smt, String command) {
+        try {
+            Configuration cf = smt.smtConfig;
+            ICommand c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(command,null)).parseCommand();
+            commands.add(c);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     
     /** The String that is the encoding of a given Type */
