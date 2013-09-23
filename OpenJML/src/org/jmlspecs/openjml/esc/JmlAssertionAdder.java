@@ -5669,7 +5669,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // But we don't unbox for rac for JML types because those are represented as a non-primitive anyway
         if (javaChecks && newIsPrim && !isPrim && (esc || !jmltypes.isJmlType(newtype))) {
             JCExpression e = treeutils.makeNeqObject(pos.getPreferredPosition(), expr, treeutils.nullLit);
-            addAssert(pos, Label.POSSIBLY_NULL_UNBOX, e);
+            if (translatingJML) {
+                addAssert(pos, Label.UNDEFINED_NULL_UNBOX, 
+                        treeutils.makeImplies(pos.getPreferredPosition(),  condition,  e));
+                
+            } else {
+                addAssert(pos, Label.POSSIBLY_NULL_UNBOX, e);
+            }
         }
         
         if (rac) {
