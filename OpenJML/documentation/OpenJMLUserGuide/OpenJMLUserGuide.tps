@@ -24,15 +24,15 @@ Class=CLatexEdit
 Document=OpenJMLUserGuide.tex
 
 [Frame0_Row0]
-cyCur=357
+cyCur=765
 cyMin=10
 
 [Frame0_Col0]
-cxCur=868
+cxCur=1693
 cxMin=10
 
 [Frame0_View0,0]
-Cursor.row=0
-Cursor.column=0
-TopSubLine=0
+Cursor.row=657
+Cursor.column=25
+TopSubLine=669
 

@@ -653,13 +653,17 @@ public class Utils {
 					ICompilationUnit cu = JavaCore.createCompilationUnitFrom(f);
 					IType[] types = cu.getTypes();
 					IType t = types[0]; // FIXME - find the one public type
-					JavaFileObject jfo = JmlSpecs.instance(
-							getInterface(JavaCore.create(f.getProject())).api.context()).findAnySpecFile(
-							t.getFullyQualifiedName());
-					Log.log("JFO = " + jfo.getName());
-					Path p = new Path(jfo.getName());
-					IFile ff = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
-					Log.log("File = " + ff);
+//					JavaFileObject jfo = JmlSpecs.instance(
+//							getInterface(JavaCore.create(f.getProject())).api.context()).findAnySpecFile(
+//							t.getFullyQualifiedName());
+//					Log.log("JFO = " + jfo.getName());
+//					Path p = new Path(jfo.getName());
+//					IFile ff = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
+//					Log.log("File = " + ff);
+					s = getInterface(t.getJavaProject()).getAllSpecs(t);
+					if (s != null)
+						s = s.replace('\r', ' ');
+					sn = "type " + t.getFullyQualifiedName();
 				}
 				if (s != null) {
 					if (s.length() == 0)
@@ -1784,7 +1788,7 @@ public class Utils {
 			IClasspathEntry libentry = JavaCore.newLibraryEntry(path, null,
 					null);
 
-			IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
+			IClasspathEntry[] entries = jproject.getRawClasspath();
 			for (IClasspathEntry i : entries) {
 				if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
 						&& i.equals(libentry)) {
@@ -1847,7 +1851,7 @@ public class Utils {
 				entry = JavaCore.newLibraryEntry(path, null,
 						null);
 			}
-			IClasspathEntry[] entries = jproject.getResolvedClasspath(true);
+			IClasspathEntry[] entries = jproject.getRawClasspath();
 			final IClasspathEntry[] newentries = new IClasspathEntry[entries.length];
 			int j = 0;
 			for (IClasspathEntry i : entries) {
