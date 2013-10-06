@@ -83,6 +83,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
         main.addOptions("-no-purityCheck");
+        main.addOptions("-timeout=30");
         setOption(option,solver);
         //main.setupOptions();
         specs = JmlSpecs.instance(context);

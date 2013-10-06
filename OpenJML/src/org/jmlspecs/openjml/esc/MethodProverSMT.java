@@ -213,6 +213,14 @@ public class MethodProverSMT {
         // create an SMT object, adding any options
         SMT smt = new SMT();
         smt.processCommandLine(new String[]{}, smt.smtConfig);
+        Object o = JmlOption.value(context,  JmlOption.TIMEOUT);
+        if (o != null) {
+            try {
+                smt.smtConfig.timeout = Integer.parseInt(o.toString());
+            } catch (NumberFormatException e) {
+                // FIXME  - issue a warning
+            }
+        }
 
         // Add a listener for errors and start the solver.
         // The listener is set to use the defaultPrinter for printing 
@@ -317,9 +325,28 @@ public class MethodProverSMT {
                         }
                     }
                 }
-            } else { // Proof was not UNSAT, so there is a counterexample
+            } else b: { // Proof was not UNSAT, so there may be a counterexample
                 int count = Utils.instance(context).maxWarnings;
                 while (true) {
+
+                    if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
+                        //IResponse r = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason_unknown")); // Not widely supported
+                        // Instead, try to get a simple value and see if there is a model
+                        IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                        if (r.isError()) {
+                            String msg = ": ";
+                            if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                            log.warning(methodDecl,"esc.nomodel",msg + r);
+                            if (proofResult == null) {
+                                ProverResult pr = (ProverResult)factory.makeProverResult(proverToUse,
+                                        IProverResult.POSSIBLY_SAT);
+                                proofResult = pr;
+                                jmlesc.mostRecentProofResult = proofResult;
+                            }
+                            break b;
+                        }
+                    }
+
                     if (print) log.noticeWriter.println("Some assertion is not valid");
 
                     // FIXME - decide how to show counterexamples when there is no tracing
@@ -539,9 +566,13 @@ public class MethodProverSMT {
             if (showTrace) {
                 JCStatement bbstat = stat;
                 JCTree origStat = aaPathMap.getr(bbstat);
+                String comment = bbstat instanceof JmlStatementExpr &&
+                        ((JmlStatementExpr)bbstat).expression instanceof JCLiteral ?
+                                ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString()
+                                : null;
                 ifstat: if (origStat != null) {
                     String loc = utils.locationString(origStat.getStartPosition());
-                    String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                     int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
                     int spanType = Span.NORMAL;
                     JCTree toTrace = null;
@@ -591,8 +622,8 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                         break ifstat;
-                    } else if (comment.startsWith("AssumeCheck assertion")) {
-                    	break ifstat;
+//                    } else if (comment.startsWith("AssumeCheck assertion")) {
+//                    	break ifstat;
                     } else {
                         toTrace = origStat;
                     }
@@ -613,11 +644,14 @@ public class MethodProverSMT {
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
                     String s = ((JmlStatementExpr)bbstat).id;
                     if (toTrace != null && s != null) log.noticeWriter.println("\t\t\t\t" + s + " = " + cemap.get(toTrace));
-
+                    if (comment.startsWith("AssumeCheck assertion")) break ifstat;
+                    
                 } else if (aaPathMap.reverse.keySet().contains(bbstat)) {
                     String loc = utils.locationString(bbstat.getStartPosition());
-                    String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+                    //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                     log.noticeWriter.println(loc + " \t" + comment);
+                } else if (comment != null) {
+                    log.noticeWriter.println(" \t//" + comment);
                 }
                 
             }

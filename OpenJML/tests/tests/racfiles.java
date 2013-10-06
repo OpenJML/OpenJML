@@ -58,6 +58,7 @@ public class racfiles extends RacBase {
         try {
             String actCompile = outputdir + "/actual-compile";
             String actRun = outputdir + "/actual-run";
+            new File(outputdir).mkdirs();
             new File(actCompile).delete();
             new File(actRun).delete();
             List<String> args = new LinkedList<String>();
@@ -144,19 +145,19 @@ public class racfiles extends RacBase {
     @Test
     public void testFirstTest() {
         expectedExit = 0;
-        helpTCF("testfiles/firstTest","testfiles/firstTest","FirstTest");
+        helpTCF("testfiles/firstTest","testfiles/firstTest","FirstTest","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test  // FIXME - crashes - quantifier expressions in invariants are not supported
     public void testUniqueList() {
         expectedExit = 0;
-        helpTCF("testfiles/uniqueList","testfiles/uniqueList","UniqueList");
+        helpTCF("testfiles/uniqueList","testfiles/uniqueList","UniqueList","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test 
     public void testUniqueList1() {
         expectedExit = 0;
-        helpTCF("testfiles/uniqueListBug1","testfiles/uniqueListBug1","UniqueListBug1");
+        helpTCF("testfiles/uniqueListBug1","testfiles/uniqueListBug1","UniqueListBug1","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test 
@@ -192,19 +193,25 @@ public class racfiles extends RacBase {
     @Test
     public void demoStudent() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/student","testfiles/demoStudent","ExecuteCStudent2");
+        helpTCF("../OpenJMLDemo/src/openjml/student","testfiles/demoStudent","ExecuteCStudent2","-racJavaChecks","-racCheckAssumptions");
+    }
+
+    @Test
+    public void testECU() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecurac","Test","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test
     public void purseCardTest() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","CardTest");
     }
 
     @Test
     public void purseModTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","CardTest","-noRacJavaChecks","-noRacCheckAssumptions");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","CardTest");
     }
 
     @Test

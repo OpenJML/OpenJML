@@ -1,0 +1,95 @@
+Proving methods in LookupScale
+Starting proof of LookupScale.LookupScale(int[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of LookupScale.LookupScale(int[]) with prover !!!! - no warnings
+Starting proof of LookupScale.LookupScale(int,int,int) with prover !!!!
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:18: warning: Validity is unknown - no model available  (possible timeout): (error "line 304 column 18: model is not available")
+	LookupScale(int min, int max, int size) {
+	^
+Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - with warnings
+Starting proof of LookupScale.lookupValue(SensorValue) with prover !!!!
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
+		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
+		                                            ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:61: warning: The prover cannot establish an assertion (Assignable) in method lookupValue
+			return new ScaleIndex(intPart, fracPart);
+			       ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:33: warning: Associated declaration
+	/*@ normal_behavior
+	    ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:65: warning: The prover cannot establish an assertion (Assert) in method lookupValue
+		//@ assert fracPart >= 0 && fracPart < 100;
+		    ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:67: warning: The prover cannot establish an assertion (Assignable) in method lookupValue
+		return new ScaleIndex(intPart, fracPart);
+		       ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:33: warning: Associated declaration
+	/*@ normal_behavior
+	    ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
+		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
+		                                            ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:61: warning: The prover cannot establish an assertion (Assignable) in method lookupValue
+			return new ScaleIndex(intPart, fracPart);
+			       ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:33: warning: Associated declaration
+	/*@ normal_behavior
+	    ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:59: warning: The prover cannot establish an assertion (Assert) in method lookupValue
+			//@ assert intPart == 0 || intPart == this.values.length-1;
+			    ^
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - no model available  (possible timeout): (error "line 7277 column 18: model is not available")
+	public /*@ pure @*/ ScaleIndex lookupValue(SensorValue sv) {
+	                               ^
+Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - with warnings
+Completed proving methods in LookupScale
+Proving methods in SensorValue
+Starting proof of SensorValue.SensorValue(int,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.SensorValue(int,int,int) with prover !!!! - no warnings
+Starting proof of SensorValue.readSensor(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.readSensor(int) with prover !!!! - no warnings
+Starting proof of SensorValue.getValue() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.getValue() with prover !!!! - no warnings
+Completed proving methods in SensorValue
+Proving methods in ScaleIndex
+Starting proof of ScaleIndex.ScaleIndex(int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.ScaleIndex(int,int) with prover !!!! - no warnings
+Starting proof of ScaleIndex.getIntPart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.getIntPart() with prover !!!! - no warnings
+Starting proof of ScaleIndex.getFracPart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.getFracPart() with prover !!!! - no warnings
+Completed proving methods in ScaleIndex
+Proving methods in LookupTable1d
+Starting proof of LookupTable1d.LookupTable1d(LookupScale,int[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of LookupTable1d.LookupTable1d(LookupScale,int[]) with prover !!!! - no warnings
+Starting proof of LookupTable1d.getValue(SensorValue) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of LookupTable1d.getValue(SensorValue) with prover !!!! - no warnings
+Completed proving methods in LookupTable1d
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.main(java.lang.String[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.main(java.lang.String[]) with prover !!!! - no warnings
+Completed proving methods in Test
+12 warnings

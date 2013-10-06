@@ -1,0 +1,64 @@
+Proving methods in LookupScale
+Starting proof of LookupScale.LookupScale(int[]) with prover !!!!
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:10: warning: Validity is unknown - no model available  (possible timeout): (error "Cannot get value when produce-models options is off.")
+	LookupScale(int[] values) {
+	^
+Completed proof of LookupScale.LookupScale(int[]) with prover !!!! - with warnings
+Starting proof of LookupScale.LookupScale(int,int,int) with prover !!!!
+error: An error while executing a proof script for <init>: (error "Parse Error: <shell>:1.58: Operator is not defined in the current logic: INTS_DIVISION
+  ")
+Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - no warnings
+Starting proof of LookupScale.lookupValue(SensorValue) with prover !!!!
+Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - no warnings
+Completed proving methods in LookupScale
+Proving methods in SensorValue
+Starting proof of SensorValue.SensorValue(int,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.SensorValue(int,int,int) with prover !!!! - no warnings
+Starting proof of SensorValue.readSensor(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.readSensor(int) with prover !!!! - no warnings
+Starting proof of SensorValue.getValue() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of SensorValue.getValue() with prover !!!! - no warnings
+Completed proving methods in SensorValue
+Proving methods in ScaleIndex
+Starting proof of ScaleIndex.ScaleIndex(int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.ScaleIndex(int,int) with prover !!!! - no warnings
+Starting proof of ScaleIndex.getIntPart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.getIntPart() with prover !!!! - no warnings
+Starting proof of ScaleIndex.getFracPart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of ScaleIndex.getFracPart() with prover !!!! - no warnings
+Completed proving methods in ScaleIndex
+Proving methods in LookupTable1d
+Starting proof of LookupTable1d.LookupTable1d(LookupScale,int[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of LookupTable1d.LookupTable1d(LookupScale,int[]) with prover !!!! - no warnings
+Starting proof of LookupTable1d.getValue(SensorValue) with prover !!!!
+error: An error while executing a proof script for getValue: (error "Parse Error: <shell>:1.51: Operator is not defined in the current logic: INTS_DIVISION
+  ")
+Completed proof of LookupTable1d.getValue(SensorValue) with prover !!!! - no warnings
+Completed proving methods in LookupTable1d
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.main(java.lang.String[]) with prover !!!!
+..\OpenJMLDemo\src\openjml\ecudemo\Test.java:6: warning: Validity is unknown - no model available  (possible timeout): (error "Cannot get value when produce-models options is off.")
+	public static void main(String[] args) {
+	                   ^
+Completed proof of Test.main(java.lang.String[]) with prover !!!! - with warnings
+Completed proving methods in Test
+2 errors
+2 warnings

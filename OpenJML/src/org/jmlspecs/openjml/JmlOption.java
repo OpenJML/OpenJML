@@ -51,9 +51,10 @@ public enum JmlOption implements IOption {
 
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
-    PURITYCHECK("-purityCheck",false,true,"When on (the default), warnings for use of impure methods are issued",null),
+    PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),
     INTERNALSPECS("-internalSpecs",false,true,"When on (the default), automatically appends the internal specs directory to the specification path",null),
     INTERNALRUNTIME("-internalRuntime",false,true,"When on (the default), automatically appends the internal JML runtime library to the classpath",null),
+    TIMEOUT("-timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null),
 
     SHOW_NOT_IMPLEMENTED("-showNotImplemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null),
     SHOW_NOT_EXECUTABLE("-showNotExecutable",false,false,"When on (off by default), warnings about non-executable constructs are issued",null),
@@ -77,8 +78,8 @@ public enum JmlOption implements IOption {
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
     RAC_SHOW_SOURCE("-racShowSource",false,true,"RAC: Error messages will include source information",null),
-    RAC_CHECK_ASSUMPTIONS("-racCheckAssumptions",false,true,"RAC: Enables runtime checking that assumptions hold",null),
-    RAC_JAVA_CHECKS("-racJavaChecks",false,true,"RAC: Enables explicit checking of Java language checks",null),
+    RAC_CHECK_ASSUMPTIONS("-racCheckAssumptions",false,false,"RAC: Enables runtime checking that assumptions hold",null),
+    RAC_JAVA_CHECKS("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
 
     // Obsolete

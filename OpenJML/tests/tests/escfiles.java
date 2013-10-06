@@ -67,7 +67,7 @@ public class escfiles extends EscBase {
             new File(actCompile).delete();
             List<String> args = new LinkedList<String>();
             args.add("-esc");
-            args.add("-noPurityCheck");
+            args.add("-no-purityCheck");
             if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
             if (solver != null) args.add("-prover="+solver);
@@ -189,27 +189,26 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - hangs up sometimes with some solvers
     public void testLoopExercises() {
-        if (!"z3_4_3".equals(solver)) fail("Some solvers hang");
         expectedExit = 0;
-        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");
+        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA","-timeout=30");
     }
 
     @Test @Ignore // FIXME _ hangs up on sign
     public void testPurseCard() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-exclude=sign,check");
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-timeout=30");
     }
 
     @Test @Ignore  // FIXME - hangs, particularly in CVC4
     public void testPurseCardMod2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-progress","-logic=AUFNIA","-timeout=30");
     }
 
     @Test @Ignore // FIXME - hangs, particularly in CVC4
     public void testPurseCardMod() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod/Terminal.java","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-progress","-logic=AUFNIA","-exclude=sign,check");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod/Terminal.java","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-progress","-logic=AUFNIA","-timeout=30");
     }
 
     @Test
@@ -222,6 +221,12 @@ public class escfiles extends EscBase {
     public void testBeanCan() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","testfiles/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
+    }
+
+    @Test
+    public void testECU() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-logic=AUFNIA","-timeout=30");
     }
 
 

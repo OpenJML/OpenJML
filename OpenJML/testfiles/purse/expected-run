@@ -1,27 +1,3 @@
 OUT:
-..\OpenJMLDemo\src\openjml\purse\Card.java:15: JML caller invariant is false on leaving calling method (Caller: Card.Card, Callee: java.util.Random.Random(long))
-	  Random random=new Random(0);
-	                ^
-..\OpenJMLDemo\src\openjml\purse\Card.java:93: Associated declaration: ..\OpenJMLDemo\src\openjml\purse\Card.java:15: 
-	    /*@ public invariant loaded != null;
-	               ^
-..\OpenJMLDemo\src\openjml\purse\Card.java:15: JML caller invariant is false on leaving calling method (Caller: Card.Card, Callee: java.util.Random.Random(long))
-	  Random random=new Random(0);
-	                ^
-..\OpenJMLDemo\src\openjml\purse\Card.java:94: Associated declaration: ..\OpenJMLDemo\src\openjml\purse\Card.java:15: 
-	        public invariant payed != null;
-	               ^
-..\OpenJMLDemo\src\openjml\purse\Card.java:97: JML non-null field is null
-	        public invariant (\exists int i; 0 <= i && i <= loaded.length;
-	                                                        ^
-..\OpenJMLDemo\src\openjml\purse\CardTest.java:13: JML signals condition is false
-		Card card = new Card();
-		            ^
-..\OpenJMLDemo\src\openjml\purse\Card.java:153: Associated declaration: ..\OpenJMLDemo\src\openjml\purse\CardTest.java:13: 
-	        signals (Exception) false;     
-	        ^
 
 ERR:
-Exception in thread "main" java.lang.NullPointerException
-	at Card.<init>(Card.java:98)
-	at CardTest.main(CardTest.java:13)

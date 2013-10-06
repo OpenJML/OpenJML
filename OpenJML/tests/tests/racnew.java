@@ -1433,6 +1433,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
+        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"

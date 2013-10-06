@@ -2,29 +2,5 @@ OUT:
 testfiles\sv_rac\sv_rac\Decimal.java:34: JML argument to numeric cast is out of range of the target type
     public static final short DECIMAL_OVERFLOW   = (short)0x9F15;
                                                    ^
-testfiles\sv_rac\sv_rac\Decimal.java:166: JML An item is assigned that is not in the assignable statement: \everything
-	    add(d.getIntPart(), d.getDecPart());            
-	                    ^
-testfiles\sv_rac\sv_rac\Decimal.java:157: Associated declaration: testfiles\sv_rac\sv_rac\Decimal.java:166: 
-      modifies intPart, decPart; 
-      ^
-testfiles\sv_rac\sv_rac\Decimal.java:166: JML An item is assigned that is not in the assignable statement: \everything
-	    add(d.getIntPart(), d.getDecPart());            
-	                                    ^
-testfiles\sv_rac\sv_rac\Decimal.java:157: Associated declaration: testfiles\sv_rac\sv_rac\Decimal.java:166: 
-      modifies intPart, decPart; 
-      ^
-testfiles\sv_rac\sv_rac\Decimal.java:185: JML An item is assigned that is not in the assignable statement: \everything
-        add( (short) -d.getIntPart(), (short) -d.getDecPart());
-                                  ^
-testfiles\sv_rac\sv_rac\Decimal.java:176: Associated declaration: testfiles\sv_rac\sv_rac\Decimal.java:185: 
-      requires d != null;
-      ^
-testfiles\sv_rac\sv_rac\Decimal.java:185: JML An item is assigned that is not in the assignable statement: \everything
-        add( (short) -d.getIntPart(), (short) -d.getDecPart());
-                                                           ^
-testfiles\sv_rac\sv_rac\Decimal.java:176: Associated declaration: testfiles\sv_rac\sv_rac\Decimal.java:185: 
-      requires d != null;
-      ^
 
 ERR:

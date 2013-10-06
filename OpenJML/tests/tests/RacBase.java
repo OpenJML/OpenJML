@@ -69,7 +69,7 @@ public abstract class RacBase extends JmlTestCase {
         // Setup the options
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-d", "testdata"); // This is where the output program goes
-        main.addOptions("-rac");
+        main.addOptions("-rac","-racJavaChecks","-racCheckAssumptions");
         if (jdkrac) {
             String sy = Options.instance(context).get(Strings.eclipseProjectLocation);
             if (sy == null) {
