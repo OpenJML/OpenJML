@@ -189,7 +189,10 @@ IWorkbenchPreferencePage {
         			{"9","9"},   //$NON-NLS-1$ //$NON-NLS-2$
         		    },
                 getFieldEditorParent()));
-        
+
+        addField(new StringFieldEditor(Options.timeoutKey, Messages.OpenJMLUI_PreferencesPage_timeout,
+                getFieldEditorParent()));
+
         addField(new BooleanFieldEditor(Options.traceKey, Messages.OpenJMLUI_PreferencesPage_Trace,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.subexpressionsKey, Messages.OpenJMLUI_PreferencesPage_Subexpressions,

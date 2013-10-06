@@ -50,6 +50,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_JmlOptions;
 	public static String OpenJMLUI_PreferencesPage_NullableByDefault;
 	public static String OpenJMLUI_PreferencesPage_normal;
+	public static String OpenJMLUI_PreferencesPage_timeout;
 	public static String OpenJMLUI_PreferencesPage_OptionalAnnotationKeys;
 	public static String OpenJMLUI_PreferencesPage_OptionsRelatingToESC;
 	public static String OpenJMLUI_PreferencesPage_OptionsRelatingToRAC;

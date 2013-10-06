@@ -943,6 +943,8 @@ public class OpenJMLInterface {
             opts.add(JmlOption.TRACE.optionName() +eq+ Options.isOption(Options.traceKey));
             opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ Options.isOption(Options.subexpressionsKey));
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));
+            String v = Options.value(Options.timeoutKey);
+            if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {

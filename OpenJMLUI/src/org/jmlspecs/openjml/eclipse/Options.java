@@ -81,6 +81,8 @@ public class Options {
 	final static public String maxWarningsKey = prefix + "maxWarnings"; //$NON-NLS-1$
 	/** The preference store key for the check purity option. */
 	final static public String noCheckPurityKey = prefix + "noPurityCheck"; //$NON-NLS-1$
+	/** The preference store key for the timeout option. */
+	final static public String timeoutKey = prefix + "timeout"; //$NON-NLS-1$
 	/** The preference store key for the keys option. */
 	final static public String optionalKeysKey = prefix + "optionalKeys"; //$NON-NLS-1$
 	/** The preference store key for the showNotImplemented option. */

@@ -214,9 +214,9 @@ public class MethodProverSMT {
         SMT smt = new SMT();
         smt.processCommandLine(new String[]{}, smt.smtConfig);
         Object o = JmlOption.value(context,  JmlOption.TIMEOUT);
-        if (o != null) {
+        if (o != null && !o.toString().isEmpty()) {
             try {
-                smt.smtConfig.timeout = Integer.parseInt(o.toString());
+                smt.smtConfig.timeout = Double.parseDouble(o.toString());
             } catch (NumberFormatException e) {
                 // FIXME  - issue a warning
             }

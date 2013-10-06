@@ -2691,7 +2691,7 @@ public class Utils {
 	
 	public String getRacDir() {
  	   String racdir = Options.value(Options.racbinKey);
- 	   if (racdir == null || racdir.isEmpty()) racdir = "racbin";
+ 	   if (racdir == null || racdir.isEmpty()) racdir = "bin";
  	   return racdir;
 	}
 	
