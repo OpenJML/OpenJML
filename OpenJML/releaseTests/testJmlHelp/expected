@@ -53,9 +53,10 @@ JML options:
   -nullableByDefault         Makes references nullable by default
   -specspath                 Specifies the directory path to search for specification files
   -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
-  -purityCheck               When on (the default), warnings for use of impure methods are issued
+  -purityCheck               When on (off by default), warnings for use of impure methods are issued
   -internalSpecs             When on (the default), automatically appends the internal specs directory to the specification path
   -internalRuntime           When on (the default), automatically appends the internal JML runtime library to the classpath
+  -timeout                   Number of seconds to limit any individual proof attempt (default infinite)
   -showNotImplemented        When on (off by default), warnings about unimplemented constructs are issued
   -showNotExecutable         When on (off by default), warnings about non-executable constructs are issued
   -verboseness               Level of verboseness (0=quiet...4=debug)
