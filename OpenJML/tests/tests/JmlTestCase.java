@@ -51,6 +51,8 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase {
 
+    static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
+
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     
@@ -365,7 +367,7 @@ public abstract class JmlTestCase {
                     diff += ("Less actual input than expected" + eol);
                     return diff;
                 }
-                if (!sexp.equals(sact)) {
+                if (!sexp.equals(sact) && (isWindows || !sexp.equals(sact.replace('/','\\')))) {
                     diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
@@ -414,7 +416,11 @@ public abstract class JmlTestCase {
                     return diff;
                 }
                 String sact = lines[line-1];
-                if (!sexp.equals(sact)) {
+                if (sexp.equals(sact)) {
+                    // OK
+                } else if (!isWindows && sexp.equals(sact.replace('/','\\'))) {
+                    // OK
+                } else {
                     diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
