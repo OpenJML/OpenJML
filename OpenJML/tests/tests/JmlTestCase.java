@@ -53,6 +53,8 @@ public abstract class JmlTestCase {
 
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
+    static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
+    
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     

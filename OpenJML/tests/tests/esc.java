@@ -17,7 +17,7 @@ import com.sun.tools.javac.util.Options;
 public class esc extends EscBase {
 
     public esc() {
-        super("",isWindows?"":"cvc4");
+        super("",isWindows?null:"cvc4");
     }
 
 //    public esc(String option, String solver) {
