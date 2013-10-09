@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -1784,10 +1785,28 @@ public class Utils {
 					Log.log("No internal runtime found");
 				return null;
 			}
-			IPath path = new Path(runtime);
-			IClasspathEntry libentry = JavaCore.newLibraryEntry(path, null,
-					null);
-
+			IClasspathEntry libentry = null;
+			IPath p = new Path("ECLIPSE_HOME").append("plugins");
+			IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
+			IPath pp = JavaCore.getResolvedClasspathEntry(libe).getPath();
+			if (pp != null) {
+				File[] ffs = pp.toFile().listFiles(new FilenameFilter() { public boolean accept(File f, String s) { return s.contains("OpenJMLUI_"); }});
+				if (ffs != null && ffs.length > 0) {
+					String s;
+					if (ffs.length > 1) {
+						Arrays.sort(ffs,0,ffs.length,
+								new Comparator<File>() { public int compare(File f, File g) { return -(new Long(f.lastModified()).compareTo(g.lastModified())); }} );
+						
+					}
+					s = ffs[0].getName();
+					p = p.append(s).append("jmlruntime.jar");
+					libentry = JavaCore.newVariableEntry(p,null,null);
+				}
+			}
+			if (libentry == null) {
+				IPath path = new Path(runtime);
+				libentry = JavaCore.newLibraryEntry(path, null, null);
+			}
 			IClasspathEntry[] entries = jproject.getRawClasspath();
 			for (IClasspathEntry i : entries) {
 				if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
