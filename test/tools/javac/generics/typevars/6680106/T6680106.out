@@ -1,0 +1,7 @@
+T6680106.java:11:14: compiler.err.cyclic.inheritance: T
+T6680106.java:12:14: compiler.err.cyclic.inheritance: T
+T6680106.java:13:14: compiler.err.cyclic.inheritance: T
+T6680106.java:14:14: compiler.err.cyclic.inheritance: T
+T6680106.java:15:14: compiler.err.cyclic.inheritance: T
+T6680106.java:16:14: compiler.err.cyclic.inheritance: T
+6 errors
