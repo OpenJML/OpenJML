@@ -13,10 +13,14 @@ public class Lattice<T> {
     public boolean isSubclass(T c1, T c2) {
         return backingMatrix.hasEdge(c1, c2);
     }
-
+    
+    public Set<T> getVertexes(){
+        return backingMatrix.getVertexSet();
+    }
+    
     public T getTop(){
         Set<T> vertexes = backingMatrix.getVertexSet();
-
+        
         T top = null;
         int topEdges = 0;
 
