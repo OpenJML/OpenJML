@@ -410,7 +410,7 @@ public class Utils {
         if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
         else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
     }
-
+    
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents and loading them into the System property set.
      */

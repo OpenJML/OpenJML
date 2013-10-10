@@ -218,5 +218,7 @@ public class Strings {
     /** Name used to represent the 'this' object for non-static methods */
     public final static String thisName = "THIS";
     
-    
+    /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
+    // Must match corresponding string in Utils.
+    public final static String racCompiled = "__JML_racCompiled";
 }

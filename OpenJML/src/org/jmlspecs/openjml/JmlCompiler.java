@@ -15,23 +15,29 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
+import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 
 /**
@@ -454,6 +460,18 @@ public class JmlCompiler extends JavaCompiler {
     /** Does the RAC processing on the argument. */
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
+        
+        if (tree instanceof JCClassDecl) {
+            JmlTree.Maker M = JmlTree.Maker.instance(context);
+            JCClassDecl that = (JCClassDecl)tree;
+            // The class named here must match that in org.jmlspecs.utils.Utils.isRACCompiled
+            Name n = names.fromString("org.jmlspecs.annotation.RACCompiled");
+            ClassSymbol sym = ClassReader.instance(context).enterClass(n);
+            Attribute.Compound ac = new Attribute.Compound(sym.type, List.<Pair<Symbol.MethodSymbol,Attribute>>nil());
+            that.sym.attributes_field = that.sym.attributes_field.append(ac);
+        }
+
+
 //        if (!JmlCompilationUnit.isJava(((JmlCompilationUnit)env.toplevel).mode)) {
 //            // TODO - explain why we remove these from the symbol tables
 //            if (env.tree instanceof JCClassDecl) {

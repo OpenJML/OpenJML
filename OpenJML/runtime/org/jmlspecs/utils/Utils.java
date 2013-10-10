@@ -98,6 +98,14 @@ public class Utils {
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
 
+    /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
+    // Must match corresponding string in Strings.
+    public final static String racCompiled = "__JML_racCompiled";
+
+    public static boolean isRACCompiled(Class<?> clazz) {
+        return null != clazz.getAnnotation(org.jmlspecs.annotation.RACCompiled.class);
+    }
+
     /** Reports a JML assertion failure with the given message if the second argument is null
      * @param message the message to report if the second argument is null
      * @param v value to be tested 

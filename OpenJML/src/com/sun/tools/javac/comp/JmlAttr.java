@@ -1916,7 +1916,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
-    void annotate(final List<JCAnnotation> annotations,
+    public void annotate(final List<JCAnnotation> annotations,
             final Env<AttrContext> localEnv) {
         Set<TypeSymbol> annotated = new HashSet<TypeSymbol>();
         for (List<JCAnnotation> al = annotations; al.nonEmpty(); al = al.tail) {

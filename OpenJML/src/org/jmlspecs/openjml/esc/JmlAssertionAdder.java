@@ -3307,18 +3307,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(vdecl);
 
             pushBlock();
-            JCExpression tres = convertExpr(that.truepart);
-            tres = addImplicitConversion(that.truepart,that.type,tres);
-            JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
-            addStat( treeutils.makeAssignStat(that.truepart.pos, id, tres));
-            JCBlock trueblock = popBlock(0,that.truepart);
+            JCBlock trueblock = null;
+            try {
+                JCExpression tres = convertExpr(that.truepart);
+                tres = addImplicitConversion(that.truepart,that.type,tres);
+                JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
+                addStat( treeutils.makeAssignStat(that.truepart.pos, id, tres));
+            } finally {
+                trueblock = popBlock(0,that.truepart);
+            }
 
             pushBlock();
-            JCExpression fres = convertExpr(that.falsepart);
-            fres = addImplicitConversion(that.falsepart,that.type,fres);
-            id = treeutils.makeIdent(that.falsepart.pos, vdecl.sym);
-            addStat( treeutils.makeAssignStat(that.falsepart.pos, id, fres));
-            JCBlock falseblock = popBlock(0,that.falsepart);
+            JCBlock falseblock = null;
+            try {
+                JCExpression fres = convertExpr(that.falsepart);
+                fres = addImplicitConversion(that.falsepart,that.type,fres);
+                JCIdent id = treeutils.makeIdent(that.falsepart.pos, vdecl.sym);
+                addStat( treeutils.makeAssignStat(that.falsepart.pos, id, fres));
+            } finally {
+                falseblock = popBlock(0,that.falsepart);
+            }
 
             JCStatement stat = M.at(that).If(cond, trueblock, falseblock);
 
@@ -7429,7 +7437,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     scan(t);
                 }
             }
-
+            
             List<JCTree> defs = this.classDefs.toList();
             // FIXME - replicate all the other AST nodes
             List<JCTypeParameter> typarams = that.typarams;
@@ -8883,185 +8891,194 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Label for the loop, so we can break out of it
                 Name label = names.fromString("__JMLwhile_" + (++count));
                 pushBlock(); // enclosing block, except for declaration of accumulator
-                for (Bound bound: bounds) {
+                try {
+                    for (Bound bound: bounds) {
 
-                    JCVariableDecl indexdef = treeutils.makeVarDef(bound.decl.type,bound.decl.name,methodDecl.sym,bound.decl.pos);
-                    localVariables.put(bound.decl.sym, indexdef.sym);
-                    JCIdent id = treeutils.makeIdent(that.pos, decl.sym); // accumulator
-                    JCIdent idd = treeutils.makeIdent(that.pos, decl.sym); // another id for the accumulator
-                    JCStatement st;
-                    JCBreak brStat = null;
-                    JCBlock bl;
-                    pushBlock(); // Start of loop block
-                    JCExpression guard = convertExpr(innerexpr);
-                    pushBlock(); // Start of guarded block
-                    JCExpression val = convertExpr(that.value);
-                    switch (that.op) {
-                        case BSFORALL:
-                            // if (guard) { val = convert(value); if (!val) { accumulator = false; break <label>; }}
-                            decl.init = treeutils.trueLit;
-                            
-                            pushBlock();
-                            addStat(treeutils.makeAssignStat(that.pos, id, treeutils.falseLit));
-                            addStat(brStat = M.Break(label));
-                            bl = popBlock(0L,that);
-                            st = M.If(treeutils.makeNot(that.pos,val), bl, null);
-                            break;
-                            
-                        case BSEXISTS:
-                            // if (guard) { val = convert(value); if (!val) { accumulator = true; break <label>; }}
-                            
-                            pushBlock();
-                            addStat(treeutils.makeAssignStat(that.pos, id, treeutils.trueLit));
-                            addStat(brStat = M.Break(label));
-                            bl = popBlock(0L,that);
-                            st = M.If(val, bl, null);
-                            break;
-                            
-                        case BSSUM:
-                            // if (guard) { val = convert(value); accumulator = accumulator + val; }
-                            st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.PLUS, idd, val));
-                            break;
-                            
-                        case BSPRODUCT:
-                            // if (guard) { val = convert(value); accumulator = accumulator * val; }
-                            switch (that.type.tag) {
-                                case TypeTags.INT:
-                                    decl.init = treeutils.makeIntLiteral(that.pos, Integer.valueOf(1));
-                                    break;
-                                case TypeTags.LONG:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, Long.valueOf(1));
-                                    break;
-                                case TypeTags.SHORT:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, Short.valueOf((short)1));
-                                    break;
-                                case TypeTags.BYTE:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, Byte.valueOf((byte)1));
-                                    break;
-                                case TypeTags.DOUBLE:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, Double.valueOf(1));
-                                    break;
-                                case TypeTags.FLOAT:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, Float.valueOf(1));
-                                    break;
-                                // Skipping CHAR - multiplying chars does not make sense.
-                                default:
-                                    log.note(that,"rac.not.implemented.quantified");
-                                    throw new JmlNotImplementedException(that,"RAC not implemented for this type: " + that.type);
-                                    
+                        JCVariableDecl indexdef = treeutils.makeVarDef(bound.decl.type,bound.decl.name,methodDecl.sym,bound.decl.pos);
+                        localVariables.put(bound.decl.sym, indexdef.sym);
+                        JCIdent id = treeutils.makeIdent(that.pos, decl.sym); // accumulator
+                        JCIdent idd = treeutils.makeIdent(that.pos, decl.sym); // another id for the accumulator
+                        JCStatement st;
+                        JCBreak brStat = null;
+                        JCBlock bl;
+                        pushBlock(); // Start of loop block
+                        try {
+                            JCExpression guard = convertExpr(innerexpr);
+                            pushBlock(); // Start of guarded block
+                            try {
+                                JCExpression val = convertExpr(that.value);
+                                switch (that.op) {
+                                    case BSFORALL:
+                                        // if (guard) { val = convert(value); if (!val) { accumulator = false; break <label>; }}
+                                        decl.init = treeutils.trueLit;
+
+                                        pushBlock();
+                                        addStat(treeutils.makeAssignStat(that.pos, id, treeutils.falseLit));
+                                        addStat(brStat = M.Break(label));
+                                        bl = popBlock(0L,that);
+                                        st = M.If(treeutils.makeNot(that.pos,val), bl, null);
+                                        break;
+
+                                    case BSEXISTS:
+                                        // if (guard) { val = convert(value); if (!val) { accumulator = true; break <label>; }}
+
+                                        pushBlock();
+                                        addStat(treeutils.makeAssignStat(that.pos, id, treeutils.trueLit));
+                                        addStat(brStat = M.Break(label));
+                                        bl = popBlock(0L,that);
+                                        st = M.If(val, bl, null);
+                                        break;
+
+                                    case BSSUM:
+                                        // if (guard) { val = convert(value); accumulator = accumulator + val; }
+                                        st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.PLUS, idd, val));
+                                        break;
+
+                                    case BSPRODUCT:
+                                        // if (guard) { val = convert(value); accumulator = accumulator * val; }
+                                        switch (that.type.tag) {
+                                            case TypeTags.INT:
+                                                decl.init = treeutils.makeIntLiteral(that.pos, Integer.valueOf(1));
+                                                break;
+                                            case TypeTags.LONG:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, Long.valueOf(1));
+                                                break;
+                                            case TypeTags.SHORT:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, Short.valueOf((short)1));
+                                                break;
+                                            case TypeTags.BYTE:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, Byte.valueOf((byte)1));
+                                                break;
+                                            case TypeTags.DOUBLE:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, Double.valueOf(1));
+                                                break;
+                                            case TypeTags.FLOAT:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, Float.valueOf(1));
+                                                break;
+                                                // Skipping CHAR - multiplying chars does not make sense.
+                                            default:
+                                                log.note(that,"rac.not.implemented.quantified");
+                                                throw new JmlNotImplementedException(that,"RAC not implemented for this type: " + that.type);
+
+                                        }
+                                        st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.MUL, idd, val));
+                                        break;
+
+                                    case BSNUMOF:
+                                        // if (guard) { val = convert(value); if (val) accumulator = accumulator + 1;
+                                        st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.PLUS, idd, 
+                                                idd.type.tag == TypeTags.LONG ? treeutils.longone : treeutils.one)); // FIXME - what about bigint?
+                                        st = M.at(that).If(val, st, null);
+                                        break;
+
+                                    case BSMAX:
+                                    case BSMIN:
+                                        // if (guard) { val = convert(value); if ( accumulator </> val) accumulator = val;
+                                        switch (that.type.tag) {
+                                            case TypeTags.INT:
+                                                decl.init = treeutils.makeIntLiteral(that.pos, that.op == JmlToken.BSMAX ? Integer.MIN_VALUE : Integer.MAX_VALUE);
+                                                break;
+                                            case TypeTags.LONG:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Long.MIN_VALUE : Long.MAX_VALUE));
+                                                break;
+                                            case TypeTags.SHORT:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Short.MIN_VALUE : Short.MAX_VALUE));
+                                                break;
+                                            case TypeTags.BYTE:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Byte.MIN_VALUE : Byte.MAX_VALUE));
+                                                break;
+                                            case TypeTags.CHAR:
+                                                decl.init = treeutils.makeLit(that.pos, syms.intType, (int)(that.op == JmlToken.BSMAX ? Character.MIN_VALUE : Character.MAX_VALUE));
+                                                break;
+                                            case TypeTags.DOUBLE:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Double.MIN_VALUE : Double.MAX_VALUE));
+                                                break;
+                                            case TypeTags.FLOAT:
+                                                decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Float.MIN_VALUE : Float.MAX_VALUE));
+                                                break;
+                                            default:
+                                                log.note(that,"rac.not.implemented.quantified");
+                                                throw new JmlNotImplementedException(that,"RAC not implemented for this type: " + that.type);
+
+                                        }
+                                        // FIXME - what about \bigint? should \min and \max be undefined if the range is empty?
+                                        JCExpression tmp = !splitExpressions? newTemp(val) : val; // Make an ID if not already
+                                        st = treeutils.makeAssignStat(that.pos,id,tmp);
+                                        st = M.at(that.pos).If(treeutils.makeBinary(that.pos,
+                                                that.op == JmlToken.BSMAX ? JCTree.LT : JCTree.GT,
+                                                        idd, tmp), st, null);
+                                        break;
+
+                                    default:
+                                        popBlock(0,that); // ignore
+                                        popBlock(0,that); // ignore
+                                        String msg = "Unknown quantified expression operation: " + that.op.internedName();
+                                        log.error(that,"jml.internal",msg);
+                                        throw new JmlNotImplementedException(that,msg);
+                                }
+                                addStat(st);
+                            } finally {
+                                bl = popBlock(0L,that); // end of guarded block
                             }
-                            st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.MUL, idd, val));
-                            break;
+                            st = M.If(guard, bl, null);
+                            addStat(st);
 
-                        case BSNUMOF:
-                            // if (guard) { val = convert(value); if (val) accumulator = accumulator + 1;
-                            st = treeutils.makeAssignStat(that.pos,id,treeutils.makeBinary(that.pos, JCTree.PLUS, idd, 
-                                    idd.type.tag == TypeTags.LONG ? treeutils.longone : treeutils.one)); // FIXME - what about bigint?
-                            st = M.at(that).If(val, st, null);
-                            break;
+                        } finally {
+                            if (bound.decl.type.tag == TypeTags.BOOLEAN) {
+                                // index = false; do { <innercomputation>; index = !index } while (index);
+                                st = treeutils.makeAssignStat(that.pos,
+                                        treeutils.makeIdent(that.pos, indexdef.sym),
+                                        treeutils.makeNot(that.pos, treeutils.makeIdent(that.pos, indexdef.sym)));
+                                addStat(st);
 
-                        case BSMAX:
-                        case BSMIN:
-                            // if (guard) { val = convert(value); if ( accumulator </> val) accumulator = val;
-                            switch (that.type.tag) {
-                                case TypeTags.INT:
-                                    decl.init = treeutils.makeIntLiteral(that.pos, that.op == JmlToken.BSMAX ? Integer.MIN_VALUE : Integer.MAX_VALUE);
-                                    break;
-                                case TypeTags.LONG:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Long.MIN_VALUE : Long.MAX_VALUE));
-                                    break;
-                                case TypeTags.SHORT:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Short.MIN_VALUE : Short.MAX_VALUE));
-                                    break;
-                                case TypeTags.BYTE:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Byte.MIN_VALUE : Byte.MAX_VALUE));
-                                    break;
-                                case TypeTags.CHAR:
-                                    decl.init = treeutils.makeLit(that.pos, syms.intType, (int)(that.op == JmlToken.BSMAX ? Character.MIN_VALUE : Character.MAX_VALUE));
-                                    break;
-                                case TypeTags.DOUBLE:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Double.MIN_VALUE : Double.MAX_VALUE));
-                                    break;
-                                case TypeTags.FLOAT:
-                                    decl.init = treeutils.makeLit(that.pos, that.type, (that.op == JmlToken.BSMAX ? Float.MIN_VALUE : Float.MAX_VALUE));
-                                    break;
-                                default:
-                                    log.note(that,"rac.not.implemented.quantified");
-                                    throw new JmlNotImplementedException(that,"RAC not implemented for this type: " + that.type);
-                                    
+                                bl = popBlock(0L,that); // loop block
+
+                                indexdef.init = treeutils.falseLit;
+                                JCExpression comp = treeutils.makeIdent(that.pos, indexdef.sym);
+                                addStat(indexdef);
+                                st = M.at(that.pos).DoLoop(bl,comp);
+                                if (brStat != null) brStat.target = st;
+                                st = M.at(that.pos).Labelled(label,st);
+                                addStat(st);
+
+                            } else if (bound.decl.type.tag == TypeTags.CLASS) {
+                                // for (T o: container) { <innercomputation>;  } 
+
+                                bl = popBlock(0L,that); // loop block
+
+                                st = M.at(that.pos).ForeachLoop(indexdef,bound.lo,bl);
+                                if (brStat != null) brStat.target = st;
+                                st = M.at(that.pos).Labelled(label,st);
+                                addStat(st);
+
+                            } else {
+                                // T index = lo; while (index </<= hi) { <inner computation>; index = index + 1 }
+                                st = treeutils.makeAssignStat(that.pos,
+                                        treeutils.makeIdent(that.pos, indexdef.sym),
+                                        treeutils.makeBinary(that.pos, JCTree.PLUS, treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one));
+                                // FIXME - one above might have to be long or bigint
+                                addStat(st);
+
+                                bl = popBlock(0L,that); // loop block
+
+                                indexdef.init = convertExpr(bound.lo);
+                                addStat(indexdef);
+                                JCExpression hi = convertExpr(bound.hi);
+                                JCExpression comp = treeutils.makeBinary(that.pos,
+                                        bound.hi_equal ? JCTree.LE : JCTree.LT,
+                                                bound.hi_equal ? treeutils.intleSymbol : treeutils.intltSymbol,
+                                                        treeutils.makeIdent(that.pos, indexdef.sym), hi);
+                                st = M.at(that.pos).WhileLoop(comp,bl);
+                                if (brStat != null) brStat.target = st;
+                                st = M.at(that.pos).Labelled(label,st);
+                                addStat(st);
                             }
-                            // FIXME - what about \bigint? should \min and \max be undefined if the range is empty?
-                            JCExpression tmp = !splitExpressions? newTemp(val) : val; // Make an ID if not already
-                            st = treeutils.makeAssignStat(that.pos,id,tmp);
-                            st = M.at(that.pos).If(treeutils.makeBinary(that.pos,
-                                            that.op == JmlToken.BSMAX ? JCTree.LT : JCTree.GT,
-                                            idd, tmp), st, null);
-                            break;
+                        }
 
-                        default:
-                            popBlock(0,that); // ignore
-                            popBlock(0,that); // ignore
-                            String msg = "Unknown quantified expression operation: " + that.op.internedName();
-                            log.error(that,"jml.internal",msg);
-                            throw new JmlNotImplementedException(that,msg);
                     }
-                    addStat(st);
-                    bl = popBlock(0L,that); // end of guarded block
-                    st = M.If(guard, bl, null);
-                    addStat(st);
-
-                    if (bound.decl.type.tag == TypeTags.BOOLEAN) {
-                        // index = false; do { <innercomputation>; index = !index } while (index);
-                        st = treeutils.makeAssignStat(that.pos,
-                                treeutils.makeIdent(that.pos, indexdef.sym),
-                                treeutils.makeNot(that.pos, treeutils.makeIdent(that.pos, indexdef.sym)));
-                        addStat(st);
-
-                        bl = popBlock(0L,that); // loop block
-
-                        indexdef.init = treeutils.falseLit;
-                        JCExpression comp = treeutils.makeIdent(that.pos, indexdef.sym);
-                        addStat(indexdef);
-                        st = M.at(that.pos).DoLoop(bl,comp);
-                        if (brStat != null) brStat.target = st;
-                        st = M.at(that.pos).Labelled(label,st);
-                        addStat(st);
-
-                    } else if (bound.decl.type.tag == TypeTags.CLASS) {
-                        // for (T o: container) { <innercomputation>;  } 
-
-                        bl = popBlock(0L,that); // loop block
-
-                        st = M.at(that.pos).ForeachLoop(indexdef,bound.lo,bl);
-                        if (brStat != null) brStat.target = st;
-                        st = M.at(that.pos).Labelled(label,st);
-                        addStat(st);
-
-                    } else {
-                        // T index = lo; while (index </<= hi) { <inner computation>; index = index + 1 }
-                        st = treeutils.makeAssignStat(that.pos,
-                            treeutils.makeIdent(that.pos, indexdef.sym),
-                            treeutils.makeBinary(that.pos, JCTree.PLUS, treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one));
-                        // FIXME - one above might have to be long or bigint
-                        addStat(st);
-
-                        bl = popBlock(0L,that); // loop block
-
-                        indexdef.init = convertExpr(bound.lo);
-                        addStat(indexdef);
-                        JCExpression hi = convertExpr(bound.hi);
-                        JCExpression comp = treeutils.makeBinary(that.pos,
-                                bound.hi_equal ? JCTree.LE : JCTree.LT,
-                                bound.hi_equal ? treeutils.intleSymbol : treeutils.intltSymbol,
-                                treeutils.makeIdent(that.pos, indexdef.sym), hi);
-                        st = M.at(that.pos).WhileLoop(comp,bl);
-                        if (brStat != null) brStat.target = st;
-                        st = M.at(that.pos).Labelled(label,st);
-                        addStat(st);
-                    }
-
+                } finally {
+                    addStat(popBlock(0L,that)); // pops enclosing block
                 }
-                addStat(popBlock(0L,that)); // pops enclosing block
                 result = eresult = treeutils.makeIdent(that.pos, decl.sym);
             }
         } finally {
