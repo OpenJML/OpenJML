@@ -35,7 +35,6 @@ import java.util.Set;
 import javax.lang.model.type.*;
 
 import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.model.JavacAnnoConstructs;
 import com.sun.tools.javac.util.*;
 import static com.sun.tools.javac.code.BoundKind.*;
 import static com.sun.tools.javac.code.Flags.*;
@@ -70,7 +69,7 @@ import static com.sun.tools.javac.code.TypeTag.*;
  *
  *  @see TypeTag
  */
-public abstract class Type implements TypeMirror {
+public abstract class Type extends AnnoConstruct implements TypeMirror {
 
     /** Constant type: no type at all. */
     public static final JCNoType noType = new JCNoType();
@@ -166,6 +165,12 @@ public abstract class Type implements TypeMirror {
         return lb.toList();
     }
 
+    /**For ErrorType, returns the original type, otherwise returns the type itself.
+     */
+    public Type getOriginalType() {
+        return this;
+    }
+
     public <R,S> R accept(Type.Visitor<R,S> v, S s) { return v.visitType(this, s); }
 
     /** Define a type given its tag and type symbol
@@ -233,14 +238,16 @@ public abstract class Type implements TypeMirror {
     }
 
     @Override
-    public List<? extends Attribute.TypeCompound> getAnnotationMirrors() {
+    public List<Attribute.TypeCompound> getAnnotationMirrors() {
         return List.nil();
     }
+
 
     @Override
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         return null;
     }
+
 
     @Override
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
@@ -1651,6 +1658,9 @@ public abstract class Type implements TypeMirror {
         public <R, P> R accept(TypeVisitor<R, P> v, P p) {
             return v.visitNoType(this, p);
         }
+
+        @Override
+        public boolean isCompound() { return false; }
     }
 
     /** Represents VOID.
@@ -1670,6 +1680,9 @@ public abstract class Type implements TypeMirror {
         public TypeKind getKind() {
             return TypeKind.VOID;
         }
+
+        @Override
+        public boolean isCompound() { return false; }
 
         @Override
         public <R, P> R accept(TypeVisitor<R, P> v, P p) {
@@ -1696,6 +1709,9 @@ public abstract class Type implements TypeMirror {
         public TypeKind getKind() {
             return TypeKind.NULL;
         }
+
+        @Override
+        public boolean isCompound() { return false; }
 
         @Override
         public <R, P> R accept(TypeVisitor<R, P> v, P p) {
@@ -1837,19 +1853,10 @@ public abstract class Type implements TypeMirror {
         }
 
         @Override
-        public List<? extends Attribute.TypeCompound> getAnnotationMirrors() {
+        public List<Attribute.TypeCompound> getAnnotationMirrors() {
             return typeAnnotations;
         }
 
-        @Override
-        public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            return JavacAnnoConstructs.getAnnotation(this, annotationType);
-        }
-
-        @Override
-        public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
-            return JavacAnnoConstructs.getAnnotationsByType(this, annotationType);
-        }
 
         @Override
         public TypeKind getKind() {

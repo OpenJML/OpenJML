@@ -37,6 +37,7 @@ import com.sun.tools.javac.tree.JCTree.*;
 import static com.sun.tools.javac.code.TypeTag.ARRAY;
 import static com.sun.tools.javac.code.TypeTag.CLASS;
 import static com.sun.tools.javac.tree.JCTree.Tag.*;
+import javax.lang.model.type.ErrorType;
 
 /** Enter annotations on symbols.  Annotations accumulate in a queue,
  *  which is processed at the top level of any set of recursive calls
@@ -317,50 +318,9 @@ public class Annotate {
             expected.tsym.complete();
         } catch(CompletionFailure e) {
             log.error(tree.pos(), "cant.resolve", Kinds.kindName(e.sym), e.sym);
-            return new Attribute.Error(expected);
+            expected = syms.errType;
         }
-        if (expected.isPrimitive() || types.isSameType(expected, syms.stringType)) {
-            Type result = attr.attribExpr(tree, env, expected);
-            if (result.isErroneous())
-                return new Attribute.Error(expected);
-            if (result.constValue() == null) {
-                log.error(tree.pos(), "attribute.value.must.be.constant");
-                return new Attribute.Error(expected);
-            }
-            result = cfolder.coerce(result, expected);
-            return new Attribute.Constant(expected, result.constValue());
-        }
-        if (expected.tsym == syms.classType.tsym) {
-            Type result = attr.attribExpr(tree, env, expected);
-            if (result.isErroneous()) {
-                // Does it look like a class literal?
-                if (TreeInfo.name(tree) == names._class) {
-                    Name n = (((JCFieldAccess) tree).selected).type.tsym.flatName();
-                    return new Attribute.UnresolvedClass(expected,
-                            types.createErrorType(n,
-                                    syms.unknownSymbol, syms.classType));
-                } else {
-                    return new Attribute.Error(expected);
-                }
-            }
-
-            // Class literals look like field accesses of a field named class
-            // at the tree level
-            if (TreeInfo.name(tree) != names._class) {
-                log.error(tree.pos(), "annotation.value.must.be.class.literal");
-                return new Attribute.Error(expected);
-            }
-            return new Attribute.Class(types,
-                                       (((JCFieldAccess) tree).selected).type);
-        }
-        if ((expected.tsym.flags() & Flags.ANNOTATION) != 0) {
-            if (!tree.hasTag(ANNOTATION)) {
-                log.error(tree.pos(), "annotation.value.must.be.annotation");
-                expected = syms.errorType;
-            }
-            return enterAnnotation((JCAnnotation)tree, expected, env);
-        }
-        if (expected.hasTag(ARRAY)) { // should really be isArray()
+        if (expected.hasTag(ARRAY)) {
             if (!tree.hasTag(NEWARRAY)) {
                 tree = make.at(tree.pos).
                     NewArray(null, List.<JCExpression>nil(), List.of(tree));
@@ -368,7 +328,6 @@ public class Annotate {
             JCNewArray na = (JCNewArray)tree;
             if (na.elemtype != null) {
                 log.error(na.elemtype.pos(), "new.not.allowed.in.annotation");
-                return new Attribute.Error(expected);
             }
             ListBuffer<Attribute> buf = new ListBuffer<Attribute>();
             for (List<JCExpression> l = na.elems; l.nonEmpty(); l=l.tail) {
@@ -380,20 +339,84 @@ public class Annotate {
             return new Attribute.
                 Array(expected, buf.toArray(new Attribute[buf.length()]));
         }
+        if (tree.hasTag(NEWARRAY)) { //error recovery
+            if (!expected.isErroneous())
+                log.error(tree.pos(), "annotation.value.not.allowable.type");
+            JCNewArray na = (JCNewArray)tree;
+            if (na.elemtype != null) {
+                log.error(na.elemtype.pos(), "new.not.allowed.in.annotation");
+            }
+            for (List<JCExpression> l = na.elems; l.nonEmpty(); l=l.tail) {
+                enterAttributeValue(syms.errType,
+                                    l.head,
+                                    env);
+            }
+            return new Attribute.Error(syms.errType);
+        }
+        if ((expected.tsym.flags() & Flags.ANNOTATION) != 0) {
+            if (tree.hasTag(ANNOTATION)) {
+                return enterAnnotation((JCAnnotation)tree, expected, env);
+            } else {
+                log.error(tree.pos(), "annotation.value.must.be.annotation");
+                expected = syms.errType;
+            }
+        }
+        if (tree.hasTag(ANNOTATION)) { //error recovery
+            if (!expected.isErroneous())
+                log.error(tree.pos(), "annotation.not.valid.for.type", expected);
+            enterAnnotation((JCAnnotation)tree, syms.errType, env);
+            return new Attribute.Error(((JCAnnotation)tree).annotationType.type);
+        }
+        if (expected.isPrimitive() || types.isSameType(expected, syms.stringType)) {
+            Type result = attr.attribExpr(tree, env, expected);
+            if (result.isErroneous())
+                return new Attribute.Error(result.getOriginalType());
+            if (result.constValue() == null) {
+                log.error(tree.pos(), "attribute.value.must.be.constant");
+                return new Attribute.Error(expected);
+            }
+            result = cfolder.coerce(result, expected);
+            return new Attribute.Constant(expected, result.constValue());
+        }
+        if (expected.tsym == syms.classType.tsym) {
+            Type result = attr.attribExpr(tree, env, expected);
+            if (result.isErroneous()) {
+                // Does it look like an unresolved class literal?
+                if (TreeInfo.name(tree) == names._class &&
+                    ((JCFieldAccess) tree).selected.type.isErroneous()) {
+                    Name n = (((JCFieldAccess) tree).selected).type.tsym.flatName();
+                    return new Attribute.UnresolvedClass(expected,
+                            types.createErrorType(n,
+                                    syms.unknownSymbol, syms.classType));
+                } else {
+                    return new Attribute.Error(result.getOriginalType());
+                }
+            }
+
+            // Class literals look like field accesses of a field named class
+            // at the tree level
+            if (TreeInfo.name(tree) != names._class) {
+                log.error(tree.pos(), "annotation.value.must.be.class.literal");
+                return new Attribute.Error(syms.errType);
+            }
+            return new Attribute.Class(types,
+                                       (((JCFieldAccess) tree).selected).type);
+        }
         if (expected.hasTag(CLASS) &&
             (expected.tsym.flags() & Flags.ENUM) != 0) {
-            attr.attribExpr(tree, env, expected);
+            Type result = attr.attribExpr(tree, env, expected);
             Symbol sym = TreeInfo.symbol(tree);
             if (sym == null ||
                 TreeInfo.nonstaticSelect(tree) ||
                 sym.kind != Kinds.VAR ||
                 (sym.flags() & Flags.ENUM) == 0) {
                 log.error(tree.pos(), "enum.annotation.must.be.enum.constant");
-                return new Attribute.Error(expected);
+                return new Attribute.Error(result.getOriginalType());
             }
             VarSymbol enumerator = (VarSymbol) sym;
             return new Attribute.Enum(expected, enumerator);
         }
+        //error recovery:
         if (!expected.isErroneous())
             log.error(tree.pos(), "annotation.value.not.allowable.type");
         return new Attribute.Error(attr.attribExpr(tree, env, expected));
