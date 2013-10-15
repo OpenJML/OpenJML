@@ -154,7 +154,7 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/firstTest","testfiles/firstTest","FirstTest","-racJavaChecks","-racCheckAssumptions");
     }
 
-    @Test  // FIXME - crashes - quantifier expressions in invariants are not supported
+    @Test
     public void testUniqueList() {
         expectedExit = 0;
         helpTCF("testfiles/uniqueList","testfiles/uniqueList","UniqueList","-racJavaChecks","-racCheckAssumptions");
@@ -230,6 +230,20 @@ public class racfiles extends RacBase {
     public void racQueue() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Queue.java","testfiles/racQueue","Queue");
+    }
+
+    @Test
+    public void racAddng() {
+        rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
+        expectedExit = 0;
+        helpTCF("testfiles/racaddng/Add_InstanceStrategy.java","testfiles/racaddng","Add_JML_Test","-cp","testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
+    }
+
+    @Test
+    public void racAddngall() {
+        rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
+        expectedExit = 0;
+        helpTCF("testfiles/racaddng","testfiles/racaddngall","Add_JML_Test","-cp","testfiles/racaddngall;testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
     }
 
 

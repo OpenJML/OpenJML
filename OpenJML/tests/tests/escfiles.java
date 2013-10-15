@@ -193,14 +193,16 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA","-timeout=30");
     }
 
-    @Test
+    @Test @Ignore
     public void testPurseCard() {
+        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-timeout=30");
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-timeout=15");
     }
 
-    @Test
+    @Test @Ignore
     public void testPurseCardMod() {
+        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-progress","-logic=AUFNIA","-timeout=15");
     }
@@ -220,7 +222,19 @@ public class escfiles extends EscBase {
     @Test
     public void testECU() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-logic=AUFNIA","-timeout=30");
+        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-progress","-jmltesting","-logic=AUFNIA","-timeout=30");
+    }
+
+    @Test
+    public void testAdd() {
+        expectedExit = 0;
+        helpTCF("testfiles/escAdd/Add.java","testfiles/escAdd","-classpath","testfiles/escAdd","-progress","-jmltesting","-timeout=30");
+    }
+
+    @Test
+    public void testAdd2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escAdd2/Add.java","testfiles/escAdd2","-classpath","testfiles/escAdd2","-progress","-jmltesting","-timeout=30");
     }
 
 
