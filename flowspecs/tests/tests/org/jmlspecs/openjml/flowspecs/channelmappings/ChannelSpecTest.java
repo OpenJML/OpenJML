@@ -1,19 +1,18 @@
 /**
  * 
  */
-package org.jmlspecs.openjml.flowspecs.channelmappings;
+package tests.org.jmlspecs.openjml.flowspecs.channelmappings;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.prefs.BackingStoreException;
 
 import org.jmlspecs.openjml.flowspecs.AdjacencyMatrix;
 import org.jmlspecs.openjml.flowspecs.Lattice;
 import org.jmlspecs.openjml.flowspecs.SecurityType;
-import org.jmlspecs.openjml.flowspecs.channelmappings.*;
-import org.junit.AfterClass;
+import org.jmlspecs.openjml.flowspecs.channelmappings.ChannelSpec;
+import org.jmlspecs.openjml.flowspecs.channelmappings.LevelDoesNotExistException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

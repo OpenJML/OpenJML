@@ -1,0 +1,28 @@
+<!-- Sample channel mappings XML file borrowed from the example given in John's bipartite flow proposal -->
+<Channels>
+
+	<Channel>
+		<ChannelName>DISPLAY</ChannelName>
+		<ChannelSpec>
+			<InputLevel>Public</InputLevel>
+			<OutputLevel>Private</OutputLevel>
+		</ChannelSpec>
+	</Channel>
+	
+	<Channel>
+		<ChannelName>MICROPHONE</ChannelName>
+		<ChannelSpec>
+			<InputLevel>Private</InputLevel>
+			<OutputLevel>Public</OutputLevel>
+		</ChannelSpec>
+	</Channel>
+	
+	<Channel>
+		<ChannelName>NETWORK</ChannelName>
+		<ChannelSpec>
+			<InputLevel>Private</InputLevel>
+			<OutputLevel>Private</OutputLevel>
+		</ChannelSpec>
+	</Channel>
+	
+</Channels>
