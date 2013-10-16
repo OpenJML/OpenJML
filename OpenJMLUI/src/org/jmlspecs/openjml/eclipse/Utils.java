@@ -1785,28 +1785,32 @@ public class Utils {
 					Log.log("No internal runtime found");
 				return null;
 			}
-			IClasspathEntry libentry = null;
-			IPath p = new Path("ECLIPSE_HOME").append("plugins");
-			IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
-			IPath pp = JavaCore.getResolvedClasspathEntry(libe).getPath();
-			if (pp != null) {
-				File[] ffs = pp.toFile().listFiles(new FilenameFilter() { public boolean accept(File f, String s) { return s.contains("OpenJMLUI_"); }});
-				if (ffs != null && ffs.length > 0) {
-					String s;
-					if (ffs.length > 1) {
-						Arrays.sort(ffs,0,ffs.length,
-								new Comparator<File>() { public int compare(File f, File g) { return -(new Long(f.lastModified()).compareTo(g.lastModified())); }} );
-						
-					}
-					s = ffs[0].getName();
-					p = p.append(s).append("jmlruntime.jar");
-					libentry = JavaCore.newVariableEntry(p,null,null);
-				}
-			}
-			if (libentry == null) {
-				IPath path = new Path(runtime);
-				libentry = JavaCore.newLibraryEntry(path, null, null);
-			}
+			IClasspathEntry libentry = makeRelative(runtime);
+
+//			IPath p = new Path("ECLIPSE_HOME").append("plugins");
+//			IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
+//			IPath pp = JavaCore.getResolvedClasspathEntry(libe).getPath();
+//			if (pp != null) {
+//				File[] ffs = pp.toFile().listFiles(new FilenameFilter() { public boolean accept(File f, String s) { return s.contains("OpenJMLUI_"); }});
+//				if (ffs != null && ffs.length > 0) {
+//					String s;
+//					if (ffs.length > 1) {
+//						Arrays.sort(ffs,0,ffs.length,
+//								new Comparator<File>() { public int compare(File f, File g) { return -(new Long(f.lastModified()).compareTo(g.lastModified())); }} );
+//						
+//					}
+//					s = ffs[0].getName();
+//					p = p.append(s).append("jmlruntime.jar");
+//					libentry = JavaCore.newVariableEntry(p,null,null);
+//				}
+//			}
+//			if (rpath != null) {
+//				libentry = JavaCore.newVariableEntry(rpath,null,null);
+//			}
+//			if (libentry == null) {
+//				IPath path = new Path(runtime);
+//				libentry = JavaCore.newLibraryEntry(path, null, null);
+//			}
 			IClasspathEntry[] entries = jproject.getRawClasspath();
 			for (IClasspathEntry i : entries) {
 				if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
@@ -1859,23 +1863,20 @@ public class Utils {
 		if (changingClasspath)
 			return;
 		try {
-			if (entry == null) {
-				String runtime = findInternalRuntime();
-				if (runtime == null) {
-					if (Options.uiverboseness)
-						Log.log("No internal runtime found");
-					return;
-				}
-				IPath path = new Path(runtime);
-				entry = JavaCore.newLibraryEntry(path, null,
-						null);
-			}
 			IClasspathEntry[] entries = jproject.getRawClasspath();
 			final IClasspathEntry[] newentries = new IClasspathEntry[entries.length];
 			int j = 0;
-			for (IClasspathEntry i : entries) {
-				if (!i.equals(entry)) {
-					newentries[j++] = i;
+			if (entry == null) {
+				for (IClasspathEntry i : entries) {
+					if (!i.getPath().lastSegment().equals("jmlruntime.jar")) { // FIXME - use a String somewhere
+						newentries[j++] = i;
+					}
+				}
+			} else {
+				for (IClasspathEntry i : entries) {
+					if (!i.equals(entry)) {
+						newentries[j++] = i;
+					}
 				}
 			}
 			if (j < entries.length) {
@@ -2747,10 +2748,12 @@ public class Utils {
 
 
 	/**
-	 * Returns an absolute, local file-system path to the internal run-time
+	 * Returns the path to the internal run-time
 	 * library (which holds definitions of annotations and some runtime
 	 * utilities for RAC), or null without an error message if the library could
-	 * not be found.
+	 * not be found. If the argument is true, then the returned path is an absolute,
+	 * local-file-system path; if the argument is false, then the returned path will
+	 * be in reference to the ECLIPSE_HOME (or other) variables.
 	 * 
 	 * @return the absolute path
 	 */
@@ -2758,6 +2761,7 @@ public class Utils {
 		String file = null;
 		try {
 			Bundle selfBundle = Platform.getBundle(Env.PLUGIN_ID);
+			URL url = null;
 			if (selfBundle == null) {
 				if (Options.uiverboseness)
 					Log.log("No self plugin"); // FIXME - an error?
@@ -2765,7 +2769,6 @@ public class Utils {
 				// We want to include the runtime library in the classpath for
 				// the user. The runtime library is part of the UI plug-in, but
 				// not as a jar file.
-				URL url = null;
 				if (url == null) {
 					url = FileLocator.toFileURL(selfBundle.getResource(""));
 					if (url != null) {
@@ -2798,6 +2801,31 @@ public class Utils {
 			Log.errorlog("Failure finding internal runtime", e);
 		}
 		return file;
+	}
+	
+	public IClasspathEntry makeRelative(String file) {
+		String envname = "ECLIPSE_HOME";
+		if (file == null) return null;
+		IPath p = new Path(envname);
+		IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
+		libe = JavaCore.getResolvedClasspathEntry(libe);
+		if (libe == null) {
+			showMessageInUI(null,"OpenJML","The environment variable " + envname + " is not defined");
+		}
+		IPath pp = libe == null ? null : libe.getPath();
+
+		IPath ppp = new Path(file);
+		IPath ppprel = pp == null ? ppp : ppp.makeRelativeTo(pp);
+		
+		IClasspathEntry libentry;
+		if (ppp != ppprel && !ppprel.segment(0).equals("..")) {
+			ppp = p.append(ppprel);
+			libentry = JavaCore.newVariableEntry(ppp,null,null);
+		} else {
+			IPath path = new Path(file);
+			libentry = JavaCore.newLibraryEntry(path, null, null);
+		}
+		return libentry;
 	}
 	
 	public int countMethods(IJavaProject jp) throws Exception {

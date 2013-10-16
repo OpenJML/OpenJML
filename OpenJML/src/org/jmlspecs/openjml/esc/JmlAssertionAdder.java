@@ -9661,7 +9661,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.token, expr);
         cl.setType(that.type);
         cl.source = that.source;
-        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
+//        if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
         result = cl;
     }
 

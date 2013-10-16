@@ -24,14 +24,6 @@ public class JMLNature implements IProjectNature {
 	/** The project to which this nature applies. */
 	private IProject project;
 	
-	/** A reference for the classpath entry that was added as the internal 
-	 * runtime library entry, or null if it was not added.
-	 */
-	private /*@ nullable*/ IClasspathEntry internalRuntimeEntry = null;
-	
-	// FIXME - document and review use
-	private boolean runtimeEverConfigured = false;
-
 	/** Creates a JML Builder in the project.  This is automatically called by
 	 * Eclipse when a project becomes a JML project.
 	 * @see org.eclipse.core.resources.IProjectNature#configure()
@@ -42,8 +34,7 @@ public class JMLNature implements IProjectNature {
 		// configured into the project classpath. We remember what was done, so it 
 		// can be undone on deconfiguring.
 		if (!Options.isOption(Options.noInternalRuntimeKey)) {
-			internalRuntimeEntry = Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
-			if (internalRuntimeEntry != null) runtimeEverConfigured = true;
+			Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
 		}
 		
 		// Now add the JML builder
@@ -72,12 +63,8 @@ public class JMLNature implements IProjectNature {
 	 */
 	@Override
 	public void deconfigure() throws CoreException {
-		if (!runtimeEverConfigured) {
+		if (!Options.isOption(Options.noInternalRuntimeKey)) {
 			Activator.getDefault().utils.removeFromClasspath(JavaCore.create(project),null);
-		}
-		if (internalRuntimeEntry != null) {
-			Activator.getDefault().utils.removeFromClasspath(JavaCore.create(project),internalRuntimeEntry);
-			internalRuntimeEntry = null;
 		}
 		IProjectDescription description = getProject().getDescription();
 		ICommand[] commands = description.getBuildSpec();
