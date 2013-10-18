@@ -2,7 +2,7 @@
 <feature
       id="org.jmlspecs.openjml.OpenJMLFeature"
       label="OpenJML"
-      version="0.5.15"
+      version="0.5.16"
       provider-name="David R. Cok">
 
    <description url="http://jmlspecs.sourceforge.net">
@@ -29,19 +29,19 @@ https://sourceforge.net/projects/jmlspecs/
          id="org.jmlspecs.annotation"
          download-size="0"
          install-size="0"
-         version="0.5.15"
+         version="0.5.16"
          unpack="false"/>
 
    <plugin
          id="org.jmlspecs.OpenJMLUI"
          download-size="0"
          install-size="0"
-         version="0.5.15"/>
+         version="0.5.16"/>
 
    <plugin
          id="org.jmlspecs.Specs"
          download-size="0"
          install-size="0"
-         version="0.5.15"/>
+         version="0.5.16"/>
 
 </feature>
