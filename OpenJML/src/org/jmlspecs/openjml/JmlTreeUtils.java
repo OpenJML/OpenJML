@@ -1004,7 +1004,10 @@ public class JmlTreeUtils {
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         list.appendArray(args);
         JCMethodInvocation call = factory.Apply(List.<JCExpression>nil(),meth,list.toList());
-        if (meth.type instanceof MethodType)
+        if (meth.type instanceof Type.ErrorType) {
+        	log.error("esc.incomplete.typechecking",meth.sym.toString());
+        	throw new JmlInternalAbort();
+        } else if (meth.type instanceof MethodType)
             call.type = ((MethodType)meth.type).getReturnType();
         else
             call.type = ((Type.ForAll)meth.type).getReturnType();

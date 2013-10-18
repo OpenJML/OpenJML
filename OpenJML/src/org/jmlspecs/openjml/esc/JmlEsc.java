@@ -103,9 +103,13 @@ public class JmlEsc extends JmlTreeScanner {
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
-        assertionAdder.convert(tree); // get at the converted tree through the map
-        proverToUse = pickProver();
-        tree.accept(this);
+        try {
+        	assertionAdder.convert(tree); // get at the converted tree through the map
+        	proverToUse = pickProver();
+        	tree.accept(this);
+        } catch (Exception e) {
+        	// No further error messages needed - FIXME - is this true?
+        }
     }
     
     /** Returns the prover specified by the options. */
@@ -189,7 +193,11 @@ public class JmlEsc extends JmlTreeScanner {
         
         progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                 + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
-                + (res.isSat() ? " - with warnings" : " - no warnings")  //$NON-NLS-1$ //$NON-NLS-2$
+                + (res.result() == IProverResult.ERROR ? " - failed"
+                   : res.result() == IProverResult.SKIPPED ? " - skipped"
+                   : res.result() == IProverResult.INCONSISTENT ? " - inconsistent"
+                   : res.isSat() ? " - with warnings" 
+                   :               " - no warnings")
                 );
         proverResults.put(methodDecl.sym,res);
         return res;

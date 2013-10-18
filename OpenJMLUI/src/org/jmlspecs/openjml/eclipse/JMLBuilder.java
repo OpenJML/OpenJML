@@ -14,15 +14,21 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceRuleFactory;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.Main.Cmd;
 
 // FIXME - we need to handle dependencies when doing incremental compilation
 // FIXME - needs review - JMLBuilder
@@ -159,7 +165,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	 * @param monitor the monitor to record progress and cancellation
 	 * @param full true if this is a full build, false if incremental
 	 */
-	protected static void doAction(IJavaProject jproject, List<IResource> resourcesToBuild, IProgressMonitor monitor, boolean full) {
+	protected static void doAction(final IJavaProject jproject, final List<IResource> resourcesToBuild, IProgressMonitor monitor, boolean full) {
 		// We've already checked that this is a Java and a JML project
 		// Also all the resources should be from this project, because the
 		// builders work project by project
@@ -183,6 +189,26 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		if (!done) {
 			// If we did not already type-check because of RAC or ESC, do it now
 			Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
+//			Job j = new Job("OpenJML Auto Build") {
+//				public IStatus run(IProgressMonitor monitor) {
+//					monitor.beginTask("Static checking of " + jproject.getElementName(), 1);
+//					boolean c = false;
+//					try {
+//						Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
+//					} catch (Exception e) {
+//						// FIXME - this will block, preventing progress on the rest of the projects
+//						Log.errorlog("Exception during Static Checking - " + jproject.getElementName(), e);
+//						Activator.getDefault().utils.showExceptionInUI(null, "Exception during Static Checking - " + jproject.getElementName(), e);
+//						c = true;
+//					}
+//					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+//				}
+//			};
+//	        IResourceRuleFactory ruleFactory = 
+//	                ResourcesPlugin.getWorkspace().getRuleFactory();
+//			j.setRule(jproject.getProject());
+//			j.setUser(true); // true since the job has been initiated by an end-user
+//			j.schedule();
 		}
 	}
 

@@ -404,10 +404,17 @@ public class OpenJMLInterface {
             				String filename = null;
             				try {
             					filename = r.getLocation().toString();
-            					api.typecheck(api.parseFiles(filename));
-            					msym = convertMethod((IMethod)je);
+            					int errors = api.typecheck(api.parseFiles(filename));
+            					if (errors == 0) {
+            						msym = convertMethod((IMethod)je);
+            					} else {
+            						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+            						msym = null;
+            					}
             				} catch (java.io.IOException e) {
-            					// ERROR
+            					// FIXME - record or show exception?
+        						utils.showMessageInUI(null,"JML Error","ESC could not be performed because of JML typechecking errors");
+            					msym = null;
             				}
             			}
             			if (msym != null) {
@@ -1004,7 +1011,7 @@ public class OpenJMLInterface {
         // here by the plugin, so openjml itself never adds it
         opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
         if (!Options.isOption(Options.noInternalRuntimeKey)) {
-        	String runtime = utils.findInternalRuntime();
+        	String runtime = utils.makeRuntimeLibEntry().getPath().toString();
         	if (runtime != null) {
         		ss.append(File.pathSeparator);
         		ss.append(runtime);

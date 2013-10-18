@@ -137,6 +137,10 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			final String finalErrorMessage = p.getMessage();
 			int severity = jmlproblem.severity;
 			
+			if (jmlproblem.lineStart < 0) {
+				Activator.getDefault().utils.showMessageInUI(null,"OpenJML ESC Error",finalErrorMessage);
+			}
+			
 			// FIXME - this looks like a hack - at least explain
 			final boolean staticCheckWarning = 
 				// The 64 is ProblemSeverities.SecondaryError, which has discouraged access

@@ -371,6 +371,23 @@ abstract public class PopupActions implements IObjectActionDelegate {
         }
     }
 
+	/** This class implements the action of popping up a dialog to
+     * show the counterexample for a Java method.
+     */
+    public static class ShowCounterexampleValue extends PopupActions {
+        @Override
+        public void run(IAction action) {
+            try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Counterexample action initiated"); //$NON-NLS-1$
+    			}
+                utils.showCEValueForTextSelection(selection,null,shell);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"PopupActions.ShowCounterexampleValue",e); //$NON-NLS-1$
+            }
+        }
+    }
+
 
     /**
      * This action generates jmldoc documentation for selected projects (and

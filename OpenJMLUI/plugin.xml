@@ -1105,5 +1105,17 @@
     </extension>
     --> 
  
-   
+   <extension
+         point="org.eclipse.jdt.core.classpathVariableInitializer">
+      <classpathVariableInitializer
+            class="org.jmlspecs.openjml.eclipse.ClasspathVariableInitializer"
+            variable="OPENJML_PLUGIN"/>
+   </extension>   
+ 
+   <extension
+         point="org.eclipse.jdt.core.classpathVariableInitializer">
+      <classpathVariableInitializer
+            class="org.jmlspecs.openjml.eclipse.ClasspathVariableInitializer"
+            variable="OPENJML_RUNTIME_LIBRARY"/>
+   </extension>   
 </plugin>

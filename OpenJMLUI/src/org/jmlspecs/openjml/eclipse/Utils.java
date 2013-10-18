@@ -6,7 +6,6 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,8 +15,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import javax.tools.JavaFileObject;
 
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
@@ -46,7 +43,6 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.annotation.Query;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
@@ -194,19 +190,19 @@ public class Utils {
 				Bundle selfBundle = Platform.getBundle(Env.PLUGIN_ID);
 				if (selfBundle == null) {
 					if (Options.uiverboseness)
-						Log.log("No self plugin");
+						Log.log("No self plugin"); //$NON-NLS-1$
 				} else {
-					URL url = FileLocator.toFileURL(selfBundle.getResource(""));
+					URL url = FileLocator.toFileURL(selfBundle.getResource(Strings.slash));
 					if (url != null) {
 						File root = new File(url.toURI());
 						if (Options.uiverboseness)
-							Log.log("Self bundle found " + root + " "
+							Log.log("Self bundle found " + root + Strings.space //$NON-NLS-1$
 									+ root.exists());
 						int i = 0;
 						if (root.isDirectory()) {
 							for (int v = version; v >= 4; --v) {
-								File f = new File(root, ".." + filesep
-										+ "specs" + filesep + "java" + v);
+								File f = new File(root, ".." + filesep //$NON-NLS-1$
+										+ "specs" + filesep + "java" + v);  //$NON-NLS-1$//$NON-NLS-2$
 								if (f.exists())
 									defspecs[i++] = f.toString();
 							}
@@ -269,7 +265,7 @@ public class Utils {
 		if (!checkForDirtyEditors()) return;
 		List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
-			showMessage(shell, "JML Check", "Nothing appropriate to check"); //$NON-NLS-2$
+			showMessage(shell, "JML Check", "Nothing appropriate to check");
 			return;
 		}
 		deleteMarkers(res, shell);
@@ -361,7 +357,6 @@ public class Utils {
 		};
         IResourceRuleFactory ruleFactory = 
                 ResourcesPlugin.getWorkspace().getRuleFactory();
-// FIXME        ISchedulingRule rule = ruleFactory.markerRule(r);
 		j.setRule(jp.getProject());
 		j.setUser(true); // true since the job has been initiated by an end-user
 		j.schedule();
@@ -649,22 +644,39 @@ public class Utils {
 					sn = "field "
 							+ f.getDeclaringType().getFullyQualifiedName()
 							+ "." + f.getElementName();
+				} else if (o instanceof ICompilationUnit) {
+					ICompilationUnit cu = (ICompilationUnit)o;
+					IType[] types = cu.getTypes();
+					StringBuilder ss = new StringBuilder();
+					for (IType t: types) {
+						s = getInterface(t.getJavaProject()).getAllSpecs(t);
+						if (s != null) s = s.replace('\r', ' ');
+						if (s.length() == 0)
+							s = "<no specifications>";
+						ss.append(s);
+						ss.append("\n");
+					}
+					sn = "classes in file " + cu.getPath().toString();
+					s = ss.toString();
 				} else if (o instanceof IFile) {
 					IFile f = (IFile) o;
 					ICompilationUnit cu = JavaCore.createCompilationUnitFrom(f);
 					IType[] types = cu.getTypes();
-					IType t = types[0]; // FIXME - find the one public type
-//					JavaFileObject jfo = JmlSpecs.instance(
-//							getInterface(JavaCore.create(f.getProject())).api.context()).findAnySpecFile(
-//							t.getFullyQualifiedName());
-//					Log.log("JFO = " + jfo.getName());
-//					Path p = new Path(jfo.getName());
-//					IFile ff = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
-//					Log.log("File = " + ff);
-					s = getInterface(t.getJavaProject()).getAllSpecs(t);
-					if (s != null)
-						s = s.replace('\r', ' ');
-					sn = "type " + t.getFullyQualifiedName();
+					StringBuilder ss = new StringBuilder();
+					for (IType t: types) {
+						s = getInterface(t.getJavaProject()).getAllSpecs(t);
+						if (s != null) s = s.replace('\r', ' ');
+						if (s.length() == 0)
+							s = "<no specifications>";
+						ss.append(s);
+						ss.append("\n");
+					}
+					sn = "classes in file " + f.toString();
+					s = ss.toString();
+				} else {
+					showMessageInUINM(shell, "Specifications",
+							"Cannot show specifications for a " + o.getClass());
+					return;
 				}
 				if (s != null) {
 					if (s.length() == 0)
@@ -682,9 +694,9 @@ public class Utils {
 	}
 	
 	public List<IType> findMatchingClassNames(IJavaProject jp, String text) throws JavaModelException {
-		String classname = "/" + text.replace('.', '/') + ".class"; //$NON-NLS-1$ //$NON-NLS-2$
-		String dotText = "." + text;
-		String dollarText = "$" + text;
+		String classname = Strings.slash + text.replace('.', '/') + ".class"; //$NON-NLS-1$ 
+		String dotText = Strings.dot + text;
+		String dollarText = Strings.dollar + text;
 		List<IType> matches = new LinkedList<IType>();
 		for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
 			// cpe is SOURCE, PROJECT, or LIBRARY
@@ -1004,9 +1016,9 @@ public class Utils {
 			w.println("<Error in generating default content>");
 		}
 		w.close();
-		ww.println("package " + t.getPackageFragment().getElementName() + ";");
+		ww.println("package " + t.getPackageFragment().getElementName() + Strings.semicolon); //$NON-NLS-1$
 		for (String s : imports) {
-			ww.println("import " + s + ";");
+			ww.println("import " + s + Strings.semicolon); //$NON-NLS-1$
 		}
 		ww.println();
 		ww.println(sw.toString());
@@ -1018,7 +1030,7 @@ public class Utils {
 			throws JavaModelException {
 		ITypeHierarchy th = t.newSupertypeHierarchy(null);
 		IType sup = th.getSuperclass(t);
-		if (sup.getFullyQualifiedName().equals("java.lang.Object"))
+		if (sup.getFullyQualifiedName().equals("java.lang.Object")) //$NON-NLS-1$
 			sup = null;
 		IType[] ifaces = th.getSuperInterfaces(t);
 		if (sup != null)
@@ -1028,21 +1040,21 @@ public class Utils {
 		w.println();
 		// FIXME - annotations
 		w.print(Flags.toString(t.getFlags()));
-		w.print(" class ");
+		w.print(" class "); //$NON-NLS-1$
 		printType(w, t, imports);
 		if (sup != null) {
-			w.print(" extends ");
+			w.print(" extends "); //$NON-NLS-1$
 			printType(w, sup, imports);
 		}
 		if (ifaces.length > 0)
-			w.print(" implements");
+			w.print(" implements"); //$NON-NLS-1$
 		boolean isFirst = true;
 		for (IType i : ifaces) {
 			if (isFirst)
 				isFirst = false;
 			else
-				w.print(",");
-			w.print(" ");
+				w.print(Strings.comma);
+			w.print(Strings.space);
 			printType(w, i, imports);
 		}
 		w.println(" {");
@@ -1080,7 +1092,7 @@ public class Utils {
 		// w.print(";");
 		// }
 		w.println();
-		w.println("}");
+		w.println("}"); //$NON-NLS-1$
 	}
 
 	// FIXME - document
@@ -1089,29 +1101,29 @@ public class Utils {
 		w.print(t.getElementName());
 		ITypeParameter[] tparams = t.getTypeParameters();
 		if (tparams.length != 0) {
-			w.print("<");
+			w.print("<"); //$NON-NLS-1$
 			boolean isFirst = true;
 			for (ITypeParameter tp : tparams) {
 				if (isFirst)
 					isFirst = false;
 				else
-					w.print(",");
+					w.print(Strings.comma);
 				w.print(tp.getElementName());
 				String[] bounds = tp.getBounds();
 				if (bounds.length > 0) {
-					w.print(" extends");
+					w.print(" extends"); //$NON-NLS-1$
 					boolean isFirst2 = true;
 					for (String s : bounds) {
 						if (isFirst2)
 							isFirst2 = false;
 						else
-							w.print(" &");
-						w.print(" ");
+							w.print(" &"); //$NON-NLS-1$
+						w.print(Strings.space);
 						w.print(s);
 					}
 				}
 			}
-			w.print(">");
+			w.print(">"); //$NON-NLS-1$
 		}
 	}
 
@@ -1128,6 +1140,8 @@ public class Utils {
 	 */
 	public void showProofInfoForSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, Shell shell) {
+		showMessageInUI(shell,"OpenJML","Proof information is not implemented");
+		if (true) return;
 		List<Object> olist = getSelectedElements(selection, window, shell);
 		List<IMethod> list = new LinkedList<IMethod>();
 		for (Object o : olist) {
@@ -1137,7 +1151,7 @@ public class Utils {
 			// selected, particularly with a MenuAction.
 		}
 		if (list.isEmpty()) {
-			showMessage(shell, "JML",
+			showMessage(shell, "JML", //$NON-NLS-1$
 					"No methods were selected for the 'show proof info' operation");
 		} else {
 			for (IMethod m : list) {
@@ -1779,48 +1793,20 @@ public class Utils {
 		if (changingClasspath)
 			return null;
 		try {
-			String runtime = findInternalRuntime();
-			if (runtime == null) {
-				if (Options.uiverboseness)
-					Log.log("No internal runtime found");
-				return null;
-			}
-			IClasspathEntry libentry = makeRelative(runtime);
-
-//			IPath p = new Path("ECLIPSE_HOME").append("plugins");
-//			IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
-//			IPath pp = JavaCore.getResolvedClasspathEntry(libe).getPath();
-//			if (pp != null) {
-//				File[] ffs = pp.toFile().listFiles(new FilenameFilter() { public boolean accept(File f, String s) { return s.contains("OpenJMLUI_"); }});
-//				if (ffs != null && ffs.length > 0) {
-//					String s;
-//					if (ffs.length > 1) {
-//						Arrays.sort(ffs,0,ffs.length,
-//								new Comparator<File>() { public int compare(File f, File g) { return -(new Long(f.lastModified()).compareTo(g.lastModified())); }} );
-//						
-//					}
-//					s = ffs[0].getName();
-//					p = p.append(s).append("jmlruntime.jar");
-//					libentry = JavaCore.newVariableEntry(p,null,null);
-//				}
-//			}
-//			if (rpath != null) {
-//				libentry = JavaCore.newVariableEntry(rpath,null,null);
-//			}
-//			if (libentry == null) {
-//				IPath path = new Path(runtime);
-//				libentry = JavaCore.newLibraryEntry(path, null, null);
-//			}
 			IClasspathEntry[] entries = jproject.getRawClasspath();
 			for (IClasspathEntry i : entries) {
-				if (i.getEntryKind() == IClasspathEntry.CPE_LIBRARY
-						&& i.equals(libentry)) {
-					if (Options.uiverboseness)
-						Log.log("Internal runtime already on classpath: "
-								+ runtime);
+				if (i.getPath().lastSegment().equals(ClasspathVariableInitializer.OPENJML_RUNTIME_LIBRARY)) {
+					showMessageInUI(null,"OpenJML","Internal runtime library is already on the classpath");
+					return i;
+				}
+				if (i.getPath().lastSegment().equals(RUNTIME_LIBRARY)) {
+					showMessageInUI(null,"OpenJML","Classpath already contains a manually added jmlruntime.jar library");
 					return i;
 				}
 			}
+
+			IClasspathEntry libentry = makeRuntimeLibEntry();
+
 			final IClasspathEntry[] newentries = new IClasspathEntry[entries.length + 1];
 			System.arraycopy(entries, 0, newentries, 0, entries.length);
 			newentries[entries.length] = libentry;
@@ -1828,7 +1814,7 @@ public class Utils {
 				changingClasspath = true;
 				if (Options.uiverboseness)
 					Log.log("Internal runtime being added to classpath: "
-							+ runtime);
+							+ libentry);
 
 				try {
 					jproject.getProject().getWorkspace()
@@ -1868,7 +1854,8 @@ public class Utils {
 			int j = 0;
 			if (entry == null) {
 				for (IClasspathEntry i : entries) {
-					if (!i.getPath().lastSegment().equals("jmlruntime.jar")) { // FIXME - use a String somewhere
+					if (!i.getPath().lastSegment().equals(RUNTIME_LIBRARY) &&
+							!i.getPath().lastSegment().equals(ClasspathVariableInitializer.OPENJML_RUNTIME_LIBRARY)) {
 						newentries[j++] = i;
 					}
 				}
@@ -2367,12 +2354,12 @@ public class Utils {
 			final int finalEnd, final int type) {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				String name = type == IProverResult.Span.NORMAL ? ".JMLHighlight"
-						: type == IProverResult.Span.TRUE ? ".JMLHighlightTrue"
-								: type == IProverResult.Span.FALSE ? ".JMLHighlightFalse"
-										: type == IProverResult.Span.EXCEPTION ? ".JMLHighlightException"
-												: ".JMLHighlight";
-				IMarker marker = r.createMarker(Env.PLUGIN_ID + name);
+				String name = type == IProverResult.Span.NORMAL ? Env.JML_HIGHLIGHT_ID
+						: type == IProverResult.Span.TRUE ? Env.JML_HIGHLIGHT_ID_TRUE
+								: type == IProverResult.Span.FALSE ? Env.JML_HIGHLIGHT_ID_FALSE
+										: type == IProverResult.Span.EXCEPTION ? Env.JML_HIGHLIGHT_ID_EXCEPTION
+												: Env.JML_HIGHLIGHT_ID;
+				IMarker marker = r.createMarker(name);
 				// marker.setAttribute(IMarker.LINE_NUMBER,
 				// finalLineNumber >= 1? finalLineNumber : 1);
 				// if (column >= 0) {
@@ -2746,86 +2733,14 @@ public class Utils {
 		job.schedule();
 	}
 
+    public static final String RUNTIME_LIBRARY = Strings.runtimeJarName;
 
-	/**
-	 * Returns the path to the internal run-time
-	 * library (which holds definitions of annotations and some runtime
-	 * utilities for RAC), or null without an error message if the library could
-	 * not be found. If the argument is true, then the returned path is an absolute,
-	 * local-file-system path; if the argument is false, then the returned path will
-	 * be in reference to the ECLIPSE_HOME (or other) variables.
-	 * 
-	 * @return the absolute path
-	 */
-	public String findInternalRuntime() {
-		String file = null;
-		try {
-			Bundle selfBundle = Platform.getBundle(Env.PLUGIN_ID);
-			URL url = null;
-			if (selfBundle == null) {
-				if (Options.uiverboseness)
-					Log.log("No self plugin"); // FIXME - an error?
-			} else {
-				// We want to include the runtime library in the classpath for
-				// the user. The runtime library is part of the UI plug-in, but
-				// not as a jar file.
-				if (url == null) {
-					url = FileLocator.toFileURL(selfBundle.getResource(""));
-					if (url != null) {
-						// In development mode (launching the plug-in from
-						// Eclipse, the url of the selfBundle is the bin
-						// directory of the OpenJMLUI plug-in; we
-						// can find the jmlruntime.jar library one level up.
-						File root = new File(url.toURI());
-						if (root.isDirectory()) {
-							File f = new File(root, "jmlruntime.jar");
-							if (f.exists()) {
-								file = f.toString().replace('\\', '/');
-								if (Options.uiverboseness)
-									Log.log("Internal runtime location: " + file);
-							} else {
-								f = new File(root, "../jmlruntime.jar");
-								if (f.exists()) {
-									file = f.toString().replace('\\', '/');
-									if (Options.uiverboseness)
-										Log.log("Internal runtime location: "
-												+ file);
-								}
-							}
-						}
-					}
-
-				}
-			}
-		} catch (Exception e) {
-			Log.errorlog("Failure finding internal runtime", e);
-		}
-		return file;
-	}
-	
-	public IClasspathEntry makeRelative(String file) {
-		String envname = "ECLIPSE_HOME";
-		if (file == null) return null;
+	/** Makes a classpath entry corresponding to the jmlruntime.jar library */
+	public IClasspathEntry makeRuntimeLibEntry() {
+		String envname = ClasspathVariableInitializer.OPENJML_RUNTIME_LIBRARY;
 		IPath p = new Path(envname);
 		IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
-		libe = JavaCore.getResolvedClasspathEntry(libe);
-		if (libe == null) {
-			showMessageInUI(null,"OpenJML","The environment variable " + envname + " is not defined");
-		}
-		IPath pp = libe == null ? null : libe.getPath();
-
-		IPath ppp = new Path(file);
-		IPath ppprel = pp == null ? ppp : ppp.makeRelativeTo(pp);
-		
-		IClasspathEntry libentry;
-		if (ppp != ppprel && !ppprel.segment(0).equals("..")) {
-			ppp = p.append(ppprel);
-			libentry = JavaCore.newVariableEntry(ppp,null,null);
-		} else {
-			IPath path = new Path(file);
-			libentry = JavaCore.newLibraryEntry(path, null, null);
-		}
-		return libentry;
+		return libe;
 	}
 	
 	public int countMethods(IJavaProject jp) throws Exception {

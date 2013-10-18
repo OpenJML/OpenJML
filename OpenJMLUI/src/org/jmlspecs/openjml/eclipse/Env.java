@@ -62,15 +62,15 @@ public class Env {
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull
-	String JML_HIGHLIGHT_ID_TRUE = JML_HIGHLIGHT_ID + ".True"; //$NON-NLS-1$
+	String JML_HIGHLIGHT_ID_TRUE = JML_HIGHLIGHT_ID + "True"; //$NON-NLS-1$
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull
-	String JML_HIGHLIGHT_ID_FALSE = JML_HIGHLIGHT_ID + ".False"; //$NON-NLS-1$
+	String JML_HIGHLIGHT_ID_FALSE = JML_HIGHLIGHT_ID + "False"; //$NON-NLS-1$
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull // FIXME - is this still used?
-	String JML_HIGHLIGHT_ID_EXCEPTION = JML_HIGHLIGHT_ID + ".Exception"; //$NON-NLS-1$
+	String JML_HIGHLIGHT_ID_EXCEPTION = JML_HIGHLIGHT_ID + "Exception"; //$NON-NLS-1$
 
 	/** The ID of the marker, which must match that in the plugin file. */
 	final public static @NonNull

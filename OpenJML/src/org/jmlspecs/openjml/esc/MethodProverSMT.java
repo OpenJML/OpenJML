@@ -195,6 +195,10 @@ public class MethodProverSMT {
 
         // newblock is the translated version of the method body
         JCBlock newblock = jmlesc.assertionAdder.methodBiMap.getf(methodDecl).getBody();
+        if (newblock == null) {
+        	log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
+            return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+        }
         if (printPrograms) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println(separator);
@@ -205,9 +209,9 @@ public class MethodProverSMT {
 
         // determine the executable
         String exec = pickProverExec(proverToUse);
-        if (exec == null) {
-            log.warning("esc.no.exec",proverToUse); //$NON-NLS-1$
-            return factory.makeProverResult(proverToUse,IProverResult.SKIPPED);
+        if (exec == null || exec.trim().isEmpty()) {
+            log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
+            return factory.makeProverResult(proverToUse,IProverResult.ERROR);
         }
         
         // create an SMT object, adding any options
@@ -230,7 +234,7 @@ public class MethodProverSMT {
         SMTTranslator smttrans = new SMTTranslator(context);
 
         ISolver solver;
-        IResponse solverResponse ;
+        IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
         BasicProgram program;
         {
@@ -263,15 +267,19 @@ public class MethodProverSMT {
 
             // Starts the solver (and it waits for input)
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
-
-            // Try the prover
-            if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
-            try {
-                solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
-            } catch (Exception e) {
-                // Not sure there is anything to worry about, but just in case
-                log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-                return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            if (solver == null) {
+            	log.error("jml.solver.failed.to.start",exec);
+        		return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            } else {
+            	// Try the prover
+            	if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+            	try {
+            		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            	} catch (Exception e) {
+            		// Not sure there is anything to worry about, but just in case
+            		log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+            		return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            	}
             }
 
         }
@@ -1075,12 +1083,12 @@ public class MethodProverSMT {
 
         @Override
         public void logError(String msg) {
-            log.error("jml.internal",msg); //$NON-NLS-1$
+            log.error("jml.smt.error",msg); //$NON-NLS-1$
         }
 
         @Override
         public void logError(IError result) {
-            log.error("jml.internal",printer.toString(result)); //$NON-NLS-1$
+            log.error("jml.smt.error",printer.toString(result)); //$NON-NLS-1$
         }
 
         @Override

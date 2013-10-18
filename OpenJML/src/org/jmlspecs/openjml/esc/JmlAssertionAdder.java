@@ -969,6 +969,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return M.at(methodDecl).Block(0,initialStatements.toList());
         } catch (JmlNotImplementedException e) {
             throw e;
+        } catch (JmlInternalAbort e) {
+        	return null;
         } catch (RuntimeException e) {
             String message = e.getMessage();
             if (message == null) message = "Internal exception: " + e.getClass();

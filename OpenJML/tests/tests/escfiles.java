@@ -237,5 +237,17 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escAdd2/Add.java","testfiles/escAdd2","-classpath","testfiles/escAdd2","-progress","-jmltesting","-timeout=30");
     }
 
+    @Test
+    public void testCashAmount() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-show","-method=negate","-trace","-subexpressions");
+    }
+
+    @Test
+    public void testCashAmount2() {
+        expectedExit = 1;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
+    }
+
 
 }

@@ -21,6 +21,11 @@ public class Strings {
 	static public final String empty = ""; //$NON-NLS-1$
     static public final String underscore = "_"; //$NON-NLS-1$
     static public final String space = " "; //$NON-NLS-1$
+    static public final String comma = ","; //$NON-NLS-1$
+    static public final String slash = "/"; //$NON-NLS-1$
+    static public final String backslash = "\\"; //$NON-NLS-1$
+    static public final String semicolon = ";"; //$NON-NLS-1$
+    static public final String dollar = "$"; //$NON-NLS-1$
     static public final String dot = "."; //$NON-NLS-1$
     static public final String eol = System.getProperty("line.separator");
 	
