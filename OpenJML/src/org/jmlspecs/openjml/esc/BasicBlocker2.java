@@ -1757,7 +1757,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     // OK // FIXME - does this expression type appear? in REF case it should be a noop
     @Override public void visitTypeCast(JCTypeCast that) { 
-        scan(that.clazz); // FIXME - if the type tree is rewritten, we are not capturing the result
+        //scan(that.clazz); // FIXME - if the type tree is rewritten, we are not capturing the result
         that.expr = convertExpr(that.expr);
         result = that; 
     }

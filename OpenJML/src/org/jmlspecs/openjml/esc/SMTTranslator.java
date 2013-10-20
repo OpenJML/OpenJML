@@ -76,6 +76,7 @@ import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Factory;
 import org.smtlib.impl.Script;
 
+import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -817,6 +818,15 @@ public class SMTTranslator extends JmlTreeScanner {
             return refSort;
         } else if (t.tag == TypeTags.BOT) {
             return refSort;
+        } else if (t.tag == TypeTags.UNKNOWN){
+            if (t instanceof JmlType) {
+                JmlType jt = (JmlType)t;
+                if (jt.jmlTypeTag() == JmlToken.BSBIGINT) return intSort; 
+                if (jt.jmlTypeTag() == JmlToken.BSREAL) return realSort; 
+                if (jt.jmlTypeTag() == JmlToken.BSTYPEUC) return intSort; // FIXME
+            }
+            // FIXME - errors
+            return refSort; // FIXME - just something
         } else if (t instanceof Type.TypeVar) {
             return refSort;
         } else {
@@ -1128,10 +1138,15 @@ public class SMTTranslator extends JmlTreeScanner {
     public void visitTypeCast(JCTypeCast tree) {
         result = convertExpr(tree.expr);
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
-            // If this is a cast from primitive type to primitive type, we can ignore it
             int tagr = tree.type.tag;
             int tage = tree.expr.type.tag;
-            if (!tree.type.isPrimitive()) {
+            if (tage == TypeTags.UNKNOWN || tagr == TypeTags.UNKNOWN) { 
+                if (tage <= TypeTags.LONG && tagr == TypeTags.UNKNOWN && ((JmlType)tree.type).jmlTypeTag() == JmlToken.BSBIGINT) {
+                    // int to \bigint -- OK
+                } else {
+                    // ????? FIXME
+                }
+            } else if (!tree.type.isPrimitive()) {
                 // If this is a cast from reference type to reference type, we can ignore it
             } else if (tree.expr instanceof JCLiteral) {
                 Object v = ((JCLiteral)tree.expr).getValue();
@@ -1355,8 +1370,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (range != null) value = F.fcn(impliesSym,range,value);
                 result = F.forall(params,value);
             } else if (that.op == JmlToken.BSEXISTS) {
-                if (range != null) value = F.fcn(impliesSym,range,value);
-                result = F.forall(params,value);
+                if (range != null) value = F.fcn(F.symbol("and"),range,value);
+                result = F.exists(params,value);
             } else {
                 notImpl("JML Quantified expression using " + that.op.internedName());
             }

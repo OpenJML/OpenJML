@@ -190,7 +190,7 @@ public class escfiles extends EscBase {
     @Test // FIXME - hangs up sometimes with some solvers
     public void testLoopExercises() {
         expectedExit = 0;
-        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA","-timeout=30");
+        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA","-timeout=30","-jmltesting");
     }
 
     @Test @Ignore
@@ -239,13 +239,13 @@ public class escfiles extends EscBase {
 
     @Test
     public void testCashAmount() {
-        expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-show","-method=negate","-trace","-subexpressions");
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
     }
 
     @Test
     public void testCashAmount2() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
     }
 

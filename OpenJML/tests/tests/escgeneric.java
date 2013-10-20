@@ -177,8 +177,9 @@ public class escgeneric extends EscBase {
     }
  
     // FIXME - autoboxing not working for ESC
-    @Ignore @Test
+    @Test
     public void testForEach3() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -188,7 +189,7 @@ public class escgeneric extends EscBase {
                 );
     }
 
-    @Ignore @Test
+    @Test
     public void testForEach3bad() {
         helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
