@@ -585,5 +585,16 @@ private void test17a(){
         
     }
     
+    void test29(@Channel("DISPLAY") int a) {
+        
+        /*@ level(PUBLIC) */ int b = 0;
+   
+        // ok - with warning.
+        a = b;
+        // not ok
+        b = a;
+    }  
+
+    
 }
 
