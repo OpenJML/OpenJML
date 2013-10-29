@@ -36,8 +36,8 @@ public class ChannelMappings extends HashMap<ChannelName, ChannelSpec>  {
         this.securityLattice = securityLattice;
         createMappingsFromDocument();
     }
-    
-   /**Using the document given to the constructor, populates this ChannelMappings
+       
+/**Using the document given to the constructor, populates this ChannelMappings
     * object with the appropriate key-value pairs.
     * 
     * @throws ChannelAlreadyExistsException

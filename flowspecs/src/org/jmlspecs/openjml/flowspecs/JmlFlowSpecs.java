@@ -19,8 +19,14 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.flowspecs.LatticeParser.LatticeParserException;
+import org.jmlspecs.openjml.flowspecs.channelmappings.ChannelMappings;
+import org.jmlspecs.openjml.flowspecs.channelmappings.ChannelMappingsParser;
+import org.jmlspecs.openjml.flowspecs.channelmappings.ChannelName;
+import org.jmlspecs.openjml.flowspecs.channelmappings.ChannelSpec;
+import org.jmlspecs.openjml.flowspecs.channelmappings.LevelDoesNotExistException;
 
 import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -81,11 +87,13 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     }
 
     public static final String     defaultLatticeFile    = "security.xml";
+    public static final String     defaultChannelFile    = "channels.xml";
 
     public EnumMap<JmlToken, Name> tokenToAnnotationName = new EnumMap<JmlToken, Name>(
                                                                  JmlToken.class);
 
     private Lattice<SecurityType>        lattice;
+    private ChannelMappings              channelMappings;
 
     /**
      * The compilation context, needed to get common tools, but unique to this
@@ -157,24 +165,44 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
         // Loads the security lattice and kicks off the type checking
         //
         File latticeFile = new File(defaultLatticeFile);
+        File channelFile = new File(defaultChannelFile);
 
-        if (latticeFile.exists()) {
+        if(latticeFile.exists()==false){
+            log.error("jml.flowspecs.missing.lattice");
+        }
+        
+        if(channelFile.exists()==false){
+            log.error("jml.flowspecs.missing.channels");
+        }
+        
+        if (latticeFile.exists() && channelFile.exists()) {
             progress(1, 1, String.format("Loading secuirty lattice from %s",
                     latticeFile.getName()));
-            LatticeParser p = new LatticeParser(new File(defaultLatticeFile));
+            LatticeParser p = new LatticeParser(latticeFile);
+            
             try {
+                // build up the security lattice
                 lattice = p.parse();
                 progress(1, 1, "Done.");
 
+                progress(1, 1, String.format("Loading channel mappings from %s",
+                        channelFile.getName()));
+                
+                // build up the channel mappings
+                channelMappings =  new ChannelMappingsParser(channelFile, lattice).parse();
+
+                 
+                progress(1,1,"Done.");
+                
                 tree.accept(this);
 
             } catch (MalformedURLException | DocumentException
                     | LatticeParserException e) {
                 log.error("jml.flowspecs.lattice.error");
+            } catch (LevelDoesNotExistException e){
+                log.error("compiler.err.jml.flowspecs.channels.nolevel.error");
             }
-        } else {
-            log.error("jml.flowspecs.missing.lattice");
-        }
+        } 
     }
 
     //
@@ -242,7 +270,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
     @Override
     public void visitVarDef(JCVariableDecl tree) {
 
-        SecurityType lt = resolveType(tree.sym);
+        SecurityType lt = resolveType(tree, tree.sym);
         result = lt;
 
         if (tree.init != null) {
@@ -294,7 +322,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
             // if the expr is a literal we just always let it pass
             if (tree.expr instanceof JCLiteral == false) {
                 SecurityType returnType = attribExpr(tree.expr, env);
-                SecurityType methodType = resolveType(m);
+                SecurityType methodType = resolveType(tree, m);
 
                 check(tree, returnType, methodType);
             }
@@ -306,10 +334,10 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
     @Override
     public void visitIdent(JCIdent tree) {
-        result = resolveType(tree.sym);
+        result = resolveType(tree, tree.sym);
     }
 
-    private SecurityType resolveType(Symbol s) {
+    private SecurityType resolveType(JCTree tree, Symbol s) {
 
         SecurityType t = null;
         if (s != null) {
@@ -327,18 +355,40 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
                     // do a little more work to figure out the type;
                     if (c.type.tsym.flatName().equals(
                             tokenToAnnotationName.get(JmlToken.CHANNEL))) {
+                        
+                        // locate the channel
+                        ChannelSpec spec = channelMappings.get(new ChannelName(label));
+                        
+                        if(spec!=null){
+                            
+                            // input channel
+                            if(s.getEnclosingElement().kind==Kinds.MTH){
+                                label = spec.getInputLevel();
+                            }else{
+                                label = spec.getOutputLevel();
+                            }
+                            
+                        }else{
+                            log.error(tree.pos, "jml.flowspecs.lattice.missingchannel", label);
+                        }
+                        
+                        
+                    }
 
-                        // TODO write mapping between channels and levels (no
-                        // really, this has to be done)
+                    
+                    // make sure that the security type exists
 
-                    } else {
-                        t = new SecurityType(label);
+                    t = new SecurityType(label);
+                    
+                    if(lattice.getVertexes().contains(t)==false){
+                        log.error(tree.pos, "jml.flowspecs.lattice.missinglevel", label);
+                        t = null;
                     }
 
                 }
             }
         }
-        // Case 2, we need to infer it.
+        // Case 2, we need to infer it (or use it as a recovery condition)
         if (t == null) {
             t = lattice.getTop();
         }
@@ -379,7 +429,7 @@ public class JmlFlowSpecs extends JmlEETreeScanner {
 
                 JCExpression currentExpr = tree.getArguments().get(i);
 
-                SecurityType lt = resolveType(referenceSymbol);
+                SecurityType lt = resolveType(tree, referenceSymbol);
                 SecurityType rt = attribExpr(currentExpr, env, lt);
 
                 result = check(tree, lt, rt);
