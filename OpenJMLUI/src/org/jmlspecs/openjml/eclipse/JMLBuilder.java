@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -236,7 +237,13 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		}
 		ResourceVisitor v = new ResourceVisitor();
 		project.accept(v);
-		Activator.getDefault().utils.racClear(jproject,null,monitor);
+		// Don't clear if the rac directory is the bin directory
+		String rd = Activator.getDefault().utils.getRacDir();
+		IPath rdd = jproject.getProject().findMember(rd).getFullPath(); // relative to workspace
+		IPath output = jproject.getOutputLocation(); // also relative to workspace
+		if (!rdd.equals(output)) {
+			Activator.getDefault().utils.racClear(jproject,null,monitor);
+		}
 		doAction(jproject,v.resourcesToBuild,monitor,true);
 		v.resourcesToBuild.clear();
 		if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$

@@ -2649,10 +2649,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // corresponding parameter of the target method.
             // We need this even if names have not changed, because the parameters 
             // will have been attributed with different symbols.
-            Iterator<VarSymbol> iter = msym.params.iterator();
-            paramActuals = new HashMap<Symbol,JCExpression>();
-            for (JCVariableDecl dp: methodDecl.params) {
-                paramActuals.put(iter.next(),treeutils.makeIdent(dp.pos, dp.sym));
+            if (denestedSpecs.decl != null) {
+                Iterator<JCVariableDecl> iter = denestedSpecs.decl.params.iterator();
+                paramActuals = new HashMap<Symbol,JCExpression>();
+                for (JCVariableDecl dp: methodDecl.params) {
+                    JCVariableDecl newdecl = iter.next();
+                    paramActuals.put(newdecl.sym,treeutils.makeIdent(dp.pos, dp.sym));
+                }
+            } else { // FIXME - why should denestedSpecs ever not have a declaration if there are any specs to use
+                Iterator<VarSymbol> iter = msym.params.iterator();
+                paramActuals = new HashMap<Symbol,JCExpression>();
+                for (JCVariableDecl dp: methodDecl.params) {
+                    VarSymbol newsym = iter.next();
+                    paramActuals.put(newsym,treeutils.makeIdent(dp.pos, dp.sym));
+                }
             }
 
 

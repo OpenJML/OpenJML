@@ -249,5 +249,29 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
     }
 
+    @Test
+    public void testVector() {
+        expectedExit = 0;
+        helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-show","-method=elementAt");
+    }
+
+    @Test
+    public void testDMZLoop() {
+        expectedExit = 0;
+        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-jmltesting","-timeout=30","-show","-subexpressions","-method=findMax");
+    }
+
+    @Test
+    public void testRecursiveInvariant() {
+        expectedExit = 0;
+        helpTCF("testfiles/escRecursiveInvariant/RecursiveInvariant.java","testfiles/escRecursiveInvariant","-classpath","testfiles/escRecursiveInvariant","-progress","-jmltesting","-timeout=30");
+    }
+
+    @Test
+    public void testBadCast() {
+        expectedExit = 0;
+        helpTCF("testfiles/escBadCast/BadCast.java","testfiles/escBadCast","-classpath","testfiles/escBadCast","-progress","-jmltesting","-timeout=30");
+    }
+
 
 }
