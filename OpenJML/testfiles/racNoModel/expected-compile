@@ -1,0 +1,6 @@
+C:\cygwin\home\dcok\eprojects\Specs\java5\java\lang\Object.jml:66: warning: A clause is skipped because it contains a model field without representation: 
+      @     ensures \result == theHashCode;
+            ^
+Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 warning

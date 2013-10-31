@@ -23,6 +23,7 @@ public class ESCTest {
     //@ loop_invariant i <= the_array.length;
     //@ loop_invariant (\forall int j; 0 <= j && j < i; the_array[j] <= result);
     //@ loop_invariant i > 0 ==> (\exists int j; 0 <= j && j < i; the_array[j] == result);
+    //@ loop_invariant i == 0 ==> result == Integer.MIN_VALUE;
     //@ decreasing the_array.length - i;
     for (int i = 0; i < the_array.length; i++) {
       if (result < the_array[i]) {

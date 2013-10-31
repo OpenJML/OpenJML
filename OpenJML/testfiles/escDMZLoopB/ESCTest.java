@@ -16,13 +16,13 @@ public class ESCTest {
    * than once, we do not define which of the indices we return.
    */
   public /*@ pure */ int findMax(final int[] the_array) {
-    int result = Integer.MIN_VALUE;
-    //@ assume the_array[0] >= Integer.MIN_VALUE;
+    int result = the_array[0];
     
     //@ loop_invariant 0 <= i;
     //@ loop_invariant i <= the_array.length;
     //@ loop_invariant (\forall int j; 0 <= j && j < i; the_array[j] <= result);
     //@ loop_invariant i > 0 ==> (\exists int j; 0 <= j && j < i; the_array[j] == result);
+    //@ loop_invariant i == 0 ==> result == the_array[0];
     //@ decreasing the_array.length - i;
     for (int i = 0; i < the_array.length; i++) {
       if (result < the_array[i]) {
