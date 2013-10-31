@@ -246,5 +246,12 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/racaddng","testfiles/racaddngall","Add_JML_Test","-cp","testfiles/racaddngall;testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
     }
 
+    @Test
+    public void racNoModel() {
+        rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
+        expectedExit = 0;
+        helpTCF("testfiles/racNoModel","testfiles/racNoModel","NoModelTest");
+    }
+
 
 }

@@ -1426,6 +1426,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         throw new JmlInternalError(msg);
     }
     
+    /** Issue an internal warning message and throw an exception. */
+    protected void warning(DiagnosticPosition pos, String key, Object ...  msg) {
+        log.warning(pos, key, msg);
+    }
+    
     // FIXME - this is a hack - fix and document
     // These are used so that we don't send repeated notImplemented messages
     static Set<String> racMessages = new HashSet<String>();
@@ -2840,6 +2845,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 break;
                             default:
                         }
+                    } catch (NoModelMethod e) {
+                        JavaFileObject orig = log.useSource(clause.source());
+                        warning(clause,"jml.skipping.no.model",""); // FIXME - can we tell which field is not implemented?
+                        log.useSource(orig);
+                        // continue - ignore any clause containing a model field that is not represented
                     } catch (JmlNotImplementedException e) {
                         notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                         continue;

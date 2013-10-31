@@ -237,10 +237,10 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escAdd2/Add.java","testfiles/escAdd2","-classpath","testfiles/escAdd2","-progress","-jmltesting","-timeout=30");
     }
 
-    @Test
+    @Test @Ignore // CVC4 crashes
     public void testCashAmount() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-escMaxWarnings=1");
     }
 
     @Test
@@ -255,10 +255,22 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-show","-method=elementAt");
     }
 
-    @Test
+    @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
     public void testDMZLoop() {
         expectedExit = 0;
-        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-jmltesting","-timeout=30","-show","-subexpressions","-method=findMax");
+        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-jmltesting","-timeout=30","-method=findMax");
+    }
+
+    @Test
+    public void testDMZLoopA() {
+        expectedExit = 0;
+        helpTCF("testfiles/escDMZLoopA/ESCTest.java","testfiles/escDMZLoopA","-classpath","testfiles/escDMZLoopA","-progress","-jmltesting","-timeout=30","-method=findMax");
+    }
+
+    @Test
+    public void testDMZLoopB() {
+        expectedExit = 0;
+        helpTCF("testfiles/escDMZLoopB/ESCTest.java","testfiles/escDMZLoopB","-classpath","testfiles/escDMZLoopB","-progress","-jmltesting","-timeout=30","-method=findMax");
     }
 
     @Test
@@ -271,6 +283,13 @@ public class escfiles extends EscBase {
     public void testBadCast() {
         expectedExit = 0;
         helpTCF("testfiles/escBadCast/BadCast.java","testfiles/escBadCast","-classpath","testfiles/escBadCast","-progress","-jmltesting","-timeout=30");
+    }
+
+    // FIXME - fix this test by using define-fun for final fields initialized with compile-time constants
+    @Test
+    public void testCashAmountPrivate2() {
+        expectedExit = 0;
+        helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-progress","-jmltesting","-timeout=30","-method=increase");
     }
 
 
