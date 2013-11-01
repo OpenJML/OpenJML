@@ -292,5 +292,10 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-progress","-jmltesting","-timeout=30","-method=increase");
     }
 
+    @Test
+    public void testDoublyLinkedList() {
+        helpTCF("testfiles/escDoublyLinkedList/DoublyLinkedList.java","testfiles/escDoublyLinkedList","-classpath","testfiles/escDoublyLinkedList","-progress","-jmltesting","-timeout=30");
+    }
+
 
 }
