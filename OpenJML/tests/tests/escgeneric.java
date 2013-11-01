@@ -176,27 +176,50 @@ public class escgeneric extends EscBase {
                 );
     }
  
-    // FIXME - autoboxing not working for ESC
     @Test
-    public void testForEach3() {
-        main.addOptions("-show");
-        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+    public void testUnboxing() {
+        main.addOptions("-method=m");
+        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
-                +"//@ loop_invariant sum >= 0; \n"
-                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
                 );
     }
 
     @Test
+    public void testForEach3() {
+        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (Integer o: list) { /*@ assume o != null && o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                );
+    }
+
+    @Test
+    public void testForEach3a() {
+        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
+                +"int sum = 0; \n"
+                +"//@ loop_invariant sum >= 0; \n"
+                +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
+                +"//@ assert sum >= 0; \n"
+                +"}}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13
+                );
+    }
+
+    @Test
     public void testForEach3bad() {
-        helpTCX("tt.TestJava"," class A { void m(java.util.List<Integer> list) { \n "
+        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
                 +"//@ assert sum > 0; \n"
                 +"}}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13
                 );
     }
 

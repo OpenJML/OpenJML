@@ -252,13 +252,13 @@ public class escfiles extends EscBase {
     @Test
     public void testVector() {
         expectedExit = 0;
-        helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-show","-method=elementAt");
+        helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-escMaxWarnings=1");
     }
 
     @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
     public void testDMZLoop() {
         expectedExit = 0;
-        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-jmltesting","-timeout=30","-method=findMax");
+        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-jmltesting","-timeout=30","-method=findMax","-show");
     }
 
     @Test

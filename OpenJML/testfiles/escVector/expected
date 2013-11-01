@@ -1,0 +1,28 @@
+Proving methods in Vector
+Starting proof of Vector.Vector(int,int) with prover !!!!
+testfiles\escVector\Vector.java:55: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method <init>
+    my_element_data = new Object[the_initial_capacity];
+                      ^
+Completed proof of Vector.Vector(int,int) with prover !!!! - with warnings
+Starting proof of Vector.add(java.lang.Object) with prover !!!!
+testfiles\escVector\Vector.java:67: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
+      final Object[] new_data = new Object[my_element_count + my_capacity_increment];
+                                ^
+Completed proof of Vector.add(java.lang.Object) with prover !!!! - with warnings
+Starting proof of Vector.copyInto(java.lang.Object[]) with prover !!!!
+testfiles\escVector\Vector.java:87: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
+      the_array[i] = my_element_data[i];
+               ^
+Completed proof of Vector.copyInto(java.lang.Object[]) with prover !!!! - with warnings
+Starting proof of Vector.indexOf(java.lang.Object,int) with prover !!!!
+testfiles\escVector\Vector.java:106: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
+      if (the_elem.equals(my_element_data[i])) {
+                                         ^
+Completed proof of Vector.indexOf(java.lang.Object,int) with prover !!!! - with warnings
+Starting proof of Vector.elementAt(int) with prover !!!!
+testfiles\escVector\Vector.java:127: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method elementAt
+      return my_element_data[the_index];
+                            ^
+Completed proof of Vector.elementAt(int) with prover !!!! - with warnings
+Completed proving methods in Vector
+5 warnings

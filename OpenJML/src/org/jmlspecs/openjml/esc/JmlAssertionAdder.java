@@ -5815,8 +5815,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCExpression addImplicitConversion(DiagnosticPosition pos, Type newtype, JCExpression expr) {
         if (pureCopy) return expr;
         
-        boolean isPrim = expr.type.isPrimitive();
-        boolean newIsPrim = newtype.isPrimitive();
+        boolean isPrim = expr.type.isPrimitive() && expr.type.tag != TypeTags.BOT;
+        boolean newIsPrim = newtype.isPrimitive() && expr.type.tag != TypeTags.BOT;
         
         // If we are converting from a non-primitive to primitive type (unboxing),
         // check that the expression is not null
@@ -5888,6 +5888,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return tt;
     }
     
+    protected Type boxedType(Type t) {
+        Type tt = types.boxedTypeOrType(t);
+        return tt;
+    }
+    
     protected JCExpression createUnboxingExpr(JCExpression expr) {
         Type unboxed = unboxedType(expr.type);
         int tag = unboxed.tag;
@@ -5922,13 +5927,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCIdent id = M.Ident(names.fromString(methodName));
         // T id
         JCIdent tmp = newTemp(expr.pos(), newtype); // the result - uninitialized id of type 'newtype'
-        JmlMethodInvocation call = M.at(expr).JmlMethodInvocation(id, List.<JCExpression>of(tmp));
-        call.setType(expr.type); // Note: no symbol set, OK since this is esc
-        JCExpression e = treeutils.makeEquality(expr.pos,call,expr);
+        // assume id != null
+        JCExpression e = treeutils.makeNeqObject(expr.getPreferredPosition(), tmp, treeutils.nullLit);
         addAssume(expr,Label.IMPLICIT_ASSUME,e);
 
-        // assume id != null
-        e = treeutils.makeNeqObject(expr.getPreferredPosition(), tmp, treeutils.nullLit);
+        JmlMethodInvocation call = M.at(expr).JmlMethodInvocation(id, List.<JCExpression>of(tmp));
+        call.setType(expr.type); // Note: no symbol set, OK since this is esc
+        e = treeutils.makeEquality(expr.pos,call,expr);
         addAssume(expr,Label.IMPLICIT_ASSUME,e);
 
         // assume 
@@ -6356,8 +6361,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Symbol s = utils.findMember(syms.stringType.tsym,"concat");
             if (s == null) log.error(that,"jml.internal","Could not find the concat method");
             else {
-                JCExpression meth = M.at(that).Select(that.lhs,s);
-                JCMethodInvocation call = M.at(that).Apply(null, meth, List.<JCExpression>of(that.rhs)).setType(that.type);
+            	JCMethodInvocation call;
+            	JCExpression lhs = that.getLeftOperand();
+            	JCExpression rhs = that.getRightOperand();
+            	if (esc) {
+            	    lhs = convertExpr(lhs);
+            	    if (lhs.type.isPrimitive() && lhs.type.tag != TypeTags.BOT) {
+            	        lhs = addImplicitConversion(that.getLeftOperand(),boxedType(lhs.type),lhs);
+            	    }
+            	    rhs = convertExpr(rhs);
+            	    if (rhs.type.isPrimitive() && rhs.type.tag != TypeTags.BOT) {
+            	        rhs = addImplicitConversion(that.getRightOperand(),boxedType(rhs.type),rhs);
+            	    }
+            	    JCExpression meth = M.at(that).Select(lhs,s);
+            	    call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
+            	} else {
+            	    JCExpression meth = M.at(that).Select(lhs,s);
+            	    call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
+            	}
                 visitApply(call);
             }
             return;
@@ -6409,8 +6430,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
         } else if (translatingJML) {
             Type maxJmlType = that.getLeftOperand().type;
+            boolean lhsIsPrim = that.getLeftOperand().type.isPrimitive() && that.getLeftOperand().type.tag != TypeTags.BOT;
+            boolean rhsIsPrim = that.getRightOperand().type.isPrimitive() && that.getRightOperand().type.tag != TypeTags.BOT;
             if (jmltypes.isJmlType(that.getRightOperand().type)) maxJmlType = that.getRightOperand().type;
-            if (that.getLeftOperand().type.isPrimitive() && that.getRightOperand().type.isPrimitive()
+            if (lhsIsPrim && rhsIsPrim
                     && that.getLeftOperand().type.tag < that.getRightOperand().type.tag) maxJmlType = that.getRightOperand().type;
 
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -6463,7 +6486,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 Type t = that.type;
                 if (t.tag == TypeTags.BOOLEAN) {
                     // Compute a max type - FIXME - need to do this for all types
-                    t = maxJmlType;
+                    if (jmltypes.isJmlType(maxJmlType)) {
+                        t = maxJmlType;
+                    } else if (that.lhs.type.tag == TypeTags.BOT) {
+                        t = boxedType(that.rhs.type);
+                    } else if (that.rhs.type.tag == TypeTags.BOT) {
+                        t = boxedType(that.lhs.type);
+                    } else {
+                        Type tlhs = unboxedType(that.getLeftOperand().type);
+                        Type trhs = unboxedType(that.getRightOperand().type);
+                        t = tlhs;
+                        if (tlhs.tag == TypeTags.BOT || (tlhs.tag < trhs.tag && trhs.tag != TypeTags.BOT)) t = trhs;
+                    }
                 }
                 // FIXME - this is incorrect, but handles Jml primitive types at least
 //                if (jmltypes.isJmlType(t)){ 
@@ -7733,7 +7767,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,that.body,that.cond);
+            loopHelperHavoc(that.body,indexDecl,that.body,that.cond);
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -7885,7 +7919,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.body,that.body,that.expr);
+                loopHelperHavoc(that.body,indexDecl,that.body,that.expr);
             }
 
             // Assume the invariants
@@ -7941,7 +7975,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             // Havoc all items that might be changed in the loop
             if (esc) {
-                loopHelperHavoc(that.body,that.expr,that.body);
+                loopHelperHavoc(that.body,indexDecl,that.expr,that.body);
             }
 
             // Assume the invariants
@@ -7952,9 +7986,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             {
 
                 // iterator.hasNext()
-                JCExpression ocond = methodCallUtilsExpression(array,"hasNext",
+                JCExpression ocond = methodCallUtilsExpression(iter,"hasNext",
                         treeutils.makeIdent(array.pos, decl.sym));
                 JCExpression cond = convertCopy(ocond);
+                
                 addTraceableComment(ocond,ocond,"Loop test");
 
                 // The exit block tests the condition; if exiting, it tests the
@@ -7966,8 +8001,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             loopHelperCheckNegative(decreasesIDs, that);
 
             // T v = ITERATOR.next()
-            JCExpression value = methodCallUtilsExpression(array,"next",
+            JCExpression value = methodCallUtilsExpression(iter,"next",
                     treeutils.makeIdent(array.pos, decl.sym));
+            value.type = that.iterDecl.type.getTypeArguments().get(0);
+            value = newTemp(value);
+            value = addImplicitConversion(array, that.var.type, value);
+
             JCVariableDecl vd = ( treeutils.makeVarDef(
                     that.var.type,
                     that.var.name,
@@ -8032,7 +8071,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(DiagnosticPosition pos, List<? extends JCTree> list, JCTree... trees) {
+    protected void loopHelperHavoc(DiagnosticPosition pos, JCVariableDecl indexDecl, List<? extends JCTree> list, JCTree... trees) {
         ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
         if (list != null) for (JCTree t: list) {
             TargetFinder.findVars(t,targets);
@@ -8053,7 +8092,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } 
             newlist.add(convertJML(target));
         }
-        JmlStatementHavoc st = M.at(pos.getPreferredPosition()).JmlHavocStatement(newlist.toList());
+        int p = pos.getPreferredPosition();
+        JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlist.toList());
+        // FIXME - this ought to work to preserve initialized values at the beginning of th e0th iteration, but makes loops infeasbile
+//        JCExpression id = treeutils.makeIdent(indexDecl.pos, indexDecl.sym);
+//        JCExpression e = treeutils.makeBinary(p, JCTree.GT, id, treeutils.zero);
+//        addStat(M.at(p).If(e, st, null));
         addStat(st);
     }
     
@@ -8062,8 +8106,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Finds variables assigned in the loop body and adds a havoc statement */
     // OK
     // FIXME - needs checking that we are getting all of needed variables
-    protected void loopHelperHavoc(DiagnosticPosition pos, JCTree... trees) {
-        loopHelperHavoc(pos, null, trees);
+    protected void loopHelperHavoc(DiagnosticPosition pos, JCVariableDecl indexDecl, JCTree... trees) {
+        loopHelperHavoc(pos, indexDecl, null, trees);
     }
     
     /** Adds a statement to increment the index variable */
@@ -8266,7 +8310,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         if (that.init != null) scan(that.init);
         
-        JCVariableDecl indexDecl = loopHelperDeclareIndex(that);;
+        JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
         java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -8282,7 +8326,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,that.step,that.body,that.cond);
+            loopHelperHavoc(that.body,indexDecl,that.step,that.body,that.cond);
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -10149,7 +10193,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Havoc all items that might be changed in the loop
         if (esc) {
-            loopHelperHavoc(that.body,that.body,that.cond);
+            loopHelperHavoc(that.body,indexDecl,that.body,that.cond);
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);

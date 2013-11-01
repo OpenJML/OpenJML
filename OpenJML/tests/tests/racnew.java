@@ -2985,6 +2985,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testForEach3bad() {
+        main.addOptions("-show");
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
