@@ -297,5 +297,10 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escDoublyLinkedList/DoublyLinkedList.java","testfiles/escDoublyLinkedList","-classpath","testfiles/escDoublyLinkedList","-progress","-jmltesting","-timeout=30");
     }
 
+    @Test
+    public void testEscModelFields() {
+        helpTCF("testfiles/escModelFields/EscModelFields.java","testfiles/escModelFields","-classpath","testfiles/escModelFields","-progress","-jmltesting","-timeout=30");
+    }
+
 
 }

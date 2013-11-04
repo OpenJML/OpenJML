@@ -40,6 +40,7 @@ public class CashAmountOnlyPrivate {
   //@ requires -100 < the_cents && the_cents < 100;
   //@ requires !(the_cents > 0 && the_dollars < 0);
   //@ requires !(the_cents < 0 && the_dollars > 0);
+  //@ ensures my_dollars == the_dollars && my_cents == the_cents;
   /**
    * Constructs a new CashAmount representing the specified amount of cash.
    * 

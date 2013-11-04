@@ -4220,7 +4220,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         else if (storeref instanceof JmlStoreRefArrayRange) obj = ((JmlStoreRefArrayRange)storeref).expression;
         else if (storeref instanceof JCIdent) obj = storeref;
         if (obj == null) return treeutils.falseLit;
-        obj = convertJML(obj);
+        obj = convertJML(obj);  // FIXME - in some cases at least this is a second conversion
         // FIXME - don't bother with the following if obj is 'this'
         JCExpression allocNow = M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType);
         JCExpression allocOld = treeutils.makeOld(pos,M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType));
@@ -4784,6 +4784,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     }
 
+                    // FIXME - should this really be before the preconditions computations - it does have to be before the assignable computations.
+                    if (esc && (!utils.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
+                        JCTree cs = that;
+                        JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
+                        JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
+                        addStat(havoc);  // havoc *.isAllocSym
+                        {
+                            JCVariableDecl d = newTempDecl(cs, syms.objectType);
+                            JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
+                            JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
+                                    oldenv);
+                            id = convertCopy(id);
+                            JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
+                            JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
+                            addAssume(cs,Label.IMPLICIT_ASSUME,f);
+                        }
+                        newAllocation2(that,resultId);
+                    }
+
                     // For each specification case, we accumulate the precondition
                     // and we create a block that checks the assignable statements
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
@@ -4839,6 +4858,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     if (clause.token == JmlToken.ASSIGNABLE) {
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression item: storerefs) {
+                                            addStat(comment(item,"Is " + item + " assignable?"));
                                             checkAgainstCallerSpecs(that, item ,pre, savedThisId, newThisId);
                                         }
                                         anyAssignableClauses = true;
@@ -5031,31 +5051,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         if (useDefault) {
-                            // FIXME - use the constructor default for constructor calls
-                            JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlToken.BSEVERYTHING)));
-                            addStat(havoc);
+                            if (newclass == null) {
+                                // default for non- constructor call is \everything
+                                JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlToken.BSEVERYTHING)));
+                                addStat(havoc);
+                            } else {
+                                // default for constructor call is this.*
+                                JCStatement havoc = M.at(cs.pos).JmlHavocStatement(defaultStoreRefs(that,(MethodSymbol)newclass.constructor));
+                                addStat(havoc);
+                            }
                         }
 
                         JCBlock bl = popBlock(0,cs);
                         JCStatement st = M.at(cs.pos+1).If(pre,bl,null);
                         bl = M.at(cs.pos+1).Block(0,List.<JCStatement>of(st));
                         currentStatements.add( wrapRuntimeException(cs, bl, "JML undefined precondition while checking postconditions - exception thrown", null));
-                        if (esc && (!utils.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
-                            JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
-                            JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
-                            addStat(havoc);
-                            {
-                                JCVariableDecl d = newTempDecl(cs, syms.objectType);
-                                JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
-                                JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
-                                        oldenv);
-                                id = convertCopy(id);
-                                JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
-                                JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
-                                addAssume(cs,Label.IMPLICIT_ASSUME,f);
-                            }
-                            newAllocation2(that,resultId);
-                        }
+
+//                        if (esc && (!utils.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
+//                            JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
+//                            JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
+//                            addStat(havoc);  // havoc *.isAllocSym
+//                            {
+//                                JCVariableDecl d = newTempDecl(cs, syms.objectType);
+//                                JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
+//                                JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
+//                                        oldenv);
+//                                id = convertCopy(id);
+//                                JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
+//                                JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
+//                                addAssume(cs,Label.IMPLICIT_ASSUME,f);
+//                            }
+//                            newAllocation2(that,resultId);
+//                        }
 
                         // FIXME - is that the right statement list?
                     }
@@ -6955,9 +6982,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                            convertExpr(rep.ident),
 //                                            convertExpr(rep.expression));
 //                                } else {
+                                JCIdent thisId = currentThisId;
+                                JCExpression thisExpr = currentThisExpr;
+                                try {
+                                    currentThisExpr = sel;
+                                    currentThisId = sel instanceof JCIdent ? (JCIdent)sel : null;
                                     result = eresult = convertExpr(rep.expression);
+                                } finally {
+                                    currentThisId = thisId;
+                                    currentThisExpr = thisExpr;
+                                }
                                     // FIXME - we could get recursion here
-                                    return;
+                                return;
 //                                }
                             }
                         }

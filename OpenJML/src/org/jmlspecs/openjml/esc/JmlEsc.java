@@ -17,6 +17,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -140,9 +141,11 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
+        IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
             log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
+            res = new ProverResult(proverToUse,ProverResult.ERROR);
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
@@ -152,9 +155,9 @@ public class JmlEsc extends JmlTreeScanner {
         super.visitMethodDef(methodDecl);
 
         if (filter(methodDecl)) {
-        	doMethod(methodDecl);
+        	res = doMethod(methodDecl);
         }
-                
+        return;        
     }
     
     /** Do the actual work of proving the method */
