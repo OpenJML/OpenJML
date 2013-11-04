@@ -250,6 +250,18 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testCashAmountMutable() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMutable.java","testfiles/escCashAmountMutable","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
+    }
+
+    @Test
+    public void testCashAmountMF() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMF.java","testfiles/escCashAmountMF","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting","-escMaxWarnings=1");
+    }
+
+    @Test
     public void testVector() {
         expectedExit = 0;
         helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-escMaxWarnings=1");
