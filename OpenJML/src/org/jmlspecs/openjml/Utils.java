@@ -198,7 +198,7 @@ public class Utils {
      * @param fullyQualifiedName the fully qualified name
      * @return the annotation symbol
      */
-    public ClassSymbol createAnnotationSymbol(String fullyQualifiedName) {
+    public ClassSymbol createClassSymbol(String fullyQualifiedName) {
         return ClassReader.instance(context).
                 enterClass(Names.instance(context).fromString(fullyQualifiedName));
     }
@@ -213,7 +213,7 @@ public class Utils {
      */
     public boolean isHelper(@NonNull Symbol symbol) {
         if (helperAnnotationSymbol == null) {
-            helperAnnotationSymbol = createAnnotationSymbol(Strings.helperAnnotation);
+            helperAnnotationSymbol = createClassSymbol(Strings.helperAnnotation);
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
@@ -221,7 +221,7 @@ public class Utils {
     /** Returns true if the given symbol is annotated as Pure */
     public boolean isPure(Symbol symbol) {
         if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = createAnnotationSymbol(Strings.pureAnnotation);
+            pureAnnotationSymbol = createClassSymbol(Strings.pureAnnotation);
         }
         return symbol.attribute(pureAnnotationSymbol)!=null;
     }

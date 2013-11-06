@@ -1894,7 +1894,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 st != null ? ( catchStats != null ? List.<JCStatement>of(st,catchStats) : List.<JCStatement>of(st))
                            : ( catchStats != null ? List.<JCStatement>of(catchStats) : List.<JCStatement>nil()));
         JCCatch catcher = M.at(pos).Catch(vd,bl);
-        return M.at(pos).Try(block,List.<JCCatch>of(catcher),null);
+        // FIXME - this report needs a position of clause and name of method
+        JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"report",treeutils.makeStringLiteral(pos.getPreferredPosition(), "Skipping a specification clause with an uncompiled model method"));
+        vd = treeutils.makeVarDef(utils.createClassSymbol("java.lang.NoSuchMethodError").type, names.fromString("noSuchMethodError"), methodDecl.sym, p);
+        JCCatch catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+        return M.at(pos).Try(block,List.<JCCatch>of(catcher,catcher1),null);
     }
 
     /** Creates a try statement that wraps the given block and catches the
@@ -4149,7 +4153,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCIdent pre = preconditions.get(specCase);
         pre = pre == null ? null : treeutils.makeIdent(pre.pos, pre.sym); // a new id for the same symbol
         boolean anyAssignableClauses = false;
-        JCExpression asg = isFreshlyAllocated(assignPosition,storeref); 
+        JCExpression asg = isFreshlyAllocated(assignPosition,storeref); // convertAssignable(storeref,(VarSymbol)baseThisSym)); // FIXME _ base or target
         for (JmlMethodClause mclause : specCase.clauses) {
             try {
                 // FIXME - do we have to satisfy each assignable clause individually, or the union?
@@ -4221,9 +4225,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         else if (storeref instanceof JCIdent) obj = storeref;
         if (obj == null) return treeutils.falseLit;
         obj = convertJML(obj);  // FIXME - in some cases at least this is a second conversion
+        obj = newTemp(obj);
         // FIXME - don't bother with the following if obj is 'this'
         JCExpression allocNow = M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType);
-        JCExpression allocOld = treeutils.makeOld(pos,M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType));
+        JCExpression allocOld = treeutils.makeOld(pos,M.at(pos).Select(convertCopy(obj), isAllocSym).setType(syms.booleanType));
         return treeutils.makeAnd(pos.getPreferredPosition(),allocNow,treeutils.makeNot(pos.getPreferredPosition(), allocOld));
     }
 
@@ -7033,7 +7038,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (javaChecks && localVariables.isEmpty()) {
                         addAssert(that,
                                 translatingJML? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE,
-                                        nonnull);
+                                        nonnull); // FIXME - what if the dereference happens in a spec in a different file - ,that,log.currentSourceFile());
                     }
                 }
                 var = true;

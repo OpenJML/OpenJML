@@ -314,5 +314,20 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escModelFields/EscModelFields.java","testfiles/escModelFields","-classpath","testfiles/escModelFields","-progress","-jmltesting","-timeout=30");
     }
 
+    @Test
+    public void testEscSimpleString() {
+        helpTCF("testfiles/escSimpleString/SimpleString.java","testfiles/escSimpleString","-classpath","testfiles/escSimpleString","-nonnullByDefault","-progress","-jmltesting","-timeout=30");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+    }
+
+    @Test
+    public void testEscSimpleString2() {
+        helpTCF("testfiles/escSimpleString2/SimpleString.java","testfiles/escSimpleString2","-classpath","testfiles/escSimpleString2","-nonnullByDefault","-progress","-jmltesting","-timeout=30");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+    }
+
+    @Test
+    public void testEscSimpleString3() {
+        helpTCF("testfiles/escSimpleString3/SimpleString.java","testfiles/escSimpleString3","-classpath","testfiles/escSimpleString3","-nonnullByDefault","-progress","-jmltesting","-timeout=30");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+    }
+
 
 }

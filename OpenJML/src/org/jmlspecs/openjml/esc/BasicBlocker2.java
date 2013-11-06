@@ -1397,7 +1397,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     @Override
     public void visitSelect(JCFieldAccess that) {
-        if (that.toString().equals("_JML__tmp6.values")) Utils.print("");
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
         Name n;

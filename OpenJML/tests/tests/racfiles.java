@@ -148,6 +148,12 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/racStackTrace","testfiles/racStackTrace","CantCompileRAC");
     }
 
+    @Test // Originally crashed because of a model method in a library class
+    public void testPoint() {
+        expectedExit = 0;
+        helpTCF("testfiles/racPoint","testfiles/racPoint","Point");
+    }
+
     @Test
     public void testFirstTest() {
         expectedExit = 0;
