@@ -245,6 +245,14 @@ public class Utils {
         System.out.println(str);
     }
     
+    public static void reportNoSuchMethod(NoSuchMethodError t) {
+        String msg = t.getMessage();
+        int k = msg.indexOf('(');
+        if (k >= 0) msg = msg.substring(0,k);
+        msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
+        System.out.println(msg);
+    }
+    
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name
     /** Prints out a message, the exception message, and the exception stack */
     public static void reportException(String str, RuntimeException e) {

@@ -1895,9 +1895,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                            : ( catchStats != null ? List.<JCStatement>of(catchStats) : List.<JCStatement>nil()));
         JCCatch catcher = M.at(pos).Catch(vd,bl);
         // FIXME - this report needs a position of clause and name of method
-        JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"report",treeutils.makeStringLiteral(pos.getPreferredPosition(), "Skipping a specification clause with an uncompiled model method"));
+        boolean quiet = utils.jmlverbose == 0; 
+        JCCatch catcher1;
         vd = treeutils.makeVarDef(utils.createClassSymbol("java.lang.NoSuchMethodError").type, names.fromString("noSuchMethodError"), methodDecl.sym, p);
-        JCCatch catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+        if (quiet) {
+            catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
+        } else {
+            JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id);
+            catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+        }
         return M.at(pos).Try(block,List.<JCCatch>of(catcher,catcher1),null);
     }
 
@@ -1953,6 +1960,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (basecsym.type.isPrimitive()) return;
         if (!translatingJML) clearInvariants();
         if (startInvariants(basecsym,pos)) return;
+//        System.out.println("STARTING " + basecsym);
         java.util.List<ClassSymbol> parents = utils.parents(basecsym);
 //        boolean isConstructedObject = isConstructor && receiver.sym == currentThisId.sym;
         boolean self = basecsym == methodDecl.sym.owner; // true if we are inserting invariants for the base method, either as pre and post conditions or prior to calling a callee
@@ -2089,11 +2097,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
             }
         } finally {
+            endInvariants(basecsym);
+            if (!translatingJML) clearInvariants();
+//            System.out.println("ENDING " + basecsym + " " + inProcessInvariants.contains(basecsym) + " " + completedInvariants.contains(basecsym));
             currentStatements = prevStats;
             currentThisId = prevThisId;
             currentThisExpr = prevThisExpr;
-            endInvariants(basecsym);
-            if (!translatingJML) clearInvariants();
         }
 
     }
@@ -5094,7 +5103,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     paramActuals = null;
                 }
             }
-            if (newclass != null || utils.isPure(methodDecl.sym)) changeState();
+            if (newclass != null || utils.isPure(methodDecl.sym)) {
+                if (inProcessInvariants.isEmpty()) changeState();
+            }
 
             if (doTranslations) {
 
@@ -6533,32 +6544,62 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 // FIXME - this is incorrect, but handles Jml primitive types at least
 //                if (jmltypes.isJmlType(t)){ 
-                    lhs = addImplicitConversion(lhs,t,lhs);
-                    rhs = convertExpr(rhs);
-                    rhs = addImplicitConversion(rhs,t,rhs);
-//                } else {
-//                    rhs = convertExpr(rhs);
-//                }
+                if (comp) lhs = addImplicitConversion(lhs,t,lhs); // FIXME - what final type
+                else if (shift) lhs = addImplicitConversion(lhs,unboxedType(that.type),lhs); // FIXME - what final type
+                else lhs = addImplicitConversion(lhs,that.type,lhs);
+                rhs = convertExpr(rhs);
+                if (comp) rhs = addImplicitConversion(rhs,t,rhs); // FIXME - what final type
+                else if (shift) {
+                    Type tt = unboxedType(that.rhs.type);
+                    if (!tt.equals(syms.longType)) tt = syms.intType; 
+                    rhs = addImplicitConversion(rhs,syms.intType,rhs); // FIXME - what is tt used for?
+                }
+                else rhs = addImplicitConversion(rhs,that.type,rhs);
             }
             // FIXME - add checks for numeric overflow - PLUS MINUS MUL
+            if (!translatingJML) addBinaryChecks(that,tag,lhs,rhs,null);
             result = eresult = makeBin(that,tag,that.getOperator(),lhs,rhs,maxJmlType);
+            if (!translatingJML) result = eresult = newTemp(eresult); // FIXME - use splitExpressions?
+
         } else {
             Symbol s = that.getOperator();
+            Type maxJmlType = that.getLeftOperand().type;
+            boolean lhsIsPrim = that.getLeftOperand().type.isPrimitive() && that.getLeftOperand().type.tag != TypeTags.BOT;
+            boolean rhsIsPrim = that.getRightOperand().type.isPrimitive() && that.getRightOperand().type.tag != TypeTags.BOT;
+            if (jmltypes.isJmlType(that.getRightOperand().type)) maxJmlType = that.getRightOperand().type;
+            if (lhsIsPrim && rhsIsPrim
+                    && that.getLeftOperand().type.tag < that.getRightOperand().type.tag) maxJmlType = that.getRightOperand().type;
                     
+            Type t = that.type;
+            if (t.tag == TypeTags.BOOLEAN) {
+                // Compute a max type - FIXME - need to do this for all types
+                if (jmltypes.isJmlType(maxJmlType)) {
+                    t = maxJmlType;
+                } else if (that.lhs.type.tag == TypeTags.BOT) {
+                    t = boxedType(that.rhs.type);
+                } else if (that.rhs.type.tag == TypeTags.BOT) {
+                    t = boxedType(that.lhs.type);
+                } else {
+                    Type tlhs = unboxedType(that.getLeftOperand().type);
+                    Type trhs = unboxedType(that.getRightOperand().type);
+                    t = tlhs;
+                    if (tlhs.tag == TypeTags.BOT || (tlhs.tag < trhs.tag && trhs.tag != TypeTags.BOT)) t = trhs;
+                }
+            }
             JCExpression lhs = convertExpr(that.getLeftOperand());
             {
-                if (comp) lhs = addImplicitConversion(lhs,unboxedType(that.lhs.type),lhs); // FIXME - what final type
+                if (comp) lhs = addImplicitConversion(lhs,t,lhs);
                 else if (shift) lhs = addImplicitConversion(lhs,unboxedType(that.type),lhs); // FIXME - what final type
                 else lhs = addImplicitConversion(lhs,that.type,lhs);
             }
             
             JCExpression rhs = convertExpr(that.getRightOperand());
             {
-                if (comp) rhs = addImplicitConversion(rhs,unboxedType(that.rhs.type),rhs); // FIXME - what final type
+                if (comp) rhs = addImplicitConversion(rhs,t,rhs);
                 else if (shift) {
-                    Type t = unboxedType(that.rhs.type);
-                    if (!t.equals(syms.longType)) t = syms.intType; 
-                    rhs = addImplicitConversion(rhs,syms.intType,rhs);
+                    Type tt = unboxedType(that.rhs.type);
+                    if (!tt.equals(syms.longType)) tt = syms.intType; 
+                    rhs = addImplicitConversion(rhs,tt,rhs);  // FIXME - tt or int as above?
                 }
                 else rhs = addImplicitConversion(rhs,that.type,rhs);
             }

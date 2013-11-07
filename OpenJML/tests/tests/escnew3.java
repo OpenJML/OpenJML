@@ -766,4 +766,22 @@ public class escnew3 extends EscBase {
     }
 
 
+    @Test
+    public void testBits() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m() {\n"
+                +"     boolean b = true;\n"
+                +"     boolean bb = false;\n"
+                +"     //@ assert !(b & bb);\n"
+                +"     //@ assert (b | bb);\n"
+                +"     //@ assert (b ^ bb);\n"
+                +"     //@ assert (b & bb);\n" // FALSE
+                +"    }\n"
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",10
+                );
+    
+    }
+
 }

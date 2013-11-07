@@ -1,6 +1,4 @@
 OUT:
-Skipping a specification clause with an uncompiled model method
-Skipping a specification clause with an uncompiled model method
 testfiles\racPoint\Point.java:145: JML precondition is false
     return Math.sqrt(my_x * my_x + my_y * my_y);
                     ^

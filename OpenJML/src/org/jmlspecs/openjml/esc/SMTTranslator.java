@@ -1120,12 +1120,30 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(F.symbol("mod"), args);
                 break;
                 // FIXME - implement bit operations
+            case JCTree.BITAND:
+                if (tree.type.tag == TypeTags.BOOLEAN) {
+                    result = F.fcn(F.symbol("and"), args);
+                } else {
+                    notImpl("Bit-operation " + op);
+                }
+                break;
+            case JCTree.BITOR:
+                if (tree.type.tag == TypeTags.BOOLEAN) {
+                    result = F.fcn(F.symbol("or"), args);
+                } else {
+                    notImpl("Bit-operation " + op);
+                }
+                break;
+            case JCTree.BITXOR:
+                if (tree.type.tag == TypeTags.BOOLEAN) {
+                    result = F.fcn(F.symbol("distinct"), args);
+                } else {
+                    notImpl("Bit-operation " + op);
+                }
+                break;
             case JCTree.SL:
             case JCTree.SR:
             case JCTree.USR:
-            case JCTree.BITAND:
-            case JCTree.BITOR:
-            case JCTree.BITXOR:
                 notImpl("Bit-operation " + op);
                 break;
             default:
@@ -1317,12 +1335,15 @@ public class SMTTranslator extends JmlTreeScanner {
         if (id == null) {
             id = "REALLIT"+(++doubleCount);
             reals.put(v, id);
+            ISymbol sym = F.symbol(id);
+            addReal();
+            ICommand c = new C_declare_fun(sym,emptyList,realSort); // use definefun and a constant FIXME
+            commands.add(c);
+            return sym;
+        } else {
+            ISymbol sym = F.symbol(id);
+            return sym;
         }
-        ISymbol sym = F.symbol(id);
-        addReal();
-        ICommand c = new C_declare_fun(sym,emptyList,realSort);
-        commands.add(c);
-        return sym;
     }
 
     @Override public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree that) { notImpl(that); } // FIXME - maybe

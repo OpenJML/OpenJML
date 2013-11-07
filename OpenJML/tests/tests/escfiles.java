@@ -227,7 +227,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testAdd() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCF("testfiles/escAdd/Add.java","testfiles/escAdd","-classpath","testfiles/escAdd","-progress","-jmltesting","-timeout=30");
     }
 
@@ -287,7 +287,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testRecursiveInvariant() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCF("testfiles/escRecursiveInvariant/RecursiveInvariant.java","testfiles/escRecursiveInvariant","-classpath","testfiles/escRecursiveInvariant","-progress","-jmltesting","-timeout=30");
     }
 
@@ -321,12 +321,24 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscSimpleString2() {
-        helpTCF("testfiles/escSimpleString2/SimpleString.java","testfiles/escSimpleString2","-classpath","testfiles/escSimpleString2","-nonnullByDefault","-progress","-jmltesting","-timeout=30");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+        helpTCF("testfiles/escSimpleString2/SimpleString.java","testfiles/escSimpleString2","-classpath","testfiles/escSimpleString2","-nonnullByDefault","-progress","-jmltesting","-timeout=30");
     }
 
     @Test
     public void testEscSimpleString3() {
-        helpTCF("testfiles/escSimpleString3/SimpleString.java","testfiles/escSimpleString3","-classpath","testfiles/escSimpleString3","-nonnullByDefault","-progress","-jmltesting","-timeout=30");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+        helpTCF("testfiles/escSimpleString3/SimpleString.java","testfiles/escSimpleString3","-classpath","testfiles/escSimpleString3","-nonnullByDefault","-progress","-jmltesting","-timeout=30");
+    }
+
+
+    @Test
+    public void testEscDiverges() {
+        helpTCF("testfiles/escDiverges/escDiverges.java","testfiles/escDiverges","-classpath","testfiles/escDiverges","-nonnullByDefault","-progress","-jmltesting","-logic=AUFNIRA","-timeout=30");
+    }
+
+
+    @Test
+    public void testEscDiverges2() {
+        helpTCF("testfiles/escDiverges2/escDiverges.java","testfiles/escDiverges2","-classpath","testfiles/escDiverges2","-nonnullByDefault","-progress","-jmltesting","-logic=AUFNIRA","-timeout=30");
     }
 
 

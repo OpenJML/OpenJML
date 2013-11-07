@@ -151,7 +151,13 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void testPoint() {
         expectedExit = 0;
-        helpTCF("testfiles/racPoint","testfiles/racPoint","Point");
+        helpTCF("testfiles/racPoint","testfiles/racPoint","Point","-quiet");
+    }
+
+    @Test // Originally crashed because of a model method in a library class
+    public void testPoint2() {
+        expectedExit = 0;
+        helpTCF("testfiles/racPoint2","testfiles/racPoint2","Point");
     }
 
     @Test
@@ -242,14 +248,14 @@ public class racfiles extends RacBase {
     public void racAddng() {
         rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("testfiles/racaddng/Add_InstanceStrategy.java","testfiles/racaddng","Add_JML_Test","-cp","testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
+        helpTCF("testfiles/racaddng/Add_InstanceStrategy.java","testfiles/racaddng","Add_JML_Test","-cp","bin-runtime;testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
     }
 
     @Test
     public void racAddngall() {
         rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("testfiles/racaddng","testfiles/racaddngall","Add_JML_Test","-cp","testfiles/racaddngall;testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
+        helpTCF("testfiles/racaddng","testfiles/racaddngall","Add_JML_Test","-cp","bin-runtime;testfiles/racaddngall;testfiles/racaddng;testfiles/racaddng/jmlunitng.jar");
     }
 
     @Test

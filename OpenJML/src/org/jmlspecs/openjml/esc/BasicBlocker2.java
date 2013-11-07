@@ -1411,13 +1411,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCIdent id = treeutils.makeIdent(that.pos,that.sym);
             id.name = n;
             if (isDefined.add(n)) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 addDeclaration(id);
             }
             result = id;
         } else {
             if (isDefined.add(n)) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedF " + that.sym + " " + that.name);
                 JCIdent id = treeutils.makeIdent(that.pos,that.sym);
                 id.name = n;
                 addDeclaration(id);
@@ -1512,12 +1510,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 scan(fa.selected);
                 JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                 if (isDefined.add(oldfield.name)) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
                     addDeclaration(oldfield);
                 }
                 JCIdent newfield = newIdentIncarnation(oldfield,sp);
                 if (isDefined.add(newfield.name)) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
                     addDeclaration(newfield);
                 }
                 JCExpression expr = new JmlBBFieldAssignment(newfield,oldfield,fa.selected,right);
@@ -1562,6 +1558,39 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         }
     }
 
+//    public void visitJmlVariableDecl(JmlVariableDecl that) {
+//        JCIdent id;
+//        if (that.sym == null || that.sym.owner == null) {
+////            if (that.init != null) {
+////                scan(that.init);
+////                that.init = result;
+////            }
+//            Name n = encodedName(that.sym,0L);
+//            that.name = n;
+//            id = factory.at(0).Ident(n);
+//            id.sym = that.sym;
+//            id.type = that.type;
+//            if (isDefined.add(n)) {
+//                addDeclaration(id);
+//            }
+//
+//            currentMap.putSAVersion(that.sym,n,0);
+//            //currentBlock.statements.add(that);
+//        } else {
+//            // FIXME - why not make a declaration?
+//            id = newIdentIncarnation(that.sym,that.getPreferredPosition());
+//            isDefined.add(id.name);
+//            that.name = id.name;
+//        }
+//        scan(that.ident); // FIXME - is this needed since we already set the encodedname
+//        if (that.init != null) {
+//            scan(that.init);
+//            that.init = result;
+//            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ, that.ident != null ? that.ident : id,that.init);
+//            addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
+//        }
+//    }
+    
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.sym == null || that.sym.owner == null) {
             if (that.init != null) {
@@ -1570,7 +1599,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
             Name n = encodedName(that.sym,0L);
             that.name = n;
-            isDefined.add(n);
+            if (isDefined.add(n)) {
+//                JCIdent id = factory.at(0).Ident(n);
+//                id.sym = that.sym;
+//                id.type = that.type;
+//                addDeclaration(id);
+            }
+
             currentMap.putSAVersion(that.sym,n,0);
             currentBlock.statements.add(that);
             scan(that.ident); // FIXME - is this needed since we already set the encodedname
@@ -1588,7 +1623,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         }
     }
-    
 
     // OK
     @Override
@@ -1758,7 +1792,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitTypeCast(JCTypeCast that) { 
         //scan(that.clazz); // FIXME - if the type tree is rewritten, we are not capturing the result
         that.expr = convertExpr(that.expr);
-        result = that; 
+        result = M.TypeCast(that.clazz, result);
+        result.type = that.type;
     }
     
     @Override
