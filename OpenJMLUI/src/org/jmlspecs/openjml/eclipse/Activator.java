@@ -27,6 +27,11 @@ public class Activator extends AbstractUIPlugin {
 
 	/** A general utility instance used by the plugin */
 	protected Utils utils;
+	
+	/** Returns the utility instance for the singleton plugin */
+	static public Utils utils() {
+		return getDefault().utils;
+	}
 
 	/**
 	 * The constructor, called by Eclipse, not by application code

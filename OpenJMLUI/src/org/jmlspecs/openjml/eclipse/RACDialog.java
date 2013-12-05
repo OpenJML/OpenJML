@@ -81,7 +81,7 @@ public class RACDialog extends Utils.ModelessDialog {
 				Log.log("Saved " + jproject.getProject().getPersistentProperty(Env.racKey)); //$NON-NLS-1$
 			}
 		} catch (CoreException e) {
-			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
+			Activator.utils().showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
 		} finally {
 			super.okPressed();
 		}
@@ -184,7 +184,7 @@ class RACListEditor {
 				pathItems.add(p);
 				list.add(p.display());
 			} else {
-				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
+				Activator.utils().showMessageInUI(fileDialog.getParent(),
 					Messages.OpenJMLUI_Editor_ErrorDialogTitle,
 					Messages.OpenJMLUI_Editor_UnparsableError + s);
 			}
@@ -234,7 +234,7 @@ class RACListEditor {
 		if (input != null) {
 			PathItem item = PathItem.create(jproject,input);
 			if (!(item instanceof ProjectPath)) {
-				Activator.getDefault().utils.showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
+				Activator.utils().showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
 						Messages.OpenJMLUI_RACDialog_ErrorDialogMessage);
 				return;
 			}
@@ -248,7 +248,7 @@ class RACListEditor {
 		if (input != null) {
 			PathItem item = PathItem.create(jproject,input);
 			if (!(item instanceof ProjectPath)) {
-				Activator.getDefault().utils.showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
+				Activator.utils().showMessageInUI(shell,Messages.OpenJMLUI_RACDialog_ErrorDialogTitle,
 						Messages.OpenJMLUI_RACDialog_ErrorDialogMessage);
 				return;
 			}

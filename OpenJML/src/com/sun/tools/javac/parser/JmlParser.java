@@ -2250,6 +2250,18 @@ public class JmlParser extends EndPosParser {
             return t;
         }
     }
+    
+    @Override
+    protected Name ident() {
+        if (S.token() == Token.CUSTOM) {
+            jmlerror(S.pos(),S.endPos(),"jml.keyword.instead.of.ident",S.jmlToken.internedName());
+            S.nextToken();
+            return names.error;
+        } else {
+            return super.ident();
+        }
+    }
+
 
     // Have to replicate this method because we cannot just add the JML
     // operators into the token set for the Java operators.

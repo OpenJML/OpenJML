@@ -29,7 +29,7 @@ abstract public class MenuActions extends AbstractHandler {
     protected ISelection selection;
 
     /** Cached value of the utility object */
-    protected Utils utils = Activator.getDefault().utils;
+    protected Utils utils = Activator.utils();
     
     /** Populates the class fields with data about the event, for use in the
      * derived classes.
@@ -473,6 +473,19 @@ abstract public class MenuActions extends AbstractHandler {
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowCounterexampleValue",e); //$NON-NLS-1$
     		}
+    		return null;
+    	}
+    }
+
+    /**
+     * This action pops up a dialog showing the value of an expression in the
+     * current counterexample.
+     */
+    static public class ShowProofView extends MenuActions {
+        // This is done in the UI thread. // FIXME - check all statements about UI thread 
+        @Override
+    	public Object execute(ExecutionEvent event) {
+    		utils.refreshView();
     		return null;
     	}
     }

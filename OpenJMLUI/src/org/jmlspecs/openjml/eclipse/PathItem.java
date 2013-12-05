@@ -366,7 +366,7 @@ abstract public class PathItem {
     			
     		case CLASSPATH:
     			StringBuilder sb = new StringBuilder();
-    			List<String> cp = Activator.getDefault().utils.getClasspath(jproject);
+    			List<String> cp = Activator.utils().getClasspath(jproject);
     			for (String s : cp) {
     				sb.append(s);
     				sb.append(File.pathSeparator);
@@ -381,7 +381,7 @@ abstract public class PathItem {
     			
     		case SYSTEM_SPECS:
     			// Choose between internal and external specs
-    			out = Activator.getDefault().utils.getInternalSystemSpecs();
+    			out = Activator.utils().getInternalSystemSpecs();
     			break;
     			
     		default:

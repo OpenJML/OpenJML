@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -60,6 +61,8 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
     
+    public static IAPI.IProofResultListener proofResultListener = null;
+    
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;
 
@@ -80,12 +83,6 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** The assertion adder instance used to translate */
     public JmlAssertionAdder assertionAdder;
-    
-    /** The most recent program whose proof was attempted. */ // TODO - REVIEW
-    static public BasicProgram mostRecentProgram = null;
-    
-    /** A map that stores all the proof results of proofs initiated through this JmlEsc object. */
-    public Map<MethodSymbol,IProverResult> proverResults = new HashMap<MethodSymbol,IProverResult>();
     
     /** The prover to use  - initialized here and then used in visitMethods */
     protected /*@NonNull*/ String proverToUse;
@@ -198,11 +195,12 @@ public class JmlEsc extends JmlTreeScanner {
                 + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                 + (res.result() == IProverResult.ERROR ? " - failed"
                    : res.result() == IProverResult.SKIPPED ? " - skipped"
-                   : res.result() == IProverResult.INCONSISTENT ? " - inconsistent"
+                   : res.result() == IProverResult.INFEASIBLE ? " - inconsistent"
                    : res.isSat() ? " - with warnings" 
                    :               " - no warnings")
                 );
-        proverResults.put(methodDecl.sym,res);
+        //proverResults.put(methodDecl.sym,res);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         return res;
     }
         
@@ -276,9 +274,9 @@ public class JmlEsc extends JmlTreeScanner {
         return true;
     }
     
-    // FIXME - move these away from being globals
-    
-    static public IProverResult mostRecentProofResult = null;
+//    // FIXME - move these away from being globals
+//    
+//    static public IProverResult mostRecentProofResult = null;
     
     
 }

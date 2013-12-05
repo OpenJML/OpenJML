@@ -88,7 +88,7 @@ public class PathsEditor extends Utils.ModelessDialog {
 		sourcetab.setControl(sourcecomp);
 		classtab.setControl(classcomp);
 		
-		Utils utils = Activator.getDefault().utils;
+		Utils utils = Activator.utils();
 		
 		StringBuilder text = new StringBuilder();
 		text.append(Messages.OpenJMLUI_Editor_ClassPathTitle + Env.eol
@@ -121,7 +121,7 @@ public class PathsEditor extends Utils.ModelessDialog {
 				Log.log("Saved " + jproject.getProject().getPersistentProperty(Env.specsKey)); //$NON-NLS-1$
 			}
 		} catch (CoreException e) {
-			Activator.getDefault().utils.showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
+			Activator.utils().showExceptionInUI(shell,Messages.OpenJMLUI_Editor_PersistentPropertyError,e);
 		} finally {
 			super.okPressed();
 		}
@@ -220,7 +220,7 @@ class ListEditor {
 				pathItems.add(p);
 				list.add(p.display());
 			} else {
-				Activator.getDefault().utils.showMessageInUI(fileDialog.getParent(),
+				Activator.utils().showMessageInUI(fileDialog.getParent(),
 			        Messages.OpenJMLUI_Editor_ErrorDialogTitle,
 					Messages.OpenJMLUI_Editor_UnparsableError + s);
 			}

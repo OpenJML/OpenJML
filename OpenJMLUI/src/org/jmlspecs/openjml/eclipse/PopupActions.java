@@ -27,7 +27,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     protected Shell shell;
     
     /** A cached value of the utilities object */
-    protected Utils utils = Activator.getDefault().utils;
+    protected Utils utils = Activator.utils();
 
     /** The method that is called when the menu item is activated. */
     @Override

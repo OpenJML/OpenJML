@@ -1,5 +1,6 @@
 package tests;
 
+import org.jmlspecs.openjml.Utils;
 import org.junit.Test;
 
 public class purity extends TCBase {
@@ -9,6 +10,7 @@ public class purity extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
+        useSystemSpecs = true;
         super.setUp();
         main.addOptions("-purityCheck=true");
     }
@@ -133,5 +135,20 @@ public class purity extends TCBase {
                 );
     }
 
+    @Test
+    public void testCollection() {
+        expectedExit = 0;
+        helpTC(" class A { /*@ pure */ public int m(java.util.Vector v) { return v.size(); }\n } "
+                );
+    }
+
+    @Test
+    public void testCollection2() {
+        expectedExit = 0;
+        helpTC(" class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); }\n } "
+                );
+    }
+
+    
 
 }

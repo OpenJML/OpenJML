@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
@@ -611,7 +612,7 @@ public class API implements IAPI {
      * nodes are visited, and (c) a node's range includes the ranges of its
      * children. This condition is true of a AST produced by parsing, but is
      * not necessarily true of an AST produced by translation or other AST edits. */
-    protected static class Finder extends JmlTreeScanner {
+    public static class Finder extends JmlTreeScanner {
         /** Find the node within the given tree that encompasses the given
          * start and end position.
          * @param tree the root of the tree
@@ -631,8 +632,8 @@ public class API implements IAPI {
         int startpos;
         int endpos;
         JmlCompilationUnit tree;
-        JCTree found = null;
-        JmlMethodDecl parentMethod = null;
+        public JCTree found = null;
+        public JmlMethodDecl parentMethod = null;
         
         /** Called for each node as the tree is visited - do not call directly - use find() */
         public void scan(JCTree node) {
@@ -670,21 +671,79 @@ public class API implements IAPI {
         return finder.find(tree,startpos,endpos);
     }
     
-    /** The method on which ESC was run most recently */
-    protected MethodSymbol mostRecentProofMethod = null;
-    
-    protected BasicProgram mostRecentProgram = null; // FIXME - document; perhaps get rid of, and mostRecentProofMethod
+//    /** The method on which ESC was run most recently */
+//    protected MethodSymbol mostRecentProofMethod = null;
+//    
+//    protected BasicProgram mostRecentProgram = null; // FIXME - document; perhaps get rid of, and mostRecentProofMethod
     
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#getCEValue(int, int, java.lang.String, java.lang.String)
      */
     @Override  // TODO: REVIEW THIS - get the info through the IProverResult
     public String getCEValue(int pos, int end, String text, String fileLocation) {
+//        fileLocation = fileLocation.replace('\\','/');
+////        if (mostRecentProofMethod == null) {
+////            return "No proof in which to evaluate the selection";
+////        }
+//        JmlCompilationUnit tree = null; //(JmlCompilationUnit)Enter.instance(context()).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
+//        if (!tree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
+//            //System.out.println("Did not match " + tree.sourcefile.toString());
+//            boolean found = false;
+//            {
+//                JmlCompilationUnit stree = tree.specsCompilationUnit;
+//                if (stree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
+//                    tree = stree;
+//                    found = true;
+//                }
+//                //System.out.println("Did not match " + stree.sourcefile.toString());
+//            }
+//            if (!found) {
+//                // TODO _ make a proper error to the right destination
+//                System.out.println("No Match for " + tree.specsCompilationUnit.sourcefile.getName());
+//            }
+//        }
+//        JCTree node = findNode(tree,pos,end);
+//        JmlMethodDecl parentMethod = finder.parentMethod;
+////        if (parentMethod.sym != mostRecentProofMethod) {
+////            return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+////        }
+//        String out;
+//        if (node instanceof JmlVariableDecl) {
+//            // This happens when we have selected a method parameter or the variable within a declaration
+//            // continue
+//            out = text == null ? null : ("Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n");
+//        } else if (!(node instanceof JCTree.JCExpression)) {
+//            return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
+//        } else {
+//            if (text == null) out = node.toString().replace("<", "&lt;") + " <B>is</B> ";
+//            else    out = "Found expression node: " + node.toString() + "\n";
+//        }
+//        
+//        if (JmlEsc.mostRecentProofResult != null) {
+//            String value = JmlEsc.mostRecentProofResult.counterexample().get(node);
+//            if (value != null) {
+//                if (text == null) out = out + value;
+//                else out = out + "Value " + node.type + " : " + value;
+//                if (node.type.tag == TypeTags.CHAR) {
+//                    try {
+//                        out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
+//                    } catch (NumberFormatException e) {
+//                        // ignore
+//                    }
+//                }
+//            }
+//            else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
+//            return out;
+//        }
+        return "No counterexample information available";
+        
+    }
+    @Override  // TODO: REVIEW THIS - get the info through the IProverResult
+    public Finder findMethod(JmlCompilationUnit tree, int pos, int end, String text, String fileLocation) {
         fileLocation = fileLocation.replace('\\','/');
-        if (mostRecentProofMethod == null) {
-            return "No proof in which to evaluate the selection";
-        }
-        JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(context()).getEnv((TypeSymbol)mostRecentProofMethod.owner).toplevel;
+//        if (mostRecentProofMethod == null) {
+//            return "No proof in which to evaluate the selection";
+//        }
         if (!tree.sourcefile.getName().replace('\\','/').equals(fileLocation)) {
             //System.out.println("Did not match " + tree.sourcefile.toString());
             boolean found = false;
@@ -702,38 +761,7 @@ public class API implements IAPI {
             }
         }
         JCTree node = findNode(tree,pos,end);
-        JmlMethodDecl parentMethod = finder.parentMethod;
-        if (parentMethod.sym != mostRecentProofMethod) {
-            return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
-        }
-        String out;
-        if (node instanceof JmlVariableDecl) {
-            // This happens when we have selected a method parameter or the variable within a declaration
-            // continue
-            out = "Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n";
-        } else if (!(node instanceof JCTree.JCExpression)) {
-            return "Selected text is not an expression (" + node.getClass() + "): " + text;
-        } else {
-            out = "Found expression node: " + node.toString() + "\n";
-        }
-        
-        if (JmlEsc.mostRecentProofResult != null) {
-            String value = JmlEsc.mostRecentProofResult.counterexample().get(node);
-            if (value != null) {
-            	out = out + "Value " + node.type + " : " + value;
-            	if (node.type.tag == TypeTags.CHAR) {
-            	    try {
-            	        out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
-            	    } catch (NumberFormatException e) {
-            	        // ignore
-            	    }
-            	}
-            }
-            else out = out + "Value is unknown (type " + node.type + ")";
-            return out;
-        }
-        return "No counterexample information available";
-        
+        return finder;
     }
     
     /* (non-Javadoc)
@@ -744,9 +772,10 @@ public class API implements IAPI {
         JmlMethodDecl decl = getMethodDecl(msym);
         JmlEsc esc = JmlEsc.instance(context());
         esc.check(decl);
-        mostRecentProofMethod = msym;
-        mostRecentProgram = esc.mostRecentProgram;
-        return getProofResult(msym);
+        return null; // FIXME - return the proof result
+//        mostRecentProofMethod = msym;
+//        mostRecentProgram = esc.mostRecentProgram;
+//        return getProofResult(msym);
     }
     
     /* (non-Javadoc)
@@ -755,21 +784,26 @@ public class API implements IAPI {
     @Override
     public void doESC(ClassSymbol csym) {
         //if (!isTypechecked(csym)) typecheck(csym);
-        mostRecentProofMethod = null;
-        mostRecentProgram = null;
+//        mostRecentProofMethod = null;
+//        mostRecentProgram = null;
         JmlClassDecl decl = getClassDecl(csym);
         JmlEsc.instance(context()).check(decl);
     }
     
-    /* (non-Javadoc)
-     * @see org.jmlspecs.openjml.IAPI#getProofResult(com.sun.tools.javac.code.Symbol.MethodSymbol)
-     */
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    @Override
-    public @Nullable IProverResult getProofResult(MethodSymbol msym) {
-        return JmlEsc.instance(context()).proverResults.get(msym);
-    }
+//    /* (non-Javadoc)
+//     * @see org.jmlspecs.openjml.IAPI#getProofResult(com.sun.tools.javac.code.Symbol.MethodSymbol)
+//     */
+//    //@ requires isOpen;
+//    //@ ensures isOpen;
+//    @Override
+//    public @Nullable IProverResult getProofResult(MethodSymbol msym) {
+//        return JmlEsc.instance(context()).proverResults.get(msym);
+//    }
+//    
+//    @Override
+//    public @Nullable Map<MethodSymbol,IProverResult> getProofResults() {
+//        return JmlEsc.instance(context()).proverResults;
+//    }
     
     // TODO - get rid of this - get the informatinon from the IProverResult
     /** Returns the basic block program for the given method

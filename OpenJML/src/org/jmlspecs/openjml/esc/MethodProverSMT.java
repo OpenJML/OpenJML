@@ -323,18 +323,22 @@ public class MethodProverSMT {
                         if (solverResponse.equals(unsatResponse)) {
                             if (JmlAssertionAdder.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INCONSISTENT);
+                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INFEASIBLE);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;
                             } else {
                                 log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INCONSISTENT);
+                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INFEASIBLE);
                             }
                         }
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 int count = Utils.instance(context).maxWarnings;
+                ProverResult pr = (ProverResult)factory.makeProverResult(proverToUse,
+                        solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
+                proofResult = pr;
+//                jmlesc.mostRecentProofResult = proofResult;
                 while (true) {
 
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
@@ -345,12 +349,6 @@ public class MethodProverSMT {
                             String msg = ": ";
                             if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
                             log.warning(methodDecl,"esc.nomodel",msg + r);
-                            if (proofResult == null) {
-                                ProverResult pr = (ProverResult)factory.makeProverResult(proverToUse,
-                                        IProverResult.POSSIBLY_SAT);
-                                proofResult = pr;
-                                jmlesc.mostRecentProofResult = proofResult;
-                            }
                             break b;
                         }
                     }
@@ -378,6 +376,7 @@ public class MethodProverSMT {
                     BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
                     tracer = tracerFactory.makeTracer(context,smt,solver,cemap,jmap);
                     // Report JML-labeled values and the path to the failed invariant
+                    tracer.appendln(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym));
                     if (showTrace) {
                         log.noticeWriter.println(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym) + JmlTree.eol);
                         if (utils.jmlverbose  >= Utils.JMLVERBOSE) log.noticeWriter.println("Constants");
@@ -388,15 +387,9 @@ public class MethodProverSMT {
                             program,smt,solver,methodDecl,cemap,jmap,
                             jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
                     
-                    if (proofResult == null) {
-                        ProverResult pr = (ProverResult)factory.makeProverResult(proverToUse,
-                            solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
-                        if (pathCondition != null) {
-                            Counterexample ce = new Counterexample(cemap,path);
-                            pr.add(ce); // TODO - make more abstract
-                        }
-                        proofResult = pr;
-                        jmlesc.mostRecentProofResult = proofResult;
+                    if (pathCondition != null) {
+                        Counterexample ce = new Counterexample(tracer.text(),cemap,path);
+                        pr.add(ce); // TODO - make more abstract
                     }
                     
                     if (pathCondition == null) {
@@ -421,7 +414,7 @@ public class MethodProverSMT {
             }
         }
         solver.exit();
-        jmlesc.mostRecentProgram = program;
+//        jmlesc.mostRecentProgram = program;
         return proofResult;
         
     }
@@ -626,6 +619,7 @@ public class MethodProverSMT {
                         sp = s.getStartPosition();
                         ep = s.getEndPosition(log.currentSource().getEndPosTable());
                         toTrace = s.ident;
+                        tracer.appendln(loc + " \t" + comment);
                         log.noticeWriter.println(loc + " \t" + comment);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
@@ -648,17 +642,23 @@ public class MethodProverSMT {
                     } else {
 //                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     }
+                    tracer.appendln(loc + " \t" + comment);
                     log.noticeWriter.println(loc + " \t" + comment);
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
                     String s = ((JmlStatementExpr)bbstat).id;
-                    if (toTrace != null && s != null) log.noticeWriter.println("\t\t\t\t" + s + " = " + cemap.get(toTrace));
+                    if (toTrace != null && s != null) {
+                        tracer.appendln("\t\t\t\t" + s + " = " + cemap.get(toTrace));
+                        log.noticeWriter.println("\t\t\t\t" + s + " = " + cemap.get(toTrace));
+                    }
                     if (comment.startsWith("AssumeCheck assertion")) break ifstat;
                     
                 } else if (aaPathMap.reverse.keySet().contains(bbstat)) {
                     String loc = utils.locationString(bbstat.getStartPosition());
                     //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
+                    tracer.appendln(loc + " \t" + comment);
                     log.noticeWriter.println(loc + " \t" + comment);
                 } else if (comment != null) {
+                    tracer.appendln(" \t//" + comment);
                     log.noticeWriter.println(" \t//" + comment);
                 }
                 
@@ -711,10 +711,12 @@ public class MethodProverSMT {
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
                         log.warning(pos,"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                         loc = utils.locationString(pos);
+                        tracer.appendln(loc + ": Invalid assertion (" + label + ")");
                     } else {
                         // FIXME - migrate to using pos() for terminationPos as well 
                         log.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,decl.getName(),extra); //$NON-NLS-1$
                         loc = utils.locationString(assertStat.getPreferredPosition());
+                        tracer.appendln(loc + ": Invalid assertion (" + label + ")");
                     }
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
@@ -726,6 +728,7 @@ public class MethodProverSMT {
                         log.warning(assertStat.associatedPos, 
                                 Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                 loc);
+                        tracer.appendln(utils.locationString(assertStat.associatedPos) + ": Associated location");
                         if (assertStat.associatedSource != null) log.useSource(prev);
                     }
 
@@ -805,6 +808,9 @@ public class MethodProverSMT {
     /** The interface for tracer objects */
     public interface ITracer {
         void trace(JCTree that);
+        void append(String s);
+        void appendln(String s);
+        String text();
     }
     
     /** This class walks the expression subtrees, printing out the value of each
@@ -820,9 +826,23 @@ public class MethodProverSMT {
         Map<JCTree,String> cemap;
         Log log;
         String result;
+        StringBuffer traceText = new StringBuffer();
+        
+        public void append(String s) {
+            traceText.append(s);
+        }
+        
+        public void appendln(String s) {
+            traceText.append(s);
+            traceText.append(Strings.eol);
+        }
         
         public void trace(JCTree that) {
             that.accept(this);
+        }
+        
+        public String text() {
+            return traceText.toString();
         }
         
         /** Not to be used by callers - this is set false by some visit methods
@@ -1112,10 +1132,12 @@ public class MethodProverSMT {
         protected SortedMap<String,String> map = new TreeMap<String,String>();
         protected Map<JCTree,String> mapv = new HashMap<JCTree,String>();
         private List<IProverResult.Span> path;
+        public String traceText;
         
-        public Counterexample(Map<JCTree,String> cemap, List<IProverResult.Span> path) {
+        public Counterexample(String trace, Map<JCTree,String> cemap, List<IProverResult.Span> path) {
             mapv = cemap;
             this.path = path;
+            this.traceText = trace;
         }
   
         // FIXME _ Cleanup

@@ -140,8 +140,8 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 	protected void clean(/*@ nullable */ IProgressMonitor monitor) throws CoreException {
 		if (Options.uiverboseness) Log.log("Cleaning: " + getProject().getName()); //$NON-NLS-1$
 		IProject p = getProject();
-		Activator.getDefault().utils.deleteMarkers(p,null);
-		Activator.getDefault().utils.cleanRacbin(p);
+		Activator.utils().deleteMarkers(p,null);
+		Activator.utils().cleanRacbin(p);
 	}
 
 	/** Called during tree walking; it records the java files visited.
@@ -179,27 +179,27 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		// compilation context.
 		boolean done = false;
 		if (Options.isOption(Options.enableRacKey)) {
-			Activator.getDefault().utils.racMarked(jproject);
+			Activator.utils().racMarked(jproject);
 			done = true;
 		} 
 		if (Options.isOption(Options.enableESCKey)) {
 			// FIXME - use monitor, be incremental?
-			Activator.getDefault().utils.checkESCProject(jproject,resourcesToBuild,null,"Static Checks - Auto"); //$NON-NLS-1$
+			Activator.utils().checkESCProject(jproject,resourcesToBuild,null,"Static Checks - Auto"); //$NON-NLS-1$
 			done = true;
 		} 
 		if (!done) {
 			// If we did not already type-check because of RAC or ESC, do it now
-			Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
+			Activator.utils().getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
 //			Job j = new Job("OpenJML Auto Build") {
 //				public IStatus run(IProgressMonitor monitor) {
 //					monitor.beginTask("Static checking of " + jproject.getElementName(), 1);
 //					boolean c = false;
 //					try {
-//						Activator.getDefault().utils.getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
+//						Activator.utils().getInterface(jproject).executeExternalCommand(Main.Cmd.CHECK,resourcesToBuild, monitor,true);
 //					} catch (Exception e) {
 //						// FIXME - this will block, preventing progress on the rest of the projects
 //						Log.errorlog("Exception during Static Checking - " + jproject.getElementName(), e);
-//						Activator.getDefault().utils.showExceptionInUI(null, "Exception during Static Checking - " + jproject.getElementName(), e);
+//						Activator.utils().showExceptionInUI(null, "Exception during Static Checking - " + jproject.getElementName(), e);
 //						c = true;
 //					}
 //					return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
@@ -230,7 +230,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		if (Options.uiverboseness) Log.log("Full build " + project.getName()); //$NON-NLS-1$
 		
 		Timer.timer.markTime();
-		Activator.getDefault().utils.deleteMarkers(project,null);
+		Activator.utils().deleteMarkers(project,null);
 		if (monitor.isCanceled() || isInterrupted()) {
 			if (Options.uiverboseness) Log.log("Build interrupted"); //$NON-NLS-1$
 			return;
@@ -238,11 +238,11 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		ResourceVisitor v = new ResourceVisitor();
 		project.accept(v);
 		// Don't clear if the rac directory is the bin directory
-		String rd = Activator.getDefault().utils.getRacDir();
+		String rd = Activator.utils().getRacDir();
 		IPath rdd = jproject.getProject().findMember(rd).getFullPath(); // relative to workspace
 		IPath output = jproject.getOutputLocation(); // also relative to workspace
 		if (!rdd.equals(output)) {
-			Activator.getDefault().utils.racClear(jproject,null,monitor);
+			Activator.utils().racClear(jproject,null,monitor);
 		}
 		doAction(jproject,v.resourcesToBuild,monitor,true);
 		v.resourcesToBuild.clear();
@@ -269,7 +269,7 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 		Timer.timer.markTime();
 		DeltaVisitor v = new DeltaVisitor();
 		delta.accept(v);  // collects all changed files
-		Activator.getDefault().utils.deleteMarkers(v.resourcesToBuild,null);
+		Activator.utils().deleteMarkers(v.resourcesToBuild,null);
 		doAction(jproject,v.resourcesToBuild,monitor,false);
 		v.resourcesToBuild.clear(); // Empties the list
 		if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Build complete " + project.getName()); //$NON-NLS-1$

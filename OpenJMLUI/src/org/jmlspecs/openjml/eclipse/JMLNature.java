@@ -34,7 +34,7 @@ public class JMLNature implements IProjectNature {
 		// configured into the project classpath. We remember what was done, so it 
 		// can be undone on deconfiguring.
 		if (!Options.isOption(Options.noInternalRuntimeKey)) {
-			Activator.getDefault().utils.addRuntimeToProjectClasspath(JavaCore.create(project));
+			Activator.utils().addRuntimeToProjectClasspath(JavaCore.create(project));
 		}
 		
 		// Now add the JML builder
@@ -64,7 +64,7 @@ public class JMLNature implements IProjectNature {
 	@Override
 	public void deconfigure() throws CoreException {
 		if (!Options.isOption(Options.noInternalRuntimeKey)) {
-			Activator.getDefault().utils.removeFromClasspath(JavaCore.create(project),null);
+			Activator.utils().removeFromClasspath(JavaCore.create(project),null);
 		}
 		IProjectDescription description = getProject().getDescription();
 		ICommand[] commands = description.getBuildSpec();

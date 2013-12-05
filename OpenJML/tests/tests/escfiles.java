@@ -262,6 +262,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testSettableClock() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/settableClock","testfiles/escSettableClock","-classpath","../OpenJMLDemo/src/openjml/settableClock","-progress","-jmltesting","-logic=AUFNIRA");
+    }
+
+    @Test
     public void testVector() {
         expectedExit = 0;
         helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-jmltesting","-timeout=30","-escMaxWarnings=1");

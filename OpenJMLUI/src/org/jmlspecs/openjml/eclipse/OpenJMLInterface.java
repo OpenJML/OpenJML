@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,22 +35,33 @@ import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
+import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.Enter;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.PropagatedException;
 
@@ -65,7 +77,7 @@ import com.sun.tools.javac.util.PropagatedException;
  * the same set of options, they could be combined, but the implementation
  * currently does not do that.
  */
-public class OpenJMLInterface {
+public class OpenJMLInterface implements IAPI.IProofResultListener {
 	
     /** The API object corresponding to this Interface class. */
     @NonNull
@@ -78,7 +90,7 @@ public class OpenJMLInterface {
      * started.
      */
     @NonNull
-    final protected Utils utils = Activator.getDefault().utils;
+    final protected Utils utils = Activator.utils();
 
     /** Retrieves the descriptive version string from OpenJML 
      * @return returns the descriptive version string from OpenJML
@@ -108,6 +120,7 @@ public class OpenJMLInterface {
    /** Initializes new OpenJMLInterface objects */
    protected void initialize(/*@nullable*/ Main.Cmd cmd) {
        preq = new JmlProblemRequestor(jproject); 
+       JmlEsc.proofResultListener = this;
        PrintWriter w = Log.log.listener() != null ? 
     		   new PrintWriter(Log.log.listener().getStream(),true) : null;
        List<String> opts = getOptions(jproject,cmd);
@@ -131,7 +144,7 @@ public class OpenJMLInterface {
            if (files.isEmpty()) {
         	   if (!auto) {
         		   if (verboseProgress) Log.log("Nothing applicable to process"); //$NON-NLS-1$
-        		   Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process"); //$NON-NLS-1$ //$NON-NLS-2$
+        		   Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process"); //$NON-NLS-1$ //$NON-NLS-2$
         	   }
         	   return;
            }
@@ -151,7 +164,7 @@ public class OpenJMLInterface {
         		       jp.getProject().getFolder(racdir).create(IResource.FORCE,true,null);
         		   } catch (CoreException e) {
                        if (verboseProgress) Log.errorlog("Failed to create the RAC output folder",e); //$NON-NLS-1$
-                       Activator.getDefault().utils.showExceptionInUI(null,"Failed to create the RAC output folder",e); //$NON-NLS-1$
+                       Activator.utils().showExceptionInUI(null,"Failed to create the RAC output folder",e); //$NON-NLS-1$
                        return;
         		   }
         	   }
@@ -196,7 +209,7 @@ public class OpenJMLInterface {
                        ss.append(Utils.space);
                    }
                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)  //$NON-NLS-1$//$NON-NLS-2$
-                   Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
+                   Activator.utils().showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
                }
                else if (ret >= Main.EXIT_SYSERR) {
                    StringBuilder ss = new StringBuilder();
@@ -205,7 +218,7 @@ public class OpenJMLInterface {
                        ss.append(Utils.space);
                    }
                    Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME - when the error is the result of an exception, we don't see the result //$NON-NLS-1$ //$NON-NLS-2$
-                   Activator.getDefault().utils.showMessageInUI(null,"OpenJML Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss);   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+                   Activator.utils().showMessageInUI(null,"OpenJML Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss);   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
                }
            } catch (JmlCanceledException e) {
                throw e;
@@ -218,13 +231,14 @@ public class OpenJMLInterface {
                    ss.append(Utils.space);
                }
                Log.errorlog("Failure to execute openjml: "+ss,e);  //$NON-NLS-1$
-               Activator.getDefault().utils.showExceptionInUI(null,"Failure to execute openjml: " + ss,e); //$NON-NLS-1$
+               Activator.utils().showExceptionInUI(null,"Failure to execute openjml: " + ss,e); //$NON-NLS-1$
            }
            if (monitor != null) monitor.subTask("Completed openjml"); //$NON-NLS-1$
        } catch (JmlCanceledException e) {
            if (monitor != null) monitor.subTask("OpenJML Canceled: " + e.getMessage()); //$NON-NLS-1$
     	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Operation canceled"); //$NON-NLS-1$
        }
+       if (command == Main.Cmd.ESC) utils.refreshView();
    }
  
     /** Executes the jmldoc tool on the given project, producing output according
@@ -273,7 +287,7 @@ public class OpenJMLInterface {
         try {
             if (things.isEmpty()) {
                 Log.log("Nothing applicable to process");
-                Activator.getDefault().utils.showMessageInUI(null,"JML","Nothing applicable to process");
+                Activator.utils().showMessageInUI(null,"JML","Nothing applicable to process");
                 return;
             }
 //            if (api == null) {
@@ -292,6 +306,7 @@ public class OpenJMLInterface {
             
             IResource rr;
             int count = 0;
+    		utils.refreshView(); // Sets up the view - then each result is added incrementally
             for (Object r: things) {
             	try {
             		if (r instanceof IPackageFragment) {
@@ -347,7 +362,7 @@ public class OpenJMLInterface {
             }
             if (args.isEmpty() && elements.isEmpty()) {
                 Log.log("No files or elements to process");
-                Activator.getDefault().utils.showMessageInUI(null,"JML","No files or elements to process");
+                Activator.utils().showMessageInUI(null,"JML","No files or elements to process");
                 return;
             }
             
@@ -372,7 +387,7 @@ public class OpenJMLInterface {
                             ss.append(" ");
                         }
                         Log.errorlog("INTERNAL ERROR: return code = " + ret + "   Command: " + ss,null);  // FIXME _ dialogs are not working
-                        Activator.getDefault().utils.showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
+                        Activator.utils().showMessageInUI(null,"Execution Failure","Internal failure in openjml - return code is " + ret + " " + ss); // FIXME - fix line ending
                     } else if (ret == Main.EXIT_CANCELED) {
                     	// Cancelled
                     	throw new Main.JmlCanceledException("ESC Canceled");
@@ -386,7 +401,7 @@ public class OpenJMLInterface {
                         ss.append(" ");
                     }
                     Log.errorlog("Failure to execute openjml: "+ss,e); 
-                    Activator.getDefault().utils.showMessageInUI(null,"JML Execution Failure","Failure to execute openjml: " + e + " " + ss);
+                    Activator.utils().showMessageInUI(null,"JML Execution Failure","Failure to execute openjml: " + e + " " + ss);
                 }
             }
             // Now do individual methods
@@ -423,18 +438,7 @@ public class OpenJMLInterface {
             					Log.log("Beginning ESC on " + msym);
             				if (monitor != null) monitor.subTask("ESChecking " + msym);
             				IProverResult res = api.doESC(msym);
-            				if (res != null) {
-            					IProverResult.ICounterexample ce = res.counterexample();
-            					if (ce != null && ce.getPath() != null) {
-            						for (IProverResult.Span span: ce.getPath()) {
-            							if (span.end > span.start) { // The test is just defensive
-            								utils.highlight(je.getResource(), span.start, span.end, span.type);
-            							} else {
-                        					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end + " " + span.type);
-            							}
-            						}
-            					}
-            				}
+            				highlightCounterexamplePath((IMethod)je,msym,null);
             			}
             			else {} // ERROR - FIXME
             		} else if (je instanceof IType) {
@@ -454,6 +458,30 @@ public class OpenJMLInterface {
             }
             if (Options.uiverboseness) Log.log(Timer.timer.getTimeString() + " Canceled ESC operation");
         }
+    }
+    
+//    public void highlightCounterexamplePath(IMethod je) {
+//		MethodSymbol msym = convertMethod(je);
+//		if (msym != null) highlightCounterexamplePath(je, msym, null);
+//    }
+    
+    public void highlightCounterexamplePath(IMethod je, MethodSymbol msym, ICounterexample cce) {
+    	if (msym == null) return;
+    	utils.deleteHighlights(je.getResource(), null);
+		IProverResult res = getProofResult(msym);
+		if (res != null) {
+			IProverResult.ICounterexample ce = cce != null ? cce : res.counterexample();
+			if (ce != null && ce.getPath() != null) {
+				for (IProverResult.Span span: ce.getPath()) {
+					if (span.end > span.start) { // The test is just defensive
+						utils.highlight(je.getResource(), span.start, span.end, span.type);
+					} else {
+    					Log.log("BAD HIGHLIGHT RANGE " + span.start + " " + span.end + " " + span.type);
+					}
+				}
+			}
+		}
+
     }
 
     /** Converts Eclipse's representation of a type to OpenJML's, that is
@@ -489,6 +517,17 @@ public class OpenJMLInterface {
         ClassSymbol csym = api.getClassSymbol(className);
         return csym;
     }
+    
+	public IResource getResourceFor(Symbol sym) {
+		if (sym instanceof MethodSymbol) sym = sym.owner;
+		if (sym instanceof ClassSymbol) {
+			IType t = convertType((ClassSymbol)sym);
+			return t.getResource();
+		}
+		return null;
+	}
+
+
     
     /** Converts Eclipse's representation of a method (an IMethod) to OpenJML's
      * (a MethodSymbol)
@@ -527,6 +566,33 @@ public class OpenJMLInterface {
         } catch (JavaModelException e) {
             throw new Utils.OpenJMLException("Unable to convert method " + method.getElementName() + " of " + method.getDeclaringType().getFullyQualifiedName(),e); 
         }
+    }
+    
+    public IMethod convertMethod(MethodSymbol msym) {
+    	try {
+    		String className = msym.owner.getQualifiedName().toString();
+    		IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
+    		String mname = msym.name.toString();
+    		int nargs = msym.params.size();
+    		// FIXME - finds first match on name, not on tyep signature
+    		for (IMethod m: eClass.getMethods()) {
+    			if (nargs == m.getNumberOfParameters() && mname.equals(m.getElementName())) return m;
+    		}
+    		return null;
+    		//eClass.getMethod(msym.name,toString(),)
+    	} catch (Exception e) {
+    		return null;
+    	}
+    }
+    
+    public IType convertType(ClassSymbol sym) {
+    	try {
+    		String className = sym.getQualifiedName().toString();
+    		IType eClass = jproject.findType(className); // FIXME - OK for nested classes?
+    		return eClass;
+    	} catch (Exception e) {
+    		return null;
+    	}
     }
     
     // FIXME - review and document
@@ -671,7 +737,7 @@ public class OpenJMLInterface {
         String methodName = msym.owner + Strings.dot + msym;
         String shortName = msym.owner.name + Strings.dot + msym.name;
         
-        IProverResult r = api.getProofResult(msym);
+        IProverResult r = getProofResult(msym);
         
         String s = ((API)api).getBasicBlockProgram(msym);
         utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
@@ -692,7 +758,7 @@ public class OpenJMLInterface {
                     + "Prover: " + r.prover());
             return;
         }
-        if (r.result() == IProverResult.INCONSISTENT) {
+        if (r.result() == IProverResult.INFEASIBLE) {
             utils.showMessageInUINM(shell,"JML Proof Results","The assumptions are INCONSISTENT for " + methodName + Strings.eol
             + "Prover: " + r.prover());
             return;
@@ -723,7 +789,47 @@ public class OpenJMLInterface {
 
     // FIXME - documentation
     public String getCEValue(int pos, int end, String text, IResource r) {
-        return api.getCEValue(pos,end,text,r.getLocation().toString());
+        IJavaElement je = (IJavaElement)r.getAdapter(IJavaElement.class);
+        ClassSymbol csym = convertType(((ICompilationUnit)je).findPrimaryType());
+    	JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(api.context()).getEnv(csym).toplevel;
+    	API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
+        JmlMethodDecl parentMethod = finder.parentMethod;
+        JCTree node = finder.found;
+//      if (parentMethod.sym != mostRecentProofMethod) {
+//          return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
+//      }
+      String out;
+      if (node instanceof JmlVariableDecl) {
+          // This happens when we have selected a method parameter or the variable within a declaration
+          // continue
+          out = text == null ? null : ("Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n");
+      } else if (!(node instanceof JCTree.JCExpression)) {
+          return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
+      } else {
+          if (text == null) out = node.toString().replace("<", "&lt;") + " <B>is</B> ";
+          else    out = "Found expression node: " + node.toString() + "\n";
+      }
+      
+      IProverResult res = getProofResult(parentMethod.sym);
+      
+      if (res != null) {
+          String value = res.counterexample().get(node);
+          if (value != null) {
+              if (text == null) out = out + value;
+              else out = out + "Value " + node.type + " : " + value;
+              if (node.type.tag == TypeTags.CHAR) {
+                  try {
+                      out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
+                  } catch (NumberFormatException e) {
+                      // ignore
+                  }
+              }
+          }
+          else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
+          return out;
+      }
+      return "No counterexample information available";
+      
     }
 
     /** Instances of this class can be registered as OpenJML DiagnosticListeners (that is,
@@ -907,6 +1013,39 @@ public class OpenJMLInterface {
             this.context = context; 
         }
     }
+    
+    Map<String,IProverResult> proofResults = new HashMap<String,IProverResult>();
+    Map<String,Symbol> proofSymbols = new HashMap<String,Symbol>();
+    
+    protected String keyForSym(Symbol sym) {
+    	if (sym instanceof MethodSymbol) {
+        	return sym.owner.getQualifiedName().toString() + Strings.dot + sym.toString();
+    	} else {
+    		return sym.getQualifiedName().toString();
+    	}
+    }
+    
+    @Override
+    public void reportProofResult(MethodSymbol msym, IProverResult result) {
+    	String symname = keyForSym(msym);
+    	proofResults.put(symname,result);
+    	proofSymbols.put(symname,msym);
+    	utils.refreshView(symname);
+    }
+    
+    public @Nullable IProverResult getProofResult(MethodSymbol msym) {
+    	return proofResults.get(keyForSym(msym));
+    }
+
+    public @Nullable Map<String,IProverResult> getProofResults() {
+    	return proofResults;
+    }
+    
+    public void clear(IJavaProject currentProject) {
+    	getProofResults().clear();
+    	proofSymbols.clear();
+    }
+
 
 
 

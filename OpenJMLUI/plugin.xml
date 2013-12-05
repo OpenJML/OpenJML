@@ -415,6 +415,53 @@
     </objectContribution>
   </extension>
 
+<!-- View menu contributions -->
+
+<extension point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.views.ProblemView">
+         <command
+               label="Show Static Check Results"
+               id="org.openjml.problemview.ShowResultsForProblem"
+               commandId="org.openjml.commands.ShowResultsForProblem"
+               icon="icons/jml-logo-16x16.png"> 
+         </command>
+      </menuContribution>
+      <menuContribution
+            locationURI="menu:org.openjml.proofview"
+            allPopups="true">
+         <command
+               label="Rerun Selected Checks"
+               id="org.openjml.proofview.RerunStaticCheck"
+               commandId="org.openjml.commands.RerunStaticCheck"
+               > 
+         </command>
+         <command
+               label="Clear All Results"
+               id="org.openjml.proofview.ClearAllProofResults"
+               commandId="org.openjml.commands.ClearAllProofResults"
+               > 
+         </command>
+         <command
+               label="Clear Selected Results"
+               id="org.openjml.proofview.ClearSelectedProofResults"
+               commandId="org.openjml.commands.ClearSelectedProofResults"
+               > 
+         </command>
+      </menuContribution>
+      <!-- This popup on our custom view does not work -->
+      <menuContribution
+            locationURI="popup:org.openjml.proofview"
+            allPopups="true">
+         <command
+               label="TRIAL"
+               id="org.openjml.proofview.popup.ClearSelectedProofResults"
+               commandId="org.openjml.commands.ClearSelectedProofResults"
+               > 
+         </command>
+      </menuContribution>
+</extension>
+
 <!-- This next section creates the menu items on the Eclipse main menu -->
 <!-- FIXME - I think all the menu tooltips are ignored; is style=push the default? -->
 <!-- FIXME - all the labels need to be internationalized -->
@@ -556,6 +603,12 @@
                tooltip="Opens a specification file editor for the selected object"
                id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsEditor"
                commandId="org.jmlspecs.eclipse.commands.SpecsEditor">
+             </command>
+             <command
+               label="Open Proof View"
+               tooltip="Opens the proof view"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowProofView"
+               commandId="org.jmlspecs.eclipse.commands.ShowProofView">
              </command>
           </menu>
        </menuContribution>
@@ -1055,8 +1108,130 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$SpecsEditor"
             >
       </command>
+      <command
+            name="Open the Proof View"
+            description="Opens the proof view"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.ShowProofView"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowProofView"
+            >
+      </command>
+      <command
+            name="Rerun Static Check"
+            description="Reruns static checking on selected items"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.RerunStaticCheck"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$RerunStaticCheck"
+            >
+      </command>
+      <command
+            name="Clear All Results"
+            description="Clears all Static Check results"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ClearAllProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearAllProofResults"
+            >
+      </command>
+      <command
+            name="Clear Selected Results"
+            description="Clears selected Static Check results"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ClearSelectedProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearSelectedProofResults"
+            >
+      </command>
+      <command
+            name="Show Counterexample"
+            description="Shows the Counterexample for the selected problem"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ShowResultsForProblem"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ShowResultsForProblem"
+            >
+      </command>
+  </extension>
+
+  <extension
+    point="org.eclipse.ui.commands">
+      <command
+            name="insert requires true;"
+            description="inserts a requires keyword"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.InsertRequires"
+            defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
+            >
+      </command> 
+      <command
+            name="insert ensures true;"
+            description="inserts a ensures keyword"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.InsertEnsures"
+            defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
+            >
+      </command> 
+      <command
+            name="insert assignable \everything;"
+            description="inserts a assignable keyword"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.InsertAssignable"
+            defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
+            >
+      </command> 
+      <command
+            name="insert signals (Exception e) true;"
+            description="inserts a signals keyword"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.InsertSignals"
+            defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
+            >
+      </command> 
+      <command
+            name="insert \\result"
+            description="inserts a \\result keyword"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.InsertResult"
+            defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
+            >
+      </command> 
   </extension>
   
+  <!-- Views -->
+  <!-- Views without a category cannot be opened by the user.
+       -->
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="org.openjml.views"
+            name="OpenJML Views">
+      </category>
+      <!--
+      <view
+            class="codesonar.views.SpeedyView"
+            icon="icons/GrammaTech16.png"
+            id="codesonar.views.SpeedyView"
+            name="SpeedyView"
+            restorable="true">
+      </view>
+      -->
+      <view
+            category="org.openjml.views"
+            class="org.jmlspecs.openjml.eclipse.OpenJMLView"
+            id="org.openjml.proofview"
+            name="OpenJML Static Checks"
+            icon="icons/jml-logo-16x16.png"
+            allowMultiple="false"
+            restorable="true">
+      </view>
+      <view
+            category="org.openjml.views"
+            class="org.jmlspecs.openjml.eclipse.TraceView"
+            id="org.openjml.traceview"
+            name="OpenJML Trace"
+            icon="icons/jml-logo-16x16.png"
+            allowMultiple="false"
+            restorable="true">
+      </view>
+   </extension>
+
    <!-- This extension adds help information.
    	-->
    <extension
@@ -1072,6 +1247,38 @@
        content-type="org.eclipse.jdt.core.javaSource"
        file-extensions="jml"/>
    </extension>
+
+   <extension
+         point="org.eclipse.jdt.ui.javaEditorTextHovers">
+      <hover
+            activate="true"
+            class="org.jmlspecs.openjml.eclipse.CounterexampleHover"
+            description="Value of variable in current counterexample"
+            id="org.openjml.counterexampleHover"
+            label="Counterexample Value">
+      </hover>
+   </extension>
+   
+   <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+       id="openjml_proposals"
+       name="OpenJML Proposals">
+       <proposalCategory icon="icons/jml-logo-16x16.png"/>
+   </extension>
+   <extension
+         id="org.openjml.completionProposals"
+         name="OpenJML Completion"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+       <javaCompletionProposalComputer
+         class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+         categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">
+         <partition type="__java_singleline_comment"/>
+       </javaCompletionProposalComputer>
+       <javaCompletionProposalComputer
+         class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+         categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">
+         <partition type="__java_multiline_comment"/>
+       </javaCompletionProposalComputer>
+   </extension>   
    
    <!--  FIXME - this would define a new editor, but it is not implemented yet
    <extension
@@ -1117,5 +1324,5 @@
       <classpathVariableInitializer
             class="org.jmlspecs.openjml.eclipse.ClasspathVariableInitializer"
             variable="OPENJML_RUNTIME_LIBRARY"/>
-   </extension>   
+   </extension>
 </plugin>

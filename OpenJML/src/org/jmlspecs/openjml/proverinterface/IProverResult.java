@@ -34,7 +34,7 @@ public interface IProverResult {
     static public final Kind POSSIBLY_SAT = new Kind("POSSIBLY_SAT");
 
     /** The logical assumptions were infeasible (and thus trivially satisfiable) */
-    static public final Kind INCONSISTENT = new Kind("INCONSISTENT");
+    static public final Kind INFEASIBLE = new Kind("INFEASIBLE");
 
     /** The logical assertions were not satisfiable */
     static public final Kind UNSAT = new Kind("UNSAT");

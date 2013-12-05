@@ -3256,7 +3256,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSRESULT:
                 JCTree.JCMethodDecl md = env.enclMethod;
                 JCTree res = md.getReturnType();
-                if (res == null || types.isSameType(res.type,syms.voidType)) {
+                if (res == null || (!res.type.isErroneous() && types.isSameType(res.type,syms.voidType))) {
                     log.error(that.pos+1, "jml.void.result");
                     t = syms.errType;
                 } else {
@@ -4596,6 +4596,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (pureAnnotationSymbol == null) {
 //            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Pure"));
 //        }
+        if (symbol instanceof MethodSymbol) {
+            MethodSpecs m = specs.getSpecs((MethodSymbol)symbol);
+//            List<JCAnnotation> annots = m.mods.annotations;
+//            for (JCAnnotation a: annots) 
+//                System.out.println(a);
+        }
         if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(pureAnnotationSymbol)!=null;
         return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;

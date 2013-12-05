@@ -668,6 +668,16 @@ public class typechecking extends TCBase {
                 );
     }
     
+    @Test public void testFreshWeirdError() {
+        helpTCF("WeirdError.java",
+                "public class WeirdError {\n" +
+                " public Foo getFoo() { return null; }\n" +
+                "}\n"
+                ,"/WeirdError.java:2: cannot find symbol\n  symbol:   class Foo\n  location: class WeirdError",9
+               // ,"/WeirdError.java:2: A \\result expression may not be used in the specification of a method that returns void",14
+                );
+    }
+    
     @Test public void testFresh() {
         helpTCF("A.java","public class A { Object o,oo; //@ ensures \\fresh(o); \n void m() {} \n }"
                 );
@@ -729,6 +739,12 @@ public class typechecking extends TCBase {
     @Test public void testInformalComment() {
         helpTCF("A.java","public class A {\n //@ invariant (* stuff *);\n //@ ghost int k = (* stuff *);  \n }"
                 ,"/A.java:3: incompatible types\n  required: int\n  found:    boolean",20
+        );
+    }
+
+    @Test public void testId() {
+        helpTCF("A.java","public class A {\n //@ public model int duration;  \n }"
+                ,"/A.java:2: Expected an identifier, found a JML keyword instead: duration",23
         );
     }
 

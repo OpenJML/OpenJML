@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -20,6 +21,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -70,6 +72,12 @@ public interface IAPI {
         // FIXME - can we get rid of this? in the meantime, it must be called to set the context to match that of the compilation context being listened to
         @Override
         public void setContext(Context context) { this.context = context; }
+    }
+    
+    public static interface IProofResultListener {
+        
+        void reportProofResult(MethodSymbol msym, IProverResult result);
+        
     }
 
     /** Sets a progress listener that hears any progress reports (e.g. names of
@@ -486,6 +494,9 @@ public interface IAPI {
     public String getCEValue(int pos, int end, String text,
             String fileLocation);
 
+    public API.Finder findMethod(JmlCompilationUnit tree, int pos, int end, String text,
+            String fileLocation);
+
     // FIXME _ need a way to determine if a CU has been typechecked (successfully)
     
     /** Executes static checking on the given method; assumes that all 
@@ -506,15 +517,17 @@ public interface IAPI {
     //@ ensures isOpen;
     public void doESC(ClassSymbol csym);
 
-    /** The proof result of the most recent proof attempt for the given
-     * method, or null if there has been none.
-     * @param msym the method in question
-     * @return the proof result
-     */
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public @Nullable
-    IProverResult getProofResult(MethodSymbol msym);
+//    /** The proof result of the most recent proof attempt for the given
+//     * method, or null if there has been none.
+//     * @param msym the method in question
+//     * @return the proof result
+//     */
+//    //@ requires isOpen;
+//    //@ ensures isOpen;
+//    public @Nullable
+//    IProverResult getProofResult(MethodSymbol msym);
+//
+//    public @Nullable Map<MethodSymbol,IProverResult> getProofResults();
 
     /** Returns the type specs for the given class symbol
      * 

@@ -29,15 +29,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IPersistableElement;
-import org.eclipse.ui.IStorageEditorInput;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkingSet;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -46,8 +38,13 @@ import org.jmlspecs.annotation.Query;
 import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.PathItem.ProjectPath;
+import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.osgi.framework.Bundle;
+
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 
 // FIXME - review UI Utils class
 
@@ -318,9 +315,13 @@ public class Utils {
 	public void checkESCSelection(ISelection selection,
 			@Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
 		if (!checkForDirtyEditors()) return;
+		if (selection == null) {
+			showMessage(shell, "ESC", "Nothing selected to check");
+			return;
+		}
 		final List<Object> res = getSelectedElements(selection, window, shell);
 		if (res.size() == 0) {
-			showMessage(shell, "ESC", "Nothing applicable to check");
+			showMessage(shell, "ESC", "Nothing selected or applicable to check");
 			return;
 		}
 		final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
@@ -872,9 +873,8 @@ public class Utils {
 				} else if (o instanceof ICompilationUnit) {
 					t = ((ICompilationUnit) o).findPrimaryType();
 				} else if (o instanceof IFile) {
-					IJavaElement cu = JavaCore.create((IFile) o);
-					if (cu instanceof ICompilationUnit)
-						t = ((ICompilationUnit) cu).findPrimaryType();
+					ICompilationUnit cu = JavaCore.createCompilationUnitFrom((IFile) o);
+					t = cu.findPrimaryType();
 				} else if (o instanceof IAdaptable) {
 					ICompilationUnit cu = (ICompilationUnit) ((IAdaptable) o)
 							.getAdapter(ICompilationUnit.class);
@@ -1482,7 +1482,7 @@ public class Utils {
 	 */
 	public void changeJmlNatureSelection(boolean enable, ISelection selection,
 			IWorkbenchWindow window, Shell shell) {
-		Collection<IJavaProject> list = Activator.getDefault().utils
+		Collection<IJavaProject> list = Activator.utils()
 				.getSelectedProjects(true, selection, window, shell);
 		Iterator<IJavaProject> i = list.iterator();
 		if (!i.hasNext()) {
@@ -1996,6 +1996,77 @@ public class Utils {
 					e);
 		}
 	}
+	
+	public void refreshView() {
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				try {
+					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
+					((OpenJMLView)view).refresh();
+				} catch (PartInitException e) {
+					// FIXME - report error?
+				}
+			}
+		});
+	}
+	
+	public void refreshView(final String symname) {
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				try {
+					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
+					((OpenJMLView)view).refresh(symname);
+				} catch (PartInitException e) {
+					// FIXME - report error?
+				}
+			}
+		});
+	}
+	
+	/** Returns the ProofView, if it exists, null otherwise */
+	public OpenJMLView findView() {
+		IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(OpenJMLView.ID);
+		return ((OpenJMLView)view);
+	}
+	
+	/** Creates (if needed) and returns the Proof View */
+	public OpenJMLView showView() {
+		try {
+			IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
+			return ((OpenJMLView)view);
+		} catch (PartInitException e) {
+			// FIXME - report error?
+			return null;
+		}
+	}
+	
+	/** Creates (if needed) and returns the trace view, setting the given data */
+	public void setTraceView(final String methodName, final String text) {
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				try {
+					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
+					if (view instanceof TraceView) ((TraceView)view).setText(methodName, text);
+				} catch (PartInitException e) {
+					// FIXME - report error?
+					// FIXME - might be a legitimate NPE
+				}
+			}
+		});
+	}
+	
+	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View*/
+	public void setTraceView(IJavaProject currentProject) {
+        Symbol sym = findView().currentSymbol;
+        String methodName = sym instanceof MethodSymbol ? sym.toString() : null;
+        IProverResult res = Activator.utils().getInterface(currentProject).proofResults.get(sym);
+        ICounterexample ce = res == null ? null : res.counterexample();
+        String text = ce instanceof Counterexample ? ((Counterexample)ce).traceText : null;
+        setTraceView(methodName, text);
+	}
 
 	/**
 	 * This class is an implementation of the interfaces needed to provide input
@@ -2260,6 +2331,26 @@ public class Utils {
 					IResource.DEPTH_INFINITE);
 		} catch (CoreException e) {
 			String msg = "Failed to delete markers on " + resource.getProject();
+			Log.errorlog(msg, e);
+			Utils.showMessage(shell, "JML Plugin Exception", msg + " - " + e);
+		}
+	}
+	
+	
+	public void deleteHighlights(IResource resource, @Nullable Shell shell) {
+		try {
+			if (Options.uiverboseness)
+				Log.log("Deleting highlights in " + resource.getName());
+			resource.deleteMarkers(Env.JML_HIGHLIGHT_ID, false,
+					IResource.DEPTH_INFINITE);
+			resource.deleteMarkers(Env.JML_HIGHLIGHT_ID_TRUE, false,
+					IResource.DEPTH_INFINITE);
+			resource.deleteMarkers(Env.JML_HIGHLIGHT_ID_FALSE, false,
+					IResource.DEPTH_INFINITE);
+			resource.deleteMarkers(Env.JML_HIGHLIGHT_ID_EXCEPTION, false,
+					IResource.DEPTH_INFINITE);
+		} catch (CoreException e) {
+			String msg = "Failed to delete highlights on " + resource.getProject();
 			Log.errorlog(msg, e);
 			Utils.showMessage(shell, "JML Plugin Exception", msg + " - " + e);
 		}
@@ -2711,7 +2802,7 @@ public class Utils {
 		Job job = new Job("Clean") { //$NON-NLS-1$
 			public IStatus run(IProgressMonitor monitor) {
 				try {
-					String racbin = Activator.getDefault().utils.getRacDir();
+					String racbin = Activator.utils().getRacDir();
 					IResource rf = project.findMember(Options.value(Options.racbinKey));
 					if (rf instanceof IFolder) {
 						IFolder f = (IFolder)rf;

@@ -37,7 +37,7 @@ public abstract class TCBase extends JmlTestCase {
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
-        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("-specspath",   testspecpath + (!useSystemSpecs ? "" : (z + "$SY") ));
         main.addOptions("-sourcepath",   testspecpath);
         main.addOptions("-classpath",   "bin-runtime");
         if (!useSystemSpecs) main.addOptions("-no-internalSpecs");

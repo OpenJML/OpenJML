@@ -138,7 +138,7 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			int severity = jmlproblem.severity;
 			
 			if (jmlproblem.lineStart < 0) {
-				Activator.getDefault().utils.showMessageInUI(null,"OpenJML ESC Error",finalErrorMessage);
+				Activator.utils().showMessageInUI(null,"OpenJML ESC Error",finalErrorMessage);
 			}
 			
 			// FIXME - this looks like a hack - at least explain
