@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -58,23 +59,18 @@ import com.sun.tools.javac.code.Symbol.PackageSymbol;
 
 public class OpenJMLView extends ViewPart implements SelectionListener, MouseListener {
 
+	/** Eclipse ID of the viewer - must match the ID defined in the plugin.xml file */
     public static final String ID = "org.openjml.proofview"; //$NON-NLS-1$
     
     Document doc;
     
-    String currentFileName;
-    String currentFilePath;
     IJavaProject currentProject;
-    Symbol currentSymbol;
     IPartListener aListener;
-    Label lblFileName;
     TreeViewer viewer;
     
     //Table tree;
     Tree tree;
     TreeItem treeroot;
-    
-    IAction clearProofResults;
     
 
     public OpenJMLView() {
@@ -132,7 +128,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         };
         PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(aListener);
         
-        createActions();
         initializeToolBar();
 //        initializeMenu();
         if (viewer != null) createContextMenu(viewer);
@@ -166,7 +161,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     public final static Color blue = new Color(null,0,0,255);
 
     Map<String,TreeItem> treeitems = new HashMap<String,TreeItem>();
-    Map<TreeItem,Symbol> treesyms = new HashMap<TreeItem,Symbol>();
     Map<TreeItem,ICounterexample> treece = new HashMap<TreeItem,ICounterexample>();
 
     // FIXME: Would like to update incrementally
@@ -186,19 +180,20 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	this.setPartName("OpenJML: " + currentProject.getElementName());
         treeroot.setText("Static Checks for: " + currentProject.getElementName());
         
-        // FIXME - would like to sort these
-        for (String symname : results.keySet()) {
-        	refresh(symname);
+        // FIXME - would like to sort these; remember the tree is built incrementally
+        for (String key : results.keySet()) {
+        	refresh(key);
         }
         treeroot.setExpanded(true);
         //viewer.refresh();
     }
     
-    public void refresh(String symname) {
+    public void refresh(String key) {
     	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
     	Map<String,IProverResult> results = iface.getProofResults();
+    	IProverResult result = results.get(key);
+    	Symbol sym = result.methodSymbol();
     	
-        	Symbol sym = iface.proofSymbols.get(symname);
         	PackageSymbol p = sym.packge();
     		String pname = p.getQualifiedName().toString();
     		if (pname.isEmpty()) pname = "<default package>";
@@ -207,7 +202,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         		ti = new TreeItem(treeroot, SWT.NONE);
         		ti.setText(pname);
         		treeitems.put(pname, ti);
-        		treesyms.put(ti,p);
         	}
     		
         	Symbol classSym = sym.owner;
@@ -218,22 +212,36 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         		tii = new TreeItem(ti,SWT.NONE);
         		tii.setText(cname); // FIXME - what about nested classes
         		treeitems.put(scname, tii);
-        		treesyms.put(tii,classSym);
+            	{
+            		Info iteminfo = new Info();
+            		iteminfo.key = scname;
+            		iteminfo.proofResult = null;
+            		iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
+            		iteminfo.signature = classSym.getSimpleName().toString();
+            		tii.setData(iteminfo);
+            	}
         	}
     		
         	String text = sym.toString();
-        	TreeItem tiii = treeitems.get(symname);
+        	TreeItem tiii = treeitems.get(key);
         	if (tiii == null) {
     			tiii = new TreeItem(tii,SWT.NONE);
-    			treeitems.put(symname, tiii);
-    			treesyms.put(tiii,sym);
+    			treeitems.put(key, tiii);
         	}
         	
-        	IProverResult result = results.get(symname);
         	Kind k = result == null ? null : result.result();
+        	String info = result == null ? "" : (" [" + result.duration() + " " + result.prover() + "]");
         	tiii.removeAll();
+        	{
+        		Info iteminfo = new Info();
+        		iteminfo.key = key;
+        		iteminfo.proofResult = result;
+        		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
+        		iteminfo.signature = key;
+        		tiii.setData(iteminfo);
+        	}
         	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
-        		tiii.setText("[INVALID] " + text);
+        		tiii.setText("[INVALID] " + text + info);
         		tiii.setBackground(orange);
     			List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
         		if (presults.size() == 1) {
@@ -256,22 +264,22 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         			tiii.setExpanded(true);
         		}
         	} else if (k == IProverResult.UNSAT) {
-        		tiii.setText("[VALID]   " + text);
+        		tiii.setText("[VALID]   " + text + info);
             	tiii.setBackground(green);
         	} else if (k == IProverResult.ERROR) {
-        		tiii.setText("[ERROR]   " + text);
+        		tiii.setText("[ERROR]   " + text + info);
             	tiii.setBackground(red);
         	} else if (k == IProverResult.INFEASIBLE) {
-        		tiii.setText("[INFEASIBLE] " + text);
+        		tiii.setText("[INFEASIBLE] " + text + info);
             	tiii.setBackground(yellow);
         	} else if (k == IProverResult.SKIPPED) {
-        		tiii.setText("[SKIPPED] " + text);
+        		tiii.setText("[SKIPPED] " + text + info);
             	tiii.setBackground(blue);
         	} else if (k == null) {
         		tiii.setText(text);
             	tiii.setBackground(white);
         	} else {
-        		tiii.setText("[?????] " + text);
+        		tiii.setText("[?????] " + text + info);
         		tiii.setBackground(red);
         	}
             treeroot.setExpanded(true);
@@ -298,44 +306,20 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 
     		IFileEditorInput input = (IFileEditorInput) einput;
 
-    		String newFilePath = input.getFile().getRawLocation().toOSString();
-    		if (newFilePath == null) {
-    			return false;
-    		} else if (newFilePath.equals(currentFilePath)) {
-    			return false;
-    		}
-    		
     		// Get project name
-
-    		currentFileName = input.getFile().getName();
 
     		IProject p = input.getFile().getProject();
     		currentProject = p.hasNature(JavaCore.NATURE_ID) ? JavaCore.create(p) : null;
 
-    		currentFilePath = newFilePath;
-    				
     		return true;
     	} catch (Exception e) {
     		return false;
     	}
     }
 
-    /**
-     * Create the actions.
-     */
-    private void createActions() {
-        clearProofResults = new Action("Clear Proof Results"){
-            public void run(){
-            	clearProofResults();
-            	Activator.utils().setTraceView(null,null);
-            }
-        };
-    }
-    
     public void clearProofResults() {
     	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-    	iface.clear(currentProject);
-    	treesyms.clear();
+    	iface.clearProofResults(currentProject);
     	treeitems.clear();
     	treece.clear();
     	treeroot.removeAll();
@@ -344,29 +328,20 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     }
     
     public void clearSelectedProofResults() {
-    	Symbol sym = treesyms.get(selected);
+    	if (selected == null) return;
     	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-    	String key = iface.keyForSym(sym);
     	clearResults(iface,selected);
-    	iface.getProofResults().put(iface.keyForSym(sym),null);
     	treeroot.removeAll();
-    	treesyms.clear();
     	treeitems.clear();
     	treece.clear();
-    	treeroot.removeAll();
     	refresh();
-    	selected = treeitems.get(key);
-    	tree.setSelection(selected);
-    	selected.setBackground(white);
-    	selected.setExpanded(false);
-    	String text = selected.getText();
-    	if (text.charAt(0) == '[') text = text.substring(text.indexOf(']') + 2);
-    	selected.setText(text);
+    	selected = null;
     }
     
     private void clearResults(OpenJMLInterface iface, TreeItem ti) {
-    	Symbol sym = treesyms.get(ti);
-    	if (sym != null) iface.getProofResults().remove(iface.keyForSym(sym));
+    	Info info = (Info)ti.getData();
+    	ti.setData(null);
+    	if (info != null) iface.getProofResults().remove(info.key);
     	for (TreeItem t: ti.getItems()) {
     		clearResults(iface,t);
     	}
@@ -391,7 +366,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 //        menu.add(updateExpressionsAll);
 //        menu.add(updateExpressionsCS);
 //        menu.add(updateExpressionsDaikon);
-        menuManager.add(clearProofResults);
+//        menuManager.add(clearProofResults);
 //        menuManager.add(reloadExpressions);
 //        menuManager.add(processExpressions);
 //        menuManager.add(processExpressionsWP);
@@ -410,57 +385,43 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
                   .removePartListener(aListener);
     }
     
-    public String getFileName(){
-        return currentFileName;
-    }
-    
-    public String getFilePath(){
-        return currentFilePath;
-    }
-    
     TreeItem selected;
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		TreeItem ti = selected = (TreeItem)e.item;
-		if (ti == null) Log.log("SELECTED null");
-		else {
-			Symbol sym = treesyms.get(ti);
-			TreeItem pi = ti;
-			if (sym == null) {
-				pi = ti.getParentItem();
-				sym = treesyms.get(pi);
-			}
-			String symname = sym == null ? "null" : sym.toString();
-			Log.log("SELECTED " + ti.getText() + " " + symname);
-			if (sym != null) { 
-	    		OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-	    		currentSymbol = sym;
-				IProverResult pr = sym instanceof MethodSymbol ? iface.getProofResult((MethodSymbol)sym) : null;
-				IResource r = iface.getResourceFor(sym);
-				Activator.utils().deleteHighlights(r,null);
-				if (pr != null) {
-					ICounterexample ce = treece.get(ti);
-					if (ce instanceof Counterexample) {
-						((ProverResult)pr).selected = ce;
-						String text = ((Counterexample)ce).traceText; // FIXME - change to method on interface
-						Activator.utils().setTraceView(symname,text);
-						if (sym instanceof MethodSymbol) {
-							MethodSymbol msym = (MethodSymbol)sym;
-							iface.highlightCounterexamplePath(iface.convertMethod(msym),msym,ce);
-						}
-						if (pi != ti) treece.put(pi, ce);
-					} else {
-						Kind k = pr.result();
-						String desc = k == IProverResult.UNSAT ? "consistent" 
-								: k == IProverResult.SAT ? "inconsistent"
-								: k == IProverResult.SKIPPED ? " skipped"
-								: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
-								: k == IProverResult.INFEASIBLE ? "infeasible"
-								: k == IProverResult.UNKNOWN ? "unknown" : "???";
-						Activator.utils().setTraceView(symname,"Method and its specifications are " + desc + ": " 
-								+ sym.owner.getQualifiedName() + Strings.dot + sym.toString());
+		if (ti == null) return;
+		Info info = (Info)ti.getData();
+		TreeItem pi = ti;
+		if (info == null) {
+			pi = ti.getParentItem();
+			if (pi != null) info = (Info)pi.getData();
+		}
+		if (info != null) { 
+			OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
+			IProverResult pr = info.proofResult;
+			IResource r = info.javaElement.getResource();
+			Activator.utils().deleteHighlights(r,null); // FIXME - would like to clear just the java element, not the whole compilation unit
+			if (pr != null) {
+				ICounterexample ce = treece.get(ti);
+				if (ce instanceof Counterexample) {
+					((ProverResult)pr).selected = ce;
+					String text = ((Counterexample)ce).traceText; // FIXME - change to method on interface
+					Activator.utils().setTraceViewUI(info.signature,text);
+					if (info.javaElement instanceof IMethod) {
+						iface.highlightCounterexamplePath((IMethod)info.javaElement,info.proofResult,ce);
 					}
+					if (pi != ti) treece.put(pi, ce);
+				} else {
+					Kind k = pr.result();
+					String desc = k == IProverResult.UNSAT ? "consistent" 
+							: k == IProverResult.SAT ? "inconsistent"
+									: k == IProverResult.SKIPPED ? " skipped"
+											: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
+													: k == IProverResult.INFEASIBLE ? "infeasible"
+															: k == IProverResult.UNKNOWN ? "unknown" : "???";
+					Activator.utils().setTraceViewUI(info.signature,"Method and its specifications are " + desc + ": " 
+							+ info.key);
 				}
 			}
 		}
@@ -471,38 +432,34 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		widgetSelected(e);
 	}
 
+	/** Launches a Java editor for the merthod or class that was clicked */
 	@Override
 	public void mouseDoubleClick(MouseEvent e) {
-		// TODO Auto-generated method stub
+		// Presumes a selection happened as part of the double click
 		Widget w = e.widget;
 		if (!(w instanceof Tree)) return;
 		TreeItem ti = selected;
-		Symbol sym = treesyms.get(ti);
-		if (sym == null) sym = treesyms.get(ti.getParentItem());
-		OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-		if (sym instanceof MethodSymbol) {
-			IType m = iface.convertType((Symbol.ClassSymbol)sym.owner);
-			IFile f = (IFile)m.getCompilationUnit().getResource();
-			Activator.utils().launchJavaEditor(f);
-		} else if (sym instanceof Symbol.ClassSymbol) {
-			IType m = iface.convertType((Symbol.ClassSymbol)sym);
-			IFile f = (IFile)m.getCompilationUnit().getResource();
+		Info info = ti != null ? (Info)ti.getData() : null;
+		IJavaElement je = info == null ? null : info.javaElement;
+		if (je != null) {
+			IFile f = (IFile)je.getResource();
 			Activator.utils().launchJavaEditor(f);
 		}
-		
-		Log.log("DOUBLE CLICK ");
 	}
 
 	@Override
 	public void mouseDown(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void mouseUp(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+	}
+	
+	public static class Info {
+		public IProverResult proofResult;
+		public String key;
+		public IJavaElement javaElement;
+		public String signature;
 	}
 
 //    private MessageConsole findConsole(String name) {

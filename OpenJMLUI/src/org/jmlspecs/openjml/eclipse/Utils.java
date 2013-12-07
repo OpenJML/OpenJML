@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
@@ -2034,7 +2035,10 @@ public class Utils {
 	/** Creates (if needed) and returns the Proof View */
 	public OpenJMLView showView() {
 		try {
-			IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
+			IWorkbench w = PlatformUI.getWorkbench();
+			IWorkbenchWindow ww = w.getActiveWorkbenchWindow();
+			IWorkbenchPage wp = ww.getActivePage();
+			IViewPart view = wp.showView(OpenJMLView.ID);
 			return ((OpenJMLView)view);
 		} catch (PartInitException e) {
 			// FIXME - report error?
@@ -2047,25 +2051,59 @@ public class Utils {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				try {
-					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
-					if (view instanceof TraceView) ((TraceView)view).setText(methodName, text);
-				} catch (PartInitException e) {
-					// FIXME - report error?
-					// FIXME - might be a legitimate NPE
-				}
+				setTraceViewUI(methodName,text);
 			}
 		});
 	}
 	
-	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View*/
-	public void setTraceView(IJavaProject currentProject) {
-        Symbol sym = findView().currentSymbol;
-        String methodName = sym instanceof MethodSymbol ? sym.toString() : null;
-        IProverResult res = Activator.utils().getInterface(currentProject).proofResults.get(sym);
+	/** Creates (if needed) and returns the trace view, setting the given data; MUST be called from the UI thread */
+	public void setTraceViewUI(final String methodName, final String text) {
+		try {
+			IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
+			if (view instanceof TraceView) ((TraceView)view).setText(methodName, text);
+		} catch (PartInitException e) {
+			// FIXME - report error?
+		}
+	}
+	
+	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View. */
+	public void setTraceViewUI(IJavaProject currentProject) {
+        TreeItem ti = findView().selected;
+        if (ti == null) return;
+        OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+        if (info == null) return;
+        IProverResult res = info.proofResult;
+        String methodName = ti.getText();
         ICounterexample ce = res == null ? null : res.counterexample();
         String text = ce instanceof Counterexample ? ((Counterexample)ce).traceText : null;
-        setTraceView(methodName, text);
+        setTraceViewUI(methodName, text);
+	}
+	
+	public void setTraceView(final IJavaProject currentProject) {
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				setTraceViewUI(currentProject);
+			}
+		});
+	}
+
+	public void setTraceView(final String key, final IJavaProject currentProject) {
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				OpenJMLView view = Activator.utils().findView();
+				final TreeItem ti = view.treeitems.get(key);
+				view.selected = ti;
+				setTraceViewUI(currentProject);
+				// FIXME - highlight also
+				OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+				if (info != null && info.javaElement instanceof IMethod) {
+					Activator.utils().getInterface(currentProject).highlightCounterexamplePath((IMethod)info.javaElement,info.proofResult,view.treece.get(ti));
+				}
+
+			}
+		});
 	}
 
 	/**

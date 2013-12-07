@@ -6,6 +6,9 @@ package org.jmlspecs.openjml.proverinterface;
 
 import org.jmlspecs.annotation.*;
 
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,11 +20,22 @@ public class ProverResult implements IProverResult {
 
     /** The result obtained on testing a logical assertion */
     @Nullable @SpecPublic
-    protected Kind result;
+    public Kind result;
 
     /** Descriptor of the prover used */
     @Nullable @SpecPublic
     protected String prover;
+    
+    /** Time taken ( in secs) to compute this proof result */
+    protected double duration;
+    
+    /** Time at which the proof attempt started */
+    @NonNull
+    protected Date timestamp;
+    
+    /** The Method symbol of the target method of this proof attempt */
+    @NonNull
+    public MethodSymbol methodSymbol;
     
     /** Other information - user defined */
     @Nullable
@@ -35,22 +49,14 @@ public class ProverResult implements IProverResult {
     public IProverResult.ICounterexample selected = null;
     
     /** Creates a mostly empty ProverResult object, with the prover
-     * description initialized.
-     * @param prover A description of the prover used
-     */
-    //@ assignable this.prover;
-    //@ ensures prover == this.prover();
-    public ProverResult(String prover) {
-        this.prover = prover;
-    }
-    
-    /** Creates a mostly empty ProverResult object, with the prover
      * description and basic result initialized.
      * @param prover A description of the prover used
      */
-    public ProverResult(String prover, Kind result) {
+    public ProverResult(String prover, Kind result, MethodSymbol msym) {
         this.prover = prover;
+        this.timestamp = new Date(); // current time
         this.result = result;
+        this.methodSymbol = msym;
     }
 
     /** Returns the category of result that the prover obtained
@@ -64,6 +70,23 @@ public class ProverResult implements IProverResult {
      */
     @Pure
     public @Nullable String prover() { return prover; }
+    
+    /** The time to compute this result, in seconds */
+    public double duration() { return duration; }
+
+    /** Sets the time to compute this result */
+    public void setDuration(double d) { duration = d; }
+    
+    /** The method that was the target of this proof attempt */
+    @NonNull
+    public MethodSymbol methodSymbol() { return methodSymbol; }
+    
+    /** The time at which the computation of the result began */
+    @NonNull
+    public Date timestamp() { return timestamp; }
+
+    /** Sets the time at which the computation of the result began */
+    public void setTimestamp(Date d) { timestamp = d; }
     
     /** Returns the associated information object */
     @Pure @Nullable

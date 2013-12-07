@@ -199,7 +199,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#execute(Options, String[])
      */
     @Override
-    public int execute(@NonNull Options options, @NonNull String ... args) {
+    public int execute(@Nullable Options options, @NonNull String ... args) {
         int ret = main.executeNS(main.out(), diagListener, options, args);
         return ret;
     }

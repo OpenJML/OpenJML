@@ -438,7 +438,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             					Log.log("Beginning ESC on " + msym);
             				if (monitor != null) monitor.subTask("ESChecking " + msym);
             				IProverResult res = api.doESC(msym);
-            				highlightCounterexamplePath((IMethod)je,msym,null);
+            				highlightCounterexamplePath((IMethod)je,res,null);
             			}
             			else {} // ERROR - FIXME
             		} else if (je instanceof IType) {
@@ -465,10 +465,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //		if (msym != null) highlightCounterexamplePath(je, msym, null);
 //    }
     
-    public void highlightCounterexamplePath(IMethod je, MethodSymbol msym, ICounterexample cce) {
-    	if (msym == null) return;
+    public void highlightCounterexamplePath(IMethod je, IProverResult res, ICounterexample cce) {
     	utils.deleteHighlights(je.getResource(), null);
-		IProverResult res = getProofResult(msym);
 		if (res != null) {
 			IProverResult.ICounterexample ce = cce != null ? cce : res.counterexample();
 			if (ce != null && ce.getPath() != null) {
@@ -813,7 +811,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
       IProverResult res = getProofResult(parentMethod.sym);
       
       if (res != null) {
-          String value = res.counterexample().get(node);
+          ICounterexample ce = res.counterexample();
+          if (ce == null) return null;
+          String value = ce.get(node);
           if (value != null) {
               if (text == null) out = out + value;
               else out = out + "Value " + node.type + " : " + value;
@@ -1015,7 +1015,6 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     }
     
     Map<String,IProverResult> proofResults = new HashMap<String,IProverResult>();
-    Map<String,Symbol> proofSymbols = new HashMap<String,Symbol>();
     
     protected String keyForSym(Symbol sym) {
     	if (sym instanceof MethodSymbol) {
@@ -1027,10 +1026,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     
     @Override
     public void reportProofResult(MethodSymbol msym, IProverResult result) {
-    	String symname = keyForSym(msym);
-    	proofResults.put(symname,result);
-    	proofSymbols.put(symname,msym);
-    	utils.refreshView(symname);
+    	String key = keyForSym(msym);
+    	proofResults.put(key,result);
+    	utils.refreshView(key);
     }
     
     public @Nullable IProverResult getProofResult(MethodSymbol msym) {
@@ -1041,9 +1039,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	return proofResults;
     }
     
-    public void clear(IJavaProject currentProject) {
+    public void clearProofResults(IJavaProject currentProject) {
     	getProofResults().clear();
-    	proofSymbols.clear();
     }
 
 

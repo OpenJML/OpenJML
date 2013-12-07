@@ -5,15 +5,30 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Arrays;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IResourceRuleFactory;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.Main.Cmd;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.util.List;
 
 /**
  * This class holds the implementations of utility classes registered against
@@ -70,7 +85,7 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (true || Options.uiverboseness) {
+				if (Options.uiverboseness) {
 					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
@@ -87,7 +102,7 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (true || Options.uiverboseness) {
+				if (Options.uiverboseness) {
 					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
@@ -104,21 +119,48 @@ abstract public class Commands extends AbstractHandler {
 	    @Override
 		public Object execute(ExecutionEvent event) {
 			try {
-				if (true || Options.uiverboseness) {
+				if (Options.uiverboseness) {
 					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
-	    		Symbol sym = utils.findView().currentSymbol;
-	    		OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
-	    		if (sym instanceof Symbol.MethodSymbol) {
-	    			iface.api.doESC((Symbol.MethodSymbol)sym);
-	    			utils.showView();
+	    		if (!utils.checkForDirtyEditors()) return null;
+	    		final OpenJMLView view = utils.findView();
+	    		TreeItem ti = view.selected;
+	    		OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+	    		utils.findView().clearSelectedProofResults();
+	    		if (info == null) return null;
+	    		final String key = info.key;
+	    		final IJavaElement je = info.javaElement;
+	    		if (je == null) return null; // FIXME - this can happen if a default constuctor is selected - but we should still run on the file
+	    		final IJavaProject jp = je.getJavaProject();
+	    		final String filepath = je.getResource().getLocation().toOSString();
+	    		final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
+				utils.showView(); // Must be called from a UI thread
+	    		Job j = new Job("Rerunning compilation unit " + je.getResource().getName()) {
+	    			public IStatus run(IProgressMonitor monitor) {
+	    				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
+	    				boolean c = false;
+	    				try {
+	    					java.util.List<String> args = iface.getOptions(iface.jproject,Cmd.ESC);
+	    					args.add("-esc");
+	    					args.add(filepath);
+	    					iface.api.execute(null,args.toArray(new String[args.size()]));
+	    					utils.setTraceView(key,jp);
+	    				} catch (Exception e) {
+	    					// FIXME - this will block, preventing progress on the rest of the projects
+	    					Log.errorlog("Exception during Static Checking - " + je.getElementName(), e);
+	    					utils.showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
+	    					c = true;
+	    				}
+	    				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+	    			}
+	    		};
+//	            IResourceRuleFactory ruleFactory = 
+//	                    ResourcesPlugin.getWorkspace().getRuleFactory();
+	    		j.setRule(jp.getProject());
+	    		j.setUser(true); // true since the job has been initiated by an end-user
+	    		j.schedule();
 	    			// FIXME - update trace and highlighting also?
-	    		} else if (sym instanceof Symbol.ClassSymbol) {
-	    			iface.api.doESC((Symbol.ClassSymbol)sym);
-	    			utils.showView();
-	    		}
-	            //utils.changeJmlNatureSelection(true,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}
@@ -135,6 +177,7 @@ abstract public class Commands extends AbstractHandler {
 					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
 				}
 	    		getInfo(event);
+	    		utils.showMessageInUI(shell, "OpenJML", "This operation is not yet implemented");
 	            //utils.changeJmlNatureSelection(true,selection,window,shell);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);

@@ -107,9 +107,10 @@ public class TraceView extends ViewPart {
         initializeToolBar();
     }
     
+    /** Refreshes the view - must be called from the UI thread */
     public void refresh() {
         IJavaProject p = Activator.utils().showView().currentProject;
-        if (p != null) Activator.utils().setTraceView(p);
+        if (p != null) Activator.utils().setTraceViewUI(p);
     }
     
     

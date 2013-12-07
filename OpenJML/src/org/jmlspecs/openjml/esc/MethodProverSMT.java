@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.esc;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.SMT;
 import org.smtlib.sexpr.ISexpr;
 
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTags;
@@ -152,8 +154,14 @@ public class MethodProverSMT {
 
         this.factory = new IProverResult.IFactory() {
             @Override
-            public IProverResult makeProverResult(String prover, IProverResult.Kind kind) {
-                return new ProverResult(prover,kind);
+            public IProverResult makeProverResult(MethodSymbol msym, String prover, IProverResult.Kind kind, java.util.Date start) {
+                ProverResult pr = new ProverResult(prover,kind,msym);
+                pr.methodSymbol = msym;
+                if (start != null) {
+                    pr.setDuration((pr.timestamp().getTime()-start.getTime())/1000.);
+                    pr.setTimestamp(start);
+                }
+                return pr;
             }
         };
     }
@@ -197,7 +205,7 @@ public class MethodProverSMT {
         JCBlock newblock = jmlesc.assertionAdder.methodBiMap.getf(methodDecl).getBody();
         if (newblock == null) {
         	log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
-            return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
         }
         if (printPrograms) {
             log.noticeWriter.println(Strings.empty);
@@ -211,7 +219,7 @@ public class MethodProverSMT {
         String exec = pickProverExec(proverToUse);
         if (exec == null || exec.trim().isEmpty()) {
             log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
-            return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
         }
         
         // create an SMT object, adding any options
@@ -237,6 +245,7 @@ public class MethodProverSMT {
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
         BasicProgram program;
+        Date start;
         {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
@@ -266,10 +275,11 @@ public class MethodProverSMT {
             }
 
             // Starts the solver (and it waits for input)
+            start = new Date();
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) {
             	log.error("jml.solver.failed.to.start",exec);
-        		return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+        		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             } else {
             	// Try the prover
             	if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
@@ -278,7 +288,7 @@ public class MethodProverSMT {
             	} catch (Exception e) {
             		// Not sure there is anything to worry about, but just in case
             		log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-            		return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+            		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             	}
             }
 
@@ -297,11 +307,11 @@ public class MethodProverSMT {
             if (solverResponse.isError()) {
                 solver.exit();
                 log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             }
             if (solverResponse.equals(unsatResponse)) {
                 if (verbose) log.noticeWriter.println("Method checked OK");
-                proofResult = factory.makeProverResult(proverToUse,IProverResult.UNSAT);
+                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
                 if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
                     solver.pop(1); // Pop off previous check_sat
@@ -323,22 +333,21 @@ public class MethodProverSMT {
                         if (solverResponse.equals(unsatResponse)) {
                             if (JmlAssertionAdder.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INFEASIBLE);
+                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;
                             } else {
                                 log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
-                                proofResult = factory.makeProverResult(proverToUse,IProverResult.INFEASIBLE);
+                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                             }
                         }
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 int count = Utils.instance(context).maxWarnings;
-                ProverResult pr = (ProverResult)factory.makeProverResult(proverToUse,
-                        solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT);
+                ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
+                        solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
-//                jmlesc.mostRecentProofResult = proofResult;
                 while (true) {
 
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
@@ -406,11 +415,12 @@ public class MethodProverSMT {
 
                     if (solverResponse.isError()) {
                         log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        return factory.makeProverResult(proverToUse,IProverResult.ERROR);
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                     }
                     if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
                 }
+                pr.setDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
         solver.exit();

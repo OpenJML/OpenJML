@@ -5,18 +5,21 @@
 package org.jmlspecs.openjml.proverinterface;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jmlspecs.annotation.NonNull;
 
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 
 public interface IProverResult {
     
     public static interface IFactory {
-        public IProverResult makeProverResult(String prover, Kind kind);
+        public IProverResult makeProverResult(MethodSymbol msym, String prover, Kind kind, Date start);
     }
 
     /** Kinds of results a prover can produce */
@@ -69,6 +72,15 @@ public interface IProverResult {
      * @return an identifying string for the kind of prover that was used
      */
     public String prover();
+    
+    /** The time to compute this result, in seconds */
+    public double duration();
+
+    /** The time at which the computation of the result began */
+    public Date timestamp();
+
+    /** The time at which the computation of the result began */
+    public Symbol.MethodSymbol methodSymbol();
 
     /** The satisfying assignment produced by the prover.
      * @return The satisfying assignment produced by the prover

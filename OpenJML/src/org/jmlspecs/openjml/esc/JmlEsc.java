@@ -142,7 +142,7 @@ public class JmlEsc extends JmlTreeScanner {
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
             log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
-            res = new ProverResult(proverToUse,ProverResult.ERROR);
+            res = new ProverResult(proverToUse,ProverResult.ERROR,decl.sym);
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
