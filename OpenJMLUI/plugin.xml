@@ -580,6 +580,12 @@
              </command>
              <separator name="org.jmlspecs.openjml.traces" visible="true"/>
              <command
+               label="Open ESC Results View"
+               tooltip="Opens the proof view"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowProofView"
+               commandId="org.jmlspecs.eclipse.commands.ShowProofView">
+             </command>
+             <command
                label="Show counterexample value"
                tooltip="Shows the value of an expression in the counterexample"
                id="org.jmlspecs.openjml.eclipse.MenuActions.ShowCounterexampleValue"
@@ -590,6 +596,12 @@
                tooltip="Shows proof information for the selected method"
                id="org.jmlspecs.openjml.eclipse.MenuActions.ProofInformation"
                commandId="org.jmlspecs.eclipse.commands.ProofInformation">
+             </command>
+             <command
+               label="Show Detailed Proof Attempt Information"
+               tooltip="Shows internal proof attempt information for the selected method"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.DetailedProofInformation"
+               commandId="org.jmlspecs.eclipse.commands.DetailedProofInformation">
              </command>
              <separator name="org.jmlspecs.openjml.specs" visible="true"/>
              <command
@@ -603,12 +615,6 @@
                tooltip="Opens a specification file editor for the selected object"
                id="org.jmlspecs.openjml.eclipse.MenuActions.SpecsEditor"
                commandId="org.jmlspecs.eclipse.commands.SpecsEditor">
-             </command>
-             <command
-               label="Open Proof View"
-               tooltip="Opens the proof view"
-               id="org.jmlspecs.openjml.eclipse.MenuActions.ShowProofView"
-               commandId="org.jmlspecs.eclipse.commands.ShowProofView">
              </command>
           </menu>
        </menuContribution>
@@ -1044,11 +1050,19 @@
             >
       </command>
       <command
-            name="Show JML Proof Information"
+            name="Show ESC Result Information"
             description="Show proof information for the specified method"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.ProofInformation"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ProofInformation"
+            >
+      </command>
+      <command
+            name="Show Detailed Proof Attempt Information"
+            description="Shows internal proof attempt information for the specified method"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.DetailedProofInformation"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$DetailedProofInformation"
             >
       </command>
       <command
@@ -1109,8 +1123,8 @@
             >
       </command>
       <command
-            name="Open the Proof View"
-            description="Opens the proof view"
+            name="Open the ESC Results View"
+            description="Opens a View showing the results of ESC for each method"
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.jmlspecs.eclipse.commands.ShowProofView"
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ShowProofView"

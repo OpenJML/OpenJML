@@ -364,7 +364,7 @@ abstract public class PopupActions implements IObjectActionDelegate {
     			if (Options.uiverboseness) {
     				Log.log("Show Proof Information context action initiated"); //$NON-NLS-1$
     			}
-                utils.showProofInfoForSelection(selection,null,shell);
+                utils.showProofInfoForSelection(selection,null,shell,false);
             } catch (Exception e) {
                 utils.topLevelException(shell,"PopupActions.ShowCounterexample",e); //$NON-NLS-1$
             }

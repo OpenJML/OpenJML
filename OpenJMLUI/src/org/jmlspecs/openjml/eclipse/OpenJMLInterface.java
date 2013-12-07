@@ -60,6 +60,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
@@ -466,6 +467,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //    }
     
     public void highlightCounterexamplePath(IMethod je, IProverResult res, ICounterexample cce) {
+    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
+    	if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
+    		utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
+    	}
     	utils.deleteHighlights(je.getResource(), null);
 		if (res != null) {
 			IProverResult.ICounterexample ce = cce != null ? cce : res.counterexample();
@@ -719,69 +724,21 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
      * @param method the Eclipse IMethod for the method whose proof is wanted
      * @param shell the shell to be used to parent any dialog windows
      */
-    public void showProofInfo(@NonNull IMethod method, @NonNull Shell shell) {
-        if (api == null) { // This should not happen, but just in case
-            utils.showMessageInUINM(shell,"JML Proof Results","There is no current proof result for " + method.getDeclaringType().getFullyQualifiedName() + "." + method.getElementName());
-            return;
-        }
-        MethodSymbol msym = null;
-        try { 
-            msym = convertMethod(method);
-        } catch (Exception e) { /* ignore, and let msym be null */ }
-        if (msym == null) {
-            utils.showMessageInUINM(shell,"JML Proof Results","The method " + method.getElementName() + " has not yet been checked (or a proof attempted)");
-            return;
-        }
-        String methodName = msym.owner + Strings.dot + msym;
-        String shortName = msym.owner.name + Strings.dot + msym.name;
+    public void showProofInfo(@NonNull IMethod method, @NonNull Shell shell, boolean showDetails) {
+        IProverResult r = getProofResult(method);
+        MethodSymbol msym = r.methodSymbol();
         
-        IProverResult r = getProofResult(msym);
+        utils.setTraceView(keyForSym(msym), method.getJavaProject());
         
-        String s = ((API)api).getBasicBlockProgram(msym);
-        utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
-
-        if (r == null) {
-            utils.showMessageInUINM(shell,"JML Proof Results","There is no current proof result for " + methodName);
-            return;
-        }
-
-        // Trace information, if any
-        Object o = r.otherInfo();
-        if (o != null) utils.launchEditor(o.toString(),shortName);
-
-
-        if (r.result() == IProverResult.UNSAT) {
-            utils.showMessageInUINM(shell,"JML Proof Results",
-                    "The verification proof succeeded for " + methodName + Strings.eol
-                    + "Prover: " + r.prover());
-            return;
-        }
-        if (r.result() == IProverResult.INFEASIBLE) {
-            utils.showMessageInUINM(shell,"JML Proof Results","The assumptions are INCONSISTENT for " + methodName + Strings.eol
-            + "Prover: " + r.prover());
-            return;
-        }
-        if (r.result() == IProverResult.UNKNOWN) {
-            utils.showMessageInUINM(shell,"JML Proof Results","The verification was not provable for " + methodName + Strings.eol
-            + "Prover: " + r.prover());
-            return;
-        }
+        if (!showDetails) return;
         
+        utils.showMessage(shell, "OpenJML", "Detailed proof information is not yet implemented");
+        // DETAILS
+        // FIXME - show altered program, basic block program, SMT program
         
-        if (r.counterexample() == null) {
-            utils.showMessageInUINM(shell,"JML Counterexample", "There is no counterexample information for method " + methodName);
-        } else {
-            Set<Map.Entry<String,String>> set = r.counterexample().sortedEntries();
-            StringBuffer sb = new StringBuffer();
-            sb.append("COUNTEREXAMPLE STATE FOR " + methodName + "  Prover: " + r.prover());
-            for  (Map.Entry<String,String> entry : set) {
-                sb.append(entry.getKey());
-                sb.append(" = ");
-                sb.append(entry.getValue());
-                sb.append(Strings.eol);
-            }
-            utils.launchEditor(sb.toString(),shortName);
-        }
+//        String s = ((API)api).getBasicBlockProgram(msym);
+//        utils.launchEditor(s,msym.owner.name + Strings.dot + msym.name);
+
         return;
     }
 
@@ -789,7 +746,11 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     public String getCEValue(int pos, int end, String text, IResource r) {
         IJavaElement je = (IJavaElement)r.getAdapter(IJavaElement.class);
         ClassSymbol csym = convertType(((ICompilationUnit)je).findPrimaryType());
-    	JmlCompilationUnit tree = (JmlCompilationUnit)Enter.instance(api.context()).getEnv(csym).toplevel;
+        if (api == null) return "No proof information available";
+        com.sun.tools.javac.comp.Env<AttrContext> env = Enter.instance(api.context()).getEnv(csym);
+        if (env == null) return "No proof information available";
+    	JmlCompilationUnit tree = (JmlCompilationUnit)env.toplevel;
+        if (tree == null) return "No proof information available";
     	API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
         JmlMethodDecl parentMethod = finder.parentMethod;
         JCTree node = finder.found;
@@ -1015,6 +976,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     }
     
     Map<String,IProverResult> proofResults = new HashMap<String,IProverResult>();
+    Map<IMethod,String> methodResults = new HashMap<IMethod,String>();
     
     protected String keyForSym(Symbol sym) {
     	if (sym instanceof MethodSymbol) {
@@ -1028,6 +990,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     public void reportProofResult(MethodSymbol msym, IProverResult result) {
     	String key = keyForSym(msym);
     	proofResults.put(key,result);
+    	IMethod m = convertMethod(msym);
+    	methodResults.put(m, key);
     	utils.refreshView(key);
     }
     
@@ -1035,12 +999,19 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	return proofResults.get(keyForSym(msym));
     }
 
+    public @Nullable IProverResult getProofResult(IMethod m) {
+    	String key = methodResults.get(m);
+    	if (key == null) return null;
+    	return proofResults.get(key);
+    }
+
     public @Nullable Map<String,IProverResult> getProofResults() {
     	return proofResults;
     }
     
     public void clearProofResults(IJavaProject currentProject) {
-    	getProofResults().clear();
+    	proofResults.clear();
+    	methodResults.clear();
     }
 
 
@@ -1187,7 +1158,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
      * @return a String representation of the Basic Bloxk program for the method body
      */
     public @NonNull String getBasicBlockProgram(@NonNull MethodSymbol msym) {
-        return ((API)api).getBasicBlockProgram(msym);
+        return ""; // FIXME: ((API)api).getBasicBlockProgram(msym);
     }
 
 //    /** Converts a name into a flatname with dots between the components; this

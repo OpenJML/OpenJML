@@ -405,7 +405,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 			if (pr != null) {
 				ICounterexample ce = treece.get(ti);
 				if (ce instanceof Counterexample) {
-					((ProverResult)pr).selected = ce;
 					String text = ((Counterexample)ce).traceText; // FIXME - change to method on interface
 					Activator.utils().setTraceViewUI(info.signature,text);
 					if (info.javaElement instanceof IMethod) {

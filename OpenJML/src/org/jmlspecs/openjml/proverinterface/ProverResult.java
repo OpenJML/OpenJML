@@ -45,9 +45,6 @@ public class ProverResult implements IProverResult {
     @Nullable
     protected List<IProverResult.Item> details = null;
 
-    @Nullable
-    public IProverResult.ICounterexample selected = null;
-    
     /** Creates a mostly empty ProverResult object, with the prover
      * description and basic result initialized.
      * @param prover A description of the prover used
@@ -137,7 +134,6 @@ public class ProverResult implements IProverResult {
      */
     public ICounterexample counterexample() {
         if (details == null) return null;
-        if (selected != null) return selected;
         for (IProverResult.Item i: details) {
             if (i instanceof ICounterexample) {
                 return (ICounterexample)i;

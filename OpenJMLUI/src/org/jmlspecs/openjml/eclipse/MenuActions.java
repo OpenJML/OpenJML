@@ -448,9 +448,29 @@ abstract public class MenuActions extends AbstractHandler {
     				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
     			}
         		getInfo(event);
-                utils.showProofInfoForSelection(selection,window,shell);
+                utils.showProofInfoForSelection(selection,window,shell,false);
             } catch (Exception e) {
                 utils.topLevelException(shell,"MenuActions.ShowProofInformation",e); //$NON-NLS-1$
+    		}
+    		return null;
+    	}
+    }
+
+	/**
+     * This action pops up a dialog showing the proof result for the selected
+     * Java element.
+     */
+    static public class DetailedProofInformation extends MenuActions {
+        @Override
+    	public Object execute(ExecutionEvent event) {
+    		try {
+    			if (Options.uiverboseness) {
+    				Log.log("Show Proof Information action initiated"); //$NON-NLS-1$
+    			}
+        		getInfo(event);
+                utils.showProofInfoForSelection(selection,window,shell,true);
+            } catch (Exception e) {
+                utils.topLevelException(shell,"MenuActions.DetailedShowProofInformation",e); //$NON-NLS-1$
     		}
     		return null;
     	}

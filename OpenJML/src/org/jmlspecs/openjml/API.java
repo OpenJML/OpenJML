@@ -805,22 +805,6 @@ public class API implements IAPI {
 //        return JmlEsc.instance(context()).proverResults;
 //    }
     
-    // TODO - get rid of this - get the informatinon from the IProverResult
-    /** Returns the basic block program for the given method
-     * @param msym the method in question
-     * @return the basic block program, (somewhat) pretty printed
-     */
-    //@ requires isOpen;
-    //@ ensures isOpen;
-    public String getBasicBlockProgram(MethodSymbol msym) {
-        JmlMethodDecl tree = getMethodDecl(msym);
-        JmlClassDecl cdecl = getClassDecl((ClassSymbol)msym.owner);
-        // FIXME
-        return "";
-//        BasicProgram program = BasicBlocker2.convertToBasicBlocks(context(), tree, JmlSpecs.instance(context()).getSpecs(msym).cases.deSugared, cdecl);
-//        return "BASIC BLOCK PROGRAM FOR " + msym.owner.getQualifiedName() + "." + msym.toString() + "\n\n" + program.toString();
-    }
-    
     // TODO - move these two methods to Utils?
     /** Adds the given class and all its supertypes (recursively) to the given list,
      * ordered with parent classes first.

@@ -1140,9 +1140,7 @@ public class Utils {
 	 *            the current shell
 	 */
 	public void showProofInfoForSelection(ISelection selection,
-			@Nullable IWorkbenchWindow window, Shell shell) {
-		showMessageInUI(shell,"OpenJML","Proof information is not implemented");
-		if (true) return;
+			@Nullable IWorkbenchWindow window, Shell shell, boolean showDetails) {
 		List<Object> olist = getSelectedElements(selection, window, shell);
 		List<IMethod> list = new LinkedList<IMethod>();
 		for (Object o : olist) {
@@ -1157,8 +1155,7 @@ public class Utils {
 		} else {
 			for (IMethod m : list) {
 				OpenJMLInterface jml = getInterface(m.getJavaProject());
-				jml.showProofInfo(m, shell); // This puts up an appropriate
-												// dialog
+				jml.showProofInfo(m, shell, showDetails);
 			}
 		}
 	}
@@ -2481,6 +2478,7 @@ public class Utils {
 
 	public void highlight(final IResource r, final int finalOffset,
 			final int finalEnd, final int type) {
+		// FIXME - I think this should be in the UI, not in a batch operation
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				String name = type == IProverResult.Span.NORMAL ? Env.JML_HIGHLIGHT_ID

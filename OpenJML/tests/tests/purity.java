@@ -10,7 +10,7 @@ public class purity extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = true;
+        useSystemSpecs = false;
         super.setUp();
         main.addOptions("-purityCheck=true");
     }
