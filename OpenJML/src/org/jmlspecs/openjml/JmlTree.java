@@ -1702,6 +1702,7 @@ public class JmlTree implements IJmlTree {
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlConstraintMethodSig> methodSignatures) {
+            this.token = JmlToken.CALLABLE;
             this.pos = pos;
             this.keyword = keyword;
             this.methodSignatures = methodSignatures;
