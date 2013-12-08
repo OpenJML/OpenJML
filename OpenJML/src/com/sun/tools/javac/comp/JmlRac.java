@@ -1772,6 +1772,7 @@ public class JmlRac extends JmlTreeTranslator implements IJmlVisitor {
             case BSFRESH:
             case BSREACH:
             case BSINVARIANTFOR :
+            case BSDISTINCT :
             case BSDURATION :
             case BSWORKINGSPACE :
     

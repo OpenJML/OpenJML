@@ -17,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
@@ -79,6 +80,12 @@ class ClassCollector extends JmlTreeScanner {
     public void visitIdent(JCIdent tree) {
         save(tree.type);
         super.visitIdent(tree);
+    }
+    
+    @Override
+    public void visitLiteral(JCLiteral tree) {
+        save(tree.type);
+        super.visitLiteral(tree);
     }
     
     @Override

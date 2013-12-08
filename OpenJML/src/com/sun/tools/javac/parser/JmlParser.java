@@ -267,6 +267,30 @@ public class JmlParser extends EndPosParser {
                 s = toP(F.Exec(toP(F.at(p).Erroneous(List.<JCTree> nil()))));
                 //S.nextToken();
             }
+            if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
+                ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+                JCClassDecl cd = (JCClassDecl)s;
+                Name n = jmlF.Name("_JML_enum_"); // FIXME - move to strings
+                JCExpression disj = null;
+                for (JCTree d: cd.defs) {
+                    if (!(d instanceof JCVariableDecl)) continue;
+                    JCExpression id = jmlF.at(d.pos).Ident(((JCVariableDecl)d).getName());
+                    args.add(id);
+                    id = jmlF.at(d.pos).Ident(((JCVariableDecl)d).getName());
+                    JCExpression ide = jmlF.at(d.pos).Ident(n);
+                    JCExpression ex = jmlF.at(id.pos).Binary(JCTree.EQ, ide, id);
+                    disj = disj == null ? ex : jmlF.at(ex.pos).Binary(JCTree.OR,disj,ex);
+                }
+                args.add(F.Literal(TypeTags.BOT,null));
+                JCExpression ex = jmlF.at(s.pos).JmlMethodInvocation(JmlToken.BSDISTINCT,args.toList());
+                JmlTypeClauseExpr axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlToken.AXIOM,ex);
+                cd.defs = cd.defs.append(axiom);
+                JCVariableDecl decl = jmlF.at(cd.pos).VarDef(jmlF.Modifiers(0),n,jmlF.Ident(jmlF.Name("Object")),null);
+                ex = jmlF.JmlQuantifiedExpr(JmlToken.BSFORALL,List.<JCVariableDecl>of(decl), null,
+                        jmlF.JmlBinary(JmlToken.EQUIVALENCE, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),disj));
+                axiom = jmlF.at(s.pos).JmlTypeClauseExpr(jmlF.Modifiers(0),JmlToken.AXIOM,ex);
+                cd.defs = cd.defs.append(axiom);
+            }
             // Can also be a JCErroneous
             if (s instanceof JmlClassDecl)
                 filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
@@ -2444,6 +2468,7 @@ public class JmlParser extends EndPosParser {
                 case BSREACH:
                 case BSSPACE:
                 case BSWORKINGSPACE:
+                case BSDISTINCT:
                 case BSDURATION:
                 case BSISINITIALIZED:
                 case BSINVARIANTFOR:

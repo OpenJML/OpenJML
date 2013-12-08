@@ -9048,6 +9048,46 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 break;
             }
+            
+            case BSDISTINCT:
+            {
+                // Any type error should have been reported in JmlAttr
+                boolean anyPrimitive = false;
+                Type maxPrimitiveType = null;
+                for (JCExpression arg : that.args) {
+                    Type tt = arg.type;
+                    if (tt.isErroneous()) continue;
+                    if (tt.isPrimitive()) {
+                        anyPrimitive = true;
+                    }
+                }
+                if (anyPrimitive) for (JCExpression arg : that.args) {
+                    Type tt = arg.type;
+                    if (arg.type.isErroneous()) continue;
+                    if (!tt.isPrimitive()) tt = types.unboxedType(tt);
+                    if (arg.type.tag == TypeTags.VOID) {
+                        // FIXME -error
+                    } else if (maxPrimitiveType == null) {
+                        maxPrimitiveType = arg.type;
+                    } else if (types.isConvertible(tt,maxPrimitiveType)) {
+                        // OK
+                    } else if (types.isConvertible(maxPrimitiveType, tt)) {
+                        maxPrimitiveType = tt;
+                    } else {
+                        // FIXME - error
+                    }
+                }
+                ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+                for (JCExpression arg : that.args) {
+                    JCExpression ex = convertExpr(arg);
+                    if (anyPrimitive) ex = addImplicitConversion(arg,maxPrimitiveType,ex);
+                    newargs.add(ex);
+                }
+                result = eresult = M.at(that.pos).JmlMethodInvocation(JmlToken.BSDISTINCT, newargs.toList());
+                eresult.type = syms.booleanType;
+                break;
+            }
+            
             case BSMAX :
             case BSREACH :
             case BSSPACE :

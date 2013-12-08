@@ -1000,6 +1000,8 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(s, newargs);
         } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
             result = F.fcn(F.symbol(nonnullelements), newargs);
+        } else if (that.token == JmlToken.BSDISTINCT) {
+            result = F.fcn(distinctSym, newargs);
         } else if (that.meth != null) {
             // Built-in methods
             String n = that.meth.toString();

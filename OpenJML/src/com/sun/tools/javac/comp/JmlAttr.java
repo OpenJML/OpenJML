@@ -1699,7 +1699,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         v.getConstValue(); // ensure initializer is evaluated
 
-        checkEnumInitializer(tree, env, v);
+        if (currentClauseType == null) checkEnumInitializer(tree, env, v); // FIXME - under what circumstances should this check be performed for JML clauses
     }
 
     
@@ -2903,6 +2903,51 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Type saved = check(tree, t, VAL, pkind, pt);
                 addTodo(utilsClass);
                 result = saved;
+                break;
+
+            case BSDISTINCT :
+                // The result is boolean.
+                // Case 1) All types are reference types
+                // Case 2) Some or all are primitive - all must be convertible to
+                // a common primitive type, including through unboxing
+                attribArgs(tree.args, localEnv); 
+                attribTypes(tree.typeargs, localEnv);
+                boolean anyPrimitive = false;
+                Type maxPrimitiveType = null;
+                for (JCExpression arg : tree.args) {
+                    Type tt = arg.type;
+                    if (tt.isErroneous()) continue;
+                    if (tt.isPrimitive()) {
+                        anyPrimitive = true;
+                    }
+                }
+                if (anyPrimitive) for (JCExpression arg : tree.args) {
+                    Type tt = arg.type;
+                    if (tt.isErroneous()) { continue; }
+                    if (!tt.isPrimitive()) tt = types.unboxedType(tt);
+                    if (tt.tag == TypeTags.VOID) {
+                        // FIXME -error
+                    } else if (maxPrimitiveType == null) {
+                        maxPrimitiveType = tt;
+                    } else if (types.isConvertible(tt,maxPrimitiveType)) {
+                        // OK
+                    } else if (types.isConvertible(maxPrimitiveType, tt)) {
+                        maxPrimitiveType = tt;
+                    } else {
+                        // FIXME - error
+                    }
+                }
+                if (anyPrimitive) {
+                    for (JCExpression arg : tree.args) {
+                        Type tt = arg.type;
+                        if (tt.isErroneous()) continue;
+                        if (!tt.isPrimitive()) tt = types.unboxedType(tt);
+                        if (!types.isConvertible(tt,maxPrimitiveType)) {
+                            // FIXME - ERROR
+                        }
+                    }
+                }
+                result = check(tree, syms.booleanType, VAL, pkind, pt);
                 break;
 
             case BSFRESH :

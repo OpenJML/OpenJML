@@ -1063,7 +1063,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
             result = that;
-        } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF) {
+        } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF || that.token == JmlToken.BSDISTINCT) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
@@ -1734,12 +1734,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             localVars.add(d.sym);
         }
         try {
-            scan(that.range);
-            JCExpression range = result;
-            scan(that.value);
-            JCExpression value = result;
-            that.range = range;
-            that.value = value;
+            that.range = convertExpr(that.range);
+            that.value = convertExpr(that.value);
             result = that;
         } finally {
             for (JCVariableDecl d: that.decls) {
