@@ -467,6 +467,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 //    }
     
     public void highlightCounterexamplePath(IMethod je, IProverResult res, ICounterexample cce) {
+    	if (res == null) {
+        	utils.deleteHighlights(je.getResource(), null);
+        	return;
+    	}
     	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
     	if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
     		utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
@@ -1054,8 +1058,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
             opts.add(JmlOption.MAXWARNINGS.optionName() +eq+ Options.value(Options.maxWarningsKey));
-            opts.add(JmlOption.TRACE.optionName() +eq+ Options.isOption(Options.traceKey));
-            opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ Options.isOption(Options.subexpressionsKey));
+            opts.add(JmlOption.TRACE.optionName() +eq+ "true");
+            opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ "true");
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));
             String v = Options.value(Options.timeoutKey);
             if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);

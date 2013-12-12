@@ -28,10 +28,6 @@ import com.sun.tools.javac.util.Warner;
  */
 public class JmlCheck extends Check {
 
-    /** Cache a copy of the compilation context, just in case we need it. */
-    @NonNull
-    protected Context context;
-    
     /** Creates a new instance - but use instance(), not this constructor, in order to
      * get the unique instance for the current compilation context.
      * @param context the compilation context this instance is for

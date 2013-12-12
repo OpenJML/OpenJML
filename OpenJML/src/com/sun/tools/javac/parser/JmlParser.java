@@ -15,7 +15,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
@@ -1140,7 +1140,7 @@ public class JmlParser extends EndPosParser {
         S.nextToken();
         JCExpression e = parseExpression();
         S.setJmlKeyword(true);
-        List<JmlConstraintMethodSig> sigs = null;
+        List<JmlMethodSig> sigs = null;
         if (S.token() == Token.FOR) {
             S.nextToken();
             if (S.jmlToken == JmlToken.BSEVERYTHING) {
@@ -1168,11 +1168,11 @@ public class JmlParser extends EndPosParser {
      * Parses a list of method-name; returns a possibly empty list; does not
      * parse the terminating semicolon
      */
-    public List<JmlConstraintMethodSig> parseMethodNameList() {
+    public List<JmlMethodSig> parseMethodNameList() {
         S.setJmlKeyword(false);
-        ListBuffer<JmlConstraintMethodSig> sigs = new ListBuffer<JmlConstraintMethodSig>();
+        ListBuffer<JmlMethodSig> sigs = new ListBuffer<JmlMethodSig>();
         while (true) {
-            JmlConstraintMethodSig m = parseMethodName();
+            JmlMethodSig m = parseMethodName();
             if (m == null) {
                 skipToCommaOrParenOrSemi();
             } else {
@@ -1186,7 +1186,7 @@ public class JmlParser extends EndPosParser {
     }
 
     /** Parses a method-name */
-    public JmlConstraintMethodSig parseMethodName() {
+    public JmlMethodSig parseMethodName() {
         int initpos = S.pos();
         int p = initpos;
         Name n = null;
@@ -1633,7 +1633,7 @@ public class JmlParser extends EndPosParser {
                             "JmlParser.getClause()");
                     S.nextToken();
                     JmlStoreRefKeyword refkeyword = parseOptStoreRefKeyword();
-                    List<JmlConstraintMethodSig> sigs = null;
+                    List<JmlMethodSig> sigs = null;
                     if (refkeyword == null) {
                         sigs = parseMethodNameList();
                     }

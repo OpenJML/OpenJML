@@ -143,6 +143,12 @@ public class Label {
     /** Used for asserts generated from assignable clauses */
     /*@ non_null*/ public final static Label ASSIGNABLE = new Label("Assignable");
     
+    /** Used for asserts generated from accessible clauses */
+    /*@ non_null*/ public final static Label ACCESSIBLE = new Label("Accessible");
+    
+    /** Used for asserts generated from callable clauses */
+    /*@ non_null*/ public final static Label CALLABLE = new Label("Callable");
+    
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
     

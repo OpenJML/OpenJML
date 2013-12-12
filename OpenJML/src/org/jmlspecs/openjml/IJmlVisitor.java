@@ -21,7 +21,7 @@ public interface IJmlVisitor extends IVisitor {
     public void visitJmlChoose(JmlChoose that)                     ;
     public void visitJmlClassDecl(JmlClassDecl that)               ;
     public void visitJmlCompilationUnit(JmlCompilationUnit that)   ;
-    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that);
+    public void visitJmlMethodSig(JmlMethodSig that);
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that)           ;
     public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that)   ;
     public void visitJmlForLoop(JmlForLoop that)                   ;

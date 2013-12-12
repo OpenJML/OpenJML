@@ -34,7 +34,6 @@ import com.sun.tools.javap.Options;
 // RAC and ESC translation are added.
 public class Elemtype extends ExpressionExtension {
 
-    protected Context context;
     protected JmlTypes jmltypes;
     
     public Elemtype(Context context) {

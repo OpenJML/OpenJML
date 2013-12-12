@@ -1433,7 +1433,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
-        main.addOptions("-show");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"//@ invariant i == 0; \n "
                 +"/*@ private helper */ void m(); \n"
@@ -1701,7 +1700,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testForallQuantifier4() {
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] argv) { \n "
                 +"//@ ghost boolean n = (\\forall int i; 0<i && i<=5; (\\exists int j; 0<=j && j < 5; j<i)); \n "
@@ -2884,6 +2883,7 @@ public class racnew extends RacBase {
         );
     }
     
+    // FIXME - assignable turned off for RAC
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static public int j=0,k;\n"
@@ -2985,7 +2985,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testForEach3bad() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"

@@ -15,11 +15,6 @@ public class escnew2 extends EscBase {
         super(option,solver);
     }
     
-    @Parameters
-    static public  Collection<String[]> datax() {
-        return makeData();
-    }
-    
     @Override
     public void setUp() throws Exception {
         super.setUp();

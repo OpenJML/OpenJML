@@ -184,7 +184,8 @@ public class JmlCompiler extends JavaCompiler {
                 log.useSource(prev);
             }
         } catch (Exception e) {
-            log.error("jml.internal","The end-position table for " + fileobject.getName() + " is set twice to different values");
+        	// End-position table set twice - so for just encountered this when a class name is used but is not defined in the file by that name
+            log.error("jml.file.class.mismatch",fileobject.getName());
         }
         return cu;
     }

@@ -400,8 +400,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		if (info != null) { 
 			OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
 			IProverResult pr = info.proofResult;
-			IResource r = info.javaElement.getResource();
-			Activator.utils().deleteHighlights(r,null); // FIXME - would like to clear just the java element, not the whole compilation unit
+			IJavaElement je = info.javaElement; // This can be null for default constructors that have no code
+			IResource r = je == null ? null : je.getResource();
+			if (r != null) Activator.utils().deleteHighlights(r,null); // FIXME - would like to clear just the java element, not the whole compilation unit
 			if (pr != null) {
 				ICounterexample ce = treece.get(ti);
 				if (ce instanceof Counterexample) {

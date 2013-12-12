@@ -22,12 +22,7 @@ public class escnewassignable extends EscBase {
     public escnewassignable(String option, String solver) {
         super(option,solver);
     }
-    
-    @Parameters
-    static public  Collection<String[]> datax() {
-        return makeData();
-    }
-    
+
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
@@ -140,7 +135,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  int x,xx; static int y,yy; \n"
+                +"  public int x,xx; public static int y,yy; \n"
 
                 +"  //@ assignable this.x; \n"
                 +"  public void m1bad(int i) {\n"
@@ -503,7 +498,7 @@ public class escnewassignable extends EscBase {
     public void testAssignableM1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  static public class A { int x,y; static int xx,yy; }\n"
+                +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
 
                 +"  //@ assignable y, A.xx, a.x, this.y, TestJava.yy, tt.TestJava.yy; \n"

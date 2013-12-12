@@ -134,7 +134,7 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     }
     
     @Override
-    public JCTree visitJmlConstraintMethodSig(JmlConstraintMethodSig that,
+    public JCTree visitJmlConstraintMethodSig(JmlMethodSig that,
             Void p) {
         return M.at(that.pos).JmlConstraintMethodSig(
                 copy(that.expression,p),

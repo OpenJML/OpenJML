@@ -246,7 +246,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.keyword != null) {
                 that.keyword.accept(this);
             } else {
-                Iterator<JmlConstraintMethodSig> iter = that.methodSignatures.iterator();
+                Iterator<JmlMethodSig> iter = that.methodSignatures.iterator();
                 iter.next().accept(this);
                 while (iter.hasNext()) {
                     print(", ");
@@ -921,7 +921,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         undent(); undent(); undent(); undent();  // indent
     }
 
-    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+    public void visitJmlMethodSig(JmlMethodSig that) {
         try { notImpl(that);  // FIXME
         } catch (IOException e) { perr(that,e); }
     }

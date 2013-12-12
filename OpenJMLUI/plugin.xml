@@ -1279,7 +1279,7 @@
        <proposalCategory icon="icons/jml-logo-16x16.png"/>
    </extension>
    <extension
-         id="org.openjml.completionProposals"
+         id="org.openjml.completionProposals_sl"
          name="OpenJML Completion"
          point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
        <javaCompletionProposalComputer
@@ -1287,6 +1287,11 @@
          categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">
          <partition type="__java_singleline_comment"/>
        </javaCompletionProposalComputer>
+   </extension>   
+   <extension
+         id="org.openjml.completionProposals_ml"
+         name="OpenJML Completion"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
        <javaCompletionProposalComputer
          class="org.jmlspecs.openjml.eclipse.ProposalComputer"
          categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">

@@ -11,11 +11,6 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class escnewBoxing extends EscBase {
 
-    @Parameters
-    static public  Collection<String[]> datax() {
-        return makeData();
-    }
-    
     public escnewBoxing(String option, String solver) {
         super(option,solver);
     }
@@ -70,16 +65,17 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSimple2Static() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  static Integer i = 5;\n"
-                +"  static int k = i;\n"
-                +"  static { //@ assert k == 5; \n}\n"
-                
-                +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
-
-                +"  static { Integer j = null; int m = j; \n}\n"
+//                +"  static int k = i;\n"
+//                +"  static { //@ assert k == 5; \n}\n"
+//                
+//                +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
+//
+//                +"  static { Integer j = null; int m = j; \n}\n"
 
                 +"}"
                 );   // FIXME - should generate warnings here
@@ -175,7 +171,7 @@ public class escnewBoxing extends EscBase {
                 +"  } //@ assert m == i; \n"
 
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m",10
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
                 );
     }
     

@@ -53,7 +53,7 @@ public class ClasspathVariableInitializer extends org.eclipse.jdt.core.Classpath
             }
             JavaCore.setClasspathVariable(OPENJML_VAR, new Path(fullPath), null);
 
-        	url = bundle.getEntry(Strings.runtimeJarName); // root of plugin  //$NON-NLS-1$
+        	url = bundle.getEntry(Strings.runtimeJarName); // root of plugin 
             local = FileLocator.toFileURL(url);
             fullPath = new File(local.getPath()).getCanonicalPath();
             if (fullPath == null) {

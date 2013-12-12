@@ -80,7 +80,7 @@ public class JmlTree implements IJmlTree {
     public interface JmlFactory extends JCTree.Factory {
         JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlChoose JmlChoose(JmlToken token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
-        JmlConstraintMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
+        JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlStatementExpr JmlExpressionStatement(JmlToken t, Label label, JCTree.JCExpression e);
@@ -93,7 +93,7 @@ public class JmlTree implements IJmlTree {
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlToken t, List<JCTree.JCVariableDecl> decls);
         JmlMethodClauseExpr JmlMethodClauseExpr(JmlToken t, JCTree.JCExpression e);
         JmlMethodClauseCallable JmlMethodClauseCallable(JmlStoreRefKeyword keyword);
-        JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures);
+        JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(JmlToken t, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(JmlToken t, JCTree.JCVariableDecl var, JCTree.JCExpression e);
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(JmlToken t, List<JCTree.JCExpression> e);
@@ -116,7 +116,7 @@ public class JmlTree implements IJmlTree {
         JmlStoreRefKeyword JmlStoreRefKeyword(JmlToken t);
         JmlStoreRefListExpression JmlStoreRefListExpression(JmlToken t, List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, JmlToken token, JCTree.JCIdent ident, JCTree.JCExpression p);
-        JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlConstraintMethodSig> sigs);
+        JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlMethodSig> sigs);
         JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
         JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, JmlToken token, JCTree.JCExpression e);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
@@ -559,7 +559,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlConstraintMethodSig> sigs) {
+        public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlMethodSig> sigs) {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
             t.source = Log.instance(context).currentSourceFile();
             return t;
@@ -571,8 +571,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlConstraintMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes) {
-            return new JmlConstraintMethodSig(pos,expr,argtypes);
+        public JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes) {
+            return new JmlMethodSig(pos,expr,argtypes);
         }
 
         @Override
@@ -617,7 +617,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlConstraintMethodSig> methodSignatures) {
+        public JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures) {
         	return new JmlMethodClauseCallable(pos,null,methodSignatures);
         }
         
@@ -1248,15 +1248,17 @@ public class JmlTree implements IJmlTree {
      * specification clause or the callable method specification clause.
      * @author David Cok
      */
-    public static class JmlConstraintMethodSig extends JCTree {
+    public static class JmlMethodSig extends JCTree {
         public JCExpression expression;
         public List<JCExpression> argtypes;
+        public MethodSymbol methodSymbol;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlConstraintMethodSig(int pos, JCExpression expr, List<JCExpression> argtypes) {
+        protected JmlMethodSig(int pos, JCExpression expr, List<JCExpression> argtypes) {
             this.pos = pos;
             this.expression = expr;
             this.argtypes = argtypes;
+            this.methodSymbol = null;
         }
     
         @Override
@@ -1272,7 +1274,7 @@ public class JmlTree implements IJmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-               ((IJmlVisitor)v).visitJmlConstraintMethodSig(this); 
+               ((IJmlVisitor)v).visitJmlMethodSig(this); 
             } else {
                 unexpectedVisitor(this,v);
                 //super.accept(v);
@@ -1698,10 +1700,10 @@ public class JmlTree implements IJmlTree {
     public static class JmlMethodClauseCallable extends JmlMethodClause {
 
         public JmlStoreRefKeyword keyword;
-        public List<JmlConstraintMethodSig> methodSignatures;
+        public List<JmlMethodSig> methodSignatures;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlConstraintMethodSig> methodSignatures) {
+        protected JmlMethodClauseCallable(int pos, JmlStoreRefKeyword keyword, List<JmlMethodSig> methodSignatures) {
             this.token = JmlToken.CALLABLE;
             this.pos = pos;
             this.keyword = keyword;
@@ -2899,10 +2901,10 @@ public class JmlTree implements IJmlTree {
         public JCTree.JCExpression expression;
         
         /** The list of method signatures to which the constraint applies */
-        public @Nullable List<JmlConstraintMethodSig> sigs;
+        public @Nullable List<JmlMethodSig> sigs;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseConstraint(int pos, JCModifiers mods, JCExpression expression, List<JmlConstraintMethodSig> sigs) {
+        protected JmlTypeClauseConstraint(int pos, JCModifiers mods, JCExpression expression, List<JmlMethodSig> sigs) {
             this.pos = pos;
             this.modifiers = mods;
             this.token = JmlToken.CONSTRAINT;

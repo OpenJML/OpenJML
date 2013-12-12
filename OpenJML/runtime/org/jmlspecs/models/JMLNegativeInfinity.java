@@ -184,7 +184,7 @@ public /*@ pure @*/ class JMLNegativeInfinity extends JMLInfiniteIntegerClass {
             throw new ArithmeticException();
         } else if (n == 0) {
             return JMLFiniteInteger.ONE;
-        } else if (n % 2 == 1) {
+        } else if ((n&1) == 1) {
             return this;
         } else {
             return this.negate();

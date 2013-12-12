@@ -14,12 +14,7 @@ public class escinclause extends EscBase {
     public escinclause(String option, String solver) {
         super(option,solver);
     }
-    
-    @Parameters
-    static public  Collection<String[]> datax() {
-        return makeData();
-    }
-    
+        
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;

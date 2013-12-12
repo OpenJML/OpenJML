@@ -94,7 +94,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         }
         // specsDecls, typeSpecs, env - FIXME
         // Not translating: FIXME
-        result = r;
     }
 
     @Override
@@ -486,8 +485,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: none
     }
 
-    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
-        JmlConstraintMethodSig r = that;
+    public void visitJmlMethodSig(JmlMethodSig that) {
+        JmlMethodSig r = that;
         r.argtypes = translate(that.argtypes);
         r.expression = translate(that.expression);
         result = r;

@@ -92,7 +92,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
     }
 
-    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
+    public void visitJmlMethodSig(JmlMethodSig that) {
         scan(that.expression);
         scan(that.argtypes);
     }

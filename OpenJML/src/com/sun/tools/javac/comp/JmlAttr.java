@@ -39,7 +39,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
@@ -2085,7 +2085,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(tree.expression, localEnv, syms.booleanType);
             if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel--;
             checkTypeClauseMods(tree,tree.modifiers,"constraint clause",tree.token);
-            if (tree.sigs != null) for (JmlTree.JmlConstraintMethodSig sig: tree.sigs) {
+            if (tree.sigs != null) for (JmlTree.JmlMethodSig sig: tree.sigs) {
 
                 if (sig.argtypes == null) {
                     // FIXME - not implemented
@@ -2437,7 +2437,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-        // FIXME - implement the checks
+        if (tree.methodSignatures != null) {
+            for (JmlMethodSig sig : tree.methodSignatures) {
+                visitJmlMethodSig(sig);
+            }
+        }
     }
 
     /** This is an implementation that does the type attribution for 
@@ -5216,9 +5220,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return super.attribTypes(trees,env);
     }
 
-    public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) {
-        // TODO Auto-generated method stub
+    public void visitJmlMethodSig(JmlMethodSig that) {
+        Env<AttrContext> localEnv = env.dup(that.expression, env.info.dup());
+
+        List<Type> types = that.argtypes != null ? super.attribTypes(that.argtypes, localEnv) : List.<Type>nil();
+        List<Type> typeargtypes = List.<Type>nil(); // attribAnyTypes(that.typeargs, localEnv);// FIXME - need to handle template arguments
         
+        Type mpt = newMethTemplate(types, typeargtypes);
+        localEnv.info.varArgs = false;
+        try {
+            attribExpr(that.expression, localEnv, mpt);
+        } catch (ClassCastException e) {
+            // expecting this, because we aren't really passing in a MethodInvocation
+        }
+        Symbol sym = null;
+        if (that.expression instanceof JCIdent) {
+            sym = ((JCIdent)that.expression).sym;
+        } else if (that.expression instanceof JCFieldAccess) {
+            sym = ((JCFieldAccess)that.expression).sym;
+        }
+        that.methodSymbol = (MethodSymbol)sym;
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {

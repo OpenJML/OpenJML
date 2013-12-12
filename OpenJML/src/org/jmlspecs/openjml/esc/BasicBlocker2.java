@@ -25,7 +25,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
@@ -215,21 +215,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // THE FOLLOWING FIELDS ARE EXPECTED TO BE CONSTANT FOR THE LIFE OF THE OBJECT
     // They are either initialized in the constructor or initialized on first use
     
-    /** The compilation context */
-    @NonNull final protected Context context;
-    
-    /** The log to which to send error, warning and notice messages */
-    @NonNull final protected Log log;
-    
-    /** The symbol table from the compilation context, initialized in the constructor */
-    @NonNull final protected Symtab syms;
-    
-    /** The Names table from the compilation context, initialized in the constructor */
-    @NonNull final protected Names names;
-    
-    /** The JmlTreeUtils object, holding a bunch of tree-making utilities */
-    @NonNull final protected JmlTreeUtils treeutils;
-    
     /** General utilities */
     @NonNull final protected Utils utils;
     
@@ -317,12 +302,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         // Note - some fields are initialized here, others in the initialize() method
         
-        this.context = context;
-        this.log = Log.instance(context);
         this.factory = JmlTree.Maker.instance(context);
-        this.names = Names.instance(context);
-        this.syms = Symtab.instance(context);
-        this.treeutils = JmlTreeUtils.instance(context);
         this.utils = Utils.instance(context);
         this.scanMode = AST_JAVA_MODE;
         
@@ -1685,7 +1665,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         notImpl(that); 
     }
     @Override public void visitJmlChoose(JmlChoose that)                     { notImpl(that); }
-    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that)                     { notImpl(that); }
+    @Override public void visitJmlMethodSig(JmlMethodSig that)                     { notImpl(that); }
     @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that)                     { notImpl(that); }
     @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that)                     { notImpl(that); }
     @Override public void visitJmlGroupName(JmlGroupName that)               { notImpl(that); }

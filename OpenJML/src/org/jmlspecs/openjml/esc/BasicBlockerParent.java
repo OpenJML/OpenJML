@@ -17,7 +17,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlConstraintMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
@@ -1636,7 +1636,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
     @Override public void visitJmlBinary(JmlBinary that)                        { shouldNotBeCalled(that); }
     @Override public void visitJmlChoose(JmlChoose that)                        { shouldNotBeCalled(that); }
-    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that) { shouldNotBeCalled(that); }
+    @Override public void visitJmlMethodSig(JmlMethodSig that) { shouldNotBeCalled(that); }
     @Override public void visitJmlGroupName(JmlGroupName that)                  { shouldNotBeCalled(that); }
     @Override public void visitJmlLblExpression(JmlLblExpression that)          { shouldNotBeCalled(that); }    
     @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) { shouldNotBeCalled(that); }

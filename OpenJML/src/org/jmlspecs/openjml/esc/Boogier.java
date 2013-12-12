@@ -210,9 +210,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // They are either initialized in the constructor or initialized on first use
     
 
-    /** Symbol of a synthesized object field holding the allocation time of the object, initialized in the constructor */
-    @NonNull protected VarSymbol terminationSym;
-
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
     @NonNull protected JCIdent lengthIdent;
 
@@ -445,7 +442,6 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //        }
         background = new LinkedList<JCExpression>();
         
-        terminationSym = (VarSymbol)assertionAdder.terminationSymbols.get(methodDecl);
         terminationVar = treeutils.makeIdent(methodDecl.pos,terminationSym);
         exceptionVar = treeutils.makeIdent(methodDecl.pos,assertionAdder.exceptionSymbols.get(methodDecl)); // newAuxIdent(EXCEPTION,syms.exceptionType,0,true);
         heapVar = treeutils.makeIdent(methodDecl.pos,HEAP_VAR,syms.intType); // FIXME - would this be better as its own uninterpreted type?
@@ -1806,7 +1802,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     }
     
     @Override public void visitJmlChoose(JmlChoose that)                     { notImpl(that); }
-    @Override public void visitJmlConstraintMethodSig(JmlConstraintMethodSig that)                     { notImpl(that); }
+    @Override public void visitJmlMethodSig(JmlMethodSig that)                     { notImpl(that); }
     @Override public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that)                     { notImpl(that); }
     @Override public void visitJmlModelProgramStatement(JmlModelProgramStatement that)                     { notImpl(that); }
     @Override public void visitJmlGroupName(JmlGroupName that)               { notImpl(that); }

@@ -790,9 +790,10 @@ public class typechecking extends TCBase {
         );
     }
     
-    @Test public void testBadModelImport3() {
+    @Test public void testBadModelImport3() { // FIXME - could be a better error message
         helpTCF("A.java","/*@ model import */ java.util.List;\n public class A {\n  \n }"
                 ,"/A.java:1: Expected an identifier, found a JML keyword instead: <JMLEND>",18
+                ,"/A.java:1: '.' expected",20
                 ,"/A.java:1: package <error>.java.util does not exist",30
                 ,"/A.java:1: package <error>.java.util does not exist",30
         );

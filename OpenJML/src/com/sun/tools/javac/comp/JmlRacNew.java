@@ -1261,11 +1261,11 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
     public void visitClassDef(JCClassDecl that) {
         JCClassDecl tree = that;
         ClassInfo prevClassInfo = currentClassInfo;
+        if (tree.sym == null) return;
         pushSource(that.sym.sourcefile);
         try {
             //super.visitClassDef(that);
             result = tree;
-            if (tree.sym == null) return;
             if (tree.sym.className().startsWith("org.jmlspecs")) return;  // FIXME - don't instrument runtime files (can get infinite loops)
             if (utils.isInstrumented(tree.mods.flags)) {
                 // The file is already instrumented.
@@ -2692,7 +2692,6 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
             if (currentMethodInfo.resultDecl == null) {
                 // FIXME - minternal error
             } else {
-                tree = (JCReturn)result;
                 // FIXME - what if boxing/autoboxing conversions are needed?
                 JCIdent id = factory.Ident(attr.resultName);
                 id.sym = currentMethodInfo.resultDecl.sym;
@@ -2701,7 +2700,6 @@ public class JmlRacNew extends JmlTreeTranslator implements IJmlVisitor {
                 tree.expr.type = id.type;
             }
         }
-        result = tree;
     }
 
 

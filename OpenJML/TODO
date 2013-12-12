@@ -9,7 +9,7 @@ ToDo:
 - using initializers as part of constructors
 
 To fix for release
-- recursive use of invariant - racfiles.testBug1
+
 - better handling of strings
 - invariants in RAC?
 - tracing
@@ -65,7 +65,6 @@ Recent issues:
 - need UI for feasibility checks
 - reorganize postcondition checks to allow checking feasibility of spec cases
 
-- DMZ's recursive use of functions requiring invariants to be checked in invariants (seen in RAC)
 - Check that ESC on a method without typechecking or with bad typecheck is OK
 - visibility of default assignable this.* for constructors
 - require at least one spec case at method visibility
@@ -109,6 +108,29 @@ Plug-in
 - change PopupActions to Eclipse 4.2
 - PopupActions class names are gratuitously different than MenuActions
 - Unify PathsEditor, RACDialog, SolverListEditor   
+
+- sort out menus; update popup menus
+- context menu for problems, for Proof view,
+- folding in trace view
+- update tracing
+- menu action for problem view
+- when selecting a counterexample, move editor to the designated method
+- test proof results with multiple projects
+- handle issues with offsets when displaying highlighting or CE values after a file has been edited
+- tabs in preferences
+
+- finish callable; apply results to constraint
+- issues with multiple callable, accessible, assignable clauses
+- document \distinct
+
+- test try with resources, on RAC
+- continue or break with intervening finally blocks not implemented
+- continue and break with labels
+- potentially undefined operations in quantified statements are not handled (likely will crash)
+- Rac does not check callee preconditions - actually at present does not translate or check constructors at all
+- move to JDK 8
+
+
 Other:
 - RAC constructor
 - havoc

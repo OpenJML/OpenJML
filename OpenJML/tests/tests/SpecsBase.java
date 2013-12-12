@@ -220,6 +220,7 @@ public class SpecsBase extends TCBase {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            fail("Exception in findAllFiles");
         }
         java.util.List<Dir> dirs = specs.getSpecsPath();
         assertTrue ("Null specs path",dirs != null); 
