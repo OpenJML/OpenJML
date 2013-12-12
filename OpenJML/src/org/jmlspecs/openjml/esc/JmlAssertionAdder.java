@@ -2408,6 +2408,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCTree t = ((JmlTypeClauseDecl)dd).decl;
                 if (!(t instanceof JCVariableDecl)) continue;
                 JCVariableDecl d = (JCVariableDecl)t;
+                if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
                 if (isConstructor && !utils.isJMLStatic(d.sym)) continue;
                 addNullnessAllocationTypeCondition(d,isConstructor && !utils.isJMLStatic(d.sym));
             }

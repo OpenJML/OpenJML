@@ -1148,8 +1148,7 @@ public class api {
     @Test
     public void testParseAndCheckCrash() {
         start(true);
-        String out = "error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can." + eol +
-                "  Reason: The end-position table for testfiles\\testNoErrors\\A.java is set twice to different values" + eol;
+        String out = "error: A class is not defined in the expected file: testfiles\\testNoErrors\\A.java" + eol;
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
