@@ -51,14 +51,6 @@ public class escfiles extends EscBase {
         super.setUp();
     }
 
-    /** This method does the running of a RAC test.  No output is
-     * expected from running openjml to produce the RACed program;
-     * the number of expected diagnostics is set by 'expectedErrors'.
-     * @param dirname The directory containing the test sources, a relative path
-     * from the project folder
-     * @param classname The fully-qualified classname for the test class (where main is)
-     * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
-     */
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         boolean print = false;
         try {
