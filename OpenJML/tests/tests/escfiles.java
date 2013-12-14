@@ -209,6 +209,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testTaxpayer() {
+        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes?
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/TaxPayer.java","testfiles/demoTaxpayer","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
     }
@@ -219,7 +220,7 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","testfiles/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-jmltesting");
     }
 
-    @Test
+    @Test // FIXME - times out
     public void testECU() {
         expectedExit = 1;
         helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-progress","-jmltesting","-logic=AUFNIA","-timeout=30");
@@ -297,20 +298,19 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escRecursiveInvariant/RecursiveInvariant.java","testfiles/escRecursiveInvariant","-classpath","testfiles/escRecursiveInvariant","-progress","-jmltesting","-timeout=30");
     }
 
-    @Test
+    @Test // FIXME - needs to handle getClass()
     public void testBadCast() {
         expectedExit = 0;
         helpTCF("testfiles/escBadCast/BadCast.java","testfiles/escBadCast","-classpath","testfiles/escBadCast","-progress","-jmltesting","-timeout=30");
     }
 
-    // FIXME - fix this test by using define-fun for final fields initialized with compile-time constants
     @Test
     public void testCashAmountPrivate2() {
         expectedExit = 0;
         helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-progress","-jmltesting","-timeout=30","-method=increase");
     }
 
-    @Test
+    @Test // FIXME - fails because of generics
     public void testDoublyLinkedList() {
         helpTCF("testfiles/escDoublyLinkedList/DoublyLinkedList.java","testfiles/escDoublyLinkedList","-classpath","testfiles/escDoublyLinkedList","-progress","-jmltesting","-timeout=30");
     }

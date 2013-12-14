@@ -2698,7 +2698,7 @@ public class esc extends EscBase {
                 +"public class TestJava { \n"
                 +"  int f; static int sf;\n"
                 +"  int g; static int sg;\n"
-                +"  public static TestJava t;  //@ public invariant t != null; \n"
+                +"  public static TestJava t;  //@ public static invariant t != null; \n"
                 +"  public void inst2(/*@non_null*/int[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 2; */ }\n" // OK
                 +"  public void inst2a(/*@non_null*/int[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 3; */ }\n" // BAD
                 +"  public void inst3(/*@non_null*/int[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */ }\n" // OK
@@ -2719,8 +2719,6 @@ public class esc extends EscBase {
                 +"  public void inst10a(/*@non_null*/TestJava a) { /*@ assert f == this.f; */ /*@ assert a.f == f; */}\n" // BAD
                 +"  public void inst11(/*@non_null*/TestJava a) { /*@ assert sf == this.sf; */ /*@ assert a.sf == sf; */}\n" // OK
                 +"}",
-                "/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8,
-                "/tt/TestJava.java:5: warning: Associated declaration",41,
                 "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method inst2a",75,
                 "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method inst3a",84,
                 "/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method inst4a",84,
@@ -3535,7 +3533,6 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ public invariant t.j ==1 ? true: true;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25
         );

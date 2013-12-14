@@ -906,7 +906,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override
     public void visitLabelled(JCLabeledStatement that) {
         VarMap map = currentMap.copy();
-        labelmaps.put(that.label,map);
+        labelmaps.put(that.label,map); // if that.label is null, this is the premap
         super.visitLabelled(that);
     }
     
@@ -1121,7 +1121,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
-                    if (vsym.owner instanceof ClassSymbol) newIdentIncarnation(vsym, storeref.pos);
+                    // Also, final fields are not affected by havoc \everything
+                    if (vsym.owner instanceof ClassSymbol &&
+                            (vsym.flags() & Flags.FINAL) != Flags.FINAL) {
+                        newIdentIncarnation(vsym, storeref.pos);
+                    }
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???
             }

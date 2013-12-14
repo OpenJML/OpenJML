@@ -366,7 +366,7 @@ public class JmlTreeUtils {
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
         switch (type.tag) {
             case TypeTags.CHAR:
-                return makeLit(pos,type,(char)0x0000);
+                return makeLit(pos,type,0); // Character literal requires an int value
             case TypeTags.LONG:
                 return makeLit(pos,type,(long)0);
             case TypeTags.INT:
@@ -376,7 +376,7 @@ public class JmlTreeUtils {
             case TypeTags.BYTE:
                 return makeLit(pos,type,(byte)0);
             case TypeTags.BOOLEAN:
-                return makeLit(pos,type,0);
+                return makeLit(pos,type,0); // Boolean literal requires an int value
             case TypeTags.FLOAT:
                 return makeLit(pos,type,0.0f);
             case TypeTags.DOUBLE:

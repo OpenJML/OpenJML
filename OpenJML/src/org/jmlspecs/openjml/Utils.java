@@ -578,7 +578,7 @@ public class Utils {
         methodFlags &= Flags.AccessFlags;
         // If target is public, then it is jml-visible
         if (flags == Flags.PUBLIC) return true;
-        if (s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
+        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
 
         if (methodFlags == Flags.PUBLIC) return false;
         

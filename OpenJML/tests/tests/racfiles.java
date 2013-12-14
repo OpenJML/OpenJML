@@ -29,7 +29,7 @@ import org.junit.Test;
 
 public class racfiles extends RacBase {
 
-
+    boolean runrac = true;
     
     /** The command-line to use to run RACed programs - note the inclusion of the
      * RAC-compiled JDK library classes ahead of the regular Java libaray classes
@@ -41,6 +41,7 @@ public class racfiles extends RacBase {
     public void setUp() throws Exception {
         rac = sysrac;
         jdkrac = true;
+        runrac = true;
         super.setUp();
     }
 
@@ -83,29 +84,31 @@ public class racfiles extends RacBase {
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
-            if (rac == null) rac = defrac;
-            rac[rac.length-1] = classname;
-            Process p = Runtime.getRuntime().exec(rac);
-            
-            out = new StreamGobbler(p.getInputStream());
-            err = new StreamGobbler(p.getErrorStream());
-            out.start();
-            err.start();
-            if (timeout(p,10000)) { // 10 second timeout
-                fail("Process did not complete within the timeout period");
+            if (runrac) {
+                if (rac == null) rac = defrac;
+                rac[rac.length-1] = classname;
+                Process p = Runtime.getRuntime().exec(rac);
+
+                out = new StreamGobbler(p.getInputStream());
+                err = new StreamGobbler(p.getErrorStream());
+                out.start();
+                err.start();
+                if (timeout(p,10000)) { // 10 second timeout
+                    fail("Process did not complete within the timeout period");
+                }
+                ex = p.exitValue();
+                String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
+                if (print) System.out.println(output);
+                String diffs = compareText(outputdir + "/expected-run",output);
+                if (diffs != null) {
+                    BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
+                    b.write(output);
+                    b.close();
+                    System.out.println(diffs);
+                    fail("Unexpected output: " + diffs);
+                }
+                if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
             }
-            ex = p.exitValue();
-            String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
-            if (print) System.out.println(output);
-            String diffs = compareText(outputdir + "/expected-run",output);
-            if (diffs != null) {
-                BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
-                b.write(output);
-                b.close();
-                System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
-            }
-            if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
             if (compdiffs != null) fail("Files differ: " + compdiffs);
 
         } catch (Exception e) {
@@ -263,6 +266,21 @@ public class racfiles extends RacBase {
         rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
         helpTCF("testfiles/racNoModel","testfiles/racNoModel","NoModelTest");
+    }
+
+    @Test
+    public void racMainActivity() {
+        runrac = false; // FIXME: Don't try running executable until we supply some input
+        //rac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata"+z+"testfiles/racaddng/jmlunitng.jar",null};
+        expectedExit = 0;
+        helpTCF("testfiles/racMainActivity","testfiles/racMainActivity","MainActivity");
+    }
+
+
+    @Test
+    public void racMainActivityMicro() {
+        expectedExit = 0;
+        helpTCF("testfiles/racMainActivityMicro","testfiles/racMainActivityMicro","CharAt");
     }
 
 
