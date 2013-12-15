@@ -244,7 +244,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         		tiii.setText("[INVALID] " + text + info);
         		tiii.setBackground(orange);
     			List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
-        		if (presults.size() == 1) {
+    			if (presults == null) {
+    			  // Put nothing
+    			} else if (presults.size() == 1) {
     				treece.put(tiii, result.counterexample());
         		} else if (presults.size() == 0) {
     				treece.put(tiii, null);

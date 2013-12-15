@@ -582,6 +582,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     		String mname = msym.name.toString();
     		int nargs = msym.params.size();
     		// FIXME - finds first match on name, not on tyep signature
+    		if (eClass == null) return null; // FIXME - this can happen if the class is not in a source folder
     		for (IMethod m: eClass.getMethods()) {
     			if (nargs == m.getNumberOfParameters() && mname.equals(m.getElementName())) return m;
     		}
