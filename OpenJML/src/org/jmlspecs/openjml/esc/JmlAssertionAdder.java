@@ -3855,12 +3855,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     // FIXME - review all the assignable checks for appropriate use of translations and this
-    
+    /** Returns true if x is contained in the datagroup y */
     protected
     boolean isContainedIn(VarSymbol x, VarSymbol y) {
         if (x == y) return true;
         if (x == classDecl.thisSymbol && y == currentThisId.sym) return true;
         FieldSpecs fs = specs.getSpecs(x);
+        if (fs == null) {
+            // null can happen for a private field of a class without source
+            // and without a declaration in the corresponding jml file
+            return false;
+        }
         for (JmlTypeClause tc: fs.list) {
             if (tc.token == JmlToken.IN) {
                 JmlTypeClauseIn inclause = (JmlTypeClauseIn)tc;
@@ -5286,7 +5291,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             if (fa.sym == null) {
                                                 JCExpression e = fa.selected;
                                                 boolean isStatic = treeutils.isATypeTree(e);
-                                                for (VarSymbol v: utils.listJmlVisibleFields(classDecl.sym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
+                                                for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, calleeMethodSym.flags()&Flags.AccessFlags, isStatic)) {
                                                     JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
                                                     JCExpression trfa= convertJML(newfa);
                                                     newlist.add(trfa);
@@ -5294,7 +5299,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             } else if (isModel(fa.sym)){
                                                 JCExpression e = fa.selected;
                                                 boolean isStatic = treeutils.isATypeTree(e);
-                                                for (VarSymbol v: utils.listJmlVisibleFields(classDecl.sym, Flags.PRIVATE, isStatic)) {
+                                                for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, Flags.PRIVATE, isStatic)) {
                                                     if (!isModel(v) && isContainedIn(v,(VarSymbol)fa.sym)) { 
                                                         JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
                                                         JCExpression trfa= convertJML(newfa);

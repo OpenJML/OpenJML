@@ -80,7 +80,8 @@ public class racsystem extends RacBase {
                 
                 ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:57)"
+                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:91)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
@@ -103,7 +104,8 @@ public class racsystem extends RacBase {
                 
                 ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError$Precondition: /tt/TestJava.java:3: JML precondition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:57)"
+                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:89)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"            
                 );
     }
@@ -126,7 +128,8 @@ public class racsystem extends RacBase {
                 ,"CAUGHT ASSERTION"
                 ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML signals condition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:57)"
+                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:91)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
@@ -152,7 +155,7 @@ public class racsystem extends RacBase {
                 
                 ,"/tt/TestJava.java:6: JML assertion is false"
                 ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:60)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:56)"
                 ,"\tat tt.TestJava.m(TestJava.java:6)"
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"

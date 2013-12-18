@@ -109,7 +109,12 @@ public class TraceView extends ViewPart {
     
     /** Refreshes the view - must be called from the UI thread */
     public void refresh() {
-        IJavaProject p = Activator.utils().showView().currentProject;
+    	OpenJMLView view =  Activator.utils().showView();
+    	if (view == null) {
+    		Activator.utils().showMessageInUI(null,"OpenJML","Could not locate view");
+    		return;
+    	}
+        IJavaProject p = view.currentProject;
         if (p != null) Activator.utils().setTraceViewUI(p);
     }
     

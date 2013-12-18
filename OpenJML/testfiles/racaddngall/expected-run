@@ -23,6 +23,7 @@ Total tests run: 13, Failures: 0, Skips: 10
 
 
 ERR:
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -47,6 +48,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -71,6 +73,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -95,6 +98,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -119,6 +123,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -143,6 +148,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0
@@ -167,6 +173,7 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
+element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
 element: invoke0

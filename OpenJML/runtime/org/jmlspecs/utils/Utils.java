@@ -25,6 +25,20 @@ import org.jmlspecs.lang.Real;
  * @author David Cok
  */
 public class Utils {
+    /** Reports a JML assertion without a specific label indicating the kind of assertion failure */
+    public static void assertionFailure(String message) {
+        assertionFailureL(message,null);
+    }
+    
+    /** Reports a JML assertion failure with optional additional information
+     * @param message the message to report
+     * @param optMessage possibly null additional information
+     */
+    public static void assertionFailure2(String message, /*@ nullable*/ String optMessage) {
+        if (optMessage != null) message = message + " (" + optMessage + ")";
+        assertionFailure(message);
+    }
+    
     /** Reports a JML assertion (any JML precondition, postcondition, etc.)
      * failure with the given message.
      * @param message The message to report
@@ -33,41 +47,53 @@ public class Utils {
     public static final String ASSERTION_FAILURE = "assertionFailureL"; // Must match the method name
     public static void assertionFailureL(String message, /*@ nullable */String label) {
         if (useExceptions) {
-            String exname = System.getProperty("org.openjml.exception."+label);
-            if (exname == null) {
-                exname = "org.jmlspecs.utils.JmlAssertionError" + "." + label;
-            }
-            Class<?> c;
-            try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }
-            if (c != null) {
-                try {
-                    Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
-                    Error e = cc.newInstance(message,label);
-                    throw e;
-                } catch (NoSuchMethodException e) {
-                    throw new JmlAssertionError(message,label);
-                } catch (InstantiationException e) {
-                    throw new JmlAssertionError(message,label);
-                } catch (InvocationTargetException e) {
-                    throw new JmlAssertionError(message,label);
-                } catch (IllegalAccessException e) {
-                    throw new JmlAssertionError(message,label);
-                }
-            }
-            if ("Precondition".equals(label)) throw new JmlAssertionError.Precondition(message,label); else throw new JmlAssertionError(message,label);}
-        else if (useJavaAssert) assert false: message;
-        else { System.out.println(message); System.out.flush();
-            if (showStack) { Error e = ("Precondition".equals(label)) ? new JmlAssertionError.Precondition(message,label): new JmlAssertionError(message,label);
-                e.printStackTrace(System.out); // Keep the new expressions on line 27 or some test results will change
+            throw createException(message,label);
+        } else if (useJavaAssert) {
+            assert false: message;
+        } else { 
+            System.out.println(message); System.out.flush();
+            if (showStack) { 
+                Error e = ("Precondition".equals(label)) ? new JmlAssertionError.Precondition(message,label): new JmlAssertionError(message,label);
+                e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
             }
         }
     }
     
-    // Deprecate this
-    public static void assertionFailure(String message) {
-        assertionFailureL(message,null);
+    /** Helper method to create the appropriate class of JmlAssertion */
+    static private Error createException(String message, /*@ nullable */String label) {
+        String exname = System.getProperty("org.openjml.exception."+label);
+        if (exname == null) {
+            exname = "org.jmlspecs.utils.JmlAssertionError" + "." + label;
+        }
+        Class<?> c;
+        try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }
+        if (c != null) {
+            try {
+                Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
+                return cc.newInstance(message,label);
+            } catch (ClassCastException e) {
+                return new JmlAssertionError("User-defined JML assertion is not a subtype of java.lang.Error: " + exname
+                        + System.getProperty("line.separator") + "    " + message, label);
+            } catch (NoSuchMethodException e) {
+                return new JmlAssertionError(message,label);
+            } catch (InstantiationException e) {
+                return new JmlAssertionError(message,label);
+            } catch (InvocationTargetException e) {
+                return new JmlAssertionError(message,label);
+            } catch (IllegalAccessException e) {
+                return new JmlAssertionError(message,label);
+            }
+        }
+        // FIXmE - why this test on Precondition - isn't it handled above?
+        if ("Precondition".equals(label)) {
+            return new JmlAssertionError.Precondition(message,label); 
+        } else {
+            return new JmlAssertionError(message,label);
+        }
+
     }
     
+    /** Used to create empty lists for RAC handling of loops */
     //@ public normal_behavior
     //@    ensures \result.size() == 0;
     static public /*@non_null pure */ <E> org.jmlspecs.lang.JMLList<E> defaultEmpty() {
@@ -84,25 +110,18 @@ public class Utils {
      */
     public static boolean useJavaAssert = System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;
     
-//    public static boolean showRacSource;
-//    static {
-//        String s = System.getProperty("org.openjml.rac.showRacSource");
-//        showRacSource = s != null && !s.equals("false");
-//    }
-    
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
      */
     public static boolean showStack = System.getProperty("org.jmlspecs.openjml.racshowstack") != null;
     
+    // FIXME - what are these for - are they used?
     static final public String invariantMethodString = "_JML$$$checkInvariant";
     static final public String staticinvariantMethodString = "_JML$$$checkStaticInvariant";
 
-    /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
-    // Must match corresponding string in Strings.
-    public final static String racCompiled = "__JML_racCompiled";
-
+    /** Returns true if the given class, found on the current classpath, if compiled with RAC */
     public static boolean isRACCompiled(Class<?> clazz) {
+    	// The class named here must match that used in JmlCompiler.java 
         return null != clazz.getAnnotation(org.jmlspecs.annotation.RACCompiled.class);
     }
 
@@ -117,7 +136,7 @@ public class Utils {
         return v;
     }
     
-    /** Reports aJML assertion failure with the given message if the second argument is false
+    /** Reports a JML assertion failure with the given message if the second argument is false
      * @param message the message to report if the second argument is false
      * @param b value to be tested 
      * @param v value to be returned 
@@ -140,65 +159,73 @@ public class Utils {
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is
+     * not within the given range (inclusive), otherwise returns the last argument.
+     */
     public static int intRangeCheck(String message, int low, int high, int v) {
-        if (low <= v && v <= high) assertionFailure(message);
+        if (!(low <= v && v <= high)) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static int zeroIntCheck(String message, int v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static long zeroLongCheck(String message, long v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static double zeroDoubleCheck(String message, double v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static float zeroFloatCheck(String message, float v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static short zeroShortCheck(String message, short v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static byte zeroByteCheck(String message, byte v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
-    // TODO - document
+    /** Reports a JML assertion with the given message if the given value is 0,
+     * otherwise returns the value.
+     */
     public static char zeroCharCheck(String message, char v) {
         if (v == 0) assertionFailure(message);
         return v;
     }
     
+    /** Returns the name of the class of the argument */
     public static String typeName(Throwable t) {
         return t.getClass().toString();
-    }
-    
-    /** Reports a JML assertion failure with optional additional information
-     * @param message the message to report
-     * @param optMessage possibly null additional information
-     */
-    public static void assertionFailure2(String message, /*@ nullable*/ String optMessage) {
-        if (optMessage != null) message = message + " (" + optMessage + ")";
-        assertionFailure(message);
     }
     
     /** Tests that an array and all the elements of the array are non-null 
@@ -213,30 +240,6 @@ public class Utils {
         return true;
     }
     
-//    public final static Class<?>[] noParams = {};
-//    public final static Object[] noArgs = {};
-//    
-//    public static Method callSuperInvariantCheck(Object o) {
-//        try {
-//            Class<?> cl = o.getClass();
-//            System.out.println("CALLED WITH " + cl);
-//            while (true) {
-//                cl = cl.getSuperclass();
-//                System.out.println("SUPER IS " + cl);
-//                if (cl == null) return null;
-//                Method m = cl.getMethod("_JML$$$checkInvariant",noParams);
-//                System.out.println("METHOD IS " + m);
-//                return m;
-//                //if (m != null) { m.invoke(o,noArgs); return; }
-//            }
-//        } catch (Exception e) {
-//            // If getMethod does not find a method we end here
-//            // If invoke fails we end here
-//            System.out.println(e);
-//        }
-//        return null;
-//    }
-    
     // The report... methods provide a mechanism for reporting
     // values encountered during execution.
     
@@ -250,7 +253,7 @@ public class Utils {
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
-        System.out.println(msg);
+        report(msg);
     }
     
     public static final String REPORT_EXCEPTION = "reportException"; // must match method name
@@ -266,7 +269,7 @@ public class Utils {
      * @return the value of v
      */
     public static byte reportByte(String key, byte v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -276,7 +279,7 @@ public class Utils {
      * @return the value of v
      */
     public static short reportShort(String key, short v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -286,7 +289,7 @@ public class Utils {
      * @return the value of v
      */
     public static char reportChar(String key, char v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -296,7 +299,7 @@ public class Utils {
      * @return the value of v
      */
     public static long reportLong(String key, long v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -306,7 +309,7 @@ public class Utils {
      * @return the value of v
      */
     public static float reportFloat(String key, float v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -316,7 +319,7 @@ public class Utils {
      * @return the value of v
      */
     public static double reportDouble(String key, double v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -326,7 +329,7 @@ public class Utils {
      * @return the value of v
      */
     public static boolean reportBoolean(String key, boolean v) {
-        System.out.println("LABEL " + key + " = " + v);System.out.flush();
+        report("LABEL " + key + " = " + v);System.out.flush();
         return v;
     }
 
@@ -336,7 +339,7 @@ public class Utils {
      * @return the value of v
      */
     public static int reportInt(String key, int v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -346,7 +349,7 @@ public class Utils {
      * @return the value of v
      */
     public static Object reportObject(String key, Object v) {
-        System.out.println("LABEL " + key + " = " + v);
+        report("LABEL " + key + " = " + v);
         return v;
     }
 
@@ -377,30 +380,6 @@ public class Utils {
         }
     }
     
-//    /** Deletes all values from the database */
-//    public static void clearValues() {
-//        map = new HashMap<String,Object>();
-//    }
-//    
-//    /** Prints all values in the database and then deletes them */
-//    public static void printValues() {
-////        java.util.Iterator<Map.Entry<String,Object>> i = map.entrySet().iterator();
-////        for ( ; i.hasNext(); ) {
-////            Map.Entry<String,Object> e = i.next();
-////            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
-////        }
-//        // It turns out that with system-compiled RAC files, printValues() can get
-//        // called before System.out is initialized (scary)
-//        // FIXME - perhaps we do not need printValues any more since we are printing values as they happen
-//        if (System.out!=null) System.out.flush();
-//        clearValues();
-//    }
-//    public static void printValues() {
-//        for (Map.Entry<String,Object> e : map.entrySet()) {
-//            System.out.println("LABEL " + e.getKey() + " = " + e.getValue());
-//        }
-//        clearValues();
-//    }
 
     // TODO - document - this and following
     public static  IJMLTYPE makeTYPE(Class<?> base, IJMLTYPE... args) {
@@ -462,13 +441,6 @@ public class Utils {
         if (t == tt) return true;
         if (t == null || tt == null) return false;
         return tt.erasure() == t.erasure();
-//        JmlTypeRac tt = (JmlTypeRac)t;
-//        if (erasure() != tt.erasure()) return false;
-//        if (args.length != tt.args.length) return false;
-//        for (int i=0; i<args.length; i++) {
-//            if (!args[i].equals(tt.args[i])) return false;
-//        }
-//        return true;
     }
     
     public static <T> Iterator<T> iterator(Iterable<T> iterable) {
@@ -749,39 +721,48 @@ public class Utils {
         return (float)a.doubleValue();
     }
 
+    /** Makes a new copy of the argument */
     public static <T> T[] copyArray(T[] o) {
         T[] n = Arrays.copyOf(o,o.length);
         return n;
     }
     
+    /** Makes a new copy of the argument */
     public static byte[] copyByteArray(byte[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static int[] copyIntArray(int[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static short[] copyShortArray(short[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static char[] copyCharArray(char[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static boolean[] copyBooleanArray(boolean[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static double[] copyDoubleArray(double[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Makes a new copy of the argument */
     public static float[] copyFloatArray(float[] o) {
         return Arrays.copyOf(o,o.length);
     }
     
+    /** Used just for debugging - a breakpoint is kept set within the method */
     public boolean print(String msg) {
         System.out.println(msg);
         return true;

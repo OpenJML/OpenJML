@@ -1053,7 +1053,7 @@ public class MethodProverSMT {
         Map<JCTree,String> values = new HashMap<JCTree,String>();
         for (JCTree t : assertionAdder.exprBiMap.forward.keySet() ) {
             if (t instanceof JmlVariableDecl) t = ((JmlVariableDecl)t).ident;
-            if (!(t instanceof JCIdent)) continue;
+            if (!(t instanceof JCExpression)) continue;
             // t is the original source expression
             JCTree t1 = assertionAdder.exprBiMap.getf(t);
             // t1 is the result of JmlAssertionAdder, which should be a new AST
