@@ -1,6 +1,6 @@
 Proving methods in dmz2.Cash
 Starting proof of dmz2.Cash.Cash(int) with prover !!!!
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method <init>
+..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash
     my_loaded = false;
               ^
 ..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:44: warning: Associated declaration

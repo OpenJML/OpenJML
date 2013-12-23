@@ -1734,17 +1734,17 @@ public class esc extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public Object insz(int ii) { binstance = ii == 0;            return o; }\n"
                 +"}" // FIXME - use Optional etc.
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8 // nothing sets bstatic true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8 // nothing sets bstatic true
                 ,"/tt/TestJava.java:8: warning: Associated declaration",-21
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method TestJava",-8 // nothing sets binstance2 true
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",-8 // nothings sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method <init>",-8 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method TestJava",-8 // nothing sets binstance2 true
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",-8 // nothings sets binstance true
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",-8 // nothings sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:10: warning: Associated declaration",-14
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
@@ -3533,7 +3533,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ public invariant t.j ==1 ? true: true;\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method TestJava",25
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",25
         );
     }
@@ -3549,7 +3549,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 +"  //@ public initially t.j ? true : true;\n"
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method <init>",25
+                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method TestJava",25
         );
     }
 
@@ -3590,7 +3590,7 @@ public class esc extends EscBase {
                 +"  static TestJava t;\n"
                 +"  int j = t.j;\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method <init>",12
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method TestJava",12
         );
     }
 

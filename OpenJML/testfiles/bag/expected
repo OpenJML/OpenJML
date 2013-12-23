@@ -1,4 +1,4 @@
-testfiles\bag\Bag.java:25: warning: The prover cannot establish an assertion (Assignable) in method <init>
+testfiles\bag\Bag.java:25: warning: The prover cannot establish an assertion (Assignable) in method Bag
     this.add(b);
             ^
 testfiles\bag\Bag.java:22: warning: Associated declaration: testfiles\bag\Bag.java:25: 

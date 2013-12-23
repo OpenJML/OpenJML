@@ -629,6 +629,13 @@ public class Utils {
         return sym.owner.getQualifiedName() + "." + sym.name;
     }
 
+    /** Returns an unqualified name, but with the class name instead of init */
+    public String methodName(MethodSymbol sym) {
+        String s = sym.toString();
+        int k = s.indexOf("(");
+        return k >= 0 ? s.substring(0,k) : s;
+    }
+
 
 
     /** Instances of this class are used to abort operations that are not

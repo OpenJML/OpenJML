@@ -3,7 +3,7 @@ testfiles\escRecursiveInvariant\RecursiveInvariant.java:4: error: Recursive atte
                           ^
 Proving methods in RecursiveInvariant
 Starting proof of RecursiveInvariant.RecursiveInvariant() with prover !!!!
-testfiles\escRecursiveInvariant\RecursiveInvariant.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>
+testfiles\escRecursiveInvariant\RecursiveInvariant.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariant
 public class RecursiveInvariant {
        ^
 testfiles\escRecursiveInvariant\RecursiveInvariant.java:4: warning: Associated declaration

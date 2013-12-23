@@ -1,6 +1,6 @@
 Proving methods in Vector
 Starting proof of Vector.Vector(int,int) with prover !!!!
-testfiles\escVector\Vector.java:55: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method <init>
+testfiles\escVector\Vector.java:55: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method Vector
     my_element_data = new Object[the_initial_capacity];
                       ^
 Completed proof of Vector.Vector(int,int) with prover !!!! - with warnings

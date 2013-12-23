@@ -146,7 +146,7 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method <init>",13
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method TestJava",13
                 ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
                 );
     }

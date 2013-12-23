@@ -1396,13 +1396,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 desugaringPure = decl.sym.owner.attribute(pureAnnotationSymbol)!=null;
             }
             if (desugaringPure) {
-                JmlMethodClause cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
-                        List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlToken.BSNOTHING)));
+                JmlMethodClause cl;
+                if (decl.sym.isConstructor()) {
+                    JCIdent t = jmlMaker.Ident(names._this);
+                    t.type = decl.sym.owner.type;
+                    t.sym = decl.sym.owner;
+                    cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
+                            List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
+                    
+                } else {
+                    cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
+                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlToken.BSNOTHING)));
+                }
                 if (pure != null) {
-                	cl.pos = pure.pos;
+                    cl.pos = pure.pos;
                     endPosTable.put(cl,pure.getEndPosition(endPosTable));
                 } else {
-                	cl.pos = Position.NOPOS;
+                    cl.pos = Position.NOPOS;
                     endPosTable.put(cl,Position.NOPOS);
                 }
                 clauses.append(cl);

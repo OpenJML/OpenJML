@@ -1,6 +1,6 @@
 Proving methods in openjml.clock.TickTockClock1
 Starting proof of openjml.clock.TickTockClock1.TickTockClock1() with prover !!!!
-..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:15: warning: The prover cannot establish an assertion (Postcondition) in method <init>
+..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:15: warning: The prover cannot establish an assertion (Postcondition) in method TickTockClock1
 	public /*@ pure @*/ TickTockClock1() {
 	                    ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:14: warning: Associated declaration

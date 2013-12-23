@@ -714,12 +714,12 @@ public class MethodProverSMT {
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
-                        log.warning(pos,"esc.assertion.invalid",label,associatedLocation,decl.getName(),extra); //$NON-NLS-1$
+                        log.warning(pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(decl.sym),extra); //$NON-NLS-1$
                         loc = utils.locationString(pos);
                         tracer.appendln(loc + " Invalid assertion (" + label + ")");
                     } else {
                         // FIXME - migrate to using pos() for terminationPos as well 
-                        log.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,decl.getName(),extra); //$NON-NLS-1$
+                        log.warning(assertStat.getPreferredPosition(),"esc.assertion.invalid",label,associatedLocation,utils.methodName(decl.sym),extra); //$NON-NLS-1$
                         loc = utils.locationString(assertStat.getPreferredPosition());
                         tracer.appendln(loc + " Invalid assertion (" + label + ")");
                     }

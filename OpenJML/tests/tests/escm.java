@@ -127,22 +127,22 @@ public class escm extends EscBase {
 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8  // C.<init>
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
                 ,"/tt/TestJava.java:9: warning: Associated declaration",23
                 ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22 // Constructor of anonymous D
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method ",22 // Constructor of anonymous D // FIXME - need name for anonymous constructor
                 ,"/tt/TestJava.java:13: warning: Associated declaration",35
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22 // Constructor of anonymous D
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method ",22 // Constructor of anonymous D
                 ,"/tt/TestJava.java:13: warning: Associated declaration",35
                 ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method .m()",59 // m() of anonymous D
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8  // E.<init>
+                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
                 
                 //,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22 // Inherited E
                 //,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method .mm()",30
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",17  // A
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
                 ,"/tt/TestJava.java:18: warning: Associated declaration",17
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18
                 );
@@ -197,7 +197,7 @@ public class escm extends EscBase {
                 +"  }\n"
 
 
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",18
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",18
                 ,"/tt/TestJava.java:9: warning: Associated declaration",12
                 ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method C.mc()",17
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method md",17
@@ -206,7 +206,7 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Postcondition) in method mm",18
                 ,"/tt/TestJava.java:19: warning: Associated declaration",7
                 ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mn",26
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",14
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (InvariantExit) in method B",14
                 ,"/tt/TestJava.java:28: warning: Associated declaration",13
                 ,"/tt/TestJava.java:29: warning: Invariants+Preconditions appear to be contradictory in method tt.B.mb()",18
                 ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (Postcondition) in method mbb",18
@@ -231,7 +231,7 @@ public class escm extends EscBase {
                 +"       return 0;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",34
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method ",34 // FIXME - need a name for an anonymous constructor
                 ,"/tt/TestJava.java:5: warning: Associated declaration",37
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
         );

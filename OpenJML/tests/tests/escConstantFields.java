@@ -250,7 +250,7 @@ public class escConstantFields extends EscBase {
                 +"  //@ public normal_behavior assignable \\everything;\n"
                 +"  static public void n() {}\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method <init>",10
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantReenterCaller) in method m",7
                 ,"/tt/TestJava.java:5: warning: Associated declaration",14
                 );
@@ -258,7 +258,6 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotConstant() {
-        main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = z();\n"

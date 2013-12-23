@@ -417,7 +417,7 @@ public class escnewassignable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",8
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assignable) in method m1bad",10
                 ,"/tt/TestJava.java:9: warning: Associated declaration",44
