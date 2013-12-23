@@ -3,11 +3,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
@@ -305,6 +307,37 @@ public abstract class JmlTestCase {
             fail("Exception in creating a URI: " + e);
         }
     }
+
+    ByteArrayOutputStream berr;
+    ByteArrayOutputStream bout;
+    PrintStream savederr;
+    PrintStream savedout;
+    String actualErr;
+    String actualOut;
+
+    public void collectOutput(boolean collect) {
+        if (collect) {
+            actualOut = null;
+            actualErr = null;
+            savederr = System.err;
+            savedout = System.out;
+            System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
+            System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+        } else {
+            System.err.flush();
+            System.out.flush();
+            actualErr = berr.toString();
+            actualOut = bout.toString();
+            berr = null;
+            bout = null;
+            System.setErr(savederr);
+            System.setOut(savedout);
+        }
+    }
+    
+    public String output() { return actualOut; }
+    public String errorOutput() { return actualErr; }
+
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 
      * typical filename given here might be #B/A.java, where #B denotes a 

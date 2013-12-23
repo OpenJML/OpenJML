@@ -767,6 +767,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
           // This happens when we have selected a method parameter or the variable within a declaration
           // continue
           out = text == null ? null : ("Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n");
+          node = ((JmlVariableDecl)node).ident;
+          if (text == null) out = "Declaration " + node.toString() + " <B>is</B> ";
       } else if (!(node instanceof JCTree.JCExpression)) {
           return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
       } else {

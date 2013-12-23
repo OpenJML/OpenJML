@@ -174,18 +174,22 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     public void refresh() {
     	
     	getCurrentFileData();
-    	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-    	Map<String,IProverResult> results = iface.getProofResults();
+    	if (currentProject == null) {
+    		this.setPartName("OpenJML Checks");
+    		treeroot.setText("<No project set>");
+    	} else {
+    		OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
+    		Map<String,IProverResult> results = iface.getProofResults();
 
-    	this.setPartName("OpenJML: " + currentProject.getElementName());
-        treeroot.setText("Static Checks for: " + currentProject.getElementName());
-        
-        // FIXME - would like to sort these; remember the tree is built incrementally
-        for (String key : results.keySet()) {
-        	refresh(key);
-        }
-        treeroot.setExpanded(true);
-        //viewer.refresh();
+    		this.setPartName("OpenJML: " + currentProject.getElementName());
+    		treeroot.setText("Static Checks for: " + currentProject.getElementName());
+            
+            // FIXME - would like to sort these; remember the tree is built incrementally
+            for (String key : results.keySet()) {
+            	refresh(key);
+            }
+            treeroot.setExpanded(true);
+    	}
     }
     
     public void refresh(String key) {
@@ -409,7 +413,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 				ICounterexample ce = treece.get(ti);
 				if (ce instanceof Counterexample) {
 					String text = ((Counterexample)ce).traceText; // FIXME - change to method on interface
-					Activator.utils().setTraceViewUI(info.signature,text);
+					Activator.utils().setTraceViewUI(null,info.signature,text);
 					if (info.javaElement instanceof IMethod) {
 						iface.highlightCounterexamplePath((IMethod)info.javaElement,info.proofResult,ce);
 					}
@@ -422,7 +426,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 											: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
 													: k == IProverResult.INFEASIBLE ? "infeasible"
 															: k == IProverResult.UNKNOWN ? "unknown" : "???";
-					Activator.utils().setTraceViewUI(info.signature,"Method and its specifications are " + desc + ": " 
+					Activator.utils().setTraceViewUI(null, info.signature,"Method and its specifications are " + desc + ": " 
 							+ info.key);
 				}
 			}

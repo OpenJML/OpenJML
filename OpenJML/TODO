@@ -16,7 +16,7 @@ To fix for release
 - quantifiers for static methods, invariants
 
 Fix
-- tracing 
+- tracing: contents of \old does not work quite right 
 - review foreach loops once more
 - better error message for yices2 and quantifiers
 - better error message for CVC4 and non-linear constructs

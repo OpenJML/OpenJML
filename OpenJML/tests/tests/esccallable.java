@@ -45,7 +45,7 @@ public class esccallable extends EscBase {
                 +"  void n() {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m",22
-                ,"/tt/TestJava.java:3: warning: Associated declaration: /tt/TestJava.java:4: ",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }
 
@@ -59,7 +59,7 @@ public class esccallable extends EscBase {
                 +"  void p() {}\n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Callable) in method m",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration: /tt/TestJava.java:4: ",7
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }
 

@@ -115,7 +115,7 @@ public class TraceView extends ViewPart {
     		return;
     	}
         IJavaProject p = view.currentProject;
-        if (p != null) Activator.utils().setTraceViewUI(p);
+        if (p != null) Activator.utils().setTraceViewUI(this,p);
     }
     
     

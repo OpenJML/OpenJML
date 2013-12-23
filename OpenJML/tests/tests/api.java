@@ -56,15 +56,11 @@ import com.sun.tools.javac.util.Name;
 
 
 /** Tests the API class */
-public class api {
+public class api extends JmlTestCase {
     
     @Rule
     public TestName name = new TestName();
 
-    ByteArrayOutputStream berr;
-    ByteArrayOutputStream bout;
-    PrintStream savederr;
-    PrintStream savedout;
     static String eol = System.getProperty("line.separator");
     static String z = java.io.File.pathSeparator;
     boolean print = false;
@@ -72,19 +68,10 @@ public class api {
     
     @Before
     public void setUp() throws Exception {
-        //capture = false; 
-        savederr = System.err;
-        savedout = System.out;
-        if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
-        if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
     @After
     public void tearDown() {
-        berr = null;
-        bout = null;
-        System.setErr(savederr);
-        System.setOut(savedout);
     }
     
     /** This is a helper method that runs the compiler on the given set of
@@ -94,21 +81,13 @@ public class api {
      */
     
     public void start(boolean capture) {
-        if (!capture) {
-            System.err.flush();
-            System.out.flush();
-            System.setErr(savederr);
-            System.setOut(savedout);
-        }
+        if (capture) collectOutput(true);
         this.capture = capture;
     }
     
     public void endCapture() {
         if (!capture) return;
-        System.err.flush();
-        System.out.flush();
-        System.setErr(savederr);
-        System.setOut(savedout);
+        collectOutput(false);
         capture = false;
     }
     
@@ -117,8 +96,8 @@ public class api {
         boolean cap = capture;
         endCapture();
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualErr = berr.toString();
-        String actualOut = bout.toString();
+        String actualErr = errorOutput();
+        String actualOut = output();
         if (print) {
             System.out.println("TEST: " + name.getMethodName());
             System.out.println("ERR: " + actualErr);

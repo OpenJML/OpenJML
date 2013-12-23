@@ -1539,6 +1539,11 @@ public class Utils {
 	 */
 	public void deleteMarkersInSelection(ISelection selection,
 			IWorkbenchWindow window, Shell shell) {
+		if (selection == null) {
+			showMessage(shell, "JML Plugin",
+					"Nothing selected to delete markers of");
+			return;
+		}
 		List<IResource> list = getSelectedResources(selection, window, shell);
 		if (list.isEmpty()) {
 			showMessage(shell, "JML Plugin",
@@ -2048,23 +2053,27 @@ public class Utils {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				setTraceViewUI(methodName,text);
+				setTraceViewUI(null, methodName,text);
 			}
 		});
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting the given data; MUST be called from the UI thread */
-	public void setTraceViewUI(final String methodName, final String text) {
+	public void setTraceViewUI(/*@ nullable*/ TraceView tview, final String methodName, final String text) {
 		try {
-			IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
-			if (view instanceof TraceView) ((TraceView)view).setText(methodName, text);
+			if (tview == null) {
+				IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TraceView.ID);
+				if (!(view instanceof TraceView)) return; // FIXME - this would be an internal error
+				tview = (TraceView)view;
+			}
+			tview.setText(methodName, text);
 		} catch (PartInitException e) {
 			// FIXME - report error?
 		}
 	}
 	
 	/** Creates (if needed) and returns the trace view, setting it to data for the most recent selection in the Proof View. */
-	public void setTraceViewUI(IJavaProject currentProject) {
+	public void setTraceViewUI(/*@ nullable*/ TraceView tview, IJavaProject currentProject) {
         TreeItem ti = findView().selected;
         if (ti == null) return;
         OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
@@ -2073,14 +2082,14 @@ public class Utils {
         String methodName = ti.getText();
         ICounterexample ce = res == null ? null : res.counterexample();
         String text = ce instanceof Counterexample ? ((Counterexample)ce).traceText : null;
-        setTraceViewUI(methodName, text);
+        setTraceViewUI(tview, methodName, text);
 	}
 	
 	public void setTraceView(final IJavaProject currentProject) {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				setTraceViewUI(currentProject);
+				setTraceViewUI(null, currentProject);
 			}
 		});
 	}
@@ -2092,7 +2101,7 @@ public class Utils {
 				OpenJMLView view = Activator.utils().findView();
 				final TreeItem ti = view.treeitems.get(key);
 				view.selected = ti;
-				setTraceViewUI(currentProject);
+				setTraceViewUI(null, currentProject);
 				// FIXME - highlight also
 				OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
 				if (info != null && info.javaElement instanceof IMethod) {

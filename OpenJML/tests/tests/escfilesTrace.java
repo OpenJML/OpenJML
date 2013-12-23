@@ -107,6 +107,13 @@ public class escfilesTrace extends EscBase {
         }
     }
 
+    @Test 
+    public void testDMZCashTrace() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/nonpublic/dmz2","testfiles/escDmz2Trace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
+    }
+
+
 
     @Test @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void testDemoPaths() {

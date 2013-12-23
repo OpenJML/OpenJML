@@ -56,6 +56,7 @@ public abstract class EscBase extends JmlTestCase {
 
     String option;
     String solver;
+    protected boolean captureOutput = false;
     
     public EscBase(String option, String solver) {
         this.option = option;
@@ -77,6 +78,7 @@ public abstract class EscBase extends JmlTestCase {
 
     @Override
     public void setUp() throws Exception {
+        if (captureOutput) collectOutput(true);
         testspecpath = testspecpath1;
         collector = new FilteredDiagnosticCollector<JavaFileObject>(true);
         super.setUp();
@@ -84,6 +86,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-command","esc");
         main.addOptions("-no-purityCheck");
         main.addOptions("-timeout=30");
+        main.addOptions("-jmltesting");
         setOption(option,solver);
         //main.setupOptions();
         specs = JmlSpecs.instance(context);
@@ -94,7 +97,6 @@ public abstract class EscBase extends JmlTestCase {
         args = new String[]{};
     }
     
-
     protected void setOption(String option) {
         if (option == null) {
             // nothing set
@@ -121,6 +123,7 @@ public abstract class EscBase extends JmlTestCase {
     public void tearDown() throws Exception {
         super.tearDown();
         specs = null;
+        captureOutput = false;
     }
 
     
@@ -155,6 +158,7 @@ public abstract class EscBase extends JmlTestCase {
             for (JavaFileObject f: mockFiles) files = files.append(f);
             
             int ex = main.compile(args, null, context, files, null);
+            if (captureOutput) collectOutput(false);
             
             if (print) printDiagnostics();
             expectedErrors = compareResults(list);

@@ -1802,13 +1802,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        d.mods.flags |= Flags.FINAL;
         d.pos = pos;
         d.sym.pos = Position.NOPOS; // We set the position to NOPOS so that the temporary name is not further encoded
-        d.ident = treeutils.makeIdent(pos, d.sym);
+        JCIdent id = treeutils.makeIdent(expr.getStartPosition(),d.sym);
+        d.ident = id;
         // We mark all temporaries as final, as an indication that they will
         // be used only once.
 //        d.mods.flags |= Flags.FINAL;
 //        d.sym.flags_field |= Flags.FINAL;
         currentStatements.add(d);
-        JCIdent id = treeutils.makeIdent(expr.getStartPosition(),d.sym);
         treeutils.copyEndPosition(d,expr);
         treeutils.copyEndPosition(id,expr);
         return id;
@@ -6277,13 +6277,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpressionStatement st = treeutils.makeAssignStat(that.pos,  lhs, rhs);
             addStat( st );
             lastStat = st.expr;
-            exprBiMap.put(that,st.expr);
             result = eresult = lhs;
+            exprBiMap.put(that, eresult);
             exprBiMap.put(that.lhs, eresult);
 
             if (!(lhs instanceof JCIdent)) {
                 result = eresult = newTemp(lhs);
                 exprBiMap.put(that.lhs, eresult);
+                exprBiMap.put(that, eresult);
             }
 
         } else if (that.lhs instanceof JCFieldAccess) {
