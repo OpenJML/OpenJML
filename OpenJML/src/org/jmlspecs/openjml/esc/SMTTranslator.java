@@ -82,6 +82,7 @@ import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.model.JavacTypes;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -211,7 +212,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String NULL = "NULL";
     public static final String this_ = Strings.thisName; // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF"; // SMT sort for Java references
-    public static final String JAVATYPESORT = "JavaTypeSort";
+    public static final String JAVATYPESORT = REF; // "JavaTypeSort";
     public static final String JMLTYPESORT = "JMLTypeSort";
     public static final String JAVASUBTYPE = "javaSubType";
     public static final String JMLSUBTYPE = "jmlSubType";
@@ -219,6 +220,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String arrays_ = BasicBlocker2.ARRAY_BASE_NAME; // Must match BasicBlocker2
     public static final String concat = "stringConcat";
     public static final String nonnullelements = "nonnullelements";
+    public static final String arrayElemType = "__arrayElemType";
 
     /** A convenience declaration, to avoid calling the constructor for every empty list */
     public static final List<ISort> emptyList = new LinkedList<ISort>();
@@ -342,8 +344,10 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_declare_sort(F.symbol(REF),zero);
         commands.add(c);
         // (declare-sort JavaTypeSort 0)
-        c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
-        commands.add(c);
+        if (JAVATYPESORT != REF) {
+            c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
+            commands.add(c);
+        }
         // (declare-sort JMLTypeSort 0)
         c = new C_declare_sort(F.symbol(JMLTYPESORT),zero);
         commands.add(c);
@@ -463,6 +467,12 @@ public class SMTTranslator extends JmlTreeScanner {
                                                     )
                                              )
                                     )));
+            commands.add(c);
+        }
+        {
+            c = new C_declare_fun(F.symbol(arrayElemType),
+                    Arrays.asList(new ISort[]{jmlTypeSort}),
+                    jmlTypeSort);
             commands.add(c);
         }
         
@@ -589,7 +599,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     eqSym, 
                     F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
                     javaTypeSymbol(ti))));
-
+        }
+        for (Type ti: javaTypes) {
+            if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
+                    F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
         }
         for (Type ti: javaTypes) {
             for (Type tj: javaTypes) {
@@ -600,6 +613,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 IExpr comp = F.fcn(F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), javaTypeSymbol(tj));
                 if (!b) comp = F.fcn(F.symbol("not"),comp);
                 tcommands.add(new C_assert(comp));
+//                comp = F.fcn(F.symbol(JAVASUBTYPE), F.symbol(arrayOf(ti)), F.symbol(arrayOf(tj)));
+//                if (b && tj.isPrimitive() && !types.isSameType(ti, tj)) b= false;
+//                if (!b) comp = F.fcn(F.symbol("not"),comp);
+//                tcommands.add(new C_assert(comp));
                 
                 b = types.isSubtype(ti,tj);
                 comp = F.fcn(F.symbol(JMLSUBTYPE), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
@@ -663,6 +680,14 @@ public class SMTTranslator extends JmlTreeScanner {
         return t.toString().replace(".", "_");
     }
     
+    public String arrayOf(Type t) {
+        return "T_" + typeString(t) + "_A_";
+    }
+    
+    public String jmlarrayOf(Type t) {
+        return "JMLT_" + typeString(t) + "_A_";
+    }
+    
     /** Returns an SMT Symbol representing the given Java type */
     public IExpr.ISymbol javaTypeSymbol(Type t) {
         //String s = "|T_" + t.toString() + "|";
@@ -683,6 +708,10 @@ public class SMTTranslator extends JmlTreeScanner {
     public void addType(Type t) {
         // FIXME - what if t is the type of an explicit null?
         if (javaTypeSymbols.add(t.toString())) javaTypes.add(t);
+        if (t instanceof ArrayType) {
+            t = ((ArrayType)t).getComponentType();
+            addType(t);
+        }
     }
     
     /** Converts a BasicBlock into SMTLIB, adding commands into the
@@ -823,7 +852,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 JmlType jt = (JmlType)t;
                 if (jt.jmlTypeTag() == JmlToken.BSBIGINT) return intSort; 
                 if (jt.jmlTypeTag() == JmlToken.BSREAL) return realSort; 
-                if (jt.jmlTypeTag() == JmlToken.BSTYPEUC) return intSort; // FIXME
+                if (jt.jmlTypeTag() == JmlToken.BSTYPEUC) return jmlTypeSort;
             }
             // FIXME - errors
             return refSort; // FIXME - just something
@@ -1000,6 +1029,10 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(s, newargs);
         } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
             result = F.fcn(F.symbol(nonnullelements), newargs);
+        } else if (that.token == JmlToken.BSELEMTYPE) {
+            result = F.fcn(F.symbol(arrayElemType), newargs);
+        } else if (that.token == JmlToken.BSERASURE) {
+            result = F.fcn(F.symbol("erasure"), newargs);
         } else if (that.token == JmlToken.BSDISTINCT) {
             result = F.fcn(distinctSym, newargs);
         } else if (that.meth != null) {

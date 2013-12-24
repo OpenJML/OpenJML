@@ -1389,12 +1389,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
             
-            // Add an assignable clause if the method is pure
+            // Add an assignable clause if the method is pure or has no assignable clause
             JCAnnotation pure;
-            desugaringPure = ((pure = findMod(decl.mods,JmlToken.PURE)) != null);
-            if (!desugaringPure) {
-                desugaringPure = decl.sym.owner.attribute(pureAnnotationSymbol)!=null;
-            }
+            desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
+            if (!desugaringPure) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
             if (desugaringPure) {
                 JmlMethodClause cl;
                 if (decl.sym.isConstructor()) {
@@ -1412,6 +1410,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     cl.pos = pure.pos;
                     endPosTable.put(cl,pure.getEndPosition(endPosTable));
                 } else {
+                    // This branch is defensive - should never happen
                     cl.pos = Position.NOPOS;
                     endPosTable.put(cl,Position.NOPOS);
                 }
@@ -2855,6 +2854,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
 
             case BSELEMTYPE :
+            case BSERASURE :
                 ExpressionExtension ext = Extensions.instance(context).find(tree.pos,token);
                 Type ttt = ext.typecheck(this,tree,localEnv);
 //                // Expect one argument of any array type, result type is \TYPE
@@ -4632,6 +4632,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public boolean hasAnnotation(Symbol symbol, JmlToken t) {
       return symbol.attribute(tokenToAnnotationSymbol.get(t)) != null;
+
+  }
+  
+    /** Returns true if the given symbol has a given annotation 
+     * @param symbol the symbol to check
+     * @return true if the symbol has a given annotation, false otherwise
+     */
+    public Attribute.Compound findAnnotation(Symbol symbol, JmlToken t) {
+      return symbol.attribute(tokenToAnnotationSymbol.get(t));
 
   }
   

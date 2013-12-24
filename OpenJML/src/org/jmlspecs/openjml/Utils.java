@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.tools.JavaFileObject;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -551,6 +553,20 @@ public class Utils {
         JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
         String msg = diag.noSource().replace("Note: ", "");
         return msg;
+    }
+
+    /** Creates the location prefix including the colon without any message;
+     * 'pos' is the position in the file given by log.currentSource(). */
+    public String locationString(int pos, /*@ nullable */ JavaFileObject source) {
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
+        try {
+            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+            String msg = diag.noSource().replace("Note: ", "");
+            return msg;
+        } finally {
+            if (source != null) log.useSource(prev);
+        }
     }
 
 

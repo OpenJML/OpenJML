@@ -66,7 +66,8 @@ public class demofiles extends EscBase {
             new File(actCompile).delete();
             List<String> args = new LinkedList<String>();
             args.add("-esc");
-            args.add("-noPurityCheck");
+            args.add("-jmltesting");
+            args.add("-no-purityCheck");
             args.add("-dir");
             args.add(sourceDirname);
             args.addAll(Arrays.asList(opts));

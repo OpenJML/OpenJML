@@ -759,7 +759,7 @@ public class JmlTree implements IJmlTree {
     public interface JmlSource {
         
         /** Returns the file object containing the source code for the AST node */
-        @NonNull JavaFileObject source();
+        @Nullable JavaFileObject source();
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
@@ -2499,7 +2499,7 @@ public class JmlTree implements IJmlTree {
     /** This class represents JML statements within the body of a method
      * that take an expression, such as assert, assume, unreachable, reachable
      */
-    public static class JmlStatementExpr extends JmlAbstractStatement {
+    public static class JmlStatementExpr extends JmlAbstractStatement implements JmlSource {
         /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... */
         public JmlToken token;
         
@@ -2516,6 +2516,9 @@ public class JmlTree implements IJmlTree {
 //        
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
         public JavaFileObject source;
+        
+        @Override
+        public JavaFileObject source() { return associatedSource; }
         
         /** A Label that gives detail about the kind of assertion or assumption */
         public Label label;

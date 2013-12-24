@@ -38,10 +38,6 @@ public class escTrace extends EscBase {
 +JmlTree.eol+" \t//Assume invariants for java.lang.Object"
 +JmlTree.eol+" \t//Assume invariants for tt.TestJava"
 +JmlTree.eol+" \t//Assume Preconditions"
-+JmlTree.eol+"/tt/TestJava.java:3:  \tAssumeCheck assertion: __JML_AssumeCheck_ != 1"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_\t === 0"
-+JmlTree.eol+"\t\t\tVALUE: 1\t === 1"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_ != 1\t === true"
 +JmlTree.eol+" \t//try..."
 +JmlTree.eol+" \t//End of pre-state"
 +JmlTree.eol+" \t//Method Body"
@@ -57,10 +53,6 @@ public class escTrace extends EscBase {
 +JmlTree.eol+"\t\t\tVALUE: j\t === 7"
 +JmlTree.eol+"\t\t\tVALUE: 7\t === 7"
 +JmlTree.eol+"\t\t\tVALUE: j != 7\t === false"
-+JmlTree.eol+"/tt/TestJava.java:6:  \tAssumeCheck assertion: __JML_AssumeCheck_ != 2"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_\t === 0"
-+JmlTree.eol+"\t\t\tVALUE: 2\t === 2"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_ != 2\t === true"
 +JmlTree.eol+"/tt/TestJava.java:6:  Invalid assertion (Assert)"
 +JmlTree.eol
 +JmlTree.eol;
@@ -96,10 +88,6 @@ public class escTrace extends EscBase {
 +JmlTree.eol+" \t//Assume invariants for java.lang.Object"
 +JmlTree.eol+" \t//Assume invariants for tt.TestJava"
 +JmlTree.eol+" \t//Assume Preconditions"
-+JmlTree.eol+"/tt/TestJava.java:4:  \tAssumeCheck assertion: __JML_AssumeCheck_ != 1"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_\t === 0"
-+JmlTree.eol+"\t\t\tVALUE: 1\t === 1"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_ != 1\t === true"
 +JmlTree.eol+" \t//try..."
 +JmlTree.eol+" \t//End of pre-state"
 +JmlTree.eol+" \t//Method Body"
@@ -112,10 +100,6 @@ public class escTrace extends EscBase {
 +JmlTree.eol+"\t\t\tVALUE: k\t === 7"
 +JmlTree.eol+"\t\t\tVALUE: 7\t === 7"
 +JmlTree.eol+"\t\t\tVALUE: k != 7\t === false"
-+JmlTree.eol+"/tt/TestJava.java:6:  \tAssumeCheck assertion: __JML_AssumeCheck_ != 2"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_\t === 0"
-+JmlTree.eol+"\t\t\tVALUE: 2\t === 2"
-+JmlTree.eol+"\t\t\tVALUE: __JML_AssumeCheck_ != 2\t === true"
 +JmlTree.eol+"/tt/TestJava.java:6:  Invalid assertion (Assert)"
 +JmlTree.eol
 +JmlTree.eol;

@@ -139,6 +139,7 @@ public enum JmlToken {
     BSDISTINCT("\\distinct"),
     BSDURATION("\\duration"),
     BSELEMTYPE("\\elemtype"),
+    BSERASURE("\\erasure"),
     BSFRESH("\\fresh"),
     BSINVARIANTFOR("\\invariant_for"),
     BSISINITIALIZED("\\is_initialized"),

@@ -328,7 +328,9 @@ public class MethodProverSMT {
                                 treeutils.makeIntLiteral(Position.NOPOS, k));
                         solver.assertExpr(smttrans.convertExpr(bin));
                         solverResponse = solver.check_sat();
-                        jmlesc.progress(1,1,"Feasibility check #" + k + " - " + description + " : " +
+                        String loc = utils.locationString(stat.pos,stat.source());
+                        if (Utils.testingMode) loc = ""; else loc = loc + " ";
+                        jmlesc.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
                                 (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
                         if (solverResponse.equals(unsatResponse)) {
                             if (JmlAssertionAdder.preconditionAssumeCheckDescription.equals(description)) {
@@ -630,6 +632,8 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                         break ifstat;
+//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
+//                        toTrace = ((JmlStatementExpr)stat).expression;
 //                    } else if (comment.startsWith("AssumeCheck assertion")) {
 //                    	break ifstat;
                     } else {
@@ -648,13 +652,13 @@ public class MethodProverSMT {
                     } else {
 //                        log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
                     }
+                    if (comment.startsWith("AssumeCheck assertion")) break ifstat;
                     tracer.appendln(loc + " \t" + comment);
                     if (toTrace != null && showSubexpressions) tracer.trace(toTrace);
                     String s = ((JmlStatementExpr)bbstat).id;
                     if (toTrace != null && s != null) {
                         tracer.appendln("\t\t\t\t" + s + " = " + cemap.get(toTrace));
                     }
-                    if (comment.startsWith("AssumeCheck assertion")) break ifstat;
                     
                 } else if (aaPathMap.reverse.keySet().contains(bbstat)) {
                     String loc = utils.locationString(bbstat.getStartPosition());

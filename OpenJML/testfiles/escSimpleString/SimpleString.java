@@ -35,8 +35,13 @@ public class SimpleString {
    * @param the_chars The array of characters.
    */
   //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_chars[i]);
-  public SimpleString(final char[] the_chars) {
+  public SimpleString(final /*@ non_null */ char[] the_chars) {
     my_chars = new char[the_chars.length];
+    // FIXME - these assumptions should be part of the logic encoding. Note that the first two seem to have to be after the assignment above
+    //@ assume the_chars instanceof char[];
+    //@ assume \elemtype(\typeof(my_chars)) == \type(char);
+    //@ assume my_chars instanceof char[];
     System.arraycopy(the_chars, 0, my_chars, 0, the_chars.length);
   }
+
 }

@@ -79,6 +79,7 @@ public class escfiles extends EscBase {
             args.add("-esc");
             args.add("-no-purityCheck");
             args.add("-jmltesting");
+            args.add("-progress");
             args.add("-timeout=30");
             if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
@@ -122,31 +123,31 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","testfiles/escDemo","-subexpressions");
     }
 
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-progress","-escMaxWarnings=1");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","testfiles/escDemo1","-escMaxWarnings=1");
     }
 
     @Test
     public void testDemoA() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemoA","-subexpressions","-progress","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","testfiles/escDemoA","-subexpressions","-method=tick");
     }
 
     @Test
     public void testDemoA1() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemoA1","-subexpressions","-progress","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","testfiles/escDemoA1","-subexpressions","-method=tick");
     }
 
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-subexpressions","-progress");//,"-show","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-subexpressions");//,"-show","-method=tick");
     }
 
     @Test
@@ -159,31 +160,31 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","testfiles/escDemoB2","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","testfiles/escDemoB2");
     }
 
     @Test
     public void testDemoB3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3",enableSubexpressions ? "-subexpressions" : "","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","testfiles/escDemoB3",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
     public void testDemoC() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-subexpressions","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-subexpressions");
     }
 
-    @Test
+    @Test // FIXME _ needs generic substitution
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-show");
     }
 
     @Test
     public void testDemoTime() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","testfiles/escDemoTime","-progress","-logic=AUFNIA");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","testfiles/escDemoTime","-logic=AUFNIA");
     }
 
 
@@ -196,177 +197,176 @@ public class escfiles extends EscBase {
     @Test
     public void testBagModified() {
         expectedExit = 0;
-        helpTCF("testfiles/bagModified","testfiles/bagModified","-progress");
+        helpTCF("testfiles/bagModified","testfiles/bagModified");
     }
 
     @Test // FIXME - hangs up sometimes with some solvers
     public void testLoopExercises() {
         expectedExit = 0;
-        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-progress","-logic=AUFNIA");
+        helpTCF("testfiles/loopExercises","testfiles/loopExercises","-logic=AUFNIA");
     }
 
     @Test @Ignore
     public void testPurseCard() {
         if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-progress","-logic=AUFNIA","-timeout=15");
+        helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-logic=AUFNIA","-timeout=15");
     }
 
     @Test @Ignore
     public void testPurseCardMod() {
         if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-progress","-logic=AUFNIA","-timeout=15");
+        helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
     }
 
     @Test
     public void testTaxpayer() {
-        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes?
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/TaxPayer.java","testfiles/demoTaxpayer","-classpath","../OpenJMLDemo/src/openjml/demo","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/TaxPayer.java","testfiles/demoTaxpayer","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
     @Test
     public void testBeanCan() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","testfiles/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","testfiles/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
     @Test // FIXME - times out
     public void testECU() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-progress","-logic=AUFNIA");
+        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-logic=AUFNIA");
     }
 
     @Test
     public void testAdd() {
         expectedExit = 1;
-        helpTF("escAdd","-progress");
+        helpTF("escAdd");
     }
 
     @Test
     public void testAdd2() {
         expectedExit = 0;
-        helpTF("escAdd2","-progress");
+        helpTF("escAdd2");
     }
 
     @Test @Ignore // CVC4 crashes
     public void testCashAmount() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-escMaxWarnings=1");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
     public void testCashAmount2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
     @Test
     public void testCashAmountMutable() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMutable.java","testfiles/escCashAmountMutable","-classpath","../OpenJMLDemo/src/openjml/demo","-progress");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMutable.java","testfiles/escCashAmountMutable","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
     @Test
     public void testCashAmountMF() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMF.java","testfiles/escCashAmountMF","-classpath","../OpenJMLDemo/src/openjml/demo","-progress","-escMaxWarnings=1");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMF.java","testfiles/escCashAmountMF","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
     public void testSettableClock() {
         expectedExit = 0;
-        helpDemo("settableClock","escSettableClock","-progress","-logic=AUFNIRA");
+        helpDemo("settableClock","escSettableClock","-logic=AUFNIRA");
     }
 
     @Test
     public void testVector() {
         expectedExit = 0;
-        helpTCF("testfiles/escVector/Vector.java","testfiles/escVector","-classpath","testfiles/escVector","-progress","-escMaxWarnings=1");
+        helpTF("escVector","-escMaxWarnings=1");
     }
 
     @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
     public void testDMZLoop() {
         expectedExit = 0;
-        helpTCF("testfiles/escDMZLoop/ESCTest.java","testfiles/escDMZLoop","-classpath","testfiles/escDMZLoop","-progress","-method=findMax","-show");
+        helpTF("escDMZLoop","-method=findMax","-show");
     }
 
     @Test
     public void testDMZLoopA() {
         expectedExit = 0;
-        helpTCF("testfiles/escDMZLoopA/ESCTest.java","testfiles/escDMZLoopA","-classpath","testfiles/escDMZLoopA","-progress","-method=findMax");
+        helpTF("escDMZLoopA","-method=findMax");
     }
 
     @Test
     public void testDMZLoopB() {
         expectedExit = 0;
-        helpTCF("testfiles/escDMZLoopB/ESCTest.java","testfiles/escDMZLoopB","-classpath","testfiles/escDMZLoopB","-progress","-method=findMax");
+        helpTF("escDMZLoopB","-method=findMax");
     }
 
     @Test
     public void testRecursiveInvariant() {
         expectedExit = 1;
-        helpTCF("testfiles/escRecursiveInvariant/RecursiveInvariant.java","testfiles/escRecursiveInvariant","-classpath","testfiles/escRecursiveInvariant","-progress");
+        helpTF("escRecursiveInvariant");
     }
 
     @Test // FIXME - needs to handle getClass()
     public void testBadCast() {
         expectedExit = 0;
-        helpTCF("testfiles/escBadCast/BadCast.java","testfiles/escBadCast","-classpath","testfiles/escBadCast","-progress");
+        helpTF("escBadCast");
     }
 
     @Test
     public void testCashAmountPrivate2() {
         expectedExit = 0;
-        helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-progress","-method=increase");
+        helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-method=increase");
     }
 
     @Test // FIXME - fails because of generics
     public void testDoublyLinkedList() {
-        helpTCF("testfiles/escDoublyLinkedList/DoublyLinkedList.java","testfiles/escDoublyLinkedList","-classpath","testfiles/escDoublyLinkedList","-progress");
+        helpTF("escDoublyLinkedList");
     }
 
     @Test
     public void testEscModelFields() {
-        helpTF("escModelFields","-progress");
+        helpTF("escModelFields");
     }
 
-    @Test
+    @Test // FIXME - needs more work on axioms for arrays
     public void testEscSimpleString() {
-        helpTF("escSimpleString","-nonnullByDefault","-progress");//,"-escMaxWarnings=1","-show","-trace","-subexpressions");
+        helpTF("escSimpleString","-nonnullByDefault","-escMaxWarnings=1");
     }
 
     @Test
     public void testEscSimpleString2() {
-        helpTF("escSimpleString2","-nonnullByDefault","-progress");
+        helpTF("escSimpleString2","-nonnullByDefault");
     }
 
     @Test
     public void testEscSimpleString3() {
-        helpTF("escSimpleString3","-nonnullByDefault","-progress");
+        helpTF("escSimpleString3","-nonnullByDefault");
     }
 
 
     @Test
     public void testEscDiverges() {
-        helpTF("escDiverges","-nonnullByDefault","-progress","-logic=AUFNIRA");
+        helpTF("escDiverges","-nonnullByDefault","-logic=AUFNIRA");
     }
 
 
     @Test
     public void testEscDiverges2() {
-        helpTF("escDiverges2","-nonnullByDefault","-progress","-logic=AUFNIRA");
+        helpTF("escDiverges2","-nonnullByDefault","-logic=AUFNIRA");
     }
 
     @Test
     public void testEscInvariants() {
-        helpTF("escInvariants","-progress");
+        helpTF("escInvariants");
     }
 
     @Test
     public void testEscInvariants2() {
-        helpTF("escInvariants2","-progress");
+        helpTF("escInvariants2");
     }
 
 

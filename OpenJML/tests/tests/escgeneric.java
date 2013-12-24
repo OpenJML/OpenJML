@@ -217,8 +217,27 @@ public class escgeneric extends EscBase {
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
                 +"//@ assert sum > 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13
+                ,anyorder(
+                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5)
+                        ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",13)
+                )
+                );
+    }
+
+    @Test
+    public void testElemType() {
+        helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
+                +"//@ assert \\elemtype(\\typeof(a)) == \\type(char); \n"
+                +"}}"
+                );
+    }
+
+    @Test
+    public void testElemType2() {
+        helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
+                +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
+                +"}}"
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 

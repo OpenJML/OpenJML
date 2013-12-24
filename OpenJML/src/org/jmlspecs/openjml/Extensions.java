@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.ext.Elemtype;
+import org.jmlspecs.openjml.ext.Erasure;
 
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.util.Context;
@@ -82,7 +83,7 @@ public class Extensions {
     }
     
     /** The list of classes that add extensions to the Parser */
-    static Class<?>[] extensions = { Elemtype.class };
+    static Class<?>[] extensions = { Elemtype.class, Erasure.class };
 
     /** A map from token type to the extension class that implements the token */
     static protected Map<JmlToken,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<JmlToken,Class<? extends ExpressionExtension>>();

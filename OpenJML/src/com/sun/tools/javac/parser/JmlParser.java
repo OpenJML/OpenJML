@@ -1556,7 +1556,12 @@ public class JmlParser extends EndPosParser {
         S.nextToken();
         do {
             JmlSpecificationCase g = parseSpecificationCase(null, false);
-            list.append(g);
+            if (g == null) {
+                // Empty specification group
+                // Warning happens below as an invalid specification group end
+            } else {
+                list.append(g);
+            }
             if (S.jmlToken() == ENDJMLCOMMENT) S.nextToken();
         } while (S.jmlToken == ALSO);
         if (S.jmlToken() == ENDJMLCOMMENT) S.nextToken();
@@ -2494,6 +2499,7 @@ public class JmlParser extends EndPosParser {
                     }
 
                 case BSELEMTYPE:
+                case BSERASURE:
                 case BSTYPEOF:
                 case BSPAST:
                 case BSOLD:

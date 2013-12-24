@@ -630,6 +630,11 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, rhs);
     }
     
+    /** Makes an attributed AST for a reference inequality (!=) expression */
+    public JCBinary makeNotNull(int pos, JCExpression lhs) {
+        return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, nullLit);
+    }
+    
     /** Makes an attributed AST for the length operation on an array. */
     public JCFieldAccess makeLength(DiagnosticPosition pos, JCExpression array) {
         JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
@@ -939,10 +944,13 @@ public class JmlTreeUtils {
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
+        JCExpression expr = makeNotNull(id.pos, id);
+        
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
-        JCExpression expr = makeAnd(p,makeEqObject(p,lhs,rhs),
+        expr = makeAnd(p,expr,makeEqObject(p,lhs,rhs));
+        expr = makeAnd(p,expr,
                 makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs));
         {
             Type t = types.erasure(type);
@@ -950,6 +958,14 @@ public class JmlTreeUtils {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
             }
+        }
+        if (type.tag == TypeTags.ARRAY) {
+            Type compType = ((Type.ArrayType)type).getComponentType();
+            JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,compType));
+            JCExpression e = makeTypeof(id);
+            e = factory.at(p).JmlMethodInvocation(JmlToken.BSELEMTYPE,e);
+            e = makeEqObject(p, e, ct);
+            expr = makeAnd(p,expr,e);
         }
         return expr;
     }
