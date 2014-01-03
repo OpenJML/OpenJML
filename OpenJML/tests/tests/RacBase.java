@@ -25,8 +25,8 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class RacBase extends JmlTestCase {
 
-    static String testspecpath1 = "$A"+z+"$B";
-    static String testspecpath;
+    String testspecpath1 = "$A"+z+"$B";
+    String testspecpath;
     int expectedExit = 0; // Expected result of compiler
     int expectedRACExit = 0; // Expected result of RACed program
     int expectedNotes; // Number of messages to ignore (e.g. uninteresting compiler warnings)

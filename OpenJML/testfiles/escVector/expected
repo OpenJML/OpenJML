@@ -10,17 +10,17 @@ testfiles\escVector\Vector.java:67: warning: The prover cannot establish an asse
                                 ^
 Completed proof of Vector.add(java.lang.Object) with prover !!!! - with warnings
 Starting proof of Vector.copyInto(java.lang.Object[]) with prover !!!!
-testfiles\escVector\Vector.java:87: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
+testfiles\escVector\Vector.java:91: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
       the_array[i] = my_element_data[i];
                ^
 Completed proof of Vector.copyInto(java.lang.Object[]) with prover !!!! - with warnings
 Starting proof of Vector.indexOf(java.lang.Object,int) with prover !!!!
-testfiles\escVector\Vector.java:106: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
+testfiles\escVector\Vector.java:112: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
       if (the_elem.equals(my_element_data[i])) {
                                          ^
 Completed proof of Vector.indexOf(java.lang.Object,int) with prover !!!! - with warnings
 Starting proof of Vector.elementAt(int) with prover !!!!
-testfiles\escVector\Vector.java:127: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method elementAt
+testfiles\escVector\Vector.java:133: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method elementAt
       return my_element_data[the_index];
                             ^
 Completed proof of Vector.elementAt(int) with prover !!!! - with warnings

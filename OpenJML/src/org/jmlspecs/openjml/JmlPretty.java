@@ -241,7 +241,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try { 
-            print(JmlToken.CALLABLE);
+            print(JmlToken.CALLABLE.internedName());
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -907,7 +907,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (tree.name == null) print(".*");
             else print("." + tree.name);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            perr(tree,e);
         }
     }
 
@@ -922,7 +922,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodSig(JmlMethodSig that) {
-        try { notImpl(that);  // FIXME
+        try { 
+            printExpr(that.expression);
+            print("(");
+            boolean first = true;
+            for (JCExpression t: that.argtypes) {
+                if (first) first = false; else print(",");
+                printExpr(t);
+            }
+            print(")");
         } catch (IOException e) { perr(that,e); }
     }
 

@@ -414,7 +414,7 @@ public class compiler {
                           { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-sourcepath"," ",
                             "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
-                            "-noPurityCheck","-nowarn",
+                            "-no-purityCheck","-nowarn",
                             "testfiles/testNoSourceWithClass/A.jml"
                           },0,0
                           ,""
@@ -428,7 +428,7 @@ public class compiler {
                           { "-classpath","runtime"+z+"testfiles/testNoSourceWithClass",
                             "-sourcepath"," ",
                             "-specspath","runtime"+z+"testfiles/testNoSourceWithClass",
-                            "-noPurityCheck","-Werror",
+                            "-no-purityCheck","-Werror",
                             "testfiles/testNoSourceWithClass/A.jml"
                           },1,0
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: testfiles/testNoSourceWithClass/A.jml" + eol +

@@ -320,12 +320,12 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                  
                 +"}"
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0bad",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticRange) in method m0badx",21
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1badx",21
-                ,"/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2badx",21
-                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticRange) in method m1bad",9
-                ,"/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticRange) in method m2bad",9
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0bad",9
+                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0badx",21
+                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1badx",21
+                ,"/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2badx",21
+                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1bad",9
+                ,"/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2bad",9
                 );
     }
     
@@ -455,7 +455,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -470,7 +470,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: Associated declaration",10
                 );
     }
 
@@ -484,7 +485,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -499,7 +500,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",22
                 );
     }
@@ -514,7 +515,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }

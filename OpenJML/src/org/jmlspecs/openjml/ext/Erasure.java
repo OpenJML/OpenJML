@@ -7,20 +7,15 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
-import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
-import com.sun.tools.javac.parser.Token;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javap.Options;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -44,24 +39,9 @@ public class Erasure extends ExpressionExtension {
     
     static public JmlToken[] tokens() { return new JmlToken[]{JmlToken.BSERASURE}; }
     
-    public JCExpression parse(JmlParser parser, List<JCExpression> typeArgs) {
-        this.parser = parser;
-        this.scanner = parser.getScanner();
-        JmlToken jt = scanner.jmlToken();
-        int p = scanner.pos();
-        scanner.nextToken();
-        if (scanner.token() != Token.LPAREN) {
-            return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
-        } else if (typeArgs != null && !typeArgs.isEmpty()) {
-            return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
-        } else {
-            int pp = scanner.pos();
-            List<JCExpression> args = parser.arguments();
-            JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
-            t.startpos = p;
-            return parser.primarySuffix(t, typeArgs);
-        }
-
+    @Override
+    public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+        checkOneArg(parser,e);
     }
     
     public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {

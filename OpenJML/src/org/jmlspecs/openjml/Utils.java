@@ -568,6 +568,42 @@ public class Utils {
             if (source != null) log.useSource(prev);
         }
     }
+    
+    Symbol codeBigintMath = null;
+    Symbol codeSafeMath = null;
+    Symbol codeJavaMath = null;
+    Symbol specBigintMath = null;
+    Symbol specJavaMath = null;
+    Symbol specSafeMath = null;
+    
+    private void initModeSymbols() {
+        if (codeBigintMath != null) return;
+        specSafeMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".SpecSafeMath"));
+        specJavaMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".SpecJavaMath"));
+        specBigintMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".SpecBigintMath"));
+        codeSafeMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeSafeMath"));
+        codeJavaMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeJavaMath"));
+        codeBigintMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
+    }
+    
+    public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
+        initModeSymbols();
+        if (!jml) {
+            if (sym.attribute(codeBigintMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Math.instance(context);
+            if (sym.attribute(codeSafeMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Safe.instance(context);
+            if (sym.attribute(codeJavaMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Java.instance(context);
+            sym = sym.owner;
+            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+            return org.jmlspecs.openjml.ext.Arithmetic.Safe.instance(context);
+        } else {
+            if (sym.attribute(specBigintMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Math.instance(context);
+            if (sym.attribute(specSafeMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Safe.instance(context);
+            if (sym.attribute(specJavaMath) != null) return org.jmlspecs.openjml.ext.Arithmetic.Java.instance(context);
+            sym = sym.owner;
+            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+            return org.jmlspecs.openjml.ext.Arithmetic.Math.instance(context);
+        }
+    }
 
 
 

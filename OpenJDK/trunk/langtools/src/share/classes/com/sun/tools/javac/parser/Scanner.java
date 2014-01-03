@@ -66,10 +66,6 @@ public class Scanner implements Lexer {
      */
     private boolean allowUnderscoresInLiterals;
 
-//    /** Allow exotic identifiers.
-//     */
-//    private boolean allowExoticIdentifiers;
-//
     /** The source language setting.
      */
     private Source source;

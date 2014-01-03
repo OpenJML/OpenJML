@@ -12,6 +12,7 @@ public class modelghost extends TCBase {
 
     @Override
     public void setUp() throws Exception {
+        useSystemSpecs = true;
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
@@ -88,6 +89,66 @@ public class modelghost extends TCBase {
                 ,"/A.java:29: missing method body, or declare abstract",14
                 ,"/A.java:29: A model type may not contain model declarations",14
                 );
+    }
+    
+    @Test
+    public void testUseMethod() {
+        helpTCF("A.java",
+                "public class A { \n" +
+                "  boolean m() {}\n" +  // OK
+                "  //@ model boolean m1() { return true; }\n" + // OK
+                
+                "  //@ invariant m() && m1();\n" +
+                
+                "  //@ requires m() && m1();\n" +
+                "  void p() {} ;\n" +
+                
+                "  //@ requires m() && m1();\n" + // BAD - VISIBILITY PROBLEMS
+                "  public void pp() {} ;\n" +
+                
+                "}\n"
+                ,"/A.java:7: An identifier with package visibility may not be used in a requires clause with public visibility",16
+                ,"/A.java:7: An identifier with package visibility may not be used in a requires clause with public visibility",23
+                );
+        
+    }
+
+    @Test
+    public void testUseMethod2() {
+        helpTCF("A.java",
+                "public class A { \n" +
+                
+                "  //@ requires B.m() && B.m1();\n" +
+                "  static void p() {};\n" +
+                
+                "  //@ requires B.m() && B.m1();\n" + // BAD - VISIBILITY PROBLEMS
+                "  public static void pp() {} ;\n" +
+                
+                "}\n" +
+                "class B { \n" +
+                "  static boolean m() {}\n" +  // OK
+                "  //@ model static boolean m1() { return true; }\n" + // OK
+                
+                "  //@ static invariant m() && m1();\n" +
+                
+                "}\n"
+                ,"/A.java:4: An identifier with package visibility may not be used in a requires clause with public visibility",17
+                ,"/A.java:4: An identifier with package visibility may not be used in a requires clause with public visibility",26
+                );
+        
+    }
+
+    @Test
+    public void testUseJML() {
+        helpTCF("A.java",
+                "import org.jmlspecs.lang.JML; public class A { \n" +
+                
+                "  //@ requires JML.erasure(\\typeof(this)) == JML.erasure(\\type(A));\n" +
+                "  void p() {};\n" +
+                
+                "}\n"
+                );
+        
     }
 
     @Test

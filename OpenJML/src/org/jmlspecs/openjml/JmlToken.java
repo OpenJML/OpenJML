@@ -38,8 +38,8 @@ public enum JmlToken {
 
     // These are modifiers
     PURE("pure",org.jmlspecs.annotation.Pure.class), // Keep this one the first of the modifiers (see the modifiers Map below)
-    CODE_JAVA_MATH("code_java_math"), // FIXME - need implementations for these
-    CODE_SAFE_MATH("code_safe_math"),
+    CODE_JAVA_MATH("code_java_math",org.jmlspecs.annotation.CodeJavaMath.class),
+    CODE_SAFE_MATH("code_safe_math",org.jmlspecs.annotation.CodeSafeMath.class),
     EXTRACT("extract",org.jmlspecs.annotation.Extract.class),
     GHOST("ghost",org.jmlspecs.annotation.Ghost.class),
     IMMUTABLE("immutable",org.jmlspecs.annotation.Immutable.class), // FIXME - this is an extension - comment
@@ -55,12 +55,12 @@ public enum JmlToken {
     PEER("peer",org.jmlspecs.annotation.Peer.class),
     READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
     REP("rep",org.jmlspecs.annotation.Rep.class),
-    SPEC_BIGINT_MATH("spec_bigint_math"), // FIXME - need implementations for these
-    SPEC_JAVA_MATH("spec_java_math"),
-    SPEC_SAFE_MATH("spec_safe_math"),
+    SPEC_BIGINT_MATH("spec_bigint_math",org.jmlspecs.annotation.SpecBigintMath.class),
+    SPEC_JAVA_MATH("spec_java_math",org.jmlspecs.annotation.SpecJavaMath.class),
+    SPEC_SAFE_MATH("spec_safe_math",org.jmlspecs.annotation.SpecSafeMath.class),
     SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
     SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
-    CODE_BIGINT_MATH("code_bigint_math"), // Keep this one the last of the standard modifiers (see the modifiers Map below)
+    CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list

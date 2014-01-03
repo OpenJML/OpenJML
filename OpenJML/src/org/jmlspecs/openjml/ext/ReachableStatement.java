@@ -35,6 +35,8 @@ public class ReachableStatement extends StatementExtension {
         super(context);
     }
     
+    public static void register(Context context) {}
+    
     static public JmlToken[] tokens() { return new JmlToken[]{
             JmlToken.REACHABLE}; }
     

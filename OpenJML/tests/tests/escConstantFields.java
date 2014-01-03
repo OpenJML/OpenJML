@@ -251,7 +251,7 @@ public class escConstantFields extends EscBase {
                 +"  static public void n() {}\n"
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantReenterCaller) in method m",7
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantReenterCaller) in method m:  (Caller: tt.TestJava.m(), Callee: tt.TestJava.n())",7
                 ,"/tt/TestJava.java:5: warning: Associated declaration",14
                 );
     }

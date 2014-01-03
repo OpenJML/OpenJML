@@ -48,7 +48,9 @@ public enum JmlOption implements IOption {
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
-
+    CODE_MATH("-code-math",true,"safe","Arithmetic mode for Java code",null),
+    SPEC_MATH("-spec-math",true,"bigint","Arithmetic mode for specifications",null),
+    
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
     PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),

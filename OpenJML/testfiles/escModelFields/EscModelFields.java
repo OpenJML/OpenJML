@@ -1,4 +1,4 @@
-
+/*@ code_java_math */
 public class EscModelFields {
 
     private int rep; //@ in value;
@@ -9,7 +9,7 @@ public class EscModelFields {
     //@ public invariant value >= 0;
     
     //@ requires v >= 0;
-    //  @ modifies this.*; // FIXME - this should be the default.
+    //@ modifies this.*;
     //@ ensures value == v;
     public EscModelFields(int v) {
         rep = -v;

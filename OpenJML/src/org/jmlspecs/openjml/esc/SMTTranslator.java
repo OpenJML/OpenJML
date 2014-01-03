@@ -1344,7 +1344,7 @@ public class SMTTranslator extends JmlTreeScanner {
            result = F.symbol(((Boolean)v) ?"true":"false"); 
         } else if (tree.typetag == TypeTags.INT || tree.typetag == TypeTags.LONG || tree.typetag == TypeTags.SHORT || tree.typetag == TypeTags.BYTE) {
             long k = Long.parseLong(v.toString());
-            result = k >= 0 ? F.numeral(k) : F.fcn(F.symbol("-"), F.numeral(-k));
+            result = k >= 0 ? F.numeral(k) : -k >= 0 ? F.fcn(F.symbol("-"), F.numeral(-k)) : F.fcn(F.symbol("-"), F.numeral(v.toString().substring(1)));
         } else if (tree.typetag == TypeTags.CHAR) {
             long k = (v instanceof Character) ? (long) ((Character)v).charValue() : Long.parseLong(v.toString());
             result = F.numeral(k);

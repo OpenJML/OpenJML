@@ -142,6 +142,7 @@ public class JmlTreeUtils {
     final public Symbol intgtSymbol;
     final public Symbol intltSymbol;
     final public Symbol intleSymbol;
+    final public Symbol longleSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
@@ -197,6 +198,7 @@ public class JmlTreeUtils {
         intgtSymbol = findOpSymbol(JCTree.GT,syms.intType);
         intltSymbol = findOpSymbol(JCTree.LT,syms.intType);
         intleSymbol = findOpSymbol(JCTree.LE,syms.intType);
+        longleSymbol = findOpSymbol(JCTree.LE,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);

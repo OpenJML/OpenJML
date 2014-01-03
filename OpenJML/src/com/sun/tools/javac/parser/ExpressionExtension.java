@@ -4,9 +4,14 @@
  */
 package com.sun.tools.javac.parser;
 
+import java.lang.reflect.Constructor;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.ext.Arithmetic.Safe;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -43,7 +48,8 @@ abstract public class ExpressionExtension {
     protected Utils utils;
     
     //@ public constraint context == \old(context);
-    
+
+    public static void register(Context context) {}
     
     /** A constructor needed by derived classes; this class should not be
      * instantiated directly by users.
@@ -117,9 +123,52 @@ abstract public class ExpressionExtension {
      * @param typeArgs any type arguments already seen (may be null)
      * @return the AST for the expression
      */
-    abstract public JCExpression parse(JmlParser parser, @Nullable List<JCExpression> typeArgs);
+    public JCExpression parse(JmlParser parser,
+            @Nullable List<JCExpression> typeArgs) {
+        // TODO Auto-generated method stub
+        this.parser = parser;
+        this.scanner = parser.getScanner();
+        JmlToken jt = scanner.jmlToken();
+        int p = scanner.pos();
+        scanner.nextToken();
+        if (scanner.token() != Token.LPAREN) {
+            return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
+        } else if (typeArgs != null && !typeArgs.isEmpty()) {
+            return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
+        } else {
+            int pp = scanner.pos();
+            List<JCExpression> args = parser.arguments();
+            JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
+            t.startpos = p;
+            checkParse(parser,t);
+            return parser.primarySuffix(t, typeArgs);
+        }
+    }
+    
+    abstract public void checkParse(JmlParser parser, JmlMethodInvocation e);
+
+    public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
+        if (e.args.size() != 1) {
+            parser.jmlerror(e.pos, e.getEndPosition(parser.endPositions()), "jml.one.arg", e.token.internedName());
+        }
+    }
+
     
     // TODO: document
     abstract public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env);
-    
+
+    public static <T> T instance(Context context, Class<T> key) {
+        T s = context.get(key);
+        if (s == null) {
+            try {
+                Constructor<T> c = key.getConstructor(Context.class);
+                s = c.newInstance(context);
+                context.put(key, s);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return s;
+    }
+
 }

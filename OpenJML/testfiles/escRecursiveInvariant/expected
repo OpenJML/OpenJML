@@ -19,7 +19,7 @@ testfiles\escRecursiveInvariant\RecursiveInvariant.java:4: warning: Associated d
                ^
 Completed proof of RecursiveInvariant.m() with prover !!!! - with warnings
 Starting proof of RecursiveInvariant.t() with prover !!!!
-testfiles\escRecursiveInvariant\RecursiveInvariant.java:8: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method t
+testfiles\escRecursiveInvariant\RecursiveInvariant.java:8: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method t:  (Caller: RecursiveInvariant.t(), Callee: RecursiveInvariant.m())
     //@ requires m();
                   ^
 testfiles\escRecursiveInvariant\RecursiveInvariant.java:4: warning: Associated declaration

@@ -178,7 +178,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final protected Utils utils;
 
     /** The Types instance for this context */
-    @NonNull final protected JmlTypes jmltypes;
+    @NonNull final public JmlTypes jmltypes;
 
     /** The Names table from the compilation context, initialized in the constructor */
     @NonNull final protected Names names;
@@ -706,15 +706,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public JmlToken[] allowedTypeModifiers = new JmlToken[]{
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PURE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
 
     public JmlToken[] allowedNestedTypeModifiers = new JmlToken[]{
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PURE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
 
     public JmlToken[] allowedNestedModelTypeModifiers = new JmlToken[]{
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PURE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
 
     public JmlToken[] allowedLocalTypeModifiers = new JmlToken[]{
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PURE, MODEL, QUERY};
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
@@ -938,6 +942,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final JmlToken[] allowedMethodAnnotations =
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -946,6 +951,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final JmlToken[] allowedInterfaceMethodAnnotations =
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -954,6 +960,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final JmlToken[] allowedModelMethodAnnotations =
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -962,6 +969,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final JmlToken[] allowedInterfaceModelMethodAnnotations =
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -970,6 +978,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final JmlToken[] allowedConstructorAnnotations =
         new JmlToken[] {
         MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -978,6 +987,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public final  JmlToken[] allowedModelConstructorAnnotations =
         new JmlToken[] {
         MODEL, PURE, HELPER, EXTRACT ,
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
@@ -5242,7 +5252,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodSig(JmlMethodSig that) {
         Env<AttrContext> localEnv = env.dup(that.expression, env.info.dup());
 
-        List<Type> types = that.argtypes != null ? super.attribTypes(that.argtypes, localEnv) : List.<Type>nil();
+        List<Type> types = that.argtypes != null ? super.attribAnyTypes(that.argtypes, localEnv) : List.<Type>nil();
         List<Type> typeargtypes = List.<Type>nil(); // attribAnyTypes(that.typeargs, localEnv);// FIXME - need to handle template arguments
         
         Type mpt = newMethTemplate(types, typeargtypes);

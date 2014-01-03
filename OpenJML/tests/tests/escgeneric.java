@@ -27,7 +27,6 @@ public class escgeneric extends EscBase {
         main.addOptions("-jmltesting");
     }
     
-    // FIXME - disabled until we get generic types implemented better
     @Test
     public void testConstructor() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -73,7 +72,6 @@ public class escgeneric extends EscBase {
                 );
     }
 
-    // FIXME - how do we implement erasure
     @Test
     public void testGenericType() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -84,9 +82,9 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\type(TestJava<Integer>) != \\type(Object);\n"
                 +"    //@ assert \\type(TestJava<Integer>) != \\type(TestJava<Object>);\n"
                 +"  }\n"
-//                +"  public void mz(Object o) {\n"
-//                +"    //@ assert Object.class == \\type(T).erasure();\n"  // NO
-//                +"  }\n"
+                +"  public void mz(Object o) {\n"
+                +"    //@ assert Object.class == \\erasure(\\type(T));\n" // NO
+                +"  }\n"
                 +"  public void ma(Object o) {\n"
                 +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<T>);\n"  // NO
                 +"  }\n"
@@ -96,14 +94,14 @@ public class escgeneric extends EscBase {
                 +"  public void mc(Object o) {\n"
                 +"    //@ assert \\type(TestJava<Integer>) == \\type(TestJava<Object>);\n"  // NO
                 +"  }\n"
-//                +"  public void mz1(Object o) {\n"
-//                +"    //@ assert Object.class != \\type(T).erasure();\n"  // OK because T extends B so can't be Object
-//                +"  }\n"
+                +"  public void mz1(Object o) {\n"
+                +"    //@ assert Object.class != \\erasure(\\type(T));\n"  // OK because T extends B so can't be Object
+                +"  }\n"
                 +"  public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C {}\n"
-//                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method ma",9
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mc",9

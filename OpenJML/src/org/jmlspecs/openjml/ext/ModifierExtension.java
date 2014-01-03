@@ -6,6 +6,8 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.annotation.Nullable;
 
+import com.sun.tools.javac.util.Context;
+
 // TODO: Complete, use and document
 
 public abstract class ModifierExtension {
@@ -15,6 +17,8 @@ public abstract class ModifierExtension {
         for (ProgramLocation p: locs) if (p==loc) return true;
         return false;
     }
+    
+    public static void register(Context context) {}
     
     /** Returns the keyword representing the modifier, or null if there is none (only an annotation) */
     public abstract @Nullable String jmlKeyword();

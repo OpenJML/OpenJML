@@ -349,7 +349,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
                 ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
                 ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
@@ -419,8 +419,8 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1:  s",12
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
@@ -492,7 +492,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a",21
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
                 ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
                 ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
@@ -785,7 +785,7 @@ public class escall2 extends EscBase {
     public void testConstraint1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"public class TestJava {\n"
                 
                 +"  static public int ii;\n"
                 +"  public int i;\n"
@@ -794,17 +794,17 @@ public class escall2 extends EscBase {
                 +"  //@ static public constraint ii >= \\old(ii);\n"
                 
                 +"  //@ assignable \\everything; \n"
-                +"  public void m1bad() {\n"
+                +"  public void m1bad() { //@ assume i > -2147483648;\n"
                 +"    i = -i;\n"
                 +"  }\n"
                 
                 +"  //@ assignable \\everything; \n"
-                +"  public void m2bad() {\n"
+                +"  public void m2bad() { //@ assume ii > -2147483648;\n"
                 +"    ii = -ii;\n"
                 +"  }\n"
                 
                 +"  //@ assignable \\everything; \n"
-                +"  static public void m3bad() {\n"
+                +"  static public void m3bad() { //@ assume ii > -2147483648;\n"
                 +"    ii = -ii;\n"
                 +"  }\n"
                 
@@ -959,15 +959,15 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1",9
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1:  o.a",9
                 ,"/tt/TestJava.java:7: warning: Associated declaration",7
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assignable) in method m2",9
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assignable) in method m2:  o.a",9
                 ,"/tt/TestJava.java:11: warning: Associated declaration",7
-                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a",9
+                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a:  o.a",9
                 ,"/tt/TestJava.java:31: warning: Associated declaration",7
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7",7
+                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7:  THIS.a",7
                 ,"/tt/TestJava.java:48: warning: Associated declaration",7
-                ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b",9
+                ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b:  o.a",9
                 ,"/tt/TestJava.java:61: warning: Associated declaration",7
                 );
     }

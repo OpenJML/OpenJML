@@ -10,6 +10,7 @@ import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.io.PrintStream;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
@@ -301,6 +302,10 @@ public class JmlParser extends EndPosParser {
             inJmlDeclaration = prevInJmlDeclaration;
         }
         return s;
+    }
+    
+    public Map<JCTree,Integer> endPositions() {
+        return endPositions;
     }
 
     /**

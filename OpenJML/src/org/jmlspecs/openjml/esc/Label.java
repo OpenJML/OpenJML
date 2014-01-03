@@ -105,7 +105,10 @@ public class Label {
     /*@ non_null*/ public final static Label INVARIANT_EXIT_CALLER = new Label("InvariantLeaveCaller");
     
     /** Out-of-range numerical conversion */
-    /*@ non_null */ public final static Label ARITHMETIC_RANGE = new Label("ArithmeticRange");
+    /*@ non_null */ public final static Label ARITHMETIC_OP_RANGE = new Label("ArithmeticOperationRange");
+    
+    /** Out-of-range numerical conversion */
+    /*@ non_null */ public final static Label ARITHMETIC_CAST_RANGE = new Label("ArithmeticCastRange");
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");

@@ -581,6 +581,10 @@ public class Utils {
         return a.subtract(b);
     }
 
+    public static BigInteger bigint_sub1(BigInteger a) {
+        return a.subtract(BigInteger.ONE);
+    }
+
     public static BigInteger bigint_mul(BigInteger a, BigInteger b) {
         return a.multiply(b);
     }

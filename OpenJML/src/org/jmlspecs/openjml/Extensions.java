@@ -4,8 +4,13 @@
  */
 package org.jmlspecs.openjml;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +18,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.Erasure;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -34,6 +40,7 @@ public class Extensions {
 
     //@ public constraint context == \old(context);
     
+    protected static Utils utils;
     
     /** A constructor for the class; this class should not be
      * instantiated directly by users - use instance instead to get a
@@ -94,19 +101,67 @@ public class Extensions {
     // appropriate information to the HashMap above, so extensions can be 
     // looked up at runtime.
     public static void register(Context context) {
-        JmlToken[] tokens;
-        for (Class<?> cc: extensions) {
-            Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
-            try {
-                Method m = c.getMethod("tokens");
-                tokens = (JmlToken[])m.invoke(null);
-            } catch (Exception e) {
-                continue;
+        Utils utils = Utils.instance(context);
+        Package p = Package.getPackage("org.jmlspecs.openjml.ext");
+        java.util.List<Class<?>> extensions;
+        try {
+            extensions = findClasses(context,p);
+            JmlToken[] tokens;
+            for (Class<?> cc: extensions) {
+                if (!ExpressionExtension.class.equals(cc.getSuperclass())) continue;
+                Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
+                try {
+                    Method m = c.getMethod("tokens");
+                    tokens = (JmlToken[])m.invoke(null);
+                } catch (Exception e) {
+                    continue;
+                }
+                for (JmlToken t: tokens) {
+                    extensionClasses.put(t, c);
+                }
             }
-            for (JmlToken t: tokens) {
-                extensionClasses.put(t, c);
+        } catch (Exception e) {
+            System.out.println(e);
+            // FIXME - error
+        }
+        
+    }
+    
+    public static java.util.List<Class<?>> findClasses(Context context, Package p) throws java.io.IOException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        assert classLoader != null;
+        String packageName = p.getName();
+        String path = packageName.replace('.', '/');
+        Enumeration<URL> resources = classLoader.getResources(path);
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            File dir = new File(resource.getFile());
+            File[] files = dir.listFiles();
+            if (files == null) continue;
+            for (File f: files) {
+                if (f.isDirectory()) continue;
+                String name = f.getName();
+                int k = name.indexOf('.');
+                if (k < 0) continue;
+                name = name.substring(0,k);
+                String fullname = packageName + "." + name;
+                try {
+                    Class<?> c = Class.forName(fullname);
+                    if (Modifier.isAbstract(c.getModifiers())) continue;
+                    Method m = c.getMethod("register",Context.class);
+                    m.invoke(null,context); // Purposely fails if there is no static register method
+                    classes.add(c);
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Registered extension " + fullname);
+                } catch (Exception e) {
+                    // Just skip if there is any exception, such as a
+                    // Class or Method not found.
+                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Failed to register " + fullname);
+                    continue;
+                }
             }
         }
+        return classes;
     }
     
 }

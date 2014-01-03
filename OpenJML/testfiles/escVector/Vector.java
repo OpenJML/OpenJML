@@ -65,6 +65,8 @@ public class Vector {
     if (my_element_count >= my_element_data.length) {
       // create a new array
       final Object[] new_data = new Object[my_element_count + my_capacity_increment];
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+      //@ decreases my_element_count - i;
       for (int i = 0; i < my_element_count; i++) {
         new_data[i] = my_element_data[i];
       }
@@ -83,6 +85,8 @@ public class Vector {
    */
   public final synchronized void copyInto(final Object[] the_array) {
     int i = my_element_count;
+    //@ loop_invariant 0 <= i && i <= my_element_count;
+    //@ decreases i;
     while (i-- > 0) {
       the_array[i] = my_element_data[i];
     }
@@ -102,6 +106,8 @@ public class Vector {
    * @since JDK1.0
    */
   public final synchronized int indexOf(final Object the_elem, final int the_index) {
+    //@ loop_invariant the_index == i || (the_index <= i && i <= my_element_count);
+    //@ decreases my_element_count - i;
     for (int i = the_index; i < my_element_count; i++) {
       if (the_elem.equals(my_element_data[i])) {
         return i;

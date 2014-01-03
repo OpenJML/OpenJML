@@ -178,7 +178,7 @@ public class escfiles extends EscBase {
     @Test // FIXME _ needs generic substitution
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "","-show");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
@@ -329,7 +329,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscModelFields() {
-        helpTF("escModelFields");
+        helpTF("escModelFields","-progress");
     }
 
     @Test // FIXME - needs more work on axioms for arrays

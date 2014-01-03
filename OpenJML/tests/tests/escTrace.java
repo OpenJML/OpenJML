@@ -59,7 +59,7 @@ public class escTrace extends EscBase {
 
         main.addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math */ public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
                 +"       int j = 5;\n"
@@ -105,7 +105,7 @@ public class escTrace extends EscBase {
 +JmlTree.eol;
         main.addOptions("-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
                 +"  public void m1(int i) {\n"

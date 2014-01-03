@@ -19,6 +19,7 @@ public class racnew extends RacBase {
 
     @Override
     public void setUp() throws Exception {
+        testspecpath1 = "$A"+z+"$B";
         rac = ordrac;
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
@@ -603,10 +604,10 @@ public class racnew extends RacBase {
     }
     
 
-    @Test public void testTypeOf() {
+    @Test public void testTypeOfA() {
         helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
-                " //@ requires JML.informal(\"asd\") && (\\lbl CLS JML.erasure(\\typeof(i))) == Object.class; \n" +
+                " //@ requires JML.informal(\"asd\") && (\\lbl CLS \\erasure(\\typeof(i))) == Object.class; \n" +
                 " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
                 ,"LABEL CLS = class java.lang.Object"

@@ -1374,7 +1374,7 @@ public class esc extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m5a",9
                 , new AnyOrder(
-                        new Object[]{"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a",7
+                        new Object[]{"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assignable) in method m6a:  a[i]",7
                                     ,"/tt/TestJava.java:20: warning: Associated declaration",7}
                         ,new Object[]{"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Precondition) in method m6a",7
                                     ,"/tt/TestJava.java:43: warning: Associated declaration",7}
@@ -1904,11 +1904,12 @@ public class esc extends EscBase {
                 +"  //@ requires 0<=ii && ii <=3;\n"
                 +"  //@ ensures ii<=0 ==> \\result ==-ii;\n"
                 +"  public static int bok(int ii) { if (ii==1) return -1; else if (ii==2) return -2; else if (ii==3) return -3; return 0; }\n"
+                +"  //@ requires ii > -2147483648;\n" // Not using system specs
                 +"  //@ ensures \\result == -ii;\n"
                 +"  public static int bbad(int ii) { if (ii==1) return -1; else if (ii==2) return -2; else if (ii==3) return -3; return 0; }\n"
                 +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method bbad",112,
-                "/tt/TestJava.java:6: warning: Associated declaration",7
+                "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method bbad",112,
+                "/tt/TestJava.java:7: warning: Associated declaration",7
         );
     }
 
@@ -2021,7 +2022,7 @@ public class esc extends EscBase {
                 +"    return i;\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2",22
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method inst2:  i",22
         );
     }
 
@@ -2479,10 +2480,12 @@ public class esc extends EscBase {
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
+                +"  //@ requires i > -2147483648;\n"
                 +"  public void inst1(int i) { int j = i<0?-i:i; /*@ assert j >= 0; */ }\n"
+                +"  //@ requires i > -2147483648;\n"
                 +"  public void inst1a(int i) { int j = i<0?-i:i; /*@ assert j == -1; */ }\n"
                 +"}",
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst1a",53
+                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method inst1a",53
         );
     }
 
@@ -3368,8 +3371,8 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3",14,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4",14,
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",14,
-                "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a",28,
-                "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a",28
+                "/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",28,
+                "/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",28
         );
     }
 
@@ -3461,8 +3464,8 @@ public class esc extends EscBase {
                 "/tt/TestJava.java:17: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m3",17,
                 "/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m4",17,
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",17
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a",17
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a",17
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
+                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",17
         );
     }
 
@@ -3815,7 +3818,7 @@ public class esc extends EscBase {
                 );
     }
     
-    @Test // FIXME - needs erasure
+    @Test
     public void testTypes3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.lang.JML; \n"
                 +"public class TestJava { \n"
