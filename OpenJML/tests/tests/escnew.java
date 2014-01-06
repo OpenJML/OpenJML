@@ -787,7 +787,7 @@ public class escnew extends EscBase {
     // FIXME _ check that different return or throw statements are properly pointed to
 
     // FIXME - needs proper expansion of array accesses
-    @Test @Ignore
+    @Test
     public void testPostcondition10() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -802,7 +802,12 @@ public class escnew extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16
+                ,anyorder(
+                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m1bad",16)
+                        ,seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16)
+                        ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                                ,"/tt/TestJava.java:3: warning: Associated declaration",7)
+                                )
                 );
     }
 
@@ -1258,7 +1263,7 @@ public class escnew extends EscBase {
                 );
     }
 
-    @Test @Ignore // FIXME - work on autoboxing
+    @Test
     public void testBoxing() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1267,7 +1272,11 @@ public class escnew extends EscBase {
                 +"    return i;\n"
                 +"  }\n"
                 
-                +"  public void m1ok() {\n"
+                +"  public int m1ok(/*@ non_null */ Integer i) {\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  public void m2ok() {\n"
                 +"    int i = 3;\n"
                 +"    Integer ii = i;\n"
                 +"    int j = ii;\n"
@@ -1275,16 +1284,11 @@ public class escnew extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                ,"/tt/TestJava.java:14: warning: Associated declaration",7
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",5
                 );
     }
 
-    @Test @Ignore // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
+    @Test  // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
     public void testSelect() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

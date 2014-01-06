@@ -793,7 +793,6 @@ public class escall3 extends EscBase {
     }
 
   
-    @Ignore
     @Test public void testArrays() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -818,9 +817,12 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bad",12
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",12
+                ,anyorder(
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",8),
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",8)
+                        )
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2bad",8
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",8
                 );
     }
     

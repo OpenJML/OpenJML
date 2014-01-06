@@ -17,7 +17,8 @@ public interface IJMLTYPE {
 
     public boolean isSubtypeOf(IJMLTYPE t);
     public Class<?> erasure();
-    public int numargs();
-    public IJMLTYPE arg(int i);
+    //public int numargs();
+    //public IJMLTYPE arg(int i);
+    public IJMLTYPE[] typeargs();
     public boolean isArray();
 }

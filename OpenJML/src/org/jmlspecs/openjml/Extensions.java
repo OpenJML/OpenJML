@@ -10,15 +10,20 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
+import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.ext.Elemtype;
 import org.jmlspecs.openjml.ext.Erasure;
+import org.osgi.framework.Bundle;
 
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -127,40 +132,114 @@ public class Extensions {
         
     }
     
+    // This method finds all the classes in a given package that are OpenJML
+    // extensions.
+    // 1) In the development environment, the first method of finding elements
+    // of a class works, but that does not work in an Eclipse plug-in.
+    // 2) In the plug-in, the Bundle approach works. Note though that the Extensions
+    // class is not a part of the OpenJMLUI plug-in, thus we need to reference 
+    // the plug-in ID as a literal; this approach won't work and may fail
+    // catastrophically when used outside of Eclipse.
     public static java.util.List<Class<?>> findClasses(Context context, Package p) throws java.io.IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String packageName = p.getName();
         String path = packageName.replace('.', '/');
+        ArrayList<String> foundClassNames = new ArrayList<String>();
+
+        // This approach works in the development environment
         Enumeration<URL> resources = classLoader.getResources(path);
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
-            File dir = new File(resource.getFile());
-            File[] files = dir.listFiles();
-            if (files == null) continue;
-            for (File f: files) {
-                if (f.isDirectory()) continue;
-                String name = f.getName();
-                int k = name.indexOf('.');
-                if (k < 0) continue;
-                name = name.substring(0,k);
-                String fullname = packageName + "." + name;
-                try {
-                    Class<?> c = Class.forName(fullname);
-                    if (Modifier.isAbstract(c.getModifiers())) continue;
-                    Method m = c.getMethod("register",Context.class);
-                    m.invoke(null,context); // Purposely fails if there is no static register method
-                    classes.add(c);
-                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Registered extension " + fullname);
-                } catch (Exception e) {
-                    // Just skip if there is any exception, such as a
-                    // Class or Method not found.
-                    if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Failed to register " + fullname);
-                    continue;
-                }
-            }
+
+        	JarFile jar = null;
+        	try {
+        		String n = resource.toString().replace('\\', '/');
+        		if (n.startsWith("jar:file:")) {
+        			int k = n.indexOf("!");
+        			if (k < 0) continue;
+        			jar = new JarFile(n.substring(10,k));
+        			Enumeration<JarEntry> entries = jar.entries();
+        			// Really would like to iterator over the directory named
+        			// by 'path', instead of over every entry in the jar file
+        			while (entries.hasMoreElements()) {
+        				JarEntry entry = entries.nextElement();
+        				String name = entry.getName();
+        				if (name.startsWith(path)) {
+        					name = name.substring(path.length()+1);
+        					k = name.indexOf('.');
+        					if (k < 0) continue;
+        					name = name.substring(0,k);
+        					//System.out.println("FOUND1 " + name);
+        					foundClassNames.add(name);
+        				}
+        			}
+        		} else {
+
+        			File dir = new File(resource.getFile());
+        			File[] files = dir.listFiles();
+        			if (files == null) continue;
+        			for (File f: files) {
+        				if (f.isDirectory()) continue;
+        				String name = f.getName();
+        				int k = name.indexOf('.');
+        				if (k < 0) continue;
+        				name = name.substring(0,k);
+    					//System.out.println("FOUND2 " + name);
+        				foundClassNames.add(name);
+        			}
+        		}
+        	} catch (Exception e) {
+        		// Just continue - this method does not work
+        	} finally {
+        		if (jar != null) jar.close();
+        	}
         }
+
+        bl: {
+        	// This approach works when running the plug-in in development mode
+        	try {
+        		Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
+        		if (b == null) break bl;
+        		Enumeration<String> paths = b.getEntryPaths("/bin/" + path);
+        		while (paths.hasMoreElements()) {
+        			String pn = paths.nextElement();
+        			int k = pn.lastIndexOf('/');
+        			if (k > 0) pn = pn.substring(k+1);
+        			k = pn.lastIndexOf('.');
+        			if (k > 0) pn = pn.substring(0,k);
+					//System.out.println("FOUND3 " + name);
+        			foundClassNames.add(pn);
+        		}
+        	} catch (Throwable e) {
+        		// This will happen if we are not in a plug-in
+        	}
+        }
+        if (foundClassNames.isEmpty()) {
+        	// Last resort
+        	//Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
+        	String[] cn = { "Elemtype", "Erasure", "PureModifier", "ReachableStatement", "Arithmetic" };
+        	foundClassNames.addAll(Arrays.asList(cn));
+        }
+        
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        for (String name: foundClassNames) {
+        	String fullname = packageName + "." + name;
+        	try {
+        		Class<?> c = Class.forName(fullname);
+        		if (Modifier.isAbstract(c.getModifiers())) continue;
+        		Method m = c.getMethod("register",Context.class);
+        		m.invoke(null,context); // Purposely fails if there is no static register method
+        		classes.add(c);
+        		if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Registered extension " + fullname);
+        	} catch (Exception e) {
+        		// Just skip if there is any exception, such as a
+        		// Class or Method not found.
+        		if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Failed to register " + fullname);
+        		continue;
+        	}
+        }
+        
         return classes;
     }
     

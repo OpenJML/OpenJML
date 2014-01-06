@@ -1147,4 +1147,25 @@ public class JmlTreeUtils {
         return result;
     }
     
+    public JCExpression convertToString(JCExpression that) {
+        String n;
+        switch(that.type.tag) {
+            case TypeTags.CLASS:    n = "toStringObject"; break;
+            case TypeTags.INT:      n = "toStringInt"; break;
+            case TypeTags.LONG:     n = "toStringLong"; break;
+            case TypeTags.BOOLEAN:  n = "toStringBoolean"; break;
+            case TypeTags.SHORT:    n = "toStringShort"; break;
+            case TypeTags.BYTE:     n = "toStringByte"; break;
+            case TypeTags.DOUBLE:   n = "toStringDouble"; break;
+            case TypeTags.FLOAT:    n = "toStringFloat"; break;
+            case TypeTags.CHAR:     n = "toStringChar"; break;
+            default:
+                log.warning("jml.internal", "Missing case in Utils.convertToType");
+                return null;
+        }
+        JCExpression e = makeUtilsMethodCall(that.pos,n,that);
+        e.type = syms.stringType;
+        return e;
+    }
+    
 }

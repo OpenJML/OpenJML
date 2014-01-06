@@ -4617,7 +4617,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (asg == null) {
                         // OK
                     } else { // asg is false
+                        JCVariableDecl d = treeutils.makeVarDef(syms.booleanType,names.fromString("b"+(++count)),methodDecl.sym,mclause.pos);
+                        addStat(d);
+                        JCIdent id = treeutils.makeIdent(mclause.pos,d.sym);
                         asg = treeutils.makeNot(mclause.pos, pre);
+                        asg = treeutils.makeImplies(mclause.pos, id, asg);
                         String msg = sym == null ? JmlToken.BSEVERYTHING.internedName() : utils.qualifiedMethodSig((MethodSymbol)sym);
                         msg = msg + " is not callable";
                         addAssert(pos,Label.CALLABLE,asg,mclause,specCase.sourcefile,msg);
@@ -10087,9 +10091,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = convertJML(that.expression);
                 addAssumeCheck(that,currentStatements,"before explicit assert statement");
                 JCExpression opt = that.optionalExpression;
-                if (!(opt instanceof JCLiteral)) {
-                    opt = convertJML(opt);
-                } 
+                if (opt != null) {
+                    if (!(opt instanceof JCLiteral)) opt = convertJML(opt);
+                    if (rac) {
+                        JCExpression o = treeutils.convertToString(opt);
+                        if (o != null) opt = o;
+                    }
+                }
                 result = addAssert(false,that,Label.EXPLICIT_ASSERT,e,null,null,opt);
                 break;
             case ASSUME:

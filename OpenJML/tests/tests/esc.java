@@ -41,7 +41,7 @@ public class esc extends EscBase {
     }
  
     
-    @Test @Ignore // Needs autoboxing
+    @Test  // FIXME: Needs some implementation
     public void testCollect() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -50,7 +50,7 @@ public class esc extends EscBase {
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double;\n"
                 +"    Object o = (Class<?>)v.getClass();\n"
-                +"    v.add(0,new Integer(0));\n"  // FIXME add(0,0) fails because of a lack of autoboxing
+                +"    v.add(0,new Integer(0));\n"
                 +"    bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n"
                 +"  }\n"
@@ -145,7 +145,7 @@ public class esc extends EscBase {
                 );
     }
 
-    @Test @Ignore // FIXME Test7a complains about LoopDecreasesNonNegative, when it should complain about LoopDecreases
+    @Test
     public void testForEach() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -180,7 +180,7 @@ public class esc extends EscBase {
                 
                 
                 +"  public void m2() {\n"
-                +"    long[] a = { };\n"
+                +"    long[] a = { 1L,2L,3L };\n"
                 +"    for (Long k: a) {\n"
                 +"      //@ assert \\index >= 0;\n"  // OK
                 +"      //@ assert \\index < a.length;\n"  // OK
@@ -188,7 +188,7 @@ public class esc extends EscBase {
                 +"  }\n"
                 
                 +"  public void m10() {\n"
-                +"    long[] a = {  };\n"
+                +"    long[] a = { 1,2 };\n"
                 +"    long[] b = { 1,2};\n"
                 +"    for (long k: a) {\n"
                 +"      //@ ghost int i = \\index;\n"  // OK 
@@ -200,17 +200,21 @@ public class esc extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 
+                +"  public void m2a() {\n"
+                +"    long[] a = {  };\n"
+                +"    for (Long k: a) {\n"
+                +"      //@ assert false;\n"  // knows that the loop is not executed, so this assert is infeasible
+                +"    }\n"
+                +"  }\n"
+                
                 +"  public TestJava() {}\n"
                 +"}"
                 
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7y",5
-                ,"/tt/TestJava.java:5: warning: Associated declaration",9
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",5
-                ,"/tt/TestJava.java:11: warning: Associated declaration",9
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",5
-                ,"/tt/TestJava.java:17: warning: Associated declaration",9
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",5
-                ,"/tt/TestJava.java:23: warning: Associated declaration",9
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m7y",9
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (LoopDecreases) in method m7a",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m8",9
+                ,"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (LoopInvariant) in method m9",9
+                ,"/tt/TestJava.java:49: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.m2a()",11
                 );
     }
 
@@ -2344,26 +2348,17 @@ public class esc extends EscBase {
         );
     }
 
-    @Test  @Ignore // FIXME - has a crashing bug
-    public void testDoWhileSpecs() { // FIXME - figure out this better  // FIXME - want error position at the right place  // Note test is disabled
+    @Test
+    public void testDoWhileSpecs() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
-                +"  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
-                +"}",
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariant) in method instb",91, // This presumably an effect of the 
-                "/tt/TestJava.java:4: warning: Associated declaration",40,
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",91,
-                "/tt/TestJava.java:4: warning: Associated declaration",61,
-                "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method instb",108,
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",89,
-                "/tt/TestJava.java:5: warning: Associated declaration",61,
-                "/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method instc",106,
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",88,
-                "/tt/TestJava.java:6: warning: Associated declaration",40,
-                "/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method instd",105
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",61
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",61
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",61
         );
     }
 

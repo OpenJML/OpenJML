@@ -13,6 +13,7 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -114,4 +115,18 @@ public class JmlCheck extends Check {
         }
         return k;
     }
+    
+    @Override
+    public Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) {
+        if (found.tag == TypeTags.ARRAY && req.tag == TypeTags.ARRAY &&
+                found.toString().equals("org.jmlspecs.utils.IJMLTYPE[]") &&
+                req.toString().equals("\\TYPE[]")) {
+            // FIXME - can we do the above without converting to String
+            // We need this for the implementation of JML.typeargs, but
+            // does it cause problems elsewhere?
+            return req;
+        }
+        return super.checkType(pos, found, req, errKey);
+    }
+
 }

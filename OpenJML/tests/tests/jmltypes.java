@@ -19,6 +19,7 @@ public class jmltypes extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
+        useSystemSpecs = true; // Needed for JML.erasure
         super.setUp();
     }
     
@@ -46,15 +47,15 @@ public class jmltypes extends TCBase {
     }
 
     @Test
-    public void testOK1() { // FIXME - needs erasure
+    public void testOK1() {
         helpTCF("A.java",
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost boolean b = \\typeof(o).erasure() == Object.class;\n" +
-                "  //@ set b = \\typeof(o).numargs() == 0;\n" +
-                "  //@ set b = \\typeof(o).arg(0) != \\typeof(o);\n" +
-                "  //@ set b = \\typeof(o).isArray();\n" +
+                "  //@ ghost boolean b = JML.erasure(\\typeof(o)) == Object.class;\n" +
+                "  //@ set b = JML.typeargs(\\typeof(o)).length == 0;\n" +
+                "  //@ set b = JML.typeargs(\\typeof(o))[0] != \\typeof(o);\n" +
+                "  //@ set b = JML.isArray(\\typeof(o));\n" +
                 "  boolean jb = c.isArray();\n" +
                 " }\n" +
                 "}\n"
@@ -62,14 +63,14 @@ public class jmltypes extends TCBase {
     }
 
     @Test
-    public void testOK2() { // FIXME - needs numargs
+    public void testOK2() {
         helpTCF("A.java",
                 "public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
                 "  //@ ghost \\TYPE t;\n" +
-                "  //@ ghost boolean b = \\type(Object).numargs() == 0;\n" +
-                "  //@ set b = \\elemtype(t).numargs() == 0;\n" +
+                "  //@ ghost boolean b = JML.typeargs(\\type(Object)).length == 0;\n" +
+                "  //@ set b = JML.typeargs(\\elemtype(t)).length == 0;\n" +
                 " }\n" +
                 "}\n"
                 );

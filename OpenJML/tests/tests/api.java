@@ -317,7 +317,7 @@ public class api extends JmlTestCase {
     public void testAttach() {
         start(true);
         try {
-            IAPI m = Factory.makeAPI("-noPurityCheck");
+            IAPI m = Factory.makeAPI("-no-purityCheck");
             String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
             //String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
@@ -342,7 +342,7 @@ public class api extends JmlTestCase {
     public void testAttach2() {
         start(true);
         try {
-            IAPI m = Factory.makeAPI("-noPurityCheck");
+            IAPI m = Factory.makeAPI("-no-purityCheck");
             String s1 = "public class A { /*@ ensures X;*/ void f() {} }";
             String s2 = "public class A { /*@ requires Z; ensures Y;*/ void f(); }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
@@ -367,7 +367,7 @@ public class api extends JmlTestCase {
     public void testAttach3() {
         start(true);
         try {
-            IAPI m = Factory.makeAPI("-noPurityCheck");
+            IAPI m = Factory.makeAPI("-no-purityCheck");
             String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
             JmlCompilationUnit ast1 = m.parseSingleFile(f1);
@@ -392,7 +392,7 @@ public class api extends JmlTestCase {
     public void testAttach5() {
         start(true);
         try {
-            IAPI m = Factory.makeAPI("-noPurityCheck");
+            IAPI m = Factory.makeAPI("-no-purityCheck");
             String s1 = "public class A { void f() {} }";
             String s2 = "public class A { void g(); }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
@@ -654,7 +654,7 @@ public class api extends JmlTestCase {
 
       try {
           start(true);
-          IAPI api = Factory.makeAPI("-noPurityCheck");
+          IAPI api = Factory.makeAPI("-no-purityCheck");
           assertTrue(api.context() != null);
           JmlTree.Maker f = api.nodeFactory();
           f.at(0);
@@ -714,7 +714,7 @@ public class api extends JmlTestCase {
           System.out.println(e);
           e.printStackTrace(System.out);
       }
-  }
+    }
   
     public void testAPI3a() {
       String out =
@@ -739,7 +739,7 @@ public class api extends JmlTestCase {
       try {
           start(true);
           IAPI api = Factory.makeAPI(
-                  new PrintWriter(System.err),null,null,"-noPurityCheck");
+                  new PrintWriter(System.err),null,null,"-no-purityCheck");
           assertTrue(api.context() != null);
           JmlTree.Maker f = api.nodeFactory();
           f.at(0);
@@ -800,7 +800,7 @@ public class api extends JmlTestCase {
           e.printStackTrace(System.out);
           assertTrue(false);
       }
-  }
+    }
   
     // TODOL test enterAndCheck with >1 arguments
     
@@ -908,7 +908,7 @@ public class api extends JmlTestCase {
         }
     }
     
-    public boolean deleteAll(File f) {
+    protected boolean deleteAll(File f) {
         boolean b = true;
         if (!f.isDirectory()) {
             return f.delete();
@@ -929,7 +929,7 @@ public class api extends JmlTestCase {
 //            assertTrue(b);
 //        }
 //        try {
-//            int exitcode = API.jmldoc(new String[]{"-d","tempdoc","-notimestamp","-noPurityCheck","-dir","testfiles/jmldoc1/data"});
+//            int exitcode = API.jmldoc(new String[]{"-d","tempdoc","-notimestamp","-no-purityCheck","-dir","testfiles/jmldoc1/data"});
 //            assertEquals("Mismatched exit code",0,exitcode);
 //            // FIXME - run the diff program successfully, or do it programmatically
 ////            Process p = Runtime.getRuntime().exec("/usr/bin/diff",new String[]{"-r","-x",".svn","-x","package-tree.html","doc","../testfiles/jmldoc1/expected"});
@@ -950,7 +950,7 @@ public class api extends JmlTestCase {
         start(true);
         try {
             IAPI m = Factory.makeAPI();
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);
             check("","");
@@ -1012,7 +1012,7 @@ public class api extends JmlTestCase {
     public void testSymbolUtilities() {
         start(true);
         try {
-            IAPI m = Factory.makeAPI(new String[]{"-noPurityCheck"});
+            IAPI m = Factory.makeAPI(new String[]{"-no-purityCheck"});
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(new JmlCompilationUnit[]{jcu});
             assertTrue(n == 0);
@@ -1080,7 +1080,7 @@ public class api extends JmlTestCase {
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f);
             check("","");
         } catch (Exception e) {
@@ -1101,7 +1101,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             java.io.File ff = new java.io.File("testfiles/testNoErrors2/A.java");
             IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll,null);
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f,ff);  // FIXME - expect errors - check for them
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1131,7 +1131,7 @@ public class api extends JmlTestCase {
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
             check("","");
         } catch (Exception e) {
@@ -1151,7 +1151,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testSyntaxError/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1181,7 +1181,7 @@ public class api extends JmlTestCase {
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null,
                     "-specspath","testfiles/testJavaErrors");
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("",""); // FIXME - this does not capture errors
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1207,7 +1207,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1231,7 +1231,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             //m.addOptions("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
@@ -1254,7 +1254,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null,"-specspath","testfiles/testSpecErrors");
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1276,7 +1276,7 @@ public class api extends JmlTestCase {
             java.io.File f = new java.io.File("testfiles/testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.addOptions("-specspath","testfiles/testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
@@ -1299,7 +1299,7 @@ public class api extends JmlTestCase {
         try {
             java.io.File f = new java.io.File("testfiles/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
-            m.addOptions("-noPurityCheck");
+            m.addOptions("-no-purityCheck");
             m.parseAndCheck(new File[]{f});
             check("","");
         } catch (Exception e) {
@@ -1336,7 +1336,7 @@ public class api extends JmlTestCase {
                     diags,
                     null,
                     option,
-                    "-noPurityCheck");
+                    "-no-purityCheck");
 //            if (option.equals("-custom")) {
 //                m.addOptions("openjml.defaultProver","yices");
 //            } else 

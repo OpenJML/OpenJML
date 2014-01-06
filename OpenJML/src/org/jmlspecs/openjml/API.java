@@ -771,11 +771,11 @@ public class API implements IAPI {
     public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getMethodDecl(msym);
         JmlEsc esc = JmlEsc.instance(context());
+        class L implements IProofResultListener { public IProverResult result; public void reportProofResult(MethodSymbol msym, IProverResult result) { this.result = result; }};
+        L l; 
+        esc.proofResultListener = l = new L();
         esc.check(decl);
-        return null; // FIXME - return the proof result
-//        mostRecentProofMethod = msym;
-//        mostRecentProgram = esc.mostRecentProgram;
-//        return getProofResult(msym);
+        return l.result; 
     }
     
     /* (non-Javadoc)

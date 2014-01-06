@@ -432,7 +432,7 @@ public class Check {
         return checkType(pos, found, req, "incompatible.types");
     }
 
-    Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) {
+    public Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) { // DRC - changed to public from default
         if (req.tag == ERROR)
             return req;
         if (found.tag == FORALL)

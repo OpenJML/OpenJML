@@ -3145,7 +3145,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         currentClauseType = tree.token;
         // unreachable statements have a null expression
         if (tree.expression != null) attribExpr(tree.expression,env,syms.booleanType);
-        if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,syms.stringType);
+        if (tree.optionalExpression != null) attribExpr(tree.optionalExpression,env,Type.noType);
         currentClauseType = prevClauseType;
         pureEnvironment = prev;
         jmlresolve.setAllowJML(prevAllowJML);

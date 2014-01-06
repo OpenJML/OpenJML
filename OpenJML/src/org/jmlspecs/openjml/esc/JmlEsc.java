@@ -61,7 +61,7 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
     
-    public static IAPI.IProofResultListener proofResultListener = null;
+    public IAPI.IProofResultListener proofResultListener = null;
     
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;

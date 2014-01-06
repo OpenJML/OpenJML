@@ -415,6 +415,14 @@ public class Utils {
         return t.erasure();
     }
     
+    public static IJMLTYPE[] typeargs(IJMLTYPE t) {
+        return t.typeargs();
+    }
+    
+    public static boolean isArray(IJMLTYPE t) {
+        return t.erasure().isArray();
+    }
+    
     public static IJMLTYPE getComponentType(IJMLTYPE t) {
         return makeTYPE0(t.erasure().getComponentType());
     }
@@ -497,8 +505,8 @@ public class Utils {
         }
 
         @Override
-        public IJMLTYPE arg(int i) {
-            return args[i];
+        public IJMLTYPE[] typeargs() {
+            return args;
         }
 
         @Override
@@ -530,11 +538,6 @@ public class Utils {
             return t.erasure().isAssignableFrom(this.base);
         }
 
-        @Override
-        public int numargs() {
-            // TODO Auto-generated method stub
-            return 0;
-        }
     }
     
     public static interface ValueBool {
@@ -764,6 +767,42 @@ public class Utils {
     /** Makes a new copy of the argument */
     public static float[] copyFloatArray(float[] o) {
         return Arrays.copyOf(o,o.length);
+    }
+    
+    public static String toStringObject(Object o) {
+        return o == null ? "null" : o.toString();
+    }
+    
+    public static String toStringBoolean(boolean b) {
+        return Boolean.toString(b);
+    }
+    
+    public static String toStringInt(int b) {
+        return Integer.toString(b);
+    }
+    
+    public static String toStringLong(long b) {
+        return Long.toString(b);
+    }
+    
+    public static String toStringShort(short b) {
+        return Short.toString(b);
+    }
+    
+    public static String toStringByte(byte b) {
+        return Byte.toString(b);
+    }
+    
+    public static String toStringFloat(float b) {
+        return Float.toString(b);
+    }
+    
+    public static String toStringDouble(double b) {
+        return Double.toString(b);
+    }
+    
+    public static String toStringChar(char b) {
+        return Character.toString(b);
     }
     
     /** Used just for debugging - a breakpoint is kept set within the method */

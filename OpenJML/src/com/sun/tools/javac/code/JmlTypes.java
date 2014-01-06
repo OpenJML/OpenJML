@@ -1,5 +1,8 @@
 package com.sun.tools.javac.code;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 
@@ -23,10 +26,26 @@ public class JmlTypes extends Types {
 
     /** The owning compilation context - not to be changed after construction */
     final protected Context context;
+    
+    final protected Map<JmlToken,JmlType> jmltypes = new HashMap<JmlToken,JmlType>();
 
-    final public JmlType TYPE = new JmlType(JmlToken.BSTYPEUC,null); 
-    final public JmlType REAL = new JmlType(JmlToken.BSREAL,null);
-    final public JmlType BIGINT = new JmlType(JmlToken.BSBIGINT,null);
+    /** The singleton instance for the \TYPE JML type */
+    final public JmlType TYPE = new JmlType(JmlToken.BSTYPEUC,"org.jmlspecs.utils.IJMLTYPE");
+    {
+        jmltypes.put(JmlToken.BSTYPEUC, TYPE);
+    }
+
+    /** The singleton instance for the \real JML type */
+    final public JmlType REAL = new JmlType(JmlToken.BSREAL,"org.jmlspecs.lang.Real");
+    {
+        jmltypes.put(JmlToken.BSREAL, REAL);
+    }
+    
+    /** The singleton instance for the \bigint JML type */
+    final public JmlType BIGINT = new JmlType(JmlToken.BSBIGINT,"java.math.BigInteger");
+    {
+        jmltypes.put(JmlToken.BSBIGINT, BIGINT);
+    }
 
     /** Returns the singleton instance of JmlTypes for this compilation context. */
     public static JmlTypes instance(Context context) {
@@ -282,19 +301,8 @@ public class JmlTypes extends Types {
     /** Returns the ClassSymbol for the RAC representation of the given JML primitive type */
     public ClassSymbol repSym(JmlType t) {
         if (t.repSym == null) {
-            JmlToken token = t.jmlTypeTag();
-            String n;
-            if (token == JmlToken.BSTYPEUC) {
-                n = "org.jmlspecs.utils.IJMLTYPE";
-            } else if (token == JmlToken.BSBIGINT) {
-                n = "java.math.BigInteger";
-            } else if (token == JmlToken.BSREAL) {
-                n = "org.jmlspecs.lang.Real";
-            } else {
-                n = null;
-                // FIXME - error message?
-            }
-            t.repSym = JmlAttr.instance(context).createClass(n);
+            String fqName = t.fqName;
+            t.repSym = JmlAttr.instance(context).createClass(fqName);
         }
         return t.repSym;
     }
@@ -306,7 +314,7 @@ public class JmlTypes extends Types {
     
     /** Returns true if the given token is the token for a JML primitive type. */
     public boolean isJmlTypeToken(JmlToken t) {
-        return t == JmlToken.BSTYPEUC || t == JmlToken.BSBIGINT || t == JmlToken.BSREAL;
+        return jmltypes.get(t) != null;
     }
 
 

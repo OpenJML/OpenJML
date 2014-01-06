@@ -73,10 +73,17 @@ public class racnew extends RacBase {
                 );
     }
 
-    // FIXME - need to put in type conversion
+    /** Tests that an optional argument on a JML assert is converted to a String and is what is printed as an error message */
     @Test public void testAssertion3() {
         helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert false: args.length; \n System.out.println(\"END\"); }}"
-                ,"/tt/TestAssert.java:1: JML assertion is false"
+                ,"0"
+                ,"END"
+                );
+    }
+
+    /** Tests that an optional argument on a JML assert is converted to a String and is what is printed as an error message */
+    @Test public void testAssertion3a() {
+        helpTCX("tt.TestAssert","package tt; public class TestAssert { public static void main(String[] args) { //@ assert true: args.length; \n System.out.println(\"END\"); }}"
                 ,"END"
                 );
     }
