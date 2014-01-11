@@ -416,7 +416,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * methods called within a method body; also used to map formals in inherited
      * method specs to actual arguments or to the formals in the base method.
      */
-    protected Map<Symbol,JCExpression> paramActuals;
+    protected Map<Object,JCExpression> paramActuals;
     
     /** A map from formals to a declaration of a variable that holds the formal's
      * value at method body entrance (for use by postconditions).
@@ -742,7 +742,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> prevStats = initialStatements;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
         JavaFileObject prevSource = log.useSource(pmethodDecl.source());
-        Map<Symbol,JCExpression> savedParamActuals = paramActuals;
+        Map<Object,JCExpression> savedParamActuals = paramActuals;
         java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
@@ -2768,14 +2768,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // will have been attributed with different symbols.
             if (denestedSpecs.decl != null) {
                 Iterator<JCVariableDecl> iter = denestedSpecs.decl.params.iterator();
-                paramActuals = new HashMap<Symbol,JCExpression>();
+                paramActuals = new HashMap<Object,JCExpression>();
                 for (JCVariableDecl dp: methodDecl.params) {
                     JCVariableDecl newdecl = iter.next();
                     paramActuals.put(newdecl.sym,treeutils.makeIdent(dp.pos, dp.sym));
                 }
             } else { // FIXME - why should denestedSpecs ever not have a declaration if there are any specs to use
                 Iterator<VarSymbol> iter = msym.params.iterator();
-                paramActuals = new HashMap<Symbol,JCExpression>();
+                paramActuals = new HashMap<Object,JCExpression>();
                 for (JCVariableDecl dp: methodDecl.params) {
                     VarSymbol newsym = iter.next();
                     paramActuals.put(newsym,treeutils.makeIdent(dp.pos, dp.sym));
@@ -4731,9 +4731,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the actifve exception (or null) // FIXME - doesnot get changed so why save it?
         /*@ nullable */ JCIdent savedThisId = currentThisId; // The JCIdent holding what 'this' means in the current context
         /*@ nullable */ JCExpression savedThisExpr = currentThisExpr; // The JCIdent holding what 'this' means in the current context
-        Map<Symbol,JCExpression> savedParamActuals = paramActuals; // Mapping from formal parameter symbols to the actual arguments
+        Map<Object,JCExpression> savedParamActuals = paramActuals; // Mapping from formal parameter symbols to the actual arguments
           // A map in which to save paramActuals for each overridden method
-        Map<Symbol,Map<Symbol,JCExpression>> mapParamActuals = new HashMap<Symbol,Map<Symbol,JCExpression>>();
+        Map<Symbol,Map<Object,JCExpression>> mapParamActuals = new HashMap<Symbol,Map<Object,JCExpression>>();
         Map<Symbol,JCVariableDecl> savedpreparams = preparams;
         ListBuffer<JCStatement> savedOldStatements = oldStatements;
         JCIdent savedFresh = currentFresh;
@@ -4925,7 +4925,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // expressions - at least if the method returns a value and the
             // method call is a subexpression of a larger expression
             
-            Type resultType = calleeMethodSym.type.getReturnType();
+            Type resultType = null;
+            if (meth != null) resultType = meth.type.getReturnType();
             if (newclass != null) resultType = newclass.clazz.type;
             
             boolean isVoid = resultType.tag == TypeTags.VOID;
@@ -4943,7 +4944,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (newclass == null) {
                     resultId = newTemp(that,resultType);
                 } else {
-                    JCVariableDecl decl = treeutils.makeVarDef(that.type,names.fromString(Strings.newObjectVarString + that.pos), null, that.pos);
+                    Type t = that.type;
+                    if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
+                    JCVariableDecl decl = treeutils.makeVarDef(t,names.fromString(Strings.newObjectVarString + that.pos), null, that.pos);
                     addStat(decl);
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
                 }
@@ -5090,7 +5093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
                     if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
 
-                    paramActuals = new HashMap<Symbol,JCExpression>();
+                    paramActuals = new HashMap<Object,JCExpression>();
                     mapParamActuals.put(mpsym,paramActuals);
                     
                     if (calleeSpecs.decl != null) {
@@ -5109,10 +5112,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         if (newclass == null && ( typeargs == null || typeargs.isEmpty())) {
-                            List<Type> list = ((Type.MethodType)calleeMethodSym.type).argtypes;
+                            Type.MethodType t = null;
+                            if (calleeMethodSym.type instanceof Type.MethodType) { 
+                                t = (Type.MethodType)calleeMethodSym.type;
+                            } else if (calleeMethodSym.type instanceof Type.ForAll) {
+                                t = ((Type.ForAll)calleeMethodSym.type).asMethodType();
+                            }
+                            List<Type> list = t.argtypes;
                             Iterator<Type> tpiter = list.iterator();
                             for (Type tp: ((Type.MethodType)meth.type).argtypes ) {
-                                paramActuals.put(tpiter.next().tsym, treeutils.makeType(that.pos, tp));
+                                Type tt = tpiter.next();
+                                if (tt instanceof Type.TypeVar) {
+                                    paramActuals.put(tt.toString(), treeutils.makeType(that.pos, tp));
+                                }
                             }
                         }
                         if (typeargs != null && !typeargs.isEmpty()) {
@@ -5965,11 +5977,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
         
-        Map<Symbol,JCExpression> saved = paramActuals;
+        Map<Object,JCExpression> saved = paramActuals;
         JCExpression savedResultExpr = resultExpr;
         JCIdent savedCurrentThisId = currentThisId;
         JCExpression savedCurrentThisExpr = currentThisExpr;
-        Map<Symbol,JCExpression> savedParamActuals = paramActuals;
+        Map<Object,JCExpression> savedParamActuals = paramActuals;
         
         JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
         int pos = calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
@@ -6034,7 +6046,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 // Now map the formals as used in the overridden method to 
                 // identifiers used in the axioms being constructed
-                paramActuals = new HashMap<Symbol,JCExpression>();
+                paramActuals = new HashMap<Object,JCExpression>();
                 Iterator<JCVariableDecl> iter = newDeclsList.iterator();
                 if (!isFunction) iter.next();
                 currentThisExpr = currentThisId = isStatic ? null : M.at(calleeSpecs.decl).Ident(iter.next().sym);
@@ -6290,6 +6302,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public JCExpression addImplicitConversion(DiagnosticPosition pos, Type newtype, JCExpression expr) {
         if (pureCopy) return expr;
+        if (paramActuals != null && newtype instanceof Type.TypeVar) {
+            JCExpression e = paramActuals.get(newtype.toString());
+            if (e != null) {
+                newtype = e.type;
+            }
+        }
         
         boolean isPrim = expr.type.isPrimitive() && expr.type.tag != TypeTags.BOT;
         boolean newIsPrim = newtype.isPrimitive() && expr.type.tag != TypeTags.BOT;
@@ -10089,6 +10107,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case ASSERT:
                 addTraceableComment(that);
                 JCExpression e = convertJML(that.expression);
+                e = addImplicitConversion(that, syms.booleanType, e);
                 addAssumeCheck(that,currentStatements,"before explicit assert statement");
                 JCExpression opt = that.optionalExpression;
                 if (opt != null) {
@@ -10103,6 +10122,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             case ASSUME:
                 addTraceableComment(that);
                 JCExpression ee = convertJML(that.expression);
+                ee = addImplicitConversion(that, syms.booleanType, ee);
                 opt = that.optionalExpression;
                 if (!(opt instanceof JCLiteral)) {
                     opt = convertJML(opt);
