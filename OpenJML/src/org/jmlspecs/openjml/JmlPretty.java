@@ -571,7 +571,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             that.expression.accept(this);
             if (that.sigs != null && !that.sigs.isEmpty()) {
-                print(" for SIGNATURES"); // FIXME
+                print(" for ");
+                if (that.notlist) print("! "); 
+                if (that.sigs.isEmpty()) print(" \\nothing");
+                else {
+                    boolean first = true;
+                    for (JmlMethodSig sig: that.sigs) {
+                        if (first) first = false; else print(", ");
+                        sig.accept(this);
+                    }
+                }
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }

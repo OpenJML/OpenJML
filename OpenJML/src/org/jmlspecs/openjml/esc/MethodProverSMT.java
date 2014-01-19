@@ -545,6 +545,7 @@ public class MethodProverSMT {
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
+        if (block.id().name.toString().equals("BL_768_afterIf_92")) Utils.print("");
         for (JCStatement stat: block.statements()) {
             // Report any statements that are JML-labeled
             if (stat instanceof JCVariableDecl) {

@@ -75,8 +75,15 @@ public class typeclauses extends TCBase {
     @Test
     public void testConstraint5() {
         helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
-                ,"/TEST.java:2: Constructors are not allowed as methods in constraint clauses",23
+                ,"/TEST.java:2: Constructors are not allowed as methods in non-static constraint clauses",23
                 ,"/TEST.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: java.lang.Object\n  reason: actual argument java.lang.Object cannot be converted to int by method invocation conversion",39
+                );
+    }
+
+    /** Tests typechecking an constraint clause - OK from Boolean*/
+    @Test
+    public void testConstraint5s() {
+        helpTC(" class A { void m(int i) {} static Boolean bb; \n//@ static constraint bb for A();\n}"
                 );
     }
 
@@ -142,13 +149,13 @@ public class typeclauses extends TCBase {
         helpTC(" class A { static void m(Integer i) {} Boolean bb; \n//@ constraint bb for A.m(java.lang.Integer);\n}");
     }
 
-    // FIXME - distinguish static from instance
     @Test
     public void testConstraintMA3e() {
-        helpTC(" class A { void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for A.m(java.lang.Integer);\n}");
+        helpTC(" class A { void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for A.m(java.lang.Integer);\n}"
+                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25
+                );
     }
 
-    // FIXME - distinguish static from instance
     @Test
     public void testConstraintMA3se() {
         helpTC(" class A { static void m(Integer i) {} A a; Boolean bb; \n//@ constraint bb for a.m(java.lang.Integer);\n}");
@@ -164,6 +171,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testConstraintMA5() {
         helpTC(" class A { Boolean bb; \n//@ constraint bb for B.m(java.lang.Integer);\n} class B { void m(Integer i) {} }"
+                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25
                 ,"/TEST.java:2: The method must be a direct member of the class containing the constraint clause",23
                 );
     }

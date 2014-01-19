@@ -34,6 +34,11 @@ public class escTrace extends EscBase {
 +JmlTree.eol+" \t//Assume static final constant fields"
 +JmlTree.eol+" \t//Assume field type, allocation, and nullness"
 +JmlTree.eol+" \t//Assume parameter type, allocation, and nullness"
++JmlTree.eol+"/tt/TestJava.java:3:  \tassume ImplicitAssume -2147483648 <= i && i <= 2147483647;"
++JmlTree.eol+"\t\t\tVALUE: -2147483648\t === ???"
++JmlTree.eol+"\t\t\tVALUE: i_81\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= i_81\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= i_81 && i_81 <= 2147483647\t === ???"
 +JmlTree.eol+" \t//Declare pre-state value of formals"
 +JmlTree.eol+" \t//Assume invariants for java.lang.Object"
 +JmlTree.eol+" \t//Assume invariants for tt.TestJava"
@@ -75,6 +80,8 @@ public class escTrace extends EscBase {
         Assert.assertEquals(expectedOut,output);
     }
 
+    // FIXME - the ??? is the trace values
+    
     /** This String declaration and assignment */
     @Test
     public void testFieldTrace() {
@@ -83,7 +90,18 @@ public class escTrace extends EscBase {
 +JmlTree.eol+" \t//Assume axioms"
 +JmlTree.eol+" \t//Assume static final constant fields"
 +JmlTree.eol+" \t//Assume field type, allocation, and nullness"
++JmlTree.eol+"/tt/TestJava.java:3:  \tassume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;"
++JmlTree.eol+"\t\t\tVALUE: -2147483648\t === ???"
++JmlTree.eol+"\t\t\tVALUE: THIS\t === THIS"
++JmlTree.eol+"\t\t\tVALUE: THIS.k_71\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= THIS.k_71\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= THIS.k_71 && THIS.k_71 <= 2147483647\t === ???"
 +JmlTree.eol+" \t//Assume parameter type, allocation, and nullness"
++JmlTree.eol+"/tt/TestJava.java:4:  \tassume ImplicitAssume -2147483648 <= i && i <= 2147483647;"
++JmlTree.eol+"\t\t\tVALUE: -2147483648\t === ???"
++JmlTree.eol+"\t\t\tVALUE: i_95\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= i_95\t === ???"
++JmlTree.eol+"\t\t\tVALUE: -2147483648 <= i_95 && i_95 <= 2147483647\t === ???"
 +JmlTree.eol+" \t//Declare pre-state value of formals"
 +JmlTree.eol+" \t//Assume invariants for java.lang.Object"
 +JmlTree.eol+" \t//Assume invariants for tt.TestJava"

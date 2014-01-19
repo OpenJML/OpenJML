@@ -1569,7 +1569,7 @@ public class esc extends EscBase {
 //        main.addOptions("-show","-method=m3");
 //        main.addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/  public class TestJava { \n"
                 +"  public static int k;\n"
                 +"  //@ requires i >= 0;\n"
                 +"  //@ modifies k;\n"
@@ -1872,22 +1872,24 @@ public class esc extends EscBase {
     @Test
     public void testOld() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  static public  int i;\n"
                 +"  //@ static public constraint i > \\old(i);\n"
                 +"  //@ modifies i;\n"
                 +"  //@ ensures true;\n"
                 +"  public static void bok() { i = i - 1; }\n"
-                +"}",
-                "/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok",22,
-                "/tt/TestJava.java:4: warning: Associated declaration", 21
+                +"}"
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Constraint) in method TestJava",29
+                ,"/tt/TestJava.java:4: warning: Associated declaration", 21
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method bok",22
+                ,"/tt/TestJava.java:4: warning: Associated declaration", 21
         );
     }
 
     @Test
     public void testOld2() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  static public int i;\n"
                 +"  //@ modifies i;\n"
                 +"  //@ ensures i == \\old(i)+2;\n"
@@ -2208,7 +2210,7 @@ public class esc extends EscBase {
     @Test
     public void testMethodCallRet() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  static public int j;\n"
                 +"  //@ requires i>0;\n"
                 +"  //@ modifies j;\n"
@@ -2255,7 +2257,7 @@ public class esc extends EscBase {
     public void testMethodCallThis() {
         //main.addOptions("-method=instok","-show","-subexpressions");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static TestJava o;\n"
                 +"  public static TestJava p;\n"
                 +"  public int j; static public int sj; \n"
@@ -2351,7 +2353,7 @@ public class esc extends EscBase {
     @Test
     public void testDoWhileSpecs() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
@@ -2365,7 +2367,7 @@ public class esc extends EscBase {
     @Test
     public void testWhileSpecs() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
@@ -2854,7 +2856,7 @@ public class esc extends EscBase {
     @Test
     public void testPureMethodStatic() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure \n"
                 +"  public static int m(int i) { return i+1; }\n"
@@ -2874,7 +2876,7 @@ public class esc extends EscBase {
     @Test
     public void testPureMethod() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure \n"
                 +"  public int m(int i) { return i+1; }\n"
@@ -2894,7 +2896,7 @@ public class esc extends EscBase {
     @Test
     public void testPureNonFunction() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
                 +"  //@ pure \n"
@@ -2915,7 +2917,7 @@ public class esc extends EscBase {
     @Test
     public void testPureNoArguments() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
+                +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static int z;\n"
                 +"  //@ ensures \\result == z+1;\n"
                 +"  //@ pure \n"
@@ -2943,7 +2945,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result > ii;\n"
                 +"  abstract public int m(int ii);\n"
                 +"}\n"
-                +"public class TestJava extends TestJavaB { \n"
+                +"/*@ code_java_math*/ public class TestJava extends TestJavaB { \n"
                 +"  //@ also\n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure\n"
@@ -2971,7 +2973,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result > ii;\n"
                 +"  abstract public int m(int ii);\n"
                 +"}\n"
-                +"public class TestJava extends TestJavaB { \n"
+                +"/*@ code_java_math*/ public class TestJava extends TestJavaB { \n"
                 +"  //@ also\n"
                 +"  //@ ensures \\result == i+1;\n"
                 +"  //@ pure\n"
@@ -2997,7 +2999,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result > ii;\n"
                 +"  abstract public int m(int ii);\n"
                 +"}\n"
-                +"public class TestJava extends TestJavaB { \n"
+                +"/*@ code_java_math*/ public class TestJava extends TestJavaB { \n"
                 +"  //@ also\n"
                 +"  //@ requires i > 0;\n"
                 +"  //@ ensures \\result == i+1;\n"
@@ -3021,7 +3023,7 @@ public class esc extends EscBase {
                 +"  //@ ensures \\result == ii;\n"
                 +"  abstract public int m(int ii);\n"
                 +"}\n"
-                +"public class TestJava extends TestJavaB { \n"
+                +"/*@ code_java_math*/ public class TestJava extends TestJavaB { \n"
                 +"  //@ also\n"
                 +"  //@ requires i == 3;\n"
                 +"  //@ ensures \\result == i;\n"
@@ -3317,7 +3319,7 @@ public class esc extends EscBase {
     public void testUndefinedInJava2() {
         main.addOptions("-logic=AUFNIA");
         helpTCX("tt.TestJava","package tt; \n"
-                +"/*@ nullable_by_default */ public class TestJava { \n"
+                +"/*@ nullable_by_default */ /*@ code_java_math*/ public class TestJava { \n"
                 +"  int j;\n"
                 +"  public static void m(TestJava o) { \n"
                 +"    int i = o.j; \n"
@@ -3930,6 +3932,250 @@ public class esc extends EscBase {
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (ExceptionList) in method m2a",15
                 ,"/tt/TestJava.java:8: warning: Associated declaration",7
+                );
+    }
+
+    @Test
+    public void testConstraint() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for m1();\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for ! m1();\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method m2",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for \\everything;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method m2",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint3a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for !\\nothing;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method m2",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for \\nothing;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testConstraint4a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for !\\everything;\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testConstraint6() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m2() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method m2",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint7() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for m1(), m1(int);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m1(int j) {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method m1",15
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testConstraint7a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for m1(), m1(int);\n"
+                +"  public static void m1() {\n"
+                +"  }\n"
+                +"  public static void m1(int j) {\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testConstraint8() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for ! m1(), m1(int);\n"
+                +"  public void m1() {\n"
+                +"  }\n"
+                +"  public void m1(int j) {\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testConstraint9() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i) for TestJava();\n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:4: Constructors are not allowed as methods in non-static constraint clauses",41
+                );
+    }
+
+    @Test
+    public void testConstraint9a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public constraint i > \\old(i);\n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testConstraint10() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public static constraint i > \\old(i) for TestJava();\n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method TestJava",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",21
+                );
+    }
+
+    @Test
+    public void testConstraint10a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public int i;\n"
+                +"  //@ public static constraint i > \\old(i);\n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method TestJava",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",21
+                );
+    }
+
+    @Test
+    public void testConstraint11() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"interface A { \n"
+                +"  //@ ghost static public int i = 0;\n"
+                +"  //@ public static constraint i > \\old(i);\n"
+                +"}\n"
+                +"public class TestJava implements A { \n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Constraint) in method TestJava",10
+                ,"/tt/TestJava.java:4: warning: Associated declaration",21
+                );
+    }
+
+    @Test
+    public void testConstraint11a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"interface A { \n"
+                +"  //@ ghost static public int i = 0;\n"
+                +"  //@ public constraint i > \\old(i);\n"
+                +"}\n"
+                +"public class TestJava implements A { \n"
+                +"  public TestJava() {\n"
+                +"  }\n"
+                +"}"
                 );
     }
 

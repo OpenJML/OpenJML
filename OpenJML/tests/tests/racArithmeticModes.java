@@ -90,6 +90,7 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+    @Ignore // FIXME
     @Test public void testCompMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MIN_VALUE; int k = ~i; System.out.println(\"END \" + k);} \n" +
@@ -98,5 +99,22 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
+
+    @Test public void testSumJava() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeJavaMath public class TestJava { public static void main(String[] args) { \n" +
+                "int i = Integer.MAX_VALUE; int k = i + i; System.out.println(\"END \" + k);} \n" +
+                "}"
+                ,"END -2"
+                );
+    }
+
+    @Test public void testSumSafe() {
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeSafeMath public class TestJava { public static void main(String[] args) { \n" +
+                "int i = Integer.MAX_VALUE; int k = i + i; System.out.println(\"END \" + k);} \n" +
+                "}"
+                ,"/tt/TestJava.java:2: JML result of numeric operation is out of range of the target type"
+                ,"END -2"
+                );
+    }
 
 }

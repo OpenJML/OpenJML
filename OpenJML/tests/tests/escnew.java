@@ -466,6 +466,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testSwitch() {
+        main.addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -989,6 +990,7 @@ public class escnew extends EscBase {
     @Test
     public void testConditional() {
         main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1535,6 +1537,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testControl() {
+        main.addOptions("-code-math=java");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; \n"

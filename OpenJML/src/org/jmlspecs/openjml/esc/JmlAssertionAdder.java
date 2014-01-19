@@ -14,8 +14,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.ElementVisitor;
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
@@ -1303,6 +1305,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    private Map<Symbol,Symbol> mapSymbols = new HashMap<Symbol,Symbol>();
+    
+    protected @NonNull <T extends Symbol> T convertSymbol(T sym) {
+        Symbol s = mapSymbols.get(sym);
+        return s == null ? sym : (T)s;
+    }
+    
+    protected <T extends Symbol> void putSymbol(T sym, T newsym) {
+        mapSymbols.put(sym, newsym);
+    }
+    
 
     /** Translates a block, but without adding the block to the statement list;
      * any side-effect statements are placed within the new block. */
@@ -2202,19 +2215,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // FIXME - guard against the receiver being null for non-static invariants
                             switch (clause.token) {
                                 case CONSTRAINT:
-                                    if (contextIsStatic && !clauseIsStatic) break;
-                                    //if (!prepost) break;
                                     if (!isPost) break;
-                                    // FIXME - need to check the list of method signatures
-                                    // FIXME - what about static vs. instance for clauses in interfaces
-                                    // constraints are used when
-                                    //   the constraint is static OR
-                                    //   the method is not static and not a constructor
-                                    //if ((!isConstructor && !contextIsStatic) || clauseIsStatic) {
-                                    if (!isConstructor) {
+                                    if ((!isConstructor && !contextIsStatic) || clauseIsStatic) {
+                                        JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
+                                        if (tt.sigs != null) {
+                                            boolean found = false;
+                                            for (JmlMethodSig sig : tt.sigs) {
+                                                if (sig.methodSymbol == methodDecl.sym) {
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (found == tt.notlist) break; 
+                                        }
                                         pushBlock();
                                         try {
-                                            JmlTypeClauseConstraint tt = (JmlTypeClauseConstraint)clause;
                                             addTraceableComment(tt.expression,clause.toString());
                                             JCExpression e = convertJML(tt.expression);
                                             if (assume) addAssume(pos,Label.CONSTRAINT,
@@ -2846,11 +2861,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 pushBlock();
                                 try {
                                     JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                                    addTraceableComment(ex,clause.toString());
                                     ex = convertJML(ex,preident,true);
                                     ex = treeutils.makeImplies(clause.pos, preident, ex);
+                                    addTraceableComment(ex,clause.toString());
                                     // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
-                                    addAssert(false,methodDecl,Label.POSTCONDITION,ex,clause,clause.sourcefile,null);
+                                    addAssert(true,methodDecl,Label.POSTCONDITION,ex,clause,clause.sourcefile,null);
                                 } finally {
                                     addStat(popBlock(0,clause));
                                 }
@@ -5086,6 +5101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Iterate over all specs to find preconditions, with the callee
             // method itself last
             {
+                boolean combinedNoModel = false;
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
                 for (MethodSymbol mpsym: overridden) {
                     // This initial logic must match that below for postconditions
@@ -5164,6 +5180,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             pushBlock();
                         }
                         JCExpression pre = translatingJML ? convertCopy(savedCondition) : treeutils.trueLit;
+                        JCExpression prex = null;
+                        boolean noModel = false;
                         try {
                             JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
                             for (JmlMethodClause clause : cs.clauses) {
@@ -5184,32 +5202,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         break;
                                     case REQUIRES:
                                         JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
-                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
-                                        pre = pre == treeutils.trueLit ? e : treeutils.makeAnd(pre.pos, pre, e);
+//                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
+//                                        pre = pre == treeutils.trueLit ? e : treeutils.makeAnd(pre.pos, pre, e);
+                                        prex = prex == null ? mce.expression : treeutils.makeAnd(mce.expression.pos, prex, mce.expression);
                                         if (mcc == null) mcc = mce;
                                         break;
                                     default:
                                 }
                             }
                             if (mcc != null) clauseToReference = mcc;
+                            pre = prex == null ? treeutils.trueLit : convertJML(prex,pre,false);
                         } catch (NoModelMethod e) {
                             pre = treeutils.falseLit;
+                            noModel = true;
+                            combinedNoModel = true;
                         } catch (JmlNotImplementedException e) {
                             notImplemented("requires clause containing ",e); // FIXME - clause source
                             pre = treeutils.falseLit;
                         }
-                        if (rac) { // FIXME - not sure why this fails for esc (see rac-guarded statements above as well)
+                        if (!rac) {
+                            pre = newTemp(pre);
+                        } else if (noModel) {
+                            popBlock();
+                            //pre = preId; // FIXME - should we say the the case is not being checked because ther eis a missing model method
+                        } else  { // FIXME - not sure why this fails for esc (see rac-guarded statements above as well)
                             preId.pos = pre.pos;
                             addStat(treeutils.makeAssignStat(pre.pos,convertCopy(preId),pre));
                             addStat(wrapRuntimeException(pre,popBlock(0L,pre),
                                     "JML undefined precondition - exception thrown",
                                     null));
                             pre = preId;
-                        } else {
-                            pre = newTemp(pre);
                         }
                         preExpressions.put(cs,pre); // Add to the list of spec cases, in order of declaration
-                        combinedPrecondition = combinedPrecondition == treeutils.falseLit ? pre : treeutils.makeOr(pre.pos, combinedPrecondition, pre);
+                        combinedPrecondition = combinedPrecondition == treeutils.falseLit ? pre : pre == treeutils.falseLit ? combinedPrecondition : treeutils.makeOr(pre.pos, combinedPrecondition, pre);
                         if ((!translatingJML || rac) && methodDecl != null && methodDecl.sym != null) {  // FIXME - not quite sure of this guard // FIXME - what should we check for field initializers
                             // Handle assignable & accessible clauses
                             pushBlock(); // A block for assignable and accessible tests
@@ -5315,7 +5340,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (clauseToReference != null) {
                     pushBlock();
-                    if (translatingJML) {
+                    if (combinedNoModel) {
+                        // skip
+                    } else if (translatingJML) {
                         //JCExpression conj = treeutils.makeAnd(methodDecl.pos, collectedInvariants, combinedPrecondition);
                         addAssert(that,Label.UNDEFINED_PRECONDITION,
                                 treeutils.makeImplies(methodDecl.pos, condition, combinedPrecondition),
@@ -6825,31 +6852,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = treeutils.makeBinary(that.pos,tag,that.getOperator(),lhs,rhs);
-        } else if (esc && tag == JCTree.PLUS && that.type.equals(syms.stringType)) {
-            Symbol s = utils.findMember(syms.stringType.tsym,"concat");
-            if (s == null) log.error(that,"jml.internal","Could not find the concat method");
-            else {
-            	JCMethodInvocation call;
-            	JCExpression lhs = that.getLeftOperand();
-            	JCExpression rhs = that.getRightOperand();
-            	if (esc) {
-            	    lhs = convertExpr(lhs);
-            	    if (lhs.type.isPrimitive() && lhs.type.tag != TypeTags.BOT) {
-            	        lhs = addImplicitConversion(that.getLeftOperand(),boxedType(lhs.type),lhs);
-            	    }
-            	    rhs = convertExpr(rhs);
-            	    if (rhs.type.isPrimitive() && rhs.type.tag != TypeTags.BOT) {
-            	        rhs = addImplicitConversion(that.getRightOperand(),boxedType(rhs.type),rhs);
-            	    }
-            	    JCExpression meth = M.at(that).Select(lhs,s);
-            	    call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
-            	} else {
-            	    JCExpression meth = M.at(that).Select(lhs,s);
-            	    call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
-            	}
-                visitApply(call);
+        } else if (tag == JCTree.PLUS && that.type.equals(syms.stringType)) {
+            if (esc) {
+                Symbol s = utils.findMember(syms.stringType.tsym,"concat");
+                if (s == null) log.error(that,"jml.internal","Could not find the concat method");
+                else {
+                    JCMethodInvocation call;
+                    JCExpression lhs = that.getLeftOperand();
+                    JCExpression rhs = that.getRightOperand();
+                    if (esc) {
+                        lhs = convertExpr(lhs);
+                        if (lhs.type.isPrimitive() && lhs.type.tag != TypeTags.BOT) {
+                            lhs = addImplicitConversion(that.getLeftOperand(),boxedType(lhs.type),lhs);
+                        }
+                        rhs = convertExpr(rhs);
+                        if (rhs.type.isPrimitive() && rhs.type.tag != TypeTags.BOT) {
+                            rhs = addImplicitConversion(that.getRightOperand(),boxedType(rhs.type),rhs);
+                        }
+                        JCExpression meth = M.at(that).Select(lhs,s);
+                        call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
+                    } else {
+                        JCExpression meth = M.at(that).Select(lhs,s);
+                        call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
+                    }
+                    visitApply(call);
+                }
+                return;
+            } else { // rac
+                JCExpression lhs = convertExpr(that.getLeftOperand());
+                JCExpression rhs = convertExpr(that.getRightOperand());
+                result = eresult = treeutils.makeBinary(that.pos,tag,that.getOperator(),lhs,rhs);
+                return;
             }
-            return;
         } else if (tag == JCTree.AND || tag == JCTree.OR) {
             JCExpression prev = condition;
             try {
@@ -6895,6 +6929,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } finally {
                 condition = prev;
             }
+        } else if (arith) {
+            result = eresult = currentArithmeticMode.rewriteBinary(this, that);
+            if (splitExpressions) result = eresult = newTemp(eresult);
+
                 
         } else if (translatingJML) {
             Type maxJmlType = that.getLeftOperand().type;
@@ -7045,12 +7083,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (rac && maxJmlType == jmltypes.REAL) {
             nonzero = treeutils.makeUtilsMethodCall(that.pos, "real_nonzero", rhs);
         } else {
-            nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeIntLiteral(rhs.pos, 0)); // FIXME - long, float, double?
+            nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeZeroEquivalentLit(rhs.pos, that.type));
         }
         return nonzero;
     }
     
-    protected JCExpression makeBin(JCTree that, int tag, Symbol opSym, JCExpression lhs, JCExpression rhs, Type maxJmlType) {
+    public JCExpression makeBin(JCTree that, int tag, Symbol opSym, JCExpression lhs, JCExpression rhs, Type maxJmlType) {
         if (rac && jmltypes.isJmlType(maxJmlType)) {
             if (maxJmlType == jmltypes.BIGINT || maxJmlType == jmltypes.REAL) {
                 String fcn;
@@ -7397,16 +7435,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitSelect(JCFieldAccess that) {
         JCExpression selected;
-        if (pureCopy || localVariables.containsKey(that.sym)) {
-            result = eresult = treeutils.makeSelect(that.pos, convertExpr(that.getExpression()), that.sym);
-        } else if (translatingJML && that.sym == null) {
+        Symbol s = convertSymbol(that.sym);
+        if (pureCopy || localVariables.containsKey(s)) {
+            result = eresult = treeutils.makeSelect(that.pos, convertExpr(that.getExpression()), s);
+        } else if (translatingJML && s == null) {
             // This can happen while scanning a store-ref x.* 
             JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
             JCFieldAccess fa = M.Select(sel, (Name)null);
             fa.pos = that.pos;
             fa.sym = null;
             result = eresult = fa;
-        } else if (translatingJML && attr.isModel(that.sym) && !convertingAssignable) {
+        } else if (translatingJML && attr.isModel(s) && !convertingAssignable) {
             JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
             if (rac) {
                 Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
@@ -7420,7 +7459,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         return;
                     }
                 }
-                if (that.sym.name.toString().equals("erasure") && that.sym instanceof MethodSymbol && utils.qualifiedMethodName((MethodSymbol)that.sym).equals("org.jmlspecs.lang.JML.erasure")) {
+                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedMethodName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
                     
                     JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
                     result = eresult = m.meth;
@@ -7433,7 +7472,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (esc) {
                 JCFieldAccess fa = M.Select(sel, that.name);
                 fa.pos = that.pos;
-                fa.sym = that.sym;
+                fa.sym = s;
                 fa.type = that.type;
                 result = eresult = fa;
                 if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
@@ -7445,7 +7484,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (tc.token == JmlToken.REPRESENTS) {
                         JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
 
-                        if (((JCIdent)rep.ident).sym.equals(that.sym)) {
+                        if (((JCIdent)rep.ident).sym.equals(s)) {
                             // FIXME - why this?
 //                            if (oldenv == null) {
 //                                JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
@@ -7481,13 +7520,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 return;
             }
-        } else if (that.sym instanceof Symbol.TypeSymbol) {
+        } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
             result = eresult = treeutils.makeType(that.pos,that.type);
         } else if (translatingJML && esc && !localVariables.isEmpty()) {
             selected = convertExpr(that.selected);
-            JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             result = eresult = fa;
             if (oldenv != null) {
                 result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
@@ -7503,7 +7542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             selected = convertExpr(that.selected);
             boolean var = false;
-            if (!utils.isJMLStatic(that.sym) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
+            if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
                 } else {
@@ -7518,14 +7557,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 var = true;
             }
-            if (that.sym.owner instanceof ClassSymbol) {
-                if (specs.isNonNull(that.sym,classDecl.sym) && that.sym instanceof VarSymbol && !localVariables.containsKey(that.sym)
+            if (s.owner instanceof ClassSymbol) {
+                if (specs.isNonNull(s,classDecl.sym) && s instanceof VarSymbol && !localVariables.containsKey(s)
                         && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
                     if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                         // continue
                     } else {
                         JCFieldAccess e = M.at(that).Select(selected,that.name);
-                        e.sym = that.sym;
+                        e.sym = s;
                         e.type = that.type;
                         JCExpression nl = treeutils.makeNullLiteral(that.pos);
                         treeutils.copyEndPosition(nl,e);
@@ -7535,14 +7574,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
     //        if (!translatingJML && !pureCopy && that.sym != syms.lengthVar) checkAccess(JmlToken.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
-            JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,that.sym);
+            JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             result = eresult = (translatingJML || !var) ? fa : newTemp(fa);
             if (oldenv != null) {
                 result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
             }
         }
         treeutils.copyEndPosition(result, that);
-        if (translatingJML && !pureCopy && that.sym instanceof VarSymbol && specs.isNonNull(that.sym) ) {
+        if (translatingJML && !pureCopy && s instanceof VarSymbol && specs.isNonNull(s) ) {
             JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
             condition = treeutils.makeAnd(that.pos, condition, nn);
         }
@@ -7561,178 +7600,180 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitIdent(JCIdent that) {
         if (pureCopy) {
             JCIdent id = treeutils.makeIdent(that.pos, that.name, that.sym);
+            id.type = that.type; // in case that.sym is null
             result = eresult = id;
             treeutils.copyEndPosition(eresult, that);
             return;
         }
+        Symbol sym = convertSymbol(that.sym);
         try {
-        // If we are translating the postcondition then parameters
-        // must be mapped to the values at the beginning of the method, 
-        // not the current values
-        if (translatingJML) {
-            JCVariableDecl decl;
-            if (!isPostcondition) {
-                JCExpression actual = paramActuals == null ? null : paramActuals.get(that.sym);
-                if (actual != null) {
-                    // Replicate the AST so we are not sharing ASTs across multiple
-                    // instances of the original ID.
-                    result = eresult = convertCopy(actual);
-                    eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a temporary Ident
+            // If we are translating the postcondition then parameters
+            // must be mapped to the values at the beginning of the method, 
+            // not the current values
+            if (translatingJML) {
+                JCVariableDecl decl;
+                if (!isPostcondition) {
+                    JCExpression actual = paramActuals == null ? null : paramActuals.get(sym);
+                    if (actual != null) {
+                        // Replicate the AST so we are not sharing ASTs across multiple
+                        // instances of the original ID.
+                        result = eresult = convertCopy(actual);
+                        eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a temporary Ident
+                        treeutils.copyEndPosition(eresult, that);
+                        return;
+                    }
+                }
+                if (isPostcondition && preparams != null && (decl=preparams.get(sym)) != null) {
+                    result = eresult = treeutils.makeIdent(that.pos,decl.sym);
                     treeutils.copyEndPosition(eresult, that);
                     return;
                 }
             }
-            if (isPostcondition && preparams != null && (decl=preparams.get(that.sym)) != null) {
-                result = eresult = treeutils.makeIdent(that.pos,decl.sym);
-                treeutils.copyEndPosition(eresult, that);
-                return;
-            }
-        }
 
 
-        // Check if the id is a model field, and if so:
-        // if rac, then map it to a call of
-        // the corrresponding model method. We have to use model methods 
-        // instead of just inlining the represents clause expression because
-        // the model field/method may be overridden in derived classes.
+            // Check if the id is a model field, and if so:
+            // if rac, then map it to a call of
+            // the corrresponding model method. We have to use model methods 
+            // instead of just inlining the represents clause expression because
+            // the model field/method may be overridden in derived classes.
 
-        if (attr.isModel(that.sym) && that.sym instanceof VarSymbol && !convertingAssignable) {
-            if (!reps.contains(that.sym)) {
-                reps.add(0,that.sym);
-                try {
-                    if (rac) {
-                        Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
-                        JmlSpecs.TypeSpecs tyspecs = specs.getSpecs(classDecl.sym);
-                        for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                            if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
-                                JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                                JCMethodInvocation app = treeutils.makeMethodInvocation(that,currentThisExpr,md.sym);
-                                result = eresult = app;
-                                treeutils.copyEndPosition(eresult, that);
-                                return;
+            if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
+                if (!reps.contains(sym)) {
+                    reps.add(0,sym);
+                    try {
+                        if (rac) {
+                            Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
+                            JmlSpecs.TypeSpecs tyspecs = specs.getSpecs(classDecl.sym);
+                            for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
+                                if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
+                                    JmlMethodDecl md = (JmlMethodDecl)x.decl;
+                                    JCMethodInvocation app = treeutils.makeMethodInvocation(that,currentThisExpr,md.sym);
+                                    result = eresult = app;
+                                    treeutils.copyEndPosition(eresult, that);
+                                    return;
+                                }
                             }
+                            if (rac) throw new NoModelMethod();
+                            error(that, "No corresponding model method for " + that.sym);
+                            return;
                         }
-                        if (rac) throw new NoModelMethod();
-                        error(that, "No corresponding model method for " + that.sym);
-                        return;
-                    }
-                    if (esc) {
-                        TypeSpecs tspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
-                        for (JmlTypeClause tc : tspecs.clauses) {
-                            if (tc.token == JmlToken.REPRESENTS) {
-                                JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+                        if (esc) {
+                            TypeSpecs tspecs = specs.getSpecs((ClassSymbol)sym.owner);
+                            for (JmlTypeClause tc : tspecs.clauses) {
+                                if (tc.token == JmlToken.REPRESENTS) {
+                                    JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
 
-                                if (((JCIdent)rep.ident).sym.equals(that.sym)) {
-                                    // FIXME - why this?
-//                                    if (oldenv == null) {
-//                                        JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
-//                                        addStat(st);
-//                                    }
-                                    if (rep.suchThat){
-                                        addAssume(that,Label.IMPLICIT_ASSUME,
-                                                convertExpr(rep.expression));
+                                    if (((JCIdent)rep.ident).sym.equals(that.sym)) {
+                                        // FIXME - why this?
+                                        //                                    if (oldenv == null) {
+                                        //                                        JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
+                                        //                                        addStat(st);
+                                        //                                    }
+                                        if (rep.suchThat){
+                                            addAssume(that,Label.IMPLICIT_ASSUME,
+                                                    convertExpr(rep.expression));
 
-                                    } else {
-                                        // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
-//                                        if (localVariables.isEmpty()) {
-//                                            addAssumeEqual(that,Label.IMPLICIT_ASSUME,
-//                                                    convertExpr(rep.ident),
-//                                                    convertExpr(rep.expression));
-//                                        } else {
+                                        } else {
+                                            // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
+                                            //                                        if (localVariables.isEmpty()) {
+                                            //                                            addAssumeEqual(that,Label.IMPLICIT_ASSUME,
+                                            //                                                    convertExpr(rep.ident),
+                                            //                                                    convertExpr(rep.expression));
+                                            //                                        } else {
                                             result = eresult = convertExpr(rep.expression);
                                             // FIXME - we could get recursion here
                                             return;
-//                                        }
+                                            //                                        }
+                                        }
                                     }
                                 }
                             }
                         }
+                    } finally {
+                        reps.remove(that.sym);
                     }
-                } finally {
-                    reps.remove(that.sym);
                 }
             }
-        }
-        // Lookup if there is some other translation of the id. For example, 
-        // this could be a translation of the formal from the specification 
-        // in a parent class mapped to the formal in the target class. It
-        // can also be the mapping from a formal to actual argument.
-        JCExpression actual = paramActuals == null ? null : paramActuals.get(that.sym);
-        if (actual != null) {
-            // Replicate the AST so we are not sharing ASTs across multiple
-            // instances of the original ID.
-            result = eresult = convertCopy(actual);
-            eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a temporary Ident
-            treeutils.copyEndPosition(eresult, that);
-            
-        } else if (localVariables.containsKey(that.sym)) {
-            // just copy
-            Symbol sym = localVariables.get(that.sym);
-            if (sym == null) {
-                // FIXME - error
-                sym = that.sym;
-            }
-            result = eresult = treeutils.makeIdent(that.pos,sym);
-            
-        } else if (that.sym instanceof Symbol.TypeSymbol) {
-            // The input id is a type, so we expand it to a FQ name
-            // If the input id is a type variable (that.type instanceof Type.TypeVar)
-            // then makeType creates a new JCIdent, as is appropriate.
-            result = eresult = treeutils.makeType(that.pos, that.type);
-            
-        } else if (!(that.sym.owner instanceof Symbol.TypeSymbol)) {
-            // local variable  - just leave it as 
-            // an ident (the owner is null or the method)
-            JCIdent id = treeutils.makeIdent(that.pos, that.sym);
-            result = eresult = id;
+            // Lookup if there is some other translation of the id. For example, 
+            // this could be a translation of the formal from the specification 
+            // in a parent class mapped to the formal in the target class. It
+            // can also be the mapping from a formal to actual argument.
+            JCExpression actual = paramActuals == null ? null : paramActuals.get(sym);
+            if (actual != null) {
+                // Replicate the AST so we are not sharing ASTs across multiple
+                // instances of the original ID.
+                result = eresult = convertCopy(actual);
+                eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a temporary Ident
+                treeutils.copyEndPosition(eresult, that);
 
-        } else if (currentThisExpr instanceof JCIdent && that.sym == ((JCIdent)currentThisExpr).sym) {
-            // 'this' - leave it as it is
-            result = eresult = convertCopy(currentThisExpr);
-            
-        } else if (that.name.toString().equals("this")) {
-            result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that);
-            
-        } else if (that.name.toString().equals("super")) {
-            result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that); // FIXME - want this instead of super
+            } else if (localVariables.containsKey(sym)) {
+                // just copy
+                Symbol sy = localVariables.get(sym);
+                if (sy == null) {
+                    // FIXME - error
+                    sy = sym;
+                }
+                result = eresult = treeutils.makeIdent(that.pos,sy);
 
-        } else if (!utils.isJMLStatic(that.sym)) {
-            // It is a non-static class field, so we prepend 'this'
-            // FIXME - do we need to use the current this?
-            JCExpression cId = currentThisExpr != null ? currentThisExpr : getThisId(classDecl.sym); // FIXME - why would this be null - it cat be at least if we are checking a single method
-//            if (rac && cId.toString().equals("THIS")) Utils.print("");
-            JCExpression fa = treeutils.makeSelect(that.pos,cId,that.sym);
-            if (that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(that.sym, classDecl.sym) && !localVariables.isEmpty()) {
-                JCExpression e = treeutils.makeNeqObject(that.pos, fa, treeutils.nullLit);
-                addAssume(that,Label.NULL_FIELD,e);
+            } else if (sym instanceof Symbol.TypeSymbol) {
+                // The input id is a type, so we expand it to a FQ name
+                // If the input id is a type variable (that.type instanceof Type.TypeVar)
+                // then makeType creates a new JCIdent, as is appropriate.
+                result = eresult = treeutils.makeType(that.pos, that.type);
+
+            } else if (!(sym.owner instanceof Symbol.TypeSymbol)) {
+                // local variable  - just leave it as 
+                // an ident (the owner is null or the method)
+                JCIdent id = treeutils.makeIdent(that.pos, sym);
+                result = eresult = id;
+
+            } else if (currentThisExpr instanceof JCIdent && sym == ((JCIdent)currentThisExpr).sym) {
+                // 'this' - leave it as it is
+                result = eresult = convertCopy(currentThisExpr);
+
+            } else if (that.name.toString().equals("this")) {
+                result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that);
+
+            } else if (that.name.toString().equals("super")) {
+                result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that); // FIXME - want this instead of super
+
+            } else if (!utils.isJMLStatic(sym)) {
+                // It is a non-static class field, so we prepend 'this'
+                // FIXME - do we need to use the current this?
+                JCExpression cId = currentThisExpr != null ? currentThisExpr : getThisId(classDecl.sym); // FIXME - why would this be null - it cat be at least if we are checking a single method
+                //            if (rac && cId.toString().equals("THIS")) Utils.print("");
+                JCExpression fa = treeutils.makeSelect(that.pos,cId,that.sym);
+                if (sym instanceof VarSymbol && sym.owner instanceof ClassSymbol && specs.isNonNull(sym, classDecl.sym) && !localVariables.isEmpty()) {
+                    JCExpression e = treeutils.makeNeqObject(that.pos, fa, treeutils.nullLit);
+                    addAssume(that,Label.NULL_FIELD,e);
+                }
+                // FIXME - need a better way to test for presence of this - here and below
+                //            if (!translatingJML && !pureCopy && !"this".equals(that.sym.toString())) checkAccess(JmlToken.ACCESSIBLE, that, fa, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
+                result = eresult = fa;
+
+            } else {
+                if (that.name.toString().equals("this")) {
+                    System.out.println("STATIC THIS");
+                }
+                // static class field - add the qualified name
+                JCExpression typetree = treeutils.makeType(that.pos, sym.owner.type);
+                JCFieldAccess fa = treeutils.makeSelect(that.pos,typetree, sym);
+                if (!translatingJML && that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(sym, (ClassSymbol)sym.owner)) {
+                    JCExpression e = treeutils.makeNeqObject(that.pos, fa, treeutils.nullLit);
+                    addAssume(that,Label.NULL_FIELD,e);
+                }
+                // FIXME - need a better way to test for presence of this - here and below
+                //if (!translatingJML && !pureCopy && !"this".equals(that.sym.toString())) checkAccess(JmlToken.ACCESSIBLE, that, fa, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
+                result = eresult = fa;
             }
-            // FIXME - need a better way to test for presence of this - here and below
-//            if (!translatingJML && !pureCopy && !"this".equals(that.sym.toString())) checkAccess(JmlToken.ACCESSIBLE, that, fa, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
-            result = eresult = fa;
-            
-        } else {
-            if (that.name.toString().equals("this")) {
-                System.out.println("STATIC THIS");
-            }
-            // static class field - add the qualified name
-            JCExpression typetree = treeutils.makeType(that.pos,that.sym.owner.type);
-            JCFieldAccess fa = treeutils.makeSelect(that.pos,typetree,that.sym);
-            if (!translatingJML && that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol && specs.isNonNull(that.sym, (ClassSymbol)that.sym.owner)) {
-                JCExpression e = treeutils.makeNeqObject(that.pos, fa, treeutils.nullLit);
-                addAssume(that,Label.NULL_FIELD,e);
-            }
-            // FIXME - need a better way to test for presence of this - here and below
-            //if (!translatingJML && !pureCopy && !"this".equals(that.sym.toString())) checkAccess(JmlToken.ACCESSIBLE, that, fa, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
-            result = eresult = fa;
-        }
-        treeutils.copyEndPosition(eresult, that);
-        if (oldenv != null) {
-            result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
             treeutils.copyEndPosition(eresult, that);
-        }
+            if (oldenv != null) {
+                result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
+                treeutils.copyEndPosition(eresult, that);
+            }
         
         } finally {
-            if (translatingJML && that.sym instanceof VarSymbol && specs.isNonNull(that.sym)) {
+            if (translatingJML && sym instanceof VarSymbol && specs.isNonNull(sym) && eresult != null) {
                 JCExpression nn = treeutils.makeNeqObject(that.pos,eresult,treeutils.nullLit);
                 condition = treeutils.makeAnd(that.pos, condition, nn);
             }
@@ -9268,7 +9309,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 inOldEnv = savedInOldEnv;
                 return;
             } else {
-                JmlMethodInvocation m = M.at(that).JmlMethodInvocation(that.token, convertExprList(that.args));
+                JmlMethodInvocation m;
+                if (that.token != null) {
+                    m = M.at(that).JmlMethodInvocation(that.token, convertExprList(that.args));
+                } else {
+                    m = M.at(that).JmlMethodInvocation(convertExpr(that.meth), convertExprList(that.args));
+                }
                 m.setType(that.type);
                 m.label = that.label;
                 m.startpos = that.startpos;
@@ -10290,6 +10336,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         cl.setType(that.type);
         cl.source = that.source;
         cl.token = that.token;
+        cl.notlist = that.notlist;
         classDefs.add(cl);
         result = cl;
     }
@@ -10449,13 +10496,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 flags |= (that.modifiers.flags & Flags.STATIC);
                 JCModifiers mods = M.Modifiers(flags);
                 JCMethodDecl msdecl = treeutils.makeMethodDefNoArg(mods,name,that.ident.type,classDecl.sym);
+                pushBlock();
                 try {
+                    currentStatements.addAll(msdecl.body.stats);
                     JCReturn st = M.Return(convertJML(that.expression));
-                    msdecl.body.stats = List.<JCStatement>of(st);
+                    currentStatements.add(st);
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because
                     // of some non-translatable expression within it
                     notImplemented(that,"represents clause containing " + ee.getMessage() + " expression", that.source());
+                } finally {
+                    msdecl.body.stats = popBlock(0L,msdecl.body).stats;
                 }
                 classDefs.add(msdecl);
                 JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
@@ -10464,6 +10515,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         result = null;
+    }
+    
+    public Type mathType(Type type) {
+        int tag = type.tag;
+        if (tag == TypeTags.FLOAT || tag == TypeTags.DOUBLE) return jmltypes.REAL; 
+        if (tag <= TypeTags.LONG && tag >= TypeTags.BYTE) return jmltypes.BIGINT;
+        return type;
     }
 
 
@@ -10488,7 +10546,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // We don't use convertExpr, because that might chang the JCIdent to a JCFieldAccess
             newident = treeutils.makeIdent(that.pos, that.sym);
             exprBiMap.put(that.ident,newident);
+            if (currentArithmeticMode instanceof Arithmetic.Math) {
+                Symbol sym = that.sym;
+                Type t = mathType(sym.type);
+                if (t != sym.type){ 
+                    Symbol newsym = sym.clone(sym.owner);
+                    newsym.type = t;
+                    newident.type = t;
+                    newident.sym = newsym;
+                    putSymbol(sym,newsym);
+                }
+            }
         } else if (rac) {
+            // FIXME - should alo be copyint the symbol
             if (that.type instanceof JmlType) {// FIXME - should really be copying the AST
                 that.vartype = ((JmlPrimitiveTypeTree)that.vartype).repType;
                 that.type = jmltypes.repSym((JmlType)that.type).type;

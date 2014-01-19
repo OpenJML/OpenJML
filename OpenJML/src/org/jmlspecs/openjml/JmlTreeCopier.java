@@ -478,6 +478,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.token = that.token;
         copy.source = that.source;
         copy.type = that.type;
+        copy.notlist = that.notlist;
         return copy;
     }
 

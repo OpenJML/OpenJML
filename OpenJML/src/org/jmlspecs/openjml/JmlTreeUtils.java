@@ -142,7 +142,11 @@ public class JmlTreeUtils {
     final public Symbol intgtSymbol;
     final public Symbol intltSymbol;
     final public Symbol intleSymbol;
+    final public Symbol longeqSymbol;
     final public Symbol longleSymbol;
+    final public Symbol longltSymbol;
+    final public Symbol longminusSymbol;
+    final public Symbol longplusSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
@@ -199,6 +203,10 @@ public class JmlTreeUtils {
         intltSymbol = findOpSymbol(JCTree.LT,syms.intType);
         intleSymbol = findOpSymbol(JCTree.LE,syms.intType);
         longleSymbol = findOpSymbol(JCTree.LE,syms.longType);
+        longltSymbol = findOpSymbol(JCTree.LT,syms.longType);
+        longeqSymbol = findOpSymbol(JCTree.EQ,syms.longType);
+        longminusSymbol = findOpSymbol(JCTree.MINUS,syms.longType);
+        longplusSymbol = findOpSymbol(JCTree.PLUS,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
@@ -333,6 +341,11 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(TypeTags.INT, value).setType(syms.intType.constType(value));
     }
 
+    /** Make an attributed tree representing an long literal. */
+    public JCLiteral makeLongLiteral(int pos, long value) {
+        return factory.at(pos).Literal(TypeTags.LONG, value).setType(syms.longType.constType(value));
+    }
+
     /** Make an attributed tree representing a null literal. */
     public JCLiteral makeNullLiteral(int pos) {
         return makeDuplicateLiteral(pos,nullLit);
@@ -429,10 +442,10 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(int pos, Name name, Symbol sym) {
-        JCIdent id = factory.Ident(sym);
+        JCIdent id = sym != null ? factory.Ident(sym) : factory.Ident(name);
         id.name = name;
         id.pos = pos;
-        // id.type is set in Ident
+        // id.type is set in Ident, if sym is not null
         return id;
     }
     

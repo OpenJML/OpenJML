@@ -1146,11 +1146,23 @@ public class JmlParser extends EndPosParser {
         JCExpression e = parseExpression();
         S.setJmlKeyword(true);
         List<JmlMethodSig> sigs = null;
+        boolean notlist = false;
         if (S.token() == Token.FOR) {
             S.nextToken();
+            if (S.token() == Token.BANG) {
+                notlist = true;
+                S.nextToken();
+            }
             if (S.jmlToken == JmlToken.BSEVERYTHING) {
                 S.nextToken();
                 // This is the default, so we just leave sigs null
+                if (notlist) sigs = new ListBuffer<JmlMethodSig>().toList();
+                notlist = false;
+            } else if (S.jmlToken == JmlToken.BSNOTHING) {
+                S.nextToken();
+                if (!notlist) sigs = new ListBuffer<JmlMethodSig>().toList();
+                notlist = false;
+                // Here we just have an empty list
             } else {
                 sigs = parseMethodNameList();
             }
@@ -1158,6 +1170,7 @@ public class JmlParser extends EndPosParser {
         if (mods == null) mods = jmlF.at(pos).Modifiers(0);
         JmlTypeClauseConstraint tcl = to(jmlF.at(pos).JmlTypeClauseConstraint(
                 mods, e, sigs));
+        tcl.notlist = notlist;
         tcl.source = log.currentSourceFile();
         if (S.token() != SEMI) {
             jmlerror(S.pos(), S.endPos(), "jml.bad.construct",

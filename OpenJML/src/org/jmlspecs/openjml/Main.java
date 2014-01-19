@@ -675,7 +675,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // before all the options are set
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
-
+        
 //        if (options.get(helpOption) != null) {
 //            return false;
 //        }

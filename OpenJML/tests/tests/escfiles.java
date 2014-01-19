@@ -81,6 +81,7 @@ public class escfiles extends EscBase {
             args.add("-jmltesting");
             args.add("-progress");
             args.add("-timeout=30");
+            args.add("-code-math=java");
             if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
             if (solver != null) args.add("-prover="+solver);
@@ -147,7 +148,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-subexpressions");//,"-show","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB"); // ,"-subexpressions","-show","-method=tick","-escMaxWarnings=1");
     }
 
     @Test
@@ -283,7 +284,7 @@ public class escfiles extends EscBase {
     @Test
     public void testVector() {
         expectedExit = 0;
-        helpTF("escVector","-escMaxWarnings=1");
+        helpTF("escVector","-escMaxWarnings=1","-code-math=java");
     }
 
     @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop

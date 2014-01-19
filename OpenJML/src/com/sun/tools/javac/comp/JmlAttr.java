@@ -35,6 +35,7 @@ import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
+import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
@@ -2098,51 +2099,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         long prevVisibility = jmlVisibility;
         try {
             // constraint
+            boolean isStatic = (tree.modifiers.flags & STATIC) != 0;
             Env<AttrContext> localEnv = env;
             jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
-            if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel++;
+            if (isStatic) localEnv.info.staticLevel++;
             attribExpr(tree.expression, localEnv, syms.booleanType);
-            if ((tree.modifiers.flags & STATIC) != 0) localEnv.info.staticLevel--;
+            if (isStatic) localEnv.info.staticLevel--;
             checkTypeClauseMods(tree,tree.modifiers,"constraint clause",tree.token);
             if (tree.sigs != null) for (JmlTree.JmlMethodSig sig: tree.sigs) {
-
                 if (sig.argtypes == null) {
                     // FIXME - not implemented
                 } else {
-                    ListBuffer<Type> types = new ListBuffer<Type>();
-                    for (JCExpression e: sig.argtypes) {
-                        attribType(e,localEnv);
-                        types.append(e.type);
-                    }
-                    Type t = new Type.MethodType(types.toList(),null,null,null);
-                    Symbol s = null;
-                    if (sig.expression instanceof JCIdent) {
-                        Name n = ((JCIdent)sig.expression).name;
-                        if (n.equals(localEnv.enclClass.sym.name)) {
-                            log.error(sig.pos(),"jml.no.constructors.allowed");
-                        } else {
-                            s = rs.resolveMethod(sig.pos(), env, n, t.getParameterTypes(), t.getTypeArguments());
-                        }
-                    } else if (sig.expression instanceof JCFieldAccess) {
-                        JCFieldAccess selector = (JCFieldAccess)sig.expression;
-                        attribTree(selector.selected,localEnv,VAR|TYP,Type.noType);
-                        if (selector.selected.type.tsym != localEnv.enclClass.sym) {
-                            log.error(sig.pos(),"jml.incorrect.method.owner");
-                        } else {
-                            s = rs.resolveMethod(sig.pos(), env, ((JCFieldAccess)sig.expression).name, t.getParameterTypes(), t.getTypeArguments());
-                        }
-                    } else {
-                        // FIXME - error
+                    sig.accept(this);
+                    Symbol s = sig.methodSymbol;
+                    if (s != null && s.isConstructor()
+                            && !isStatic) {
+                        log.error(sig.pos(),"jml.no.constructors.allowed");
                     }
                     if (s != null && s.kind != Kinds.ERR){
                         if (s.owner != localEnv.enclClass.sym) {
                             log.error(sig.pos(),"jml.incorrect.method.owner");
                         }
                     }
+
                 }
             }
-
-            // FIXME - complete implementation
         } finally {
             jmlVisibility = prevVisibility;
             jmlresolve.setAllowJML(prevAllowJML);
@@ -3111,10 +3092,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (pureEnvironment && tree.meth.type != null && tree.meth.type.tag != TypeTags.ERROR) {
             // Check that the method being called is pure
             if (msym != null) {
-                // FIXME - test that this works if the purity annotation is in a specs file and not the java file
-                boolean isPure = isPure(msym) || isPure(msym.enclClass());
+                boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-                    log.warning(tree.pos,"jml.non.pure.method",msym);
+                    log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
                 if (isPure && currentClauseType == JmlToken.INVARIANT
                         && msym.owner == enclosingClassEnv.enclClass.sym
@@ -4670,20 +4650,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param symbol the symbol to check
      * @return true if the symbol has a model annotation, false otherwise
      */
-    public boolean isPure(Symbol symbol) {
-//        if (pureAnnotationSymbol == null) {
-//            pureAnnotationSymbol = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.annotation.Pure"));
+    public boolean isPureClass(ClassSymbol symbol) {
+            TypeSpecs tspecs = specs.getSpecs(symbol);
+            if (tspecs == null) return false;
+            return findMod(tspecs.modifiers,PURE) != null;
+//        } else if (symbol instanceof ClassSymbol)
+//        if (symbol.attributes_field == null) {
+//            // This happens for model methods in jml files
+//            return false;  // FIXME - should have the attributes - this is necessary but why?
 //        }
-        if (symbol instanceof MethodSymbol) {
-            MethodSpecs m = specs.getSpecs((MethodSymbol)symbol);
-//            List<JCAnnotation> annots = m.mods.annotations;
-//            for (JCAnnotation a: annots) 
-//                System.out.println(a);
+//        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
+//
+    }
+    
+    public boolean isPureMethod(MethodSymbol symbol) {
+        for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
+            MethodSpecs mspecs = specs.getSpecs(msym);
+            if (mspecs == null) {
+                // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+                continue;
+            }
+            boolean isPure = findMod(mspecs.mods,PURE) != null;
+            if (isPure) return true;
         }
-        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
-//        return symbol.attribute(pureAnnotationSymbol)!=null;
-        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
-
+        return false;
     }
     
     /** Returns true if the given symbol has a pure annotation 
@@ -5255,20 +5245,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         List<Type> types = that.argtypes != null ? super.attribAnyTypes(that.argtypes, localEnv) : List.<Type>nil();
         List<Type> typeargtypes = List.<Type>nil(); // attribAnyTypes(that.typeargs, localEnv);// FIXME - need to handle template arguments
         
-        Type mpt = newMethTemplate(types, typeargtypes);
-        localEnv.info.varArgs = false;
-        try {
-            attribExpr(that.expression, localEnv, mpt);
-        } catch (ClassCastException e) {
-            // expecting this, because we aren't really passing in a MethodInvocation
+        // FIXME - need a better check that the expression is a constructor
+        // This won't even work if the method has the class name as a suffix
+        if (that.expression.toString().endsWith(env.enclClass.name.toString())) {
+            Symbol sym = jmlresolve.resolveConstructor(that,localEnv,
+                    env.enclClass.type,
+                    types,
+                    typeargtypes);
+            that.methodSymbol = (MethodSymbol)sym;
+        } else {
+            Type mpt = newMethTemplate(types, typeargtypes);
+            localEnv.info.varArgs = false;
+            try {
+                attribExpr(that.expression, localEnv, mpt);
+            } catch (ClassCastException e) {
+                // expecting this, because we aren't really passing in a MethodInvocation
+            }
+            Symbol sym = null;
+            if (that.expression instanceof JCIdent) {
+                sym = ((JCIdent)that.expression).sym;
+            } else if (that.expression instanceof JCFieldAccess) {
+                sym = ((JCFieldAccess)that.expression).sym;
+            }
+            // If there was an error attributing the JmlMethodSig, then sym
+            // will not be a MethodSymbol
+            that.methodSymbol = sym instanceof MethodSymbol ? (MethodSymbol)sym : null;
         }
-        Symbol sym = null;
-        if (that.expression instanceof JCIdent) {
-            sym = ((JCIdent)that.expression).sym;
-        } else if (that.expression instanceof JCFieldAccess) {
-            sym = ((JCFieldAccess)that.expression).sym;
-        }
-        that.methodSymbol = (MethodSymbol)sym;
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {

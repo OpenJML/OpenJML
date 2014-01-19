@@ -10,7 +10,7 @@ public class purity extends TCBase {
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
-        useSystemSpecs = false;
+        useSystemSpecs = true;
         super.setUp();
         main.addOptions("-purityCheck=true");
     }
@@ -27,7 +27,7 @@ public class purity extends TCBase {
     public void testPure2() {
         expectedExit = 0;
         helpTC(" class A {  boolean m() { return true; }  \n //@ invariant m(); \n}"
-               ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: m()",17
+               ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()",17
                );
     }
     
@@ -44,7 +44,7 @@ public class purity extends TCBase {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: m()",44
+                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
                 );
         
     }
@@ -63,7 +63,7 @@ public class purity extends TCBase {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: m()",44
+                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
                 );
         
     }
@@ -122,7 +122,7 @@ public class purity extends TCBase {
     public void testPureClass2() {
         expectedExit = 0;
         helpTC(" class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
-                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: mm()",18
+                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.mm()",18
                 );
     }
 
@@ -131,7 +131,7 @@ public class purity extends TCBase {
     public void testPureClass3() {
         expectedExit = 0;
         helpTC(" /*@ pure */ class A  {  static class B { //@ invariant mm(); \n boolean mm() { return true; } }\n } "
-                ,"/TEST.java:1: warning: A non-pure method is being called where it is not permitted: mm()",59
+                ,"/TEST.java:1: warning: A non-pure method is being called where it is not permitted: A.B.mm()",59
                 );
     }
 

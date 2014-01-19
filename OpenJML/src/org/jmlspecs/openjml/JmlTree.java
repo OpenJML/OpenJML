@@ -2906,6 +2906,9 @@ public class JmlTree implements IJmlTree {
         /** The list of method signatures to which the constraint applies */
         public @Nullable List<JmlMethodSig> sigs;
         
+        /** If true then the list is the method signatures to which the constraint does not apply (a JML extension)*/
+        public boolean notlist = false;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlTypeClauseConstraint(int pos, JCModifiers mods, JCExpression expression, List<JmlMethodSig> sigs) {
             this.pos = pos;

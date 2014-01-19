@@ -36,6 +36,7 @@ public class counterexamples extends EscBase {
         super.setUp();
         main.addOptions("-trace","-counterexample");
         main.addOptions("-jmltesting");
+        main.addOptions("-code-math=java");
     }
     
     /** Tests an explicit assertion */

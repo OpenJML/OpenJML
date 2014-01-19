@@ -691,7 +691,7 @@ public class escall3 extends EscBase {
                 +"    return (i+=1) ;\n"
                 +"  }\n"
                 
-                +"  //@ ensures \\result == j+j+1;\n"
+                +"  //@ requires j < 1000 && -1000 < j; ensures \\result == j+j+1;\n"
                 +"  public int m1good(int j) {\n"
                 +"    int i = j ;\n"
                 +"    return (i+=j+1) ;\n"

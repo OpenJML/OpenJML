@@ -390,7 +390,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         r.modifiers = translate(that.modifiers);
         r.expression = translate(that.expression);
         r.sigs = translate(that.sigs);
-        // Not translating: source, token, pos, type
+        // Not translating: source, token, pos, type, notlist
         result = r;
     }
 

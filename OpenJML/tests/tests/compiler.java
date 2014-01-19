@@ -407,7 +407,7 @@ public class compiler {
                           );
     }
 
-    /** Checks that -nowarn turns off waranings. */
+    /** Checks that -nowarn turns off warnings. */
     @Test
     public void testJML6nowarn() throws Exception {
         helper(new String[]

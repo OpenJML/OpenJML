@@ -106,7 +106,6 @@ public class Extensions {
     // appropriate information to the HashMap above, so extensions can be 
     // looked up at runtime.
     public static void register(Context context) {
-        Utils utils = Utils.instance(context);
         Package p = Package.getPackage("org.jmlspecs.openjml.ext");
         java.util.List<Class<?>> extensions;
         try {
@@ -231,11 +230,11 @@ public class Extensions {
         		Method m = c.getMethod("register",Context.class);
         		m.invoke(null,context); // Purposely fails if there is no static register method
         		classes.add(c);
-        		if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Registered extension " + fullname);
+        		//if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Registered extension " + fullname);
         	} catch (Exception e) {
         		// Just skip if there is any exception, such as a
         		// Class or Method not found.
-        		if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Failed to register " + fullname);
+        		//if (Utils.instance(context).jmlverbose >= Utils.JMLDEBUG) Log.instance(context).noticeWriter.println("Failed to register " + fullname);
         		continue;
         	}
         }

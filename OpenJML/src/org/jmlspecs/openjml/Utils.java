@@ -66,6 +66,9 @@ public class Utils {
 
     /** The context applicable for this instance of the Utils class. */
     protected Context context;
+    
+    /** The Log object - do not use this directly - use log() instead */
+    private Log log;
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -92,11 +95,15 @@ public class Utils {
     protected Utils(Context context) {
         this.context = context;
         context.put(utilsKey, this);
-        log = Log.instance(context);
     }
 
-    /** The error and warning log */
-    public final Log log;
+    /** The error and warning log. It is crucial that the log be obtained
+     * lazily, and not before options are read; otherwise the Log object
+     * is not properly intialized from the Java options. */
+    public final Log log() {
+        if (log == null) log = Log.instance(context);
+        return log;
+    }
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = 0; 
@@ -409,8 +416,8 @@ public class Utils {
     // FIXME - document
     public void notImplemented(DiagnosticPosition pos, String feature) {
         // FIXME - control with an option
-        if (rac) log.warning(pos,"jml.not.implemented.rac",feature);
-        else if (esc) log.warning(pos,"jml.not.implemented.esc",feature);
+        if (rac) log().warning(pos,"jml.not.implemented.rac",feature);
+        else if (esc) log().warning(pos,"jml.not.implemented.esc",feature);
     }
     
     /** Finds OpenJML properties files in pre-defined places, reading their
@@ -547,10 +554,10 @@ public class Utils {
     }
     
     /** Creates the location prefix including the colon without any message;
-     * 'pos' is the position in the file given by log.currentSource(). */
+     * 'pos' is the position in the file given by log().currentSource(). */
     public String locationString(int pos) {
         // USE JCDiagnostic.NO_SOURCE ? FIXME
-        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
         String msg = diag.noSource().replace("Note: ", "");
         return msg;
     }
@@ -559,13 +566,13 @@ public class Utils {
      * 'pos' is the position in the file given by log.currentSource(). */
     public String locationString(int pos, /*@ nullable */ JavaFileObject source) {
         JavaFileObject prev = null;
-        if (source != null) prev = log.useSource(source);
+        if (source != null) prev = log().useSource(source);
         try {
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log.currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
             String msg = diag.noSource().replace("Note: ", "");
             return msg;
         } finally {
-            if (source != null) log.useSource(prev);
+            if (source != null) log().useSource(prev);
         }
     }
     

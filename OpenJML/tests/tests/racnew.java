@@ -1,5 +1,6 @@
 package tests;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -1112,6 +1113,7 @@ public class racnew extends RacBase {
     // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
     // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
                 " //@ requires i != 0; \n" +
@@ -2893,6 +2895,7 @@ public class racnew extends RacBase {
     }
     
     // FIXME - assignable turned off for RAC
+    @Ignore
     @Test public void testAssignable3() {
         helpTCX("tt.A","package tt; public class A {\n"
                 +"  static public int j=0,k;\n"
