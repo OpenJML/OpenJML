@@ -788,7 +788,7 @@ public class typeclauses extends TCBase {
     
     @Test
     public void testReadable2() {
-        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable z if i == null; writable z if i == null; \n } class B { public Object z; }"
+        helpTCF("A.java","public class A extends B {Object i,j; static Object k;  //@ readable z if i == null; writable z if i == null; \n } class B { Object z; }"
                 ,"/A.java:1: The identifier must be a member of the enclosing class: z is in B instead of A",70
                 ,"/A.java:1: The identifier must be a member of the enclosing class: z is in B instead of A",95
         );

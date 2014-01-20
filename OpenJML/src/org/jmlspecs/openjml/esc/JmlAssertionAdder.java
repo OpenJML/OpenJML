@@ -6013,7 +6013,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(msym);
         int pos = calleeSpecs.decl != null ? calleeSpecs.decl.pos : methodDecl.pos;
 
-        Name newMethodName = names.fromString(utils.qualifiedMethodName(msym).replace('.', '_') + "_" + pos);
+        Name newMethodName = names.fromString(utils.qualifiedName(msym).replace('.', '_') + "_" + pos);
         pushBlock();
         addStat(comment(callLocation,"Axioms for method " + utils.qualifiedMethodSig(msym),null));
         
@@ -6469,6 +6469,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - document
     JCTree lastStat;
 
+    protected void checkRW(JmlToken rw, Symbol sym, JCExpression th, DiagnosticPosition p) {
+        if (!translatingJML && methodDecl != null) {
+            if (sym instanceof VarSymbol && sym.owner instanceof TypeSymbol) {
+                Label lab = rw == JmlToken.READABLE ? Label.READABLE : Label.WRITABLE;
+                FieldSpecs fs = specs.getSpecs((VarSymbol)sym);
+                if (fs != null) for (JmlTypeClause clause: fs.list) {
+                    if (clause.token == rw) {
+                        JCExpression ee = ((JmlTypeClauseConditional)clause).expression;
+                        JCExpression saved = currentThisExpr;
+                        try {
+                           currentThisExpr = th;
+                           ee = convertJML(ee);
+                        } finally {
+                            currentThisExpr = saved;
+                        }
+                        if (splitExpressions) {
+                            addAssert(p,lab,ee,clause,clause.source(),utils.qualifiedName(sym));
+                        } else {
+                            addAssert(p,lab,treeutils.makeAnd(p.getPreferredPosition(),condition,ee),clause,clause.source(),utils.qualifiedName(sym));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    protected boolean translatingLHS = false;
+    
     // FIXME - review
     @Override
     public void visitAssign(JCAssign that) {
@@ -6480,7 +6508,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         if (that.lhs instanceof JCIdent) {
             JCIdent id = (JCIdent)that.lhs;
+            translatingLHS = true;
             JCExpression lhs = convertExpr(that.lhs);
+            translatingLHS = false;
             JCExpression rhs = convertExpr(that.rhs);
             rhs = addImplicitConversion(that,lhs.type, rhs);
 
@@ -6490,6 +6520,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
             }
             checkAccess(JmlToken.ASSIGNABLE, that, lhs, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
+            checkRW(JmlToken.WRITABLE,id.sym,currentThisExpr,id);
             
             JCExpressionStatement st = treeutils.makeAssignStat(that.pos,  lhs, rhs);
             addStat( st );
@@ -6513,6 +6544,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (javaChecks) {
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
+                checkRW(JmlToken.WRITABLE,fa.sym,obj,fa);
+
                 newfa = treeutils.makeSelect(that.pos, convertCopy(obj), fa.sym);
                 //Map<JCTree,Integer> table = log.currentSource().getEndPosTable();
                 //log.noticeWriter.println("FA " + fa.getStartPosition() + " " + fa.getEndPosition(table) + " " + newfa.getStartPosition() + " " + newfa.getEndPosition(table));
@@ -6525,6 +6558,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // If the field is static, substitute the type tree
                 
                 JCExpression obj = treeutils.makeType(fa.getStartPosition(), fa.sym.owner.type);
+                checkRW(JmlToken.WRITABLE,fa.sym,obj,fa);
                 newfa = treeutils.makeSelect(that.pos, obj, fa.sym);
                 
             }
@@ -6653,6 +6687,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(rhs, that);
 
             checkAccess(JmlToken.ASSIGNABLE, that, lhs, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
+            checkRW(JmlToken.WRITABLE,((JCIdent)lhs).sym,currentThisExpr,lhs);
 
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that may be captured by the lhs. - TODO - need an example?
@@ -6669,6 +6704,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.isJMLStatic(fa.sym)) {
                 if (!lhsscanned && !treeutils.isATypeTree(fa.selected))  convertExpr(fa.selected);
                 JCExpression typetree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
+                checkRW(JmlToken.READABLE,fa.sym,typetree,fa);
+                checkRW(JmlToken.WRITABLE,fa.sym,typetree,fa);
                 newfa = treeutils.makeSelect(fa.selected.pos, typetree, fa.sym);
                 newfa.name = fa.name;
                 rhs = convertExpr(rhs);
@@ -6684,6 +6721,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression e = treeutils.makeNeqObject(lhs.pos, sel, treeutils.nullLit);
                     addAssert(that.lhs, Label.POSSIBLY_NULL_DEREFERENCE, e);
                 }
+                checkRW(JmlToken.READABLE,fa.sym,sel,fa);
+                checkRW(JmlToken.WRITABLE,fa.sym,sel,fa);
 
                 rhs = convertExpr(rhs);
                 rhs = addImplicitConversion(rhs,that.type,rhs);
@@ -7436,17 +7475,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitSelect(JCFieldAccess that) {
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
-        if (pureCopy || localVariables.containsKey(s)) {
-            result = eresult = treeutils.makeSelect(that.pos, convertExpr(that.getExpression()), s);
+        JCExpression trexpr = that.getExpression();
+        if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
+        if (pureCopy) {
+            result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
+            treeutils.copyEndPosition(result, that);
+            return;
+        }
+        checkRW(JmlToken.READABLE,that.sym,trexpr,that);
+        if (localVariables.containsKey(s)) {
+            result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
         } else if (translatingJML && s == null) {
             // This can happen while scanning a store-ref x.* 
-            JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
+            JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             JCFieldAccess fa = M.Select(sel, (Name)null);
             fa.pos = that.pos;
             fa.sym = null;
             result = eresult = fa;
         } else if (translatingJML && attr.isModel(s) && !convertingAssignable) {
-            JCExpression sel = convertJML(that.selected); // FIXME - what if static; what if not a variable
+            JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             if (rac) {
                 Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
                 JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
@@ -7459,7 +7506,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         return;
                     }
                 }
-                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedMethodName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
+                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
                     
                     JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
                     result = eresult = m.meth;
@@ -7525,7 +7572,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // makeType creates a fully-qualified name
             result = eresult = treeutils.makeType(that.pos,that.type);
         } else if (translatingJML && esc && !localVariables.isEmpty()) {
-            selected = convertExpr(that.selected);
+            selected = trexpr;
             JCFieldAccess fa = treeutils.makeSelect(that.pos,selected,s);
             result = eresult = fa;
             if (oldenv != null) {
@@ -7540,7 +7587,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
 //            }
         } else {
-            selected = convertExpr(that.selected);
+            selected = trexpr;
             boolean var = false;
             if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
@@ -7606,6 +7653,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         Symbol sym = convertSymbol(that.sym);
+        if (!translatingLHS) checkRW(JmlToken.READABLE,that.sym,currentThisExpr,that);
+
         try {
             // If we are translating the postcondition then parameters
             // must be mapped to the values at the beginning of the method, 
@@ -7629,8 +7678,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }
             }
-
-
+            
             // Check if the id is a model field, and if so:
             // if rac, then map it to a call of
             // the corrresponding model method. We have to use model methods 
@@ -8147,6 +8195,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         case AXIOM:
                         case IN:
                         case MAPS:
+                        case READABLE:
+                        case WRITABLE:
                             // skip
                             break;
                         default:

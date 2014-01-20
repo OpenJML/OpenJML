@@ -224,7 +224,7 @@ public class JmlEsc extends JmlTreeScanner {
      * and the verbosity is high enough.
      * */
     public boolean filter(JCMethodDecl methodDecl) {
-        String fullyQualifiedName = utils.qualifiedMethodName(methodDecl.sym);
+        String fullyQualifiedName = utils.qualifiedName(methodDecl.sym);
         String simpleName = methodDecl.name.toString();
         if (methodDecl.sym.isConstructor()) {
             String constructorName = methodDecl.sym.owner.name.toString();

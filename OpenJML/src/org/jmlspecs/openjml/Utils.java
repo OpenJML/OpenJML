@@ -684,7 +684,7 @@ public class Utils {
     }
 
     /** Returns a fully-qualified name for a method symbol, without the signature */
-    public String qualifiedMethodName(MethodSymbol sym) {
+    public String qualifiedName(Symbol sym) {
         return sym.owner.getQualifiedName() + "." + sym.name;
     }
 

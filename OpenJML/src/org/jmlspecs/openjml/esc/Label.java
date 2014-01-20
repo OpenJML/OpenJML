@@ -146,6 +146,12 @@ public class Label {
     /** Used for asserts generated from user-specified unreachable statements */
     /*@ non_null*/ public final static Label UNREACHABLE = new Label("Unreachable");
     
+    /** Used for asserts generated from readable clauses */
+    /*@ non_null*/ public final static Label READABLE = new Label("Readable-if");
+    
+    /** Used for asserts generated from writable clauses */
+    /*@ non_null*/ public final static Label WRITABLE = new Label("Writable-if");
+    
     /** Used for asserts generated from assignable clauses */
     /*@ non_null*/ public final static Label ASSIGNABLE = new Label("Assignable");
     

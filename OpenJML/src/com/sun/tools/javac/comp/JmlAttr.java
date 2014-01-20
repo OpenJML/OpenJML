@@ -2325,10 +2325,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         long prevVisibility = jmlVisibility;
         try {
-            jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
             attribExpr(tree.identifier,env,Type.noType);
             
             Symbol sym = tree.identifier.sym;
+            jmlVisibility = sym.flags() & Flags.AccessFlags;
+            long clauseVisibility = tree.modifiers.flags & Flags.AccessFlags;
+            if (clauseVisibility != 0 && clauseVisibility != jmlVisibility) {
+                log.error(tree.identifier.pos,"jml.visibility.is.different",Flags.toString(clauseVisibility), Flags.toString(jmlVisibility));
+            }
+            
             if (sym.owner != env.enclClass.sym) {
                 log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
             } else {
@@ -4680,9 +4685,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param symbol the symbol to check
      * @return true if the symbol has a model annotation, false otherwise
      */
-    public boolean isHelper(Symbol symbol) {
-        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
-        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
+    public boolean isHelper(MethodSymbol symbol) {
+        MethodSpecs mspecs = specs.getSpecs(symbol);
+        if (mspecs == null) {
+            // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+            return false;
+        }
+        return findMod(mspecs.mods,JmlToken.HELPER) != null;
+//
+//        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
+//        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
 
     }
     
