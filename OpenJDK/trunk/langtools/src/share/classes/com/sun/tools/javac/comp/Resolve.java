@@ -942,7 +942,7 @@ public class Resolve {
                 ct = ct.getUpperBound();
             ClassSymbol c = (ClassSymbol)ct.tsym;
             if (!seen.add(c)) return bestSoFar;
-            if (!abstractOK(c))
+            if (!abstractOK(c)) // DRC - changed to allow overriding in subclasses
                 abstractok = false;
             for (Scope.Entry e = c.members().lookup(name);
                  e.scope != null;
@@ -950,7 +950,7 @@ public class Resolve {
                 //- System.out.println(" e " + e.sym);
                 if (e.sym.kind == MTH &&
                     (e.sym.flags_field & SYNTHETIC) == 0 &&
-                            symbolOK(e)) {
+                            symbolOK(e)) {  // DRC - changed to allow overriding in subclasses
                     bestSoFar = selectBest(env, site, argtypes, typeargtypes,
                                            e.sym, bestSoFar,
                                            allowBoxing,

@@ -16,13 +16,11 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -34,6 +32,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
@@ -58,9 +57,19 @@ import org.jmlspecs.openjml.esc.Label;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
-import com.sun.tools.javac.main.OptionName;
 import com.sun.tools.javac.tree.*;
-import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCErroneous;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -271,7 +280,7 @@ public class JmlParser extends EndPosParser {
             if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
                 ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
                 JCClassDecl cd = (JCClassDecl)s;
-                Name n = jmlF.Name("_JML_enum_"); // FIXME - move to strings
+                Name n = jmlF.Name(Strings.enumVar);
                 JCExpression disj = null;
                 for (JCTree d: cd.defs) {
                     if (!(d instanceof JCVariableDecl)) continue;
@@ -557,7 +566,9 @@ public class JmlParser extends EndPosParser {
                     needSemi = false;
 
                 } else if (methodClauseTokens.contains(jtoken)) {
-                    // TODO - if strict JML, requires a REFINING token first
+                    if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        log.warning(S.pos(),"jml.refining.required");
+                    }
                     JCModifiers mods = jmlF.Modifiers(0);
                     JmlMethodSpecs specs = parseMethodSpecs(mods);
                     for (JmlSpecificationCase c : specs.cases) {
@@ -2734,7 +2745,6 @@ public class JmlParser extends EndPosParser {
         } else if (S.token() == LBRACE) {
             return parseSetComprehension(t);
         } else {
-            // FIXME - what is expected3 here?
             syntaxError(S.pos(), null, "expected3", "\'(\'", "\'{\'", "\'[\'");
             t = toP(F.at(newpos).NewClass(null, typeArgs, t,
                     List.<JCExpression> nil(), null));

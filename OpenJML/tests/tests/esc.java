@@ -2648,8 +2648,9 @@ public class esc extends EscBase {
                  seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method inst3b",171)
                 ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method inst3b",182)
                 ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3b",182)
-                ),"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",-203
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst3c",-192
+                )
+                ,anyorder(seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method inst3c",203)
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method inst3c",192))
         );
     }
     
@@ -3805,7 +3806,7 @@ public class esc extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/TestJava o) {\n"
-                +"    //@ assume \\typeof(o) <: \\type(TestJava);\n"
+                +"    //@ assume \\typeof(o) == \\type(TestJava);\n"
                 +"    //@ assert \\typeof(o) <: \\type(Object);\n"
                 +"  }\n"
                 +"  public void m2(/*@non_null*/TestJava o) {\n"

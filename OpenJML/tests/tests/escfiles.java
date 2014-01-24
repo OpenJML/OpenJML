@@ -311,7 +311,7 @@ public class escfiles extends EscBase {
         helpTF("escRecursiveInvariant");
     }
 
-    @Test // FIXME - needs to handle getClass()
+    @Test
     public void testBadCast() {
         expectedExit = 0;
         helpTF("escBadCast");

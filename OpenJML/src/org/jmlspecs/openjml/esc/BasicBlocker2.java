@@ -1030,7 +1030,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } finally {
                 currentMap = savedMap;
             }
-        } else if (that.token == JmlToken.SUBTYPE_OF) {
+        } else if (that.token == JmlToken.SUBTYPE_OF || that.token == JmlToken.JSUBTYPE_OF) {
             scan(that.args.get(0));
             JCExpression lhs = result;
             scan(that.args.get(1));

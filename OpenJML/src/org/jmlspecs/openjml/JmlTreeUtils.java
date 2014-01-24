@@ -984,8 +984,8 @@ public class JmlTreeUtils {
         }
         return expr;
     }
-    
-    // FIXME - is the initial id == null check redundant?
+
+    // requires id to have a reference type
     /** Returns the AST for id == null || ( \typeof(id) <: \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
@@ -996,9 +996,16 @@ public class JmlTreeUtils {
         JCExpression expr = makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs);
         {
             Type t = types.erasure(type);
-            if (!t.isPrimitive() && t.getKind() != TypeKind.ARRAY) {
+            if (t.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
+            } else if ( ((Type.ArrayType)t).elemtype.isPrimitive()) {
+                JCExpression e = makeTypeof(id);
+                e = makeJmlMethodInvocation(pos,JmlToken.BSELEMTYPE,e.type,e);
+                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,((Type.ArrayType)t).elemtype));
+                tt.type = JmlTypes.instance(context).TYPE;
+                e = makeEquality(p,e,tt);
+                expr = makeAnd(p,expr,e);
             }
         }
         return makeOr(p,nn,expr);

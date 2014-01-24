@@ -153,6 +153,9 @@ public class Strings {
      */
     final static public String newArrayVarString = "_JML___NEWARRAY_"; //$NON-NLS-1$
     
+    /** A String used as a quantified variable in enum axioms */
+    final static public String enumVar = "_JML_enum_";
+    
     /** A String used as the root of a temporary variable to represent a 
      * JML label expression.
      */

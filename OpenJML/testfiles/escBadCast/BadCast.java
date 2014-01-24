@@ -10,10 +10,6 @@ public class BadCast {
         if (this == the_other) {
           result = true;
         } else if (the_other != null && the_other.getClass() == getClass()) {
-            // @ assume \typeof(the_other) == \typeof(this); // FIXME - this assumption makes this branch infeasible
-            //@ ghost \TYPE t = (\lbl TY \typeof(the_other));
-            //@ ghost \TYPE tt = (\lbl TY2 \typeof(this));
-            //@ ghost Object ttt = (\lbl TY3 getClass());
           final BadCast other_cash = (BadCast) the_other;
           result = other_cash.my_dollars == my_dollars && 
                    other_cash.my_cents == my_cents;

@@ -22,10 +22,7 @@ import java.util.Set;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -35,24 +32,16 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Attribute.Compound;
-import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.Scope;
-import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -205,7 +194,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Now go through everything in the specs sequence, finding the
         // JML fields and methods.  These need to be entered.
 
-        boolean prevAllowJML = resolve.allowJML;
+        boolean prevAllowJML = resolve.allowJML();
         boolean prevInModel = inModelTypeDeclaration;
         try {
             if (jtree.specsDecls == null) {
@@ -255,7 +244,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
 
-            resolve.allowJML = true;
+            resolve.setJML(true);
             
             
 //            JmlSpecs.TypeSpecs tsp = jtree.typeSpecs;
@@ -538,7 +527,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             inSpecFile = prevInSpecFile;
             inModelTypeDeclaration = prevInModel;
             addRacMethods(tree.sym,env);
-            resolve.allowJML = prevAllowJML;
+            resolve.setJML(prevAllowJML);
             Log.instance(context).useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {
                 log.noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
@@ -2452,8 +2441,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         //log.noticeWriter.println("completing " + sym);
         
         JmlResolve jresolve = JmlResolve.instance(context);
-        boolean prevAllowJML = jresolve.allowJML;
-        jresolve.allowJML = utils.isJML(sym.flags());
+        boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
         try {
             Env<AttrContext> env = enter.typeEnvs.get(sym);
             if (env == null) {
@@ -2471,7 +2459,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 env.info.scope.enter(thisSym);
             }
         } finally {
-            jresolve.allowJML = prevAllowJML;
+            jresolve.setJML(prevAllowJML);
         }
 
     }

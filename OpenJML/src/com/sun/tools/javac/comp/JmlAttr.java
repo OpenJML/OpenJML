@@ -4585,17 +4585,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JCTree.JCAnnotation a;
         boolean result = false;
         if ((mods.flags & Flags.PROTECTED) != 0 &&
-                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                (a=utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PROTECTED))) != null ) {
             log.warning(a.pos(),"jml.redundant.visibility","protected","spec_protected");
             result = true;
         }
         if ((mods.flags & Flags.PUBLIC) != 0 &&
-                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PROTECTED))) != null ) {
+                (a=utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PROTECTED))) != null ) {
             log.warning(a.pos(),"jml.redundant.visibility","public","spec_protected");
             result = true;
         }
         if ((mods.flags & Flags.PUBLIC) != 0 &&
-                (a=utils.findMod(mods,tokenToAnnotationName.get(SPEC_PUBLIC))) != null ) {
+                (a=utils.findMod(mods,tokenToAnnotationSymbol.get(SPEC_PUBLIC))) != null ) {
             log.warning(a.pos(),"jml.redundant.visibility","public","spec_public");
             result = true;
         }

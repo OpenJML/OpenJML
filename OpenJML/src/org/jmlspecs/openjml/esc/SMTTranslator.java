@@ -471,9 +471,30 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         {
             c = new C_declare_fun(F.symbol(arrayElemType),
-                    Arrays.asList(new ISort[]{jmlTypeSort}),
+                    Arrays.asList(jmlTypeSort),
                     jmlTypeSort);
             commands.add(c);
+        }
+        {
+            // (forall ((t jmlTypeSort) (tt jmlTypeSort)) (==> (jmlSubtype t tt) (javaSubtype (erasure t) (erasure tt)))) 
+            c = new C_assert(
+                    F.forall(Arrays.asList(F.declaration(F.symbol("t"),jmlTypeSort),
+                                           F.declaration(F.symbol("tt"),jmlTypeSort)
+                                           ),
+                            F.fcn(impliesSym,
+                                    F.fcn(F.symbol(JMLSUBTYPE), F.symbol("t"), F.symbol("tt")),
+                                    F.fcn(F.symbol(JAVASUBTYPE), F.fcn(F.symbol("erasure"), F.symbol("t")), F.fcn(F.symbol("erasure"), F.symbol("tt")))
+                                    )));
+            commands.add(c);
+            // (forall ((r REF)) (= (erasure (jmlTypeOf r)) (javaTypeof r)))
+            c = new C_assert(
+                    F.forall(Arrays.asList(F.declaration(F.symbol("r"),refSort)),
+                            F.fcn(eqSym,
+                                    F.fcn(F.symbol("erasure"), F.fcn(F.symbol("jmlTypeOf"), F.symbol("r"))),
+                                    F.fcn(F.symbol("javaTypeOf"), F.symbol("r"))
+                                    )));
+            commands.add(c);
+            
         }
         
         // Record the location in the commands list at which all the type
@@ -647,6 +668,32 @@ public class SMTTranslator extends JmlTreeScanner {
                                   F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t2"),F.symbol("t3"))
                                   ),
                           F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t3"))
+                          ));
+            tcommands.add(new C_assert(e));
+        }
+        {
+            // Transitivity of JML subtype
+            // Note: We try to avoid needing this (because it is quantified) 
+            // by instantiating all the subtype
+            // relationships of all of the known types, but it is still needed sometimes.
+            // An example is catching exceptions thrown from a method: The callee
+            // declares a thrown exception, but the actual exception is an unknown
+            // subclass (t1) of the declared type (t2). A catch block that catches
+            // exception (t3) that is a superclass of t2 (t2 is a subclass of t3)
+            // must catch t1 - so we need to infer that t1 is a subclass of t3.
+            //
+            // So far we don't seem to need transitivity of JML types (TODO)
+            List<IDeclaration> params = new LinkedList<IDeclaration>();
+            params.add(F.declaration(F.symbol("t1"),jmlTypeSort));
+            params.add(F.declaration(F.symbol("t2"),jmlTypeSort));
+            params.add(F.declaration(F.symbol("t3"),jmlTypeSort));
+            IExpr e = F.forall(params, 
+                    F.fcn(F.symbol("=>"), 
+                          F.fcn(F.symbol("and"), 
+                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t2")),
+                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t2"),F.symbol("t3"))
+                                  ),
+                          F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t3"))
                           ));
             tcommands.add(new C_assert(e));
         }
@@ -1024,6 +1071,8 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         if (that.token == JmlToken.SUBTYPE_OF) {
             result = F.fcn(F.symbol(JMLSUBTYPE), newargs);
+        } else if (that.token == JmlToken.JSUBTYPE_OF) {
+            result = F.fcn(F.symbol(JAVASUBTYPE), newargs);
         } else if (that.token == JmlToken.BSTYPEOF) {
             ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
             result = F.fcn(s, newargs);

@@ -4,26 +4,18 @@
  */
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.Flags.ABSTRACT;
-import static com.sun.tools.javac.code.Flags.ENUM;
-import static com.sun.tools.javac.code.Flags.INTERFACE;
-import static com.sun.tools.javac.code.Flags.SYNTHETIC;
-import static com.sun.tools.javac.code.Kinds.ERR;
-import static com.sun.tools.javac.code.Kinds.MTH;
-import static com.sun.tools.javac.code.TypeTags.CLASS;
-import static com.sun.tools.javac.code.TypeTags.TYPEVAR;
-
-import java.util.Set;
-
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Utils;
 
-import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Scope;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
@@ -144,19 +136,22 @@ public class JmlResolve extends Resolve {
 
     }
     
-//    /** This method is used to set the value of the allowJML flag.  It returns
-//     * the previous value.
-//     * @param context the compilation context in which to do the modification
-//     * @param allowJML the new value
-//     * @return the old value
-//     */
-//    // FIXME - why static?
-//    static boolean setJML(Context context, boolean allowJML) {
-//        JmlResolve r = JmlResolve.instance(context);
-//        boolean b = r.allowJML;
-//        r.allowJML = allowJML;
-//        return b;
-//    }
+    /** This method is used to set the value of the allowJML flag.  It returns
+     * the previous value.
+     * @param context the compilation context in which to do the modification
+     * @param allowJML the new value
+     * @return the old value
+     */
+    public boolean setJML(boolean allowJML) {
+        boolean b = this.allowJML;
+        this.allowJML = allowJML;
+        return b;
+    }
+    
+    /** Returns the value of the allowJML flag. */
+    public boolean allowJML() {
+        return this.allowJML;
+    }
     
     /** This method overrides the super class method in order to check for
      * resolutions against JML operators: in particular, the < and <= operators
@@ -201,72 +196,8 @@ public class JmlResolve extends Resolve {
         return allowJML || !utils.isJML(e.sym.flags_field);
     }
 
-
-    
-//     /** This overrides the superclass method in order to distinguish JML
-//      * and Java name lookup.
-//      */
-//     // MAINTENANCE ISSUE: This is copied verbatim from Resolve, 
-//     // with just a few inline changes for JML
-//     @Override
-//     protected Symbol findMethod(Env<AttrContext> env, 
-//            Type site,
-//            Name name,
-//            List<Type> argtypes,
-//            List<Type> typeargtypes,
-//            Type intype,
-//            boolean abstractok,
-//            Symbol bestSoFar,
-//            boolean allowBoxing,
-//            boolean useVarargs,
-//            boolean operator,
-//            Set<TypeSymbol> seen) {
-//        for (Type ct = intype; ct.tag == CLASS || ct.tag == TYPEVAR; ct = types.supertype(ct)) {
-//            while (ct.tag == TYPEVAR)
-//                ct = ct.getUpperBound();
-//            ClassSymbol c = (ClassSymbol)ct.tsym;
-//            if (!seen.add(c)) return bestSoFar;
-//            if (!allowJML && (c.flags() & (ABSTRACT | INTERFACE | ENUM)) == 0)
-//                abstractok = false;
-//            for (Scope.Entry e = c.members().lookup(name);
-//                        e.scope != null;
-//                        e = e.next()) {
-//                if (e.sym.kind == MTH &&
-//                        (e.sym.flags_field & SYNTHETIC) == 0 &&
-//                        symbolOK(e)) {
-//                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
-//                            e.sym, bestSoFar,
-//                            allowBoxing,
-//                            useVarargs,
-//                            operator);
-//                }
-//            }
-//            if (name == names.init)
-//                break;
-//            //- System.out.println(" - " + bestSoFar);
-//            if (abstractok) {
-//                Symbol concrete = methodNotFound;
-//                if ((bestSoFar.flags() & ABSTRACT) == 0)
-//                    concrete = bestSoFar;
-//                for (List<Type> l = types.interfaces(c.type);
-//                l.nonEmpty();
-//                l = l.tail) {
-//                    bestSoFar = findMethod(env, site, name, argtypes,
-//                            typeargtypes,
-//                            l.head, abstractok, bestSoFar,
-//                            allowBoxing, useVarargs, operator, seen);
-//                }
-//                if (concrete != bestSoFar &&
-//                        concrete.kind < ERR  && bestSoFar.kind < ERR &&
-//                        types.isSubSignature(concrete.type, bestSoFar.type))
-//                    bestSoFar = concrete;
-//            }
-//        }
-//
-//        return bestSoFar;
-//     }
      
-     // A hook method added into Resolve.findMethod to avoid replication the
+     // A hook method added into Resolve.findMethod to avoid replication in the
      // parent class.
      /** TODO: Not sure exactly what this controls in the superclass */
      @Override
@@ -318,7 +249,7 @@ public class JmlResolve extends Resolve {
      /** A cache of the symbol for the spec_public annotation class, created on
       * demand.
       */
-     private ClassSymbol specPublicSym = null; //TODO - these can be moved into utils eventually
+     private ClassSymbol specPublicSym = null;
      
      /** A cache of the symbol for the spec_protected annotation class, created on
       * demand.
@@ -349,7 +280,9 @@ public class JmlResolve extends Resolve {
          }
          // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
          // (Is this because the binary file will not have the attributes in it - they are added ad hoc when the spec file is parsed???)
-         boolean isSpecPublic = sym.attributes_field == null ? false : (sym.attribute(specPublicSym) != null || attr.findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
+//         boolean isSpecPublic = sym.attributes_field == null ? false : 
+//             (sym.attribute(specPublicSym) != null || attr.findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
+         boolean isSpecPublic = utils.findMod(mods,specPublicSym)!=null;
          if (isSpecPublic) {
              long saved = sym.flags_field;
              sym.flags_field |= Flags.PUBLIC;
@@ -359,7 +292,9 @@ public class JmlResolve extends Resolve {
          }
          
          if ((sym.flags() & Flags.PROTECTED) != 0) return false;
-         boolean isSpecProtected = sym.attributes_field == null ? false : (sym.attribute(specProtectedSym) != null || attr.findMod(mods,JmlToken.SPEC_PROTECTED)!=null);
+//         boolean isSpecProtected = sym.attributes_field == null ? false : 
+//             (sym.attribute(specProtectedSym) != null || attr.findMod(mods,JmlToken.SPEC_PROTECTED)!=null);
+         boolean isSpecProtected = utils.findMod(mods,specProtectedSym)!=null;
          if (isSpecProtected) {
              long saved = sym.flags_field;
              sym.flags_field |= Flags.PROTECTED;
