@@ -826,7 +826,8 @@ public class JmlParser extends EndPosParser {
             } else if (jt == MONITORS_FOR) {
                 list.append(parseMonitorsFor(mods));
             } else if (jt == INITIALIZER || jt == STATIC_INITIALIZER) {
-                list.append(to(jmlF.at(S.pos()).JmlTypeClauseInitializer(jt)));
+                //@ FIXME - modifiers?
+                list.append(to(jmlF.at(S.pos()).JmlTypeClauseInitializer(jt,mods)));
                 S.nextToken();
             } else {
                 jmlerror(S.pos(), S.endPos(),

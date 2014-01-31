@@ -10,12 +10,61 @@ import java.io.Writer;
 import java.util.Iterator;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlChoose;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
+import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlGroupName;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignals;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
+import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
+import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSetComprehension;
+import org.jmlspecs.openjml.JmlTree.JmlSingleton;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementDecls;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatementHavoc;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
+import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefKeyword;
+import org.jmlspecs.openjml.JmlTree.JmlStoreRefListExpression;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConditional;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseConstraint;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseIn;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
@@ -101,17 +150,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch(Exception e) {}
         return "<Exception>";
     }
-    
-    public void undent() {
-        super.undent();
-    }
-    
+
+    /** Flush the output Writer */
     public void flush() throws IOException {
         out.flush();
     }
     
-    // FIXME - document or delete
-    public void indentAndPrint() throws IOException {
+    /** Adds to the indentation amount and realigns the indentation;
+     * call this when increasing the indentation after align() has already been called.
+     * @throws IOException
+     */
+    public void indentAndRealign() throws IOException {
         indent();
         for (int i=width; i>0; --i) print(" ");
     }
@@ -132,7 +181,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
      * @param that a non-null AST node
      * @param e the exception that is being reported
      */
-    // FIXME - should we be using System.err?
     protected void perr(/*@ non_null*/JCTree that, /*@ non_null*/Exception e) {
         System.err.println(e.getClass() + " error in JMLPretty: " + that.getClass());
         e.printStackTrace(System.err);
@@ -154,10 +202,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             if (that.token == null) {
                 visitApply(that);
-            } else if (that.token == JmlToken.BSSAME) { // No-op // FIXME - review this
-                print("(");
-                printExprs(that.args);
-                print(")");
             } else {
                 print(that.token.internedName());
                 if (that.token == JmlToken.BSTYPELC &&
@@ -220,12 +264,12 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
 
     public void visitJmlMethodClauseDecl(JmlMethodClauseDecl that) {
-        try { // FIXME - space after ; like other clauses?
+        try {
             for (JCTree.JCVariableDecl s: that.decls) {
                 print(that.token.internedName());
                 print(" ");
                 s.accept(this);
-                print(";");
+                print("; ");
             }
         } catch (IOException e) { perr(that,e); }
     }
@@ -420,7 +464,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
             try {
                 // Note - the output is already aligned, so we have to bump up the alignment
-                indentAndPrint();
+                indentAndRealign();
                 boolean first = true;
                 for (JmlMethodClause c: that.clauses) {
                     if (first) first = false; else { println(); align(); }
@@ -488,7 +532,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementHavoc(JmlStatementHavoc that) {
         try { 
-            if (useJMLComments) print ("//@ ");  // FIXME - this is needed in lots more places
+            if (useJMLComments) print ("//@ ");
             print(that.token.internedName());
 
             print(" ");
@@ -524,39 +568,54 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlTypeClauseIn(JmlTypeClauseIn that) {
-        try {  // FIXME - //@?
+        try {
+            if (useJMLComments) print("//@ ");
             print(that.token.internedName());
-            for (JmlGroupName g: that.list) {
-                print(" ");
-                g.selection.accept(this);
+            Iterator<JmlGroupName> g = that.list.iterator();
+            print(" ");
+            g.next().accept(this);
+            while(g.hasNext()) {
+                print(", ");
+                g.next().accept(this);
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) {
-        try {  // FIXME - //@?
+        try {
+            if (useJMLComments) print("//@ ");
             print(that.token.internedName());
             print(" ");
             print(that.expression);
             print(" \\into");
-            for (JmlGroupName g: that.list) {
-                print(" ");
-                print(g.selection);
+            Iterator<JmlGroupName> g = that.list.iterator();
+            print(" ");
+            g.next().accept(this);
+            while(g.hasNext()) {
+                print(", ");
+                g.next().accept(this);
             }
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlGroupName(JmlGroupName that) {
-        try { notImpl(that); } // FIXME  // FIXME - //@?
+        try { 
+            if (that.selection != null) {
+                that.selection.accept(this); 
+                print(".");
+            }
+            print(that.sym);
+        }
         catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
-        try { // FIXME - modifiers? anything else?
+        try {
             if (that.specs != null) that.specs.accept(this);
             align();
+            if (that.modifiers != null) that.modifiers.accept(this);
             print(that.token.internedName());
             print(" {}");
             println();
@@ -600,19 +659,23 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) {
-        try {  // FIXME - //@?
+        try {
+            if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
             print(that.token.internedName());
             print(" ");
             that.identifier.accept(this);
-            print(" if ");
-            that.expression.accept(this);
+            if (that.expression != null) {
+                print(" if ");
+                that.expression.accept(this);
+            }
             print("; ");
         } catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) {
-        try {  // FIXME - //@?
+        try {
+            if (useJMLComments) print("//@ ");
             if (that.modifiers != null) that.modifiers.accept(this);  // trailing space if non-empty
             print(that.token.internedName());
             print(" ");
@@ -754,6 +817,23 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
     
     public void visitJmlChoose(JmlChoose that) {
+        try { // FIXME - this needs testing
+            align();
+            print(JmlToken.CHOOSE.internedName());
+            println();
+            indent();
+            Iterator<JCBlock> iter = that.orBlocks.iterator();
+            align();
+            iter.next().accept(this);
+            while (iter.hasNext()) {
+                align();
+                print(JmlToken.CHOOSE.internedName());
+                println();
+                align();
+                iter.next().accept(this);
+            }
+        
+        } catch (IOException e) { perr(that,e); }
         // FIXME - fill in
     }
 
@@ -944,7 +1024,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
-        try { notImpl(that);  // FIXME
-        } catch (IOException e) { perr(that,e); }
+        that.item.accept(this);
     }
 }

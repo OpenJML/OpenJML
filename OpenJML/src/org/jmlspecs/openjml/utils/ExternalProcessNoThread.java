@@ -68,14 +68,14 @@ public class ExternalProcessNoThread implements IExternalProcess {
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);
-            if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app[0]);
+            if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app()[0]);
             //if (!f.exists()) throw new ProverException("The specified executable does not appear to exist: " + app[0]);
         }
         try {
             process = Runtime.getRuntime().exec(app);
         } catch (IOException e) {
             process = null;
-            throw new ProverException("Failed to launch prover process: " + app + " " + e);
+            throw new ProverException("Failed to launch prover process: " + app()[0] + " " + e);
         }
         // TODO: assess performance of using buffered readers/writers
         toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));

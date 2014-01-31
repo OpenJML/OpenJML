@@ -7,6 +7,7 @@ import java.io.PrintStream;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -770,6 +771,47 @@ public class compiler {
                           ,""
                           ,""
                           );
+    }
+
+    @Test
+    public void testExtension1() throws Exception {
+        helper(new String[]
+                { "-classpath","runtime",
+                  "-sourcepath","testfiles/testNoErrors",
+                  "-specspath","runtime",
+                  "-strictJML",
+                  "-extensions=X", // Ignored when strict
+                  "testfiles/testNoErrors/A.jml"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void testExtension2() throws Exception {
+        helper(new String[]
+                { "-classpath","runtime",
+                  "-sourcepath","testfiles/testNoErrors",
+                  "-specspath","runtime",
+                  "-extensions=X",
+                  "testfiles/testNoErrors/A.jml"
+                },1,1
+                ,"error: Failed to load extension X: No such package found"
+                ,""
+                );
+    }
+
+    @Test @Ignore // FIXME - have not yet fixed how extensions are found
+    public void testExtension3() throws Exception {
+        helper(new String[]
+                { "-classpath","runtime",
+                  "-sourcepath","testfiles/testext",
+                  "-specspath","runtime",
+                  "-extensions=ext",
+                  "testfiles/testext/A.java"
+                },0,0
+                ,""
+                );
     }
 
 

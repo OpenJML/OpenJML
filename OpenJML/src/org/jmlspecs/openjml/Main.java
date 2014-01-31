@@ -669,10 +669,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     // This should be able to be called without difficulty whenever any option
     // is changed
     public boolean setupOptions() {
-        // CAUTION: Do not initialize any of the tools in here
-        // If, for example, JmlSpecs gets initialized, then Target will
-        // get initialized and it will grab the current version of -target
-        // before all the options are set
+        // CAUTION: If tools cache values of options and have their singleton
+        // instance created before the options are completely processed, the
+        // tool will grab some default version of the option.
+        // Crucially, Log does this.
+
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
         
@@ -769,6 +770,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         } else {
             Log.instance(context).noticeWriter.println("Expected 'all' or 'none' or 'preconditions' as argument for -checkFeasibility: " + check);
         }
+        Extensions.register(context);
         return true;
 }
     
@@ -854,7 +856,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
-        Extensions.register(context);
+        // Extensions are registered after options are processed
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML

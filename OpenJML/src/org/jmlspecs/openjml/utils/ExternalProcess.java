@@ -14,6 +14,7 @@ import java.io.Writer;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.util.Context;
@@ -177,7 +178,7 @@ public class ExternalProcess implements IExternalProcess  {
             process = new ProcessBuilder(app()).start();
         } catch (IOException e) {
             process = null;
-            throw new ProverException("Failed to launch process: " + app() + " " + e);
+            throw new ProverException("Failed to launch process: " + app()[0] + Strings.space + e);
         }
         // TODO: assess performance of using buffered readers/writers
         toProver = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));

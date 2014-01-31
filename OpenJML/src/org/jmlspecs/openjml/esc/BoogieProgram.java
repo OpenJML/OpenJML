@@ -184,7 +184,7 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
             try {
                 pw.print(id+":"+JmlPretty.lineSep);
                 pw.flush();
-                pw.indentAndPrint();
+                pw.indentAndRealign();
                 for (JCTree t: statements) {
                     t.accept(pw);
                     pw.print("\n");

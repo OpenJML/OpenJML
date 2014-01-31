@@ -11,23 +11,23 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.esc.Label;
 
-import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.TreeVisitor;
-import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Scope.ImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -38,14 +38,12 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
-import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -120,7 +118,7 @@ public class JmlTree implements IJmlTree {
         JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
         JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, JmlToken token, JCTree.JCExpression e);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
-        JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token);
+        JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token, JCModifiers mods);
         JmlTypeClauseMaps JmlTypeClauseMaps(JCExpression e, List<JmlGroupName> list);
         JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list);
         JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e);
@@ -552,8 +550,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token) {
-            JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token);
+        public JmlTypeClauseInitializer JmlTypeClauseInitializer(JmlToken token, JCModifiers mods) {
+            JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token, mods);
             t.source = Log.instance(context).currentSourceFile();
             return t;
         }
@@ -2237,8 +2235,11 @@ public class JmlTree implements IJmlTree {
     
     /** This class represents JML expression constructs which do not have arguments (syntactically). */
     public static class JmlSingleton extends JmlExpression {
+        
+        /** The kind of singleton expression */
         public JmlToken token;
-        //public Symbol symbol;  // Convenience for some node types
+        
+        /** Used for additional information, such as the comment string of an informal expression */
         public Object info = null;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -2511,9 +2512,6 @@ public class JmlTree implements IJmlTree {
          */
         public JCTree.JCExpression optionalExpression = null;
         
-//        /** The line number corresponding to pos */
-//        public int line; 
-//        
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
         public JavaFileObject source;
         
@@ -2702,7 +2700,6 @@ public class JmlTree implements IJmlTree {
     public static class JmlStatementLoop extends JmlAbstractStatement {
         public JmlToken token;
         public JCTree.JCExpression expression;
-        //public VarSymbol sym; // FIXME - put this in the copy constructors etc. - what is it for?
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoop(int pos, JmlToken token, JCTree.JCExpression expression) {
@@ -3144,12 +3141,11 @@ public class JmlTree implements IJmlTree {
         public JmlMethodSpecs specs;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseInitializer(int pos, JmlToken token) {
+        protected JmlTypeClauseInitializer(int pos, JmlToken token, JCModifiers mods) {
             this.pos = pos;
             this.token = token;
             this.source = null;
-            this.modifiers = null; 
-            // FIXME - needs to set modifiers
+            this.modifiers = mods; 
         }
         
         @Override

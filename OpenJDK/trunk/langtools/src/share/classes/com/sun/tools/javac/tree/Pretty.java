@@ -122,19 +122,19 @@ public class Pretty extends JCTree.Visitor {
 
     /** Align code to be indented to left margin.
      */
-    protected void align() throws IOException {  // DRC - changed from default to protected
+    public void align() throws IOException {  // DRC - changed from default to public
         for (int i = 0; i < lmargin; i++) out.write(" ");
     }
 
     /** Increase left margin by indentation width.
      */
-    protected void indent() {  // DRC - changed from default to protected
+    public void indent() {  // DRC - changed from default to public
         lmargin = lmargin + width;
     }
 
     /** Decrease left margin by indentation width.
      */
-    protected void undent() {  // DRC - changed from default to protected
+    public void undent() {  // DRC - changed from default to public
         lmargin = lmargin - width;
     }
 

@@ -519,7 +519,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that, Void p) {
         JmlTypeClauseInitializer copy = M.at(that.pos).JmlTypeClauseInitializer(
-                that.token);
+                that.token,null);
         copy.modifiers = copy(that.modifiers,p);
         copy.specs = copy(that.specs,p);
         copy.source = that.source;

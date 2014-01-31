@@ -37,6 +37,7 @@ public enum JmlOption implements IOption {
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     JML("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null),
     STRICT("-strictJML",false,false,"Disables any JML extensions in OpenJML",null),
+    EXTENSIONS("-extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null),
 
     STOPIFERRORS("-stopIfParseErrors",false,false,"When enabled, stops after parsing if any files have parsing errors",null),
 

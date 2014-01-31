@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.Nullable;
@@ -27,8 +26,6 @@ import org.osgi.framework.Bundle;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
-
-/* FIXME - do more to implement extensions */
 
 /** This class manages extensions. It finds them at application startup, and
  * creates instances of individual extension classes for compilation contexts.
@@ -101,34 +98,62 @@ public class Extensions {
     static protected Map<JmlToken,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<JmlToken,Class<? extends ExpressionExtension>>();
     protected Map<JmlToken,ExpressionExtension> extensionInstances = new HashMap<JmlToken,ExpressionExtension>();
     
-    // FIXME - change this to find extensions in various packages
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
     // looked up at runtime.
     public static void register(Context context) {
         Package p = Package.getPackage("org.jmlspecs.openjml.ext");
-        java.util.List<Class<?>> extensions;
         try {
-            extensions = findClasses(context,p);
-            JmlToken[] tokens;
-            for (Class<?> cc: extensions) {
-                if (!ExpressionExtension.class.equals(cc.getSuperclass())) continue;
-                Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
-                try {
-                    Method m = c.getMethod("tokens");
-                    tokens = (JmlToken[])m.invoke(null);
-                } catch (Exception e) {
-                    continue;
+            registerPackage(context,p);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (JmlOption.isOption(context, JmlOption.STRICT)) return;
+        String exts = JmlOption.value(context, JmlOption.EXTENSIONS);
+        if (exts == null) return;
+        for (String extname : exts.split(",")) {
+            try {
+                Class<?> cl = Class.forName(extname);
+                if (!registerClass(cl)) {
+                    Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
                 }
-                for (JmlToken t: tokens) {
-                    extensionClasses.put(t, c);
-                }
+                continue;
+            } catch (ClassNotFoundException e) {
+                // OK - go on to see if it is a package
+            }
+            try {
+                p = Package.getPackage(extname);
+                registerPackage(context,p);
+            } catch (Exception e) {
+                Log.instance(context).error("jml.extension.failed", extname,
+                        p == null ? "No such package found" : e.toString());
+            }
+        }
+    }
+    
+    public static void registerPackage(Context context, Package p) throws java.io.IOException {
+        java.util.List<Class<?>> extensions;
+        extensions = findClasses(context,p);
+        for (Class<?> cc: extensions) {
+            registerClass(cc);
+        }
+    }
+    
+    public static boolean registerClass(Class<?> cc) {
+        if (!ExpressionExtension.class.isAssignableFrom(cc)) return false;
+        @SuppressWarnings("unchecked")
+        Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
+        JmlToken[] tokens;
+        try {
+            Method m = c.getMethod("tokens");
+            tokens = (JmlToken[])m.invoke(null);
+            for (JmlToken t: tokens) {
+                extensionClasses.put(t, c);
             }
         } catch (Exception e) {
-            System.out.println(e);
-            // FIXME - error
+            return false;
         }
-        
+        return true;
     }
     
     // This method finds all the classes in a given package that are OpenJML

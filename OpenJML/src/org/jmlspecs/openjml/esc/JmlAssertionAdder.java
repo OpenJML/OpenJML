@@ -10463,8 +10463,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {
         JCModifiers mods = fullTranslation ? convert(that.modifiers) : that.modifiers;
-        JmlTypeClauseInitializer cl = M.at(that).JmlTypeClauseInitializer(that.token);
-        cl.modifiers = mods;
+        JmlTypeClauseInitializer cl = M.at(that).JmlTypeClauseInitializer(that.token,mods);
         cl.specs = convert(that.specs);
         cl.setType(that.type);
         cl.source = that.source;
