@@ -41,9 +41,8 @@ public class racsystem extends RacBase {
         main.addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
     }
 
-    // FIXME - not testing rac-compiled JDK files
     /** Testing with getting a stack trace */
-    @Test @Ignore
+    @Test @Ignore    // FIXME - not testing rac-compiled JDK files
     public void testFile2() {
         expectedRACExit = 1; 
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"

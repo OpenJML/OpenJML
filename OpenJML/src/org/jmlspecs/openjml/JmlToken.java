@@ -193,6 +193,7 @@ public enum JmlToken {
     BSBIGINT("\\bigint"), // Keep this one the last of the backslash tokens
     
     // These are JML operators (in expressions)
+    // Note that the jmloperators set relies on this ordering
     EQUIVALENCE("<==>"),
     INEQUIVALENCE("<=!=>"),
     IMPLIES("==>"),
@@ -259,6 +260,8 @@ public enum JmlToken {
     static {
         extensions.remove(CODE_BIGINT_MATH);
     }
+    
+    public final static EnumSet<JmlToken> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
     
     /** This is a set of the modifiers that may be used to characterize a type. */
     public final static JmlToken[] typeModifiers = new JmlToken[]{NULLABLE,NONNULL,BSREADONLY};

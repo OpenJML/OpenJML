@@ -60,8 +60,8 @@ public class escJML extends EscBase {
                 );
     }
 
-    @Test @Ignore
-    public void testLBLboolean() { // FIXME - this creates a huge VC
+    @Test @Ignore // FIXME - this creates a huge VC
+    public void testLBLboolean() { 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(boolean i) { \n"

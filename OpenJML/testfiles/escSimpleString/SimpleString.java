@@ -24,24 +24,63 @@ public class SimpleString {
   /**
    * The character data of this SimpleString.
    */
-  private /*@ spec_public */ final char[] my_chars;  
+    private /*@ spec_public */ char[] my_chars;  
+    private /*@ spec_public */ int[] my_ints;  
+    private /*@ spec_public */ Object[] my_Objects;  
+    private /*@ spec_public */ Integer[] my_Integers;  
   
   // Constructors
   
-  /**
-   * Constructs a new SimpleString with the contents of the specified
-   * array of characters in the order they appear in the array.
-   * 
-   * @param the_chars The array of characters.
-   */
-  //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_chars[i]);
-  public SimpleString(final /*@ non_null */ char[] the_chars) {
-    my_chars = new char[the_chars.length];
-    // FIXME - these assumptions should be part of the logic encoding. Note that the first two seem to have to be after the assignment above
-    //@ assume the_chars instanceof char[];
-    //@ assume \elemtype(\typeof(my_chars)) == \type(char);
-    //@ assume my_chars instanceof char[];
-    System.arraycopy(the_chars, 0, my_chars, 0, the_chars.length);
-  }
+    /**
+     * Constructs a new SimpleString with the contents of the specified
+     * array of characters in the order they appear in the array.
+     * 
+     * @param the_array The array of characters.
+     */
+    //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_array[i]);
+    public SimpleString(final /*@ non_null */ char[] the_array) {
+        //@ assert the_array != null;
+        my_chars = new char[the_array.length];
+        //@ assert the_array != null;
+        //@ assert my_chars != null;
+        //@ assert my_chars.length == the_array.length;
+        //@ assert (\typeof(the_array)) == \type(char[]);
+        //@ assert (\typeof(my_chars)) == \type(char[]);
+        //@ assert \elemtype(\typeof(the_array)) == \type(char);
+        //@ assert \elemtype(\typeof(my_chars)) == \type(char);
+        //@ assert my_chars instanceof char[];
+        //@ assert the_array instanceof char[];
+        System.arraycopy(the_array, 0, my_chars, 0, the_array.length);
+    }
+
+    /**
+     * Constructs a new SimpleString with the contents of the specified
+     * array of ints in the order they appear in the array.
+     * 
+     * @param the_array The array of ints.
+     */
+    //@ ensures (\forall int i; 0 <= i && i < my_ints.length; my_ints[i] == the_array[i]);
+    public SimpleString(final /*@ non_null */ int[] the_array) {
+        my_ints = new int[the_array.length];
+        System.arraycopy(the_array, 0, my_ints, 0, the_array.length);
+    }
+
+    /**
+     * Constructs a new SimpleString with the contents of the specified
+     * array of ints in the order they appear in the array.
+     * 
+     * @param the_array The array of ints.
+     */
+    //@ ensures (\forall int i; 0 <= i && i < my_Objects.length; my_Objects[i] == the_array[i]);
+    public SimpleString(final /*@ non_null */ Object[] the_array) {
+        my_Objects = new Object[the_array.length];
+        System.arraycopy(the_array, 0, my_Objects, 0, the_array.length);
+    }
+
+    //@ ensures (\forall int i; 0 <= i && i < my_Integers.length; my_Integers[i] == the_array[i]);
+    public SimpleString(final /*@ non_null */ Integer[] the_array) {
+        my_Integers = new Integer[the_array.length];
+        System.arraycopy(the_array, 0, my_Integers, 0, the_array.length);
+    }
 
 }

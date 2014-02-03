@@ -11,6 +11,7 @@ import java.util.Queue;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
@@ -29,6 +30,7 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.JavaCompiler.CompileState;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -369,41 +371,78 @@ public class JmlCompiler extends JavaCompiler {
         return list;
     }
 
+    // We override this method instead of the desugar method that does one
+    // env because we have to do all the rac before any of the desugaring
+    @Override
+    public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
+        ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = lb();
+
+        if (utils.check || utils.doc) {
+            // Stop here
+            return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
+        } else if (utils.esc) {
+            for (Env<AttrContext> env: envs)
+                esc(env);
+            return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
+        } else if (utils.rac) {
+            for (Env<AttrContext> env: envs) {
+                JCTree t = env.tree;
+                env = rac(env);
+                if (env == null) continue; // FIXME - error? just keep oroginal env?
+                // Continue with the usual compilation phases
+                
+                if (utils.jmlverbose >= Utils.PROGRESS) 
+                    context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
+                        (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
+                            t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
+            }
+            for (Env<AttrContext> env: envs)
+                desugar(env, results);
+            
+        } else {
+            for (Env<AttrContext> env: envs)
+                desugar(env, results);
+        }
+        return stopIfError(CompileState.FLOW, results);
+    }
+
     /** Overridden so that we do either (1) ESC or (2) RAC prep followed 
      * by desugaring and code generation.
      */
-    @Override
-    protected void desugar(Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
-        // Note super.desugar() translates generic Java to non-generic Java and perhaps does other stuff.
-        
-        // Note - we do not want translation for jmldoc (neither ESC nor RAC)
-        
-        if (utils.check || utils.doc) {
-            // Stop here // FIXME - use stopping policy?
-            return;
-        }
-        
-        if (utils.esc) {
-            esc(env);
-            
-            // nothing has been put in results, so no further compilation 
-            // phases will be performed
-        }
-        if (utils.rac) {
-            JCTree t = env.tree;
-            env = rac(env);
-            if (env == null) return;
-            // Continue with the usual compilation phases
-            
-            if (utils.jmlverbose >= Utils.PROGRESS) 
-                context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
-                    (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
-                        t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
-            super.desugar(env,results);
-        }
-        
-        // FIXME - continue with usual Java compilation?
-    }
+//    @Override
+//    protected void desugar(Env<AttrContext> env, Queue<Pair<Env<AttrContext>, JCClassDecl>> results) {
+//        // Note super.desugar() translates generic Java to non-generic Java and perhaps does other stuff.
+//        
+//        // Note - we do not want translation for jmldoc (neither ESC nor RAC)
+//
+//        if (env.tree instanceof JmlClassDecl && "Add_ClassStrategy_int".equals(((JmlClassDecl)env.tree).name.toString())) Utils.print("");
+//
+//        if (utils.check || utils.doc) {
+//            // Stop here // FIXME - use stopping policy?
+//            return;
+//        }
+//        
+//        if (utils.esc) {
+//            esc(env);
+//            
+//            // nothing has been put in results, so no further compilation 
+//            // phases will be performed
+//        }
+//        if (utils.rac) {
+//            JCTree t = env.tree;
+//            env = rac(env);
+//            if (env == null) return;
+//            // Continue with the usual compilation phases
+//            
+//            if (utils.jmlverbose >= Utils.PROGRESS) 
+//                context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
+//                    (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
+//                        t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
+//            super.desugar(env,results);
+//        }
+//        
+//        // FIXME - continue with usual Java compilation?
+//    }
     
 //    public CountMethodInvocation counter = new CountMethodInvocation();
 

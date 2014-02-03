@@ -1845,7 +1845,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         /** Returns the name for a variable symbol as stored in this map */
         public /*@Nullable*/ Name getName(VarSymbol vsym) {
-            if (vsym.toString().equals("values")) Utils.print("");
             Name s = mapname.get(vsym);
             return s;
         }
@@ -1853,7 +1852,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         /** Returns the name for a variable symbol as stored in this map, creating (and
          * storing) one if it is not present. */
         public /*@NonNull*/ Name getCurrentName(VarSymbol vsym) {
-            if (vsym.toString().equals("values")) Utils.print("");
             Name s = mapname.get(vsym);
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
@@ -1900,7 +1898,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         /** Returns the incarnation number (single-assignment version
          * number) for the symbol */
         public Long getSAVersionNum(VarSymbol vsym) {
-            if (vsym.toString().equals("values")) Utils.print("");
             Long i = mapSAVersion.get(vsym);
             if (i == null) {
                 Name n = encodedName(vsym,0L);
@@ -1931,14 +1928,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         /** Stores a new SA version of a symbol, with a custom name */
         public void putSAVersion(VarSymbol vsym, Name s, long version) {
-            if (vsym.toString().equals("values")) Utils.print("");
             mapSAVersion.put(vsym,version);
             mapname.put(vsym,s);
         }
         
         /** Stores a new SA version of a symbol */
         public Name putSAVersion(VarSymbol vsym, long version) {
-            if (vsym.toString().equals("values")) Utils.print("");
             Name s = encodedName(vsym,version);
             mapSAVersion.put(vsym,version);
             mapname.put(vsym,s);

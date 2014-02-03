@@ -75,6 +75,51 @@ public class escgeneric extends EscBase {
     @Test
     public void testGenericType() {
         helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T> extends B<T> { \n"
+                +"  public void ma(T i) {\n"
+                +"  }\n"
+                +"}\n"
+                +"class A<T> extends TestJava<B<T>> { \n"
+                +"  public void mb(T i) {\n"
+                +"  }\n"
+                +"}\n"
+                +"class B<E> {}\n"
+                +"class C<F> extends java.util.LinkedList<B<F>> {}\n"
+        );
+    }
+    
+    @Test
+    public void testGenericType2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava<T extends B> { \n"
+                
+                +"  public void m(T i) {\n"
+                +"    //@ assume i != null;\n"
+                +"    //@ assert i instanceof Object;\n"
+                +"    //@ assert \\typeof(i) <: \\type(Object);\n"
+                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(Object));\n"
+                +"    //@ assert \\typeof(i) <: \\type(T);\n"
+                +"    //@ assert i instanceof B;\n"
+                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(B));\n"
+                +"    //@ assert \\typeof(i) <: \\type(B);\n"
+                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n"
+                +"    //@ assert \\typeof(i) <: \\type(C);\n"
+                +"    //@ assert \\type(T) <: \\type(B);\n"
+                +"    //@ assert \\type(T) <: \\type(C);\n"
+                +"  }\n"
+                +"  public TestJava() {}\n"
+                +"}\n"
+                +"class B {}\n"
+                +"class C extends TestJava<B> {}\n"
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m",9
+        );
+    }
+    
+    @Test
+    public void testGenericType1() {
+        helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(Integer i) {\n"
@@ -102,9 +147,10 @@ public class escgeneric extends EscBase {
                 +"class B {}\n"
                 +"class C {}\n"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method ma",9
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method mb",9
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mc",9
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method mc",9
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mz1",9 // FIXME - should be OK
         );
     }
 
@@ -130,8 +176,28 @@ public class escgeneric extends EscBase {
     }
 
     @Test
+    public void testStatic2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void ma(Integer i) {\n"
+                +"    TestG.<Integer>mm(i);\n"
+                +"  }\n"
+                +"  public void mb(Object o) {\n"
+                +"    TestG.<Object>mm(o);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG {\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  public static <E> void mm(E t) {}\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+        );
+    }
+
+    @Test
     public void testTypeParameter() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -151,6 +217,7 @@ public class escgeneric extends EscBase {
                 );
     }
     
+    // FIXME - need to fix tyep parameters for inner (non-static) classes
     @Test
     public void testTypeParameter2() {
         helpTCX("tt.TestJava","package tt; \n"

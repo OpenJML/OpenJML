@@ -179,7 +179,7 @@ public class escfiles extends EscBase {
     @Test // FIXME _ needs generic substitution
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-show","-method=types","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
@@ -207,16 +207,16 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/loopExercises","testfiles/loopExercises","-logic=AUFNIA");
     }
 
-    @Test @Ignore
+    @Test @Ignore  // FIXME - CVC4 crashes
     public void testPurseCard() {
-        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
+        if (solver.equals("cvc4")) fail();
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-logic=AUFNIA","-timeout=15");
     }
 
-    @Test @Ignore
+    @Test @Ignore // FIXME - CVC4 crashes
     public void testPurseCardMod() {
-        if (solver.equals("cvc4")) fail(); // FIXME - CVC4 crashes
+        if (solver.equals("cvc4")) fail();
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
     }
@@ -323,7 +323,7 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escCashAmountPrivate2/CashAmountOnlyPrivate.java","testfiles/escCashAmountPrivate2","-classpath","testfiles/escCashAmountPrivate2","-method=increase");
     }
 
-    @Test // FIXME - fails because of generics
+    @Test
     public void testDoublyLinkedList() {
         helpTF("escDoublyLinkedList");
     }
@@ -333,9 +333,10 @@ public class escfiles extends EscBase {
         helpTF("escModelFields","-progress");
     }
 
-    @Test // FIXME - needs more work on axioms for arrays
+    @Test // FIXME - CVC4 crashes
     public void testEscSimpleString() {
-        helpTF("escSimpleString","-nonnullByDefault","-escMaxWarnings=1");
+        if ("cvc4".equals(solver)) fail(); 
+        helpTF("escSimpleString","-nonnullByDefault");
     }
 
     @Test

@@ -650,6 +650,11 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, nullLit);
     }
     
+    /** Makes an attributed AST for a reference inequality (!=) expression */
+    public JCBinary makeEqNull(int pos, JCExpression lhs) {
+        return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, nullLit);
+    }
+    
     /** Makes an attributed AST for the length operation on an array. */
     public JCFieldAccess makeLength(DiagnosticPosition pos, JCExpression array) {
         JCFieldAccess fa = (JCFieldAccess)factory.at(pos).Select(array, syms.lengthVar);
@@ -959,12 +964,11 @@ public class JmlTreeUtils {
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */
     public JCExpression makeDynamicTypeEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
-        JCExpression expr = makeNotNull(id.pos, id);
         
         JCExpression lhs = makeTypeof(id);
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
-        expr = makeAnd(p,expr,makeEqObject(p,lhs,rhs));
+        JCExpression expr = makeEqObject(p,lhs,rhs);
         expr = makeAnd(p,expr,
                 makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs));
         {
@@ -982,6 +986,12 @@ public class JmlTreeUtils {
             e = makeEqObject(p, e, ct);
             expr = makeAnd(p,expr,e);
         }
+        
+        if (!type.isPrimitive() ) {
+            JCExpression ex = makeEqNull(id.pos, id);
+            expr = makeOr(p,ex,expr);
+        }
+
         return expr;
     }
 
@@ -995,16 +1005,17 @@ public class JmlTreeUtils {
         rhs.type = JmlTypes.instance(context).TYPE;
         JCExpression expr = makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,lhs,rhs);
         {
-            Type t = types.erasure(type);
-            if (t.getKind() != TypeKind.ARRAY) {
+            if (type.getKind() != TypeKind.ARRAY) {
                 JCTree.JCInstanceOf tt = makeInstanceOf(p,id,types.erasure(type));
                 expr = makeAnd(p,tt,expr);
-            } else if ( ((Type.ArrayType)t).elemtype.isPrimitive()) {
+            } else {
+                Type comptype = ((Type.ArrayType)type).elemtype;
                 JCExpression e = makeTypeof(id);
                 e = makeJmlMethodInvocation(pos,JmlToken.BSELEMTYPE,e.type,e);
-                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,((Type.ArrayType)t).elemtype));
+                JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,comptype));
                 tt.type = JmlTypes.instance(context).TYPE;
-                e = makeEquality(p,e,tt);
+                if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
+                else e = makeJmlMethodInvocation(pos,JmlToken.SUBTYPE_OF,syms.booleanType,e,tt);
                 expr = makeAnd(p,expr,e);
             }
         }

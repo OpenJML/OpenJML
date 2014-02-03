@@ -259,21 +259,26 @@ public class MethodProverSMT {
             }
 
             // convert the basic block form to SMT
-            ICommand.IScript script = smttrans.convert(program,smt);
-            if (printPrograms) {
-                try {
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println(separator);
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                    org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
-                    log.noticeWriter.println();
-                    log.noticeWriter.println();
-                } catch (VisitorException e) {
-                    log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+            ICommand.IScript script;
+            try {
+                script = smttrans.convert(program,smt);
+                if (printPrograms) {
+                    try {
+                        log.noticeWriter.println(Strings.empty);
+                        log.noticeWriter.println(separator);
+                        log.noticeWriter.println(Strings.empty);
+                        log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+                        org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
+                        log.noticeWriter.println();
+                        log.noticeWriter.println();
+                    } catch (VisitorException e) {
+                        log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+                    }
                 }
+            } catch (Exception e) {
+                log.error("jml.internal", "Failed to convert to SMT: " + e);
+                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
             }
-
             // Starts the solver (and it waits for input)
             start = new Date();
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -438,12 +443,12 @@ public class MethodProverSMT {
             SMTTranslator smttrans) {
         addToConstantMap(smttrans.NULL,smt,solver,cemap);
         addToConstantMap(smttrans.thisSym.toString(),smt,solver,cemap);
-        for (Type t : smttrans.javaTypes) {
-            String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer
-            addToConstantMap(s,smt,solver,cemap);
-            s = smttrans.jmlTypeSymbol(t).toString(); // FIXME - need official printer
-            addToConstantMap(s,smt,solver,cemap);
-        }
+//        for (Type t : smttrans.javaTypes) {
+//            String s = smttrans.javaTypeSymbol(t).toString(); // FIXME - need official printer
+//            addToConstantMap(s,smt,solver,cemap);
+//            s = smttrans.jmlTypeSymbol(t).toString(); // FIXME - need official printer
+//            addToConstantMap(s,smt,solver,cemap);
+//        }
     }
     
     public void addToConstantMap(String id, SMT smt, ISolver solver, Map<JCTree,String> cemap) {
@@ -775,6 +780,7 @@ public class MethodProverSMT {
     public String getValue(String id, SMT smt, ISolver solver) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
+        String out;
         if (resp instanceof IResponse.IError) {
             log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg()); //$NON-NLS-1$
             return null;
@@ -784,16 +790,16 @@ public class MethodProverSMT {
         } else if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
             if (se instanceof org.smtlib.sexpr.ISexpr.ISeq) se = ((org.smtlib.sexpr.ISexpr.ISeq)se).sexprs().get(1);
-            return se.toString();
+            out = se.toString();
 
         } else if (resp instanceof IResponse.IValueResponse) {
-            return ((IResponse.IValueResponse)resp).values().get(0).second().toString(); //FIXME use a printer instead of toString()
+            out = ((IResponse.IValueResponse)resp).values().get(0).second().toString(); //FIXME use a printer instead of toString()
         } else {
             log.error("jml.internal.notsobad", "Unexpected response on requesting value of assertion: " + smt.smtConfig.defaultPrinter.toString(resp)); //$NON-NLS-1$
             return null;
 
         }
-
+        return ((Tracer)tracer).normalizeConstant(out); // FIXME - fix interface
     }
     
 
@@ -875,8 +881,7 @@ public class MethodProverSMT {
                 if (print) {
                     String expr = that.toString();
                     String sv = cemap.get(that);
-                    String userString = sv == null ? "???" : constantTraceMap.get(sv);
-                    if (userString == null) userString = sv;
+                    String userString = normalizeConstant(sv);
                     if (that.type.tag == TypeTags.BOOLEAN) { 
                         userString = userString.replaceAll("\\( _ bv0 1 \\)", "false");
                         userString = userString.replaceAll("\\( _ bv1 1 \\)", "true");
@@ -889,6 +894,12 @@ public class MethodProverSMT {
                 }
                 else print = true;
             }
+        }
+        
+        public String normalizeConstant(String sv) {
+            String userString = sv == null ? "???" : constantTraceMap.get(sv);
+            if (userString == null) userString = sv;
+            return userString;
         }
         
         /** Declarations are not expressions, but we want to print the final

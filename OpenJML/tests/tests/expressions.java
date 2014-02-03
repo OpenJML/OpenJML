@@ -527,6 +527,37 @@ public class expressions extends ParseBase {
                 JCIdent.class ,11);
     }
     
+    /** Test precedence of <: operator */
+    @Test
+    public void testSubTypeof5() {
+        helpExpr(" (a) <: c",
+                JmlBinary.class, 5,
+                JCParens.class, 1,
+                JCIdent.class, 2,
+                JCIdent.class ,8);
+    }
+    
+    /** Test precedence of <: operator */
+    @Test
+    public void testSubTypeof6() {
+        helpExpr(" a <: (c)",
+                JmlBinary.class, 3,
+                JCIdent.class, 1,
+                JCParens.class, 6,
+                JCIdent.class ,7);
+    }
+    
+    /** Test precedence of <: operator */
+    @Test
+    public void testSubTypeof7() {
+        helpExpr(" (a) <: (c)",
+                JmlBinary.class, 5,
+                JCParens.class, 1,
+                JCIdent.class, 2,
+                JCParens.class, 8,
+                JCIdent.class ,9);
+    }
+    
     @Test
     public void testQuantifier() {
         helpExpr(" \\exists  int i; 0 <= i; i < 0  ",

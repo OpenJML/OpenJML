@@ -81,6 +81,11 @@ public class assignable extends TCBase {
     }
     
     @Test
+    public void testAssignableArray3a() {
+        helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[(i-1)..(i+1)], o[(i+1)..], o[(i+1).. *];\n void m(int i){} }");
+    }
+    
+    @Test
     public void testAssignableDots() {
         helpTC(" class A { int[] k; boolean b; Object[] o; \n//@ assignable o[2..3], o[2..*];\n void m(){} }");
     }

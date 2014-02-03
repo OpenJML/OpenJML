@@ -24,8 +24,7 @@ public class esc extends EscBase {
 //        super(option,solver);
 //    }
     
-    // FIXME - the -custom option fails significantly when escdebug and -trace are on
-    // FIXME = significant failures in boogie and newesc
+    // FIXME = significant failures in boogie
     
     @Override
     public void setUp() throws Exception {
@@ -43,16 +42,17 @@ public class esc extends EscBase {
     
     @Test  // FIXME: Needs some implementation
     public void testCollect() {
+        main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-                +"  //@ invariant \\type(Short) <: \\type(java.lang.Long);\n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double;\n"
+                +"    Object oo = v.getClass();\n"
                 +"    Object o = (Class<?>)v.getClass();\n"
                 +"    v.add(0,new Integer(0));\n"
                 +"    bb = v.elements().hasMoreElements();\n"
-                +"    return null; \n"
+                +"    return null; \n" // FAILS
                 +"  }\n"
                 +"}\n"
               );
@@ -262,27 +262,73 @@ public class esc extends EscBase {
     }
 
     
-    // FIXME - need more testing with foreach and iterables
-    @Test @Ignore// FIXME - troubles with enhanced-for statements with complicated generics
+    @Test
     public void testForEach2() {
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
-//                +"  public void m1() {\n
-//                +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
-//                +"    for (Map.Entry<String,String> k: a) {\n"
-//                +"    }\n"
-//                +"  }\n"
-                                
+                +"  //@ public normal_behavior  ensures true;\n"
                 +"  public void m2() {\n"
-                +"    int index = 0;\n"
+                +"    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                +"    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                +"    for (; it.hasNext();  ) {\n"
+                +"        it.next(); \n" 
+                +"    }\n"
+                +"  }\n"
+                          
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m2bad() {\n"
+                +"    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                +"    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                +"    for (; it.hasNext();  ) {\n"
+                +"        it.next(); \n" 
+                +"        it.next(); \n" 
+                +"    }\n"
+                +"  }\n"
+                                
+                +"  public TestJava() {}"
+                
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad",16
+                ,"/tt/TestJava.java:11: warning: Associated declaration",14
+                );
+    }
+
+    @Test
+    public void testForEach2a() {
+        helpTCX("tt.TestJava","package tt; import java.util.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m1() {\n"
+                +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
+                +"    for (Map.Entry<String,String> k: a) {\n"
+                +"    }\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m2() {\n"
                 +"    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
                 +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
                 +"    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
                 +"    Map.Entry<String,String> k;\n"
                 +"    for (; it.hasNext(); values.add(k) ) {\n"
-                +"        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry); \n"
+                +"        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME - problems if we have erased type names
                 +"    }\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m3() {\n"
+                +"    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                +"    Integer k = new Integer(1);\n"
+                +"    values.add(k);\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m4() {\n"
+                +"    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                +"    Integer k = 0;\n"
+                +"    values.add(k);\n"
                 +"  }\n"
                                 
                 +"  public TestJava() {}"
@@ -3852,6 +3898,7 @@ public class esc extends EscBase {
 
     @Test
     public void testSignals2() {
+        main.addOptions("-show","-method=m2a","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"

@@ -65,8 +65,8 @@ public class racArithmeticModes extends RacBase {
         
     }
 
-    @Ignore
-    @Test public void testNegMath() { // FIXME - need to settle on how to handle int declarations in Math mode
+    @Ignore // FIXME - need to settle on how to handle int declarations in Math mode
+    @Test public void testNegMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; int k = -j; System.out.println(\"END\"); \n" +
                 "int i = Integer.MIN_VALUE; int kk = -i; System.out.println(\"END\");} \n" +

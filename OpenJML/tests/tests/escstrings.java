@@ -345,7 +345,7 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String concatenation */
-    @Test @Ignore
+    @Test @Ignore  // FIXME - need more semantics of concat and equals
     public void testStringConcat2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -361,14 +361,14 @@ public class escstrings extends EscBase {
                 +"       //@ assert sss.equals(s4);\n"
                 +"  }\n"
                 
-                +"}"  // FIXME - need more semantics of concat and equals
+                +"}" 
                 ,!"yices2".equals(solver)?null:// FIXME because yices2 cannot do quantifiers
                     "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",12
                 );
     }
 
     /** Tests String concatenation */
-    @Test @Ignore
+    @Test @Ignore // FIXME - need more semantics of concat and equals
     public void testStringConcat2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -382,7 +382,7 @@ public class escstrings extends EscBase {
                 +"       //@ assert (s+ss).equals(s+ss);\n"
                 +"  }\n"
                 
-                +"}"  // FIXME - need more semantics of concat and equals
+                +"}" 
                 ,!"yices2".equals(solver)?null:// because yices2 cannot do quantifiers
                     "/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",19
                 );

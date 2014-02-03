@@ -2619,6 +2619,14 @@ public class JmlParser extends EndPosParser {
         }
         return toP(super.term3());
     }
+    
+    @Override
+    protected JCExpression potentialCast() {
+        JmlToken t = S.jmlToken;
+        if (JmlToken.jmloperators.contains(t)) return null;
+        return term3();
+    }
+
 
     protected boolean inCreator = false;
 

@@ -134,9 +134,8 @@ public class scanner extends JmlTestCase {
                 null);  
     }
 
-    // FIXME - understand correct behavior here
     /** Test some unicode  - multiple backslash*/
-    @Ignore
+    @Ignore    // FIXME - understand correct unicode behavior here
     @Test public void testSomeUnicode3() {
         helpScanner("\\\\u0041 A",new Enum[]{ERROR,IDENTIFIER,IDENTIFIER},
                 new int[]{0,1,2,7,8,9});  
@@ -408,8 +407,7 @@ public class scanner extends JmlTestCase {
     }
 
     /** Test an embedded JML comment */
-    // TODO: DO we really want this to work?
-    @Ignore
+    @Ignore    // TODO: DO we really want this style of embedded comment to work?
     @Test public void testEmbeddedJavaComment3() { 
         helpScanner("//@requires /* requires ensures \n signals */ modifies ",
                 new Enum<?>[]{REQUIRES,ASSIGNABLE,EOF},
@@ -424,9 +422,8 @@ public class scanner extends JmlTestCase {
     }
 
     /** Test an embedded Java comment */
-    @Ignore
+    @Ignore   // TODO: DO we really want this style of embedded comment to work?
     @Test public void testEmbeddedJavaComment6() {
-        // TODO: DO we really want this to work?
         helpScanner("/*@requires /* modifies \n ensures */ requires */ signals ",
                 new Enum<?>[]{REQUIRES,IDENTIFIER,STAR,SLASH,IDENTIFIER,EOF},
                 null);

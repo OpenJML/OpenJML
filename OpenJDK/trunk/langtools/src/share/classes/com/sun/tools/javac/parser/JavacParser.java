@@ -958,10 +958,14 @@ public class JavacParser implements Parser {
                     case NEW: case IDENTIFIER: case ASSERT: case ENUM:
                     case BYTE: case SHORT: case CHAR: case INT:
                     case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
-                    case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
                         JCExpression t1 = term3();
                         return F.at(pos).TypeCast(t, t1);
+                    case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
+                        // but does not apply if the next token is a JML operator
+                        JCExpression t2 = potentialCast();
+                        if (t2 != null) return F.at(pos).TypeCast(t, t2);
                     }
+
                 }
             } else return illegal();
             t = toP(F.at(pos).Parens(t));
@@ -1039,6 +1043,11 @@ public class JavacParser implements Parser {
         }
         t = primaryTrailers(t, typeArgs);
         return toP(t);
+    }
+    
+    // DRC - added to insert a hook
+    protected JCExpression potentialCast() {
+        return null;
     }
 
     // DRC - extracted this method from term3() so that it can be used in overriding methods

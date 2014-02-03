@@ -296,53 +296,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    /** This is called by visit methods, and super.scan calls accept methods;
-     * clients should call scan instead of accept so that there is a common
-     * processing point as well as the type-specific processing in accept methods.
-     */
-    @Override
-    public void scan(JCTree t) {
-        result = null;
-        if (t != null) {
-            super.scan(t);
-            if (result != null) {
-                // This mapping is used in associating original source code 
-                // sub-expressions with SMT expressions that give their values
-                // in a counterexample.
-                if (t instanceof JCExpression) bimap.put((JCExpression)t, result);
-                else if (t instanceof JmlVariableDecl) {
-                    JCIdent id = ((JmlVariableDecl)t).ident;
-                    bimap.put(id, result);
-                }
-            }
-        }
-    }
-    
-    // TODO - want to be able to produce AUFBV programs as well
-    // TODO - this converts the whole program into one big SMT program
-    //  - might want the option to produce many individual programs, i.e.
-    //  one for each assertion, or a form that accommodates push/pop/coreids etc.
-    
-    public ICommand.IScript convert(BasicProgram program, SMT smt) {
-        script = new Script();
+    /** Adds all the definitions and axioms regarding the types used in the program */
+    protected int addTypeModel(SMT smt) {
+        List<ISort> args = Arrays.asList(refSort); // List of one element 
         ICommand c;
-        commands = script.commands();
-        
-        // FIXME - use factory for the commands?
-        // set any options
-        c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
-        commands.add(c);
-        
-        // set the logic
-        String s = JmlOption.value(context, JmlOption.LOGIC);
-        c = new C_set_logic(F.symbol(s));
-        commands.add(c);
-        
-        // add background statements
-        // declare the sorts we use to model Java+JML
-        // (declare-sort REF 0)
-        c = new C_declare_sort(F.symbol(REF),zero);
-        commands.add(c);
         // (declare-sort JavaTypeSort 0)
         if (JAVATYPESORT != REF) {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
@@ -351,64 +308,38 @@ public class SMTTranslator extends JmlTreeScanner {
         // (declare-sort JMLTypeSort 0)
         c = new C_declare_sort(F.symbol(JMLTYPESORT),zero);
         commands.add(c);
-        // define NULL as a REF: (declare-fun NULL () REF)
-        c = new C_declare_fun(nullSym,emptyList, refSort);
-        commands.add(c);
-        // define THIS as a REF: (declare-fun THIS () REF)
-        c = new C_declare_fun(thisSym,emptyList, refSort);
-        commands.add(c);
-        // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
-        c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
-        commands.add(c);
-        // define stringLength: (declare-fun stringLength (REF) Int)
-        c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), intSort); // FIXME - not sure this =is used
-        commands.add(c);
-        // THIS != NULL: (assert (distinct THIS NULL))
-        c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
-        commands.add(c);
-        // (assert __JMLlength () (Array REF Int))
-        c = new C_declare_fun(lengthSym,
-                emptyList, 
-                F.createSortExpression(arraySym,refSort,intSort)
-                );
-        commands.add(c);
-
-            // array lengths are always non-negative
-        addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
-            // result of string concatenation is always non-null
-        addCommand(smt,"(assert (forall ((s1 "+REF+")(s2 "+REF+")) (distinct ("+concat+" s1 s2) "+NULL+")))");
-
-        // The following functions model aspects of Java+JML;
-        // The strings here are arbitrary except that they must not conflict with 
-        // identifiers from the Java program as mapped into SMT identifiers
-        List<ISort> args = Arrays.asList(refSort); // List of one element 
-        c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(arraySym,intSort,intSort));
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(arraySym,intSort,refSort));
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("intValue"),args, intSort);
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("booleanValue"),args, boolSort);
-        commands.add(c);
+        // (declare-fun javaTypeOf (REF) JAVATYPESORT))
         c = new C_declare_fun(F.symbol("javaTypeOf"),args, javaTypeSort);
         commands.add(c);
+        // (declare-fun jmlTypeOf (REF) JMLTYPESORT))
         c = new C_declare_fun(F.symbol("jmlTypeOf"),args, jmlTypeSort);
         commands.add(c);
+        // (declare-fun JAVASUBTYPE (JAVATYPESORT JAVATYPESORT) Bool)
         c = new C_declare_fun(F.symbol(JAVASUBTYPE),
                 Arrays.asList(new ISort[]{javaTypeSort,javaTypeSort}), 
                 boolSort);
         commands.add(c);
+        // (declare-fun JMLSUBTYPE (JMLTYPESORT JMLTYPESORT) Bool)
         c = new C_declare_fun(F.symbol(JMLSUBTYPE),
                 Arrays.asList(new ISort[]{jmlTypeSort,jmlTypeSort}), 
                 boolSort);
         commands.add(c);
+        // (declare-fun erasure (JMLTYPESORT) JAVATYPESORT)
         c = new C_declare_fun(F.symbol("erasure"),
                 Arrays.asList(new ISort[]{jmlTypeSort}), 
                 javaTypeSort);
         commands.add(c);
-        c = new C_declare_fun(lengthSym,
-                Arrays.asList(new ISort[]{refSort}), 
-                intSort);
+        
+        addCommand(smt,"(declare-fun _makeArrayType ("+JAVATYPESORT+") "+JAVATYPESORT+")");
+        addCommand(smt,"(declare-fun _isArrayType ("+JAVATYPESORT+") Bool)");
+        addCommand(smt,"(declare-fun _makeJMLArrayType ("+JMLTYPESORT+") "+JMLTYPESORT+")");
+        addCommand(smt,"(declare-fun _isJMLArrayType ("+JMLTYPESORT+") Bool)");
+        addCommand(smt,"(declare-fun "+arrayElemType+" ("+JMLTYPESORT+") "+JMLTYPESORT+")");
+        //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" (_makeArrayType T)) T)))");
+        addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" (_makeJMLArrayType T)) T)))");
+        addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (_isArrayType (_makeArrayType T)) ))");
+        addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (_isJMLArrayType (_makeJMLArrayType T)) ))");
+
         // The declaration + assertion form is nominally equivalent to the define_fcn form, but works better
         // for SMT solvers with modest (or no) support for quantifiers (like yices2)
         if (false) {
@@ -470,13 +401,7 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(c);
         }
         {
-            c = new C_declare_fun(F.symbol(arrayElemType),
-                    Arrays.asList(jmlTypeSort),
-                    jmlTypeSort);
-            commands.add(c);
-        }
-        {
-            // (forall ((t jmlTypeSort) (tt jmlTypeSort)) (==> (jmlSubtype t tt) (javaSubtype (erasure t) (erasure tt)))) 
+            // (forall ((t JMLTYPESORT) (tt JMLTYPESORT)) (==> (jmlSubtype t tt) (javaSubtype (erasure t) (erasure tt)))) 
             c = new C_assert(
                     F.forall(Arrays.asList(F.declaration(F.symbol("t"),jmlTypeSort),
                                            F.declaration(F.symbol("tt"),jmlTypeSort)
@@ -495,11 +420,239 @@ public class SMTTranslator extends JmlTreeScanner {
                                     )));
             commands.add(c);
             
+            addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (= (erasure (_JMLT_1 JVT JMLT)) JVT)))");
+            addCommand(smt,"(declare-fun _JMLT_2 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (erasure (_JMLT_2 JVT JMLT1 JMLT2)) JVT)))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 T1 J1)(_JMLT_1 T2 J2)) (and (= T1 T2) (= J1 J2)))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (= ("+JMLSUBTYPE+" (_JMLT_1 T1 J1)(_JMLT_1 T2 J2)) (and ("+JAVASUBTYPE+" T1 T2) (= J1 J2)))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")) (=> (= T1 T2) ("+JAVASUBTYPE+" T1 T2))))");
+            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (=> (= T1 T2) ("+JMLSUBTYPE+" T1 T2))))");
         }
         
         // Record the location in the commands list at which all the type
         // definitions will be inserted
-        int loc = commands.size();
+        return commands.size();
+    }
+    
+    protected void addTypeRelationships(int loc, SMT smt) {
+        // Insert type relationships, now that we have accumulated them all
+        // Each type has a representation as a Java (erased type) and a JML type
+        int len = javaTypes.size();
+        List<ICommand> tcommands = new ArrayList<ICommand>(len*len*2 + 3*len);
+        List<IExpr> typesymbols = new ArrayList<IExpr>(len);
+        List<IExpr> jmltypesymbols = new ArrayList<IExpr>(len);
+        
+        for (Type ti: javaTypes) {
+            if (ti.tag == TypeTags.TYPEVAR) {
+                tcommands.add(new C_declare_fun(
+                        (ISymbol)jmlTypeSymbol(ti),
+                        emptyList,
+                        jmlTypeSort));
+                continue; 
+            }
+            // (declare-fun tjava () JavaTypeSort)
+            // (declare-fun tjml () JMLTypeSort)
+            // (assert (= (erasure tjml) tjava))
+            tcommands.add(new C_declare_fun(
+                    (ISymbol)javaTypeSymbol(ti),
+                    emptyList,
+                    javaTypeSort));
+            typesymbols.add(javaTypeSymbol(ti));
+            tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
+            if (!ti.tsym.type.isParameterized()) {
+                // Note: ti.isParameterized() is true if the type name has actual parameters
+                // ti.tsym.type.isParameterized() is true if the declaration has parameters
+                // e.g.  java.util.Set is false on the first, but true on the second
+                tcommands.add(new C_declare_fun(
+                        (ISymbol)jmlTypeSymbol(ti),
+                        emptyList,
+                        jmlTypeSort));
+                jmltypesymbols.add(jmlTypeSymbol(ti));
+                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), jmlTypeSymbol(ti))) ));
+                tcommands.add(new C_assert(F.fcn(
+                        eqSym, 
+                        F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
+                        javaTypeSymbol(ti))));
+            }
+        }
+        tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),typesymbols)));
+        tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),jmltypesymbols)));
+        
+        for (Type ti: javaTypes) {
+            if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
+                    F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
+        }
+        for (Type ti: javaTypes) {
+            if (ti.tag == TypeTags.TYPEVAR) continue; 
+            for (Type tj: javaTypes) {
+                if (tj.tag == TypeTags.TYPEVAR) continue; 
+                // (assert (javaSubType t1 t2)) - or assert the negation
+                // (assert (jmlSubType t1jml t2jml)) - or assert the negation
+                
+                boolean b = types.isSubtype(types.erasure(ti),types.erasure(tj));
+                IExpr comp = F.fcn(F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), javaTypeSymbol(tj));
+                if (!b) comp = F.fcn(F.symbol("not"),comp);
+                tcommands.add(new C_assert(comp));
+                
+                if (!ti.tsym.type.isParameterized() && !tj.tsym.type.isParameterized() ) {
+                    b = types.isSubtype(ti,tj);
+                    comp = F.fcn(F.symbol(JMLSUBTYPE), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
+                    if (!b) comp = F.fcn(F.symbol("not"),comp);
+                    tcommands.add(new C_assert(comp));
+                }
+            }
+        }
+        {
+            // Transitivity of Java subtype
+            // Note: We try to avoid needing this (because it is quantified) 
+            // by instantiating all the subtype
+            // relationships of all of the known types, but it is still needed sometimes.
+            // An example is catching exceptions thrown from a method: The callee
+            // declares a thrown exception, but the actual exception is an unknown
+            // subclass (t1) of the declared type (t2). A catch block that catches
+            // exception (t3) that is a superclass of t2 (t2 is a subclass of t3)
+            // must catch t1 - so we need to infer that t1 is a subclass of t3.
+            //
+            // So far we don't seem to need transitivity of JML types (TODO)
+            List<IDeclaration> params = new LinkedList<IDeclaration>();
+            params.add(F.declaration(F.symbol("t1"),javaTypeSort));
+            params.add(F.declaration(F.symbol("t2"),javaTypeSort));
+            params.add(F.declaration(F.symbol("t3"),javaTypeSort));
+            IExpr e = F.forall(params, 
+                    F.fcn(F.symbol("=>"), 
+                          F.fcn(F.symbol("and"), 
+                                  F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t2")),
+                                  F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t2"),F.symbol("t3"))
+                                  ),
+                          F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t3"))
+                          ));
+            tcommands.add(new C_assert(e));
+        }
+        {
+            // Transitivity of JML subtype
+            // Note: We try to avoid needing this (because it is quantified) 
+            // by instantiating all the subtype
+            // relationships of all of the known types, but it is still needed sometimes.
+            // An example is catching exceptions thrown from a method: The callee
+            // declares a thrown exception, but the actual exception is an unknown
+            // subclass (t1) of the declared type (t2). A catch block that catches
+            // exception (t3) that is a superclass of t2 (t2 is a subclass of t3)
+            // must catch t1 - so we need to infer that t1 is a subclass of t3.
+            //
+            // So far we don't seem to need transitivity of JML types (TODO)
+            List<IDeclaration> params = new LinkedList<IDeclaration>();
+            params.add(F.declaration(F.symbol("t1"),jmlTypeSort));
+            params.add(F.declaration(F.symbol("t2"),jmlTypeSort));
+            params.add(F.declaration(F.symbol("t3"),jmlTypeSort));
+            IExpr e = F.forall(params, 
+                    F.fcn(F.symbol("=>"), 
+                          F.fcn(F.symbol("and"), 
+                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t2")),
+                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t2"),F.symbol("t3"))
+                                  ),
+                          F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t3"))
+                          ));
+            tcommands.add(new C_assert(e));
+        }
+        
+        // Add all the type definitions into the command script before all the uses
+        // of the types in the various basic block translations
+        commands.addAll(loc,tcommands);
+
+    }
+    
+    /** This is called by visit methods, and super.scan calls accept methods;
+     * clients should call scan instead of accept so that there is a common
+     * processing point as well as the type-specific processing in accept methods.
+     */
+    @Override
+    public void scan(JCTree t) {
+        result = null;
+        if (t != null) {
+            super.scan(t);
+            if (result != null) {
+                // This mapping is used in associating original source code 
+                // sub-expressions with SMT expressions that give their values
+                // in a counterexample.
+                if (t instanceof JCExpression) bimap.put((JCExpression)t, result);
+                else if (t instanceof JmlVariableDecl) {
+                    JCIdent id = ((JmlVariableDecl)t).ident;
+                    bimap.put(id, result);
+                }
+            }
+        }
+    }
+    
+    // TODO - want to be able to produce AUFBV programs as well
+    // TODO - this converts the whole program into one big SMT program
+    //  - might want the option to produce many individual programs, i.e.
+    //  one for each assertion, or a form that accommodates push/pop/coreids etc.
+    
+    public ICommand.IScript convert(BasicProgram program, SMT smt) {
+        script = new Script();
+        ICommand c;
+        commands = script.commands();
+        
+        // FIXME - use factory for the commands?
+        // set any options
+        c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
+        commands.add(c);
+        
+        // set the logic
+        String s = JmlOption.value(context, JmlOption.LOGIC);
+        c = new C_set_logic(F.symbol(s));
+        commands.add(c);
+        
+        // add background statements
+        // declare the sorts we use to model Java+JML
+        // (declare-sort REF 0)
+        c = new C_declare_sort(F.symbol(REF),zero);
+        commands.add(c);
+        // define NULL as a REF: (declare-fun NULL () REF)
+        c = new C_declare_fun(nullSym,emptyList, refSort);
+        commands.add(c);
+        // define THIS as a REF: (declare-fun THIS () REF)
+        c = new C_declare_fun(thisSym,emptyList, refSort);
+        commands.add(c);
+        // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
+        c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
+        commands.add(c);
+        // define stringLength: (declare-fun stringLength (REF) Int)
+        c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), intSort); // FIXME - not sure this =is used
+        commands.add(c);
+        // THIS != NULL: (assert (distinct THIS NULL))
+        c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
+        commands.add(c);
+        // (assert __JMLlength () (Array REF Int))
+        c = new C_declare_fun(lengthSym,
+                emptyList, 
+                F.createSortExpression(arraySym,refSort,intSort)
+                );
+        commands.add(c);
+
+            // array lengths are always non-negative
+        addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
+            // result of string concatenation is always non-null
+        addCommand(smt,"(assert (forall ((s1 "+REF+")(s2 "+REF+")) (distinct ("+concat+" s1 s2) "+NULL+")))");
+
+        // The following functions model aspects of Java+JML;
+        // The strings here are arbitrary except that they must not conflict with 
+        // identifiers from the Java program as mapped into SMT identifiers
+        List<ISort> args = Arrays.asList(refSort); // List of one element 
+        c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(arraySym,intSort,intSort));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(arraySym,intSort,refSort));
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("intValue"),args, intSort);
+        commands.add(c);
+        c = new C_declare_fun(F.symbol("booleanValue"),args, boolSort);
+        commands.add(c);
+        c = new C_declare_fun(lengthSym,
+                Arrays.asList(new ISort[]{refSort}), 
+                intSort);
+        
+        int loc = addTypeModel(smt);
         
         // List types that we always want defined in the SMT script, whether
         // or not they are explicitly used in the input program 
@@ -600,107 +753,7 @@ public class SMTTranslator extends JmlTreeScanner {
         cc = new C_check_sat();
         commands.add(cc);
         
-        // Insert type relationships, now that we have accumulated them all
-        // Each type has a representation as a Java (erased type) and a JML type
-        int len = javaTypes.size();
-        List<ICommand> tcommands = new ArrayList<ICommand>(len*len*2 + 3*len);
-        for (Type ti: javaTypes) {
-            // (declare-fun tjava () JavaTypeSort)
-            // (declare-fun tjml () JMLTypeSort)
-            // (assert (= (erasure tjml) tjava))
-            tcommands.add(new C_declare_fun(
-                    javaTypeSymbol(ti),
-                    emptyList,
-                    javaTypeSort));
-            tcommands.add(new C_declare_fun(
-                    jmlTypeSymbol(ti),
-                    emptyList,
-                    jmlTypeSort));
-            tcommands.add(new C_assert(F.fcn(
-                    eqSym, 
-                    F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
-                    javaTypeSymbol(ti))));
-        }
-        for (Type ti: javaTypes) {
-            if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
-                    F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
-        }
-        for (Type ti: javaTypes) {
-            for (Type tj: javaTypes) {
-                // (assert (javaSubType t1 t2)) - or assert the negation
-                // (assert (jmlSubType t1jml t2jml)) - or assert the negation
-                
-                boolean b = types.isSubtype(types.erasure(ti),types.erasure(tj));
-                IExpr comp = F.fcn(F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), javaTypeSymbol(tj));
-                if (!b) comp = F.fcn(F.symbol("not"),comp);
-                tcommands.add(new C_assert(comp));
-//                comp = F.fcn(F.symbol(JAVASUBTYPE), F.symbol(arrayOf(ti)), F.symbol(arrayOf(tj)));
-//                if (b && tj.isPrimitive() && !types.isSameType(ti, tj)) b= false;
-//                if (!b) comp = F.fcn(F.symbol("not"),comp);
-//                tcommands.add(new C_assert(comp));
-                
-                b = types.isSubtype(ti,tj);
-                comp = F.fcn(F.symbol(JMLSUBTYPE), jmlTypeSymbol(ti), jmlTypeSymbol(tj));
-                if (!b) comp = F.fcn(F.symbol("not"),comp);
-                tcommands.add(new C_assert(comp));
-            }
-        }
-        {
-            // Transitivity of Java subtype
-            // Note: We try to avoid needing this (because it is quantified) 
-            // by instantiating all the subtype
-            // relationships of all of the known types, but it is still needed sometimes.
-            // An example is catching exceptions thrown from a method: The callee
-            // declares a thrown exception, but the actual exception is an unknown
-            // subclass (t1) of the declared type (t2). A catch block that catches
-            // exception (t3) that is a superclass of t2 (t2 is a subclass of t3)
-            // must catch t1 - so we need to infer that t1 is a subclass of t3.
-            //
-            // So far we don't seem to need transitivity of JML types (TODO)
-            List<IDeclaration> params = new LinkedList<IDeclaration>();
-            params.add(F.declaration(F.symbol("t1"),javaTypeSort));
-            params.add(F.declaration(F.symbol("t2"),javaTypeSort));
-            params.add(F.declaration(F.symbol("t3"),javaTypeSort));
-            IExpr e = F.forall(params, 
-                    F.fcn(F.symbol("=>"), 
-                          F.fcn(F.symbol("and"), 
-                                  F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t2")),
-                                  F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t2"),F.symbol("t3"))
-                                  ),
-                          F.fcn(F.symbol(JAVASUBTYPE),F.symbol("t1"),F.symbol("t3"))
-                          ));
-            tcommands.add(new C_assert(e));
-        }
-        {
-            // Transitivity of JML subtype
-            // Note: We try to avoid needing this (because it is quantified) 
-            // by instantiating all the subtype
-            // relationships of all of the known types, but it is still needed sometimes.
-            // An example is catching exceptions thrown from a method: The callee
-            // declares a thrown exception, but the actual exception is an unknown
-            // subclass (t1) of the declared type (t2). A catch block that catches
-            // exception (t3) that is a superclass of t2 (t2 is a subclass of t3)
-            // must catch t1 - so we need to infer that t1 is a subclass of t3.
-            //
-            // So far we don't seem to need transitivity of JML types (TODO)
-            List<IDeclaration> params = new LinkedList<IDeclaration>();
-            params.add(F.declaration(F.symbol("t1"),jmlTypeSort));
-            params.add(F.declaration(F.symbol("t2"),jmlTypeSort));
-            params.add(F.declaration(F.symbol("t3"),jmlTypeSort));
-            IExpr e = F.forall(params, 
-                    F.fcn(F.symbol("=>"), 
-                          F.fcn(F.symbol("and"), 
-                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t2")),
-                                  F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t2"),F.symbol("t3"))
-                                  ),
-                          F.fcn(F.symbol(JMLSUBTYPE),F.symbol("t1"),F.symbol("t3"))
-                          ));
-            tcommands.add(new C_assert(e));
-        }
-        
-        // Add all the type definitions into the command script before all the uses
-        // of the types in the various basic block translations
-        commands.addAll(loc,tcommands);
+        addTypeRelationships(loc,smt);
         
         return script;
     }
@@ -724,40 +777,71 @@ public class SMTTranslator extends JmlTreeScanner {
         if (t.tag == TypeTags.ARRAY){
             return typeString(((ArrayType)t).elemtype) + "_A_";
         }
-        return t.toString().replace(".", "_");
+        return t.tsym.toString().replace(".", "_");
     }
     
-    public String arrayOf(Type t) {
-        return "T_" + typeString(t) + "_A_";
-    }
-    
-    public String jmlarrayOf(Type t) {
-        return "JMLT_" + typeString(t) + "_A_";
-    }
+//    public String arrayOf(Type t) {
+//        return "T_" + typeString(t) + "_A_";
+//    }
+//    
+//    public String jmlarrayOf(Type t) {
+//        return "JMLT_" + typeString(t) + "_A_";
+//    }
     
     /** Returns an SMT Symbol representing the given Java type */
-    public IExpr.ISymbol javaTypeSymbol(Type t) {
+    public IExpr javaTypeSymbol(Type t) {
         //String s = "|T_" + t.toString() + "|";
+        if (t.tag == TypeTags.ARRAY) {
+            Type comptype = ((Type.ArrayType)t).getComponentType();
+            IExpr e = javaTypeSymbol(comptype);
+            return F.fcn(F.symbol("_makeArrayType"),e);
+        }
         if (t.tag == TypeTags.BOT) t = syms.objectType;
         String s = "T_" + typeString(t);
         return F.symbol(s);
     }
     
-    /** Returns an SMT Symbol representing the given JML type */
-    public IExpr.ISymbol jmlTypeSymbol(Type t) {
+    /** Returns an SMT IExpr representing the given JML type */
+    public IExpr jmlTypeSymbol(Type t) {
         if (t.tag == TypeTags.BOT) t = syms.objectType;
-        //String s = "|JMLT_" + t.toString() + "|" ;
-        String s = "JMLT_" + typeString(t);
-        return F.symbol(s);
+        if (t.tag == TypeTags.ARRAY) {
+            Type comptype = ((Type.ArrayType)t).getComponentType();
+            IExpr e = jmlTypeSymbol(comptype);
+            return F.fcn(F.symbol("_makeJMLArrayType"),e);
+        }
+        if (t.tag == TypeTags.TYPEVAR) {
+            String s = "JMLTV_" + typeString(t);
+            return F.symbol(s);
+        } else if (!t.tsym.type.isParameterized()) {
+            String s = "JMLT_" + typeString(t);
+            return F.symbol(s);
+        } else {
+            List<Type> params = t.getTypeArguments();
+            if (params.size() == 0) {
+                Utils.print("");
+            }
+            List<IExpr> args = new LinkedList<IExpr>();
+            args.add(javaTypeSymbol(t));
+            for (Type tt: params) {
+                args.add(jmlTypeSymbol(tt));
+            }
+            return F.fcn(F.symbol("_JMLT_"+params.size()), args);
+        }
     }
     
     /** Records a type as defined. */
     public void addType(Type t) {
         // FIXME - what if t is the type of an explicit null?
-        if (javaTypeSymbols.add(t.toString())) javaTypes.add(t);
         if (t instanceof ArrayType) {
             t = ((ArrayType)t).getComponentType();
             addType(t);
+        } else {
+            if (javaTypeSymbols.add(t.tsym.toString())) javaTypes.add(t);
+            if (t.isParameterized()) {
+                for (Type ti: t.getTypeArguments()) {
+                    addType(ti);
+                }
+            }
         }
     }
     
@@ -907,7 +991,7 @@ public class SMTTranslator extends JmlTreeScanner {
             return refSort;
         } else {
             // FIXME - what gets here?
-            return F.createSortExpression(javaTypeSymbol(t)); // FIXME - use the common method for translating to type names?
+            return F.createSortExpression((ISymbol)javaTypeSymbol(t)); // FIXME - use the common method for translating to type names?
 //            log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
 //            throw new RuntimeException();
         }
