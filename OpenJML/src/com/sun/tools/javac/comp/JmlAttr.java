@@ -1400,32 +1400,33 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
             }
             
-            // Add an assignable clause if the method is pure or has no assignable clause
+            // Add an assignable clause if the method is pure and has no assignable clause
             JCAnnotation pure;
             desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
             if (!desugaringPure) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
+            JmlMethodClause clp = null;
             if (desugaringPure) {
-                JmlMethodClause cl;
                 if (decl.sym.isConstructor()) {
                     JCIdent t = jmlMaker.Ident(names._this);
                     t.type = decl.sym.owner.type;
                     t.sym = decl.sym.owner;
-                    cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
+                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
                             List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
                     
                 } else {
-                    cl = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
+                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE,
                             List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlToken.BSNOTHING)));
                 }
                 if (pure != null) {
-                    cl.pos = pure.pos;
-                    endPosTable.put(cl,pure.getEndPosition(endPosTable));
+                    clp.pos = pure.pos;
+                    endPosTable.put(clp,pure.getEndPosition(endPosTable));
                 } else {
                     // This branch is defensive - should never happen
-                    cl.pos = Position.NOPOS;
-                    endPosTable.put(cl,Position.NOPOS);
+                    clp.pos = Position.NOPOS;
+                    endPosTable.put(clp,Position.NOPOS);
                 }
-                clauses.append(cl);
+//                clauses.append(clp);
+//                clp = null;
             }
             
             // We already have some implicit method spec clauses in 'clauses'
@@ -1441,6 +1442,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                        // Note: a model program spec case has no clauses
+                        if (cs.clauses != null) {
+                            boolean hasAssignableClause = false;
+                            for (JmlMethodClause clm: cs.clauses) {
+                                if (clm.token == JmlToken.ASSIGNABLE) { 
+                                    hasAssignableClause = true; 
+                                    break; 
+                                }
+                            }
+                            if (!hasAssignableClause) {
+                                cs.clauses = cs.clauses.append(clp);
+                            }
+                        }
+                    }
                     allcases.appendList(newcases);
                 }
                 for (JmlSpecificationCase c: methodSpecs.impliesThatCases) {
@@ -1449,6 +1465,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                        // Note: a model program spec case has no clauses
+                        if (cs.clauses != null) {
+                            boolean hasAssignableClause = false;
+                            for (JmlMethodClause clm: cs.clauses) {
+                                if (clm.token == JmlToken.ASSIGNABLE) { 
+                                    hasAssignableClause = true; 
+                                    break; 
+                                }
+                            }
+                            if (!hasAssignableClause) {
+                                cs.clauses = cs.clauses.append(clp);
+                            }
+                        }
+                    }
                     allitcases.appendList(newcases);
                 }
                 for (JmlSpecificationCase c: methodSpecs.forExampleCases) {
@@ -1457,17 +1488,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                        // Note: a model program spec case has no clauses
+                        if (cs.clauses != null) {
+                            boolean hasAssignableClause = false;
+                            for (JmlMethodClause clm: cs.clauses) {
+                                if (clm.token == JmlToken.ASSIGNABLE) { 
+                                    hasAssignableClause = true; 
+                                    break; 
+                                }
+                            }
+                            if (!hasAssignableClause) {
+                                cs.clauses = cs.clauses.append(clp);
+                            }
+                        }
+                    }
                     allfecases.appendList(newcases);
                 }
                 newspecs = jmlMaker.at(methodSpecs.pos).JmlMethodSpecs(allcases.toList());
                 newspecs.impliesThatCases = allitcases.toList();
                 newspecs.forExampleCases = allfecases.toList();
-            } else if (!clauses.isEmpty()) {
-                JCModifiers mods = jmlMaker.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
-                JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList());
-                newspecs = jmlMaker.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
             } else {
-                newspecs = methodSpecs;
+                if (clp != null) clauses.append(clp);
+                if (!clauses.isEmpty()) {
+                    JCModifiers mods = jmlMaker.at(decl.pos).Modifiers(decl.mods.flags & Flags.AccessFlags);
+                    JmlSpecificationCase c = jmlMaker.JmlSpecificationCase(mods,false,null,null,clauses.toList());
+                    newspecs = jmlMaker.JmlMethodSpecs(List.<JmlSpecificationCase>of(c));
+                } else {
+                    newspecs = methodSpecs;
+                }
             }
             newspecs.decl = methodSpecs.decl;
             methodSpecs.deSugared = newspecs;
@@ -2853,27 +2902,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSERASURE :
                 ExpressionExtension ext = Extensions.instance(context).find(tree.pos,token);
                 Type ttt = ext.typecheck(this,tree,localEnv);
-//                // Expect one argument of any array type, result type is \TYPE
-//                // The argument expression may contain JML constructs
-//                attribArgs(tree.args, localEnv);
-//                attribTypes(tree.typeargs, localEnv);
-//                n = tree.args.size();
-//                if (n != 1) {
-//                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
-//                }
-//                t = syms.errType;
-//                if (n > 0) {
-//                    //attribTree(tree.args.get(0), localEnv, pkind, syms.classType); // FIXME - THIS DOES not work either
-//                    if (tree.args.get(0).type == TYPE) {
-//                        t = this.TYPE;
-//                    } else if (tree.args.get(0).type.tsym == syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-//                        t = syms.classType;
-//                    } else {
-//                        log.error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tree.args.get(0).type.toString());
-//                        t = this.TYPE;
-//                    }
-//                }
-//                // FIXME - need to check that argument is an array type - see comment above
                 result = check(tree, ttt, VAL, pkind, pt);
                 break;
 
@@ -2904,12 +2932,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
-                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                    log.error(tree,"jml.wrong.number.args",token.internedName(),1,n);
                 }
                 if (n > 0) {
-                    attribTree(tree.args.get(0), localEnv, TYP, Type.noType);
+                    JCExpression arg = tree.args.get(0);
+                    attribTree(arg, localEnv, TYP, Type.noType);
+                    if (!tree.javaType && arg.type.tsym.getTypeParameters().size() > 0 &&
+                         !arg.type.isParameterized()) {
+                        log.error(tree,"jml.invalid.erasedtype",JmlPretty.write(arg));
+                    }
+                    if (!tree.javaType) checkForWildcards(arg,arg);
                 }
                 t = jmltypes.TYPE;
+                if (tree.javaType) t = syms.classType;
                 Type saved = check(tree, t, VAL, pkind, pt);
                 addTodo(utilsClass);
                 result = saved;
@@ -3078,6 +3113,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = syms.errType;
                 break;
                 
+        }
+    }
+    
+    protected void checkForWildcards(JCExpression e, JCExpression arg) {
+        if (e instanceof JCWildcard) {
+            log.error(e,"jml.no.wildcards.in.type",JmlPretty.write(arg));
+        }
+        if (!(e instanceof JCTypeApply)) return;
+        JCTypeApply t = (JCTypeApply)e;
+        for (JCExpression ee: t.arguments) {
+            checkForWildcards(ee,arg);
         }
     }
     

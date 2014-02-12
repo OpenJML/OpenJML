@@ -50,16 +50,21 @@ public class Erasure extends ExpressionExtension {
         
         // Expect one argument of any array type, result type is \TYPE
         // The argument expression may contain JML constructs
-        attr.attribArgs(tree.args, localEnv);
-        attr.attribTypes(tree.typeargs, localEnv);
         int n = tree.args.size();
         if (n != 1) {
             error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+        } else {
+            JCExpression e = tree.args.get(0);
+            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlToken.BSTYPELC) {
+                ((JmlMethodInvocation)e).javaType = true;
+            }
         }
+        attr.attribArgs(tree.args, localEnv);
+        attr.attribTypes(tree.typeargs, localEnv);
         Type t = syms.errType;
         if (n > 0) {
             Type tt = tree.args.get(0).type;
-            if (tt == jmltypes.TYPE) t = syms.classType; 
+            if (tt == jmltypes.TYPE || tt == syms.classType) t = syms.classType; 
         }
         return t;
     }

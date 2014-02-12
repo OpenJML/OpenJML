@@ -23,12 +23,12 @@ testfiles\escVector\Vector.java:112: warning: The prover cannot establish an ass
                                          ^
 Completed proof of Vector.indexOf(java.lang.Object,int) with prover !!!! - with warnings
 Starting proof of Vector.elementAt(int) with prover !!!!
-testfiles\escVector\Vector.java:133: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method elementAt
-      return my_element_data[the_index];
-                            ^
-testfiles\escVector\Vector.java:130: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method elementAt
-      throw new ArrayIndexOutOfBoundsException(the_index + " >= " + my_element_count);
-                                                                  ^
+testfiles\escVector\Vector.java:18: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method elementAt
+  //@ public invariant my_element_count <= my_element_data.length;
+                                                          ^
+testfiles\escVector\Vector.java:18: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method elementAt
+  //@ public invariant my_element_count <= my_element_data.length;
+                                                          ^
 Completed proof of Vector.elementAt(int) with prover !!!! - with warnings
 Completed proving methods in Vector
 7 warnings

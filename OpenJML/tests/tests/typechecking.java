@@ -304,7 +304,7 @@ public class typechecking extends TCBase {
                 );
     }
     
-    @Test public void testSubtype5() { // FIXME - needs erasure
+    @Test public void testSubtype5() {
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures JML.erasure(t) <: c;\nvoid m() {}}");
     }
     
@@ -316,6 +316,37 @@ public class typechecking extends TCBase {
     @Test public void testSubtype7() {
         helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ensures true <: c;\nvoid m() {}}",
                 "/A.java:2: The type of the arguments of the subtype operator (<:) must be either \\TYPE or java.lang.Class, not boolean",12);
+    }
+    
+    @Test public void testErasure1() {
+        helpTCF("A.java","public class A { Object o; //@ ghost \\TYPE t = \\type(java.lang.Integer);\n}"
+                );
+    }
+    
+    @Test public void testErasure2() {
+        helpTCF("A.java","public class A { Object o; //@ ghost \\TYPE t = \\type(java.util.List);\n}"
+                ,"/A.java:1: The argument of a \\type construct must be a fully parameterized type: java.util.List",53
+                );
+    }
+    
+    @Test public void testErasure3() {
+        helpTCF("A.java","public class A { Object o; //@ ghost \\TYPE t = \\type(java.util.List<Integer>);\n}"
+                );
+    }
+    
+    @Test public void testErasure4() {
+        helpTCF("A.java","public class A { Object o; //@ ghost Class<?> t = \\erasure(\\type(java.lang.Integer));\n}"
+                );
+    }
+    
+    @Test public void testErasure5() {
+        helpTCF("A.java","public class A { Object o; //@ ghost Class<?> t = \\erasure(\\type(java.util.List));\n}"
+                );
+    }
+    
+    @Test public void testErasure6() {
+        helpTCF("A.java","public class A { Object o; //@ ghost Class<?> t = \\erasure(\\type(java.util.List<Integer>));\n}"
+                );
     }
     
     @Test public void testMisplacedResult() {
@@ -941,6 +972,16 @@ public class typechecking extends TCBase {
         
     }
     
+    @Test
+    public void typeserr() {
+        helpTCF("A.java",
+           "class A { //@ ghost boolean b4 = \\type(java.util.Map<java.util.List<?>,?>) <: \\type(java.util.List<?>);\n}"
+                ,"/A.java:1: Wildcards are not allowed within \\type expressions: java.util.Map<java.util.List<?>, ?>",69
+                ,"/A.java:1: Wildcards are not allowed within \\type expressions: java.util.Map<java.util.List<?>, ?>",72
+                ,"/A.java:1: Wildcards are not allowed within \\type expressions: java.util.List<?>",100
+           );
+    }
+        
 
     
     @Test public void testSwitchWithStrings() {

@@ -861,7 +861,7 @@ public class JmlTreeUtils {
         JCExpression ex = makeType(p,syms.exceptionType);
         JCExpression condd = factory.at(pos).TypeTest(exceptionId, rex).setType(syms.booleanType);
         JCExpression conde = factory.at(pos).TypeTest(exceptionId, ex).setType(syms.booleanType);
-        condd = makeAnd(p,condd,conde);
+        condd = makeAnd(p,condd,conde); // FIXME - why this redundancy?
         for (Type t: sym.getThrownTypes()) {
             JCExpression tc = factory.at(pos).TypeTest(exceptionId, makeType(p,t)).setType(syms.booleanType);
             condd = makeOr(p, condd, tc);

@@ -39,17 +39,19 @@ public class SimpleString {
      */
     //@ ensures (\forall int i; 0 <= i && i < my_chars.length; my_chars[i] == the_array[i]);
     public SimpleString(final /*@ non_null */ char[] the_array) {
-        //@ assert the_array != null;
+        // @ assert the_array != null;
         my_chars = new char[the_array.length];
-        //@ assert the_array != null;
-        //@ assert my_chars != null;
-        //@ assert my_chars.length == the_array.length;
-        //@ assert (\typeof(the_array)) == \type(char[]);
-        //@ assert (\typeof(my_chars)) == \type(char[]);
-        //@ assert \elemtype(\typeof(the_array)) == \type(char);
-        //@ assert \elemtype(\typeof(my_chars)) == \type(char);
-        //@ assert my_chars instanceof char[];
-        //@ assert the_array instanceof char[];
+        // @ assert the_array != null;
+        // @ assert my_chars != null;
+        // @ assert my_chars.length == the_array.length;
+        // @ assert (\typeof(the_array)) == \type(char[]);
+        // @ assert (\typeof(my_chars)) == \type(char[]);
+        // @ assert \erasure(\typeof(my_chars)) == \erasure(\type(char[]));
+        // @ assert \elemtype(\typeof(the_array)) == \type(char);
+        // @ assert \elemtype(\typeof(my_chars)) == \type(char);
+        // @ assert my_chars instanceof char[];
+        // @ assert the_array instanceof char[];
+        // @ assert true;
         System.arraycopy(the_array, 0, my_chars, 0, the_array.length);
     }
 

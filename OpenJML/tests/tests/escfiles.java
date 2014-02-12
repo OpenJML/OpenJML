@@ -176,10 +176,10 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","testfiles/escDemoC","-subexpressions");
     }
 
-    @Test // FIXME _ needs generic substitution
+    @Test
     public void testDemoTypes() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-show","-method=types","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
@@ -209,14 +209,14 @@ public class escfiles extends EscBase {
 
     @Test @Ignore  // FIXME - CVC4 crashes
     public void testPurseCard() {
-        if (solver.equals("cvc4")) fail();
+        if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purse","testfiles/purse","-logic=AUFNIA","-timeout=15");
     }
 
     @Test @Ignore // FIXME - CVC4 crashes
     public void testPurseCardMod() {
-        if (solver.equals("cvc4")) fail();
+        if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/purseMod","testfiles/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
     }
@@ -251,14 +251,16 @@ public class escfiles extends EscBase {
         helpTF("escAdd2");
     }
 
-    @Test @Ignore // CVC4 crashes
+    @Test 
     public void testCashAmount() {
+        if ("cvc4".equals(solver)) fail(); // CIXME - CVC4 crashes
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
     public void testCashAmount2() {
+        if ("cvc4".equals(solver)) fail(); // CIXME - CVC4 crashes
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
@@ -284,7 +286,7 @@ public class escfiles extends EscBase {
     @Test
     public void testVector() {
         expectedExit = 0;
-        helpTF("escVector","-escMaxWarnings=1","-code-math=java");
+        helpTF("escVector","-code-math=java");
     }
 
     @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
@@ -333,9 +335,9 @@ public class escfiles extends EscBase {
         helpTF("escModelFields","-progress");
     }
 
-    @Test // FIXME - CVC4 crashes
+    @Test
     public void testEscSimpleString() {
-        if ("cvc4".equals(solver)) fail(); 
+        if ("cvc4".equals(solver)) fail();  // FIXME - CVC4 crashes
         helpTF("escSimpleString","-nonnullByDefault");
     }
 

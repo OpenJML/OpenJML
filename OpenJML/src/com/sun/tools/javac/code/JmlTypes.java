@@ -312,6 +312,11 @@ public class JmlTypes extends Types {
         return t.tag == TypeTags.UNKNOWN;
     }
     
+    /** Returns true if the given type is a JML primitive type. */
+    public boolean isJmlRepType(Type t) {
+        return t.tsym == BIGINT.repSym || t.tsym == REAL.repSym || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
+    }
+    
     /** Returns true if the given token is the token for a JML primitive type. */
     public boolean isJmlTypeToken(JmlToken t) {
         return jmltypes.get(t) != null;

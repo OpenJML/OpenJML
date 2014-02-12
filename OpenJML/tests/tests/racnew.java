@@ -937,7 +937,7 @@ public class racnew extends RacBase {
                 "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Class<Integer>); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(Class<?>); \n" +
+                "//@ ghost boolean bbb = (\\lbl TRUE Class.class == \\erasure(\\type(Class))); \n" +
                 "//@ set c = (\\lbl TYP2 c); \n" +
                 "} " +
                 "}"
@@ -952,7 +952,8 @@ public class racnew extends RacBase {
                 ,"LABEL TYP3 = class [[Ljava.lang.String;"
                 ,"LABEL TYP4 = class [[Ljava.lang.String;"
                 ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
-                ,"LABEL TYP2 = class java.lang.Class<?>"
+                ,"LABEL TRUE = true"
+                ,"LABEL TYP2 = class java.lang.Class<class java.lang.Integer>"
                 ,"END"
                 );
         
@@ -996,8 +997,6 @@ public class racnew extends RacBase {
                 "//@ ghost \\TYPE c; \n" +
                 "//@ set c = \\type(java.lang.Class<Integer>); \n" +
                 "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(Class<?>); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
                 "} " +
                 "}"
                 ,"LABEL TYP1 = int"
@@ -1011,7 +1010,6 @@ public class racnew extends RacBase {
                 ,"LABEL TYP3 = class [[Ljava.lang.String;"
                 ,"LABEL TYP4 = class [[Ljava.lang.String;"
                 ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
-                ,"LABEL TYP2 = class java.lang.Class<?>"
                 ,"END"
                 );
         

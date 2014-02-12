@@ -42,6 +42,41 @@ public class esc extends EscBase {
     
     @Test  // FIXME: Needs some implementation
     public void testCollect() {
+        main.addOptions("-nonnullByDefault","-show","-method=m");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                +"    v.add(0,i);\n"
+                +"    boolean bb = v.elements().hasMoreElements();\n"
+                +"    return null; \n" // FAILS
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    
+    @Test  // FIXME: Needs some implementation
+    public void testCollectB() {
+        main.addOptions("-nonnullByDefault");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                +"    boolean bb = b instanceof Double;\n"
+                +"    Object oo = v.getClass();\n"
+                +"    Object o = (Class<?>)v.getClass();\n"
+                +"    v.add(0,i);\n"
+                +"    bb = v.elements().hasMoreElements();\n"
+                +"    return null; \n" // FAILS
+                +"  }\n"
+                +"}\n"
+              );
+    }
+
+    
+    @Test  // FIXME: Needs some implementation
+    public void testCollectC() {
         main.addOptions("-nonnullByDefault");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -296,6 +331,7 @@ public class esc extends EscBase {
 
     @Test
     public void testForEach2a() {
+        main.addOptions("-show","-method=m2a","-subexpressions");
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
@@ -307,20 +343,48 @@ public class esc extends EscBase {
                 +"  }\n"
                                 
                 +"  //@ public normal_behavior  ensures true;\n"
-                +"  public void m2() {\n"
+                +"  public void m2() {\n"  // Line 10
                 +"    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                +"    //@ assert values.content.owner == values;\n"
                 +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                +"    //@ assume values.content.owner == values;\n"
                 +"    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                +"    //@ assume values.content.owner == values;\n"
                 +"    Map.Entry<String,String> k;\n"
+                +"    //@ assert values.content.owner == values;\n"
+                +"    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                +"    //@ loop_invariant values == v && values.content.owner == values; \n"
                 +"    for (; it.hasNext(); values.add(k) ) {\n"
                 +"        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME - problems if we have erased type names
                 +"    }\n"
                 +"  }\n"
                                 
                 +"  //@ public normal_behavior  ensures true;\n"
-                +"  public void m3() {\n"
+                +"  public void m2a() {\n"  // Line 26
+                +"    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
+                +"    //@ assert values.content.owner == values;\n"
+                +"    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
+                +"    //@ assume values.content.owner == values;\n"
+                +"    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
+                +"    //@ assume values.content.owner == values;\n"
+                +"    Map.Entry<String,String> k;\n"
+                +"    //@ assert values.content.owner == values;\n"
+                +"    //@ ghost List<Map.Entry<String,String>> v = values;\n"
+                +"    // @ loop_invariant values == v && values.content.owner == values; \n"
+                +"    if (it.hasNext()) {\n"
+                +"        //@ assert values.content.owner == values;\n"
+                +"        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME - problems if we have erased type names
+                +"        //@ assert values.content.owner == values;\n"
+                +"        values.add(k); \n" // FIXME - problems if we have erased type names
+                +"    }\n"
+                +"  }\n"
+                                
+                +"  //@ public normal_behavior  ensures true;\n"
+                +"  public void m3() {\n"   // Line 20
                 +"    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                +"    //@ assert values.content.owner == values;\n"
                 +"    Integer k = new Integer(1);\n"
+                +"    //@ assert values.content.owner == values;\n"
                 +"    values.add(k);\n"
                 +"  }\n"
                                 

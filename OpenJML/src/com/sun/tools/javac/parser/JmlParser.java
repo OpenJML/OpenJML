@@ -433,6 +433,7 @@ public class JmlParser extends EndPosParser {
         ListBuffer<JmlStatementLoop> loops = new ListBuffer<JmlStatementLoop>();
         int endPos = -1;
         for (JCStatement s : list) {
+            //while (s instanceof JCTree.JCLabeledStatement) s = ((JCTree.JCLabeledStatement)s).body;
             if (s instanceof JmlStatementLoop) {
                 loops.append((JmlStatementLoop) s);
                 endPos = getEndPos(s);

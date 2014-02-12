@@ -90,22 +90,23 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2() {
+        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <: \\type(Object);\n"
+                +"    //@ assert \\typeof(i) <: \\type(Object);\n" // Line 6
                 +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(Object));\n"
                 +"    //@ assert \\typeof(i) <: \\type(T);\n"
                 +"    //@ assert i instanceof B;\n"
                 +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(B));\n"
-                +"    //@ assert \\typeof(i) <: \\type(B);\n"
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n"
-                +"    //@ assert \\typeof(i) <: \\type(C);\n"
-                +"    //@ assert \\type(T) <: \\type(B);\n"
-                +"    //@ assert \\type(T) <: \\type(C);\n"
+                +"    //@ assert \\typeof(i) <: \\type(B);\n" // Line 11
+                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n" // false
+                +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
+                +"    //@ assert \\type(T) <: \\type(B);\n" // true
+                +"    //@ assert \\type(T) <: \\type(C);\n" // false
                 +"  }\n"
                 +"  public TestJava() {}\n"
                 +"}\n"
@@ -231,7 +232,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 +"class TestG<E> {\n"
-                +"  class TestH extends TestG<Integer> {\n"
+                +"  class TestH  {\n"
                 +"    //@ requires \\type(E) != \\type(Integer);\n"
                 +"    public void mm(E t) {}\n"
                 +"  }\n"

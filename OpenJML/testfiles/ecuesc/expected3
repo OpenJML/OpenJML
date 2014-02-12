@@ -9,22 +9,7 @@ Starting proof of LookupScale.LookupScale(int,int,int) with prover !!!!
 	^
 Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - with warnings
 Starting proof of LookupScale.lookupValue(SensorValue) with prover !!!!
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
-		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
-		                                            ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:59: warning: The prover cannot establish an assertion (Assert) in method lookupValue
-			//@ assert intPart == 0 || intPart == this.values.length-1;
-			    ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
-		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
-		                                            ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:65: warning: The prover cannot establish an assertion (Assert) in method lookupValue
-		//@ assert fracPart >= 0 && fracPart < 100;
-		    ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:65: warning: The prover cannot establish an assertion (Assert) in method lookupValue
-		//@ assert fracPart >= 0 && fracPart < 100;
-		    ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - no model available  (possible timeout): (error "line 7611 column 18: model is not available")
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - no model available  (possible timeout): (error "line 1005 column 18: model is not available")
 	public /*@ pure @*/ ScaleIndex lookupValue(SensorValue sv) {
 	                               ^
 Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - with warnings
@@ -77,4 +62,4 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Test.main(java.lang.String[]) with prover !!!! - no warnings
 Completed proving methods in Test
-7 warnings
+2 warnings

@@ -204,8 +204,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 visitApply(that);
             } else {
                 print(that.token.internedName());
-                if (that.token == JmlToken.BSTYPELC &&
-                        that.javaType) print("j");
+                if (that.javaType && 
+                        (that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF)
+                        ) print("j");
                 print("(");
                 printExprs(that.args);
                 print(")");
