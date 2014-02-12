@@ -76,6 +76,7 @@ import org.smtlib.command.C_set_option;
 import org.smtlib.impl.Factory;
 import org.smtlib.impl.Script;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Symbol;
@@ -462,6 +463,8 @@ public class SMTTranslator extends JmlTreeScanner {
         List<ICommand> tcommands = new ArrayList<ICommand>(len*len*2 + 3*len);
         List<IExpr> typesymbols = new ArrayList<IExpr>(len);
         List<IExpr> jmltypesymbols = new ArrayList<IExpr>(len);
+    	List<ICommand> saved = commands;
+    	commands = tcommands;
         
         for (int i=1; i<=wildcardCount; ++i) {
             ISymbol sym = F.symbol("JMLTV_"+"WILD"+i);
@@ -473,26 +476,34 @@ public class SMTTranslator extends JmlTreeScanner {
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (erasure tjml) tjava))
+            ISymbol tisym = (ISymbol)javaTypeSymbol(ti);
             tcommands.add(new C_declare_fun(
-                    (ISymbol)javaTypeSymbol(ti),
+                    tisym,
                     emptyList,
                     javaTypeSort));
-            typesymbols.add(javaTypeSymbol(ti));
+            typesymbols.add(tisym);
             tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
+            if ((ti.tsym.flags() & Flags.FINAL) != 0) {
+            	addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (=> ("+JAVASUBTYPE+" t "+tisym.toString()+")  (= t "+tisym.toString()+"))))");
+            }
             if (!ti.tsym.type.isParameterized()) {
                 // Note: ti.isParameterized() is true if the type name has actual parameters
                 // ti.tsym.type.isParameterized() is true if the declaration has parameters
                 // e.g.  java.util.Set is false on the first, but true on the second
+            	ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
                 tcommands.add(new C_declare_fun(
-                        (ISymbol)jmlTypeSymbol(ti),
+                        tjsym,
                         emptyList,
                         jmlTypeSort));
-                jmltypesymbols.add(jmlTypeSymbol(ti));
-                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), jmlTypeSymbol(ti))) ));
+                jmltypesymbols.add(tjsym);
+                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 
-                        F.fcn(F.symbol("erasure"),jmlTypeSymbol(ti)),
-                        javaTypeSymbol(ti))));
+                        F.fcn(F.symbol("erasure"),tjsym),
+                        tisym)));
+                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
+                    addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+                }
             }
         }
         for (Type ti: javaTypes) {
@@ -600,6 +611,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // Add all the type definitions into the command script before all the uses
         // of the types in the various basic block translations
+        commands = saved;
         commands.addAll(loc,tcommands);
 
     }

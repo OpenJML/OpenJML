@@ -824,6 +824,63 @@ public class escall3 extends EscBase {
                 );
     }
     
+    @Test public void testArrayType() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int[] a) {\n"
+                +"      //@ assume a != null && a.length > 1;\n"
+                +"      a[0] = 9;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(String[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m3(String[] a, String i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(String);\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m4bad(String[] a, Object i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m3a(String[] a, String i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  public void m5bad(A[] a, B i) {\n" // FAILS because 'a' might have a dynamic type that does not hold a B
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  public void m5(A[] a, B i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\type(B) <: \\elemtype(\\typeof(a));\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",7
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",7
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",7
+                );
+    }
+    
 
 
 }

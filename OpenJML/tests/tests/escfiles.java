@@ -285,6 +285,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testVector() {
+        if ("cvc4".equals(solver)) fail(); // FIXME - CVC4 hangs
         expectedExit = 0;
         helpTF("escVector","-code-math=java");
     }

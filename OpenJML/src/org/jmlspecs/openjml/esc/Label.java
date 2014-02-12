@@ -272,6 +272,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential bad cast */
     /*@ non_null*/ public final static Label UNDEFINED_BADCAST = new Label("UndefinedBadCast");
     
+    /** Used to designate a possible ArrayStoreException because of an array assignment */
+    /*@ non_null*/ public final static Label POSSIBLY_BAD_ARRAY_ASSIGNMENT = new Label("PossiblyBadArrayAssignment");
+
 
 
 }

@@ -2849,6 +2849,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                if (msym != methodDecl.sym && scase.code) continue;
                 JCIdent preident = null;
                 JCExpression preexpr = null;
                 currentStatements = preStats;
@@ -5247,6 +5248,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // and we create a block that checks the assignable statements
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                        if (mpsym != calleeMethodSym && cs.code) continue;
                         JCIdent preId = null;
                         if (rac) {
                             preId = newTemp(treeutils.falseLit);
@@ -5530,6 +5532,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Be sure to do assignable (havoc) clauses before the invariant and postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                        if (mpsym != calleeMethodSym && cs.code) continue;
                         JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
@@ -5743,6 +5746,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // Be sure to do assignable (havoc) clauses, then invariants, and then postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                        if (mpsym != calleeMethodSym && cs.code) continue;
                         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
                         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
                         JCExpression pre = convertCopy(preExpressions.get(cs));
@@ -6726,6 +6730,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            }
 
             JCExpression rhs = convertExpr(that.rhs);
+            
+            if (javaChecks && !((Type.ArrayType)array.type).getComponentType().isPrimitive()) {
+                JCExpression rhstype = treeutils.makeTypeof(rhs);
+                JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,jmltypes.TYPE, 
+                        treeutils.makeTypeof(array));
+                JCExpression sta = treeutils.makeJmlMethodInvocation(array,JmlToken.SUBTYPE_OF,syms.booleanType,rhstype,lhselemtype);
+                addAssert(array, Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT, sta);
+            }
+            
             JCArrayAccess lhs = new JmlBBArrayAccess(null,array,index);
             lhs.pos = aa.pos;
             lhs.type = aa.type;
