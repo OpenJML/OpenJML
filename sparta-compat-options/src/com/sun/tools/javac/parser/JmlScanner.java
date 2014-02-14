@@ -360,6 +360,22 @@ public class JmlScanner extends DocCommentScanner {
             scanChar();
         } // Gobble up all leading @s
         
+        //
+        // "StrictBlocks" mode allows us to coexist with other tools like JSR 308.
+        // 
+        // To do it we require that valid JML has an extra space and does not run up against 
+        // the @ sign.
+        //
+        // For example, /*@non_null*/, would not be a valid JML block, where as /*@ non_null */ would.
+        //
+        
+        if(Utils.instance(context).strictBlocks &&  Character.isJavaIdentifierStart(ch)){
+            bp = bpend;
+            ch = chend;
+            super.processComment(style);
+            return;
+        }
+        
         if (jml) {
             // We are already in a JML comment - so we have an embedded comment.
             // The action is to just ignore the embedded comment start

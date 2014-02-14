@@ -85,6 +85,13 @@ public enum JmlOption implements IOption {
     RAC_JAVA_CHECKS("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
 
+    
+    //
+    // Compatibility option for JSR 308 et al
+    //
+    STRICT_BLOCKS("-strictBlocks",false,null,"Requires that JML blocks are well-formed with a space after the @ sign (used for compatibility).",null),
+
+    
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),

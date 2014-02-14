@@ -720,6 +720,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.esc = cmd == Cmd.ESC;
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
+        
+        utils.strictBlocks = options.get(JmlOption.STRICT_BLOCKS.optionName())!=null;
+
+        
         boolean picked = utils.rac||utils.esc||utils.check||utils.compile;
         if (!picked && cmd != null) {
             Log.instance(context).error("jml.unimplemented.command",cmd);
