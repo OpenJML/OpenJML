@@ -1,0 +1,11 @@
+Node: class com.sun.tools.javac.tree.JCTree$JCBinary
+Node: class com.sun.tools.javac.tree.JCTree$JCParens
+Node: class com.sun.tools.javac.tree.JCTree$JCBinary
+Node: class com.sun.tools.javac.tree.JCTree$JCIdent
+Node: class com.sun.tools.javac.tree.JCTree$JCIdent
+Node: class com.sun.tools.javac.tree.JCTree$JCIdent
+Counts: 6 2 0
+Node: class org.jmlspecs.openjml.JmlTree$JmlBinary
+Node: class com.sun.tools.javac.tree.JCTree$JCIdent
+Node: class org.jmlspecs.openjml.JmlTree$JmlSingleton
+Counts: 9 3 1

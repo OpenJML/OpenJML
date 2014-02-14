@@ -1,0 +1,524 @@
+Using internal runtime openjml.jar
+Classpath: openjml.jar
+parsing /home/projects/OpenJML/trunk/OpenJML/temp/B.java
+Java version 6
+Using internal specs openjml.jar!specs16
+specspath: . openjml.jar!specs16
+sourcepath: null
+classpath: openjml.jar
+java.class.path: openjml.jar
+entering B.java
+  completed entering B.java
+typechecking B
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Object.jml
+entering (binary) java.lang.Object
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Array.jml
+entering (binary) java.lang.reflect.Array
+No specs for java.lang.annotation.Annotation
+No specs for org.jmlspecs.annotation.Pure
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/Serializable.jml
+entering (binary) java.io.Serializable
+No specs for java.lang.reflect.GenericDeclaration
+No specs for java.lang.reflect.Type
+No specs for java.lang.reflect.AnnotatedElement
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Class.jml
+entering (binary) java.lang.Class
+entering (binary) java.lang.Class.EnclosingMethodInfo
+entering (binary) java.lang.Class.MethodArray
+No specs for org.jmlspecs.annotation.NonNull
+No specs for org.jmlspecs.annotation.Nullable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Throwable.jml
+entering (binary) java.lang.Throwable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Exception.jml
+entering (binary) java.lang.Exception
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/CloneNotSupportedException.jml
+entering (binary) java.lang.CloneNotSupportedException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Comparable.jml
+entering (binary) java.lang.Comparable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/CharSequence.jml
+entering (binary) java.lang.CharSequence
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/String.jml
+entering (binary) java.lang.String
+entering (binary) java.lang.String.CaseInsensitiveComparator
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/InterruptedException.jml
+entering (binary) java.lang.InterruptedException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Cloneable.jml
+entering (binary) java.lang.Cloneable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/lang/JMLDataGroup.jml
+entering (binary) org.jmlspecs.lang.JMLDataGroup
+No specs for org.jmlspecs.annotation.Model
+No specs for org.jmlspecs.annotation.Ghost
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/RuntimeException.jml
+entering (binary) java.lang.RuntimeException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalArgumentException.jml
+entering (binary) java.lang.IllegalArgumentException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IndexOutOfBoundsException.jml
+entering (binary) java.lang.IndexOutOfBoundsException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ArrayIndexOutOfBoundsException.jml
+entering (binary) java.lang.ArrayIndexOutOfBoundsException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NegativeArraySizeException.jml
+entering (binary) java.lang.NegativeArraySizeException
+No specs for java.io.Closeable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/InputStream.jml
+entering (binary) java.io.InputStream
+No specs for org.jmlspecs.annotation.NullableByDefault
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassNotFoundException.jml
+entering (binary) java.lang.ClassNotFoundException
+No specs for java.lang.ClassLoader
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/InstantiationException.jml
+entering (binary) java.lang.InstantiationException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalAccessException.jml
+entering (binary) java.lang.IllegalAccessException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Package.jml
+entering (binary) java.lang.Package
+No specs for java.lang.reflect.AccessibleObject
+No specs for java.lang.reflect.Member
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Field.jml
+entering (binary) java.lang.reflect.Field
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/SecurityException.jml
+entering (binary) java.lang.SecurityException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Method.jml
+entering (binary) java.lang.reflect.Method
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/Constructor.jml
+entering (binary) java.lang.reflect.Constructor
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NoSuchFieldException.jml
+entering (binary) java.lang.NoSuchFieldException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NoSuchMethodException.jml
+entering (binary) java.lang.NoSuchMethodException
+No specs for java.net.URL
+No specs for java.security.ProtectionDomain
+No specs for java.io.Flushable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/OutputStream.jml
+entering (binary) java.io.OutputStream
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FilterOutputStream.jml
+entering (binary) java.io.FilterOutputStream
+No specs for java.lang.Appendable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/PrintStream.jml
+entering (binary) java.io.PrintStream
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/Writer.jml
+entering (binary) java.io.Writer
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/PrintWriter.jml
+entering (binary) java.io.PrintWriter
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StackTraceElement.jml
+entering (binary) java.lang.StackTraceElement
+No specs for org.jmlspecs.annotation.Instance
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/IOException.jml
+entering (binary) java.io.IOException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/UnsupportedEncodingException.jml
+entering (binary) java.io.UnsupportedEncodingException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Locale.jml
+entering (binary) java.util.Locale
+entering (binary) java.util.Locale.LocaleNameGetter
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/regex/Pattern.jml
+entering (binary) java.util.regex.Pattern
+entering (binary) java.util.regex.Pattern.TreeInfo
+entering (binary) java.util.regex.Pattern.BitClass
+entering (binary) java.util.regex.Pattern.Node
+entering (binary) java.util.regex.Pattern.LastNode
+entering (binary) java.util.regex.Pattern.Start
+entering (binary) java.util.regex.Pattern.StartS
+entering (binary) java.util.regex.Pattern.Begin
+entering (binary) java.util.regex.Pattern.End
+entering (binary) java.util.regex.Pattern.Caret
+entering (binary) java.util.regex.Pattern.UnixCaret
+entering (binary) java.util.regex.Pattern.LastMatch
+entering (binary) java.util.regex.Pattern.Dollar
+entering (binary) java.util.regex.Pattern.UnixDollar
+entering (binary) java.util.regex.Pattern.CharProperty
+entering (binary) java.util.regex.Pattern.BmpCharProperty
+entering (binary) java.util.regex.Pattern.Category
+entering (binary) java.util.regex.Pattern.Ctype
+entering (binary) java.util.regex.Pattern.Slice
+entering (binary) java.util.regex.Pattern.SliceA
+entering (binary) java.util.regex.Pattern.SliceU
+entering (binary) java.util.regex.Pattern.SliceS
+entering (binary) java.util.regex.Pattern.All
+entering (binary) java.util.regex.Pattern.Dot
+entering (binary) java.util.regex.Pattern.UnixDot
+entering (binary) java.util.regex.Pattern.Ques
+entering (binary) java.util.regex.Pattern.Curly
+entering (binary) java.util.regex.Pattern.GroupCurly
+entering (binary) java.util.regex.Pattern.BranchConn
+entering (binary) java.util.regex.Pattern.Branch
+entering (binary) java.util.regex.Pattern.GroupHead
+entering (binary) java.util.regex.Pattern.GroupRef
+entering (binary) java.util.regex.Pattern.GroupTail
+entering (binary) java.util.regex.Pattern.Prolog
+entering (binary) java.util.regex.Pattern.Loop
+entering (binary) java.util.regex.Pattern.LazyLoop
+entering (binary) java.util.regex.Pattern.BackRef
+entering (binary) java.util.regex.Pattern.CIBackRef
+entering (binary) java.util.regex.Pattern.First
+entering (binary) java.util.regex.Pattern.Conditional
+entering (binary) java.util.regex.Pattern.Pos
+entering (binary) java.util.regex.Pattern.Neg
+entering (binary) java.util.regex.Pattern.Behind
+entering (binary) java.util.regex.Pattern.BehindS
+entering (binary) java.util.regex.Pattern.NotBehind
+entering (binary) java.util.regex.Pattern.NotBehindS
+entering (binary) java.util.regex.Pattern.Bound
+entering (binary) java.util.regex.Pattern.BnM
+entering (binary) java.util.regex.Pattern.BnMS
+entering (binary) java.util.regex.Pattern.CharPropertyNames
+entering (binary) java.util.regex.Pattern.CharPropertyNames.CharPropertyFactory
+entering (binary) java.util.regex.Pattern.CharPropertyNames.CloneableProperty
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Comparator.jml
+entering (binary) java.util.Comparator
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NullPointerException.jml
+entering (binary) java.lang.NullPointerException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StringIndexOutOfBoundsException.jml
+entering (binary) java.lang.StringIndexOutOfBoundsException
+No specs for java.lang.AbstractStringBuilder
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StringBuffer.jml
+entering (binary) java.lang.StringBuffer
+No specs for java.util.jar.Manifest
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/reflect/InvocationTargetException.jml
+entering (binary) java.lang.reflect.InvocationTargetException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Number.jml
+entering (binary) java.lang.Number
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/math/BigInteger.jml
+entering (binary) java.math.BigInteger
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/MissingResourceException.jml
+entering (binary) java.util.MissingResourceException
+No specs for java.util.regex.MatchResult
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/regex/Matcher.jml
+entering (binary) java.util.regex.Matcher
+No specs for java.util.Random
+typechecking java.lang.Object
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/utils/Utils.jml
+entering (binary) org.jmlspecs.utils.Utils
+entering (binary) org.jmlspecs.utils.Utils.JmlAssertionError
+entering (binary) org.jmlspecs.utils.Utils.JmlTypeRac
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Map.jml
+entering (binary) java.util.Map
+entering (binary) java.util.Map.Entry
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/AbstractMap.jml
+entering (binary) java.util.AbstractMap
+entering (binary) java.util.AbstractMap.SimpleEntry
+entering (binary) java.util.AbstractMap.SimpleImmutableEntry
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/HashMap.jml
+entering (binary) java.util.HashMap
+entering (binary) java.util.HashMap.Entry
+entering (binary) java.util.HashMap.HashIterator
+entering (binary) java.util.HashMap.ValueIterator
+entering (binary) java.util.HashMap.KeyIterator
+entering (binary) java.util.HashMap.EntryIterator
+entering (binary) java.util.HashMap.KeySet
+entering (binary) java.util.HashMap.Values
+entering (binary) java.util.HashMap.EntrySet
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/lang/JMLList.jml
+entering (binary) org.jmlspecs.lang.JMLList
+entering (binary) org.jmlspecs.lang.JMLList.Data
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/org/jmlspecs/utils/IJMLTYPE.jml
+entering (binary) org.jmlspecs.utils.IJMLTYPE
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Iterable.jml
+entering (binary) java.lang.Iterable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Collection.jml
+entering (binary) java.util.Collection
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Set.jml
+entering (binary) java.util.Set
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Iterator.jml
+entering (binary) java.util.Iterator
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ArrayStoreException.jml
+entering (binary) java.lang.ArrayStoreException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/System.jml
+entering (binary) java.lang.System
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Dictionary.jml
+entering (binary) java.util.Dictionary
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Hashtable.jml
+entering (binary) java.util.Hashtable
+entering (binary) java.util.Hashtable.KeySet
+entering (binary) java.util.Hashtable.EntrySet
+entering (binary) java.util.Hashtable.ValueCollection
+entering (binary) java.util.Hashtable.Entry
+entering (binary) java.util.Hashtable.Enumerator
+entering (binary) java.util.Hashtable.EmptyEnumerator
+entering (binary) java.util.Hashtable.EmptyIterator
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Properties.jml
+entering (binary) java.util.Properties
+entering (binary) java.util.Properties.LineReader
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/SecurityManager.jml
+entering (binary) java.lang.SecurityManager
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Enumeration.jml
+entering (binary) java.util.Enumeration
+No specs for java.io.FileDescriptor
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/File.jml
+entering (binary) java.io.File
+No specs for java.security.Guard
+No specs for java.security.Permission
+No specs for java.io.FilePermission
+No specs for java.security.BasicPermission
+No specs for java.awt.AWTPermission
+No specs for java.util.PropertyPermission
+No specs for java.lang.RuntimePermission
+No specs for java.net.SocketPermission
+No specs for java.net.NetPermission
+No specs for java.net.InetAddress
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Runnable.jml
+entering (binary) java.lang.Runnable
+No specs for java.lang.Thread
+No specs for java.lang.ThreadGroup
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/URI.jml
+entering (binary) java.net.URI
+entering (binary) java.net.URI.Parser
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/MalformedURLException.jml
+entering (binary) java.net.MalformedURLException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FileFilter.jml
+entering (binary) java.io.FileFilter
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/FilenameFilter.jml
+entering (binary) java.io.FilenameFilter
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/io/ObjectStreamException.jml
+entering (binary) java.io.ObjectStreamException
+No specs for java.io.InvalidObjectException
+No specs for java.io.DataInput
+No specs for java.io.ObjectInput
+No specs for java.io.ObjectStreamConstants
+No specs for java.io.ObjectInputStream
+No specs for java.io.DataOutput
+No specs for java.io.ObjectOutput
+No specs for java.io.ObjectOutputStream
+No specs for java.nio.Buffer
+No specs for java.nio.ByteBuffer
+No specs for java.lang.Readable
+No specs for java.nio.CharBuffer
+No specs for java.nio.charset.CharsetDecoder
+No specs for java.nio.charset.CharsetEncoder
+No specs for java.nio.charset.CoderResult
+No specs for java.nio.charset.CodingErrorAction
+No specs for java.nio.charset.CharacterCodingException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Character.jml
+entering (binary) java.lang.Character
+entering (binary) java.lang.Character.Subset
+entering (binary) java.lang.Character.UnicodeBlock
+entering (binary) java.lang.Character.CharacterCache
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/net/URISyntaxException.jml
+entering (binary) java.net.URISyntaxException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Integer.jml
+entering (binary) java.lang.Integer
+entering (binary) java.lang.Integer.IntegerCache
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/NumberFormatException.jml
+entering (binary) java.lang.NumberFormatException
+typechecked java.lang.Object
+typechecked B
+typechecking java.lang.reflect.Array
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Byte.jml
+entering (binary) java.lang.Byte
+entering (binary) java.lang.Byte.ByteCache
+typechecked java.lang.reflect.Array
+typechecking java.lang.Class
+typechecked java.lang.Class
+No specs for Bound
+typechecking java.lang.CloneNotSupportedException
+typechecking java.lang.Exception
+typechecking java.lang.Throwable
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/IllegalStateException.jml
+entering (binary) java.lang.IllegalStateException
+typechecked java.lang.Throwable
+typechecked java.lang.Exception
+typechecked java.lang.CloneNotSupportedException
+typechecking java.lang.String
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Boolean.jml
+entering (binary) java.lang.Boolean
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Long.jml
+entering (binary) java.lang.Long
+entering (binary) java.lang.Long.LongCache
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Float.jml
+entering (binary) java.lang.Float
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Double.jml
+entering (binary) java.lang.Double
+typechecked java.lang.String
+typechecking java.lang.InterruptedException
+typechecked java.lang.InterruptedException
+typechecking org.jmlspecs.lang.JMLDataGroup
+typechecked org.jmlspecs.lang.JMLDataGroup
+typechecking java.lang.IllegalArgumentException
+typechecking java.lang.RuntimeException
+typechecked java.lang.RuntimeException
+typechecked java.lang.IllegalArgumentException
+typechecking java.lang.ArrayIndexOutOfBoundsException
+typechecking java.lang.IndexOutOfBoundsException
+typechecked java.lang.IndexOutOfBoundsException
+typechecked java.lang.ArrayIndexOutOfBoundsException
+typechecking java.lang.NegativeArraySizeException
+typechecked java.lang.NegativeArraySizeException
+typechecking java.io.InputStream
+typechecked java.io.InputStream
+typechecking java.io.Serializable
+typechecked java.io.Serializable
+typechecking java.lang.ClassNotFoundException
+typechecked java.lang.ClassNotFoundException
+typechecking java.lang.InstantiationException
+typechecked java.lang.InstantiationException
+typechecking java.lang.IllegalAccessException
+typechecked java.lang.IllegalAccessException
+typechecking java.lang.Package
+typechecked java.lang.Package
+typechecking java.lang.reflect.Field
+typechecked java.lang.reflect.Field
+typechecking java.lang.SecurityException
+typechecked java.lang.SecurityException
+typechecking java.lang.reflect.Method
+No specs for java.lang.reflect.Modifier
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Short.jml
+entering (binary) java.lang.Short
+entering (binary) java.lang.Short.ShortCache
+typechecked java.lang.reflect.Method
+typechecking java.lang.reflect.Constructor
+typechecked java.lang.reflect.Constructor
+typechecking java.lang.NoSuchFieldException
+typechecked java.lang.NoSuchFieldException
+typechecking java.lang.NoSuchMethodException
+typechecked java.lang.NoSuchMethodException
+typechecking java.io.PrintStream
+typechecking java.io.FilterOutputStream
+typechecking java.io.OutputStream
+typechecked java.io.OutputStream
+typechecked java.io.FilterOutputStream
+typechecked java.io.PrintStream
+typechecking java.io.PrintWriter
+typechecking java.io.Writer
+typechecked java.io.Writer
+typechecked java.io.PrintWriter
+typechecking java.lang.StackTraceElement
+typechecked java.lang.StackTraceElement
+typechecking java.lang.CharSequence
+typechecked java.lang.CharSequence
+typechecking java.io.UnsupportedEncodingException
+typechecking java.io.IOException
+typechecked java.io.IOException
+typechecked java.io.UnsupportedEncodingException
+typechecking java.util.Locale
+typechecked java.util.Locale
+typechecking java.util.regex.Pattern
+typechecked java.util.regex.Pattern
+typechecking java.util.Comparator
+typechecked java.util.Comparator
+typechecking java.lang.Comparable
+typechecked java.lang.Comparable
+typechecking java.lang.NullPointerException
+typechecked java.lang.NullPointerException
+typechecking java.lang.StringIndexOutOfBoundsException
+typechecked java.lang.StringIndexOutOfBoundsException
+typechecking java.lang.StringBuffer
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/Math.jml
+entering (binary) java.lang.Math
+typechecked java.lang.StringBuffer
+typechecking java.lang.Cloneable
+typechecked java.lang.Cloneable
+typechecking java.lang.reflect.InvocationTargetException
+typechecked java.lang.reflect.InvocationTargetException
+typechecking java.math.BigInteger
+typechecking java.lang.Number
+typechecked java.lang.Number
+typechecked java.math.BigInteger
+typechecking java.util.MissingResourceException
+typechecked java.util.MissingResourceException
+typechecking java.util.regex.Matcher
+typechecked java.util.regex.Matcher
+typechecking org.jmlspecs.utils.IJMLTYPE
+typechecked org.jmlspecs.utils.IJMLTYPE
+typechecking java.util.HashMap
+typechecking java.util.AbstractMap
+typechecked java.util.AbstractMap
+typechecked java.util.HashMap
+typechecking java.util.Map
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/ClassCastException.jml
+entering (binary) java.lang.ClassCastException
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/UnsupportedOperationException.jml
+entering (binary) java.lang.UnsupportedOperationException
+typechecked java.util.Map
+typechecking org.jmlspecs.lang.JMLList
+typechecked org.jmlspecs.lang.JMLList
+typechecking java.util.Set
+typechecked java.util.Set
+typechecking java.util.Collection
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/Arrays.jml
+entering (binary) java.util.Arrays
+entering (binary) java.util.Arrays.ArrayList
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/List.jml
+entering (binary) java.util.List
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/ListIterator.jml
+entering (binary) java.util.ListIterator
+typechecking java.util.Collection.Content
+typechecked java.util.Collection.Content
+typechecked java.util.Collection
+typechecking java.util.Iterator
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/util/NoSuchElementException.jml
+entering (binary) java.util.NoSuchElementException
+typechecked java.util.Iterator
+typechecking java.lang.Iterable
+typechecked java.lang.Iterable
+typechecking java.lang.ArrayStoreException
+typechecked java.lang.ArrayStoreException
+typechecking org.jmlspecs.utils.Utils
+typechecked org.jmlspecs.utils.Utils
+typechecking java.util.Properties
+typechecking java.util.Hashtable
+typechecking java.util.Dictionary
+typechecked java.util.Dictionary
+typechecked java.util.Hashtable
+No specs for org.jmlspecs.annotation.SpecPublic
+typechecked java.util.Properties
+typechecking java.lang.SecurityManager
+typechecked java.lang.SecurityManager
+typechecking java.util.Enumeration
+typechecked java.util.Enumeration
+typechecking java.io.File
+typechecked java.io.File
+typechecking java.net.URI
+typechecked java.net.URI
+typechecking java.net.MalformedURLException
+typechecked java.net.MalformedURLException
+typechecking java.io.FileFilter
+typechecked java.io.FileFilter
+typechecking java.io.FilenameFilter
+typechecked java.io.FilenameFilter
+typechecking java.lang.Character
+typechecked java.lang.Character
+typechecking java.net.URISyntaxException
+typechecked java.net.URISyntaxException
+typechecking java.lang.System
+typechecked java.lang.System
+typechecking java.lang.Integer
+typechecked java.lang.Integer
+typechecking java.lang.NumberFormatException
+typechecked java.lang.NumberFormatException
+typechecking java.lang.Byte
+typechecked java.lang.Byte
+No specs for int
+No specs for byte
+No specs for short
+No specs for long
+No specs for char
+No specs for float
+No specs for double
+No specs for boolean
+No specs for void
+typechecking java.lang.IllegalStateException
+typechecked java.lang.IllegalStateException
+typechecking java.lang.Boolean
+typechecked java.lang.Boolean
+typechecking java.lang.Long
+typechecked java.lang.Long
+typechecking java.lang.Float
+typechecked java.lang.Float
+typechecking java.lang.Double
+typechecked java.lang.Double
+typechecking java.lang.Short
+typechecked java.lang.Short
+typechecking java.lang.Math
+parsing /c:/home/projects/OpenJML/trunk/OpenJML/temp/openjml.jar!specs16/java/lang/StrictMath.jml
+entering (binary) java.lang.StrictMath
+typechecked java.lang.Math
+typechecking java.lang.UnsupportedOperationException
+typechecked java.lang.UnsupportedOperationException
+typechecking java.lang.ClassCastException
+typechecked java.lang.ClassCastException
+typechecking java.util.List
+typechecked java.util.List
+typechecking java.util.ListIterator
+typechecked java.util.ListIterator
+typechecking java.util.Arrays
+typechecked java.util.Arrays
+typechecking java.lang.StrictMath
+typechecked java.lang.StrictMath

@@ -1,0 +1,21 @@
+OUT:
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:112: JML precondition is false
+		clearPin();
+		        ^
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:148: Associated declaration: ..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:112: 
+	/*@ requires pin_pos == pin.length;
+	    ^
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:235: JML caller invariant is false on reentering calling method (Caller: Terminal.initCard(), Callee: Card.CardInit(byte[],byte[]))
+		card.CardInit(pin,pin);
+		             ^
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:76: Associated declaration: ..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:235: 
+        public invariant status == FILLED_READYFORINIT <==> 
+               ^
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:235: JML caller invariant is false on reentering calling method (Caller: Terminal.initCard(), Callee: Card.CardInit(byte[],byte[]))
+		card.CardInit(pin,pin);
+		             ^
+..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:78: Associated declaration: ..\OpenJMLDemo\src\openjml\purseMod\Terminal.java:235: 
+        public invariant status == FILLED_INIT <==> 
+               ^
+
+ERR:

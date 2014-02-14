@@ -1,0 +1,6 @@
+testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.

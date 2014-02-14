@@ -1,0 +1,23 @@
+..\OpenJMLDemo\src\nonpublic\dmz\Clock.java:83: error: invalid method declaration; return type required
+  public Clock(final int the_hours, final int the_minutes, final int the_seconds) {
+         ^
+Continuing bravely despite parsing errors
+..\OpenJMLDemo\src\nonpublic\dmz\Clock.java:18: error: class Date is public, should be declared in a file named Date.java
+public class Date {
+       ^
+..\OpenJMLDemo\src\nonpublic\dmz\Clock.java:138: error: cannot find symbol
+  public /*@ pure */ boolean later(final Clock the_other_clock) {
+                                         ^
+  symbol:   class Clock
+  location: class Date
+..\OpenJMLDemo\src\nonpublic\dmz\Clock.java:150: error: cannot find symbol
+  public /*@ pure */ boolean earlier(final Clock the_other_clock) {
+                                           ^
+  symbol:   class Clock
+  location: class Date
+..\OpenJMLDemo\src\nonpublic\dmz\Clock.java:166: error: cannot find symbol
+  public /*@ pure */ int difference(final Clock the_other_clock) {
+                                          ^
+  symbol:   class Clock
+  location: class Date
+5 errors

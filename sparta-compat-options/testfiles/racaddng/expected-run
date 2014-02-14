@@ -1,0 +1,200 @@
+OUT:
+[TestNG] Running:
+  Command line suite
+
+Passed: racEnabled()
+Skipped: constructor Add(-2147483648, -2147483648)
+Skipped: constructor Add(0, -2147483648)
+Skipped: constructor Add(2147483647, -2147483648)
+Skipped: constructor Add(-2147483648, 0)
+Skipped: constructor Add(0, 0)
+Passed: constructor Add(2147483647, 0)
+Skipped: constructor Add(-2147483648, 2147483647)
+Passed: constructor Add(0, 2147483647)
+Skipped: constructor Add(2147483647, 2147483647)
+Skipped: sum()
+Skipped: x()
+Skipped: y()
+
+===============================================
+Command line suite
+Total tests run: 13, Failures: 0, Skips: 10
+===============================================
+
+
+ERR:
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main
+element: createException
+element: assertionFailureL
+element: test_Add__int_the_x__int_the_y__0
+element: invoke0
+element: invoke
+element: invoke
+element: invoke
+element: invokeMethod
+element: invokeMethod
+element: invokeTestMethod
+element: invokeTestMethods
+element: invokeTestMethods
+element: run
+element: privateRun
+element: run
+element: runTest
+element: runSequentially
+element: privateRun
+element: run
+element: runSuite
+element: run
+element: runSuitesSequentially
+element: runSuitesLocally
+element: run
+element: main

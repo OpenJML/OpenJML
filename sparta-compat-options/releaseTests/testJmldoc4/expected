@@ -1,0 +1,165 @@
+Creating destination directory: "doc\"
+Loading source file ../testfiles/jmldoc3/data/Vis.java...
+Loading source file ../testfiles/jmldoc3/data/tp/PVis.java...
+Constructing Javadoc information...
+Standard Doclet version OpenJMLDoc: DATE-VERSION
+Building tree for all the packages and classes...
+Compiling with JML
+..\testfiles\jmldoc3\data\Vis.java:85: cannot find symbol
+//@ model public static enum EM_public { EMA }
+                        ^
+  symbol:   class EM_public
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:85: cannot find symbol
+//@ model public static enum EM_public { EMA }
+                                         ^
+  symbol:   class EM_public
+  location: class EM_public
+..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
+//@ model protected static enum EM_protected { EMB }
+                           ^
+  symbol:   class EM_protected
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:87: cannot find symbol
+//@ model protected static enum EM_protected { EMB }
+                                               ^
+  symbol:   class EM_protected
+  location: class EM_protected
+..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
+//@ model static enum EM_package { EMC }
+                 ^
+  symbol:   class EM_package
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:89: cannot find symbol
+//@ model static enum EM_package { EMC }
+                                   ^
+  symbol:   class EM_package
+  location: class EM_package
+..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
+//@ model private static enum EM_private { EMD }
+                         ^
+  symbol:   class EM_private
+  location: class Vis
+..\testfiles\jmldoc3\data\Vis.java:91: cannot find symbol
+//@ model private static enum EM_private { EMD }
+                                           ^
+  symbol:   class EM_private
+  location: class EM_private
+..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
+//@ model public static enum EMs_public { EMAs }
+                        ^
+  symbol:   class EMs_public
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:189: cannot find symbol
+//@ model public static enum EMs_public { EMAs }
+                                          ^
+  symbol:   class EMs_public
+  location: class EMs_public
+..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
+//@ model protected static enum EMs_protected { EMBs }
+                           ^
+  symbol:   class EMs_protected
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:191: cannot find symbol
+//@ model protected static enum EMs_protected { EMBs }
+                                                ^
+  symbol:   class EMs_protected
+  location: class EMs_protected
+..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
+//@ model static enum EMs_package { EMCs }
+                 ^
+  symbol:   class EMs_package
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:193: cannot find symbol
+//@ model static enum EMs_package { EMCs }
+                                    ^
+  symbol:   class EMs_package
+  location: class EMs_package
+..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
+//@ model private static enum EMs_private { EMDs }
+                         ^
+  symbol:   class EMs_private
+  location: class SVis
+..\testfiles\jmldoc3\data\Vis.java:195: cannot find symbol
+//@ model private static enum EMs_private { EMDs }
+                                            ^
+  symbol:   class EMs_private
+  location: class EMs_private
+..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
+//@ model public static enum EMp_public { EMAp }
+                        ^
+  symbol:   class EMp_public
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:60: cannot find symbol
+//@ model public static enum EMp_public { EMAp }
+                                          ^
+  symbol:   class EMp_public
+  location: class EMp_public
+..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
+//@ model protected static enum EMp_protected { EMBp }
+                           ^
+  symbol:   class EMp_protected
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:62: cannot find symbol
+//@ model protected static enum EMp_protected { EMBp }
+                                                ^
+  symbol:   class EMp_protected
+  location: class EMp_protected
+..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
+//@ model static enum EMp_package { EMCp }
+                 ^
+  symbol:   class EMp_package
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:64: cannot find symbol
+//@ model static enum EMp_package { EMCp }
+                                    ^
+  symbol:   class EMp_package
+  location: class EMp_package
+..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
+//@ model private static enum EMp_private { EMDp }
+                         ^
+  symbol:   class EMp_private
+  location: class PVis
+..\testfiles\jmldoc3\data\tp\PVis.java:66: cannot find symbol
+//@ model private static enum EMp_private { EMDp }
+                                            ^
+  symbol:   class EMp_private
+  location: class EMp_private
+24 errors
+Generating doc\Vis.html...
+Generating doc\Vis.A_protected.html...
+Generating doc\Vis.A_public.html...
+Generating doc\Vis.C_protected.html...
+Generating doc\Vis.C_public.html...
+Generating doc\Vis.E_protected.html...
+Generating doc\Vis.E_public.html...
+Generating doc\Vis.I_protected.html...
+Generating doc\Vis.I_public.html...
+Generating doc\tp\PVis.html...
+Generating doc\tp\PVis.Ap_protected.html...
+Generating doc\tp\PVis.Ap_public.html...
+Generating doc\tp\PVis.Cp_protected.html...
+Generating doc\tp\PVis.Cp_public.html...
+Generating doc\tp\PVis.EP_protected.html...
+Generating doc\tp\PVis.EP_public.html...
+Generating doc\tp\PVis.Ip_protected.html...
+Generating doc\tp\PVis.Ip_public.html...
+Generating doc\overview-frame.html...
+Generating doc\package-frame.html...
+Generating doc\package-summary.html...
+Generating doc\package-tree.html...
+Generating doc\tp\package-frame.html...
+Generating doc\tp\package-summary.html...
+Generating doc\tp\package-tree.html...
+Generating doc\constant-values.html...
+Building index for all the packages and classes...
+Generating doc\overview-tree.html...
+Generating doc\index-all.html...
+Generating doc\deprecated-list.html...
+Building index for all classes...
+Generating doc\allclasses-frame.html...
+Generating doc\allclasses-noframe.html...
+Generating doc\index.html...
+Generating doc\overview-summary.html...
+Generating doc\help-doc.html...
+Generating doc\stylesheet.css...

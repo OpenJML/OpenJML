@@ -1,0 +1,4 @@
+\newcommand{\fcolorbox}[4][!*!]{{\@div{style="background-color:\@getstylecolor[#1]{#3};border:solid \@getstylecolor[#1]{#2}"}#4}}
+\newcommand{\parbox}[2]{\begin{flushleft}#2\end{flushleft}}
+
+
