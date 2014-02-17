@@ -721,7 +721,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         utils.check = cmd == Cmd.CHECK;
         utils.compile = cmd == Cmd.COMPILE;
         
-        utils.strictBlocks = options.get(JmlOption.STRICT_BLOCKS.optionName())!=null;
+        utils.jsr308Compat = options.get(JmlOption.JSR308_COMPAT.optionName())!=null;
 
         
         boolean picked = utils.rac||utils.esc||utils.check||utils.compile;

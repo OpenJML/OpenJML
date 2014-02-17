@@ -361,7 +361,7 @@ public class JmlScanner extends DocCommentScanner {
         } // Gobble up all leading @s
         
         //
-        // "StrictBlocks" mode allows us to coexist with other tools like JSR 308.
+        // "JSR 308 Compat" mode allows us to coexist with other tools like JSR 308.
         // 
         // To do it we require that valid JML has an extra space and does not run up against 
         // the @ sign.
@@ -369,7 +369,7 @@ public class JmlScanner extends DocCommentScanner {
         // For example, /*@non_null*/, would not be a valid JML block, where as /*@ non_null */ would.
         //
         
-        if(Utils.instance(context).strictBlocks &&  Character.isJavaIdentifierStart(ch)){
+        if(Utils.instance(context).jsr308Compat &&  Character.isJavaIdentifierStart(ch)){
             bp = bpend;
             ch = chend;
             super.processComment(style);

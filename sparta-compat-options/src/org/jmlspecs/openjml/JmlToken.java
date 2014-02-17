@@ -63,6 +63,9 @@ public enum JmlToken {
     CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+    //
+    // Used for SPARTA! compatibility. 
+    //
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types

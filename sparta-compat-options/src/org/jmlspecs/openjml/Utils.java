@@ -128,8 +128,8 @@ public class Utils {
     /** Do Jmldoc  */
     public boolean doc = false;
     
-    /** Enable strictBlocks */
-    public boolean strictBlocks = false;
+    /** Enable JSR 308 Compatibility */
+    public boolean jsr308Compat = false;
     
     /** Max number of ESC warnings per method (set from an option) */
     public int maxWarnings = 1;
