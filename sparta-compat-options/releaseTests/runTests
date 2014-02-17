@@ -176,7 +176,10 @@ ${RTH} testPath9 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/
 ${RTH} testPath10 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
 
 ## Tests JSR308 Compat feature.
-${RTH} testJSR308 "java -jar openjml.jar -jsr308 -noPurityCheck -esc ../testfiles/testJSR308/A.java" || RES=$(($RES+1))
+${RTH} testJSR308OK "java -jar openjml.jar -jsr308 -noPurityCheck -esc ../testfiles/testJSR308/A.java" || RES=$(($RES+1))
+
+## Tests JSR308 Compat feature.
+${RTH} testJSR308BAD "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testJSR308/A.java" || RES=$(($RES+1))
 
 
 export SWITCHSLASH=
