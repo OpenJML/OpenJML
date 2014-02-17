@@ -89,7 +89,7 @@ public enum JmlOption implements IOption {
     //
     // Compatibility option for JSR 308 et al
     //
-    STRICT_BLOCKS("-strictBlocks",false,null,"Requires that JML blocks are well-formed with a space after the @ sign (used for compatibility).",null),
+    JSR308_COMPAT("-jsr308",false,null,"Requires that JML blocks are well-formed with a space after the @ sign (used for JSR 308 compatibility)",null),
 
     
     // Obsolete
