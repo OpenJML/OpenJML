@@ -47,7 +47,6 @@ echo Visually check that the version matches the tar file being tested
 java -jar openjml.jar -version
 ${RTH} testJmlVersion "java -jar openjml.jar -version" || RES=$(($RES+1))
 
-
 ## Checks the help message (when there are no arguments)
 ${RTH} testJmlHelp "java -jar openjml.jar" || RES=$(($RES+1))
 
@@ -175,6 +174,10 @@ ${RTH} testPath9 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/
 
 ## Checks using class path and specs path - uses specs file, finds super class
 ${RTH} testPath10 "java -jar openjml.jar -jmltesting -noPurityCheck ../testfiles/testPath/data/TestPath.java -classpath ../testfiles/testPath/data -specspath ../testfiles/testPath/data-specs" || RES=$(($RES+1))
+
+## Tests JSR308 Compat feature.
+${RTH} testJSR308 "java -jar openjml.jar -jsr308 -noPurityCheck -esc ../testfiles/testJSR308/A.java" || RES=$(($RES+1))
+
 
 export SWITCHSLASH=
 
