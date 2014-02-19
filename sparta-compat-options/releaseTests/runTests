@@ -181,6 +181,9 @@ ${RTH} testJSR308OK "java -jar openjml.jar -jsr308 -noPurityCheck -esc ../testfi
 ## Tests JSR308 Compat feature.
 ${RTH} testJSR308BAD "java -jar openjml.jar -noPurityCheck -esc ../testfiles/testJSR308/A.java" || RES=$(($RES+1))
 
+## Tests JSR308 Compat feature.
+${RTH} testJSR308BAD2 "java -jar openjml.jar -jsr308 -noPurityCheck -esc ../testfiles/testJSR308/B.java" || RES=$(($RES+1))
+
 
 export SWITCHSLASH=
 

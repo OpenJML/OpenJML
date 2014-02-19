@@ -1,3 +1,12 @@
+../testfiles/testJSR308/A.java:6: error: invalid method declaration; return type required
+    //@Sink(DATABASE)
+       ^
+../testfiles/testJSR308/A.java:6: error: <identifier> expected
+    //@Sink(DATABASE)
+                    ^
+../testfiles/testJSR308/A.java:6: error: ';' expected
+    //@Sink(DATABASE)
+                     ^
 ../testfiles/testJSR308/A.java:7: error: ')' expected
     public static void r(byte [] /*@Sink(DATABASE)*/ b){
                                         ^
@@ -12,6 +21,11 @@
                                                      ^
   symbol:   class b
   location: class A
+../testfiles/testJSR308/A.java:6: error: cannot find symbol
+    //@Sink(DATABASE)
+            ^
+  symbol:   class DATABASE
+  location: class A
 ../testfiles/testJSR308/A.java:7: error: cannot find symbol
     public static void r(byte [] /*@Sink(DATABASE)*/ b){
                                          ^
@@ -20,4 +34,4 @@
 ../testfiles/testJSR308/A.java:7: error: missing method body, or declare abstract
     public static void r(byte [] /*@Sink(DATABASE)*/ b){
                        ^
-6 errors
+10 errors

@@ -1,0 +1,23 @@
+../testfiles/testJSR308/B.java:6: error: ')' expected
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                                         ^
+../testfiles/testJSR308/B.java:6: error: <identifier> expected
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                                                  ^
+../testfiles/testJSR308/B.java:6: error: <identifier> expected
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                                                       ^
+../testfiles/testJSR308/B.java:6: error: cannot find symbol
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                                                      ^
+  symbol:   class b
+  location: class B
+../testfiles/testJSR308/B.java:6: error: cannot find symbol
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                                          ^
+  symbol:   class DATABASE
+  location: class B
+../testfiles/testJSR308/B.java:6: error: missing method body, or declare abstract
+    public static void r(byte [] /*@@Sink(DATABASE)*/ b){
+                       ^
+6 errors

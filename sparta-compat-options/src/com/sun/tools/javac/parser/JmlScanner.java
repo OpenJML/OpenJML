@@ -369,7 +369,7 @@ public class JmlScanner extends DocCommentScanner {
         // For example, /*@non_null*/, would not be a valid JML block, where as /*@ non_null */ would.
         //
         
-        if(Utils.instance(context).jsr308Compat &&  Character.isJavaIdentifierStart(ch)){
+        if(Utils.instance(context).jsr308Compat && (bp-commentStart == 3) &&  Character.isJavaIdentifierStart(ch)){
             bp = bpend;
             ch = chend;
             super.processComment(style);
