@@ -16,13 +16,14 @@ public class Vector {
   //@ public invariant my_element_data != null;
   //@ public invariant my_element_count >= 0;
   //@ public invariant my_element_count <= my_element_data.length;
- 
+  //@ public invariant my_capacity_increment > 0;
   /**
    * The array buffer into which the components of the vector are 
    * stored. The capacity of the vector is the length of this array buffer.
    *
    * @since   JDK1.0
    */
+    //@ public invariant \elemtype(\typeof(my_element_data)) == \type(Object);
   private /*@ spec_public */ Object[] my_element_data;
 
   /**
@@ -51,6 +52,7 @@ public class Vector {
    *                                   increased when the vector overflows.
    * @since   JDK1.0
    */
+  //@ requires the_initial_capacity >= 0 && the_capacity_increment > 0;
   public Vector(final int the_initial_capacity, final int the_capacity_increment) {
     my_element_data = new Object[the_initial_capacity];
     my_capacity_increment = the_capacity_increment;
@@ -64,15 +66,15 @@ public class Vector {
   public final synchronized void add(final Object the_object) {
     if (my_element_count >= my_element_data.length) {
       // create a new array
-      final Object[] new_data = new Object[my_element_count + my_capacity_increment];
-      //@ loop_invariant 0 <= i && i <= my_element_count;
+      final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative
+      //@ ghost Object[] nd = new_data;
+      //@ loop_invariant 0 <= i && i <= my_element_count && new_data == nd;
       //@ decreases my_element_count - i;
       for (int i = 0; i < my_element_count; i++) {
         new_data[i] = my_element_data[i];
       }
       my_element_data = new_data;
     }
-    
     my_element_data[my_element_count++] = the_object;
   }
   

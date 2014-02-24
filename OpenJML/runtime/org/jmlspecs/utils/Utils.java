@@ -105,7 +105,7 @@ public class Utils {
      */
     public static boolean useExceptions = System.getProperty("org.jmlspecs.openjml.racexceptions") != null;
     
-    /** Determines whether to report assertion failures as exceptions (true)
+    /** Determines whether to report assertion failures as java assertions (true)
      * or error messages (false).
      */
     public static boolean useJavaAssert = System.getProperty("org.jmlspecs.openjml.racjavaassert") != null;

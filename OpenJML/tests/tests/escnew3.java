@@ -60,7 +60,7 @@ public class escnew3 extends EscBase {
                 +"    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m3(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 1;\n"
                 +"    a[0] = new Object();" // No return so as not to bollix the line numbers in the error messages
@@ -75,7 +75,7 @@ public class escnew3 extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m4(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 2;\n"
                 +"    a[0] = new Object();\n"
@@ -91,7 +91,7 @@ public class escnew3 extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m4a(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 3;\n"
                 +"    a[0] = new Object();\n"
@@ -99,21 +99,21 @@ public class escnew3 extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // BAD
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m5(Object[] a) {\n"
                 +"    //@ assume \\nonnullelements(a) && a.length == 3;\n"
                 +"    a[0] = new Object();\n"
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m5a(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 3;\n" // Line 75
                 +"    a[0] = null;\n"
                 +"    //@ assert \\nonnullelements(a);\n" // BAD
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m5b(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 3;\n"
                 +"    //@ assume \\nonnullelements(a);\n" 

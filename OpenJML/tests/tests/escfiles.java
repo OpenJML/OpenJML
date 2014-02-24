@@ -155,7 +155,7 @@ public class escfiles extends EscBase {
     public void testDemoB1() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB1.java","testfiles/escDemoB1",
-                "-progress",enableSubexpressions ? "-subexpressions" : "");
+                "-progress","-escMaxWarningsPath",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
@@ -327,6 +327,12 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testJLS() {
+        expectedExit = 0;
+        helpTF("escJLS");
+    }
+
+    @Test
     public void testDoublyLinkedList() {
         helpTF("escDoublyLinkedList");
     }
@@ -339,7 +345,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         if ("cvc4".equals(solver)) fail();  // FIXME - CVC4 crashes
-        helpTF("escSimpleString","-nonnullByDefault");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
     }
 
     @Test

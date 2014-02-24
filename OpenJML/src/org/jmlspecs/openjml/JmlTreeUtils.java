@@ -114,7 +114,7 @@ public class JmlTreeUtils {
     @NonNull final protected JmlResolve rs;
 
     /** The Types utilities object for this compilation context */
-    @NonNull final protected Types types;
+    @NonNull final protected JmlTypes types;
     
 //    /** The Env in which to do resolving */
 //    @NonNull protected Env<AttrContext> attrEnv;
@@ -957,8 +957,35 @@ public class JmlTreeUtils {
     /** Makes a JML \typeof expression, with the given expression as the argument */
     public JCExpression makeTypeof(JCExpression e) {
         JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
-        typeof.type = syms.classType;
+        typeof.type = types.TYPE;
         return typeof;
+    }
+    
+    /** Makes a JML \typeof expression, with the given expression as the argument */
+    public JCExpression makeTypelc(JCExpression e) {
+        JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPELC,e);
+        typeof.type = types.TYPE;
+        return typeof;
+    }
+    
+    /** Makes an equivalent of \erasure(\typeof ) expression, with the given expression as the argument */
+    public JCExpression makeJavaTypelc(JCExpression e) {
+        JmlMethodInvocation type = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPELC,e);
+        type.javaType = true;
+        type.type = syms.classType;
+        return type;
+    }
+    
+    public JCExpression makeElemtype(JCExpression e) {
+        JmlMethodInvocation elem = factory.at(e.pos).JmlMethodInvocation(JmlToken.BSELEMTYPE,e);
+        elem.type = types.TYPE;
+        return elem;
+    }
+    
+    public JCExpression makeSubtype(JCExpression e1, JCExpression e2) {
+        JmlMethodInvocation e = factory.at(e1.pos).JmlMethodInvocation(JmlToken.SUBTYPE_OF,e1,e2);
+        e.type = syms.booleanType;
+        return e;
     }
     
     /** Returns the AST for ( \typeof(id) == \type(type) && id instanceof 'erasure of type') */

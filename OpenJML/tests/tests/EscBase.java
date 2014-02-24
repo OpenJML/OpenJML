@@ -12,6 +12,9 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.esc.MethodProverSMT;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.List;
@@ -20,9 +23,11 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
 
+    @Rule public TestName testname = new TestName();
+    
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
         "z3_4_3", 
-        "cvc4",
+        //"cvc4",
         // "yices2" , // FIXME - needs quantifiers
         // "yices", 
         // "simplify" 
@@ -95,6 +100,8 @@ public abstract class EscBase extends JmlTestCase {
         noAssociatedDeclaration = false;
         print = false;
         args = new String[]{};
+        MethodProverSMT.benchmarkName = 
+                (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
     
     protected void setOption(String option) {
@@ -124,6 +131,7 @@ public abstract class EscBase extends JmlTestCase {
         super.tearDown();
         specs = null;
         captureOutput = false;
+        MethodProverSMT.benchmarkName = null;
     }
 
     

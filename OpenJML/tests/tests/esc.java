@@ -40,9 +40,24 @@ public class esc extends EscBase {
     }
  
     
-    @Test  // FIXME: Needs some implementation
+    @Test
     public void testCollect() {
-        main.addOptions("-nonnullByDefault","-show","-method=m");
+        main.addOptions("-nonnullByDefault","-method=m");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
+                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
+                +"    return null; \n" // FAILS
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",17
+              );
+    }
+
+    @Test  // FIXME: Needs some implementation
+    public void testCollectA() {
+        main.addOptions("-nonnullByDefault","-method=m","-timeout=300");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
@@ -52,20 +67,21 @@ public class esc extends EscBase {
                 +"    return null; \n" // FAILS
                 +"  }\n"
                 +"}\n"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",17
               );
     }
 
     
     @Test  // FIXME: Needs some implementation
     public void testCollectB() {
-        main.addOptions("-nonnullByDefault");
+        main.addOptions("-nonnullByDefault","-timeout=300");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double;\n"
                 +"    Object oo = v.getClass();\n"
-                +"    Object o = (Class<?>)v.getClass();\n"
                 +"    v.add(0,i);\n"
                 +"    bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n" // FAILS
@@ -77,7 +93,7 @@ public class esc extends EscBase {
     
     @Test  // FIXME: Needs some implementation
     public void testCollectC() {
-        main.addOptions("-nonnullByDefault");
+        main.addOptions("-nonnullByDefault","-timeout=300");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 +"  public String m(java.lang.Integer i, Number b) {\n"
@@ -516,7 +532,7 @@ public class esc extends EscBase {
                 +"    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m3(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 1;\n"
                 +"    a[0] = new Object();\n"
@@ -530,7 +546,7 @@ public class esc extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m4(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 2;\n"
                 +"    a[0] = new Object();\n"
@@ -546,7 +562,7 @@ public class esc extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // OK
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m4a(Object[] a) {\n"
                 +"    //@ assume a != null && a.length == 3;\n"
                 +"    a[0] = new Object();\n"
@@ -554,7 +570,7 @@ public class esc extends EscBase {
                 +"    //@ assert \\nonnullelements(a);\n" // BAD
                 +"  }\n"
                 
-                +"  //@ modifies \\everything;\n"
+                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m5(Object[] a) {\n"
                 +"    //@ assume \\nonnullelements(a) && a.length == 3;\n"
                 +"    a[0] = new Object();\n"

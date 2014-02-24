@@ -101,7 +101,7 @@ public class counterexamples extends EscBase {
                 +"  public int j; static public int sj; static public TestJava t;\n"
                 +"  public TestJava(int i) {}\n"
                 
-                +"  //@ requires t != null;\n"
+                +"  //@ requires t != null; requires \\elemtype(\\typeof(c)) == \\type(Object); \n"
                 +"  public void m1(Object[] c) {\n"
                 +"    int k; boolean b;\n"
                 +"    //@ assume c != null && c.length == 10;\n"

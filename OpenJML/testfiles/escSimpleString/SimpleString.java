@@ -73,12 +73,14 @@ public class SimpleString {
      * 
      * @param the_array The array of ints.
      */
+    //@ ensures my_Objects.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Objects.length; my_Objects[i] == the_array[i]);
     public SimpleString(final /*@ non_null */ Object[] the_array) {
         my_Objects = new Object[the_array.length];
         System.arraycopy(the_array, 0, my_Objects, 0, the_array.length);
     }
 
+    //@ ensures my_Integers.length == the_array.length;
     //@ ensures (\forall int i; 0 <= i && i < my_Integers.length; my_Integers[i] == the_array[i]);
     public SimpleString(final /*@ non_null */ Integer[] the_array) {
         my_Integers = new Integer[the_array.length];

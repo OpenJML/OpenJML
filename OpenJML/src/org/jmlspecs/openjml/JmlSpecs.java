@@ -1242,6 +1242,10 @@ public class JmlSpecs {
             this.mods = mods;
             cases = m != null ? m : new JmlMethodSpecs(); 
         }
+        
+        public String toString() {
+            return JmlPretty.write(mods) + Strings.eol + JmlPretty.write(cases);
+        }
     }
 
     /** An ADT to hold the specs for a field declaration */

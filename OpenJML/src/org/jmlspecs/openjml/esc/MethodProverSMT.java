@@ -1,6 +1,9 @@
 package org.jmlspecs.openjml.esc;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -352,6 +355,7 @@ public class MethodProverSMT {
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 int count = Utils.instance(context).maxWarnings;
+                boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
@@ -431,6 +435,7 @@ public class MethodProverSMT {
             }
         }
         solver.exit();
+        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
         return proofResult;
         
@@ -699,8 +704,10 @@ public class MethodProverSMT {
                     id = e.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);
                 }
-                if (!value) {
-                    pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
+                if (!value) { 
+                    boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
+                    if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
+                    else pathCondition = e;
                     if (terminationPos == 0) terminationPos = decl.pos;
 
                     JavaFileObject prev = null;
@@ -876,23 +883,28 @@ public class MethodProverSMT {
         }
         
         public void scan(JCTree that) {
-            if (subexpressions) super.scan(that);
-            if (that instanceof JCExpression && !treeutils.isATypeTree((JCExpression)that)) {
-                if (print) {
-                    String expr = that.toString();
-                    String sv = cemap.get(that);
-                    String userString = normalizeConstant(sv);
-                    if (that.type.tag == TypeTags.BOOLEAN) { 
-                        userString = userString.replaceAll("\\( _ bv0 1 \\)", "false");
-                        userString = userString.replaceAll("\\( _ bv1 1 \\)", "true");
-                        userString = userString.replaceAll("\\( not true \\)", "false");
-                        userString = userString.replaceAll("\\( not false \\)", "true");
+            try {
+                if (subexpressions) super.scan(that);
+                if (that instanceof JCExpression && !treeutils.isATypeTree((JCExpression)that)) {
+                    if (print) {
+                        String expr = that.toString();
+                        String sv = cemap.get(that);
+                        String userString = normalizeConstant(sv);
+                        if (that.type.tag == TypeTags.BOOLEAN) { 
+                            userString = userString.replaceAll("\\( _ bv0 1 \\)", "false");
+                            userString = userString.replaceAll("\\( _ bv1 1 \\)", "true");
+                            userString = userString.replaceAll("\\( not true \\)", "false");
+                            userString = userString.replaceAll("\\( not false \\)", "true");
+                        }
+                        if (that.type.tag == TypeTags.CHAR) userString = showChar(userString);
+                        traceText.append("\t\t\tVALUE: " + expr + "\t === " + userString);
+                        traceText.append(Strings.eol);
                     }
-                    if (that.type.tag == TypeTags.CHAR) userString = showChar(userString);
-                    traceText.append("\t\t\tVALUE: " + expr + "\t === " + userString);
-                    traceText.append(Strings.eol);
+                    else print = true;
                 }
-                else print = true;
+            } catch (Exception e) {
+                traceText.append("\t\t\tVALUE: " + that + "\t === " + "<Internal Exception>");
+                traceText.append(Strings.eol);
             }
         }
         
@@ -1031,6 +1043,34 @@ public class MethodProverSMT {
             // We don't scan the interior of quantified expressions -
             // they don't have concrete values. The value of the
             // expression itself is reported by scan()
+        }
+    }
+    
+    static public String benchmarkName = null;
+    static private int benchmarkCount = 0;
+    public void saveBenchmark(String solverName, String methodname) {
+        String n;
+        if (benchmarkName != null) {
+            if ("<init>".equals(methodname)) methodname = "INIT";
+            int count = 0;
+            String root = "benchmarks/" + benchmarkName + "." + methodname;
+            n = root + ".smt2";
+            while (true) {
+                Path p = FileSystems.getDefault().getPath(n);
+                if (!java.nio.file.Files.exists(p)) break;
+                count++;
+                n = root + (-count) + ".smt2";
+            }
+        } else {
+            benchmarkCount++;
+            n = String.format("benchmarks/bench-%05d.smt2",benchmarkCount);
+        }
+        if (false) try {
+            Path p = FileSystems.getDefault().getPath(n);
+            java.nio.file.Files.deleteIfExists(p);
+            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
+        } catch (IOException e) {
+            System.out.println(e);
         }
     }
     

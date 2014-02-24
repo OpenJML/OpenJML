@@ -875,9 +875,46 @@ public class escall3 extends EscBase {
                 +"  static class B extends A {}\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",7
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",7
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
+                );
+    }
+    
+    
+    @Test public void testMethodWithConsstructorNameFixed() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public byte[] b;\n"
+                +"  //@ public invariant b != null && b.length == 20;\n"
+                
+                +"  public TestJava(int i) {\n"
+                +"      b = new byte[20];\n"
+                +"  }\n"
+                
+                
+                +"}"
+                );
+    }
+    
+    @Test public void testMethodWithConsstructorName() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public byte[] b;\n"
+                +"  //@ public invariant b != null && b.length == 20;\n"
+                
+                // The following method - not constructor - not the return type
+                // appears to be legal Java
+                +"  public void TestJava(int i) {\n"
+                +"      b = new byte[20];\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );
     }
     

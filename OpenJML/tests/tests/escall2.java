@@ -1003,7 +1003,6 @@ public class escall2 extends EscBase {
                 
                 +"}" 
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    

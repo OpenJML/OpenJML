@@ -73,6 +73,7 @@ public enum JmlOption implements IOption {
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
     MAXWARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
+    MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
     CE("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),

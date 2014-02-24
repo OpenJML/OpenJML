@@ -284,9 +284,14 @@ public class JmlParser extends EndPosParser {
                 JCExpression disj = null;
                 for (JCTree d: cd.defs) {
                     if (!(d instanceof JCVariableDecl)) continue;
-                    JCExpression id = jmlF.at(d.pos).Ident(((JCVariableDecl)d).getName());
+                    JCVariableDecl decl = (JCVariableDecl)d;
+                    long flags = decl.mods.flags;
+                    long expected = Flags.PUBLIC | Flags.STATIC | Flags.FINAL;
+                    if ((flags & expected) != expected || decl.init == null) continue;
+                    if (!(decl.vartype instanceof JCIdent && ((JCIdent)decl.vartype).name.equals(cd.name))) continue;
+                    JCExpression id = jmlF.at(d.pos).Ident(decl.getName());
                     args.add(id);
-                    id = jmlF.at(d.pos).Ident(((JCVariableDecl)d).getName());
+                    id = jmlF.at(d.pos).Ident(decl.getName());
                     JCExpression ide = jmlF.at(d.pos).Ident(n);
                     JCExpression ex = jmlF.at(id.pos).Binary(JCTree.EQ, ide, id);
                     disj = disj == null ? ex : jmlF.at(ex.pos).Binary(JCTree.OR,disj,ex);

@@ -15,14 +15,14 @@ Starting proof of openjml.clock.TickTockClockB3.getSecond() with prover !!!!
 ..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: warning: The prover cannot establish an assertion (Postcondition) in method getSecond
 	public /*@ pure @*/ int getSecond() { return second; }
 	                                      ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:36: warning: Associated declaration
-	//@ ensures 0 <= \result;
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:37: warning: Associated declaration
+	//@ ensures \result <= 59;
 	    ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: warning: The prover cannot establish an assertion (Postcondition) in method getSecond
 	public /*@ pure @*/ int getSecond() { return second; }
 	                                      ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:37: warning: Associated declaration
-	//@ ensures \result <= 59;
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:36: warning: Associated declaration
+	//@ ensures 0 <= \result;
 	    ^
 Completed proof of openjml.clock.TickTockClockB3.getSecond() with prover !!!! - with warnings
 Starting proof of openjml.clock.TickTockClockB3.tick() with prover !!!!

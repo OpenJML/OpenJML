@@ -25,6 +25,7 @@ public class escgeneric extends EscBase {
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
         main.addOptions("-jmltesting");
+        main.addOptions("-timeout=30");
     }
     
     @Test
@@ -151,7 +152,6 @@ public class escgeneric extends EscBase {
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method ma",9
                 ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mb",9
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method mc",9
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mz1",9 // FIXME - should be OK
         );
     }
 
