@@ -1,0 +1,4 @@
+warning: The value of the -verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: "x"
+openjml: no source files
+Usage: openjml <options> <source files>
+use -help for a list of possible options

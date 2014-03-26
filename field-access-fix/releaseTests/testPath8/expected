@@ -1,0 +1,6 @@
+../testfiles/testPath/data-specs/TestPath.jml:3: error: cannot find symbol
+    //@ requires q; // BAD
+                 ^
+  symbol:   variable q
+  location: class TestPath
+1 error

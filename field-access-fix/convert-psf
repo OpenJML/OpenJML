@@ -1,0 +1,19 @@
+## This command string converts a .psf file from Eclipse into a set of 
+## svn commands; it translates from standard-in to standard-out or from
+## first argument to second. It has the additional feature that if the
+## second argument exists and will be unchanged, it is not updated.
+
+if [ -z "$1" ] ; then
+
+cat - | grep reference | sed -e "s/<project reference=\"0.9.3,/svn co /" -e "s/,/ /" -e "sx\"\/>xx"
+
+elif [ -z "$2" ] ; then
+
+cat "$1" | grep reference | sed -e "s/<project reference=\"0.9.3,/svn co /" -e "s/,/ /" -e "sx\"\/>xx"
+
+else
+
+cat "$1" | grep reference | sed -e "s/<project reference=\"0.9.3,/svn co /" -e "s/,/ /" -e "sx\"\/>xx" > temp
+(diff -q temp "$2" && echo "No change" && rm temp ) || ( echo "$2 updated" ; mv temp "$2")
+
+fi

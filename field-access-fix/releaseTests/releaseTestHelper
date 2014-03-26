@@ -1,0 +1,25 @@
+#! /bin/bash
+
+export TESTNAME=$1
+export TESTLOC=../releaseTests
+export CMD=$2
+
+echo TESTING ${TESTNAME}
+
+mkdir -p ${TESTLOC}/${TESTNAME}
+
+if [[ "${SWITCHSLASH}" != "" ]] ; then
+${CMD} | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
+else
+${CMD} | grep -v "Note: " | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
+fi
+
+LRES=1
+if [[ "${NOSTDDOCLET}" != "" ]] ; then
+grep -v "Standard Doclet version" < ${TESTLOC}/${TESTNAME}/actual > ${TESTLOC}/${TESTNAME}/actualx
+mv ${TESTLOC}/${TESTNAME}/actualx ${TESTLOC}/${TESTNAME}/actual
+fi
+
+diff ${TESTLOC}/${TESTNAME}/actual ${TESTLOC}/${TESTNAME}/expected && echo ${TESTNAME} OK && LRES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
+
+exit $LRES

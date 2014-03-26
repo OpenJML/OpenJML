@@ -1,0 +1,131 @@
+Proving methods in trace
+Starting proof of trace.mdo2() with prover z3_4_3
+
+TRACE of trace.mdo2()
+
+testfiles\escTraceLoops\trace.java:147:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:148:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:149:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:150:  	//@ loop_invariant j == 2 * i && 0 <= i && i < k;
+			VALUE: j	 === 0
+			VALUE: 2	 === 2
+			VALUE: i	 === 0
+			VALUE: 2 * i	 === 0
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: j == 2 * i && 0 <= i && i < k	 === true
+testfiles\escTraceLoops\trace.java:151:  	Begin loop check
+testfiles\escTraceLoops\trace.java:150:  	//@ loop_invariant j == 2 * i && 0 <= i && i < k;
+			VALUE: j	 === 6
+			VALUE: 2	 === 2
+			VALUE: i	 === 3
+			VALUE: 2 * i	 === 6
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 3
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 3
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: j == 2 * i && 0 <= i && i < k	 === true
+testfiles\escTraceLoops\trace.java:151:  	Begin loop body
+testfiles\escTraceLoops\trace.java:152:  	j += 3
+			VALUE: 3	 === 3
+			VALUE: j += 3	 === 9
+testfiles\escTraceLoops\trace.java:153:  	++i
+			VALUE: i	 === 4
+			VALUE: ++i	 === 4
+testfiles\escTraceLoops\trace.java:154:  	Loop test
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: (i < k)	 === true
+testfiles\escTraceLoops\trace.java:150:  	//@ loop_invariant j == 2 * i && 0 <= i && i < k;
+			VALUE: j	 === 9
+			VALUE: 2	 === 2
+			VALUE: i	 === 4
+			VALUE: 2 * i	 === 8
+			VALUE: j == 2 * i	 === false
+			VALUE: j == 2 * i && 0 <= i	 === false
+			VALUE: j == 2 * i && 0 <= i && i < k	 === false
+testfiles\escTraceLoops\trace.java:150: warning: The prover cannot establish an assertion (LoopInvariant) in method mdo2
+        //@ loop_invariant j == 2*i && 0 <= i && i < k;
+            ^
+
+TRACE of trace.mdo2()
+
+testfiles\escTraceLoops\trace.java:147:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:148:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:149:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:150:  	//@ loop_invariant j == 2 * i && 0 <= i && i < k;
+			VALUE: j	 === 0
+			VALUE: 2	 === 2
+			VALUE: i	 === 0
+			VALUE: 2 * i	 === 0
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: j == 2 * i && 0 <= i && i < k	 === true
+testfiles\escTraceLoops\trace.java:151:  	Begin loop check
+testfiles\escTraceLoops\trace.java:150:  	//@ loop_invariant j == 2 * i && 0 <= i && i < k;
+			VALUE: j	 === 8
+			VALUE: 2	 === 2
+			VALUE: i	 === 4
+			VALUE: 2 * i	 === 8
+			VALUE: j == 2 * i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 4
+			VALUE: 0 <= i	 === true
+			VALUE: j == 2 * i && 0 <= i	 === true
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+			VALUE: j == 2 * i && 0 <= i && i < k	 === true
+testfiles\escTraceLoops\trace.java:151:  	Begin loop body
+testfiles\escTraceLoops\trace.java:152:  	j += 3
+			VALUE: 3	 === 3
+			VALUE: j += 3	 === 11
+testfiles\escTraceLoops\trace.java:153:  	++i
+			VALUE: i	 === 5
+			VALUE: ++i	 === 5
+testfiles\escTraceLoops\trace.java:154:  	Loop test
+			VALUE: i	 === 5
+			VALUE: k	 === 5
+			VALUE: i < k	 === false
+			VALUE: (i < k)	 === false
+testfiles\escTraceLoops\trace.java:155:  	assert Assert j == k + k;
+			VALUE: j	 === 11
+			VALUE: k	 === 5
+			VALUE: k	 === 5
+			VALUE: k + k	 === 10
+			VALUE: j == k + k	 === false
+testfiles\escTraceLoops\trace.java:155: warning: The prover cannot establish an assertion (Assert) in method mdo2
+        //@ assert j == k+k;
+            ^
+Completed proof of trace.mdo2() with prover z3_4_3 - with warnings
+Completed proving methods in trace
+2 warnings

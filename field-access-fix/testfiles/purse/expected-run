@@ -1,0 +1,15 @@
+OUT:
+..\OpenJMLDemo\src\openjml\purse\Terminal.java:224: JML caller invariant is false on reentering calling method (Caller: Terminal.initCard(), Callee: Card.CardInit(byte[],byte[]))
+		card.CardInit(pin,pin);
+		             ^
+..\OpenJMLDemo\src\openjml\purse\Terminal.java:72: Associated declaration: ..\OpenJMLDemo\src\openjml\purse\Terminal.java:224: 
+        public invariant status == FILLED_READYFORINIT <==> 
+               ^
+..\OpenJMLDemo\src\openjml\purse\Terminal.java:224: JML caller invariant is false on reentering calling method (Caller: Terminal.initCard(), Callee: Card.CardInit(byte[],byte[]))
+		card.CardInit(pin,pin);
+		             ^
+..\OpenJMLDemo\src\openjml\purse\Terminal.java:74: Associated declaration: ..\OpenJMLDemo\src\openjml\purse\Terminal.java:224: 
+        public invariant status == FILLED_INIT <==> 
+               ^
+
+ERR:

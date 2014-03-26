@@ -1,0 +1,49 @@
+testfiles\bag\Bag.java:25: warning: The prover cannot establish an assertion (Assignable) in method Bag
+    this.add(b);
+            ^
+testfiles\bag\Bag.java:22: warning: Associated declaration: testfiles\bag\Bag.java:25: 
+  //@ requires b != null;
+      ^
+testfiles\bag\Bag.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method removeOnce
+  void removeOnce(int elt) {
+       ^
+testfiles\bag\Bag.java:13: warning: Associated declaration: testfiles\bag\Bag.java:28: 
+  //@ invariant n <= contents.length;
+      ^
+testfiles\bag\Bag.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method removeOnce
+  void removeOnce(int elt) {
+       ^
+testfiles\bag\Bag.java:12: warning: Associated declaration: testfiles\bag\Bag.java:28: 
+  //@ invariant 0 <= n;
+      ^
+testfiles\bag\Bag.java:30: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method removeOnce
+      if (contents[i] == elt ) {
+                  ^
+testfiles\bag\Bag.java:30: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeOnce
+      if (contents[i] == elt ) {
+                  ^
+testfiles\bag\Bag.java:32: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeOnce
+         contents[i] = contents[n];
+                               ^
+testfiles\bag\Bag.java:41: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method removeAll
+      if (contents[i] == elt ) {
+                  ^
+testfiles\bag\Bag.java:41: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeAll
+      if (contents[i] == elt ) {
+                  ^
+testfiles\bag\Bag.java:38: warning: The prover cannot establish an assertion (InvariantExit) in method removeAll
+  void removeAll(int elt) {
+       ^
+testfiles\bag\Bag.java:12: warning: Associated declaration: testfiles\bag\Bag.java:38: 
+  //@ invariant 0 <= n;
+      ^
+testfiles\bag\Bag.java:38: warning: The prover cannot establish an assertion (InvariantExit) in method removeAll
+  void removeAll(int elt) {
+       ^
+testfiles\bag\Bag.java:13: warning: Associated declaration: testfiles\bag\Bag.java:38: 
+  //@ invariant n <= contents.length;
+      ^
+testfiles\bag\Bag.java:43: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeAll
+         contents[i] = contents[n];
+                               ^
+16 warnings
