@@ -67,6 +67,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
@@ -847,6 +848,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } else if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
+
         visitClassDef(that);
     }
     
@@ -904,7 +906,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     JmlCompilationUnit jcu = tree.specsCompilationUnit;
                     print("// Specification file: " + jcu.sourcefile.getName()); 
                     println();
-                    jcu.accept(this);
+                    //jcu.accept(this);
                     println();
                 } finally {
                     inSequence = prevInSequence;
@@ -995,7 +997,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             printExpr(tree.selected, TreeInfo.postfixPrec);
             if (tree.name == null) print(".*");
-            else print("." + tree.name);
+            else {
+                if(tree.selected instanceof JCIdent 
+                        && ((JCIdent)(tree.selected)).name!=null 
+                        && ((JCIdent)(tree.selected)).name.toString().equals(""))
+                    print(tree.name);
+                else print("." + tree.name);
+            }
         } catch (IOException e) {
             perr(tree,e);
         }
