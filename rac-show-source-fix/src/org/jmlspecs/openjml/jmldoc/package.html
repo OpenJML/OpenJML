@@ -1,0 +1,283 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--NewPage-->
+<HTML>
+<HEAD>
+<H2><CENTER>The JMLdoc tool</CENTER></H2>
+<H3>
+<CENTER>javadoc with JML specifications</CENTER>
+<CENTER>David R. Cok - June 2009</CENTER>
+</H3>
+<TITLE>
+JMLdoc tool for generating Javadoc with JML specifications
+</TITLE>
+
+<META NAME="date" CONTENT="2009-03-23">
+
+<NOSCRIPT>
+</NOSCRIPT>
+
+</HEAD>
+<BODY>
+
+<P> The <CODE>jmldoc</CODE> tool adds JML specifications to the usual
+<CODE>javadoc</CODE> documentation.  The source for that tool is
+contained in the <CODE>org.jmlspecs.openjml.jmldoc</CODE> package.
+The use and design of the tool are described here. </P>
+
+<P> The <CODE>javadoc</CODE> tool provides HTML pages that
+conveniently summarize the API and documentation provided by a set of
+source code.  The <CODE>jmldoc</CODE> tool is an enhancement of
+<CODE>javadoc</CODE> that adds to the <CODE>javadoc</CODE>
+documentation the JML specifications that are present in the source
+code.  The <CODE>jmldoc</CODE> tool is a drop-in replacement for
+<CODE>javadoc</CODE>, with additional functionality and additional
+options. </P>
+
+<P> The tool also enhances the <CODE>javadoc</CODE> information by
+including any Java programming language annotations associated with a
+type, method, or field in the summary of that program element. </P>
+
+<H2>Installation</H2>
+
+<P> The <CODE>jmldoc</CODE> tool is provided as a zip containing these
+files: </P>
+<UL>
+  <LI><CODE>openjml.jar</CODE> - a jar of the Java classes and
+      resources needed to run the tool
+  <LI><CODE>jmldoc</CODE> - a bash script that is a convenient driver
+      for the tool
+  <LI><CODE>README.html</CODE> - this file, containing a description
+      of the tool
+  <LI><CODE>OpenJDK-LICENSE-INFO</CODE> - the license under which the OpenJDK
+      is distributed and, by extension, applies to this jmldoc tool
+</UL>
+
+<H2>Use</H2>
+
+<UL>
+
+  <LI>The tool may be executed as a command-line tool.  The tool can be
+      executed as follows:
+      <UL>
+        <LI><CODE>java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main <I>options-and-files-and-package-names</I></CODE>
+      </UL>
+  <LI>The options are given in the usual style of a option name (that starts with
+      a <CODE>-</CODE> character and may have an argument); the non-option
+      arguments are paths (absolute or relative to the current working directory)
+      of files or are names of packages that are rooted in one of the sourcepath
+      directories.
+  <LI>The tool parses source code conforming to Java 1.6 but can be executed
+       using Java 1.5 tools and runtime environment.
+  <LI>The tool may be executed programmatically by calling the method 
+      <CODE>org.jmlspecs.openjml.jmldoc.Main.execute</CODE>
+  <LI>All of the options recognized by <CODE>javadoc</CODE> are valid for 
+      <CODE>jmldoc</CODE>.  In addition,
+      <CODE>jmldoc</CODE> recognizes these options (also reported by the 
+      <CODE>-help</CODE> option).
+  <LI>FIXME - improve the description of how to handle runtime classes
+      <UL>
+        <LI><CODE>-specspath</CODE>: the argument to this option is the
+            path (in classpath form) in which to search for
+            specification files.  The specification path is determined
+            by the first of these that is present:
+            <UL>
+              <LI> CHECK THIS !!!!! FIXME
+              <LI>the <CODE>-specspath</CODE> command-line option
+              <LI>the <CODE>-Dorg.jmlspecs.specspath=</CODE> option to the java execution
+              <LI>the <CODE>-sourcepath</CODE> command-line option
+              <LI>the <CODE>-classpath</CODE> command-line option
+              <LI>the <CODE>-Djava.class.path=</CODE> option to the java execution
+              <LI>the value of the <CODE>CLASSPATH</CODE>
+                  environment variable at the time the java execution begins
+            </UL>
+        <LI><CODE>-dir</CODE>: the argument to this option is a file-system path
+            to a directory; any java files found in this directory or its 
+            subdirectories (recursively) are included as if they had been
+            listed individually on the command-line (the argument may also be
+            a file name, in which case it is included as is)
+        <LI><CODE>-dirs</CODE>: this option indicates that the following 
+            command-line arguments are either file or directory names, up to
+            an argument that begins with a <CODE>-</CODE> sign
+        <LI><CODE>-noInternalSpecs</CODE>: the jar file containing the
+            executable also contains a basic set of specifications of
+            core library classes (such as classes in
+            <CODE>java.lang</CODE>).  By default those specifications
+            are appended to the end of the specification path defined
+            above.  If the <CODE>-noInternalSpecs</CODE> option is
+            given, then these internal specs will not be added.  The
+            user will then need to supply an alternate set of
+            specifications of basic library classes.
+        <LI><CODE>-noInternalRuntime</CODE>: The openjml tools require
+            some classes (e.g.  those in the
+            <CODE>org.jmlspecs.lang</CODE> package) to be available at
+            runtime.  These are added by default to the end of the
+            classpath.  If the <CODE>-noInternalRuntime</CODE> option
+            is given, these classes are not added to the classpath;
+            the user will need to supply those manually.
+        <LI><CODE>-noCheckSpecsPath</CODE>: By default, a warning is
+            issued if a directory on the specification path does not
+            exist.  If the <CODE>-noCheckSpecsPath</CODE> option is
+            given, non-existent directories on the specs path are
+            silently ignored.
+      </UL>
+</UL>
+
+<H2>License</H2>
+
+The JML extensions to the OpenJDK version of javadoc are (c) 2009 by David R. Cok.
+
+OpenJDK is licensed using the GPLv2.  You can find out more about OpenJDK at
+<A HREF="openjdk.java.net">the OpenJDK website</A>.
+
+Jmldoc is derived from OpenJDK and thus
+the GPLv2 applies to it also.  The sourcecode for jmldoc is available at
+<A href="http://jmlspecs.svn.sourceforge.net/viewvc/jmlspecs/OpenJML">
+the OpenJML subproject of the JML project at sourceforge.net</A>.
+
+<H2>Known Bugs</H2>
+
+The following are known issues with the <CODE>jmldoc</CODE> output.
+<UL>
+  <LI>no HTML pages are generated for model classes and interfaces
+  <LI>Some JML elements are not listed for classes that do not have
+      any corresponding Java elements (e.g. ghost fields are not
+      listed if there are no Java fields).
+  <LI>spurious errors occur for model enum declarations
+  <LI>The JML elements do not obey the javadoc visibility command-line
+      options
+  <LI>The JML elements do not appear in the index, use
+      (cross-reference) pages, deprecated API description, or class
+      hierarchy tree
+  <LI>The pretty-printing of specifications needs cleanup
+  <LI>JML specifications expressed as Java annotations are displayed
+      both in the JML specifications and in the Java signatures (along
+      with other annotations); however, JML specifications expressed
+      as classic JML-style comments only appear in the JML
+      specifications and not as annotations.
+  <LI>The jmldoc application presumes that the code being documented
+      parses without error.
+</UL>
+
+<H2>Design Description</H2>
+
+<H3>OpenJML</H3>
+
+The <CODE>jmldoc</CODE> tool is an extension of the OpenJDK source
+code.  Consequently it parses Java 1.6 code and handles Java 1.7 in so
+far as it is implemented in OpenJDK (as of this writing
+<CODE>jmldoc</CODE> is built on build ???FIXME of OpenJDK).
+
+<P> In so far as possible, <CODE>jmldoc</CODE> is a pure extension of
+the <CODE>javadoc</CODE> tool in OpenJDK.  Some changes to the code of
+<CODE>javadoc</CODE> were required: some visibility modifiers were
+changed to <CODE>protected</CODE> or <CODE>public</CODE> where the
+modified elements were needed in derived classes.  MORE????
+
+<H3>Current design</H3>
+
+The <CODE>jmldoc</CODE> tool has to combine functionality from two
+sources: the openjml tool to parse the specifications associated with
+Java program elements and the javadoc tool to output the desired HTML
+pages.  These two tools enter program elements into symbol tables
+differently (openjml uses the techniques supplied by the OpenJDK Java
+compiler); it would require a maintenance-intensive merging of the two
+implementations into a third one to use these tools directly.
+Instead, <CODE>jmldoc</CODE> uses the OpenJDK facility of independent,
+co-existing compilation contexts.  The Java code is parsed and
+represented using javadoc, then parsed and separately represented
+using openjml, and then, information from the openjml JML
+specifications is added into the <CODE>javadoc</CODE> HTML pages as
+those HTML pages are generated. This approach has only a few minor
+drawbacks: the code is parsed twice; symbol table entries from one
+compilation context have to be translated into the other context; and
+the Javadoc Doc structure does not actually contain JML elements such
+as model fields, methods, and classes.
+
+<P> The <CODE>Main</CODE> class that contains the entry points for the
+<CODE>jmldoc</CODE> tool could, corresponding to the discussion above,
+derive from either the <CODE>Main</CODE> class of openjml or the 
+<CODE>Main</CODE> class of
+javadoc.  Since openjml requires more tool initialization, it was more
+convenient to derive <CODE>jmldoc</CODE>'s <CODE>Main</CODE> from
+openjml's.  Command-line options that <CODE>jmldoc</CODE> adds to
+<CODE>javadoc</CODE> are processed in <CODE>Main</CODE> and help
+information is provided by the <CODE>JmlStart</CODE> class.
+
+<P> In order to generate JML information in the HTML output, the
+current <CODE>jmldoc</CODE> implementation extends the javadoc source
+code as follows.  Javadoc operates by executing a set of Writers for
+various program elements.  These have interfaces
+(e.g. <CODE>ClassWriter</CODE>) and specific implementations
+(e.g. <CODE>ClassWriterImpl</CODE>).  In order to reuse as much code
+as possible so that the maintenance of <CODE>jmldoc</CODE> as
+<CODE>javadoc</CODE> evolves is minimized, the <CODE>jmldoc</CODE>
+tool implemented its own set of writers
+(e.g. <CODE>ClassWriterJml</CODE>) that extend the corresponding
+javadoc writers.  Thus the classes </CODE>ClassWriterJml</CODE>,
+<CODE>FieldWriterJml</CODE>, <CODE>MethodWriterJml</CODE>,
+<CODE>ConstructorWriterJml</CODE>, and
+<CODE>NestedClassWriterJml</CODE> were created.
+
+<P> Javadoc instantiates these writers using a writer factory,
+<code>WriterFactoryImpl</code>, which is an implementation of the
+interface <code>WriterFactory</code>.  In order to have the various
+JML writers instantiated at the correct time, <CODE>jmldoc</CODE> has
+its own implementation of <CODE>WriterFactory</CODE>, namely,
+<CODE>WriterFactoryJml</CODE>.  The <code>WriterFactoryImpl</code>
+class is not written to be extended, so <CODE>WriterFactoryJml</CODE>
+is a direct implementation of <code>WriterFactory</code>, at the cost
+of duplicating code from <CODE>WriterFactoryImpl</CODE>.
+
+<P> Javadoc instantiates the <CODE>WriterFactory</CODE> in a
+<CODE>Configuration</CODE> object.  Javadoc's implementation of
+<CODE>Configuration</CODE> (an abstract class) is
+<CODE>ConfigurationImpl</CODE>.  Jmldoc extends
+<CODE>ConfigurationImpl</CODE> as <CODE>ConfigurationJml</CODE> in
+order to instantiate a WriterFactoryJml</CODE> instead of a
+<CODE>WriterFactoryImpl</CODE>.  This class also supplies a version
+string giving the date of the build represented by the tool.
+
+<P> The <code>Configuration</code> object used to generate the
+<code>WriterFactory</code> is instantiated as a singleton object.
+Consequently in order that the tool use a
+<code>ConfigurationJml</code> object instead of javadoc's
+<code>ConfigurationImpl</code>, the singleton is instantiated and
+initialized in <CODE>Main</CODE>, before other initialization code has
+a chance to create the <code>ConfigurationImpl</code> alternative.
+
+<P> Note that in this design, the standard javadoc doclet is still
+used.
+
+<H3>Potential alternate design</H3>
+
+This section describes an alternate, possibly future, design of
+<CODE>jmldoc</CODE>.  This alternate design appears to be more aligned
+with the design of <CODE>javadoc</CODE> and its provision for doclet
+extensions, but also required more implementation and more duplication
+of <CODE>javadoc</CODE> code (meaning more maintenance as
+<CODE>javadoc</CODE> evolves).
+
+<P> The organization of <CODE>javadoc</CODE>'s HTML output is
+controlled by an XML resource file
+(<CODE>com/sun/tools/doclets/internal/toolkit/resources/doclet.xml</CODE>).
+This file is parsed; for each XML element in the document a
+corresponding build method is called by reflection.  For example, the
+<CODE>doclet.xml</CODE> file specifies that one part of the
+description of a <CODE>ClassDoc</CODE> is a <CODE>ClassHeader</CODE>.
+To generate the corresponding HTML, the <CODE>buildClassHeader</CODE>
+method of <CODE>ClassBuilder</CODE> is called by reflection.
+
+<P> So one means of adding additional information into the HTML is to
+provide a different (but largely duplicated) XML description file.  In
+order to do that, one would create a new doclet that referenced that
+new XML file; the <CODE>BuilderFactory</CODE> and various builders
+(e.g. <CODE>ClassBuilder</CODE>) would need to be extended with
+methods that responded to XML document items calling for JML
+information to be generated.  However, one still would need to extend
+(though somewhat differently) the various Writers that were extended
+in the previous design.  Thus no work is saved by using the XML
+document and a new doclet; in fact, more classes need to be modified
+or extended.
+
+</BODY>
+</HTML>

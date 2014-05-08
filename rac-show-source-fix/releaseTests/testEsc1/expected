@@ -1,0 +1,4 @@
+..\testfiles\testEsc\A.java:4: warning: The prover cannot establish an assertion (Assert) in method m
+        //@ assert false;
+            ^
+1 warning

@@ -1,0 +1,12 @@
+OUT:
+testfiles\uniqueListBug1\UniqueListBug1.java:95: JML precondition is false
+		list.swap(0,2); // index2==2 is too big
+		         ^
+testfiles\uniqueListBug1\UniqueListBug1.java:32: Associated declaration: testfiles\uniqueListBug1\UniqueListBug1.java:95: 
+	  @ requires index1 < length;
+	    ^
+testfiles\uniqueListBug1\UniqueListBug1.java:32: JML precondition is false
+	  @ requires index1 < length;
+	    ^
+
+ERR:

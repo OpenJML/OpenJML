@@ -1,0 +1,19 @@
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:9: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= hour && hour <= 23;
+	                             ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:9: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= hour && hour <= 23;
+	                                     ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:13: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= minute && minute <= 59;
+	                             ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:13: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= minute && minute <= 59;
+	                                       ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:17: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= second && second <= 59;
+	                             ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:17: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
+	//@ protected invariant 0 <= second && second <= 59;
+	                                       ^
+6 errors

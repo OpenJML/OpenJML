@@ -1,0 +1,9 @@
+testfiles\racbug1\Add.java:3: warning: Calling a pure non-helper method in an invariant may lead to unbounded recursive invariant checks and stack-overflow: x()
+  //@ public invariant x() + y() > 0;
+                        ^
+testfiles\racbug1\Add.java:3: warning: Calling a pure non-helper method in an invariant may lead to unbounded recursive invariant checks and stack-overflow: y()
+  //@ public invariant x() + y() > 0;
+                              ^
+Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+2 warnings

@@ -1,0 +1,1538 @@
+%% Based on a TeXnicCenter-Template by Gyorgy SZEIDL.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%------------------------------------------------------------
+%
+\documentclass{report}%
+%Options -- Point size:  10pt (default), 11pt, 12pt
+%        -- Paper size:  letterpaper (default), a4paper, a5paper, b5paper
+%                        legalpaper, executivepaper
+%        -- Orientation  (portrait is the default)
+%                        landscape
+%        -- Print size:  oneside (default), twoside
+%        -- Quality      final(default), draft
+%        -- Title page   notitlepage, titlepage(default)
+%        -- Columns      onecolumn(default), twocolumn
+%        -- Equation numbering (equation numbers on the right is the default)
+%                        leqno
+%        -- Displayed equations (centered is the default)
+%                        fleqn (equations start at the same distance from the right side)
+%        -- Open bibliography style (closed is the default)
+%                        openbib
+% For instance the command
+%           \documentclass[a4paper,12pt,leqno]{article}
+% ensures that the paper size is a4, the fonts are typeset at the size 12p
+% and the equation numbers are on the left side
+%
+\usepackage{amsmath}%
+\usepackage{amsfonts}%
+\usepackage{amssymb}%
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{color}
+\definecolor{gray}{rgb}{0.8,0.8,0.8}
+%% Language %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[USenglish]{babel} %francais, polish, spanish, ...
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[ansinew]{inputenc}
+\usepackage{makeidx}	  %% needed to create an index
+\usepackage{hyperref}   %% sets hyperlinks within a pdf
+\usepackage{rotating}
+\usepackage{threeparttable}
+\usepackage{verbatim}
+\usepackage{tabularx}
+%%\usepackage{listings}
+
+%%\usepackage{lmodern} %Type1-font for non-english texts and characters
+
+
+%% Packages for Graphics & Figures %%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx} %%For loading graphic files
+%\usepackage{subfig} %%Subfigures inside a figure
+%\usepackage{tikz} %%Generate vector graphics from within LaTeX
+
+\usepackage{mathptmx} %% Times fonts, for math as well
+%% NOT WORKING?: \usepackage{mathpazo} %% Palatino fonts
+%% NO: \usepackage{bookman} %% Bookman fonts for text, no change for math
+%%\usepackage{newcent} %% NewCentury fonts for text, no change for math
+%% Others: avant chancery charter helvet lucida palatino pslatex utopia times
+
+%% DOES NOT SEEM TO WORK: \usepackage{fullpage}  %% Makes margins 1"
+
+%% Please note:
+%% Images can be included using \includegraphics{filename}
+%% resp. using the dialog in the Insert menu.
+%% 
+%% The mode "LaTeX => PDF" allows the following formats:
+%%   .jpg  .png  .pdf  .mps
+%% 
+%% The modes "LaTeX => DVI", "LaTeX => PS" und "LaTeX => PS => PDF"
+%% allow the following formats:
+%%   .eps  .ps  .bmp  .pict  .pntg
+
+
+%% Commands for changing the Standardtexts %%%%%%%%%%%%%%%%%%
+%\renewcommand{\ccname}{Copies}
+%\renewcommand{\phonemsg}{Telephone}
+%\renewcommand{\signmsgold}{Our signs}
+%\renewcommand{\signmsgnew}{Our signs, our mail from}
+%\renewcommand{\yourmailmsg}{Your signs, Your mail from}
+%\renewcommand{\psname}{PS}
+%\renewcommand{\enclname}{\tt Anlage(n)}
+%\DeclareFontShape{OT1}{cmtt}{bx}{n}{<5><6><7><8><9><10><10.95><12><14.4><17.28><20.74><24.88>cmttb10}{}
+
+\newcommand{\bs}{{\tt \char'134}}
+
+\newcommand{\at}{{\tt \char'100}}
+\newcommand{\boxspace}{\vspace*{6pt}}
+
+\newlength{\savedrule}
+\newlength{\thickrule}
+\newlength{\framedwidth}
+\newlength{\thickframedwidth}
+
+\newcommand{\boxedexampleZ}[1]{\boxspace \\ \fbox{\begin{minipage}{\textwidth}{\tt #1}\end{minipage}}\boxspace\\*}
+
+\newcommand{\boxedexample}[1]{\boxspace \\ \fbox{\begin{minipage}{5.50in}{\tt #1}\end{minipage}}\boxspace\\*}
+%\newcommand{\boxedexampleA}[1]{\boxspace \\ \fbox{\parbox{6.00in}{\tt #1}}\boxspace\\*}
+
+\newcommand{\boxedexampleA}[1]{\boxspace \\ \fbox{\begin{minipage}{6.00in}{\tt #1}\end{minipage}}\boxspace\\*}
+
+\newcommand{\boxedexampleB}[1]{\boxspace \\ \fbox{\begin{minipage}{5.5in}{\tt #1}\end{minipage}}\boxspace\\*}
+
+\newcommand{\boxedinput}[1]{\boxspace \\ \fbox{\begin{minipage}{6.00in}{\tt \verbatiminput{#1}}\end{minipage}}\boxspace\\*}
+
+\newcommand{\boxedinputc}[2]{\boxspace \\ \fbox{\begin{minipage}{1.0\framedwidth}{\tt \verbatiminput{#1}}\end{minipage}} \setlength{\fboxrule}{\thickrule} \fbox{\begin{minipage}{1.0\thickframedwidth}{\tt \verbatiminput{#2}}\end{minipage}} \setlength{\fboxrule}{\savedrule} \boxspace\\*}
+
+%\newcommand{\boxedinputc}[2]{\boxspace \\ \fbox{\begin{minipage}{1.0\framedwidth}{\tt \verbatiminput{#1}}\end{minipage}} \fcolorbox{black}{gray}{\begin{minipage}{1.0\framedwidth}{\tt \verbatiminput{#2}}\end{minipage}} \boxspace\\*}
+
+%\newcommand{\boxedinputc}[2]{\boxspace \\ \fbox{\parbox{6.00in}{\tt \verbatiminput{#1}}} \fcolorbox{black}{gray}{\parbox{6.00in}{\tt \verbatiminput{#2}}} \boxspace\\*}
+
+\newcommand{\source}{../../demos}
+
+\newcommand{\demo}[1]{\boxedinputc{\source/#1.java}{\source/#1.txt}}
+
+\newcommand{\nospace}{\setlength{\itemsep}{0in}\setlength{\parsep}{0in}\setlength{\parskip}{0in}\setlength{\topsep}{0in}}
+\newcommand{\bae}[1]{\begin{array}{l}\\#1\\\end{array}}
+
+\newcommand{\logand}{{\wedge}}
+\newcommand{\logor}{{\vee}}
+\newcommand{\imp}{{\Rightarrow}}
+\newcommand{\inequiv}{{\neq}}
+\newcommand{\smt}{{\tt \$\{SMTLIB\}}}
+\newcommand{\cht}{\char'136}
+\newcommand{\ind}{\hspace*{2em}}
+%%\makeindex
+
+%% The adjustment amounts depend on the font
+%% -.5 for 12pt, -.875 for 10pt
+%% FIXME: should these be set instead of adjusted?
+\addtolength{\oddsidemargin}{-.5in}
+\addtolength{\evensidemargin}{-.5in}
+\addtolength{\textwidth}{1.0in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\setlength{\framedwidth}{6.00in}
+\setlength{\thickframedwidth}{1.0\framedwidth}
+\setlength{\savedrule}{1.0\fboxrule}
+\setlength{\thickrule}{5.0\fboxrule}
+\addtolength{\thickframedwidth}{-1.0\thickrule}
+\addtolength{\thickframedwidth}{1.0\savedrule}
+
+\begin{document}
+
+\title{The OpenJML User Guide  \\ \vspace{.2in} DRAFT IN PROGRESS }
+
+\author{David R. Cok \\ GrammaTech, Inc. }
+
+\date{\today \\ \vspace*{.5in}
+The most recent version of this document is available at \url{http://jmlspecs.sourceforge.net/OpenJMLUserGuide.pdf}.\\
+ \vspace*{2.3in}
+\parbox{\textwidth}{Copyright (c) 2010-2013 by David R. Cok. Permission is granted to make and distribute copies of this document for educational or research purposes, provided that the copyright notice and permission notice are preserved and acknowledgment is given in publications. 
+Modified versions of the document may not be made. Please forward corrections to the author.
+Incorporating this document within a larger collection, or distributing it for commercial purposes, or including it as part or all of a product for sale is allowed only by separate written permission from the author.}}
+
+\maketitle
+%
+\tableofcontents
+
+\part{OpenJML}
+
+\chapter{Introduction}
+
+\section{OpenJML}
+
+OpenJML is a tool for processing Java Modeling Language (JML) specifications of Java programs. 
+The tool parses and type-checks the specifications and
+performs static or run-time checking of the validity of the specifications. 
+Other tools are anticipated, such as test case generation and
+ an enhanced version of javadoc that includes the specifications in the
+javadoc documentation.
+
+The functionality is available 
+\begin{itemize}
+\item as a command-line tool to do type-checking, static checking or runtime checking,</li>
+\item as an Eclipse plug-in to perform those tasks, and</li>
+\item programmatically from a user's Java program</li>
+\end{itemize}
+
+OpenJML makes use of program specifications written in JML, the Java Modeling Language, and
+it is constructed by extending OpenJDK, the open source Java compiler.
+OpenJML requires Java 1.7 to run.
+Releases of Java can be obtained from the Oracle release site (\url{http://www.oracle.com/technetwork/java/javase/downloads}).
+
+The source code for OpenJML is kept in SourceForge as a module of the 
+JML Project (\url{https://sourceforge.net/p/jmlspecs/code/HEAD/tree/}).
+The JMLAnnotations and Specs projects (also modules of JML) are used by OpenJML.
+Information about creating a developer's environment for the OpenJML source
+can be found below (section \ref{Development}).
+ 
+\subsection{Command-line tool}
+
+The OpenJML command line tool can be downloaded from
+\url{http://jmlspecs.sourceforge.net/openjml.tar.gz}.
+
+The command line tool is described in chapter \ref{CommandLineTool}.
+
+\subsection{Eclipse plug-in}
+
+The Update site for the Eclipse plug-in that encapsulates the OpenJML tool
+is \url{http://jmlspecs.sourceforge.net/openjml-updatesite}.
+
+The plug-in is described in section \ref{EclipsePlugin} and in the online documentation available in Eclipse Help.
+
+
+\subsection{Development of OpenJML}
+\label{Development}
+
+Developers wishing to contribute to OpenJML can retrieve a project-set file to download source code from SVN and create the corresponding projects within Eclipse from 
+\url{http://jmlspecs.sourceforge.net/OpenJML-projectSet.psf}.
+<p>Alternately, the set of SVN commands needed to checkout all the pieces of the
+OpenJML source code into the directory structure expected by Eclipse is found at this link: 
+\url{http://jmlspecs.sourceforge.net/svn_commands}.
+
+The general instructions for setting up a development environment are found at the JML wiki: \url{https://sourceforge.net/apps/trac/jmlspecs/wiki/OpenJmlSetup}.
+
+
+
+\section{JML}
+
+The Java Modeling Language (JML) is a language that enables logical assertions
+to be made about Java programs. The assertions are expressed as structured 
+Java comments or Java annotations. Various tools can then read the JML 
+information and do static checking, runtime checking, display for documentation,
+or other useful tasks.
+
+More information about JML can be found on the JML web site: 
+\url{http://www.jmlspecs.org}.
+The information includes publications, a list of groups using or contributing to JML, 
+mailing lists, etc.
+There is also a SourceForge project for JML : \url{https://sourceforge.net/projects/jmlspecs/}.
+
+\section{OpenJDK}
+
+OpenJDK (\url{http://openjdk.net}) is the project that produces the Java JDK and JRE releases.
+OpenJML extends OpenJDK to produce the OpenJML tools. OpenJML is a 
+fully encapsulated, stand-alone tool, so the OpenJDK foundation is only of interest to OpenJML developers.
+Users, however, can be assured that OpenJML is built on 'official' Java tooling and can readily stay up 
+to date with changes in the Java language.
+
+\section{License}
+
+The OpenJML command-line tool is built from OpenJDK, which is licensed under GPLv.2 (\url{http://openjdk.java.net/legal/}).
+Hence OpenJML is correspondingly licensed.
+
+The OpenJML plug-in is a pure Eclipse plug-in, and therefore is not required to be licensed under the EPL.
+
+
+The source code for both tools is available as a SourceForge project at
+\url{https://sourceforge.net/p/jmlspecs/code/HEAD/tree/OpenJML/trunk}.
+
+
+\chapter{The command-line tool}
+\label{CommandLineTool}
+\section{Installation and System Requirements}
+
+The command-line tool is supplied as a .tar.gz file, downloadable from \url{http://jmlspecs.sourceforge.net/}.
+Download the file to a directory of your choice and unzip and untar it in place.
+It contains the following files:
+\begin{itemize}\nospace
+\item openjml.jar - the main jar file for the application
+\item jmlruntime.jar - a library needed on the classpath when running OpenJML's runtime-assertion-checking
+\item jmlspecs.jar - a library containing specification files
+\item openjml-template.properties - a sample file, which should be copied and renamed {\tt openjml.properties}, containing definitions of properties whose values depend on your local system
+\item LICENSE.rtf - a copy of the modified GPL license that applies to OpenJDK and OpenJML
+\item OpenJMLUserGuide.pdf - this document
+\end{itemize}
+
+You can run OpenJML in a Java 1.7 JRE.
+
+You should ensure that the {\tt jmlruntime.jar} and {\tt jmlspecs.jar} files remain in the same folder as the {\tt openjml.jar} file.
+
+
+\section{Running OpenJML}
+\label{Running}
+
+To run OpenJML using a Java 1.7 VM, use this command line. Here \${OPENJML} designates the folder in which the {\tt openjml.jar} file resides.
+\boxedexampleZ{
+java -jar \${OPENJML}/openjml.jar {\it <options>} {\it <files>}
+}
+
+Here {\it <files>} and {\it <options>} stand for text described below.
+
+The following command is currently a viable alternative as well.
+\boxedexampleZ{
+java -cp \${OPENJML}/openjml.jar org.jmlspecs.openjml.Main {\it <options>} {\it <files>}
+}
+
+The valid options are listed in Table \ref{Tab:Options} and are described in subsections below. Options and files can appear in any order.
+
+\subsection{Files}
+
+In the command templates above, {\it <files>} refers to a list of {\tt .java} or {\tt .jml} files.
+Each one must be specified with an absolute file system path or with a path relative
+to the current working directory (in particular, not with respect to the classpath or
+the sourcepath). 
+
+You can also specify directories on the command line using the {\tt -dir} and {\tt -dirs} options.
+The {\tt -dir {\it <directory>}} option indicates that the {\it <directory>} value (an absolute or
+relative path to a folder) should be understood as a folder; all {\tt .java} or specification files
+within the folder are included as if they were individually listed on the command-line. The
+{\tt -dirs} option indicates that each one of the remaining command-line arguments is interpreted as 
+either a source file (if it is a file with a {\tt .java} or {\tt .jml}suffix) or as a folder (if it is a folder)
+whose contents are processed as if listed on the command-line. Note that the {\tt -dirs} option must be
+the last option.
+
+As described later in section \ref{SpecFiles}, JML specifications for Java programs can be placed either in the 
+{\tt .java} files themselves or in auxiliary {\tt .jml} files. The format
+of {\tt .jml} files is defined by JML. OpenJML can type-check 
+{\tt .jml} files as well as {\tt .java} files if they are placed on the 
+command-line. Doing so can be useful to check the syntax in a specific
+{\tt .jml} file, but is usually not necessary: when a {\tt .java} file is
+processed by OpenJML, the corresponding {\tt .jml} file is automatically found (cf. \ref{TBD}).
+
+\begin{table} \small
+%%\centering
+\parbox{.5\textwidth}{
+\begin{tabular}{|l|p{1.4in}|}
+\hline
+\multicolumn{2}{|c|}{Options specific to JML} \\
+\hline
+-- & no more options \\ \hline
+-check & [\ref{OptionsTools}] typecheck only ({\tt -command check})\\ \hline
+-checkSpecsPath & [\ref{OptionsJML}] warn about non-existent specs path entries\\ \hline
+-command {\it <action>}& [\ref{OptionsTools}] which action to do: check esc rac compile\\ \hline
+-compile & [\ref{OptionsTools}] TBD\\ \hline
+-counterexample & [\ref{OptionsESC}] show a counterexample for failed static checks\\ \hline
+-dir {\it <dir>} & [\ref{OptionsJML}] argument is a folder or file \\ \hline
+-dirs & [\ref{OptionsJML}] remaining arguments are folders or files\\ \hline
+-esc & [\ref{OptionsTools}] do static checking ({\tt -command esc}) \\ \hline
+-internalRuntime & [\ref{OptionsJML}] add internal runtime library to classpath \\ \hline
+-internalSpecs & [\ref{OptionsJML}] add internal specs library to specspath \\ \hline
+-java & [\ref{OptionsTools}] use the native OpenJDK tool\\ \hline
+-jml & [\ref{OptionsTools}] process JML constructs \\ \hline
+-jmldebug & [\ref{OptionsDebugging}] very verbose output (includes -progress) \\ \hline
+-jmlverbose & [\ref{OptionsDebugging}] JML-specific verbose output\\ \hline
+-keys & [\ref{OptionsJML}] define keys for optional annotations \\ \hline
+-method & \\ \hline
+-nonnullByDefault & [\ref{OptionsJML}] values are not null by default \\ \hline
+-normal & [\ref{OptionsDebugging}] \\ \hline
+-nullableByDefault & [\ref{OptionsJML}] values may be null by default\\ \hline
+-progress & [\ref{OptionsDebugging}] \\ \hline
+-purityCheck & [\ref{OptionsJML}] check for purity \\ \hline
+-quiet & [\ref{OptionsDebugging}] no informational output \\ \hline
+-rac & [\ref{OptionsTools}] compile runtime assertion checks ({\tt -command rac})\\ \hline
+-racCheckAssumptions & [\ref{OptionsRAC}] enables (default on) checking assume statements as if they were asserts \\ \hline
+-racCompileToJavaAssert & [\ref{OptionsRAC}] compile RAC checks using Java asserts \\ \hline
+-racJavaChecks & [\ref{OptionsRAC}] enables (default on) performing JML checking of violated Java features \\ \hline
+\end{tabular}
+}
+\qquad
+%%\centering
+\parbox{.5\textwidth}{
+
+\begin{tabular}{|l|p{1.4in}|}
+\hline
+\multicolumn{2}{|c|}{JML options, continued} \\
+\hline
+-racShowSource & [\ref{OptionsRAC}] includes source location in RAC warning messages \\ \hline
+-showNotImplemented & warn if feature not implemented\\ \hline
+-specspath & [\ref{OptionsJML}] location of specs files\\ \hline
+-stopIfParseErrors & stop if there are any parse errors \\ \hline
+-subexpressions & [\ref{OptionsESC}] show subexpression detail for failed static checks\\ \hline
+-trace & [\ref{OptionsESC}] show a trace for failed static checks\\ \hline
+
+\end{tabular}
+
+\vspace*{.5in}
+
+\begin{tabular}{|l|p{1.4in}|}
+\hline
+\multicolumn{2}{|c|}{Options inherited from Java} \\
+\hline
+-Akey & \\ \hline
+-bootclasspath {\it <path>}& See Java documentation. \\ \hline
+-classpath {\it <path>}& location of class files \\ \hline
+-cp {\it <path>}& location of class files\\ \hline
+-d {\it <directory>} & location of output class files\\ \hline
+-encoding {\it <encoding>} & \\ \hline
+-endorsedirs {\it <dirs>} & \\ \hline
+-extdirs {\it <dirs>} & \\ \hline
+-deprecation & \\ \hline
+-g & \\ \hline
+-help & output help information\\ \hline
+-implicit & \\ \hline
+-J{\it <flag>} & \\ \hline
+-nowarn & show only errors, no warnings \\ \hline
+-proc & \\ \hline
+-processor {\it <classes>} & \\ \hline
+-processorpath {\it <path>} & where to find annotation processors\\ \hline
+-s {\it <directory>} & location of output source files\\ \hline
+-source {\it <release>} & the Java version of source files\\ \hline
+-sourcepath {\it <path>} & location of source files\\ \hline
+-target {\it <release>} & the Java version of the output class files\\ \hline
+-X & Java non-standard extensions\\ \hline
+-verbose & verbose output \\ \hline
+-version & output (OpenJML) version\\ \hline
+-Werror & treat warnings as errors \\ \hline
+
+\end{tabular}
+}
+\caption{OpenJML options. See the text for more detail on each option.}
+\label{Tab:Options}
+\end{table}
+
+\subsection{Exit values}
+The command-line tool exits, returning a defined exit value:
+\begin{itemize}
+\item 0 ({\tt EXIT\_OK}) : successful operation, no errors, there may be warnings (including static checking warnings)
+\item 1 ({\tt EXIT\_ERROR}) : normal operation, but with errors (parsing or type-checking)
+\item 2 ({\tt EXIT\_CMDERR}) : an error in the formulation of the command-line, such as invalid options
+\item 3 ({\tt EXIT\_SYSERR}): a system error, such as out of memory
+\item 4 ({\tt EXIT\_ABNORMAL}): a fatal error, such as a program crash, caused by an internal bug
+\end{itemize}
+In the itemized list above, the symbolic names are defined in {\tt org.jmlspecs.openjml.Main}. For example, when executing OpenJML programmatically (cf. section TBD), the user's Java program can use the 
+symbol {\tt org.jmlspecsopenjml.Main.EXIT\_ERROR}.
+
+\subsection{Specification files}
+\label{SpecFiles}
+
+JML specifications for Java classes (either source or binary) are written in files with a {\tt .jml} suffix or are written directly in the source {\tt .java} file.
+When OpenJML needs specifications for a given class, it looks for a {\tt .jml} file on the specspath. If one is not found, OpenJML then looks for a {\tt .java}
+file on the specspath. Note that this rule requires that source files (that have specifications you want to use) must be listed on the specspath. Note also that there 
+need not be a source file; a {\tt .jml} file can be (and often is) used to provide specifications for class files.
+
+Previous versions of JML had a more complicated scheme for constructing specifications for a class involving refinements, multiple specification files, and various prefixes. This complicated process is now deprecated and no longer supported.
+
+[ TBD: some systems might find the first .java or .jml file on the specspath and use it, even if there were a .jml file later.]
+
+
+\subsection{Annotations and the runtime library}
+
+JML uses Java annotations as introduced in Java 1.6. Those annotation classes are in the package
+{\tt org.jmlspecs.annotation}. In order for files using these annotations to be processed by Java,
+the annotation classes must be on the classpath. They may also be required when a compiled Java program
+that uses such annotations is executed. In addition, running a program that has JML runtime assertion
+checks compiled in will require the presence of runtime classes that define utility functions used by the assertion checking code.
+
+Both the annotation classes and the runtime checking classes are provided in a library named {\tt jmlruntime.jar}.  The distribution of OpenJML contains this library, as well as containing a
+version of the library within {\tt openjml.jar}. When OpenJML is applied to a set of classes, by default it finds a version of the runtime classes and appends the location of the runtime classes
+to the classpath.
+
+You can prevent OpenJML from automatically adding {\tt jmlruntime.jar} to the classpath with the
+option {\tt -noInternalRuntime}. If you use this option, then you will have to supply your own
+annotation classes and (if using Runtime Assertion Checking) runtime utility classes on the classpath. You may wish to do this, for example, if you have newer versions of the annotation
+classes that you are experimenting with. You could simply put them on the classpath, since they
+would be in front of the automatically added classes and used in favor of default versions;
+however, if you want to be sure that the default versions are not present, use the {\tt -noInternalRuntime} option.
+
+The symptom that no runtime classes are being found at all is error messages that complain that
+the {\tt org.jmlspecs.annotation} package is not found.
+
+
+\subsection{Java properties and the {\tt openjml.properties} file}
+
+OpenJML uses a number of properties that may be defined in the environment;
+these properties are typically characteristics of the local environment that vary among different users or different installations. 
+They can also be to set default values of options, so they do not need to be set on the command-line. An example is the file system location of a particular solver.
+
+The tool looks for a file named {\tt openjml.properties} in several locations. It loads the
+properties it finds in each of these, in order, so later definitions will supplant earlier ones.
+\begin{itemize}\nospace
+\item System properties, including those defined with {\tt -D} options on the command-line
+\item On the system classpath
+\item In the users home directory (the value of the Java property {\tt user.home}
+\item In the current working directory (the value of the Java property {\tt user.dir}
+\end{itemize}
+[TBD: Check the above]
+
+The properties that are currently recognized are these:
+\begin{itemize}\nospace
+%% TBD \item {\tt openjml.option.{\it <key>}}, where {\it <key>} is the name of a command-line option and the value is the value of the option as if it were specified on the command-line; values actually specified on the command-line override any specified in a properties file
+\item {\tt openjml.defaultProver} - the value is the name of the prover to use by default
+\item {\tt openjml.prover.{\it <name>}}, where {\it <name>} is the name of a prover, and
+the value is the file system path to the executable to be invoked for that prover
+\end{itemize}
+[TBD: Check the above]
+
+The distribution includes a file named {\tt openjml-template.properties} that contains stubs for all the recognized options.
+You should copy that file, rename it as {\tt openjml.properties}, and edit it to reflect your system configuration.
+(If you are an OpenJML developer, take care not to commit your system's {\tt openjml.properties} file into the OpenJML shared SVN repository.)
+
+\subsection{Options: Finding files and classes: class, source, and specs paths}
+\label{OptionsPaths}
+
+A common source of confusion is the various different paths used to find files, specifications and classes in OpenJML.
+OpenJML is a Java application and thus a {\it classpath} is used to find the classes that constitute the OpenJML application;
+but OpenJML is also a tool that processes Java files, so it uses a (different) classpath to find the files that it is processing. 
+As is the case for other Java applications, a {\it <path>} contains a sequence of individual paths to folders or jar files, separated
+by the path separator character (a semicolon on Windows systems and a colon on Unix and MacOSX systems).
+You should distinguish the following:
+\begin{itemize}
+\item the classpath used to run the application: specified by one of
+\begin{itemize}\nospace
+\item the {\tt CLASSPATH} environment variable
+\item the .jar file given with the {\tt java -jar} form of the command is used
+\item the value for the {\tt -classpath} (equivalently, {\tt -cp}) option when OpenJML is run with the
+{\tt java -cp openjml.jar org.jmlspecs.openjml.Main} command
+\end{itemize}
+This classpath is not of much concern to OpenJML, but is the classpath that Java users will be familiar with.
+The value is implicitly given in the {\tt -jar} form of the command. The application classpath is explicitly given in the alternate form of the command,
+and it may be omitted; if it is omitted, the value of the system property {\tt CLASSPATH} is used and it must contain the {\tt openjml.jar} library.
+
+\item the classpath used by OpenJML. This classpath determines where OpenJML will find .class files for classes 
+referenced by the {\tt .java} files it is processing. The classpath is specified by\\
+\centerline{\tt -classpath {\it <path>}}
+or \\
+\centerline{\tt -cp {\it <path>}}
+{\it after} the executable is named on the commandline.  That is,
+\boxedexampleB{
+java -jar openmjml.jar -cp {\it <openjml-classpath>} ...
+}
+or
+\boxedexampleB{
+java -cp openjml.jar org.jmlspecs.openjml.Main -cp {\it <openjml-classpath>} ...
+}
+If the OpenJML classpath is not specified, its value is the same as the application classpath.
+
+\item the OpenJML sourcepath - The sourcepath is used by OpenJML as the list of locations in which to find {\tt .java} 
+files that are referenced by the files being processed. For example, if a file on the command-line, say {\tt T.java},
+refers to another class, say {\tt class U}, that is not listed on the command-line, then {\tt U} must be found.  OpenJML (just as is done by the Java compiler) will look for a source file for {\tt U} in the sourcepath and a class file for {\tt U} in the classpath.
+If both are found then TBD.
+
+The OpenJML sourcepath is specified by the {\tt -sourcepath {\it <path>}} option. If it is not specified, the value for the sourcepath is taken to be the same as the OpenJML classpath.
+
+In fact, the sourcepath is rarely used.  Users often will specify a classpath containing both {\tt .class} and {\tt .java} files; by 
+not specifying a sourcepath, the same path is used for both {\tt .java} and {\tt .class} files. This is simpler to write, but does mean
+that the application must search through all source and binary directories for any particular source or binary file.
+
+\item the OpenJML specspath - The specspath tells OpenJML where to look for specification ({\tt .jml}) files. It is specified with the {\tt -spacspath {\it <path>}} option. If it is not specified, the value for the specspath is the same as the value for the sourcepath.  In addition, by default, the specspath
+has added to it an internal library of specifications.  These are the existing (and incomplete) specifications of the Java standard library classes.
+
+The addition of the Java specifications to the specspath can be disabled by using the {\tt -noInternalSpecs} option.  For example. if you
+have your own set of specification files that you want to use instead of the internal library, then you should use the {\tt -noInternalSpecs} option and a {\tt -specspath} option with a path that includes your own specification library.
+
+Note also that often source ({\tt .java}) files contain specifications as well. Thus, if you are specifying a specspath yourself, you should
+be sure to include directories containing source files in the specspath; this rule also includes the {\tt .java} files that appear on the 
+command-line: they also should appear on the specspath.
+
+TBD - describe what happens if the above guidelines are not followed. (Can we make this more user friendly).
+
+\end{itemize}
+
+\paragraph{The {\tt -noInternalSpecs} option.} As described above, this option turns off the automatic adding of the internal specifications library to the specspath. If you use this option, it is your responsibility to provide an alternate specifications library for the standard
+Java class library. If you do not you will likely see a large number of static checking warnings when you use Extended Static Checking to check the implementation code against the specifications.
+
+The internal specifications are written for programs that conform to Java 1.7.  [ TBD - change this to adhere to the {\tt -source} option?] 
+[TBD - what about the specs in jmlspecs for different source levels.]
+
+\subsection{Options: JML tools}
+\label{OptionsTools}
+The following mutually exclusive options determine which OpenJML tool is applied to the input files.
+\begin{itemize}
+\item \textbf{-command} {\it <tool>} : initiates the given function; the value of {\it <tool>} may be one of {\tt check}, {\tt esc}, {\tt rac}, TBD.
+The default is to use the OpenJML tool to do only typechecking of Java and JML in the source files.
+\item \textbf{-java} : causes OpenJML to ignore all OpenJML extensions and use only the core OpenJDK functionality, so the tool should run precisely like the OpenJDK javac tool
+\item \textbf{-noJML} : causes OpenJML to use its extensions but to ignore all JML constructs (TBD - does this still recognize -check, -compile?)
+\item \textbf{-check} : causes OpenJML to do only type-checking of the Java and JML in the input files
+\item \textbf{-compile} : TBD
+\item \textbf{-esc} : causes OpenJML to do (type-checking and) static checking of the JML specifications against the implementations in the input files
+\item \textbf{-rac} : compiles the given Java files as OpenJDK would do, but with JML checks included for checking at runtime
+\item \textbf{-doc} : TBD
+\end{itemize}
+
+\subsection{Options: OpenJML options applicable to all OpenJML tools }
+\label{OptionsJML}
+
+\begin{itemize}
+\item \textbf{-dir} \textit{<folder>} : abbreviation for listing on the command-line all of the .java files in the given folder, and its subfolders; if the argument is a file, use it as is
+\item \textbf{-dirs} : treat all subsequent command-line arguments as if each were the argument to \texttt{-dir}
+\item \textbf{-specspath} \textit{<path>} : defines the specifications path, cf. section TBD
+\item \textbf{-keys} \textit{<keys>} : the argument is a comma-separated list of options JML keys (cf. section TBD)
+\item \textbf{-strictJML} : warns about an OpenJML extensions to standard JML
+\end{itemize}
+
+\begin{itemize}
+\item \textbf{-nullableByDefault} : sets the global default to be that all declarations are implicitly \texttt{@Nullable}
+\item \textbf{-nonnullByDefault} : sets the global default to be that all 
+declarations are implicitly \texttt{@NonNull} (the default)
+\item \textbf{-purityCheck} : turns on (default is on) purity checking (recommended since the Java library specifications are not complete for \texttt{@Pure} declarations)
+\end{itemize}
+
+\subsection{Options: Extended Static Checking}
+\label{OptionsESC}
+
+These options apply only when performing ESC:
+\begin{itemize}
+\item \textbf{-prover} \textit{<prover>} : the name of the prover to use: one of z3\_4\_3, cvc4, yices2
+\item \textbf{-exec} \textit{<file>} : the path to the executable corresponding to the given prover
+\item \textbf{-boogie} : enables using boogie (-prover option ignored; -exec must specify the Z3 executable for Boogie to use)
+\item \textbf{-method} \textit{<methodlist>} : a comma-separated list of method names to
+check (default is all methods in all listed classes)
+\item \textbf{-exclude} \textit{<methodlist>} : a comma-separated list of method names to exclude from checking
+\item \textbf{-checkFeasibility} \textit{<where>} : checks feasibility of the program at various points --- a comma-separated list of
+one of <code>none</code>, <code>all</code>, <code>exit</code> [TBD, finish list,  give default]
+\item \textbf{-escMaxWarnings} \textit{<int>} : the maximum number of assertion violations to look for; the argument is either a positive integer or <code>All</code>; the default is <code>All</code>
+\item \textbf{-counterexample} : prints out a counterexample for failed proofs
+\item \textbf{-trace} : prints out a counterexample trace for each failed assert (includes -counterexample)
+\item \textbf{-subexpressions} : prints out a counterexample trace with model values for each subexpression (includes -trace)
+\end{itemize}
+
+\subsection{Options: Runtime Assertion Checking}
+\label{OptionsRAC}
+
+These options apply only when doing RAC:
+\begin{itemize}
+\item \textbf{-showNotExecutable} : warns about the use of features that are not executable (and thus ignored); turn off with \texttt{-no-shownotExecutable}
+\item \textbf{-showRacSource} : enables including source code information in RAC error messages (default is enabled; disable with \texttt{-no-showRacSource})
+\item \textbf{-racCheckAssumptions} : enables checking \texttt{assume} statements as if they were asserts (default is enabled; disable with\texttt{-no-racCheckAssumptions})
+\item \textbf{-racJavaChecks} : enables performing JML checking of violated Java features (which will just proceed to throw an exception anyway) (default is enabled; disable with \texttt{-no-racJavaChecks})
+\item \textbf{-racCompileToJavaAssert} : compile RAC checks using Java asserts (which must then be enabled using \texttt{-ea}) (default is disabled; disable with \texttt{-no-racCompileToJavaAssert})
+\end{itemize}
+
+\subsection{Options: Version of Java language or class files}
+
+\begin{itemize}
+\item \textbf{-source} {\it <level>} : this option specifies the Java version of the source files, with values of {\tt 1.4}, {\tt 1.5}, {\tt 1.6}, {\tt 1.7}... or {\tt 4}, {\tt 5}, {\tt 6}, {\tt 7}, ... . This controls whether some syntax features  
+(e.g. annotations, extended for-loops, autoboxing, enums) are permitted. The default is the most recent version
+of Java, in this case 1.7.  Note that the classpath should include the Java library classes that
+correspond to the source version being used.
+
+\item \textbf{-target} {\it <level>} : this option specifies the Java version of the output class files
+\end{itemize}
+
+
+\subsection{Options: Other Java compiler options applicable to OpenJML}
+
+These options control where output is written:
+\begin{itemize}
+\item \textbf{-d} {\it <dir>} : specifies the directory in which output class files are placed
+\item \textbf{-s} {\it <dir>} : specifies the directory in which output source files are placed (such as those produced by annotation processors)
+\end{itemize}
+
+Other Java options, whose meaning and use is unchanged from javac:
+\begin{itemize}
+\item \textbf{@}\textit{<filename>} : reads the contents of \textit{<filename>} as a sequence of command-line arguments (options, arguments and files)
+\item \textbf{-Akey}
+\item \textbf{-bootclasspath}
+\item \textbf{-deprecation} : warn about the use of deprecated Java elements
+\item \textbf{-encoding}
+\item \textbf{-endorsedirs}
+\item \textbf{-extdirs}
+\item \textbf{-g}
+\item \textbf{-implicit}
+\item \textbf{-J}
+\item \textbf{-nowarn} : only print errors, not warnings, \textit{including not printing static check warnings}
+\item \textbf{-Werror} : turns all warnings into errors
+\item \textbf{-X}... : Java's extended options
+\end{itemize}
+
+These Java options are discussed elsewhere in this document:
+\begin{itemize}
+\item \textbf{-cp} \textit{<path>} or \textbf{-classpath} \textit{<path>} : section \ref{OptionsPaths}
+\item \textbf{-sourcepath} \textit{<path>} : section \ref{OptionsPaths}
+\item \textbf{-verbose} : section \ref{OptionsDebugging}
+\item \textbf{-source} :  
+\item \textbf{-target} :  
+\end{itemize}
+
+
+\subsection{Options: Information and debugging}
+\label{OptionsDebugging}
+These options print summary information and immediately exit (despite the presence of other command-line arguments):
+\begin{itemize}
+\item \textbf{-help} : prints out help information about the command-line options
+\item \textbf{-version} : prints out the version of the OpenJML tool software
+\end{itemize}
+The following options provide different levels of verboseness. If more than one is specified, the last one present overrides earlier ones.
+\begin{itemize}
+\item \textbf{-quiet} : no informational output, only errors and warnings
+\item \textbf{-normal} : (default) some informational output, in addition to errors and warnings
+\item \textbf{-progress} : prints out summary information as individual files are processed (includes -normal)
+\item \textbf{-verbose} : prints out verbose information about the Java processing
+\item \textbf{-jmlverbose} : prints out verbose information about the JML processing (includes -verbose and -progress)
+\item \textbf{-jmldebug} : prints out (voluminous) debugging information (includes -jmlverbose)
+\item \textbf{-verboseness} {\it <int>} : sets the verboseness level to a value from 0 - 4, corresponding to -quiet, -normal, -progress, -jmlverbose, -jmldebug
+\end{itemize}
+
+Other debugging options:
+\begin{itemize}
+\item \textbf{-show} : prints out rewritten versions of the Java program files for informational and debugging purposes; disable
+with \texttt{-no-show}; the default is disabled
+\item \textbf{-showNotImplemented} : prints warnings about JML features that are ignored because they are not implemented; 
+disable with \texttt{-no-showNotImplemented}; the default is disabled.
+\end{itemize}
+
+
+\subsection{Options related to Static Checking}
+\begin{itemize}
+\item -counterexample
+\item -trace
+\item -subexpressions
+\item -method
+\end{itemize}
+
+\subsection{Options related to parsing and typechecking}
+\begin{itemize}
+\item -Werror
+\item -nowarn
+\item -stopIfParseError
+\item -checkSpecsPath
+\item -purityCheck
+\item -nonnullbydefault
+\item -nullablebydefault
+\item -keys
+\end{itemize}
+
+\subsection{Java options related to annotation processing}
+\begin{itemize}
+\item -proc
+\item -processor
+\item -processorpath
+\end{itemize}
+
+\subsection{Other JML Options}
+\begin{itemize}
+\item -roots
+\end{itemize}
+
+
+\textit{This section will be completed later.} %% TBD
+
+
+
+\chapter{The Eclipse Plug-in}
+\label{EclipsePlugin}
+
+Since OpenJML operates on Java files, it is natural that it be integrated into the Eclipse IDE for Java.
+OpenJML provides a conventional Eclipse plug-in that encapsulates the OpenJML command-line tool and integrates it
+with the Eclipse Java development environment.
+
+\section{Installation and System Requirements}
+Your system must have the following:
+\begin{itemize}
+\item A Java 1.7 JRE as described in section \ref{Running}. This must be the JRE in use in the environment in which Eclipse is invoked. If you start Eclipse by a command in a shell, it is straightforward to make sure that the correct Java JRE is defined in that shell.  However, if you start Eclipse by, for example, double-clicking a desktop icon, then you must ensure that the Java 1.7 JRE is set by the system at startup.
+\item Eclipse 4.2 or later
+\end{itemize}
+
+Installation of the plug-in follows the conventional Eclipse procedure.
+\begin{itemize}
+\item Invoke the "Install New Software" dialog under the Eclipse "Help" menubar item.
+\item "Add" a new location, giving the URL \url{http://jmlspecs.sourceforge.net/openjml-updatesite} and some name of your choice (e.g. OpenJML).
+\item Select the "OpenJML" category and push "Next"
+\item Proceed through the rest of the wizard dialogs to install OpenJML.
+\item Restart Eclipse when asked to obtain full functionality.
+\end{itemize}
+
+If the plug-in is successfully installed, a yellow coffee cup (the JML icon) will appear in the menubar (along with other menubar items).
+The installation will fail (without obvious error messages), if the underlying Java VM is not a suitable Java 1.7 VM.
+
+\section{GUI Features}
+
+\textit{This section will be added later.} %% TBD
+
+
+\chapter{OpenJML tools}
+
+\section{Parsing and Type-checking}
+\textit{This section will be added later.} %% TBD
+
+\section{Static Checking and Verification}
+\textit{This section will be added later.} %% TBD
+
+\section{Runtime Assertion Checking}
+\textit{This section will be added later.} %% TBD
+
+\section{Generating Documentation}
+\textit{This section will be added later.} %% TBD
+
+\section{Generating Specification File Skeletons}
+\textit{This section will be added later.} %% TBD
+
+\section{Generating Test Cases}
+\textit{This section will be added later.} %% TBD
+
+\chapter{Using OpenJML and OpenJDK within user programs}
+
+The OpenJML software is available as a library so that Java and JML programs can be manipulated 
+within a user's program. The developer needs only to include the {\tt openjml.jar} library on 
+the classpath when compiling a program and to call methods through the public API as described in this chapter.
+The public API is implemented in the interface {\tt org.jmlspecs.openjml.IAPI}; it provides the ability to
+\begin{itemize}
+\item perform compilation actions as would be executed on the command-line
+\item parse files or Strings containing Java and JML source code, producing parse trees
+\item print parse trees
+\item walk over parse trees to perform user-defined actions
+\item type-check parse trees (both Java and JML checking)
+\item perform static checking
+\item compile modules with run-time checks
+\item emit javadoc documentation with JML annotations
+\end{itemize}
+The sections of this chapter describe these actions and various concepts needed to perform them correctly.
+
+CAUTION: OpenJML relies on parts of the OpenJDK software that are labeled as internal, non-public and subject to
+change. Correspondingly, some of the OpenJML API may change in the future. The definition of the API class is 
+intended to provide a buffer against such changes. However, the names and functionality of OpenJDK classes (e.g.,
+the {\tt Context} class in the next section) could change.
+
+\paragraph{List classes}
+CAUTION \#2: The OpenJDK software uses its own implementation of Lists, namely {\tt com.sun.tools.javac.util.List}. 
+It is a different implementation than {\tt java.util.List}, with a different interface. Since one or the other may
+ be in the list of imports, the use of {\tt List} in the code may not clearly indicate which type of List is being
+ used. Error messages are not always helpful here. Users should keep these two types of List in mind to avoid 
+ confusion.
+
+\paragraph{Example source code}
+The subsections that follow contain many source code examples. 
+Small source code snippets are shown in in-line boxes like this:
+\boxedexample{ // A Java comment }
+Larger examples are shown as full programs. These are followed by a box of text with a gray background that contains the output expected if the program is run (if the program is error-free) or compiled (if there are compilation errors).
+Here is a ``Hello, world'' example program:
+\demo{DemoHelloWorld}
+
+\noindent
+All of these full-program example programs are working, tested examples.
+They are available in the {\tt demos} directory of the OpenJML source code. The opening comment
+line (as well as the class name) of the example text gives the file name.
+
+The full programs presume an appropriate environment. In particular, they expect the following
+\begin{itemize}
+\item the current working directory is the {\tt demos} directory of the OpenJML source distribution
+\item the Java {\tt CLASSPATH} contains the current directory and a release version of the
+OpenJML library ({\tt openjml.jar}). For example, if the demos directory is the current working directory and a copy of {\tt openjml.jar} is in the 
+{\tt demos} directory, then the {\tt CLASSPATH} could be set as {\tt ``.;openjml.jar''} (using the ; on Windows, a : on Mac and Linux)
+\end{itemize}
+Note that the examples often use other files that are in subdirectories of the {\tt demos} directory.
+\boxedexampleZ{ % FIXME - this does not translate well to HTML
+// bash commands to compile and run the DemoHelloWorld example
+\begin{tabular}{ll}
+cd OpenJML/demos     &\# Alter this to match your local installation \\
+export CLASSPATH=''.;openjml.jar''     &\# Use a : instead of ; on Unix or Mac \\
+                                       &\# Copy openjml.jar to the demo directory \\
+javac DemoHelloWorld.java              &\# Be sure java tools from a 1.7 JDK  \\
+java DemoHelloWorld                    &\# are on the PATH
+\end{tabular}
+}
+
+\section{Concepts}
+
+\subsection{Compilation Contexts}
+All parsing and compilation activities within OpenJML are performed with respect to a {\em compilation context},
+implemented in the code as a {\tt com.sun.tools.javac.util.Context} object. There can be more than one Context at a given time,
+though this is rare. A context holds all of the symbol tables and cached values that represent the source code created
+in that context. 
+
+There is little need for the user to create or manipulate
+Contexts. However it is essential that items created in one Context not be used in another context. There is no check for such misuse, but the subsequent actions are likely to fail. For example, a Context contains interned versions of the names of
+source code identifiers (as {\tt Name}s). Consequently an identifier parsed in one Context will 
+appear different than an identifier
+parsed in another Context, even if they have the same textual name. Do not try to reuse parse trees or other objects 
+created in one Context in another Context.
+ 
+Each instance of the {\tt IAPI} interface creates its own Context object and most methods on 
+that {\tt IAPI} instance operate with respect to that Context. The {\tt API.close} operation 
+releases the Context object, allowing the garbage collector to reclaim space.
+\footnote{The OpenJDK software was designed as a command-line tool, in which all memory is reclaimed
+when the process exits. Although in principle memory can be garbage collected when no more references
+to a Context or its consitutent parts exist, the degree to which this is the case has not been tested.}
+
+\label{JavaFileObjects}
+\subsection{JavaFileObjects}
+
+OpenJDK works with source files using {\tt JavaFileObject} objects. This class abstracts the behavior of 
+ordinary source files. Recall that the definition of the Java language allows source material to be held 
+in containers other than ordinary files on disk; The {\tt JavaFileObject} class accommodates such implementations.
+
+OpenJML currently handles source material in ordinary files and source material expressed as {\tt String} objects
+and contained in mock-file objects. Such mock objects make it easier to create source material programatically, 
+without having to create temporary files on disk.
+
+Although the basic input unit to OpenJDK and OpenJML is a JavaFileObject, for convenience, methods that require
+source material as input have variations allowing the inputs to be expressed as names of files or {\tt File} objects.
+If needed, the following methods create JavaFileObjects:
+\boxedexampleA{
+String filename = ... \\
+File file = new java.io.File(filename);\\
+IAPI m = Factory.makeAPI();\\
+JavaFileObject jfo1 = m.makeJFOfromFilename(filename);\\
+JavaFileObject jfo2 = m.makeJFOfromFile(file);\\
+JavaFileObject jfo3 = m.makeJFOfromString(filename,contents);
+}
+The last of the methods above, {\tt makeJFOfromString}, creates a mock-file object with the given contents (a String).
+The {\tt contents} argument is a String holding the text that would be in a compilation unit.
+The mock-object must have a sensible filename as well. In particular, the given filename should match the package and
+class name as given in the {\tt contents} argument. In addition to creating the {\tt JavaFileObject} object, the 
+mock-file is also added to an internal database of source mock-files; if a mock-file has a filename that would be on
+the source path (were it a concrete file), then the mock-file is used as if it were a real file in an OpenJML compilation.
+[TODO: Test this. Also, how to remove such files from the internal database. ] 
+
+\subsection{Interfaces and concrete classes}
+
+A design meant to be extended should preferably be expressed as Java interfaces; if client code uses the interface and not the underlying concrete classes, then reimplementing functionality with new classes is straightforward. The OpenJDK 
+architecture uses interfaces in some places, but often it is the concrete classes that must be extended.
+
+Table \ref{Interfaces} lists important interfaces, the corresponding OpenJDK concrete class, and the OpenJML replacement.
+
+\begin{table}
+\begin{tabular}{|l|l|l|}
+\hline
+Interface & OpenJDK class & OpenJML class \\ \hline
+IAPI &  & API \\ \hline
+ & com.sun.tools.javac.main.Main & org.jmlspecs.openjml.Main \\ \hline
+ & Option & \\ \hline
+IOption & & JmlOption \\ \hline
+IVisitor & & \\ \hline
+IJmlTree & & \\ \hline
+IJmlVisitor & & \\ \hline
+IProver & & \\ \hline
+IProverResult & & ProverResult \\ \hline
+IProverResult.ICounterexample & & Counterexample \\ \hline
+IProverResult.ICoreIds & & \\ \hline
+JCDiagnostic.DiagnosticPosition & SimpleDiagnosticPosition & DiagnosticPositionSE, DiagnosticPositionSES \\ \hline
+Diagnostic<T> & JCDiagnostic & \\ \hline
+ & com.sun.tools.javac.main.JavaCompiler & JmlCompiler \\ \hline
+ & & \\ \hline
+ & & \\ \hline
+\end{tabular}
+\caption{Interfaces and Classes}
+\label{Interfaces}
+\end{table}
+
+TODO: Add Parser, Scanner, other tools, JCTree nodes, JMLTree nodes, Option/JmlOption, DiagnosticPosition, Tool, OptionCHecker
+
+
+\subsection{Object Factories}
+
+\subsection{Abstract Syntax Trees}
+
+\subsection{Compilation Phases and The tool registry}
+
+Compilation in the OpenJDK compiler proceeds in a number of phases. Each phase is implemented by a specific tool.
+OpenJDK examples are the {\tt DocCommentScanner}, {\tt EndPosParser}, {\tt Flow}, performing scanning, parsing and flow checks respectively; the OpenJML counterparts are {\tt JmlScanner}, {\tt JmlParser}, and {\tt JmlFlow}.
+
+In each compilation context there is one instance of each tool, registered with the context. The Context contains a map
+of keys to the singleton instance of the tool (or its factory) for that context. The scanner and parser are treated slightly differently: there is a singleton instance of a scanner factory and a parser factory, but a new instance of the
+scanner and the parser are created for each compilation unit compiled. Tables \ref{Tools1} and \ref{Tools2} list the tools
+most likely to be encounterded when programming with OpenJML.
+
+OpenJML implements
+alternate versions of many of the OpenJDK tools. The OpenJML versions are derived from the OpenJDK versions and are 
+registered in the context in place of the OpenJDK versions. In that way, anywhere in the software that a tool is
+obtained (using the syntax {\tt ZZZ.instance(context)} for a tool {\tt ZZZ}), the appropriate version and instance
+of the tool
+is produced.
+
+In some cases, a {\em tool factory} is registered instead of a tool instance. Then a tool instance is created on the
+first request for an instance of the tool. The reason for this is the following. Most tools use other tools and, for
+efficiency, request instances of those tools in their constructors. Circular dependencies can easily arise among these
+tool dependencies. Using factories helps mitigate this, though the problem still does easily arise.
+
+
+
+\begin{table}
+\begin{tabularx}{\textwidth}{|p{1.5in}|p{1.5in}|X|}
+
+\hline
+Purpose & Java and JML tool &  Notes \\
+\hline
+overall compiler & JavaCompiler,\newline JmlCompiler & controls the flow of compilation phases \\
+\hline
+scanner factory & ScannerFactory,\newline JmlScanner.Factory  & \\
+\hline
+Token scanning & DocCommentScanner,\newline JmlScanner &  new instance created from the factory for each compilation unit \\
+\hline
+parser factory & ParserFactory,\newline JmlFactory  & \\
+\hline
+parser & EndPosParser,\newline JmlParser & new instance created from the factory for each compilation unit \\
+\hline
+symbol table construction & Enter,\newline JmlEnter & \\
+\hline
+annotation processing & Annotate & performed in JavaCompiler.processAnnotations\\
+\hline
+type determination and checking & Attr,\newline JmlAttr & \\
+\hline
+flow-sensitive checks & Flow,\newline JmlFlow & simple type-checking stops here \\
+\hline
+\hline
+static checking & \hspace{.1in} \newline JmlEsc & invoked instead of desugaring if static checking is enabled (and processing ends here) \\
+\hline
+\hline
+runtime assertion checking & \hspace*{.1in}\newline JmlRac & invoked if RAC is enabled, and then proceeds with the remainder of compilation and code generation \\
+\hline
+desugaring generics & & performed in the method JavaCompiler.desugar \\
+\hline
+code generation & Gen & not used for ESC \\
+\hline
+
+
+\end{tabularx}
+\caption{Compilation phases and corresponding tools as implemented in JavaCompiler and JmlCompiler}
+\label{Tools1}
+\end{table}
+
+\begin{table}[bth]
+\begin{center}
+\begin{tabular}{|l|l|l|}
+
+\hline
+Purpose & Java and JML tool &  Notes \\
+\hline
+identifier table & Names & \\
+\hline
+symbol table & SymTab & \\
+\hline
+compiler and command-line options & Options, JmlOptions & \\
+\hline
+AST node factory & JCTree.Factory, JmlTree.Maker & \\
+\hline
+message reporting & Log & \\
+\hline
+printing ASTs & Pretty, JmlPretty & \\
+\hline
+name resolution & Resolve, JmlResolver & \\
+\hline
+AST utilities & TreeInfo, JmlTreeInfo & \\
+\hline
+type checks & Check, JmlCheck & \\
+\hline
+creating diagnostic message objects & JCDiagnostic.Factory & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Some of the other registered tools}
+\label{Tools2}
+\end{table}
+
+TBD: Others - MemberEnter, JmlMemberEnter, JmlRac, JmlCheck, Infer, Types, Options, Lint, Source, JavacMessages, DiagnosticListener, JavaFileManager/JavacFileManager, ClassReader/javadocClassReader, JavadocEnter, DocEnv/DocEnvJml, BasicBlocker, ProgressReporter?, ClassReader, ClassWriter, Todo, Annotate, Types, TaskListener, JavacTaskImpl, JavacTrees
+
+TBD: Others - JmlSpecs, Utils, Nowarns, JmlTranslator, Dependencies
+
+TBD: Is JmlTreeInfo still used
+
+\section{OpenJML operations}
+
+\subsection{Methods equivalent to command-line operations}
+
+The {\tt execute} methods of {\tt IAPI} perform the same operation as a command on the command-line.
+These methods are different than others of {\tt IAPI} in that they create and use their own {\tt Context}
+object, ignoring that of the calling {\tt IAPI} object.
+
+The simple method is shown here:
+\boxedexampleA{
+import org.jmlspecs.openjml.IAPI;\\
+\\
+IAPI m = new org.jmlspecs.openjml.API(); \\
+int returnCode = m.execute(``-check'',''-noPurityCheck'',''src/demo/Err.java'');
+}
+\noindent
+Each argument that would appear on the command-line is a separate argument to {\tt execute}.
+All informational and diagnostic output is sent to {\tt System.out}.
+The value returned by {\tt execute} is the same as the exit code returned by the equivalent command-line operation.
+The String arguments are a varargs list, so they can be provided to {\tt execute} as a single array:
+\boxedexampleA{
+import org.jmlspecs.openjml.IAPI; \\
+String[] args = new String[]\{``-check'',''-noPurityCheck'',''src/demo/Err.java''\}; \\
+IAPI m = new org.jmlspecs.openjml.API(); \\
+int returnCode = m.execute(args);
+}
+\noindent
+A full example of using execute on a file with a syntax error is shown below:
+\boxedinputc{\source/DemoExecute.java}{\source/DemoExecute.txt}
+
+\noindent
+A longer form of {\tt execute} takes two additional arguments: a {\tt Writer} and a
+{\tt DiagnosticListener}. The {\tt Writer} receives all the informational output.
+The {\tt report} method of the {\tt DiagnosticListener} is called for each warning or
+error diagnostic generated by OpenJML. Here is a full example of this method:
+\demo{DemoExecute2}
+
+
+\subsection{Parsing}
+
+There are two varieties of parsing. The first parses an individual Java or specification file, producing an AST that
+represents that source file. The second parses both a Java file and its specification file, if there is a separate one.
+The second form is generally more useful, since the specification file is found automatically. However, if the parse trees
+are being constructed programmatically, it may be useful to parse the files individually and then manually associate them.
+
+Parsing constructs a parse tree. No symbols are created or entered into a symbol table. Nor is any type-checking performed.
+The only global effect is that identifiers are interned in the {\tt Names} table, which is specific to the compilation context.
+Thus the only effect of discarding a parse tree is that there may be orphaned (no longer used) names in the {\tt Names} table.
+The {\tt Names} table cannot be cleared without the risk of dangling identifiers in parse trees.
+
+Other than this consideration, parse trees can be created, manipulated, edited and discarded. Section TBD describes tools for
+manually creating parse trees and walking over them. Once a parse tree is type-checked, it should be considered immutable.
+
+\subsubsection{Parsing individual files}
+
+There are two methods for parsing an individual file. The basic 
+method takes a {\tt JavaFileObject} as input and produces an AST.
+The convenience method takes a filename as input and produces an AST. The methods of section \ref{JavaFileObjects} enable you to
+produce {\tt JavaFileObject}s from filenames, File objects, or Strings that hold the equivalent of the contents of a file (a compilation unit).
+\boxedexampleA{
+JmlCompilationUnit parseSingleFile(String filename);\\
+JmlCompilationUnit parseSingleFile(JavaFileObject jfo);
+}
+The filename is relative to the current working directory.
+%% TBD: Change to reflect interfaces; check the JFO signature
+
+Here is a full example that shows both interfaces and shows how to attach a specification parse tree to its Java parse tree.
+\demo{DemoParseSingle}
+
+
+%% TBD: How to attach specs to binary class files?
+
+\subsubsection{Parsing Java and JML files together}
+
+The more common action is to parse a Java file and its specification at the same time. The JML language defines how the specification file is found for a given source or binary class. In short, the specification file has syntax very similar to 
+a Java file:
+\begin{itemize}
+\item it must be in the same package and have the same class name as the Java class
+\item if both are files, the filenames without suffix must be the same
+\item the specification file must be on the {\em specspath}
+\item if a .jml file meeting the above criteria is found anywhere on the specspath, it is used; otherwise a .java file on the specspath meeting
+the above criteria is used; otherwise only default specifications are used.\footnote{In the past, JML allowed multiple specification files and defined an ordering and rules for combining the specifications contained in them. The JML has been 
+simplified to allow just one specification file, just one suffix (.jml), and no combining of specifications from a .jml and a .java file if both exist.}
+\end{itemize}
+Note that a Java file can be specified on the command-line that is not on the specspath. In that case (if there is no .jml file) 
+no specification file will be found, although the user may expect that the Java file itself may serve as its own specifications.
+This is a confusing situation and should be avoided.
+
+%% TBD - more needed
+
+\subsection{Type-checking}
+
+\subsection{Static checking}
+
+\subsection{Compiling run-time checks}
+
+\subsection{Creating JML-enhanced documentation}
+
+\section{Working with ASTs}
+
+\subsection{Printing parse trees}
+
+TBD
+
+\subsection{Source location information}
+
+TBD
+
+\subsection{Exploring parse trees with Visitors}
+OpenJML defines some Visitor classes that can be extended to implement user-defined functionality while traversing a parse tree.
+The basic class is {\tt JmlScanner}. An unmodified instance of {\tt JmlScanner} will traverse a parse tree without performing
+any actions.
+
+There are three modes of traversing an AST.
+\begin{itemize}
+\item AST\_JAVA\_MODE - traverses only the Java portion of an AST, ignoring any JML annotations
+\item AST\_JML\_MODE - traverses the Java and JML syntax that was part of the original source file
+\item AST\_SPEC\_MODE - traverses the Java syntax and its specifications (whether they came from the same source file or a different one). This mode is only available after the AST has been type-checked.
+\end{itemize}
+
+A derived class can affect the behavior of the visitor in two ways:
+\begin{itemize}
+\item By overriding the {\tt scan} method, an action can be performed at every node of an AST
+\item By overriding specific {\tt visit...} methods, an action can be performed that is specific to the nodes of the corresponding type
+\end{itemize}
+
+In the example that follows, the scan method of the Visitor is modified to print the node type and count all nodes in the AST, the visitBinary method
+is modified to count Java binary operations, and the visitJmlBinary method is modified to count JML binary operations.
+The default constructor of the parent Visitor class sets the traversal mode to AST\_JML\_MODE.
+\demo{DemoWalkTree1}
+
+The second example shows the differences among the three traversal modes. Note that the AST\_SPEC\_MODE traversal fails when requested prior to type-checking the AST.
+\demo{DemoWalkTree2}
+
+There are two other points to make about these examples.
+\begin{itemize}
+\item Note that each derived method calls the superclass version of the method that it overrides. The superclass method implements the logic to traverse all the children of the AST node. If the super call is omitted, no traversal of the children is performed. If the derived class wishes to traverse only some of the children, a specialized implementation of the method will need to be created.
+It is easiest to create such an implementation by consulting the code in the super class.
+\item In the examples above, you can see that the System.out.println statement that prints the node's class occurs before the super call. The result is a pre-order traversal of the tree; if the print statement occurred after the super call, the output would show a post-order traversal.
+\end{itemize}
+
+%% TBD - comment on other visitor classes
+
+\subsection{Creating parse trees}
+
+\section{Working with JML specifications}
+
+\section{Utilities}
+
+-- version
+-- context
+-- symbols
+
+\section{Extending or modifying JML}
+JML is modified by providing new implementations of key classes, typically by derivation from those that are part of OpenJML.
+In fact, OpenJML extends many of the OpenJDK classes to incorporate JML functionality into the OpenJDK Java compiler.
+
+\subsection{Adding new command-line options}
+\subsection{Altering IAPI}
+\subsection{Changing the Scanner}
+\subsection{Enhancing the parser}
+\subsection{Adding new modifiers and annotations}
+\subsection{Adding new AST nodes}
+\subsection{Modifying a compiler phase}
+
+
+
+\part{JML}
+
+\chapter{Summary of JML Features}
+
+The definition of the Java Modeling Language is contained in the JML reference manual.\cite{TBD}
+This document does not repeat that definition in detail. However, the following sections summarize the features of JML, indicate what is and is not implemented in OpenJML, describes any extensions to JML contained in OpenJML, and includes
+comments about relevant implementation aspects of OpenJML.
+
+\section{JML Syntax}
+
+\subsection{Syntax of JML specifications}
+
+JML specifications may be written as Java annotations. Currently these are only implemented for modifiers (cf. section TBD). In Java 8, the use of Java annotations for JML features will be expanded.
+
+JML specifications may also be written in specially formatted Java comments:
+a JML specification includes everything between either (a) an opening {\tt /*\at} and closing {\tt */}
+or (b) an opening {\tt //\at} and the next line ending character ({\tt \bs n}
+or {\tt \bs r}) that is not within a string or character literal.
+
+Such comments that occur within the body of a class or interface definition are
+considered to be a specification of the class, a field, or a method, depending on the
+kind of specification clause it is. JML specifications may also occur in the body of 
+a method.
+
+\paragraph{Obsolete syntax.} In previous versions of JML, JML specifications could be placed
+within javadoc comments. Such specifications are no longer standard JML and are not supported by OpenJML.
+
+\subsection{Conditional JML specifications}
+
+JML has a mechanism for conditional specifications, based on a system of keys.
+A key is a Java identifier (consisting of alphanumeric characters, including the underscore character, and beginning with a non-digit).
+A conditional JML comment is guarded by one or more positive or negative keys (or both).
+The keys are placed just before the \at~character that is part of the opening sequence of the JML comment
+(the {\tt //\at} or the {\tt /*\at}). Each key is preceded by a '+' or a '-' sign, to indicate whether it is a positive
+or negative key, respectively. {\it No white-space is allowed}. If there is white-space anywhere between the
+initial {\tt //} or {\tt /*} and the first \at~character, the comment will appear to be a normal Java comment and will be
+silently ignored.
+
+The keys are interpreted as follows. Each tool that processes the Java+JML input will have a means
+(e.g. by command-line options) to specify the set of keys that are enabled.
+\begin{itemize}
+\item If the JML annotation has no keys, the annotation is always processed.
+\item If there are only positive keys, the annotation is processed only if at least one of the keys is enabled.
+\item If there are only negative keys, the annotation is processed unless one of the keys is enabled.
+\item If there are both positive and negative keys, the annotation is processed only if (a) at least one of the
+positive keys is enabled AND (b) none of the negative keys are enabled.
+\end{itemize}
+
+JML previously defined one conditional annotation: those that began with {\tt /*+\at} or {\tt //+\at}. ESC/Java2 also defined
+{\tt /*-\at} and {\tt //-\at}. Both of these are now deprecated. OpenJML does have an option to enable the +-style comments.
+
+The particular keys do not have any defined meaning in the JML reference manual. OpenJML implicitly enables the following keys:
+\begin{itemize} 
+\item {\bf ESC} : the ESC key is enabled when OpenJML is performing
+ESC static checking; 
+\item {\bf RAC} : the RAC key is enabled when OpenJML is performing Runtime-Assertion-Checking.
+\item {\bf OPENJML} : The OPENJML key is enabled whenever OpenJML is processing annotations (and presumably is not enabled by other tools).
+\item {\bf DEBUG} : The DEBUG key is not implicitly enabled. However it is defined as the key that enables the {\bf debug} JML statement. That is the {\bf debug} statement is ignored by default and is used by OpenJML if the user enables the DEBUG key.
+\end{itemize}
+Thus, for
+example, one can turn off a non-executable assert statement for RAC-processing by writing //-RAC@ assert ... 
+
+
+\subsection{Finding specification files and the refine statement}
+
+JML allows specifications to be placed directly in the .java files that contain the implementation of methods and
+classes. Indeed, specifications such as assert statements or loop invariants are necessarily placed directly in
+a method body. Other specifications, such as class invariants and method pre- and post-conditions, may be placed in
+auxiliary files. For classes which are only present as .class files and not as .java files, the auxiliary file is
+a necessity.
+
+Current JML allows one such auxiliary file. It is similar to the corresponding .java file except that
+\begin{itemize} \nospace
+\item it has a .jml suffix
+\item it contains no method bodies (method declarations are terminated with semi-colons, as if they were abstract)
+\end{itemize}
+The .jml file is in the same package as the corresponding .java file and has the same name, except for the suffix. It need not be in the same folder.
+If there is no source file, then there is a .jml file for each compilation unit that has a specification. All the nested, inner, or top-level classes that are defined in one Java compilation unit will have their specifications in one corresponding jml file.
+
+The search for specification files is analogous to the way in  which .class files are found on the {\it classpath}, except that the {\it specspath} is used instead. To find the specifications for a public top-level class {\it T}:
+\begin{itemize} 
+\item look in each element of the {\it specspath} (cf. section TBD), in order, for a fully-qualified file whose name is {\it T}{\tt .jml}.
+If found, the contents of that file are used as the specifications of {\it T}.
+\item if no such .jml file is found, look in each element of the {\it specspath}, in order, for a fully-qualified file whose name is {\it T}{\tt .java}.
+\end{itemize}
+There are two (silent) consequences of this search algorithm that can be confusing:
+\begin{itemize}
+\item If both a .jml and a .java file exist on the specspath and both contain JML specification text, the specifications in the .java file will be (silently) ignored.
+\item If a .java file is listed on the command-line it will be compiled (for its Java content), but if it is not a member of an element of the specspath, it will (silently) not be used as the source of specifications for itself.
+\end{itemize}
+
+\paragraph{Obsolete syntax.} The {\tt refine} and {\tt refines} statements are no longer recognized.
+The previous (complicated) method of finding specification files and merging the specifications
+from multiple files is also no longer implemented. The only specification file suffix allowed is 
+{\tt .jml}; the others --- {\tt .spec}, {\tt .refines-java}, {\tt .refines-spec}, {\tt .refines-jml} --- 
+are no longer implemented.
+
+In addition, the {\tt .jml} file is sought before seeking the {\tt .java} file; if a {\tt .jml}
+file is found anywhere in the specs path, then any specifications in the {\tt .java} file are 
+ignored. This is a different search algorithm than was previously used.
+
+\subsection{JML specifications and Java annotations}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Model import statements}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Modifiers}
+\textit{This section will be added later.} %% TBD
+
+- note elimination of weakly
+
+\subsection{Method specification clauses}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Class specification clauses}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Visibility of specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Statement specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Refining statement specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML expressions}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML operators}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML types}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML informal comments}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Non-Null and Nullable}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Race condition detection}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Arithmetic modes}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Universe types}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Dynamic frames}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Code contracts}
+\textit{This section will be added later.} %% TBD
+
+\subsection{redundantly suffixes}
+\textit{This section will be added later.} %% TBD
+
+\subsection{nowarn lexical construct}
+
+\textit{This section will be added later.} %% TBD
+
+
+\section{Interaction with Java features}
+
+\textit{This section will be added later.} %% TBD
+
+
+\section{Other issues}
+
+\subsection{Interaction with JSR-308}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Interaction with FindBugs}
+
+\textit{This section will be added later.} %% TBD
+
+\part{Semantics and translation of Java and JML in OpenJML}
+
+\chapter{Introduction}
+
+-- Sorted First-order-logic
+
+-- individual subexpressions; optional expression form; optimization; usefulness for tracing
+
+-- RAC vs. ESC
+
+-- nomenclature
+
+
+
+\chapter{Statement translations}
+
+TODO: Need to insert both RAC and ESC in all of the following.
+
+\section{While loop}
+
+\noindent
+Java and JML statement:
+
+\noindent
+{\tt }\\
+{\tt //@ invariant} {\em\bf invariant\_condition} {\tt ;}\\
+{\tt //@ decreases} {\em\bf counter} {\tt ;}\\
+{\tt while (}{\em\bf condition) }{\tt \{}\\
+\ind{\tt }{\em\bf body}\\
+{\tt \}}\\
+
+\noindent
+Translation: {\em TODO: Needs variant condition, havoc information}
+
+\noindent
+{\tt }\\
+{\tt \{}\\
+\ind {\tt //@ assert }{\em jmltranslate({\bf invariant\_condition})} {\tt ;}\\
+\ind {\tt //@ assert }{\em jmltranslate({\bf variant\_condition}) }{\tt > 0} {\tt ;}\\
+\ind {\tt while (true) \{}\\
+\ind\ind {\em stats(tmp,{\bf condition})}\\
+\ind\ind {\tt if (!}{\em tmp}{) \{}\\
+\ind\ind\ind {\tt //@ assume !}{\em tmp}{\tt ;}\\
+\ind\ind\ind {\tt break;}\\
+\ind\ind {\tt \}}\\
+\ind\ind{\tt //@ assume }{\em tmp}{\tt ;}\\
+\ind\ind {\tt }{\em stats({\bf body})}\\
+\ind {\tt \} }\\
+{\tt \}}
+
+\chapter{Java expression translations}
+
+\section{Implicit or explicit arithmetic conversions}
+
+{\em TODO}
+
+\section{Arithmetic expressions}
+{\em TODO: need arithmetic range assertions}
+
+In these, {\em T} is the type of the result of the operation. The two operands in binary operations are already assumed to have been converted to a common type according to Java's rules.
+
+\noindent
+{\em stats(tmp, }{\tt -} {\bf a} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em T tmp} {\tt =} {\tt - }{\em tmpa} {\tt ;} \\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt +} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt +} {\em tmpb} {\tt ;} \\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt -} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt -} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt *} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt *} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt /} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\tt //@ assert} {\em tmpb} {\tt != 0;} {\em // No division by zero}\\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt /} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt \%} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\tt //@ assert} {\em tmpb} {\tt != 0;} {\em // No division by zero}\\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt \%} {\em tmpb} {\tt ;}\\
+
+\section{Bit-shift expressions}
+
+{\em TODO}
+
+\section{Relational expressions}
+
+\noindent
+No assertions are generated for the relational operations {\tt < > <= >= == !=}. The operands are presumed to have been converted to a common type according to Java's rules.\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\em op} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\em op} {\em tmpb} {\tt ;}\\
+
+\section{Logical expressions}
+
+\noindent
+{\em stats(tmp,} {\tt !} {\bf a} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em T tmp} {\tt =} {\tt !} {\em tmpa} {\tt ;}\\
+
+\noindent
+The {\tt \&\&} and {\tt ||} operations are short-circuit operations in which the second operand is conditionally evaluated.
+Here {\tt \&} and {\tt |} are the (FOL) boolean non-short-circuit conjunction and disjunction.\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt \&\&} {\bf b} {\em )} ==> \\
+\ind {\tt boolean } {\em tmp} {\tt ;} \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\tt if (} {\em tmpa} {\tt ) \{} \\
+\ind\ind {\tt //@ assume} {\em tmpa} {\tt ;} \\
+\ind\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt \&} {\em tmpb} {\tt ;}\\
+\ind {\tt \} else \{}\\
+\ind\ind {\tt //@ assume !} {\em tmpa} {\tt ;} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt ;}\\
+\ind {\tt \}}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt ||} {\bf b} {\em )} ==> \\
+\ind {\tt boolean } {\em tmp} {\tt ;} \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\tt if ( !} {\em tmpa} {\tt ) \{} \\
+\ind\ind {\tt //@ assume !} {\em tmpa} {\tt ;} \\
+\ind\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt |} {\em tmpb} {\tt ;}\\
+\ind {\tt \} else \{}\\
+\ind\ind {\tt //@ assume} {\em tmpa} {\tt ;} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt ;}\\
+\ind {\tt \}}\\
+
+\pagebreak
+
+\textit{An index will be added later.} %% TBD
+
+
+%% TBD - index
+%% TBD - bibliography
+
+\end{document}
