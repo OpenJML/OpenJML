@@ -1035,4 +1035,50 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
         that.item.accept(this);
     }
+    
+    // Enables printing of things like:             
+    //
+    // [jmlrac:../demos/Test.java:1]\t %line
+    // 
+    // This makes reading the -show output easier. 
+
+    public static String toFancyLineFormat(JmlPrettyFormatter fmt, String old)
+    {
+        String pieces [] = old.split(System.getProperty("line.separator"));
+        
+        StringBuffer sb = new StringBuffer();
+        
+        int line=1;
+        for(String p : pieces){
+            sb.append(fmt.formatLine(line, p)).append(System.getProperty("line.separator"));
+            line++;
+        }
+
+        return sb.toString();
+    }
+    
+    public static String toFancyLineFormat(JmlPrettyFormatter fmt, String prefix, String old)
+    {
+        return toFancyLineFormat(fmt, prefix + System.getProperty("line.separator") + old );
+    }
+    
+    public static JmlPrettyFormatter racFormatter;
+    
+    interface JmlPrettyFormatter {
+        public String formatLine(int lineNumber, String line);
+    }
+    
+    static {
+        racFormatter = new JmlPrettyFormatter() {
+            @Override
+            public String formatLine(int lineNumber, String line) {
+                return String.format("[jmlrac:../demos/Test.java:%d]    %s", lineNumber, line);
+            }
+        };
+
+    }
+    
+    
+    
+    
 }
