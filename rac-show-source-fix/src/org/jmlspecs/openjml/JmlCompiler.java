@@ -542,7 +542,11 @@ public class JmlCompiler extends JavaCompiler {
             JCTree newtree;
             if (JmlOption.isOption(context,JmlOption.SHOW)) {
                 log.noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
-                log.noticeWriter.println(JmlPretty.toFancyLineFormat(JmlPretty.racFormatter, JmlPretty.write(env.toplevel,true)));
+                log.noticeWriter.println(
+                            JmlPretty.toFancyLineFormat(
+                                    JmlPretty.racFormatter,            // the formatter 
+                                    JmlPretty.write(env.toplevel,true) // the source to format
+                                    ));
                 log.noticeWriter.println("");
             }
             
@@ -574,7 +578,12 @@ public class JmlCompiler extends JavaCompiler {
             if (JmlOption.isOption(context,JmlOption.SHOW)) { 
                 log.noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
                 // this could probably be better - is it OK to modify the AST beforehand? JLS
-                log.noticeWriter.println(JmlPretty.toFancyLineFormat(JmlPretty.racFormatter, "import org.jmlspecs.utils.*;", JmlPretty.write(env.toplevel,true)));
+                log.noticeWriter.println(
+                        JmlPretty.toFancyLineFormat(
+                            JmlPretty.racFormatter,            // the formatter 
+                            "import org.jmlspecs.utils.*;",    // a header prefix to print
+                            JmlPretty.write(env.toplevel,true) // the source to format
+                            ));
             }
             
         } else {
