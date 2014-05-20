@@ -544,6 +544,7 @@ public class JmlCompiler extends JavaCompiler {
                 log.noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
                 log.noticeWriter.println(
                             JmlPretty.toFancyLineFormat(
+                                    currentFile,
                                     JmlPretty.racFormatter,            // the formatter 
                                     JmlPretty.write(env.toplevel,true) // the source to format
                                     ));
@@ -580,6 +581,7 @@ public class JmlCompiler extends JavaCompiler {
                 // this could probably be better - is it OK to modify the AST beforehand? JLS
                 log.noticeWriter.println(
                         JmlPretty.toFancyLineFormat(
+                            currentFile,
                             JmlPretty.racFormatter,            // the formatter 
                             "import org.jmlspecs.utils.*;",    // a header prefix to print
                             JmlPretty.write(env.toplevel,true) // the source to format

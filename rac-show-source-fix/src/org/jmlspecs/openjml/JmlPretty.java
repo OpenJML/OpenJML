@@ -1042,7 +1042,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     // 
     // This makes reading the -show output easier. 
 
-    public static String toFancyLineFormat(JmlPrettyFormatter fmt, String old)
+    public static String toFancyLineFormat(String file, JmlPrettyFormatter fmt, String old)
     {
         String pieces [] = old.split(System.getProperty("line.separator"));
         
@@ -1050,29 +1050,29 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         
         int line=1;
         for(String p : pieces){
-            sb.append(fmt.formatLine(line, p)).append(System.getProperty("line.separator"));
+            sb.append(fmt.formatLine(file, line, p)).append(System.getProperty("line.separator"));
             line++;
         }
 
         return sb.toString();
     }
     
-    public static String toFancyLineFormat(JmlPrettyFormatter fmt, String prefix, String old)
+    public static String toFancyLineFormat(String file, JmlPrettyFormatter fmt, String prefix, String old)
     {
-        return toFancyLineFormat(fmt, prefix + System.getProperty("line.separator") + old );
+        return toFancyLineFormat(file, fmt, prefix + System.getProperty("line.separator") + old );
     }
     
     public static JmlPrettyFormatter racFormatter;
     
     interface JmlPrettyFormatter {
-        public String formatLine(int lineNumber, String line);
+        public String formatLine(String file, int lineNumber, String line);
     }
     
     static {
         racFormatter = new JmlPrettyFormatter() {
             @Override
-            public String formatLine(int lineNumber, String line) {
-                return String.format("[jmlrac:../demos/Test.java:%d]    %s", lineNumber, line);
+            public String formatLine(String file, int lineNumber, String line) {
+                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
             }
         };
 
