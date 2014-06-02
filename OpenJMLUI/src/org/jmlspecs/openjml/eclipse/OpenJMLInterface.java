@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -33,9 +32,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
+import org.eclipse.jdt.internal.core.JavaProject;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
@@ -45,21 +44,21 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
-import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.tree.JCTree;
@@ -132,6 +131,77 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
        }
    }
    
+   /**
+    * A private helper method that checks to see whether a given IFolder contains
+    * at least one source file (that is, a file ending in .jml or .java, constants
+    * declared in OpenJML's Strings class).
+    * 
+    * @param folder The folder to check.
+    * @return true if the folder contains at least one source file, false otherwise.
+    */
+   private boolean hasAtLeastOneSourceFile(final IFolder folder) {
+	   boolean result = false;
+	   
+	   try {
+		   IResource[] members = folder.members();
+		   for (int i = 0; !result && i < members.length; i++) {
+			   if (members[i] instanceof IFolder) {
+				   result |= hasAtLeastOneSourceFile((IFolder) members[i]);
+			   } else if (members[i] instanceof IFile) {
+				   final IFile file = (IFile) members[i];
+				   result |= file.getName().endsWith(Strings.javaSuffix);
+				   result |= file.getName().endsWith(Strings.specsSuffix);
+			   }
+		   }
+	   } catch (final CoreException e) {
+		   // if we couldn't even check for the folder's members, obviously
+		   // something's wrong - we'll return false
+	   }
+	   
+	   return result;
+   }
+   
+   /**
+    * Adds appropriate arguments to a list of OpenJML command line arguments
+    * for all the non-empty source folders in the specified IProject.
+    * 
+    * @param project The project.
+    * @param args The argument list to add to; this is potentially changed by
+    * calling this method.
+    * @return the number of path and file arguments added to the argument list; this
+    * does _not_ include OpenJML "-dir" arguments, which are also added as necessary.
+    * If result == 0, the arguments were unchanged.
+    */
+	private int addSourceFoldersToCommandLine(final IProject project, final List<String> args) {
+		int result = 0;
+		if (JavaProject.hasJavaNature(project)) {
+			// should always be true, we should always be in a Java project
+			// so let's get all the source folders
+			final IJavaProject javaProject = JavaCore.create(project);
+			try {
+				for (IClasspathEntry entry : javaProject
+						.getResolvedClasspath(true)) {
+					// get the classpath for the project
+					if (entry.getContentKind() == IPackageFragmentRoot.K_SOURCE) {
+						// it's a source folder, let's see if it's empty
+						final IFolder folder = 
+								ResourcesPlugin.getWorkspace().getRoot().getFolder(entry.getPath());
+
+						if (hasAtLeastOneSourceFile(folder)) {
+							// there are files in the source folder
+							args.add(JmlOption.DIR.optionName());
+							args.add(folder.getLocation().toOSString());
+							result = result + 1;
+						}
+					}
+				}
+			} catch (final JavaModelException e) {
+				// ignore this exception for now
+			}
+		}
+		return result;
+	}
+   
    /** Executes the JML Check (syntax and typechecking) or the RAC compiler
     * operations on the given set of resources, creating a new compilation context.
     * Must be called in a computational thread.
@@ -173,14 +243,27 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         	   args.add(jp.getProject().getLocation().append(racdir).toString());
            }
 
-           for (IResource r: files) {
+    	   boolean addedSomething = false;
+           for (IResource r : files) {
         	   if (r instanceof IProject) {
-        		   args.add(JmlOption.DIR.optionName());
-        		   args.add(r.getLocation().toString());
+        		   addedSomething |= addSourceFoldersToCommandLine((IProject) r, args) > 0;
+        	   } else if (r instanceof IFolder) {
+        		   // the user explicitly selected a folder, and we don't allow empty folders
+        		   if (hasAtLeastOneSourceFile((IFolder) r)) {
+        			   args.add(JmlOption.DIR.optionName());
+        			   args.add(r.getLocation().toString());
+        			   addedSomething = true;
+        		   }
         	   } else {
-        		   if (r instanceof IFolder) args.add(JmlOption.DIR.optionName());
+        		   // the user explicitly selected a file, so presumably they know what they're doing
         		   args.add(r.getLocation().toString());
+        		   addedSomething = true;
         	   }
+           }
+           if (!addedSomething) {
+        	   if (monitor != null) monitor.subTask("OpenJML: No files to check"); //$NON-NLS-1$
+        	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " No files to check"); //$NON-NLS-1$
+        	   return; // we don't call OpenJML with no files
            }
            Timer.timer.markTime();
            if (verboseProgress) {
@@ -300,8 +383,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
-            api.initOptions(null,  args.toArray(new String[args.size()]));
-            args.clear();
+//            api.initOptions(null,  args.toArray(new String[args.size()]));
+//            args.clear();
             
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
             
@@ -339,6 +422,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             		// FIXME - record exception
             	}
             }
+            final int oldArgsSize = args.size();
             for (Object r: things) { 
             	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
@@ -346,11 +430,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 	r = rr;
                 }
                 if (r instanceof IFolder) {
-                	args.add(JmlOption.DIR.optionName());
-                	args.add(((IResource)r).getLocation().toString());
+                	if (hasAtLeastOneSourceFile((IFolder) r)) {
+                		// we don't process empty folders
+                		args.add(JmlOption.DIR.optionName());
+                		args.add(((IResource)r).getLocation().toString());
+                	}
                 } else if (r instanceof IProject) {
-                	args.add(JmlOption.DIR.optionName());
-                    args.add(((IResource)r).getLocation().toString());
+                	// we only want to add source folders, and only if they actually have source in them
+                	addSourceFoldersToCommandLine((IProject) r, args);
                 } else if (r instanceof IResource) {
                     args.add(((IResource)r).getLocation().toString());
                 } else if (r instanceof IType) {  // Here we want types and methods, but a JavaProject is also an IJavaElement
@@ -361,7 +448,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                     elements.add((IJavaElement)r);
                 } else Log.log("Ignoring " + r.getClass() + Strings.space + r.toString()); //$NON-NLS-1$
             }
-            if (args.isEmpty() && elements.isEmpty()) {
+            if (args.size() == oldArgsSize && elements.isEmpty()) {
                 Log.log("No files or elements to process");
                 Activator.utils().showMessageInUI(null,"JML","No files or elements to process");
                 return;
