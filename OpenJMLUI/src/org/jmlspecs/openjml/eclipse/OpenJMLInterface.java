@@ -383,7 +383,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             setMonitor(monitor);
            
             List<String> args = getOptions(jproject,Main.Cmd.ESC);
-//            api.initOptions(null,  args.toArray(new String[args.size()]));
+            api.initOptions(null,  args.toArray(new String[args.size()]));
 //            args.clear();
             
             List<IJavaElement> elements = new LinkedList<IJavaElement>();
