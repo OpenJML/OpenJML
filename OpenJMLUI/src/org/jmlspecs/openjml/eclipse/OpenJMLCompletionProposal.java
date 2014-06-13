@@ -94,7 +94,7 @@ public class OpenJMLCompletionProposal implements
 	}
 	
 	@Override
-	//currently not used
+	//currently not really used
 	public StyledString getStyledDisplayString() {
 		return myStyledDisplayString;
 		
