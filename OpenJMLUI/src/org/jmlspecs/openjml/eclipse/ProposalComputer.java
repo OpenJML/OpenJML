@@ -295,8 +295,6 @@ public class ProposalComputer implements IJavaCompletionProposalComputer {
 				// if the annotation matches the token, set result to false
 				if (token.annotationType != null) {
 					String name = token.annotationType.getSimpleName();
-					System.err.println("Token is " + name);
-					System.err.println("var is" + a.toString().substring(1));
 					if (name.equals(a.toString().substring(1))) {
 						result = false;
 					}
@@ -310,8 +308,6 @@ public class ProposalComputer implements IJavaCompletionProposalComputer {
 				// if the annotation matches the token, set result to false
 				if (token.annotationType != null) {
 					String name = token.annotationType.getSimpleName();
-					System.err.println("Token is " + name);
-					System.err.println("var is" + a.toString().substring(1));
 					if (name.equals(a.toString().substring(1))) {
 						result = false;
 					}
@@ -381,7 +377,6 @@ public class ProposalComputer implements IJavaCompletionProposalComputer {
 			// variable declaration
 			if (that.getStartPosition() < myPos
 					&& that.getPreferredPosition() >= myPos) {
-				System.err.println("Actually inside it!");
 				ourTreeNode = that;
 			}
 
