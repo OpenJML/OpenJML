@@ -288,6 +288,8 @@ public enum JmlToken {
         }
         //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
+        // the LAST token is fake and doesn't really need to be in the modifiers set
+        modifiers.remove(LAST);
         
         // Synonyms
         
