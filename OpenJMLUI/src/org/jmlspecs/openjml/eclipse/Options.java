@@ -123,5 +123,16 @@ public class Options {
 	
 	// FIXME - change this
 	final static public String defaultProverKey = Strings.defaultProverProperty;
+
+	/** The preference store key for enabling/disabling JML highlighting. */
+	final static public String highlightEnableKey = prefix + "highlightEnable";
 	
+	/** The preference store key for the default JML highlight color. */
+	final static public String highlightDefaultKey = prefix + "highlightDefault";
+	
+	/** The preference store key for the JML keyword highlight color. */
+	final static public String highlightKeywordKey = prefix + "highlightKeyword";
+	
+	/** The preference store key for the JML operator highlight color. */
+	final static public String highlightOperatorKey = prefix + "highlightOperator";
 }
