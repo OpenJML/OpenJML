@@ -1,17 +1,17 @@
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
 
 /**
  * This class represents a preference page that
@@ -42,7 +42,7 @@ public class HighlightPage extends FieldEditorPreferencePage
 	private BooleanFieldEditor enabledEditor;
 	
 	public HighlightPage() {
-		super(FLAT);
+		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
 	}
 	
@@ -71,6 +71,10 @@ public class HighlightPage extends FieldEditorPreferencePage
 				Messages.OpenJMLUI_HighlightPage_Operator, parent);
 		addField(editor);
 		colorFieldEditors.put(editor, parent);
+		
+		addField(new LabelFieldEditor("", "", SWT.NONE, getFieldEditorParent()));
+		addField(new LabelFieldEditor("", Messages.OpenJMLUI_HighlightPage_Footer, 
+				SWT.NONE, getFieldEditorParent()));
 	}
 
 	/* (non-Javadoc)
