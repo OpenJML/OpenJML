@@ -490,7 +490,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if ((ti.tsym.flags() & Flags.FINAL) != 0) {
             	addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (=> ("+JAVASUBTYPE+" t "+tisym.toString()+")  (= t "+tisym.toString()+"))))");
             }
-            if (!ti.tsym.type.isParameterized()) {
+           if (!ti.tsym.type.isParameterized()) {
                 // Note: ti.isParameterized() is true if the type name has actual parameters
                 // ti.tsym.type.isParameterized() is true if the declaration has parameters
                 // e.g.  java.util.Set is false on the first, but true on the second
@@ -507,7 +507,25 @@ public class SMTTranslator extends JmlTreeScanner {
                         tisym)));
                 if ((ti.tsym.flags() & Flags.FINAL) != 0) {
                     addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
-                }
+                } 
+            } else {
+                // currently we add the symbols even if the type is parameterized,
+                // because it's not clear what to do differently with parameterized types;
+                // the code below is copied directly from the if branch
+                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
+                tcommands.add(new C_declare_fun(
+                        tjsym,
+                        emptyList,
+                        jmlTypeSort));
+                jmltypesymbols.add(tjsym);
+                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+                tcommands.add(new C_assert(F.fcn(
+                        eqSym, 
+                        F.fcn(F.symbol("erasure"),tjsym),
+                        tisym)));
+                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
+                    addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+                } 
             }
         }
         for (Type ti: javaTypes) {

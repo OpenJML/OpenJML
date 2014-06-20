@@ -2020,129 +2020,131 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
             ListBuffer<JCStatement> staticStats = stats;
             
-            currentThisId = (JCIdent)receiver;
-            currentThisExpr = receiver;
-            
-            for (Type ctype: parents) {
-                if (!(ctype.tsym instanceof ClassSymbol)) continue;
-                typevarMapping = typemapping(ctype);
-                pushBlock();
-                ListBuffer<JCStatement> instanceStats = currentStatements;
-                try {
-                    ClassSymbol csym = (ClassSymbol)ctype.tsym;
-                    JmlSpecs.TypeSpecs tspecs = specs.get(csym);
-                    if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+            if (receiver instanceof JCIdent) {
+                currentThisId = (JCIdent)receiver;
+                currentThisExpr = receiver;
 
-                    if (prepost && !isPost && !methodDecl.sym.isConstructor()) {
-                        // Adding in invariant about final fields
-                        instanceStats.add(comment(pos,(assume? "Assume" : "Assert") + " final field invariants for " + csym,null));
-                        JCExpression conj = null;
-                        //JCExpression staticconj = null;
-                        for (Symbol s : csym.getEnclosedElements()) {
-                            if (s instanceof VarSymbol) {
-                                VarSymbol v = (VarSymbol)s;
-                                Object o = v.getConstantValue();
-                                if (o != null) {
-                                    JCIdent id = treeutils.makeIdent(v.pos,v);
-                                    JCLiteral val = treeutils.makeLit(v.pos,v.type,o);
-                                    JCExpression e = treeutils.makeEquality(v.pos, id, val);
-                                    if (utils.isJMLStatic(s)) {
-                                        //staticconj = staticconj == null ? e : treeutils.makeAnd(v.pos, staticconj, e);
-                                    } else {
-                                        conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
+                for (Type ctype: parents) {
+                    if (!(ctype.tsym instanceof ClassSymbol)) continue;
+                    typevarMapping = typemapping(ctype);
+                    pushBlock();
+                    ListBuffer<JCStatement> instanceStats = currentStatements;
+                    try {
+                        ClassSymbol csym = (ClassSymbol)ctype.tsym;
+                        JmlSpecs.TypeSpecs tspecs = specs.get(csym);
+                        if (tspecs == null) continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+
+                        if (prepost && !isPost && !methodDecl.sym.isConstructor()) {
+                            // Adding in invariant about final fields
+                            instanceStats.add(comment(pos,(assume? "Assume" : "Assert") + " final field invariants for " + csym,null));
+                            JCExpression conj = null;
+                            //JCExpression staticconj = null;
+                            for (Symbol s : csym.getEnclosedElements()) {
+                                if (s instanceof VarSymbol) {
+                                    VarSymbol v = (VarSymbol)s;
+                                    Object o = v.getConstantValue();
+                                    if (o != null) {
+                                        JCIdent id = treeutils.makeIdent(v.pos,v);
+                                        JCLiteral val = treeutils.makeLit(v.pos,v.type,o);
+                                        JCExpression e = treeutils.makeEquality(v.pos, id, val);
+                                        if (utils.isJMLStatic(s)) {
+                                            //staticconj = staticconj == null ? e : treeutils.makeAnd(v.pos, staticconj, e);
+                                        } else {
+                                            conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if (conj != null) {
-                            currentStatements = instanceStats;
-                            conj = convertJML(conj);
-                            if (assume) addAssume(pos,invariantLabel,conj);
-                            else  addAssert(pos,invariantLabel,conj);
-                        }
-//                        if (staticconj != null) {
-//                            currentStatements = staticStats;
-//                            staticconj = convertJML(staticconj);
-//                            if (assume) addAssume(pos,invariantLabel,staticconj);
-//                            else  addAssert(pos,invariantLabel,staticconj);
-//                        }
-                    }
-                    
-                    staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " invariants for " + csym,null));
-                    for (JmlTypeClause clause : tspecs.clauses) {
-                        if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-                        JmlTypeClauseExpr t;
-                        DiagnosticPosition cpos = clause;
-                        boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
-                        currentStatements = clauseIsStatic? staticStats : instanceStats;
-                        try {
-                            // FIXME - guard against the receiver being null for non-static invariants
-                            switch (clause.token) {
-                                // invariants on both pre and post for all classes of parameters and return value
-                                // Pre and post conditions:
-                                //      helper - no invariants for class of method
-                                //      non-helper constructor - invariants only on post
-                                //      non-helper method - invariants on pre and post
-                                // Calling a method - caller invariants
-                                //      same as pre and postconditions, except
-                                //      when a constructor is calling super(), no invariants of containing class are assumed in post
-                                // Calling a method - callee invariants
-                                //      callee is helper - no invariants in pre or post for class containing method
-                                //      callee is super() - invariants of super class on post
-                                //      callee is constructor - invariants on post
-                                //      callee is method - invariants on pre and post
-                                case INVARIANT:
-                                    if (contextIsStatic && !clauseIsStatic) break;
-                                    if (isHelper) break;
-                                    if (isSuper) break;
-                                    boolean doit = false;
-                                    if (!isConstructor || isPost) doit = true; // pre and postcondition case
-                                    if (isConstructor && clauseIsStatic) doit = true;
-                                    if (doit) {
-                                        t = (JmlTypeClauseExpr)convertCopy(clause);
-                                        addTraceableComment(t.expression,clause.toString());
-                                        JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
-                                        // FIXME - be nice to record where called from, not just the location of the invariant declaration
-                                        if (assume) addAssume(pos,invariantLabel,
-                                                e,
-                                                cpos,clause.source, invariantDescription);
-                                        else  addAssert(pos,invariantLabel,
-                                                e,
-                                                cpos,clause.source, invariantDescription);
-//                                        JavaFileObject source = log.useSource(clause.source);
-//                                        if (assume) addAssume(cpos,invariantLabel,
-//                                                e,
-//                                                cpos,clause.source, invariantDescription);
-//                                        else  addAssert(cpos,invariantLabel,
-//                                                e,
-//                                                invariantDescription);
-//                                        log.useSource(source);
-                                    }
-                                    break;
-                                default:
-                                    // Skip
-
+                            if (conj != null) {
+                                currentStatements = instanceStats;
+                                conj = convertJML(conj);
+                                if (assume) addAssume(pos,invariantLabel,conj);
+                                else  addAssert(pos,invariantLabel,conj);
                             }
-                        } catch (NoModelMethod e) {
-                            // FIXME - what to do.
-                        } catch (JmlNotImplementedException e) {
-                            notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
+                            //                        if (staticconj != null) {
+                            //                            currentStatements = staticStats;
+                            //                            staticconj = convertJML(staticconj);
+                            //                            if (assume) addAssume(pos,invariantLabel,staticconj);
+                            //                            else  addAssert(pos,invariantLabel,staticconj);
+                            //                        }
+                        }
+
+                        staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " invariants for " + csym,null));
+                        for (JmlTypeClause clause : tspecs.clauses) {
+                            if (!utils.visible(classDecl.sym, csym, clause.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
+                            JmlTypeClauseExpr t;
+                            DiagnosticPosition cpos = clause;
+                            boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
+                            currentStatements = clauseIsStatic? staticStats : instanceStats;
+                            try {
+                                // FIXME - guard against the receiver being null for non-static invariants
+                                switch (clause.token) {
+                                    // invariants on both pre and post for all classes of parameters and return value
+                                    // Pre and post conditions:
+                                    //      helper - no invariants for class of method
+                                    //      non-helper constructor - invariants only on post
+                                    //      non-helper method - invariants on pre and post
+                                    // Calling a method - caller invariants
+                                    //      same as pre and postconditions, except
+                                    //      when a constructor is calling super(), no invariants of containing class are assumed in post
+                                    // Calling a method - callee invariants
+                                    //      callee is helper - no invariants in pre or post for class containing method
+                                    //      callee is super() - invariants of super class on post
+                                    //      callee is constructor - invariants on post
+                                    //      callee is method - invariants on pre and post
+                                    case INVARIANT:
+                                        if (contextIsStatic && !clauseIsStatic) break;
+                                        if (isHelper) break;
+                                        if (isSuper) break;
+                                        boolean doit = false;
+                                        if (!isConstructor || isPost) doit = true; // pre and postcondition case
+                                        if (isConstructor && clauseIsStatic) doit = true;
+                                        if (doit) {
+                                            t = (JmlTypeClauseExpr)convertCopy(clause);
+                                            addTraceableComment(t.expression,clause.toString());
+                                            JCExpression e = convertJML(t.expression,treeutils.trueLit,isPost);
+                                            // FIXME - be nice to record where called from, not just the location of the invariant declaration
+                                            if (assume) addAssume(pos,invariantLabel,
+                                                    e,
+                                                    cpos,clause.source, invariantDescription);
+                                            else  addAssert(pos,invariantLabel,
+                                                    e,
+                                                    cpos,clause.source, invariantDescription);
+                                            //                                        JavaFileObject source = log.useSource(clause.source);
+                                            //                                        if (assume) addAssume(cpos,invariantLabel,
+                                            //                                                e,
+                                            //                                                cpos,clause.source, invariantDescription);
+                                            //                                        else  addAssert(cpos,invariantLabel,
+                                            //                                                e,
+                                            //                                                invariantDescription);
+                                            //                                        log.useSource(source);
+                                        }
+                                        break;
+                                    default:
+                                        // Skip
+
+                                }
+                            } catch (NoModelMethod e) {
+                                // FIXME - what to do.
+                            } catch (JmlNotImplementedException e) {
+                                notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
+                            }
+                        }
+                    } finally {
+                        currentStatements = instanceStats;
+                        JCBlock bl = popBlock(0,pos);
+                        if (!onlyComments(bl.stats)) {
+                            if (contextIsStatic) {
+                                staticStats.add(bl);
+                            } else {
+                                JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(),receiver,treeutils.nullLit);
+                                JCStatement st = M.at(pos).If(ex, bl, null);
+                                staticStats.add(st);
+                            }
                         }
                     }
-                } finally {
-                    currentStatements = instanceStats;
-                    JCBlock bl = popBlock(0,pos);
-                    if (!onlyComments(bl.stats)) {
-                        if (contextIsStatic) {
-                            staticStats.add(bl);
-                        } else {
-                            JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(),receiver,treeutils.nullLit);
-                            JCStatement st = M.at(pos).If(ex, bl, null);
-                            staticStats.add(st);
-                        }
-                    }
+
                 }
-                
             }
         } finally {
             endInvariants(basecsym);
@@ -11292,7 +11294,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     public Map<TypeSymbol,Type> typemapping(Type ct) {
         Map<TypeSymbol,Type> vars = new HashMap<TypeSymbol,Type>();
-        if (ct instanceof Type.ClassType) {
+        if (ct instanceof Type.ClassType &&
+            !((Type.ClassType)ct).getTypeArguments().isEmpty()) {
             Iterator<Type> ity = ((Type.ClassType)ct).getTypeArguments().iterator();
             for (TypeSymbol tsym: ct.tsym.getTypeParameters()) {
                 Type cty = ity.next();
