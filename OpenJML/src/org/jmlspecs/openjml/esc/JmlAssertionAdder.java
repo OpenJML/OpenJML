@@ -2020,7 +2020,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
             ListBuffer<JCStatement> staticStats = stats;
             
-            if (receiver instanceof JCIdent) {
+            if (receiver instanceof JCFieldAccess) {
+                JCFieldAccess that = (JCFieldAccess)receiver;
+                currentThisId = treeutils.makeIdent(that.pos, that.name, that.sym);
+            } else if (receiver instanceof JCIdent) {
                 currentThisId = (JCIdent)receiver;
                 currentThisExpr = receiver;
 
@@ -2145,6 +2148,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
 
                 }
+            } else {
+                notImplemented(receiver, "receiver of class " + receiver.getClass().getName());
             }
         } finally {
             endInvariants(basecsym);
