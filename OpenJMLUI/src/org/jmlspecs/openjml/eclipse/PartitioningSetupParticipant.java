@@ -7,6 +7,10 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 
 /**
+ * Participate in the setup of documents by adding a JML partitioning. This is
+ * currently used on .jml files, .java files, and files with the content type
+ * <code>org.eclipse.jdt.core.javaSource</code>.
+ * 
  * @author dhouck
  *
  */
