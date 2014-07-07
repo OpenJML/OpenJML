@@ -1,0 +1,6 @@
+
+for f in $@ ; do 
+  echo $f
+  cat $f | grep -v OUT | grep "(" > tmp
+  mv tmp $f
+done

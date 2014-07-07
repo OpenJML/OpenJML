@@ -1,0 +1,5 @@
+
+for f in $1/*.smt2 ; do
+  echo $f
+  ( time cvc4 --lang smt2 --incremental --tlimit=600 $f ) |& grep -v success
+done
