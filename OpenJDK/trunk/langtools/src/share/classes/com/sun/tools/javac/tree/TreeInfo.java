@@ -265,6 +265,7 @@ public class TreeInfo {
 
         switch(tree.getTag()) {
         case(JCTree.APPLY):
+        	if (((JCMethodInvocation) tree).meth == null) return tree.getStartPosition();
             return getStartPos(((JCMethodInvocation) tree).meth);
         case(JCTree.ASSIGN):
             return getStartPos(((JCAssign) tree).lhs);
