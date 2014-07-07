@@ -1,11 +1,11 @@
 package tests;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escall3 extends EscBase {
 
     public escall3(String option, String solver) {
@@ -74,6 +74,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
+        //main.addOptions("-method=m1bad","-show");
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -322,26 +323,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 2; \n"
-                +"  public int m1good(boolean b) {\n"
-                +"    i = 1;\n"
-                +"    if (b) i = 2;\n"
-                +"    return i;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
                 +"  //@ ensures \\result == 10; \n"
                 +"  public int m2bad(boolean b) {\n"
-                +"    j = 1;\n"
-                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) this.j = j + 1;\n"
-                +"    return tt.TestJava.j;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 10; \n"
-                +"  public int m2good(boolean b) {\n"
                 +"    j = 1;\n"
                 +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
                 +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
@@ -358,6 +341,43 @@ public class escall3 extends EscBase {
                 +"    return o.i;\n"
                 +"  }\n"
                 
+                
+                +"}"
+                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                    ,"/tt/TestJava.java:13: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                    ,"/tt/TestJava.java:23: warning: Associated declaration",7
+                );
+    }
+    
+    @Test 
+    public void testFieldAssign2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  int i; static int j;\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 2; \n"
+                +"  public int m1good(boolean b) {\n"
+                +"    i = 1;\n"
+                +"    if (b) i = 2;\n"
+                +"    return i;\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\everything; \n"
+                +"  //@ ensures b ==> \\result == 10; \n"
+                +"  public int m2good(boolean b) {\n"
+                +"    j = 1;\n"
+                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
+                +"    if (b) this.j = j + 1;\n"
+                +"    return tt.TestJava.j;\n"
+                +"  }\n"
+                
                 +"  //@ requires this != o && o != null; \n"
                 +"  //@ assignable \\everything; \n"
                 +"  //@ ensures \\result == 1; \n"
@@ -369,12 +389,6 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                    ,"/tt/TestJava.java:20: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:43: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                    ,"/tt/TestJava.java:39: warning: Associated declaration",7
                 );
     }
     
@@ -424,7 +438,7 @@ public class escall3 extends EscBase {
     
     
     @Test
-    public void testNullThrow() {
+    public void testNullThrow1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -437,6 +451,17 @@ public class escall3 extends EscBase {
                 +"      if (i == 0) \n"
                 +"         throw e;\n"
                 +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
+                );
+    }
+    
+    @Test
+    public void testNullThrow2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
                 
                 +"  //@ requires i != 0; \n"
                 +"  public void m1good(int i) throws Exception {\n"
@@ -456,12 +481,10 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
                 );
     }
     
-    @Test public void testNullSynchronized() {
+    @Test public void testNullSynchronized1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -474,6 +497,16 @@ public class escall3 extends EscBase {
                 +"          o = null; };\n"
                 +"  }\n"
                 
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
+                );
+    }
+
+    @Test public void testNullSynchronized2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
                 +"  public void m1good(Object o) throws Exception {\n"
                 +"       synchronized (o) {};\n"
                 +"  }\n"
@@ -483,8 +516,6 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
                 );
     }
 
@@ -673,23 +704,16 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                );    }
+                );
+        }
 
 
-    @Test public void testAssignOp() {
+    @Test public void testAssignOp1() {
         main.addOptions("-escMaxWarnings=1");
-        main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // SKIPPING because CVC4 does not handle integer division
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
-                
-                +"  //@ ensures \\result == j;\n"
-                +"  public int m1bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i+=1) ;\n"
-                +"  }\n"
                 
                 +"  //@ requires j < 1000 && -1000 < j; ensures \\result == j+j+1;\n"
                 +"  public int m1good(int j) {\n"
@@ -697,10 +721,19 @@ public class escall3 extends EscBase {
                 +"    return (i+=j+1) ;\n"
                 +"  }\n"
                 
-                +"  public int m2bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i/=j) ;\n"
-                +"  }\n"
+                +"}"
+                );
+    }
+
+    @Test public void testAssignOp1Div() {
+        Assume.assumeTrue(runLongTests);
+        Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-logic=AUFNIRA");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int f;\n"
                 
                 +"  //@ requires j != 0;\n"
                 +"  public int m2good(int j) {\n"
@@ -712,6 +745,38 @@ public class escall3 extends EscBase {
                 +"  //@ requires i != 0;\n"
                 +"  public void m3(TestJava t, int i) {\n"
                 +"    t.f /= i ;\n"
+                +"  }\n"
+
+                +"  //@ requires t != null;\n"
+                +"  //@ requires i != 0;\n"
+                +"  //@ assignable \\everything;\n" 
+                +"  public void m3good(TestJava t, int i) {\n"
+                +"    t.f /= i ;\n"
+                +"  }\n"
+                
+
+                +"}"
+                );
+    }
+
+    @Ignore // takes a long time
+    @Test public void testAssignOp2() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-logic=AUFNIRA");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int f;\n"
+                
+                +"  //@ ensures \\result == j;\n"
+                +"  public int m1bad(int j) {\n"
+                +"    int i = j ;\n"
+                +"    return (i+=1) ;\n"
+                +"  }\n"
+                
+                +"  public int m2bad(int j) {\n"
+                +"    int i = j ;\n"
+                +"    return (i/=j) ;\n"
                 +"  }\n"
                 
                 +"  //@ assignable t.f;\n"
@@ -725,14 +790,27 @@ public class escall3 extends EscBase {
                 +"  public void m3badc(@Nullable TestJava t, int i) {\n"
                 +"    t.f /= i ;\n"
                 +"  }\n"
+
                 
-                +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"  // Line 40
-                +"  public void m3good(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
                 
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",6
+                );
+    }
+
+    @Ignore // takes a long time
+    @Test public void testAssignOp3() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-logic=AUFNIRA");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int f;\n"
+                                
                 +"  //@ requires i != 0;\n"
                 +"  //@ assignable \\everything;\n"
                 +"  public void m4bad(@Nullable int[] a, int i) {\n"
@@ -776,17 +854,12 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",6
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
-                ,"/tt/TestJava.java:47: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
-                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",6
-                ,"/tt/TestJava.java:59: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",6
-                ,"/tt/TestJava.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",6
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",6
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
                 );
     }
 
@@ -824,7 +897,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType() {
+    @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -852,6 +925,19 @@ public class escall3 extends EscBase {
                 +"      o[0] = i;\n"
                 +"  }\n"
                 
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                );
+    }
+    
+    @Test public void testArrayType2() { // TODO: CVC4 takes 186 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
                 +"  public void m3a(String[] a, String i) {\n"
                 +"      //@ assume a != null && a.length > 1 && i != null;\n"
                 +"      Object[] o = a;\n"
@@ -875,14 +961,12 @@ public class escall3 extends EscBase {
                 +"  static class B extends A {}\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
                 );
     }
     
     
-    @Test public void testMethodWithConsstructorNameFixed() {
+    @Test public void testMethodWithConstructorNameFixed() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -898,7 +982,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testMethodWithConsstructorName() {
+    @Test public void testMethodWithConstructorName() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

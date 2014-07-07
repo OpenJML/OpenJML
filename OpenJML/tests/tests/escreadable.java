@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escreadable extends EscBase {
 
     public escreadable(String option, String solver) {

@@ -8,7 +8,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escinclause extends EscBase {
 
     public escinclause(String option, String solver) {

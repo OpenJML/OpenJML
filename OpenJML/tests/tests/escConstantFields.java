@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escConstantFields extends EscBase {
 
     public escConstantFields(String option, String solver) {

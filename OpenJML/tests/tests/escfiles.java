@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjml.Utils;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ import org.junit.runners.Parameterized;
  * </UL>
  */
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escfiles extends EscBase {
 
     boolean enableSubexpressions = false;
@@ -178,6 +179,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testDemoTypes() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
@@ -223,19 +225,21 @@ public class escfiles extends EscBase {
 
     @Test
     public void testTaxpayer() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/TaxPayer.java","testfiles/demoTaxpayer","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
     @Test
     public void testBeanCan() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","testfiles/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
 
-    @Test // FIXME - times out
+    @Test
     public void testECU() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/ecudemo","testfiles/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-logic=AUFNIA");
     }
 
@@ -253,14 +257,12 @@ public class escfiles extends EscBase {
 
     @Test 
     public void testCashAmount() {
-        if ("cvc4".equals(solver)) fail(); // CIXME - CVC4 crashes
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","testfiles/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
     public void testCashAmount2() {
-        if ("cvc4".equals(solver)) fail(); // CIXME - CVC4 crashes
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","testfiles/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo");
     }
@@ -279,13 +281,13 @@ public class escfiles extends EscBase {
 
     @Test
     public void testSettableClock() {
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         expectedExit = 0;
         helpDemo("settableClock","escSettableClock","-logic=AUFNIRA");
     }
 
     @Test
     public void testVector() {
-        if ("cvc4".equals(solver)) fail(); // FIXME - CVC4 hangs
         expectedExit = 0;
         helpTF("escVector","-code-math=java");
     }
@@ -334,6 +336,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testDoublyLinkedList() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTF("escDoublyLinkedList");
     }
 
@@ -344,7 +347,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscSimpleString() {
-        if ("cvc4".equals(solver)) fail();  // FIXME - CVC4 crashes
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
         helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
     }
 

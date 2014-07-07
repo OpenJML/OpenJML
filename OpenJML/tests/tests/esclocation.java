@@ -10,7 +10,7 @@ import org.junit.runners.Parameterized;
  * @author David R. Cok
  *
  */
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class esclocation extends EscBase {
 
     public esclocation(String option, String solver) {

@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class esccallable extends EscBase {
 
     public esccallable(String option, String solver) {

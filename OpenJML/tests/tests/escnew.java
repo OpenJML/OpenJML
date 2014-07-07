@@ -1,13 +1,14 @@
 package tests;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnew extends EscBase {
 
     public escnew(String option, String solver) {
@@ -416,7 +417,8 @@ public class escnew extends EscBase {
     @Test
     public void testMethodInvocation() {
         main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME) does not handle integer division
+        Assume.assumeTrue(runLongTests);
+        Assume.assumeTrue(!"cvc4".equals(solver)); // CVC4 complains about the integer-division operation (FIXME) does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -449,6 +451,7 @@ public class escnew extends EscBase {
 
     // Almost duplicate of escnew
     @Test public void testMethodInvocation1() {
+        Assume.assumeTrue(runLongTests);
         main.addOptions("-logic=AUFNIRA");
         if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
         helpTCX("tt.TestJava","package tt; \n"
@@ -1014,8 +1017,9 @@ public class escnew extends EscBase {
 
     @Test
     public void testShortCircuit() {
+        Assume.assumeTrue(runLongTests);
+        Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING cvc4 does not handle integer division
         main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
@@ -1481,6 +1485,7 @@ public class escnew extends EscBase {
     @Test
     public void testUndefined() {
         main.addOptions("-logic=AUFNIRA");
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

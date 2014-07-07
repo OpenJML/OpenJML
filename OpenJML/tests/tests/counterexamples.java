@@ -16,7 +16,7 @@ import org.junit.runners.Parameterized.Parameters;
  * @author David Cok
  *
  */
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class counterexamples extends EscBase {
 
     public counterexamples(String option, String solver) {

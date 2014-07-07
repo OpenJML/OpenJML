@@ -4,12 +4,13 @@ import java.util.Collection;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnewassignable extends EscBase {
 
     // Forms to test: x, this.x, , this.*
@@ -133,6 +134,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable5() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,xx; public static int y,yy; \n"
@@ -200,6 +202,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable6() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,xx; static public int y,yy; \n"
@@ -269,6 +272,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable7() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; int[] z;\n"
@@ -356,6 +360,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable8() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int[] z;\n"
@@ -438,6 +443,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable9() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int i; static public int si; @org.jmlspecs.annotation.NonNull public TestJava b;\n"
@@ -496,6 +502,7 @@ public class escnewassignable extends EscBase {
 
     @Test 
     public void testAssignableM1() {
+//        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
@@ -520,6 +527,31 @@ public class escnewassignable extends EscBase {
                 +"  public void m3bad(int i) {\n"
                 +"    ms();\n"
                 +"  }\n"  // Line 20
+
+                +"  //@ assignable x; \n"
+                +"  public void m() {\n"
+                +"  }\n"
+
+                +"  //@ assignable xx; \n"  // Line 40
+                +"  public void ms() {\n"
+                +"  }\n"
+
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  x",6
+                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  xx",7
+                ,"/tt/TestJava.java:17: warning: Associated declaration",7
+                
+                );
+    }
+
+    @Test 
+    public void testAssignableM2() {
+//        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public class A { public int x,y; public static int xx,yy; }\n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
 
                 +"  //@ assignable xx; \n"
                 +"  public void m3good(int i) {\n"
@@ -549,6 +581,28 @@ public class escnewassignable extends EscBase {
                 +"  public void ms() {\n"
                 +"  }\n"
 
+
+                +"}"
+                
+                );
+    }
+
+    @Test 
+    public void testAssignableM3() {
+//        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public class A { public int x,y; public static int xx,yy; }\n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
+
+                +"  //@ assignable x; \n"
+                +"  public void m() {\n"
+                +"  }\n"
+
+                +"  //@ assignable xx; \n"  // Line 40
+                +"  public void ms() {\n"
+                +"  }\n"
+
                 +"  //@ assignable this.x; \n"
                 +"  public void mt() {\n"
                 +"  }\n"
@@ -556,6 +610,19 @@ public class escnewassignable extends EscBase {
                 +"  //@ assignable TestJava.xx; \n"
                 +"  public void mts() {\n"
                 +"  }\n"
+
+                +"}"
+                
+                );
+    }
+
+    @Test 
+    public void testAssignableM4() {
+//        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public class A { public int x,y; public static int xx,yy; }\n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
 
                 +"  //@ assignable tt.TestJava.xx; \n"
                 +"  public void mtts() {\n"
@@ -574,6 +641,24 @@ public class escnewassignable extends EscBase {
                 +"  public void m1z1bad(TestJava b) {\n"
                 +"    b.m();\n"
                 +"  }\n"
+
+                +"  //@ assignable x; \n"
+                +"  public void m() {\n"
+                +"  }\n"
+
+                +"}"
+                
+                );
+    }
+
+    @Test 
+    public void testAssignableM5() {
+//        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  static public class A { public int x,y; public static int xx,yy; }\n"
+                +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
+
 
                 +"  //@ requires b != null; assignable b.x; \n"
                 +"  public void m1z2(TestJava b) {\n"
@@ -595,19 +680,20 @@ public class escnewassignable extends EscBase {
                 +"    this.m();\n"
                 +"  }\n"
 
+                +"  //@ assignable x; \n"
+                +"  public void m() {\n"
+                +"  }\n"
+
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assignable) in method m1bad:  x",6
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m3bad:  xx",7
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad:  x",11
                 ,"/tt/TestJava.java:17: warning: Associated declaration",7
-                ,"/tt/TestJava.java:77: warning: The prover cannot establish an assertion (Assignable) in method m1z4bad:  x",11
-                ,"/tt/TestJava.java:75: warning: Associated declaration",7
                 
                 );
     }
 
     @Test 
     public void testAssignableM1bug() {
+        //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"

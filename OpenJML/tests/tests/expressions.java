@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlSingleton;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.junit.Assume;
 import org.junit.Test;
 
 import com.sun.tools.javac.parser.JmlFactory;
@@ -34,6 +35,7 @@ import static org.junit.Assert.*;
  * checking the node type and position.
  * @author David Cok
  */
+@org.junit.runner.RunWith(IgnoreFalseAssumptions.class)
 public class expressions extends ParseBase {
 
     @Override
@@ -675,10 +677,10 @@ public class expressions extends ParseBase {
                 ,JCBinary.class ,1,8,11
                 ,JmlSingleton.class ,1,1,8
                 ,JCIdent.class ,10,10,11
-                ,JmlBinary.class ,-1,28,40  // start should be 17
-                ,JmlMethodInvocation.class, -1,24,27 // start should be 17
+                ,JmlBinary.class ,17,28,40 
+                ,JmlMethodInvocation.class, 17,24,27 
                 ,JCIdent.class ,25,25,26
-                ,JmlMethodInvocation.class, -1,36,40 // start should be 31
+                ,JmlMethodInvocation.class, 31,36,40
                 ,JCIdent.class ,37,37,39
                 );
     }

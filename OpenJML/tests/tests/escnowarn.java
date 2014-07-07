@@ -10,7 +10,7 @@ import org.junit.runners.Parameterized;
  * @author David R. Cok
  *
  */
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnowarn extends EscBase {
 
     public escnowarn(String option, String solver) {

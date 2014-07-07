@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.junit.rules.Timeout;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.List;
@@ -24,11 +25,12 @@ import com.sun.tools.javac.util.Log;
 public abstract class EscBase extends JmlTestCase {
 
     @Rule public TestName testname = new TestName();
+    @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
         "z3_4_3", 
-        //"cvc4",
-        // "yices2" , // FIXME - needs quantifiers
+//        "cvc4",
+        //"yices2",
         // "yices", 
         // "simplify" 
         });
@@ -58,6 +60,9 @@ public abstract class EscBase extends JmlTestCase {
         // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
+    
+    static boolean runLongTests = false;
+    
 
     String option;
     String solver;
@@ -90,7 +95,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
         main.addOptions("-no-purityCheck");
-        main.addOptions("-timeout=30");
+        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
         setOption(option,solver);
         //main.setupOptions();

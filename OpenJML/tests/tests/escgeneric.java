@@ -3,13 +3,12 @@ package tests;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
  *
  */
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escgeneric extends EscBase {
 
     public escgeneric(String option, String solver) {

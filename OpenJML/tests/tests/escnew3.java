@@ -2,13 +2,14 @@ package tests;
 
 import java.util.Collection;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnew3 extends EscBase {
 
     public escnew3(String option, String solver) {
@@ -18,7 +19,9 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNonNullElements() {
-        if ("yices2".equals(solver)) return; // TODO: yices2 cannot handle quantifiers - better error message
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -389,7 +392,8 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testCast1real() {
-        if ("cvc4".equals(solver)) return; // FIXME - cannot retrievve values
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - cannot retrieve values for this logic
         main.addOptions("-logic=AUFNIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

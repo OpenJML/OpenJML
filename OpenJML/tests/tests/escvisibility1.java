@@ -6,7 +6,7 @@ import org.junit.runners.Parameterized;
 
 // Tests the rules about which visibility of identifiers can be used in specification constructs
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escvisibility1 extends EscBase {
 
     public escvisibility1(String option, String solver) {

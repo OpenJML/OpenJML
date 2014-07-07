@@ -6,7 +6,7 @@ import org.junit.runners.Parameterized;
 
 // Tests the rules about which specification cases are enforced by a method's implementation
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escvisibility extends EscBase {
 
     public escvisibility(String option, String solver) {

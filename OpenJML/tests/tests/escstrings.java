@@ -5,10 +5,9 @@ import java.util.Collection;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escstrings extends EscBase {
     
     public escstrings(String option, String solver) {

@@ -2,6 +2,7 @@ package tests;
 
 import java.util.Collection;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,17 +13,16 @@ import com.sun.tools.javac.util.Options;
 
 // FIXME - these were old tests - are they duplicates? should we use them?
 
-// FIXME - restore parameterization when CVC is fixed
-//@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class esc extends EscBase {
 
-    public esc() {
-        super("",isWindows?null:"cvc4");
-    }
-
-//    public esc(String option, String solver) {
-//        super(option,solver);
+//    public esc() {
+//        super("",isWindows?null:"cvc4");
 //    }
+
+    public esc(String option, String solver) {
+        super(option,solver);
+    }
     
     // FIXME = significant failures in boogie
     
@@ -315,6 +315,7 @@ public class esc extends EscBase {
     
     @Test
     public void testForEach2() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
@@ -347,7 +348,8 @@ public class esc extends EscBase {
 
     @Test
     public void testForEach2a() {
-        main.addOptions("-show","-method=m2a","-subexpressions");
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        //main.addOptions("-show","-method=m2a","-subexpressions");
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 
@@ -491,6 +493,7 @@ public class esc extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNonNullElements() {
+        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -708,6 +711,7 @@ public class esc extends EscBase {
 
     @Test
     public void testFresh() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
@@ -899,7 +903,8 @@ public class esc extends EscBase {
     }
     
     @Test
-    public void testAssignables4() {
+    public void testAssignables4a() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -921,6 +926,26 @@ public class esc extends EscBase {
                 +"    //@ assert sk == 0;\n"  // OK
                 +"  }\n"
                 
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies o.*;\n"
+                +"  public void c1(TestJava o) { } \n"
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies TestJava.*;\n"
+                +"  public void c2(TestJava o) { } \n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testAssignables4b() {
+        main.addOptions("-exclude=<init>");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public int k; public static int sk;\n"
+                +"  public static TestJava p;\n"
+                
                 +"  //@ requires p != null && p != this;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2a() {\n"
@@ -936,6 +961,26 @@ public class esc extends EscBase {
                 +"    c1(this);\n" // havoc this.*, not static fields
                 +"    //@ assert sk == 0;\n"  // OK
                 +"  }\n"
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies o.*;\n"
+                +"  public void c1(TestJava o) { } \n"
+                
+                +"  //@ requires o != null;\n"
+                +"  //@ modifies TestJava.*;\n"
+                +"  public void c2(TestJava o) { } \n"
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m2a",9
+                );
+    }
+    
+    @Test
+    public void testAssignables4c() {
+        main.addOptions("-exclude=<init>");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public int k; public static int sk;\n"
+                +"  public static TestJava p;\n"
                 
                 +"  //@ requires p != null && p != this;\n"
                 +"  //@ modifies \\everything;\n"
@@ -963,8 +1008,7 @@ public class esc extends EscBase {
                 +"  //@ modifies TestJava.*;\n"
                 +"  public void c2(TestJava o) { } \n"
                 +"}"
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Assert) in method m2a",9
-                ,"/tt/TestJava.java:45: warning: The prover cannot establish an assertion (Assert) in method m3a",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m3a",9
                 );
     }
     
@@ -993,6 +1037,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1b() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1017,6 +1062,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1c() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1040,6 +1086,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables1d() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1067,6 +1114,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables6a() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -1091,6 +1139,7 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables6b() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -1123,6 +1172,7 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignables6c() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -1147,6 +1197,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables6d() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -1201,6 +1252,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5b() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k; public static int sk;\n"
@@ -1227,6 +1279,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5c() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1251,6 +1304,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5d() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1276,6 +1330,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5e() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1298,6 +1353,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables5f() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int k; static int sk;\n"
@@ -1322,6 +1378,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables2a() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k;\n"
@@ -1383,6 +1440,8 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables2b() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k;\n"
@@ -1445,6 +1504,8 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables2c() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int k;\n"
@@ -1552,6 +1613,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables3b() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
@@ -1592,6 +1654,7 @@ public class esc extends EscBase {
     
     @Test
     public void testAssignables3c() {
+        main.addOptions("-exclude=<init>");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int[] a;  //@ public invariant a != null && a.length == 10;\n"
@@ -1790,6 +1853,7 @@ public class esc extends EscBase {
     
     @Test
     public void testStrings() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  String s;\n"
@@ -2568,6 +2632,8 @@ public class esc extends EscBase {
 
     @Test
     public void testAssignOp() {
+        Assume.assumeTrue(runLongTests);
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst1() { int i = 5; i+=7; /*@ assert i == 12; */ }\n"
@@ -2679,6 +2745,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNewArrayInit2() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst4() { int[][] o = new int[][]{{10,11},{12,13,14},{15}}; /*@ assert o.length == 3; assert o[1] != null; assert o[1].length == 3; assert o[1][2] == 14; assert o[0] != null; assert o[0].length == 2; assert o[0][1] == 11; */ }\n" 
@@ -2690,6 +2757,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNewArrayMD1() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2708,6 +2776,7 @@ public class esc extends EscBase {
 
     @Test
     public void testNewArrayMD2() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public void inst3(/*@non_null*/int[][] a) { /*@ assert a.length >= 0;*/ }\n" 
@@ -2821,7 +2890,8 @@ public class esc extends EscBase {
     
     @Test
     public void testFields() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;/*@ nullable_by_default */  \n"
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+       helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;/*@ nullable_by_default */  \n"
                 +"public class TestJava { \n"
                 +"  int f; static int sf;\n"
                 +"  int g; static int sg;\n"
@@ -2860,6 +2930,7 @@ public class esc extends EscBase {
 
     @Test
     public void testSwitch() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -2966,6 +3037,8 @@ public class esc extends EscBase {
 
     @Test
     public void testArith() {  // TODO - need more arithmetic support
+        Assume.assumeTrue(runLongTests);
+        main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  public static void m1(int a, int b) { /*@ assert a*2 == a + a; */ }\n"
@@ -3789,6 +3862,7 @@ public class esc extends EscBase {
     
     @Test
     public void testCatch2() {
+        main.addOptions("-method=ma");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mx() {\n"
@@ -3978,7 +4052,7 @@ public class esc extends EscBase {
 
     @Test
     public void testSignals2() {
-        main.addOptions("-show","-method=m2a","-subexpressions");
+        //main.addOptions("-show","-method=m2a","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"

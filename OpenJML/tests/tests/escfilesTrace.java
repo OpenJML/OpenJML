@@ -31,7 +31,7 @@ import org.junit.runners.Parameterized;
  * </UL>
  */
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escfilesTrace extends EscBase {
 
     boolean enableSubexpressions = false;

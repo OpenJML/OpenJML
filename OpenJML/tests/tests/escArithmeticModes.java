@@ -1,28 +1,21 @@
 package tests;
 
-import java.util.Collection;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.sun.tools.javac.util.Options;
 
 // FIXME - these were old tests - are they duplicates? should we use them?
 
-// FIXME - restore parameterization when CVC is fixed
-//@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escArithmeticModes extends EscBase {
 
-    public escArithmeticModes() {
-        super("",isWindows?null:"cvc4");
-    }
-
-//    public esc(String option, String solver) {
-//        super(option,solver);
+//    public escArithmeticModes() {
+//        super("",isWindows?null:"cvc4");
 //    }
+
+    public escArithmeticModes(String option, String solver) {
+        super(option,solver);
+    }
     
     // FIXME - the -custom option fails significantly when escdebug and -trace are on
     // FIXME = significant failures in boogie and newesc

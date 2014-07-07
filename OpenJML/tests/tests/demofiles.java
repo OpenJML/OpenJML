@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +31,7 @@ import org.junit.runners.Parameterized;
  * </UL>
  */
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class demofiles extends EscBase {
 
     boolean enableSubexpressions = false;
@@ -110,8 +111,9 @@ public class demofiles extends EscBase {
 
     @Test
     public void testBinarySearch() {
+        Assume.assumeTrue(runLongTests);
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java","testfiles/demoBinarySearch","-progress","-noInternalSpecs");
+        helpTCF("../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java","testfiles/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
     }
 
     @Test // FIXME: Fails because of inadequate specs and use of \created

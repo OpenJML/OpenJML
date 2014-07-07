@@ -1,11 +1,12 @@
 package tests;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escJML extends EscBase {
 
     @Override
@@ -74,7 +75,8 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLdouble() {
-        if ("cvc4".equals(solver)) return;
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        Assume.assumeTrue(!"cvc4".equals(solver));
         main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -88,7 +90,8 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLfloat() {
-        if ("cvc4".equals(solver)) return;
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        Assume.assumeTrue(!"cvc4".equals(solver));
         main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

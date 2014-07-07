@@ -2,13 +2,14 @@ package tests;
 
 import java.util.Collection;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnew2 extends EscBase {
 
     public escnew2(String option, String solver) {
@@ -222,6 +223,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver6() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -370,6 +372,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
@@ -381,6 +384,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
