@@ -2023,6 +2023,8 @@ public class Utils {
 					((OpenJMLView)view).refresh(symname);
 				} catch (PartInitException e) {
 					// FIXME - report error?
+				} catch (RuntimeException e) {
+					// FIXME - report error?
 				}
 			}
 		});

@@ -126,6 +126,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
        List<String> opts = getOptions(jproject,cmd);
        try { 
     	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
+    	   api.setProofResultListener(this);
            JmlEsc.instance(api.context()).proofResultListener = this;
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
