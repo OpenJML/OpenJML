@@ -1,4 +1,79 @@
-Done:
+Recent issues:
+- Cannot obtain CLASSPATH from environment when using -jar format
+- pure on a constructor
+- covariant returns
+- no \lbl in quantified statements
+
+Old Notes
+- have a content type for file associations
+- check marker annotation specification
+- popoup menu
+- View actions
+- check that anything in a signals_only clause is in the throws clause
+- omit private fields when reading class files
+- default signals_only
+- adding to throws list
+- test Integer.TYPE
+- interning of strings
+- search algorithm for .java and .jml files
+- using optional spec keys to combine different versions of specs
+- \same
+- \else
+- JML.informally vs. Informal.informally
+- effective precondition must imply hidden precondition
+- (DMZLoop example) - write loop invariants so that the initialization of loop variables for the first iteration does not have to be expressed in the invariants
+- (CashMAountPrivate2) - can we allow multiplying and dividing by constants without needing fullblown nonlinear arithmetic
+- (BaDCast) handle getClass()
+- review Z3 on Mac
+- test missing model methods in RAC; also missing ghost variables
+- counterexample values
+
+OLD notes - documentation
+- OpenJML trac page
+
+OLD notes - demo
+- visibility
+- vvalues of pure methods - OK
+- colors of pre/post conditions
+- method call in \old
+
+OLD Notes - usability
+- warn about no configured solvers
+- Singleton's configuration checker
+- constructor assignables
+- more work on RAC default bin
+- uniqueify \label variables
+- use of \lbl on subexpressions can change evaluation order; perhaps also \old
+- Problem with //@deprecated comments
+- OPtion problems
+  - -deprecation in JML
+  - -d if dir does not exist
+  -source
+  -verbose
+  @filename
+  
+Old Notes - plugin
+- syntax highlighting in comments
+- as you type semantic highlighting
+- marker creation
+- quick fixes
+- create default spec
+- integrate jmlunit
+- integrate Daikon
+- inserting suggested specs to correct problems
+- insert a non-null
+- show VCs, Counterexamples in a user-friendly way
+- help in proving
+- navigate to associated decls
+- Race condition on saving editors - between builder & ESC when ESCing individual functions and the file is not saved
+- Display of JML proof information
+- GUI logging out of order (std vs. error)
+- Logging of SMT errors
+- Usability: showing counterexample, asking for proof information
+- Make trace functionality the default
+- ESC & casting
+- ESC on Mac
+- List JML as a Category under appearance
 
 ToDo:
 - Multidimensional arrays
