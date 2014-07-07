@@ -869,6 +869,8 @@ public class TreeMaker implements JCTree.Factory {
             sym.owner == null ||
             sym.owner.kind == MTH || sym.owner.kind == VAR) {
             return true;
+        } else if (sym.kind == PCK && sym.owner.name == names.empty) { // DRC added this case, but not sure that there is not code elsewhere that depends on packages having an empty owning package
+            return true;
         } else if (sym.kind == TYP && toplevel != null) {
             Scope.Entry e;
             e = toplevel.namedImportScope.lookup(sym.name);
