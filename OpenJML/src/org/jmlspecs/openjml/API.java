@@ -95,6 +95,9 @@ public class API implements IAPI {
     /** The listener for diagnostic messages */
     protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
     
+    /** The listener for proof results */
+    protected IProofResultListener proofResultListener;
+    
 
     /** Creates a new compilation context, initialized with given command-line options;
      * use Factory.makeAPI to create new API objects.
@@ -155,6 +158,11 @@ public class API implements IAPI {
         }
     }
     
+    @Override 
+    public void setProofResultListener(@Nullable IProofResultListener p) {
+    	proofResultListener = p;
+    }
+    
     /** Returns the string describing the version of OpenJML that is this
      * set of classes.
      * @return the version of this instance of OpenJML
@@ -200,7 +208,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(main.out(), diagListener, options, args);
+        int ret = main.executeNS(main.out(), diagListener, proofResultListener, options, args);
         return ret;
     }
     
@@ -209,7 +217,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(writer,diagListener,options,args);
+        int ret = main.executeNS(writer,diagListener, proofResultListener, options,args);
         return ret;
     }
     
@@ -771,10 +779,20 @@ public class API implements IAPI {
     public IProverResult doESC(MethodSymbol msym) {
         JmlMethodDecl decl = getMethodDecl(msym);
         JmlEsc esc = JmlEsc.instance(context());
-        class L implements IProofResultListener { public IProverResult result; public void reportProofResult(MethodSymbol msym, IProverResult result) { this.result = result; }};
-        L l; 
-        esc.proofResultListener = l = new L();
+        class L implements IProofResultListener { 
+        	public L(IProofResultListener chained) { this.chained = chained; }
+        	public IProofResultListener chained;
+        	public IProverResult result; 
+        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+        		this.result = result; 
+        		if (chained != null) chained.reportProofResult(msym, result);
+        	}
+        };
+        IProofResultListener p = proofResultListener;
+        L l;
+        esc.proofResultListener = l = new L(p);
         esc.check(decl);
+        esc.proofResultListener = p;
         return l.result; 
     }
     
@@ -787,6 +805,7 @@ public class API implements IAPI {
 //        mostRecentProofMethod = null;
 //        mostRecentProgram = null;
         JmlClassDecl decl = getClassDecl(csym);
+        JmlEsc.instance(context()).proofResultListener = proofResultListener;
         JmlEsc.instance(context()).check(decl);
     }
     

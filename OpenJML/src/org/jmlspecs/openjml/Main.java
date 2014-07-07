@@ -28,6 +28,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
+import org.jmlspecs.openjml.esc.JmlEsc;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -439,6 +440,49 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         return errorcode;
     }
+    
+    // FIXME - this is a hack to communicate a parameter to where it can be used
+    private IAPI.IProofResultListener prListener;
+
+    public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
+        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        this.prListener = prListener;
+        try {
+            if (args == null) {
+                uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
+                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+            } else {
+                // We create an instance of main through which to call the
+                // actual compile method. Note though that the compile method
+                // does its own initialization (in the super class). Thus the
+                // context and any option processing in the constructor call
+                // are thrown away. That is also why we do the hack of saving
+                // the options to a private variable, just to be able to
+                // apply them in the compile() call below.
+                savedOptions = Options.instance(context());
+                initialize(writer, diagListener, options, emptyArgs);
+                
+                // The following lines do an end-to-end compile, in a fresh context
+                errorcode = compile(args); // context and new options are created in here
+                if (errorcode > EXIT_CMDERR || 
+                        Utils.instance(context()).jmlverbose > Utils.PROGRESS) {
+                    writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
+                }
+            }
+        } catch (JmlCanceledException e) {
+            // Error message already issued
+            errorcode = EXIT_CANCELED; // Indicates being cancelled
+        } catch (Exception e) {
+            // Most exceptions are caught prior to this, so this will happen only for the
+            // most catastrophic kinds of failure such as failures to initialize
+            // properly.  (You can test this by programmatically throwing an exception in the try
+            // block above.)
+            uninitializedLog().error("jml.toplevel.exception",e);
+            e.printStackTrace(System.err);
+            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+        }
+        return errorcode;
+    }
 
     /** This is a convenience method to initialize just enough that we can log
      * an error or warning message for issues that arise before the compiler
@@ -479,6 +523,9 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         this.context = context;
         register(context);
+// IF the following line is used, then the Log is created before the Javac options are processed, and it is initialized incorrectly.
+//        JmlSpecs.instance(context); // Just needed to keep the creation of the JmlEsc instance from causing circular instantiation problems
+        if (prListener != null) JmlEsc.instance(context).proofResultListener = prListener; // FIXME - the dependency goes the wrong way here
         initializeOptions(savedOptions);
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
@@ -683,6 +730,15 @@ public class Main extends com.sun.tools.javac.main.Main {
         
         String t = options.get(JmlOption.JMLTESTING.optionName());
         Utils.testingMode =  ( t != null && !t.equals("false"));
+        if (Utils.testingMode) {
+            if (options.get(JmlOption.BENCHMARKS.optionName()) == null) {
+                options.put(JmlOption.BENCHMARKS.optionName(),"benchmarks");
+            }
+        }
+        String benchmarkDir = options.get(JmlOption.BENCHMARKS.optionName());
+        if (benchmarkDir != null) {
+            new File(benchmarkDir).mkdir();
+        }
         
         utils.jmlverbose = Utils.NORMAL;
         String n = JmlOption.VERBOSENESS.optionName().trim();
@@ -958,6 +1014,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (value.equals("false")) value = null;
             Options.instance(context).put(arg.substring(0,k),value);
         }
+    }
+    
+    static protected void fixClasspath(Context context) {
+        String cp = Options.instance(context).get("-classpath");
+        if (cp != null) return;
+        
+        
     }
     
     /** Appends the internal runtime directory to the -classpath option.

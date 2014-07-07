@@ -78,6 +78,7 @@ public enum JmlOption implements IOption {
     CE("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample"),
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),
     FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
+    BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
 
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     

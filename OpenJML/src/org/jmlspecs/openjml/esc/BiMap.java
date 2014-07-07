@@ -3,6 +3,8 @@ package org.jmlspecs.openjml.esc;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jmlspecs.openjml.Utils;
+
 // FIXME - document
 public class BiMap<T1,T2> {
     Map<T1,T2> forward = new HashMap<T1, T2>();

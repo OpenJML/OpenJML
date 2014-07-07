@@ -271,7 +271,7 @@ public class MethodProverSMT {
                         log.noticeWriter.println(separator);
                         log.noticeWriter.println(Strings.empty);
                         log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                        org.smtlib.sexpr.Printer.write(new PrintWriter(log.noticeWriter),script);
+                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
                         log.noticeWriter.println();
                         log.noticeWriter.println();
                     } catch (VisitorException e) {
@@ -284,8 +284,9 @@ public class MethodProverSMT {
             }
             // Starts the solver (and it waits for input)
             start = new Date();
+            setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
-            if (solver == null) {
+            if (solver == null) { 
             	log.error("jml.solver.failed.to.start",exec);
         		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             } else {
@@ -350,7 +351,12 @@ public class MethodProverSMT {
                                 log.warning(stat.pos(), "esc.infeasible.assumption", description, utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                             }
+                        } else if (solverResponse.isError()) {
+                            solver.exit();
+                            log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                         }
+
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
@@ -361,15 +367,36 @@ public class MethodProverSMT {
                 proofResult = pr;
                 while (true) {
 
+                    if (solverResponse.isError()) {
+                        solver.exit();
+                        log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                    }
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
-                        //IResponse r = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason_unknown")); // Not widely supported
-                        // Instead, try to get a simple value and see if there is a model
-                        IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
-                        if (r.isError()) {
-                            String msg = ": ";
-                            if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
-                            log.warning(methodDecl,"esc.nomodel",msg + r);
-                            break b;
+                        IResponse r = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
+                        if (r.equals(smt.smtConfig.responseFactory.unsupported())) {
+                                // Instead, try to get a simple value and see if there is a model
+                            r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                            if (r.isError()) {
+                                String msg = ": ";
+                                if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                                log.warning(methodDecl,"esc.nomodel",msg + r);
+                                break b;
+                            }
+                        } else if (r instanceof IResponse.IAttributeList) {
+                            IResponse.IAttributeList attrList = (IResponse.IAttributeList)r;
+                            IExpr.IAttributeValue value = attrList.attributes().get(0).attrValue();
+                            if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                                // continue on
+                            } else {
+                                String msg = "Aborted proof: " + smt.smtConfig.defaultPrinter.toString(value);
+                                r = smt.smtConfig.responseFactory.error(msg);
+                                log.warning(methodDecl,"esc.nomodel",": " + msg);
+                                break b;
+                            }
+                        } else {
+                            // Unexpected result
+                            System.out.println(r);
                         }
                     }
 
@@ -435,7 +462,8 @@ public class MethodProverSMT {
             }
         }
         solver.exit();
-        saveBenchmark(proverToUse,methodDecl.name.toString());
+        smt.smtConfig.logfile = null;
+//        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
         return proofResult;
         
@@ -555,7 +583,6 @@ public class MethodProverSMT {
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
         // for the terminationPos
-        if (block.id().name.toString().equals("BL_768_afterIf_92")) Utils.print("");
         for (JCStatement stat: block.statements()) {
             // Report any statements that are JML-labeled
             if (stat instanceof JCVariableDecl) {
@@ -685,6 +712,8 @@ public class MethodProverSMT {
                 if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
                     traceSubExpr(x.expression);
+                    log.noticeWriter.println(tracer.text());
+                    tracer.clear();
                 } else if (stat instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)stat;
                     Name n = vd.name;
@@ -700,9 +729,11 @@ public class MethodProverSMT {
                     value = ((JCTree.JCLiteral)e).value.equals(1); // Boolean literals have 0 and 1 value
                 } else if (e instanceof JCTree.JCParens) {
                     value = ((JCTree.JCLiteral)((JCTree.JCParens)e).expr).value.equals(1); // Boolean literals have 0 and 1 value
-                } else {
+                } else if (e instanceof JCIdent){
                     id = e.toString(); // Relies on all assert statements being reduced to identifiers
                     value = getBoolValue(id,smt,solver);
+                } else {
+                    return pathCondition; // For when assert statements are not identifiers
                 }
                 if (!value) { 
                     boolean byPath = JmlOption.isOption(context, JmlOption.MAXWARNINGSPATH);
@@ -834,6 +865,7 @@ public class MethodProverSMT {
         void append(String s);
         void appendln(String s);
         String text();
+        void clear();
     }
     
     /** This class walks the expression subtrees, printing out the value of each
@@ -868,6 +900,10 @@ public class MethodProverSMT {
             return traceText.toString();
         }
         
+        public void clear() {
+            traceText.setLength(0);
+        }
+        
         /** Not to be used by callers - this is set false by some visit methods
          * to prevent scan() from printing the value of the expression under
          * scrutiny.
@@ -889,6 +925,9 @@ public class MethodProverSMT {
                     if (print) {
                         String expr = that.toString();
                         String sv = cemap.get(that);
+                        if (sv == null && that instanceof JCIdent) {
+                            sv = getValue(expr,smt,solver);
+                        }
                         String userString = normalizeConstant(sv);
                         if (that.type.tag == TypeTags.BOOLEAN) { 
                             userString = userString.replaceAll("\\( _ bv0 1 \\)", "false");
@@ -1048,12 +1087,44 @@ public class MethodProverSMT {
     
     static public String benchmarkName = null;
     static private int benchmarkCount = 0;
-    public void saveBenchmark(String solverName, String methodname) {
+//    public void saveBenchmark(String solverName, String methodname) {
+//        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
+//        if (benchmarkDir == null) return;
+//        String n;
+//        if (benchmarkName != null) {
+//            if ("<init>".equals(methodname)) methodname = "INIT";
+//            int count = 0;
+//            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
+//            n = root + ".smt2";
+//            while (true) {
+//                Path p = FileSystems.getDefault().getPath(n);
+//                if (!java.nio.file.Files.exists(p)) break;
+//                count++;
+//                n = root + (-count) + ".smt2";
+//            }
+//        } else {
+//            benchmarkCount++;
+//            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
+//        }
+//        try {
+//            Path p = FileSystems.getDefault().getPath(n);
+//            java.nio.file.Files.deleteIfExists(p);
+//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
+//        } catch (IOException e) {
+//            System.out.println(e);
+//        }
+//    }
+    
+    public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
+        String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
+        if (benchmarkDir == null) benchmarkDir = "benchmarks";
+        if (benchmarkDir == null) return;
+        new java.io.File(benchmarkDir).mkdirs();
         String n;
         if (benchmarkName != null) {
             if ("<init>".equals(methodname)) methodname = "INIT";
             int count = 0;
-            String root = "benchmarks/" + benchmarkName + "." + methodname;
+            String root = benchmarkDir + "/" + benchmarkName + "." + methodname;
             n = root + ".smt2";
             while (true) {
                 Path p = FileSystems.getDefault().getPath(n);
@@ -1063,15 +1134,16 @@ public class MethodProverSMT {
             }
         } else {
             benchmarkCount++;
-            n = String.format("benchmarks/bench-%05d.smt2",benchmarkCount);
+            n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
         }
-        if (false) try {
-            Path p = FileSystems.getDefault().getPath(n);
-            java.nio.file.Files.deleteIfExists(p);
-            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+//        try {
+            config.logfile = n;
+//            Path p = FileSystems.getDefault().getPath(n);
+//            java.nio.file.Files.deleteIfExists(p);
+//            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);
+//        } catch (IOException e) {
+//            System.out.println(e);
+//        }
     }
     
     /** Construct the mapping from original source subexpressions to values in the current solver model. */

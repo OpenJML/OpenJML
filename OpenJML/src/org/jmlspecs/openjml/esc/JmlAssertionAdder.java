@@ -1124,7 +1124,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (tree == null) { result = null; return null; }
         scan(tree);
 
-        exprBiMap.put(tree, result);
+        if (localVariables.isEmpty()) exprBiMap.put(tree, result);
 
         return (T)result;
     }
@@ -1174,7 +1174,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (tree != null) {
                 super.scan(tree);
                 if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
-                exprBiMap.put(tree,eresult);
+                if (localVariables.isEmpty()) exprBiMap.put(tree,eresult);
             }
         } finally {
             translatingJML = savedT;
@@ -1195,7 +1195,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (tree != null) {
             super.scan(tree);
             if (rac && eresult != null && eresult.type != null && jmltypes.isJmlType(eresult.type)) eresult.type = jmltypes.repSym((JmlType)eresult.type).type;
-            exprBiMap.put(tree,eresult);
+            if (localVariables.isEmpty()) exprBiMap.put(tree,eresult);
         }
         return eresult;
     }
@@ -1208,8 +1208,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         for (JCExpression t: trees) {
             scan(t);
+            if (eresult == null) eresult = t;
             newlist.add(eresult);
-            exprBiMap.put(t,eresult);
+            if (localVariables.isEmpty()) exprBiMap.put(t,eresult);
         }
         return newlist.toList();
     }
@@ -1676,6 +1677,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> prev = currentStatements;
         currentStatements = list;
         JmlStatementExpr a = (JmlStatementExpr)addAssert(item, Label.ASSUME_CHECK, bin);
+        //JmlStatementExpr a;
+        if (false) {
+            JCExpression translatedExpr = bin;
+            DiagnosticPosition codepos = item;
+            Label label = Label.ASSUME_CHECK;
+            DiagnosticPosition associatedPos = null;
+            JavaFileObject associatedSource = null;
+            JavaFileObject dsource = log.currentSourceFile();
+            JCExpression info = null;
+            String assertID = null;
+            String extra = "";
+
+            JmlStatementExpr st = treeutils.makeAssert(codepos,label,bin);
+            st.source = dsource;
+            st.associatedPos = associatedPos == null ? Position.NOPOS : associatedPos.getPreferredPosition();
+            st.associatedSource = associatedSource;
+            st.optionalExpression = info;
+            st.id = assertID;
+            st.description = extra.isEmpty() ? null : extra;
+            treeutils.copyEndPosition(st.expression, translatedExpr);
+            treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of the associatedPos, not of the original assert, if there even is one
+
+//            if (trace) {
+//                JCExpression newexpr = convertCopy(translatedExpr);
+//                assertDecl.init = newexpr;
+//                addTraceableComment(st,translatedExpr,label + " assertion: " + translatedExpr.toString());
+//            }
+
+//            currentStatements.add(assertDecl);
+            currentStatements.add(st);
+            a = st;
+        }
         a.description = description;
         a.source = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource)item).source() : null;
         descs.add(a);
@@ -5243,7 +5276,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
                             JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
                                     oldenv);
-                            id = convertCopy(id);
+                            id = treeutils.makeIdent(cs.pos, d.sym);
                             JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
                             JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
                             addAssume(cs,Label.IMPLICIT_ASSUME,f);
@@ -6235,6 +6268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         DiagnosticPosition dpos = clause;
                         JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
                         if (clause.token == JmlToken.ENSURES) {
+                            if (!newDeclsList.isEmpty()) localVariables.put(newDeclsList.get(0).sym,newDeclsList.get(0).sym);
                             try {
                                 //addStat(comment(clause));
                                 JCExpression e = convertJML(((JmlMethodClauseExpr)clause).expression, condition, false);
@@ -6252,6 +6286,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addAssume(dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
                             } catch (JmlNotImplementedException e) {
                                 notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
+                            } finally {
+                                localVariables.remove(newDeclsList.get(0).sym);
                             }
                         }
                     }
@@ -7949,7 +7985,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (sym instanceof Symbol.TypeSymbol) {
                 Type t = that.type;
-                if (t instanceof Type.TypeVar) t = typevarMapping.get(sym.type.tsym);
+                if (t instanceof Type.TypeVar) {
+                    t = typevarMapping.get(sym.type.tsym);
+                    if (t == null) t = that.type;
+                }
                 // The input id is a type, so we expand it to a FQ name
                 // If the input id is a type variable (that.type instanceof Type.TypeVar)
                 // then makeType creates a new JCIdent, as is appropriate.
