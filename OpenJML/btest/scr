@@ -1,0 +1,5 @@
+
+for f in *.smt2; do
+  cat $f | grep "(" > tmp
+  mv tmp $f
+done
