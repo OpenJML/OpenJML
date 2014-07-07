@@ -67,6 +67,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
@@ -995,7 +996,13 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             printExpr(tree.selected, TreeInfo.postfixPrec);
             if (tree.name == null) print(".*");
-            else print("." + tree.name);
+            else {
+                if(tree.selected instanceof JCIdent 
+                        && ((JCIdent)(tree.selected)).name!=null 
+                        && ((JCIdent)(tree.selected)).name.isEmpty())
+                    print(tree.name);
+                else print("." + tree.name);
+            }
         } catch (IOException e) {
             perr(tree,e);
         }
@@ -1027,4 +1034,50 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
         that.item.accept(this);
     }
+    
+    // Enables printing of things like:             
+    //
+    // [jmlrac:../demos/Test.java:1]\t %line
+    // 
+    // This makes reading the -show output easier. 
+
+    public static String toFancyLineFormat(String file, JmlPrettyFormatter fmt, String old)
+    {
+        String pieces [] = old.split(System.getProperty("line.separator"));
+        
+        StringBuffer sb = new StringBuffer();
+        
+        int line=1;
+        for(String p : pieces){
+            sb.append(fmt.formatLine(file, line, p)).append(System.getProperty("line.separator"));
+            line++;
+        }
+
+        return sb.toString();
+    }
+    
+    public static String toFancyLineFormat(String file, JmlPrettyFormatter fmt, String prefix, String old)
+    {
+        return toFancyLineFormat(file, fmt, prefix + System.getProperty("line.separator") + old );
+    }
+    
+    public static JmlPrettyFormatter racFormatter;
+    
+    interface JmlPrettyFormatter {
+        public String formatLine(String file, int lineNumber, String line);
+    }
+    
+    static {
+        racFormatter = new JmlPrettyFormatter() {
+            @Override
+            public String formatLine(String file, int lineNumber, String line) {
+                return String.format("[jmlrac:%s:%d]    %s", file, lineNumber, line);
+            }
+        };
+
+    }
+    
+    
+    
+    
 }

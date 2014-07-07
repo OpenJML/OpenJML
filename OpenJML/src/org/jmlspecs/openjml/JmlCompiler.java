@@ -501,6 +501,9 @@ public class JmlCompiler extends JavaCompiler {
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
         
+        // TODO - will sourcefile always exist? -- JLS
+        String currentFile = env.toplevel.sourcefile.getName();
+        
         if (tree instanceof JCClassDecl) {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
@@ -538,16 +541,16 @@ public class JmlCompiler extends JavaCompiler {
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
             if (JmlOption.isOption(context,JmlOption.SHOW)) {
-                log.noticeWriter.println("ORIGINAL");
-                log.noticeWriter.println(JmlPretty.write(env.tree,true));
+                log.noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
+                log.noticeWriter.println(
+                            JmlPretty.toFancyLineFormat(
+                                    currentFile,
+                                    JmlPretty.racFormatter,            // the formatter 
+                                    JmlPretty.write(env.toplevel,true) // the source to format
+                                    ));
                 log.noticeWriter.println("");
             }
             newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
-            if (JmlOption.isOption(context,JmlOption.SHOW)) {
-                log.noticeWriter.println("TRANSLATED RAC");
-                log.noticeWriter.println(JmlPretty.write(newtree,true));
-            }
-
                 
             // When we do the RAC translation, we create a new instance
             // of the JCClassDecl for the class.  So we have to find where
@@ -565,6 +568,24 @@ public class JmlCompiler extends JavaCompiler {
                 }
                 t = t.tail;
             }
+            
+            // After adding the assertions, we will need to add the OpenJML libraries 
+            // to the import directives.             
+
+            // Add the Import: import org.jmlspecs.utils.*;
+            
+            if (JmlOption.isOption(context,JmlOption.SHOW)) { 
+                log.noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
+                // this could probably be better - is it OK to modify the AST beforehand? JLS
+                log.noticeWriter.println(
+                        JmlPretty.toFancyLineFormat(
+                            currentFile,
+                            JmlPretty.racFormatter,            // the formatter 
+                            "import org.jmlspecs.utils.*;",    // a header prefix to print
+                            JmlPretty.write(env.toplevel,true) // the source to format
+                            ));
+            }
+            
         } else {
             // FIXME - does this happen?
             JCCompilationUnit newtree = new JmlAssertionAdder(context,false,true).convert(env.toplevel);
