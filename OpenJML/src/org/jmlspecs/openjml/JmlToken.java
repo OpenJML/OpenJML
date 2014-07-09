@@ -258,7 +258,8 @@ public enum JmlToken {
     
     public final static EnumSet<JmlToken> extensions = EnumSet.range(CODE_BIGINT_MATH, LAST);
     static {
-        extensions.remove(CODE_BIGINT_MATH);
+        extensions.remove(CODE_BIGINT_MATH); // This is not an extension - it marks the last of non-extensions
+        extensions.remove(LAST); // Not real - just marks the end of any extensions
     }
     
     public final static EnumSet<JmlToken> jmloperators = EnumSet.range(EQUIVALENCE, LOCK_LE);
@@ -288,6 +289,8 @@ public enum JmlToken {
         }
         //allTokens.remove(BSEXCEPTION.internedName());
         modifiers.add(BSREADONLY);
+        // the LAST token is fake and doesn't really need to be in the modifiers set
+        modifiers.remove(LAST);
         
         // Synonyms
         

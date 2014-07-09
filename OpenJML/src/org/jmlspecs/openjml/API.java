@@ -790,9 +790,11 @@ public class API implements IAPI {
         };
         IProofResultListener p = proofResultListener;
         L l;
-        esc.proofResultListener = l = new L(p);
+        main().proofResultListener = l = new L(p);
+        main().context().put(IAPI.IProofResultListener.class, l);
         esc.check(decl);
-        esc.proofResultListener = p;
+        main().context().put(IAPI.IProofResultListener.class, p);
+        main().proofResultListener = p;
         return l.result; 
     }
     
@@ -805,7 +807,7 @@ public class API implements IAPI {
 //        mostRecentProofMethod = null;
 //        mostRecentProgram = null;
         JmlClassDecl decl = getClassDecl(csym);
-        JmlEsc.instance(context()).proofResultListener = proofResultListener;
+        main().proofResultListener = proofResultListener;
         JmlEsc.instance(context()).check(decl);
     }
     

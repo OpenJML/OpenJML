@@ -510,7 +510,26 @@ public class SMTTranslator extends JmlTreeScanner {
                         tisym)));
                 if ((ti.tsym.flags() & Flags.FINAL) != 0) {
                     addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
-                }
+                } 
+            } else {
+// Commenting out DMZ fix because it breaks tests                
+//                // currently we add the symbols even if the type is parameterized,
+//                // because it's not clear what to do differently with parameterized types;
+//                // the code below is copied directly from the if branch
+//                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
+//                tcommands.add(new C_declare_fun(
+//                        tjsym,
+//                        emptyList,
+//                        jmlTypeSort));
+//                jmltypesymbols.add(tjsym);
+//                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+//                tcommands.add(new C_assert(F.fcn(
+//                        eqSym, 
+//                        F.fcn(F.symbol("erasure"),tjsym),
+//                        tisym)));
+//                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
+//                    addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+//                } 
             }
         }
         for (Type ti: javaTypes) {

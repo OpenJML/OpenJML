@@ -442,11 +442,11 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     // FIXME - this is a hack to communicate a parameter to where it can be used
-    private IAPI.IProofResultListener prListener;
+    public IAPI.IProofResultListener proofResultListener;
 
     public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
-        this.prListener = prListener;
+        this.proofResultListener = prListener;
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
@@ -523,9 +523,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         this.context = context;
         register(context);
-// IF the following line is used, then the Log is created before the Javac options are processed, and it is initialized incorrectly.
-//        JmlSpecs.instance(context); // Just needed to keep the creation of the JmlEsc instance from causing circular instantiation problems
-        if (prListener != null) JmlEsc.instance(context).proofResultListener = prListener; // FIXME - the dependency goes the wrong way here
+        context.put(IAPI.IProofResultListener.class, proofResultListener);
         initializeOptions(savedOptions);
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,

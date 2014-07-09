@@ -61,7 +61,7 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
     
-    public IAPI.IProofResultListener proofResultListener = null;
+//    public IAPI.IProofResultListener proofResultListener = null;
     
     /** The compilation context, needed to get common tools, but unique to this compilation run*/
     @NonNull Context context;
@@ -200,6 +200,7 @@ public class JmlEsc extends JmlTreeScanner {
                    :               " - no warnings")
                 );
         //proverResults.put(methodDecl.sym,res);
+        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         return res;
     }
