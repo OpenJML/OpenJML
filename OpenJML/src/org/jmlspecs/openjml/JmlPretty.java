@@ -997,6 +997,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             printExpr(tree.selected, TreeInfo.postfixPrec);
             if (tree.name == null) print(".*");
             else {
+                // This special case is here because of a bug in JDK that 
+                // put a parent with an empty name before each package name.
+                // We also put a fix in TreeMaker.QualIdent, but am not sure it
+                // is correct or will be kept.
                 if(tree.selected instanceof JCIdent 
                         && ((JCIdent)(tree.selected)).name!=null 
                         && ((JCIdent)(tree.selected)).name.isEmpty())
