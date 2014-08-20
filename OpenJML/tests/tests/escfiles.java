@@ -383,5 +383,10 @@ public class escfiles extends EscBase {
         helpTF("escInvariants2");
     }
 
+    @Test
+    public void testJmlSpecPublic() {
+        helpTCF("testfiles/escSeparateJml/BankingExample.java","testfiles/escSeparateJml","-classpath","testfiles/escSeparateJml");
+    }
+
 
 }

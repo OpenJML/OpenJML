@@ -637,6 +637,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         IOption o = JmlOption.find(s);
         while (o!=null && o.synonym()!=null) {
             s = o.synonym();
+            if (s.startsWith("-no-")) {
+                negate = !negate;
+                s = s.substring("-no".length());
+            }
             o = JmlOption.find(s);
         }
         if (o == null) {
@@ -647,7 +651,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 o = JmlOption.find(s);
                 if (o != null) {
                     if (o.hasArg()) {}
-                    else if ("false".equals(res)) res = null;
+                    else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
                     else {
                         res = "";
@@ -655,7 +659,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 }
             }
-        } else if (o.hasArg()) {
+        } else if (!negate && o.hasArg()) {
             if (i < args.length) {
                 res = args[i++];
                 if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
@@ -691,16 +695,20 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         } else {
-            // An empty string is the value of the option if it takes no arguments
-            // That is, for boolean options, "" (or any non-null) is true, null is false
             if (negate) {
                 if (o.defaultValue() instanceof Boolean) {
                     JmlOption.setOption(context, o, false);
+                } else if (o.defaultValue() == null) {
+                    options.put(s,null);
                 } else {
                     options.put(s,o.defaultValue().toString());
                 }
             } else {
-                options.put(s,res);
+                if (o.defaultValue() instanceof Boolean) {
+                    JmlOption.setOption(context, o, true);
+                } else {
+                    options.put(s,res);
+                }
             }
         }
         return i;

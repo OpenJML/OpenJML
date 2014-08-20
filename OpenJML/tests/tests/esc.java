@@ -349,7 +349,7 @@ public class esc extends EscBase {
     @Test
     public void testForEach2a() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        //main.addOptions("-show","-method=m2a","-subexpressions");
+//        main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=10");
         helpTCX("tt.TestJava","package tt; import java.util.*; \n"
                 +"public class TestJava { \n"
                 

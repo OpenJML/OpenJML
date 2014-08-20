@@ -3362,6 +3362,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else {
                     t = res.type;
                 }
+                if (currentEnvLabel != null) {
+                    log.error(that.pos, "jml.no.result.in.old");
+                }
                 if (!resultClauses.contains(currentClauseType)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
@@ -4718,6 +4721,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
             MethodSpecs mspecs = specs.getSpecs(msym);
             if (mspecs == null) {
+                // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
+                if (msym.toString().equals("size()") && msym.owner.toString().equals("org.jmlspecs.lang.JMLList")) return true;
                 // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
                 continue;
             }

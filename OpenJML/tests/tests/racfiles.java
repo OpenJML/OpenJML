@@ -284,5 +284,12 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/racMainActivityMicro","testfiles/racMainActivityMicro","CharAt");
     }
 
+    @Test // FIXME - should we allow and compensate for \result in an \old environment
+    public void racOld() {
+        expectedExit = 1;
+        runrac = false;
+        helpTCF("testfiles/racold","testfiles/racold","ArrayExample");
+    }
+
 
 }

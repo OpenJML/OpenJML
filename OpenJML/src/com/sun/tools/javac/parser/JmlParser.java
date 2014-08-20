@@ -869,6 +869,13 @@ public class JmlParser extends EndPosParser {
             if (tree instanceof JmlVariableDecl) {
                 newlist.append(tree);
                 currentVarDecl = (JmlVariableDecl) tree;
+                JCModifiers mods = currentVarDecl.mods;
+                if (currentVarDecl.fieldSpecs == null) {
+                    currentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(mods);
+                } else {
+                    currentVarDecl.fieldSpecs.mods.annotations.appendList(mods.annotations);
+                }
+                
             } else if (tree instanceof JmlTypeClauseIn
                     || tree instanceof JmlTypeClauseMaps) {
                 /**

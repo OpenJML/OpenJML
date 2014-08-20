@@ -1025,6 +1025,7 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ClearForRAC"
             >
       </command>
+      <!-- DMZ removed this - not sure why
       <command
             name="RAC - choose files"
             description="Select java files and folders for Runtime Assertion Checking"
@@ -1033,6 +1034,7 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$ChooseForRAC"
             >
       </command>
+      -->
       <command
             name="%openjml.ui.command.DeleteMarkers"
             description="%openjml.ui.command.DeleteMarkers.description"

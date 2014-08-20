@@ -43,14 +43,14 @@ public class UniqueListBug2 {
 	/*@
 	  @ requires contains(value);
 	  @ ensures !contains(value);
-	  @ ensures \old(values[\result]) == value;
+	  @ ensures \old(values)[\result] == value;
 	  @ ensures \result == \old(find(value));
 	  @ ensures length == \old(length) - 1;
 	  @*/
 	
 	public int removeValue(int value) {
 		int index = find(value);
-		System.out.println("\\old(values[\\result]): " + values[index]);
+		System.out.println("\\old(values)[\\result]: " + values[index]);
 		for(int i = index; i < length; i++){
 			values[index] = values[index] + 1; 
 		}
