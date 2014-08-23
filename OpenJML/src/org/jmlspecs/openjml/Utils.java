@@ -680,12 +680,21 @@ public class Utils {
     
     /** Returns a method signature with a fully-qualified method name */
     public String qualifiedMethodSig(MethodSymbol sym) {
-        return sym.owner.getQualifiedName() + "." + sym;
+        return classQualifiedName(sym.owner) + "." + sym;
     }
 
     /** Returns a fully-qualified name for a method symbol, without the signature */
     public String qualifiedName(Symbol sym) {
-        return sym.owner.getQualifiedName() + "." + sym.name;
+        return classQualifiedName(sym.owner) + "." + sym.name;
+    }
+
+    /** Returns a fully-qualified name for a class symbol, with adjustments for anonymous types */
+    public String classQualifiedName(Symbol sym) {
+        String s = sym.getQualifiedName().toString();
+        if (s.isEmpty()) {
+            s = sym.flatName().toString().replace('$','.');
+        }
+        return s;
     }
 
     /** Returns an unqualified name, but with the class name instead of init */

@@ -388,5 +388,26 @@ public class escfiles extends EscBase {
         helpTCF("testfiles/escSeparateJml/BankingExample.java","testfiles/escSeparateJml","-classpath","testfiles/escSeparateJml");
     }
 
+    @Test
+    public void escSokoban() {
+        //helpTCF("testfiles/sokoban/Board.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=1","-method=Board","-show");
+        helpTF("sokoban","-progress");
+    }
+
+    @Test
+    public void escDerivedInvariant() {
+        helpTF("escDerivedInvariant");
+    }
+
+    @Test
+    public void testEscConstructor() {
+        helpTF("escConstructor");
+    }
+
+    @Test
+    public void testEscConstructor2() {
+        helpTF("escConstructor2");
+    }
+
 
 }

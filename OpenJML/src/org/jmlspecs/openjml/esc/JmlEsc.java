@@ -127,9 +127,9 @@ public class JmlEsc extends JmlTreeScanner {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
-        progress(1,1,"Proving methods in " + node.sym.getQualifiedName() ); //$NON-NLS-1$
+        progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         super.visitClassDef(node);
-        progress(1,1,"Completed proving methods in " + node.sym.getQualifiedName() ); //$NON-NLS-1$
+        progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
     }
     
     /** When we visit a method declaration, we translate and prove the method;
@@ -147,20 +147,41 @@ public class JmlEsc extends JmlTreeScanner {
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 
+        if (skip(methodDecl)) {
+            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by skipesc)"); //$NON-NLS-1$ //$NON-NLS-2$
+            return;
+        }
         // Do any nested classes and methods first (which will recursively call
         // this method)
         super.visitMethodDef(methodDecl);
 
         if (filter(methodDecl)) {
         	res = doMethod(methodDecl);
+        } else {
+            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by -method)"); //$NON-NLS-1$ //$NON-NLS-2$
         }
         return;        
+    }
+    
+    public static boolean skip(JmlMethodDecl methodDecl) {
+        if (methodDecl.mods != null) {
+            for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
+                if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipEsc")) { // FIXME - do this without converting to string
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
 
+        if (skip(methodDecl)) {
+            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (because of SkipEsc annotation)"); //$NON-NLS-1$ //$NON-NLS-2$
+            return null;
+        }
         progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         
         // The code in this method decides whether to attempt a proof of this method.

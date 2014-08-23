@@ -944,7 +944,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -962,7 +962,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -980,7 +980,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlToken[] {
         MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1355,6 +1355,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // Add a precondition for each nonnull parameter
             for (JCVariableDecl p : decl.params) {
+                if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
                 if (!p.type.isPrimitive()) {
                     boolean isNonnull = specs.isNonNull(p.sym,decl.sym.enclClass());
                     JCAnnotation nonnull = findMod(p.mods,JmlToken.NONNULL);
@@ -1403,7 +1404,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Add an assignable clause if the method is pure and has no assignable clause
             JCAnnotation pure;
             desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
-            if (!desugaringPure) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
+            if (!desugaringPure) {
+                if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
+            }
             JmlMethodClause clp = null;
             if (desugaringPure) {
                 if (decl.sym.isConstructor()) {

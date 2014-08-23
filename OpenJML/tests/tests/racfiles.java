@@ -68,7 +68,7 @@ public class racfiles extends RacBase {
             args.add("testdata");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
-            args.add("-dir");
+            if (new File(dirname).isDirectory()) args.add("-dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));
             
@@ -289,6 +289,12 @@ public class racfiles extends RacBase {
         expectedExit = 1;
         runrac = false;
         helpTCF("testfiles/racold","testfiles/racold","ArrayExample");
+    }
+
+    @Test
+    public void racSokoban() {
+        expectedExit = 0;
+        helpTCF("testfiles/sokoban","testfiles/sokoban","Game","-cp","testfiles/sokoban");
     }
 
 

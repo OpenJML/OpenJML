@@ -1,6 +1,0 @@
-testfiles\uniqueListBug2\UniqueListBug2.java:46: error: A \result expression is not allowed in an old environment
-	  @ ensures \old(values[\result]) == value;
-	                        ^
-Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-1 error

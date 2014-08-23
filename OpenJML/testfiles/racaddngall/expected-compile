@@ -1,6 +1,14 @@
-testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
-testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
-testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
-testfiles\racaddng\Add_InstanceStrategy.java:80: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Collection.jml:181: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall Object _o; \old(containsObject(_o)) ==> containsObject(_o));
+                   ^
+C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Collection.jml:182: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall Object oo; o != oo; containsObject(oo) ==> \old(containsObject(oo)));
+                   ^
+C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Collection.jml:181: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall Object _o; \old(containsObject(_o)) ==> containsObject(_o));
+                   ^
+C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Collection.jml:182: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+      @   ensures (\forall Object oo; o != oo; containsObject(oo) ==> \old(containsObject(oo)));
+                   ^
 Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.

@@ -205,7 +205,12 @@ public class MethodProverSMT {
             JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // newblock is the translated version of the method body
-        JCBlock newblock = jmlesc.assertionAdder.methodBiMap.getf(methodDecl).getBody();
+        JmlMethodDecl translatedMethod = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
+        if (translatedMethod == null) {
+            log.warning("jml.internal","No translated method for " + utils.qualifiedMethodSig(methodDecl.sym));
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
+        }
+        JCBlock newblock = translatedMethod.getBody();
         if (newblock == null) {
         	log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
@@ -758,7 +763,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    
+                    if (escdebug) log.noticeWriter.println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {

@@ -416,7 +416,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             Symbol sym = ((JCIdent)that.lhs).sym;
             if (sym instanceof VarSymbol) {
                 VarSymbol vsym = (VarSymbol)((JCIdent)that.lhs).sym;
-                nonnull = !vsym.type.isPrimitive() && specs.isNonNull(vsym,vsym.enclClass());
+                nonnull = specs.isNonNull(vsym,vsym.enclClass());
             } else {
                 // Annotations can get here
                 //log.noticeWriter.println("Unknown symbol type " + sym + " " + sym.getClass());
@@ -426,7 +426,7 @@ public class JmlTranslator extends JmlTreeTranslator {
             JCFieldAccess fa = (JCFieldAccess)that.lhs;
             if (fa.sym instanceof VarSymbol) {
                 VarSymbol vsym = (VarSymbol)fa.sym;
-                nonnull = !vsym.type.isPrimitive() && specs.isNonNull(vsym,vsym.enclClass());
+                nonnull = specs.isNonNull(vsym,vsym.enclClass());
             } else {
                 log.error("jml.unexpected.code.branch",fa.sym.getClass() + " " + fa);
                 nonnull = false;

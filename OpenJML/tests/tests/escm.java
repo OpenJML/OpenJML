@@ -136,14 +136,14 @@ public class escm extends EscBase {
                                 ,"/tt/TestJava.java:13: warning: Associated declaration",35)
                        ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method ",22 // Constructor of anonymous D
                                 ,"/tt/TestJava.java:13: warning: Associated declaration",35))
-                ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method .m()",59 // m() of anonymous D
+                ,"/tt/TestJava.java:13: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.1.m()",59 // m() of anonymous D
                 ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
                 
                 //,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22 // Inherited E
                 //,"/tt/TestJava.java:14: warning: Associated declaration",29
-                ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method .mm()",30
+                ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.2.mm()",30
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
                 ,"/tt/TestJava.java:18: warning: Associated declaration",17
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18
