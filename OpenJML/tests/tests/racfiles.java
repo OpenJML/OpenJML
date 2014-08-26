@@ -297,5 +297,11 @@ public class racfiles extends RacBase {
         helpTCF("testfiles/sokoban","testfiles/sokoban","Game","-cp","testfiles/sokoban");
     }
 
+    @Test
+    public void racSokoban2() {
+        expectedExit = 0;
+        helpTCF("testfiles/sokoban2/src","testfiles/sokoban2/src","Game","-cp","testfiles/sokoban2/src");
+    }
+
 
 }

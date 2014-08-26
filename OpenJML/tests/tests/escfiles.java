@@ -81,7 +81,7 @@ public class escfiles extends EscBase {
             args.add("-no-purityCheck");
             args.add("-jmltesting");
             args.add("-progress");
-            args.add("-timeout=30");
+            args.add("-timeout=300");
             args.add("-code-math=java");
             if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
@@ -390,8 +390,18 @@ public class escfiles extends EscBase {
 
     @Test
     public void escSokoban() {
-        //helpTCF("testfiles/sokoban/Board.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=1","-method=Board","-show");
-        helpTF("sokoban","-progress");
+        helpTCF("testfiles/sokoban/Game.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
+        //helpTF("sokoban","-progress");
+    }
+
+    @Test
+    public void escSokoban2() {
+        helpTF("sokoban2/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+    }
+
+    @Test
+    public void escAssignableBug() {
+        helpTF("escAssignableBug","-progress");
     }
 
     @Test

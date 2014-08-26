@@ -763,7 +763,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    if (escdebug) log.noticeWriter.println("Failed assert: " + e.toString());
+                    if (JmlOption.isOption(context, JmlOption.SHOW)) log.noticeWriter.println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
