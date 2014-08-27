@@ -127,9 +127,9 @@ public class JmlEsc extends JmlTreeScanner {
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
-        progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         super.visitClassDef(node);
-        progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        utils.progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
     }
     
     /** When we visit a method declaration, we translate and prove the method;
@@ -148,7 +148,7 @@ public class JmlEsc extends JmlTreeScanner {
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 
         if (skip(methodDecl)) {
-            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by skipesc)"); //$NON-NLS-1$ //$NON-NLS-2$
+            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by skipesc)"); //$NON-NLS-1$ //$NON-NLS-2$
             return;
         }
         // Do any nested classes and methods first (which will recursively call
@@ -158,7 +158,7 @@ public class JmlEsc extends JmlTreeScanner {
         if (filter(methodDecl)) {
         	res = doMethod(methodDecl);
         } else {
-            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by -method)"); //$NON-NLS-1$ //$NON-NLS-2$
+            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by -method)"); //$NON-NLS-1$ //$NON-NLS-2$
         }
         return;        
     }
@@ -179,10 +179,10 @@ public class JmlEsc extends JmlTreeScanner {
         boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
 
         if (skip(methodDecl)) {
-            progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (because of SkipEsc annotation)"); //$NON-NLS-1$ //$NON-NLS-2$
+            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (because of SkipEsc annotation)"); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
-        progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
@@ -212,7 +212,7 @@ public class JmlEsc extends JmlTreeScanner {
             res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
         }
         
-        progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+        utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                 + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                 + (res.result() == IProverResult.ERROR ? " - failed"
                    : res.result() == IProverResult.SKIPPED ? " - skipped"
@@ -226,21 +226,6 @@ public class JmlEsc extends JmlTreeScanner {
         return res;
     }
         
-    /** Reports progress to the registered IProgressListener; also checks if
-     * the progress listener has received a user-cancellation, in which case
-     * this method throws an exception to terminate processing
-     * @param ticks amount of work to report
-     * @param level level of the message (lower levels are more likely to be printed)
-     * @param message the progress message
-     */
-    public void progress(int ticks, int level, String message) {
-        org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
-        boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
-        if (cancelled) {
-            throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
-        }
-    }
-    
     /** Return true if the method is to be checked, false if it is to be skipped.
      * A warning that the method is being skipped is issued if it is being skipped
      * and the verbosity is high enough.

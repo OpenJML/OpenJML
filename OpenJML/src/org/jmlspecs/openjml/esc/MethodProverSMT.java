@@ -344,7 +344,7 @@ public class MethodProverSMT {
                         solverResponse = solver.check_sat();
                         String loc = utils.locationString(stat.pos,stat.source());
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
-                        jmlesc.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
+                        utils.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
                                 (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
                         if (solverResponse.equals(unsatResponse)) {
                             if (JmlAssertionAdder.preconditionAssumeCheckDescription.equals(description)) {

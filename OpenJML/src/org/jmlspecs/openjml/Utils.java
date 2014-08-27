@@ -48,6 +48,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.PropagatedException;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition;
 
@@ -746,6 +747,21 @@ public class Utils {
         
         public void clear() {
             map.clear();
+        }
+    }
+    
+    /** Reports progress to the registered IProgressListener; also checks if
+     * the progress listener has received a user-cancellation, in which case
+     * this method throws an exception to terminate processing
+     * @param ticks amount of work to report
+     * @param level level of the message (lower levels are more likely to be printed)
+     * @param message the progress message
+     */
+    public void progress(int ticks, int level, String message) {
+        org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
+        boolean cancelled = pr == null ? false : pr.report(ticks,level,message);
+        if (cancelled) {
+            throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
         }
     }
     

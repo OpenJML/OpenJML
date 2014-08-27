@@ -300,7 +300,7 @@ public class racfiles extends RacBase {
     @Test
     public void racSokoban2() {
         expectedExit = 0;
-        helpTCF("testfiles/sokoban2/src","testfiles/sokoban2/src","Game","-cp","testfiles/sokoban2/src");
+        helpTCF("testfiles/sokoban2/src","testfiles/sokoban2/src","Game","-cp","testfiles/sokoban2/src","-progress");
     }
 
 

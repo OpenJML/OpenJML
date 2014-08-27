@@ -8473,6 +8473,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
+        
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
         ListBuffer<JCTree> savedClassDefs = this.classDefs;

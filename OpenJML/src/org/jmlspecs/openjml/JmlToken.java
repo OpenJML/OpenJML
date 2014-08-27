@@ -56,6 +56,7 @@ public enum JmlToken {
     READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
     REP("rep",org.jmlspecs.annotation.Rep.class),
     SKIP_ESC("skipesc",org.jmlspecs.annotation.SkipEsc.class),
+    SKIP_RAC("skiprac",org.jmlspecs.annotation.SkipRac.class),
     SPEC_BIGINT_MATH("spec_bigint_math",org.jmlspecs.annotation.SpecBigintMath.class),
     SPEC_JAVA_MATH("spec_java_math",org.jmlspecs.annotation.SpecJavaMath.class),
     SPEC_SAFE_MATH("spec_safe_math",org.jmlspecs.annotation.SpecSafeMath.class),

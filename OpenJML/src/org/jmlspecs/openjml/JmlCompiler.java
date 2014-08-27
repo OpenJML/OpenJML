@@ -507,6 +507,12 @@ public class JmlCompiler extends JavaCompiler {
         if (tree instanceof JCClassDecl) {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
+            
+            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlToken.SKIP_RAC)) {
+                utils.progress(1,1,"Skipping RAC of " + that.name.toString() + " (SkipRac annotation)");
+                return env;
+            }
+            
             // The class named here must match that in org.jmlspecs.utils.Utils.isRACCompiled
             Name n = names.fromString("org.jmlspecs.annotation.RACCompiled");
             ClassSymbol sym = ClassReader.instance(context).enterClass(n);
@@ -535,7 +541,7 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"RAC-Compiling " + utils.envString(env));
+        utils.progress(0,1,"RAC-Compiling " + utils.envString(env));
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("rac " + utils.envString(env));
         
         if (env.tree instanceof JCClassDecl) {
