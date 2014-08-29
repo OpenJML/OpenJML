@@ -45,6 +45,9 @@ public interface IProverResult {
     /** The result could not be determined (prover died, timed out, ...) */
     static public final Kind UNKNOWN = new Kind("UNKNOWN");
 
+    /** The prover timed out */
+    static public final Kind TIMEOUT = new Kind("TIMEOUT");
+
     /** The proof resulted in some internal error */
     static public final Kind ERROR = new Kind("ERROR");
 

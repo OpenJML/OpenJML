@@ -400,6 +400,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void escSokoban3() {
+        helpTF("sokoban3/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+    }
+
+    @Test
     public void escAssignableBug() {
         helpTF("escAssignableBug","-progress");
     }

@@ -6912,13 +6912,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             JCExpression rhs = convertExpr(that.rhs);
             
+            // FIXME - need to translate this for RAC
             if (javaChecks && !((Type.ArrayType)array.type).getComponentType().isPrimitive()) {
-                JCExpression rhstype = treeutils.makeTypeof(rhs);
-                JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,jmltypes.TYPE, 
-                        treeutils.makeTypeof(array));
-                JCExpression sta = treeutils.makeJmlMethodInvocation(array,JmlToken.SUBTYPE_OF,syms.booleanType,rhstype,lhselemtype);
-                JCExpression rhsnull = treeutils.makeEqNull(rhs.pos, rhs);
-                addAssert(that, Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT, treeutils.makeOr(sta.pos,rhsnull,sta));
+                if (esc) {
+                    JCExpression rhstype = treeutils.makeTypeof(rhs);
+                    JCExpression lhselemtype = treeutils.makeJmlMethodInvocation(array,JmlToken.BSELEMTYPE,jmltypes.TYPE, 
+                            treeutils.makeTypeof(array));
+                    JCExpression sta = treeutils.makeJmlMethodInvocation(array,JmlToken.SUBTYPE_OF,syms.booleanType,rhstype,lhselemtype);
+                    JCExpression rhsnull = treeutils.makeEqNull(rhs.pos, rhs);
+                    addAssert(that, Label.POSSIBLY_BAD_ARRAY_ASSIGNMENT, treeutils.makeOr(sta.pos,rhsnull,sta));
+                } else if (rac) {
+                    
+                }
             }
             
             JCArrayAccess lhs = new JmlBBArrayAccess(null,array,index);

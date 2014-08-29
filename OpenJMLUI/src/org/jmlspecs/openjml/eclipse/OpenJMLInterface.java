@@ -1154,12 +1154,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));
             String v = Options.value(Options.timeoutKey);
             if (v != null && !v.isEmpty()) opts.add(JmlOption.TIMEOUT.optionName() +eq+ v);
+            // FIXME - add an actual option
+            opts.add("-code-math=java");
         }
         
         if (cmd == Main.Cmd.RAC || cmd == null) {
             opts.add(JmlOption.RAC_SHOW_SOURCE.optionName() +eq+ !Options.isOption(Options.racNoShowSource));
-            opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ !Options.isOption(Options.racNoCheckAssumptions));
-            opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ !Options.isOption(Options.racNoCheckJavaFeatures));
+            opts.add(JmlOption.RAC_CHECK_ASSUMPTIONS.optionName() +eq+ Options.isOption(Options.racCheckAssumptions));
+            opts.add(JmlOption.RAC_JAVA_CHECKS.optionName() +eq+ Options.isOption(Options.racCheckJavaFeatures));
             opts.add(JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.optionName() +eq+ Options.isOption(Options.compileToJavaAssert));
         }
         

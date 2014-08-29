@@ -148,18 +148,18 @@ public class JmlEsc extends JmlTreeScanner {
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 
         if (skip(methodDecl)) {
-            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by skipesc)"); //$NON-NLS-1$ //$NON-NLS-2$
+            markMethodSkipped(methodDecl," (excluded by skipesc)"); //$NON-NLS-1$
             return;
         }
         // Do any nested classes and methods first (which will recursively call
         // this method)
         super.visitMethodDef(methodDecl);
 
-        if (filter(methodDecl)) {
-        	res = doMethod(methodDecl);
-        } else {
-            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (excluded by -method)"); //$NON-NLS-1$ //$NON-NLS-2$
+        if (!filter(methodDecl)) {
+            markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ 
+            return;
         }
+    	res = doMethod(methodDecl);
         return;        
     }
     
@@ -174,13 +174,34 @@ public class JmlEsc extends JmlTreeScanner {
         return false;
     }
     
+    public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
+        utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        // FIXME - this is all a duplicate from MethodProverSMT
+        IProverResult.IFactory factory = new IProverResult.IFactory() {
+            @Override
+            public IProverResult makeProverResult(MethodSymbol msym, String prover, IProverResult.Kind kind, java.util.Date start) {
+                ProverResult pr = new ProverResult(prover,kind,msym);
+                pr.methodSymbol = msym;
+                if (start != null) {
+                    pr.setDuration((pr.timestamp().getTime()-start.getTime())/1000.);
+                    pr.setTimestamp(start);
+                }
+                return pr;
+            }
+        };
+        IProverResult res = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,new java.util.Date());
+        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
+        return res;
+    }
+    
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(@NonNull JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
 
         if (skip(methodDecl)) {
-            utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " (because of SkipEsc annotation)"); //$NON-NLS-1$ //$NON-NLS-2$
-            return null;
+            return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
         utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         

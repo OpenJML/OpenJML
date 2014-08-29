@@ -547,6 +547,7 @@ public class JmlCompiler extends JavaCompiler {
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
             if (JmlOption.isOption(context,JmlOption.SHOW)) {
+                // FIXME - these are not writing out during rac, at least in debug in development, to the console
                 log.noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
                 log.noticeWriter.println(
                             JmlPretty.toFancyLineFormat(

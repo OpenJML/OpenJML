@@ -158,7 +158,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     public final static Color green = new Color(null,0,255,0);
     public final static Color orange = new Color(null,255,128,0);
     public final static Color yellow = new Color(null,255,255,0);
-    public final static Color blue = new Color(null,0,0,255);
+    public final static Color blue = new Color(null,128,128,255);
 
     Map<String,TreeItem> treeitems = new HashMap<String,TreeItem>();
     Map<TreeItem,ICounterexample> treece = new HashMap<TreeItem,ICounterexample>();
@@ -214,7 +214,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         	TreeItem tii = treeitems.get(scname);
         	if (tii == null) {
         		tii = new TreeItem(ti,SWT.NONE);
-        		tii.setText(cname); // FIXME - what about nested classes
+        		tii.setText(scname); // FIXME - what about nested classes
         		treeitems.put(scname, tii);
             	{
             		Info iteminfo = new Info();
@@ -274,6 +274,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
             	tiii.setBackground(green);
         	} else if (k == IProverResult.ERROR) {
         		tiii.setText("[ERROR]   " + text + info);
+            	tiii.setBackground(red);
+        	} else if (k == IProverResult.TIMEOUT) {
+        		tiii.setText("[TIMEOUT]   " + text + info);
+            	tiii.setBackground(yellow);
+        	} else if (k == IProverResult.UNKNOWN) {
+        		tiii.setText("[UNKNOWN]   " + text + info);
             	tiii.setBackground(red);
         	} else if (k == IProverResult.INFEASIBLE) {
         		tiii.setText("[INFEASIBLE] " + text + info);

@@ -99,9 +99,9 @@ public class Options {
 	/** RAC option which says to use Java asserts when compiling assertions */
 	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
 	/** RAC option which skips checking Java features such as Null Pointer Exceptions, letting Java issue its own exception */
-	final static public String racNoCheckJavaFeatures = prefix + "racNoCheckJavaFeatures"; //$NON-NLS-1$
+	final static public String racCheckJavaFeatures = prefix + "racCheckJavaFeatures"; //$NON-NLS-1$
 	/** RAC option which disables checking assumptions */
-	final static public String racNoCheckAssumptions = prefix + "racNoCheckAssumptions"; //$NON-NLS-1$
+	final static public String racCheckAssumptions = prefix + "racCheckAssumptions"; //$NON-NLS-1$
 	/** RAC option which disables including source code in compiled-in error messages */
 	final static public String racNoShowSource = prefix + "racNoShowSource"; //$NON-NLS-1$
 

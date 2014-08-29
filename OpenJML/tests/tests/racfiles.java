@@ -294,13 +294,29 @@ public class racfiles extends RacBase {
     @Test
     public void racSokoban() {
         expectedExit = 0;
+        expectedRACExit = 1;
         helpTCF("testfiles/sokoban","testfiles/sokoban","Game","-cp","testfiles/sokoban");
     }
 
     @Test
     public void racSokoban2() {
         expectedExit = 0;
+        expectedRACExit = 1;
         helpTCF("testfiles/sokoban2/src","testfiles/sokoban2/src","Game","-cp","testfiles/sokoban2/src","-progress");
+    }
+
+    @Test
+    public void racSokoban3() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpTCF("testfiles/sokoban3/src","testfiles/sokoban3/src","Game","-cp","testfiles/sokoban3/src","-progress");
+    }
+
+    @Test
+    public void racSokoban3Bug() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpTCF("testfiles/sokoban3/src","testfiles/sokoban3/src","Game","-cp","testfiles/sokoban3/src","-progress","-racJavaChecks");
     }
 
 

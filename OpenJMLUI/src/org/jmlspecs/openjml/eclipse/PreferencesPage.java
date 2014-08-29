@@ -220,9 +220,9 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.compileToJavaAssert, Messages.OpenJMLUI_PreferencesPage_CompileToJavaAssert,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.racNoCheckJavaFeatures, Messages.OpenJMLUI_PreferencesPage_racNoCheckJavaFeatures,
+        addField(new BooleanFieldEditor(Options.racCheckJavaFeatures, Messages.OpenJMLUI_PreferencesPage_racCheckJavaFeatures,
                 getFieldEditorParent()));
-        addField(new BooleanFieldEditor(Options.racNoCheckAssumptions, Messages.OpenJMLUI_PreferencesPage_racNoCheckAssumptions,
+        addField(new BooleanFieldEditor(Options.racCheckAssumptions, Messages.OpenJMLUI_PreferencesPage_racCheckAssumptions,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.racNoShowSource, Messages.OpenJMLUI_PreferencesPage_racNoShowSource,
                 getFieldEditorParent()));

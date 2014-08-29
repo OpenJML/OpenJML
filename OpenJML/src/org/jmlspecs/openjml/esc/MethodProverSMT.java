@@ -208,7 +208,7 @@ public class MethodProverSMT {
         JmlMethodDecl translatedMethod = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);
         if (translatedMethod == null) {
             log.warning("jml.internal","No translated method for " + utils.qualifiedMethodSig(methodDecl.sym));
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
         }
         JCBlock newblock = translatedMethod.getBody();
         if (newblock == null) {
@@ -386,6 +386,7 @@ public class MethodProverSMT {
                                 String msg = ": ";
                                 if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
                                 log.warning(methodDecl,"esc.nomodel",msg + r);
+                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
                                 break b;
                             }
                         } else if (r instanceof IResponse.IAttributeList) {
@@ -396,7 +397,14 @@ public class MethodProverSMT {
                             } else {
                                 String msg = "Aborted proof: " + smt.smtConfig.defaultPrinter.toString(value);
                                 r = smt.smtConfig.responseFactory.error(msg);
-                                log.warning(methodDecl,"esc.nomodel",": " + msg);
+                                boolean timeout = msg.contains("timeout");
+                                if (timeout) {
+                                	log.warning(methodDecl,"esc.resourceout",": " + msg);
+                                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
+                                } else {
+                                	log.warning(methodDecl,"esc.nomodel",": " + msg);
+                                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                                }
                                 break b;
                             }
                         } else {
@@ -816,19 +824,23 @@ public class MethodProverSMT {
     
     /** Query the solver for the (int) value of an id in the current model */
     public int getIntValue(String id, SMT smt, ISolver solver) {
-        return Integer.parseInt(getValue(id,smt,solver));
+        return Integer.parseInt(getValue(id,smt,solver,true));
+    }
+
+    public String getValue(String id, SMT smt, ISolver solver) {
+    	return getValue(id,smt,solver,true);
     }
 
     /** Query the solver for any type of value of an id in the current model */
-    public String getValue(String id, SMT smt, ISolver solver) {
+    public String getValue(String id, SMT smt, ISolver solver, boolean report) {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(id);
         IResponse resp = solver.get_value(s);
         String out;
         if (resp instanceof IResponse.IError) {
-            log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg()); //$NON-NLS-1$
+            if (report) log.error("jml.internal.notsobad", ((IResponse.IError)resp).errorMsg()); //$NON-NLS-1$
             return null;
         } else if (resp == null) {
-            log.error("jml.internal.notsobad", "Could not find value of assertion: " + id); //$NON-NLS-1$
+            if (report) log.error("jml.internal.notsobad", "Could not find value of assertion: " + id); //$NON-NLS-1$
             return null;
         } else if (resp instanceof org.smtlib.sexpr.ISexpr.ISeq){
             org.smtlib.sexpr.ISexpr se = ((org.smtlib.sexpr.ISexpr.ISeq)resp).sexprs().get(0);
@@ -931,7 +943,10 @@ public class MethodProverSMT {
                         String expr = that.toString();
                         String sv = cemap.get(that);
                         if (sv == null && that instanceof JCIdent) {
-                            sv = getValue(expr,smt,solver);
+                            sv = getValue(expr,smt,solver,false); // Fail softly
+                            if (sv == null) {
+                            	Utils.print(null);
+                            }
                         }
                         String userString = normalizeConstant(sv);
                         if (that.type.tag == TypeTags.BOOLEAN) { 
