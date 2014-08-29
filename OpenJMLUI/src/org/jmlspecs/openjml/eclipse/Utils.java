@@ -2849,6 +2849,7 @@ public class Utils {
 		Job job = new Job("Clean") { //$NON-NLS-1$
 			public IStatus run(IProgressMonitor monitor) {
 				try {
+					// FIXME - should we be using the preferences or the option?
 					String racbin = Activator.utils().getRacDir();
 					IResource rf = project.findMember(Options.value(Options.racbinKey));
 					if (rf instanceof IFolder) {
@@ -2879,6 +2880,13 @@ public class Utils {
 		IPath p = new Path(envname);
 		IClasspathEntry libe = JavaCore.newVariableEntry(p,null,null);
 		return libe;
+	}
+	
+	/** Returns the value set against the runtime library classpath entry */
+	public String fetchRuntimeLibEntry() {
+        IPath p = JavaCore.getResolvedVariablePath(new Path(ClasspathVariableInitializer.OPENJML_RUNTIME_LIBRARY));
+        String runtime = p == null ? null : p.toString();
+        return runtime;
 	}
 	
 	public int countMethods(IJavaProject jp) throws Exception {

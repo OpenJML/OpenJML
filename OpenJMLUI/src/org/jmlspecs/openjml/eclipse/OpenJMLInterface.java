@@ -1213,7 +1213,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         // here by the plugin, so openjml itself never adds it
         opts.add("-no"+JmlOption.INTERNALRUNTIME.optionName());
         if (!Options.isOption(Options.noInternalRuntimeKey)) {
-        	String runtime = utils.makeRuntimeLibEntry().getPath().toString();
+        	String runtime = utils.fetchRuntimeLibEntry();
         	if (runtime != null) {
         		ss.append(File.pathSeparator);
         		ss.append(runtime);
