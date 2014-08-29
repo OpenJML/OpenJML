@@ -9567,6 +9567,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
             m.specsDecl = that.specsDecl; // FIXME - needs new reference
             if (classDefs != null) classDefs.add(m); // classDefs can be null if  JmlEsc.check is called directly on a JCMethodDecl
+
+            // FIXME - not working yet
+//            if (rac && that.sym.isStatic() && that.name.toString().equals("main")) { // FIXME - check the arguments?
+//                Name n = names.fromString("_JML_racE");
+//                ClassSymbol sym = attr.createClass("java.lang.NoClassDefFoundError");
+//                JCVariableDecl decl = treeutils.makeVarDef(sym.type, n, that.sym, that.pos);
+//                // decl.type = 
+//                JCExpression msg = treeutils.makeStringLiteral(that.pos, "Executable is compiled with RAC, but the classpath is missing the jmlruntime.jar");
+//                JCExpression ty = M.at(that).Type(syms.runtimeExceptionType);
+//                JCExpression newex = M.at(that).NewClass(null, List.<JCExpression>nil(), ty, List.<JCExpression>of(msg), null);
+//                JCThrow th = M.at(that).Throw(newex);
+//                JCBlock bl = M.at(that).Block(0L, List.<JCStatement>of(th));
+//                JCCatch catcher = M.at(that).Catch(decl,bl);
+//                JCTry tr = M.at(that).Try(m.body, List.<JCCatch>of(catcher), null);
+//                m.body = M.at(that).Block(0L, List.<JCStatement>of(tr));
+//            }
+
             result = m;
             methodBiMap.put(that,m);
         } catch (JmlNotImplementedException e) {
@@ -9575,6 +9592,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             translatingJML = saved;
         }
+        
     }
 
 
