@@ -389,22 +389,6 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void escSokoban() {
-        helpTCF("testfiles/sokoban/Game.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
-        //helpTF("sokoban","-progress");
-    }
-
-    @Test
-    public void escSokoban2() {
-        helpTF("sokoban2/src","-progress","-timeout=90"); //,"-subexpressions","-show");
-    }
-
-    @Test
-    public void escSokoban3() {
-        helpTF("sokoban3/src","-progress","-timeout=90"); //,"-subexpressions","-show");
-    }
-
-    @Test
     public void escAssignableBug() {
         helpTF("escAssignableBug","-progress");
     }

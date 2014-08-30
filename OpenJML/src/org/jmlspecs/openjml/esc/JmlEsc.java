@@ -235,11 +235,10 @@ public class JmlEsc extends JmlTreeScanner {
         
         utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                 + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
-                + (res.result() == IProverResult.ERROR ? " - failed"
-                   : res.result() == IProverResult.SKIPPED ? " - skipped"
-                   : res.result() == IProverResult.INFEASIBLE ? " - inconsistent"
-                   : res.isSat() ? " - with warnings" 
-                   :               " - no warnings")
+                + " - "
+                + (  res.isSat() ? "with warnings" 
+                   : res.result() == IProverResult.UNSAT ? "no warnings"
+                           : res.result().toString())
                 );
         //proverResults.put(methodDecl.sym,res);
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);

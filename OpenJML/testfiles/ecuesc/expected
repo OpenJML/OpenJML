@@ -4,18 +4,18 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of LookupScale.LookupScale(int[]) with prover !!!! - no warnings
 Starting proof of LookupScale.LookupScale(int,int,int) with prover !!!!
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:18: warning: Validity is unknown - no model available  (possible timeout): (error "line 545 column 18: model is not available")
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:18: warning: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
 	LookupScale(int min, int max, int size) {
 	^
-Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - with warnings
+Completed proof of LookupScale.LookupScale(int,int,int) with prover !!!! - TIMEOUT
 Starting proof of LookupScale.lookupValue(SensorValue) with prover !!!!
 ..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:64: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method lookupValue
 		fracPart = (v - this.values[intPart]) * 100 / (this.values[intPart+1] - this.values[intPart]);
 		                                            ^
-..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - no model available  (possible timeout): (error "line 2287 column 18: model is not available")
+..\OpenJMLDemo\src\openjml\ecudemo\LookupScale.java:39: warning: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
 	public /*@ pure @*/ ScaleIndex lookupValue(SensorValue sv) {
 	                               ^
-Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - with warnings
+Completed proof of LookupScale.lookupValue(SensorValue) with prover !!!! - TIMEOUT
 Completed proving methods in LookupScale
 Proving methods in SensorValue
 Starting proof of SensorValue.SensorValue(int,int,int) with prover !!!!

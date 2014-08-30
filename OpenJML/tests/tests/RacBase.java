@@ -3,12 +3,19 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
+import org.junit.Before;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -57,6 +64,7 @@ public abstract class RacBase extends JmlTestCase {
      * <BR>expectedErrors - the expected number of errors from openjml (typically and by default 0)
      */
     @Override
+    @Before
     public void setUp() throws Exception {
         //System.out.println("Using " + jdk);
         
@@ -97,41 +105,24 @@ public abstract class RacBase extends JmlTestCase {
         specs = null;
     }
 
-//    public void helpFailure(String failureMessage, String s, Object ... list) {
-//        noExtraPrinting = true;
-//        boolean failed = false;
-//        try {
-//            helpTC(s,list);
-//        } catch (AssertionFailedError a) {
-//            failed = true;
-//            assertEquals("Failure report wrong",failureMessage,a.getMessage());
-//        }
-//        if (!failed) fail("Test Harness failed to report an error");
-//    }
-
-//    public void helpTC(String s, Object ... list) {
-//        helpTCX(null,s,list);
-//    }
-//
-//    public void helpTCF(String filename,String s, Object ... list) {
-//        helpTCX(filename,s,list);
-//    }
     
-    /** This method does the running of a RAC test.  No output is
+    /** This method does the running of a RAC test for tests that supply with body
+     * of a file as a String.
+     * No output is
      * expected from running openjml to produce the RACed program;
      * the number of expected diagnostics is set by 'expectedErrors'.
      * @param classname The fully-qualified classname for the test class
-     * @param s the compilation unit text
+     * @param compilationUnitText the compilation unit text which will be put in a mock file
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCX(String classname, String s, Object... list) {
+    public void helpTCX(String classname, String compilationUnitText, Object... list) {
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,compilationUnitText);
             files.append(f);
             for (JavaFileObject ff: mockFiles) {
                 if (ff.toString().endsWith(".java")) files.append(ff);
@@ -241,6 +232,99 @@ public abstract class RacBase extends JmlTestCase {
 //                }
         }
     }
+    
+    // The following is for tests based on files
+
+    boolean runrac = true;
+    
+    /** The command-line to use to run RACed programs - note the inclusion of the
+     * RAC-compiled JDK library classes ahead of the regular Java libaray classes
+     * in the boot class path. (This may not work on all platforms)
+     */
+    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
+    
+    /** Call this as a setup routine, followed by RacBase.setUp for file based tests */
+    public void setUpForFiles() throws Exception {
+        rac = sysrac;
+        jdkrac = true;
+        runrac = true;
+    }
 
 
+    /** This method does the running of a RAC test that is based in an external file.  No output is
+     * expected from running openjml to produce the RACed program;
+     * the number of expected diagnostics is set by 'expectedErrors'.
+     * @param dirname The directory containing the test sources, a relative path
+     * from the project folder
+     * @param classname The fully-qualified classname for the test class (where main is)
+     * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
+     */
+    public void helpTCF(String dirname, String outputdir, String classname, String ... opts) {
+        boolean print = false;
+        StreamGobbler out=null,err=null;
+        try {
+            String actCompile = outputdir + "/actual-compile";
+            String actRun = outputdir + "/actual-run";
+            new File(outputdir).mkdirs();
+            new File(actCompile).delete();
+            new File(actRun).delete();
+            List<String> args = new LinkedList<String>();
+            args.add("-rac");
+            args.add("-d");
+            args.add("testdata");
+            args.add("-no-purityCheck");
+            args.add("-code-math=java");
+            if (new File(dirname).isDirectory()) args.add("-dir");
+            args.add(dirname);
+            args.addAll(Arrays.asList(opts));
+            
+            PrintWriter pw = new PrintWriter(actCompile);
+            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+            pw.close();
+            
+            String compdiffs = compareFiles(outputdir + "/expected-compile", actCompile);
+            if (compdiffs != null) {
+                System.out.println(compdiffs);
+//                fail("Files differ: " + compdiffs);
+            } else {
+                new File(actCompile).delete();
+            }
+            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+
+            if (runrac) {
+                if (rac == null) rac = defrac;
+                rac[rac.length-1] = classname;
+                Process p = Runtime.getRuntime().exec(rac);
+
+                out = new StreamGobbler(p.getInputStream());
+                err = new StreamGobbler(p.getErrorStream());
+                out.start();
+                err.start();
+                if (timeout(p,10000)) { // 10 second timeout
+                    fail("Process did not complete within the timeout period");
+                }
+                ex = p.exitValue();
+                String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
+                if (print) System.out.println(output);
+                String diffs = compareText(outputdir + "/expected-run",output);
+                if (diffs != null) {
+                    BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
+                    b.write(output);
+                    b.close();
+                    System.out.println(diffs);
+                    fail("Unexpected output: " + diffs);
+                }
+                if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
+            }
+            if (compdiffs != null) fail("Files differ: " + compdiffs);
+
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            fail("Exception thrown while processing test: " + e);
+        } catch (AssertionError e) {
+            throw e;
+        } finally {
+            // Should close open objects
+        }
+    }
 }

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 /** These tests check running RAC on files in the file system, comparing the
@@ -29,98 +30,14 @@ import org.junit.Test;
 
 public class racfiles extends RacBase {
 
-    boolean runrac = true;
-    
-    /** The command-line to use to run RACed programs - note the inclusion of the
-     * RAC-compiled JDK library classes ahead of the regular Java libaray classes
-     * in the boot class path. (This may not work on all platforms)
-     */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"bin-runtime"+z+"testdata",null};
-
     @Override
+    @Before
     public void setUp() throws Exception {
-        rac = sysrac;
-        jdkrac = true;
-        runrac = true;
+        setUpForFiles();
         super.setUp();
     }
 
-    /** This method does the running of a RAC test.  No output is
-     * expected from running openjml to produce the RACed program;
-     * the number of expected diagnostics is set by 'expectedErrors'.
-     * @param dirname The directory containing the test sources, a relative path
-     * from the project folder
-     * @param classname The fully-qualified classname for the test class (where main is)
-     * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
-     */
-    public void helpTCF(String dirname, String outputdir, String classname, String ... opts) {
-        boolean print = false;
-        StreamGobbler out=null,err=null;
-        try {
-            String actCompile = outputdir + "/actual-compile";
-            String actRun = outputdir + "/actual-run";
-            new File(outputdir).mkdirs();
-            new File(actCompile).delete();
-            new File(actRun).delete();
-            List<String> args = new LinkedList<String>();
-            args.add("-rac");
-            args.add("-d");
-            args.add("testdata");
-            args.add("-no-purityCheck");
-            args.add("-code-math=java");
-            if (new File(dirname).isDirectory()) args.add("-dir");
-            args.add(dirname);
-            args.addAll(Arrays.asList(opts));
-            
-            PrintWriter pw = new PrintWriter(actCompile);
-            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-            pw.close();
-            
-            String compdiffs = compareFiles(outputdir + "/expected-compile", actCompile);
-            if (compdiffs != null) {
-                System.out.println(compdiffs);
-//                fail("Files differ: " + compdiffs);
-            } else {
-                new File(actCompile).delete();
-            }
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
-            if (runrac) {
-                if (rac == null) rac = defrac;
-                rac[rac.length-1] = classname;
-                Process p = Runtime.getRuntime().exec(rac);
-
-                out = new StreamGobbler(p.getInputStream());
-                err = new StreamGobbler(p.getErrorStream());
-                out.start();
-                err.start();
-                if (timeout(p,10000)) { // 10 second timeout
-                    fail("Process did not complete within the timeout period");
-                }
-                ex = p.exitValue();
-                String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
-                if (print) System.out.println(output);
-                String diffs = compareText(outputdir + "/expected-run",output);
-                if (diffs != null) {
-                    BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
-                    b.write(output);
-                    b.close();
-                    System.out.println(diffs);
-                    fail("Unexpected output: " + diffs);
-                }
-                if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
-            }
-            if (compdiffs != null) fail("Files differ: " + compdiffs);
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            throw e;
-        } finally {
-            // Should close open objects
-        }
-    }
 
 
     /** Testing without using system specs */
@@ -290,34 +207,5 @@ public class racfiles extends RacBase {
         runrac = false;
         helpTCF("testfiles/racold","testfiles/racold","ArrayExample");
     }
-
-    @Test
-    public void racSokoban() {
-        expectedExit = 0;
-        expectedRACExit = 1;
-        helpTCF("testfiles/sokoban","testfiles/sokoban","Game","-cp","testfiles/sokoban");
-    }
-
-    @Test
-    public void racSokoban2() {
-        expectedExit = 0;
-        expectedRACExit = 1;
-        helpTCF("testfiles/sokoban2/src","testfiles/sokoban2/src","Game","-cp","testfiles/sokoban2/src","-progress");
-    }
-
-    @Test
-    public void racSokoban3() {
-        expectedExit = 0;
-        expectedRACExit = 1;
-        helpTCF("testfiles/sokoban3/src","testfiles/sokoban3/src","Game","-cp","testfiles/sokoban3/src","-progress");
-    }
-
-    @Test
-    public void racSokoban3Bug() {
-        expectedExit = 0;
-        expectedRACExit = 1;
-        helpTCF("testfiles/sokoban3/src","testfiles/sokoban3/src","Game","-cp","testfiles/sokoban3/src","-progress","-racJavaChecks");
-    }
-
 
 }

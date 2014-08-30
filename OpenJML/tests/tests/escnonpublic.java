@@ -33,6 +33,8 @@ import org.junit.runners.Parameterized;
 
 @RunWith(ParameterizedIgnorable.class)
 public class escnonpublic extends EscBase {
+    
+    String dir = "../OpenJMLDemoNonPublic/";
 
     boolean enableSubexpressions = false;
     
@@ -43,9 +45,8 @@ public class escnonpublic extends EscBase {
     /** This method does the running of a RAC test.  No output is
      * expected from running openjml to produce the RACed program;
      * the number of expected diagnostics is set by 'expectedErrors'.
-     * @param dirname The directory containing the test sources, a relative path
-     * from the project folder
-     * @param classname The fully-qualified classname for the test class (where main is)
+     * @param sourceDirname The directory or file containing the subject material
+     * @param outDir the directory in which to write the results (actual files)
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
@@ -55,11 +56,15 @@ public class escnonpublic extends EscBase {
             String actCompile = outDir + "/actual";
             new File(actCompile).delete();
             List<String> args = new LinkedList<String>();
+            File source = new File(sourceDirname);
+            args.add("-cp");
+            if (source.isDirectory()) args.add(sourceDirname);
+            else args.add(source.getParent());
             args.add("-esc");
             args.add("-jmltesting");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
-            if (new File(sourceDirname).isDirectory()) args.add("-dir");
+            if (source.isDirectory()) args.add("-dir");
             args.add(sourceDirname);
             if (solver != null) args.add("-prover="+solver);
             if (option != null) {
@@ -101,24 +106,42 @@ public class escnonpublic extends EscBase {
     @Test
     public void testEscStaticModel() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/nonpublic/escStaticModel","testfiles/escStaticModel","-progress");
+        helpTCF(dir + "src/escStaticModel",dir + "src/escStaticModel","-progress");
     }
 
     @Test
     public void testDMZ() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/nonpublic/dmz","testfiles/dmz","-progress");
+        helpTCF(dir + "src/dmz",dir + "src/dmz","-progress","-method=Cash","-show");
     }
 
     @Test
     public void testDMZ2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/nonpublic/dmz2","testfiles/dmz2","-progress");
+        helpTCF(dir + "src/dmz2",dir + "src/dmz2","-progress");
     }
 
     @Test
     public void testDMZ3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/nonpublic/dmz3","testfiles/dmz3","-progress");
+        helpTCF(dir + "src/dmz3",dir + "src/dmz3","-progress");
     }
+    
+    @Test
+    public void escSokoban() { // FIXME
+        //helpTCF("../../OpenJMLDemoNonPublic/src/sokoban/Game.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
+        helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-progress","-timeout=90");
+    }
+
+    @Test
+    public void escSokoban2() {
+        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+    }
+
+    @Test
+    public void escSokoban3() {
+        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+    }
+
+
 }
