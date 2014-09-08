@@ -2314,9 +2314,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void addRecInvariants(boolean assume, JCVariableDecl d, JCExpression currentThis) {
+        JCExpression saved = currentThisExpr;
+        currentThisExpr = currentThis;
         for (ClassSymbol csym: utils.parents(d.type.tsym)) {
+            if (esc) addNullnessAndTypeConditionsForFields(csym,false);
             addInvariants(assume,d,csym,currentThis);
         }
+        currentThisExpr = saved;
     }
     
     protected void addInvariants(boolean assume, JCVariableDecl d, ClassSymbol csym, JCExpression currentThis) {
@@ -2783,26 +2787,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
 
-        if (esc) { // FIXME - what about inherited fields? fields of parameters? fields of anything else?
+        // FIXME - include for rac also?
+        if (esc) {
+            // Add nullness andtype conditions for fields and inherited fields
             addStat(comment(methodDecl,"Assume field type, allocation, and nullness",null));
-            for (ClassSymbol csym: utils.parents(classDecl.sym)) {
-                // For Java fields
-                for (Symbol sy: csym.members().getElements()) {
-                    if (!(sy instanceof VarSymbol)) continue;
-                    // FIXME - should have a DiagnosticPosition for the actual declaration
-                    addNullnessAllocationTypeCondition(methodDecl,sy, isConstructor && !utils.isJMLStatic(sy));
-                }
-//                // For JML fields
-//                for (JCTree dd: classDecl.typeSpecs.clauses) {
-//                    if (!(dd instanceof JmlTypeClauseDecl)) continue;
-//                    JCTree t = ((JmlTypeClauseDecl)dd).decl;
-//                    if (!(t instanceof JCVariableDecl)) continue;
-//                    JCVariableDecl d = (JCVariableDecl)t;
-//                    if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
-//                    if (isConstructor && !utils.isJMLStatic(d.sym)) continue;
-//                    addNullnessAllocationTypeCondition(d,isConstructor && !utils.isJMLStatic(d.sym));
-//                }
-            }
+            addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, isConstructor);
+
             // For the parameters of the method
             addStat(comment(methodDecl,"Assume parameter type, allocation, and nullness",null));
             boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
@@ -2883,7 +2873,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression receiver = utils.isJMLStatic(methodDecl.sym) ? null : currentThisExpr;
         
         // Assuming  invariants
-        addInvariants(methodDecl,owner.type,receiver,preStats,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),false,true,Label.INVARIANT_ENTRANCE,
+        addInvariants(methodDecl,owner.type,receiver,currentStatements,true,methodDecl.sym.isConstructor(),false,isHelper(methodDecl.sym),false,true,Label.INVARIANT_ENTRANCE,
                 utils.qualifiedMethodSig(methodDecl.sym) );
         // Assume invariants for the class of each parameter
         for (JCVariableDecl v: methodDecl.params) {
@@ -2895,8 +2885,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         treeutils.makeNeqObject(v.pos, id, currentThisExpr));
             }
             JCIdent id = treeutils.makeIdent(v.pos,d.sym);
-            preStats.add(comment(v,"Adding invariants for " + v.sym,null));
-            addInvariants(v,v.type,id,preStats,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
+            addStat(comment(v,"Adding invariants for " + v.sym,null));
+            addInvariants(v,v.type,id,currentStatements,true,false,false,false,false,true,Label.INVARIANT_ENTRANCE,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
         }
 
@@ -2932,7 +2922,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         savedThis = currentThisExpr;
         currentThisExpr = savedThis;
         JCExpression combinedPrecondition = null;
-        preStats.add( comment(methodDecl,"Assume Preconditions",null));
+        addStat( comment(methodDecl,"Assume Preconditions",null));
         
         // Iterate over all methods that methodDecl overrides, collecting specs
         boolean sawSomeSpecs = false;
@@ -2966,7 +2956,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (msym != methodDecl.sym && scase.code) continue;
                 JCIdent preident = null;
                 JCExpression preexpr = null;
-                currentStatements = preStats;
                 for (JmlMethodClause clause : scase.clauses) {
                     switch (clause.token) {
                         case OLD:
@@ -3021,12 +3010,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // If combinedPrecondition is null then there were no specs, so the implicit precondition is true and does not
         // need to be checked
         if (combinedPrecondition != null) {
-            currentStatements = preStats;
             // FIXME - associated location? where?
             addAssume(combinedPrecondition,Label.PRECONDITION,combinedPrecondition);
         }
         
-        currentStatements = savedCurrentStatements;
         if (rac) {
             Name n;
             JCVariableDecl vd;
@@ -3057,9 +3044,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(comment(methodDecl,"End of pre-state",null));
             JCBlock bl = M.Block(0L, List.<JCStatement>nil());
             JCStatement st = M.Labelled(null, bl);
-            addStat(st);
+            addStat(initialStats,st);
         }
         heapCount = savedheapcount;
+        currentStatements = savedCurrentStatements;
+    }
+    
+    protected void addNullnessAndTypeConditionsForInheritedFields(TypeSymbol sym, boolean beingConstructed) {
+        for (ClassSymbol csym: utils.parents(sym)) {
+            addNullnessAndTypeConditionsForFields(csym,beingConstructed);
+        }
+    }
+    
+    protected void addNullnessAndTypeConditionsForFields(TypeSymbol csym, boolean beingConstructed) {
+            // For Java fields
+            for (Symbol sy: csym.members().getElements()) {
+                if (!(sy instanceof VarSymbol)) continue;
+                // FIXME - should have a DiagnosticPosition for the actual declaration
+                addNullnessAllocationTypeCondition(methodDecl, sy, beingConstructed && !utils.isJMLStatic(sy));
+            }
+//            // For JML fields
+//            for (JCTree dd: classDecl.typeSpecs.clauses) {
+//                if (!(dd instanceof JmlTypeClauseDecl)) continue;
+//                JCTree t = ((JmlTypeClauseDecl)dd).decl;
+//                if (!(t instanceof JCVariableDecl)) continue;
+//                JCVariableDecl d = (JCVariableDecl)t;
+//                if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
+//                if (isConstructor && !utils.isJMLStatic(d.sym)) continue;
+//                addNullnessAllocationTypeCondition(d,isConstructor && !utils.isJMLStatic(d.sym));
+//            }
+
     }
     
     protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
@@ -4499,6 +4513,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (Symbol s: utils.listJmlVisibleFields(pfa.selected.type.tsym, methodDecl.mods.flags&Flags.AccessFlags, treeutils.isATypeTree(pfa.selected))) {
                     JCExpression newpfa = M.at(pfa.pos).Select(pfa.selected, s);
                     or = treeutils.makeOr(pfa.pos, or, accessAllowed(fa,newpfa,baseThisSym,targetThisSym));
+//                    if (s != fa.sym) continue;
+//                    if (fa.sym.isStatic()) {
+//                        // If it is the same symbol and is static, then it is definitely the same storeref
+//                        or = treeutils.trueLit;
+//                    } else {
+//                        or = treeutils.makeOrSimp(pfa.pos, or, treeutils.makeEqObject(pfa.pos, convertJML(fa.selected), pfa.selected));
+//                    }
                 }
                 return or;
                 //log.error(pstoreref, "jml.internal", "A field wildcard expression should not be present here");
