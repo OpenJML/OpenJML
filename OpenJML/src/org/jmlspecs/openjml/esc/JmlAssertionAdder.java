@@ -4462,7 +4462,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (rac) idthis = convertJML(idthis);
             JCExpression result = treeutils.makeEqObject(posp, idthis, 
                      convertJML(fa.selected));
-
             return result; 
 
         } else if (pfac instanceof JCFieldAccess) {
