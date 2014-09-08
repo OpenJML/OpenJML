@@ -31,6 +31,7 @@ public class racreadable extends RacBase {
 
     @Test
     public void testReadable() {
+        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"

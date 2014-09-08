@@ -347,7 +347,7 @@ public class MethodProverSMT {
                         utils.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
                                 (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
                         if (solverResponse.equals(unsatResponse)) {
-                            if (JmlAssertionAdder.preconditionAssumeCheckDescription.equals(description)) {
+                            if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
@@ -378,40 +378,54 @@ public class MethodProverSMT {
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                     }
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
-                        IResponse r = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
-                        if (r.equals(smt.smtConfig.responseFactory.unsupported())) {
-                                // Instead, try to get a simple value and see if there is a model
-                            r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
-                            if (r.isError()) {
-                                String msg = ": ";
-                                if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
-                                log.warning(methodDecl,"esc.nomodel",msg + r);
-                                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
-                                break b;
-                            }
-                        } else if (r instanceof IResponse.IAttributeList) {
-                            IResponse.IAttributeList attrList = (IResponse.IAttributeList)r;
+                        IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
+                        if (unknownReason.equals(smt.smtConfig.responseFactory.unsupported())) {
+                            // continue
+                        } else if (unknownReason instanceof IResponse.IAttributeList) {
+                            IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                             IExpr.IAttributeValue value = attrList.attributes().get(0).attrValue();
                             if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
                                 // continue on
+                            } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
+                                    // continue on
                             } else {
                                 String msg = "Aborted proof: " + smt.smtConfig.defaultPrinter.toString(value);
-                                r = smt.smtConfig.responseFactory.error(msg);
+                                unknownReason = smt.smtConfig.responseFactory.error(msg);
                                 boolean timeout = msg.contains("timeout");
                                 if (timeout) {
                                 	log.warning(methodDecl,"esc.resourceout",": " + msg);
                                     proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
-                                } else {
-                                	log.warning(methodDecl,"esc.nomodel",": " + msg);
-                                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                                    break b;
                                 }
-                                break b;
                             }
                         } else {
                             // Unexpected result
-                            System.out.println(r);
+                            log.error("jml.internal.notsobad","Unexpected result when querying SMT solver for reason for an unknown result: " + unknownReason);
+                            break b;
                         }
+                        
+                        // Instead, try to get a simple value and see if there is a model
+                        IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                        if (r.isError()) {
+                            String msg = ": ";
+                            if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                            log.warning(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
+                            proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                            break b;
+                        }
+
                     }
+                    
+                    // If we don't clearly know the prover failed, we try to get a simple value and see if there is a model
+                    IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                    if (r.isError()) {
+                        String msg = ": ";
+                        if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                        log.warning(methodDecl,"esc.nomodel",msg + r);
+                        proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
+                        break b;
+                    }
+
 
                     if (print) log.noticeWriter.println("Some assertion is not valid");
 
@@ -583,7 +597,7 @@ public class MethodProverSMT {
             // FIXME - error and what to do ?
             return null;
         }
-        if (utils.jmlverbose >= Utils.JMLVERBOSE && JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE)) {
+        if (utils.jmlverbose >= Utils.JMLVERBOSE && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
             tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
         }
         if (value) {

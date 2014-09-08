@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.TreeVisitor;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 
 /**
  * This is an interface for visitors for JML ASTs, with parameters and return 
@@ -22,6 +23,10 @@ import com.sun.source.tree.TreeVisitor;
 // TODO - TreeVisitor takes arguments that are interfaces, not specific node
 // classes.  JmlTreeVisitor should be modified to that model as well.
 public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
+    
+    // TODO - the following ought to be in TreeVisitor, but JDK did 
+    // not include it.
+    R visitLetExpr(LetExpr that, P p)                         ;
 
     R visitJmlBinary(JmlBinary that, P p)                     ;
     R visitJmlChoose(JmlChoose that, P p)                     ;

@@ -490,7 +490,9 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return a Log instance to use
      */
     static protected Log uninitializedLog() {
-        Context context = new Context(); // This is a temporary context just for this error message.
+        Context context = new Context(); 
+        // This is a temporary context just for logging error messages when
+        // overall initialization fails.
         // It is not the one used for the options and compilation
         JavacMessages.instance(context).add(Strings.messagesJML);
         return Log.instance(context);
@@ -895,6 +897,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tool registration.
         // registering an additional source of JML-specific error messages
         JavacMessages.instance(context).add(Strings.messagesJML); 
+        
         // These register JML versions of the various tools.  These essentially
         // register factories: no actual instances are created until 
         // instance(context) is called on the particular tool.  Creating instances

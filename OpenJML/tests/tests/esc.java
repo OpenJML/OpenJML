@@ -4380,6 +4380,42 @@ public class esc extends EscBase {
                 +"}"
                 );
     }
+    
+    @Test
+    public void testMethodAxioms() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                +"  //@ normal_behavior \n"
+                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
+                +"  //@ pure\n"
+                +"  //@ model public boolean m(int i);\n"
+                
+                +"  public void mm() {\n"
+                +"  //@ assert (\\forall int k; 3<k && k <7; m(k));\n"
+                +"  //@ assert (\\forall int k; 3<k && k <7; m(k-1));\n"
+                +"  //@ assert !(\\forall int k; -3<k && k <7; m(k));\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+
+    
+    @Test
+    public void testMethodAxioms2() { // FIXME - for some reason the solvers don't like this variation
+        main.addOptions("-method=mm","show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava  { \n"
+                +"  //@ normal_behavior \n"
+                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
+                +"  //@ pure\n"
+                +"  //@ model public boolean m(int i);\n"
+                
+                +"  public void mm() {\n"
+                +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"
+                +"  }\n"
+                +"}"
+                );
+    }
 
     
 }

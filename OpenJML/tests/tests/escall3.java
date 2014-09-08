@@ -906,6 +906,42 @@ public class escall3 extends EscBase {
                 +"      a[0] = 9;\n"
                 +"  }\n"
                 
+                +"  public void m2(Integer[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m3(Integer[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(Integer);\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m4bad(Integer[] a, Object i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                );
+    }
+
+    @Test public void testArrayType1Bug() { // TODO: CVC4 takes 147 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int[] a) {\n"
+                +"      //@ assume a != null && a.length > 1;\n"
+                +"      a[0] = 9;\n"
+                +"  }\n"
+                
                 +"  public void m2bad(String[] a, Integer i) {\n"
                 +"      //@ assume a != null && a.length > 1 && i != null;\n"
                 +"      Object[] o = a;\n"
@@ -938,7 +974,7 @@ public class escall3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void m3a(String[] a, String i) {\n"
+                +"  public void m3a(Integer[] a, Integer i) {\n"
                 +"      //@ assume a != null && a.length > 1 && i != null;\n"
                 +"      Object[] o = a;\n"
                 +"      o[0] = i;\n"
@@ -965,6 +1001,23 @@ public class escall3 extends EscBase {
                 );
     }
     
+    @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m3a(String[] a, String i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                );
+    }
+    
     
     @Test public void testMethodWithConstructorNameFixed() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -982,14 +1035,18 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testMethodWithConstructorName() {
+    @Test public void testMethodWithConstructorNameOK() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public byte[] b;\n"
                 +"  //@ public invariant b != null && b.length == 20;\n"
-                
-                // The following method - not constructor - not the return type
+
+                +"  public TestJava(int i) {\n"
+                +"      b = new byte[20];\n"
+                +"  }\n"
+
+                // The following method - not constructor - note the return type
                 // appears to be legal Java
                 +"  public void TestJava(int i) {\n"
                 +"      b = new byte[20];\n"
@@ -997,8 +1054,54 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+                );
+    }
+    
+    @Test public void testMethodWithConstructorName() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public byte[] b;\n"
+                +"  //@ public invariant b != null && b.length == 20;\n"
+
+                +"  public TestJava() {\n"
+                +"  }\n"
+
+                // The following method - not constructor - note the return type
+                // appears to be legal Java
+                +"  public void TestJava(int i) {\n"
+                +"  }\n"
+                
+                
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                );
+    }
+    
+    @Test public void testMethodWithConstructorNameBug() {
+        main.addOptions("-no-internalSpecs");
+        // If there are no internal specs, then the implicit super() call of the
+        // Object() constructor may throw an exception. Then TestJava() would
+        // terminate exceptionally - and the invariant would not be established in
+        // that case either. With internal Specs, Object() is pure and has 
+        // only normal termination.
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public byte[] b;\n"
+                +"  //@ public invariant b != null && b.length == 20;\n"
+
+                +"  public TestJava() {\n"
+                +"  }\n"
+
+                
+                +"}"
+                ,anyorder(
+                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
+                           ,"/tt/TestJava.java:4: warning: Associated declaration",14)
+                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method TestJava",21
+                ,"/tt/TestJava.java:4: warning: Associated declaration",14))
                 );
     }
     

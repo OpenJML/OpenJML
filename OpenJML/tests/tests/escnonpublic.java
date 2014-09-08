@@ -111,8 +111,8 @@ public class escnonpublic extends EscBase {
 
     @Test
     public void testDMZ() {
-        expectedExit = 1;
-        helpTCF(dir + "src/dmz",dir + "src/dmz","-progress","-method=Cash","-show");
+        expectedExit = 0;
+        helpTCF(dir + "src/dmz",dir + "src/dmz","-progress");
     }
 
     @Test
@@ -130,17 +130,27 @@ public class escnonpublic extends EscBase {
     @Test
     public void escSokoban() { // FIXME
         //helpTCF("../../OpenJMLDemoNonPublic/src/sokoban/Game.java","testfiles/sokoban","-classpath","testfiles/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
-        helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-progress","-timeout=90");
+        helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-progress","-timeout=120");
     }
 
     @Test
     public void escSokoban2() {
-        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/src","-progress","-timeout=120");//,"-escMaxWarnings=1","-method=Game.Game(Board,Player)","-subexpressions","-show");
+    }
+
+    @Test
+    public void escSokoban2MQ() {
+        helpTCF(dir + "src/sokoban2/src",dir + "src/sokoban2/mq","-minQuant","-progress","-timeout=120","-escMaxWarnings=1"); // "-method=movePlayer","-subexpressions","-show");
     }
 
     @Test
     public void escSokoban3() {
-        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/src","-progress","-timeout=90"); //,"-subexpressions","-show");
+        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/src","-progress","-timeout=120"); //,"-subexpressions","-show");
+    }
+
+    @Test
+    public void escSokoban3MQ() {
+        helpTCF(dir + "src/sokoban3/src",dir + "src/sokoban3/mq","-minQuant","-progress","-timeout=120","-escMaxWarnings=1"); //,"-subexpressions","-show");
     }
 
 

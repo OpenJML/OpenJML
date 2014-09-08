@@ -1111,7 +1111,6 @@ public class racnew extends RacBase {
     // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
     // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
-        main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
                 " //@ requires i != 0; \n" +
@@ -1274,30 +1273,28 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:5: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Reentering main from m
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"MID"
-                ,"/tt/A.java:7: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.A())" // leaving for A()
+                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"  // entering A()
+                ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"  // entering A()
+                ,"/tt/A.java:1: JML invariant is false on leaving method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:1: JML invariant is false on leaving method tt.A.A()"  // exiting A()
-                ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML invariant is false on leaving method tt.A.A(), returning to tt.A.main(java.lang.String[])" // reentering from A()
+                ,"/tt/A.java:7: JML invariant is false on leaving method tt.A.A(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:7: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.A())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // leaving for m()
+
+                ,"/tt/A.java:7: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])" // entering m()
+                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()" // entering m()
+                ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
+                
                 ,"MID"
-                ,"/tt/A.java:9: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.A())"
+                ,"/tt/A.java:9: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:9: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"  // entering A()
-                ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"  // entering A()
+                ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:1: JML invariant is false on leaving method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -2268,6 +2265,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNullInit() {
+        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"/*@nullable*/ static Object o,oo = null; \n"
                 +"static Object ooo = null;\n"
@@ -2340,8 +2338,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
-                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
+                ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
                 ,"/tt/A.java:20: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23

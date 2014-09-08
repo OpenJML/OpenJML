@@ -584,6 +584,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // FIXME - are these needed or not?
         heapVar = treeutils.makeIdent(0,HEAP_VAR,syms.intType);
         newIdentIncarnation(heapVar,0);
+        
+        // These are
+        currentMap.putSAVersion(assertionAdder.heapSym,0);
 
         // Add mappings for the method parameters
         for (JCVariableDecl d: methodDecl.params) {
@@ -944,11 +947,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 // FIXME - should do better than converting to String
                 //if (!fa.selected.type.toString().endsWith("JMLTYPE")) checkForNull(obj,fa.pos,trueLiteral,null);
             }
+            if (msym != null && msym.type instanceof Type.ForAll) tfa = (Type.ForAll)msym.type;
             
         } else if (that.meth instanceof JCIdent) {
-            log.error(that.pos,"jml.internal","Did not expect a JCIdent here: " + that);
-            result = treeutils.makeZeroEquivalentLit(that.pos, that.type);
-            return;
+            // This is a defined function that will be passed on 
+            // continue on
         } else {
             // FIXME - not implemented
             log.warning("esc.not.implemented","BasicBlocker2.visitApply for " + that);
@@ -957,7 +960,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             result = trueLiteral;
             return;
         }
-        if (msym != null && msym.type instanceof Type.ForAll) tfa = (Type.ForAll)msym.type;
 
         // FIXME - what does this translation mean?
         //        ListBuffer<JCExpression> newtypeargs = new ListBuffer<JCExpression>();

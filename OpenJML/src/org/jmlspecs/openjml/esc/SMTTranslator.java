@@ -963,9 +963,19 @@ public class SMTTranslator extends JmlTreeScanner {
             convertDeclaration(iter.next());
         }
         // Then construct the block expression from the end to the start
-        while (iter.hasPrevious()) {
-            tail = convertStatement(iter.previous(),tail);
-        }
+        iter = block.statements.listIterator();
+        tail = convertList(iter,tail);
+        
+        // This would be an excellent candidate for iterating through the list of 
+        // statements in the block in reverse order, since that is the
+        // natural way to construct the block expression and avoids having
+        // a deep call stack (of the length of a block). However, the statements
+        // in the block have to be translated in forward order, or auxiliary
+        // commands produced in their translations are added to 'commands' in
+        // reverse order.
+        //        while (iter.hasPrevious()) {
+        //            tail = convertStatement(iter.previous(),tail);
+        //        }
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(F.symbol(block.id.toString()));
         args.add(tail);
@@ -1007,6 +1017,42 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
+    public IExpr convertList(ListIterator<JCStatement> iter, IExpr tail) {
+        if (!iter.hasNext()) return tail;
+        JCStatement stat = iter.next();
+        try {
+            if (stat instanceof JmlVariableDecl) {
+                 return convertList(iter,tail);
+            } else if (stat instanceof JmlStatementExpr) {
+                JmlStatementExpr s = (JmlStatementExpr)stat;
+                if (s.token == JmlToken.ASSUME) {
+                    IExpr exx = convertExpr(s.expression);
+                    tail = convertList(iter,tail);
+                    LinkedList<IExpr> args = new LinkedList<IExpr>();
+                    args.add(exx);
+                    args.add(tail);
+                    return F.fcn(impliesSym, args);
+                } else if (s.token == JmlToken.ASSERT) {
+                    IExpr exx = convertExpr(s.expression);
+                    tail = convertList(iter,tail);
+                    LinkedList<IExpr> args = new LinkedList<IExpr>();
+                    args.add(exx);
+                    args.add(tail);
+                    return F.fcn(F.symbol("and"), args);
+                } else if (s.token == JmlToken.COMMENT) {
+                    return convertList(iter,tail);
+                } else {
+                    log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                }
+            } else {
+                log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+            }
+        } catch (RuntimeException ee) {
+            // skip - error already issued // FIXME - better recovery
+        }
+        return tail;
+    }
+    
     /** Converts a basic block statement to an SMT expression, tacking it on
      * the front of tail and returning the composite expression.
      */
@@ -1042,6 +1088,7 @@ public class SMTTranslator extends JmlTreeScanner {
         return tail;
         
     }
+    
     
     // FIXME - review this - need to choose between java and jml - may depend on the artihmetic mode
     /** Converts a Java/JML type into an SMT Sort */
@@ -1127,10 +1174,10 @@ public class SMTTranslator extends JmlTreeScanner {
             ISymbol n = F.symbol(newname);
             ISort resultSort = convertSort(tree.type);
             List<ISort> argSorts = new LinkedList<ISort>();
-            // Adds an argument for the receiver, if the function is not static
-            if (!Utils.instance(context).isJMLStatic(treeutils.getSym(tree))) {
-                argSorts.add(refSort);
-            }
+//            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
+//            if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {
+//                argSorts.add(refSort);
+//            }
             for (JCExpression e: tree.args) {
                 argSorts.add(convertSort(e.type));
             }
@@ -1149,13 +1196,7 @@ public class SMTTranslator extends JmlTreeScanner {
             String newname = name;
             addFcn(newname,tree);
             List<IExpr> newargs = new LinkedList<IExpr>();
-            if (JmlAssertionAdder.useMethodAxioms && !Utils.instance(context).isJMLStatic(treeutils.getSym(tree))) {
-                JCExpression e = ((JCFieldAccess)tree.meth).selected;
-                scan(e);
-                newargs.add(convertExpr(e));
-            }
             for (JCExpression arg: tree.args) {
-                scan(arg);
                 newargs.add(convertExpr(arg));
             }
             result = F.fcn(F.symbol(newname),newargs);
@@ -1659,7 +1700,9 @@ public class SMTTranslator extends JmlTreeScanner {
             } else {
                 notImpl("JML Quantified expression using " + that.op.internedName());
             }
-            if (!prev) {
+            // Can't do this, because then the quantified expression is evaluated
+            // in the wrong context (I think)
+            if (false && !prev) {
                 // Because SMTLIB does not allow getValue to have arguments containing
                 // quantifiers, we do the following: as long as the quantified
                 // expression is not nested within another (technically could be

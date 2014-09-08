@@ -36,6 +36,7 @@ class ClassCollector extends JmlTreeScanner {
         }
         return collector;
     }
+    // FIXME - change to collecting TypeSymbol
     
     boolean doMethods;
     public final Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
@@ -47,7 +48,7 @@ class ClassCollector extends JmlTreeScanner {
     
     // FIXME - what about generic type variables
     protected void save(Type tt) {
-        if (tt != null && tt.tag != TypeTags.VOID && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
+        if (tt != null && tt.tag != TypeTags.VOID && tt.tag != TypeTags.BOT && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
             ClassSymbol c = (ClassSymbol)tt.tsym;
             classes.add(c);
         }

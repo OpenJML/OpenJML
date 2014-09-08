@@ -1,23 +1,69 @@
-..\OpenJMLDemoNonPublic\src\dmz\Clock.java:83: error: invalid method declaration; return type required
-  public Clock(final int the_hours, final int the_minutes, final int the_seconds) {
-         ^
-Continuing bravely despite parsing errors
-..\OpenJMLDemoNonPublic\src\dmz\Clock.java:18: error: class Date is public, should be declared in a file named Date.java
-public class Date {
-       ^
-..\OpenJMLDemoNonPublic\src\dmz\Clock.java:138: error: cannot find symbol
-  public /*@ pure */ boolean later(final Clock the_other_clock) {
-                                         ^
-  symbol:   class Clock
-  location: class Date
-..\OpenJMLDemoNonPublic\src\dmz\Clock.java:150: error: cannot find symbol
-  public /*@ pure */ boolean earlier(final Clock the_other_clock) {
-                                           ^
-  symbol:   class Clock
-  location: class Date
-..\OpenJMLDemoNonPublic\src\dmz\Clock.java:166: error: cannot find symbol
-  public /*@ pure */ int difference(final Clock the_other_clock) {
-                                          ^
-  symbol:   class Clock
-  location: class Date
-5 errors
+Proving methods in dmz.Cash
+Starting proof of dmz.Cash.Cash(int) with prover !!!!
+..\OpenJMLDemoNonPublic\src\dmz\Cash.java:46: warning: The prover cannot establish an assertion (Assignable) in method Cash:  THIS.my_loaded
+    my_loaded = false;
+              ^
+..\OpenJMLDemoNonPublic\src\dmz\Cash.java:41: warning: Associated declaration
+  //@ requires 0 < the_amount;
+      ^
+Completed proof of dmz.Cash.Cash(int) with prover !!!! - with warnings
+Starting proof of dmz.Cash.amount() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Cash.amount() with prover !!!! - no warnings
+Starting proof of dmz.Cash.loaded() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Cash.loaded() with prover !!!! - no warnings
+Starting proof of dmz.Cash.load() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Cash.load() with prover !!!! - no warnings
+Completed proving methods in dmz.Cash
+Proving methods in dmz.Clock
+Starting proof of dmz.Clock.Clock(int,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.Clock(int,int,int) with prover !!!! - no warnings
+Starting proof of dmz.Clock.hours() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.hours() with prover !!!! - no warnings
+Starting proof of dmz.Clock.minutes() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.minutes() with prover !!!! - no warnings
+Starting proof of dmz.Clock.seconds() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.seconds() with prover !!!! - no warnings
+Starting proof of dmz.Clock.later(dmz.Clock) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.later(dmz.Clock) with prover !!!! - no warnings
+Starting proof of dmz.Clock.earlier(dmz.Clock) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.earlier(dmz.Clock) with prover !!!! - no warnings
+Starting proof of dmz.Clock.difference(dmz.Clock) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.difference(dmz.Clock) with prover !!!! - no warnings
+Starting proof of dmz.Clock.setHours(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.setHours(int) with prover !!!! - no warnings
+Starting proof of dmz.Clock.setMinutes(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.setMinutes(int) with prover !!!! - no warnings
+Starting proof of dmz.Clock.setSeconds(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.setSeconds(int) with prover !!!! - no warnings
+Starting proof of dmz.Clock.tick() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of dmz.Clock.tick() with prover !!!! - no warnings
+Completed proving methods in dmz.Clock
+2 warnings

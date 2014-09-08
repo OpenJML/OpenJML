@@ -25,30 +25,30 @@ Starting proof of openjml.clock.TickTockClockB1.tick() with prover !!!!
 ..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:15: warning: Associated declaration
 	//@ public invariant 0 <= second && second <= 59;
 	           ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:55: warning: Label SECOND has value 60
+		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND second); */ }
+		                                                      ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:53: warning: The prover cannot establish an assertion (InvariantExit) in method tick
+	public void tick() {
+	            ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:15: warning: Associated declaration
+	//@ public invariant 0 <= second && second <= 59;
+	           ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:55: warning: Label SECOND has value 60
+		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND second); */ }
+		                                                      ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:53: warning: The prover cannot establish an assertion (InvariantExit) in method tick
+	public void tick() {
+	            ^
+..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:15: warning: Associated declaration
+	//@ public invariant 0 <= second && second <= 59;
+	           ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:53: warning: The prover cannot establish an assertion (Postcondition) in method tick
 	public void tick() {
 	            ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:44: warning: Associated declaration
       @  ensures getSecond() == \old(getSecond() + 1) &&
          ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:55: warning: Label SECOND has value 60
-		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND second); */ }
-		                                                      ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:53: warning: The prover cannot establish an assertion (InvariantExit) in method tick
-	public void tick() {
-	            ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:15: warning: Associated declaration
-	//@ public invariant 0 <= second && second <= 59;
-	           ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:55: warning: Label SECOND has value 60
-		if (second == 60) { minute++; /*@ ghost int s = (\lbl SECOND second); */ }
-		                                                      ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:53: warning: The prover cannot establish an assertion (InvariantExit) in method tick
-	public void tick() {
-	            ^
-..\OpenJMLDemo\src\openjml\clock\TickTockClockB1.java:15: warning: Associated declaration
-	//@ public invariant 0 <= second && second <= 59;
-	           ^
 Completed proof of openjml.clock.TickTockClockB1.tick() with prover !!!! - with warnings
 Completed proving methods in openjml.clock.TickTockClockB1
 11 warnings

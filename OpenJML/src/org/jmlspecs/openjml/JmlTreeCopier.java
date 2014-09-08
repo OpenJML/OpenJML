@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -793,5 +794,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     public JCTree visitOther(Tree node, Void p) {
         return super.visitOther(node,p).setType(((JCTree)node).type);
+    }
+
+    public JCTree visitLetExpr(LetExpr that, Void p) {
+        LetExpr let = M.LetExpr(copy(that.defs,p), copy(that.expr,p));
+        let.pos = that.pos;
+        let.type = that.type;
+        return let;
     }
 }

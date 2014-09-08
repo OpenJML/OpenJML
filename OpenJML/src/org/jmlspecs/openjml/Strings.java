@@ -4,7 +4,6 @@
  */
 package org.jmlspecs.openjml;
 
-import com.sun.tools.javac.util.Name;
 
 /** This class holds (almost) all explicit strings or other constant data used in OpenJML,
  * particularly that data that is customer visible. */
@@ -12,7 +11,7 @@ public class Strings {
 
     // All explicit strings should be here
     
-    // The following are stored here globally (e.g., for all compilation
+    // The following are stored here globally (i.e., for all compilation
     // contexts). I expect they will always be constant, but one could, for
     // example, reset them by a command-line option. No guarantees on the
     // behavior of the tool if these are changed during processing.  They are
@@ -29,15 +28,16 @@ public class Strings {
     static public final String dot = "."; //$NON-NLS-1$
     static public final String eol = System.getProperty("line.separator");
 	
-    // Names of Java options
+    // Names of Java options, from the JDK compiler
     static public final String classpathOptionName = com.sun.tools.javac.main.OptionName.CLASSPATH.optionName;
     static public final String sourcepathOptionName = com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName;
     static public final String outputOptionName = com.sun.tools.javac.main.OptionName.D.optionName;
 
+    // Suffixes
     static public final String javaSuffix = ".java"; //$NON-NLS-1$
     static public final String specsSuffix = ".jml"; //$NON-NLS-1$
 
-    /** The default application name */
+    /** The default application name, used in user messages */
     static public final String applicationName = "openjml"; //$NON-NLS-1$
     
     /** The fully-qualified name of the runtime utilities class. */
@@ -46,6 +46,10 @@ public class Strings {
     /** A string giving the name of the package that default JML runtime classes are in.
      */
     static public final String jmlSpecsPackage = "org.jmlspecs.lang"; //$NON-NLS-1$
+    
+    /** A string giving the fully qualified name of the special JML class.
+     */
+    static public final String JMLClass = "org.jmlspecs.lang.JML"; //$NON-NLS-1$
     
     /** A string giving the name of the package that JML annotations are in.
      */
@@ -78,8 +82,6 @@ public class Strings {
     /** The name of the OpenJML runtime library. */
     static public final String runtimeJarName = "jmlruntime.jar"; //$NON-NLS-1$
 
-    static public final String SIMPLIFY = "simplify"; //$NON-NLS-1$
-    
     /** The expected name of the OpenJML properties file. */
     static public final String propertiesFileName = "openjml.properties"; //$NON-NLS-1$
     
@@ -95,6 +97,8 @@ public class Strings {
     /** This gives the character that marks a mock directory (cf. JmlSpecs), mostly for use in testing */
     // FIXME - not yet used everywhere it should be
     static public final char mockDirChar = '$';
+    
+    // FIXME - these property names should be normalized to all start with org.openjml
     
     /** A property name prefix for adding new options or specifying values */
     static public final String optionPropertyPrefix = "org.openjml.option."; //$NON-NLS-1$
@@ -127,11 +131,15 @@ public class Strings {
     public static final String eclipseProjectLocation = "openjml.eclipseProjectLocation"; //$NON-NLS-1$
 
     /** Set this to the name of a Java property that contains the location of 
-     * the project files in Eclipse, so that testing proceeds OK. 
+     * the Specs project in Eclipse, so that testing proceeds OK. 
      * If this directory is null or does not exist, it is ignored and tests will fail.
      * Only used in testing within Eclipse.
      */
     public static final String eclipseSpecsProjectLocation = "openjml.eclipseSpecsProjectLocation"; //$NON-NLS-1$
+    
+    // The next set of strings are names used in the transformation of the Java+JML
+    // program. They must be distinct from names used in the user's Java program.
+    // Some are prefixes or other components of a resulting variable name.
     
     /** A String used as the root of a variable name that is a temporary
      * intermediate result in an expression evaluation.
@@ -154,7 +162,7 @@ public class Strings {
     final static public String newArrayVarString = "_JML___NEWARRAY_"; //$NON-NLS-1$
     
     /** A String used as a quantified variable in enum axioms */
-    final static public String enumVar = "_JML_enum_";
+    final static public String enumVar = "_JML__enum_";
     
     /** A String used as the root of a temporary variable to represent a 
      * JML label expression.
@@ -167,7 +175,7 @@ public class Strings {
     /** The prefix for names of assumptions */
     final static public String assumePrefix =  "ASSUME_"; //$NON-NLS-1$
 
-    /** TODO: ??? */
+    /** The prefix for names of variables that hold the values of preconditions */
     final static public String prePrefix = "Pre_"; //$NON-NLS-1$
     
     /** The prefix of variables that hold the values of formals in the pre-state,
@@ -229,4 +237,16 @@ public class Strings {
     /** Name of a field put into every rac-compiled class, to signal that it is rac-compiled */
     // Must match corresponding string in Utils.
     public final static String racCompiled = "__JML_racCompiled";
+    
+    /** Text used to describe the program position at the end of the preconditions */
+    static final public String preconditionAssumeCheckDescription = "end of preconditions";
+    /** Text used to describe the program position at the end of the program and the postcondition checks */ // FIXME - check this
+    static final public String atExitAssumeCheckDescription = "at program exit";
+    /** Text used to describe the program position just prior to an explicit JML assert */
+    static final public String beforeAssertAssumeCheckDescription = "before explicit assert statement";
+    /** Text used to describe the program position just after an explicit JML assume */
+    static final public String afterAssumeAssumeCheckDescription = "after explicit assume statement";
+    /** Text used to descrxibe the program position at an explicit JML reachable statement */
+    static final public String atReachableStatementAssumeCheckDescription = "at reachable statement";
+
 }

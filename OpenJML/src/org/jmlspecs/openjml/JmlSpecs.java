@@ -144,17 +144,6 @@ import com.sun.tools.javac.util.Options;
  */
 public class JmlSpecs {
     
-    /** The name of the jar file that constitutes an openjml release. 
-     * The specs for Java version v are in a top-level directory named
-     * prefix + "v" for each version (e.g. in specs16 for Java 1.6)*/
-    private final static String releaseJar = Strings.releaseJar;
-    
-    /** The name of the jar file that contains a copy of the specs to use, as part of
-     * a release.  This is expected to be the specs for the version of Java 
-     * being used.  
-     */
-    private final static String specsJar = Strings.specsJar;
-    
     /** The prefix of the top-level directory within the JML release jar file
      * containing the specs for various versions of java (e.g. specs15 for 
      * Java 1.5).
@@ -280,7 +269,7 @@ public class JmlSpecs {
         String libToUse = prefix+version;
         
         for (String s: ss) {
-            if (s.endsWith(releaseJar)) {
+            if (s.endsWith(Strings.releaseJar)) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
                     if (verbose) log.noticeWriter.println("Using internal specs " + d);
@@ -290,7 +279,7 @@ public class JmlSpecs {
             }
         }
         for (String s: ss) {
-            if (s.endsWith(specsJar)) {
+            if (s.endsWith(Strings.specsJar)) {
                 d = new JarDir(s,"");
                 if (d.exists()) {
                     if (verbose) log.noticeWriter.println("Using internal specs " + d);

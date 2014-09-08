@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.esc.Label;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.MethodType;
@@ -287,7 +288,7 @@ public class JmlTreeUtils {
      * kind of expression.
      */
     public boolean isATypeTree(JCExpression tree) {
-        if (tree instanceof JCIdent) {
+        if (tree instanceof JCIdent) { 
             return !(((JCIdent)tree).sym instanceof VarSymbol);
         }
         if (tree instanceof JCFieldAccess) {
@@ -433,6 +434,17 @@ public class JmlTreeUtils {
     public JCIdent makeIdent(int pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
         id.pos = pos;
+        // id.type is set in Ident
+        return id;
+    }
+    
+    /** Makes a new AST for an identifier that references the given symbol
+     * @param sym the symbol for which to make an identifier
+     * @return the AST
+     */ 
+    public JCIdent makeIdent(DiagnosticPosition pos, Symbol sym) {
+        JCIdent id = factory.Ident(sym);
+        id.pos = pos.getPreferredPosition();
         // id.type is set in Ident
         return id;
     }
@@ -619,8 +631,22 @@ public class JmlTreeUtils {
         return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
     }
 
+    /** Makes an attributed AST for a short-circuit boolean AND expression, simplifying literal true or false */
+    public JCExpression makeAndSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isTrueLit(rhs) || isFalseLit(lhs)) return lhs;
+        if (isTrueLit(lhs) || isFalseLit(rhs)) return rhs;
+        return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
+    }
+
     /** Makes an attributed AST for a short-circuit boolean OR expression */
     public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
+    }
+
+    /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */
+    public JCExpression makeOrSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (isFalseLit(rhs) || isTrueLit(lhs)) return lhs;
+        if (isFalseLit(lhs) || isTrueLit(rhs)) return rhs;
         return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
     }
 
@@ -647,12 +673,12 @@ public class JmlTreeUtils {
     
     /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeNotNull(int pos, JCExpression lhs) {
-        return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, nullLit);
+        return makeBinary(pos,JCTree.NE,objectneSymbol,lhs, makeNullLiteral(pos));
     }
     
     /** Makes an attributed AST for a reference inequality (!=) expression */
     public JCBinary makeEqNull(int pos, JCExpression lhs) {
-        return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, nullLit);
+        return makeBinary(pos,JCTree.EQ,objecteqSymbol,lhs, makeNullLiteral(pos));
     }
     
     /** Makes an attributed AST for the length operation on an array. */
@@ -711,7 +737,7 @@ public class JmlTreeUtils {
      * (and no owner);
      * the declaration position is 'pos'. */
     public VarSymbol makeVarSymbol(long flags, @NonNull Name name, @NonNull Type type, int pos) {
-        VarSymbol v = new VarSymbol(flags,name,type.baseType(),null);
+        VarSymbol v = new VarSymbol(flags,name,type.baseType(),null); // FIXME - explain why baseType is needed
         v.pos = pos;
         return v;
     }
@@ -932,7 +958,8 @@ public class JmlTreeUtils {
         return mdecl;
     }
     
-    public MethodSymbol makeMethodSym(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass, List<Type> argtypes) {
+    /** Makes a new MethodSymbol, given its various properties */
+    public MethodSymbol makeMethodSym(JCModifiers mods, Name methodName, Type resultType, TypeSymbol ownerClass, List<Type> argtypes) {
 
         MethodType mtype = new MethodType(List.<Type>nil(),resultType,argtypes,ownerClass);
 

@@ -616,7 +616,8 @@ public class Utils {
 
 
     /** Returns true if a declaration with the given flags is visible in the
-     * 'base' class when declared in the 'parent' class. 
+     * 'base' class when declared in the 'parent' class. This is standard
+     * Java visibility.
      */
     public boolean visible(Symbol base, Symbol parent, long flags) {
         if (base == parent) return true; // Everything is visible in its own class
@@ -627,28 +628,39 @@ public class Utils {
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
-     * is visible in a method in the
+     * is jml-visible in a method in the
      * 'base' class and the method has the given 'methodFlags'. 
+     * This check takes into account spec-public and spec-protected declarations
+     * and also JML-specific visibility rules. The first argument can be null
+     * if checking the visibility, say of a clause.
      */
-    public boolean jmlvisible(Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
+    public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
         if (!visible(base,parent,flags)) return false;
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
-        // If target is public, then it is jml-visible
+        
+        // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
         if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
 
+        // Otherwise a public method sees nothing
         if (methodFlags == Flags.PUBLIC) return false;
         
+        // If the method itself is private, then anyone who can see the method
+        // can also see the target
         if (methodFlags == Flags.PRIVATE) return true;
-        if (flags == Flags.PRIVATE &&
+        
+        // By now the method is either protected or package
+        // The target is either protected or package or private
+        // FIXME - comment more
+        if (flags == Flags.PRIVATE && s != null && 
                 s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED)) == null
                 ) return false;
         
         if (flags == 0) return methodFlags == 0;
-        // Here flags must be PROTECTED
+        // By now flags must be PROTECTED
         // and methodFlags is PROTECTED or package
         
         // Must be in the same package
@@ -684,7 +696,7 @@ public class Utils {
         return classQualifiedName(sym.owner) + "." + sym;
     }
 
-    /** Returns a fully-qualified name for a method symbol, without the signature */
+    /** Returns a fully-qualified name for a method symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
         return classQualifiedName(sym.owner) + "." + sym.name;
     }
@@ -702,7 +714,15 @@ public class Utils {
     public String methodName(MethodSymbol sym) {
         String s = sym.toString();
         int k = s.indexOf("(");
-        return k >= 0 ? s.substring(0,k) : s;
+        s = k >= 0 ? s.substring(0,k) : s;
+        if (s.isEmpty()) {
+            // Anonymous constructor
+            s = sym.owner.toString();
+            if (s.startsWith("$anonymous$")) {
+                s = s.substring("$anonymous$".length());
+            }
+        }
+        return s;
     }
 
 

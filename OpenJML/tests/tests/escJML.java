@@ -38,7 +38,20 @@ public class escJML extends EscBase {
     }
 
     @Test
+    public void testLBL2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m(Integer i) { \n"
+                +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                );
+    }
+
+    @Test
     public void testLBLint() {
+        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"
