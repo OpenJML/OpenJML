@@ -263,7 +263,8 @@ public class JmlEsc extends JmlTreeScanner {
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
         if (methodsToDo != null) {
             match: {
-                for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$
+                if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
+                for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$  //FIXME - this does not work when the methods list contains signatures containing commas
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
                             fullyQualifiedSig.equals(methodToDo)) {
