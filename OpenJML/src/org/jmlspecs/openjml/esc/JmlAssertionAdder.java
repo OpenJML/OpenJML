@@ -2540,43 +2540,46 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assertInvariants(thisExpr,thisExpr);
     }
     
+    /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeCondition(JCVariableDecl d, boolean instanceBeingConstructed) {
         return addNullnessAllocationTypeCondition(d, d.sym, instanceBeingConstructed);
     }
+
+    /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
         boolean nnull = true;
+        JCExpression id;
+        if (sym.owner instanceof MethodSymbol) {
+            // Local variable
+            id = treeutils.makeIdent(p, sym);
+        } else {
+            // Field
+            id = treeutils.makeSelect(p, currentThisExpr, sym);
+        }
         if (!sym.type.isPrimitive()) {
-            //d is declared nonnull: 
-            //d is nullable: id.isAlloc
-            JCExpression id;
-            if (sym.owner instanceof MethodSymbol) {
-                id = treeutils.makeIdent(p, sym);
-            } else {
-                id = treeutils.makeSelect(p, currentThisExpr, sym);
-            }
-            id = convertJML(id);
             // e2 : id.isAlloc
-            JCExpression e2 = treeutils.makeSelect(p, id, isAllocSym);
+            JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
             // e3: id == null || ( \typeof(id) <: \type(d.type) && id instanceof \erasure('d.type')))
             JCExpression e3;
             if (sym.type.isPrimitive() || (sym.type.tag == TypeTags.ARRAY && ((Type.ArrayType)sym.type).getComponentType().isPrimitive() )) {
                 e3 = treeutils.makeDynamicTypeEquality(pos,
-                        id, 
+                        convertCopy(id), 
                         sym.type);
             } else {
                 e3 = treeutils.makeDynamicTypeInEquality(pos,
-                        id, 
+                        convertCopy(id), 
                         sym.type);
             }
-            Symbol own = sym.owner;
-            if (own instanceof MethodSymbol) own = own.owner;
-            boolean nn = specs.isNonNull(sym, (Symbol.ClassSymbol)own) &&
+            
+            Symbol owner = sym.owner;
+            if (owner instanceof MethodSymbol) owner = owner.owner;
+            boolean nn = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) &&
                     !instanceBeingConstructed;
             nnull = nn;
             if (nn) {
                 // assume id != null
-                addAssume(pos,Label.NULL_CHECK,treeutils.makeNeqObject(p, id, treeutils.makeNullLiteral(p)));
+                addAssume(pos,Label.NULL_CHECK,treeutils.makeNotNull(p, convertCopy(id)));
                 // assume id.isAlloc
                 addAssume(pos,Label.IMPLICIT_ASSUME,e2);
                 // assume type information
@@ -2590,34 +2593,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addTraceableComment(s);
             }
         } else {
-            JCExpression id = treeutils.makeIdent(p, sym);
-            id = convertJML(id);
             int tag = sym.type.tag;
             JCExpression lo = null,hi=null;
             if (tag == TypeTags.INT) { 
                 lo = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,
-                    treeutils.makeLit(p,syms.intType,Integer.MIN_VALUE),id);
-                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,id,
+                    treeutils.makeLit(p,syms.intType,Integer.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,convertCopy(id),
                     treeutils.makeLit(p,syms.intType,Integer.MAX_VALUE));
             } else if (tag == TypeTags.LONG) {
                 lo = treeutils.makeBinary(p,JCTree.LE,treeutils.longleSymbol,
-                        treeutils.makeLit(p,syms.intType,Long.MIN_VALUE),id);
-                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.longleSymbol,id,
+                        treeutils.makeLit(p,syms.intType,Long.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.longleSymbol,convertCopy(id),
                         treeutils.makeLit(p,syms.intType,Long.MAX_VALUE));
             } else if (tag == TypeTags.SHORT) {
                 lo = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Short.MIN_VALUE),id);
-                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,id,
+                        treeutils.makeLit(p,syms.intType,(int)Short.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,convertCopy(id),
                         treeutils.makeLit(p,syms.intType,(int)Short.MAX_VALUE));
             } else if (tag == TypeTags.BYTE) {
                 lo = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Byte.MIN_VALUE),id);
-                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,id,
+                        treeutils.makeLit(p,syms.intType,(int)Byte.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,convertCopy(id),
                         treeutils.makeLit(p,syms.intType,(int)Byte.MAX_VALUE));
             } else if (tag == TypeTags.CHAR) {
                 lo = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Character.MIN_VALUE),id);
-                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,id,
+                        treeutils.makeLit(p,syms.intType,(int)Character.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.LE,treeutils.intleSymbol,convertCopy(id),
                         treeutils.makeLit(p,syms.intType,(int)Character.MAX_VALUE));
             }
             if (lo != null) {
@@ -2769,15 +2770,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(dd);
         }
         
-        // Add a precondition that the parameter != null on each formal parameter, if needed
-        // Not adding these because the nonnull conditions are part of the deNestedSpecs.
-        // However it would be nice to use these and leave them out of the  combinedPrecondition
-        // because we get more accurate error messages.
-        // Added  back - appears to be needed for ESC - FIXME - review all this
-        
-        // Assume all static invariants and axioms of classes mentioned in the target method
-            // Collect all classes that are mentioned in the method
+        // Collect all classes that are mentioned in the method
         ClassCollector collector = ClassCollector.collect(this.classDecl,this.methodDecl);
+        // Assume all axioms of classes mentioned in the target method
         if (esc) {
             addStat(comment(methodDecl,"Assume axioms",null));
             addForClasses(collector.classes, axiomAdder);
@@ -2811,11 +2806,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // For the parameters of the method
             addStat(comment(methodDecl,"Assume parameter type, allocation, and nullness",null));
             boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
-            boolean nn = true;
+            boolean isNonNull = true;
             for (JCVariableDecl d: methodDecl.params) {
-                nn = addNullnessAllocationTypeCondition(d,false);
+                isNonNull = addNullnessAllocationTypeCondition(d,false);
             }
-            if (varargs && !nn) {
+            if (varargs && !isNonNull) { // isNonNull is the nullness of the last parameter, so the varargs parameter
                 JCVariableDecl d = methodDecl.params.last();
                 JCIdent id = treeutils.makeIdent(d.pos,d.sym);
                 JCExpression nnex = treeutils.makeNeqObject(d.pos,id,treeutils.nullLit);
@@ -3141,7 +3136,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            addStat(dd);
 //        }
         
-        ListBuffer<JCStatement> preStats = new ListBuffer<JCStatement>();
         ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
         ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
         
@@ -5350,8 +5344,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            if (!doTranslations && calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass)) doTranslations = true;
             if (!doTranslations) {
                 List<JCExpression> ntrArgs = trArgs;
-                if ((useMethodAxioms || !localVariables.isEmpty())
-                        ) {
+                if (useMethodAxioms || !localVariables.isEmpty()) {
 
                     boolean details = 
                                !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass)
@@ -8072,8 +8065,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
                     // continue
                 } else {
-                    JCExpression nonnull = treeutils.makeNeqObject(that.pos, selected, 
-                            treeutils.nullLit);
+                    JCExpression nonnull = treeutils.makeNotNull(that.pos, selected); 
+
                     if (translatingJML) nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
                     if (javaChecks && localVariables.isEmpty()) {
                         addAssert(that,
@@ -8299,7 +8292,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         } finally {
             if (translatingJML && sym instanceof VarSymbol && specs.isNonNull(sym) && eresult != null) {
-                JCExpression nn = treeutils.makeNotNull(that.pos,eresult);
+                JCExpression nn = treeutils.makeNotNull(that.pos,convertCopy(eresult));
                 condition = treeutils.makeAndSimp(that.pos, condition, nn);
             }
 
