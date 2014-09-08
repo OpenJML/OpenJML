@@ -450,8 +450,8 @@ public class Main {
                 }
             }
 
-            if (comp.errorCount() != 0)
-                return EXIT_ERROR;
+            if (comp.errorCount() != 0) 
+                return EXIT_ERROR;  // FIXME - should we have warnings return non-ero exit status as well?
         } catch (IOException ex) {
             ioMessage(ex);
             return EXIT_SYSERR;
