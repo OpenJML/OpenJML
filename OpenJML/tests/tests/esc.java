@@ -2548,9 +2548,11 @@ public class esc extends EscBase {
                 +"  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
                 +"  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",61
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",61
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",61
+                ,anyorder(
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",61)
+                       ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",61)
+                       ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",61)
+                       )
         );
     }
 
@@ -4401,8 +4403,7 @@ public class esc extends EscBase {
 
     
     @Test
-    public void testMethodAxioms2() { // FIXME - for some reason the solvers don't like this variation
-        main.addOptions("-method=mm","show");
+    public void testMethodAxioms2() { 
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
@@ -4410,10 +4411,12 @@ public class esc extends EscBase {
                 +"  //@ pure\n"
                 +"  //@ model public boolean m(int i);\n"
                 
+                +"  //@ pure\n"
                 +"  public void mm() {\n"
                 +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm",7
                 );
     }
 

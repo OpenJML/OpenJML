@@ -63,7 +63,7 @@ public class racnonpublic extends RacBase {
     }
 
     @Test
-    public void racSokoban3Bug() {  // FIXME - currently the expected result says to big for a try statement, but originally it had a crash
+    public void racSokoban3Bug() {  // FIXME - currently the expected result says too big for a try statement, but originally it had a crash
         String dir = "../OpenJMLDemoNonPublic/src/sokoban3/src";
         expectedExit = 1;
         runrac = false;

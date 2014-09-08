@@ -1018,37 +1018,38 @@ public class SMTTranslator extends JmlTreeScanner {
     }
     
     public IExpr convertList(ListIterator<JCStatement> iter, IExpr tail) {
-        if (!iter.hasNext()) return tail;
-        JCStatement stat = iter.next();
-        try {
-            if (stat instanceof JmlVariableDecl) {
-                 return convertList(iter,tail);
-            } else if (stat instanceof JmlStatementExpr) {
-                JmlStatementExpr s = (JmlStatementExpr)stat;
-                if (s.token == JmlToken.ASSUME) {
-                    IExpr exx = convertExpr(s.expression);
-                    tail = convertList(iter,tail);
-                    LinkedList<IExpr> args = new LinkedList<IExpr>();
-                    args.add(exx);
-                    args.add(tail);
-                    return F.fcn(impliesSym, args);
-                } else if (s.token == JmlToken.ASSERT) {
-                    IExpr exx = convertExpr(s.expression);
-                    tail = convertList(iter,tail);
-                    LinkedList<IExpr> args = new LinkedList<IExpr>();
-                    args.add(exx);
-                    args.add(tail);
-                    return F.fcn(F.symbol("and"), args);
-                } else if (s.token == JmlToken.COMMENT) {
-                    return convertList(iter,tail);
+        //Stack<IExpr> stack = new Stack<IExpr>();
+        
+        while (iter.hasNext()) {
+            JCStatement stat = iter.next();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlToken.ASSUME) {
+                        IExpr exx = convertExpr(s.expression);
+                        tail = convertList(iter,tail);
+                        return F.fcn(impliesSym, exx, tail);
+                    } else if (s.token == JmlToken.ASSERT) {
+                        IExpr exx = convertExpr(s.expression);
+                        tail = convertList(iter,tail);
+                        //return F.fcn(F.symbol("and"), exx, tail);
+                        return F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                    } else if (s.token == JmlToken.COMMENT) {
+                        continue;
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
                 } else {
-                    log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
                 }
-            } else {
-                log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+            } catch (RuntimeException ee) {
+                // skip - error already issued // FIXME - better recovery
+                break;
             }
-        } catch (RuntimeException ee) {
-            // skip - error already issued // FIXME - better recovery
         }
         return tail;
     }

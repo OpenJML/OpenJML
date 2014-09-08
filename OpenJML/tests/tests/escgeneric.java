@@ -90,7 +90,6 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
@@ -112,9 +111,11 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",9
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,anyorder(
+                        seq("/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9)
+                        ,seq("/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m",9)
+                        ,seq("/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m",9)
+                        )
         );
     }
     

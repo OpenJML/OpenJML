@@ -149,7 +149,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-show","-method=tick");
     }
 
     @Test
@@ -354,7 +354,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240","-show","-method=esc.SimpleString.SimpleString(java.lang.Object[])","-subexpressions");
     }
 
     @Test
