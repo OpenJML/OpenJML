@@ -963,8 +963,9 @@ public class SMTTranslator extends JmlTreeScanner {
             convertDeclaration(iter.next());
         }
         // Then construct the block expression from the end to the start
-        iter = block.statements.listIterator();
-        tail = convertList(iter,tail);
+//        iter = block.statements.listIterator();
+//        tail = convertList(iter,tail);
+        tail = convertList(block.statements,tail);
         
         // This would be an excellent candidate for iterating through the list of 
         // statements in the block in reverse order, since that is the
@@ -1017,8 +1018,14 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    public IExpr convertList(ListIterator<JCStatement> iter, IExpr tail) {
-        //Stack<IExpr> stack = new Stack<IExpr>();
+    /** The alternate implementation, commented out below, uses recursive calls
+     * to assemble the block encoding. That can give quite deep call stacks. 
+     * Instead we iterate down the list and back, storing each expression on 
+     * a stack. So replace the call stack with a simple expression stack.
+     */
+    public IExpr convertList(List<JCStatement> list, IExpr tail) {
+        ListIterator<JCStatement> iter = list.listIterator();
+        Stack<IExpr> stack = new Stack<IExpr>();
         
         while (iter.hasNext()) {
             JCStatement stat = iter.next();
@@ -1029,13 +1036,42 @@ public class SMTTranslator extends JmlTreeScanner {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.token == JmlToken.ASSUME) {
                         IExpr exx = convertExpr(s.expression);
-                        tail = convertList(iter,tail);
-                        return F.fcn(impliesSym, exx, tail);
+                        stack.push(exx);
                     } else if (s.token == JmlToken.ASSERT) {
                         IExpr exx = convertExpr(s.expression);
-                        tail = convertList(iter,tail);
+                        stack.push(exx);
+                    } else if (s.token == JmlToken.COMMENT) {
+                        continue;
+                    } else {
+                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+                        break;
+                    }
+                } else {
+                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+                    break;
+                }
+            } catch (RuntimeException ee) {
+                // skip - error already issued // FIXME - better recovery
+                break;
+            }
+        }
+        while (iter.hasPrevious()) {
+            JCStatement stat = iter.previous();
+            try {
+                if (stat instanceof JmlVariableDecl) {
+                    continue;
+                } else if (stat instanceof JmlStatementExpr) {
+                    JmlStatementExpr s = (JmlStatementExpr)stat;
+                    if (s.token == JmlToken.ASSUME) {
+                        IExpr exx = stack.pop();
+                        tail = F.fcn(impliesSym, exx, tail);
+                    } else if (s.token == JmlToken.ASSERT) {
+                        IExpr exx = stack.pop();
+                        // The first return is the classic translation; the second
+                        // effectively inserts an assume after an assert. I'm not
+                        // sure it makes any difference. TODO - evaluate this sometime.
                         //return F.fcn(F.symbol("and"), exx, tail);
-                        return F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+                        tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
                     } else if (s.token == JmlToken.COMMENT) {
                         continue;
                     } else {
@@ -1053,6 +1089,46 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         return tail;
     }
+    
+//    public IExpr convertList(ListIterator<JCStatement> iter, IExpr tail) {
+//        //Stack<IExpr> stack = new Stack<IExpr>();
+//        
+//        while (iter.hasNext()) {
+//            JCStatement stat = iter.next();
+//            try {
+//                if (stat instanceof JmlVariableDecl) {
+//                    continue;
+//                } else if (stat instanceof JmlStatementExpr) {
+//                    JmlStatementExpr s = (JmlStatementExpr)stat;
+//                    if (s.token == JmlToken.ASSUME) {
+//                        IExpr exx = convertExpr(s.expression);
+//                        tail = convertList(iter,tail);
+//                        return F.fcn(impliesSym, exx, tail);
+//                    } else if (s.token == JmlToken.ASSERT) {
+//                        IExpr exx = convertExpr(s.expression);
+//                        tail = convertList(iter,tail);
+//                        // The first return is the classic translation; the second
+//                        // effectively inserts an assume after an assert. I'm not
+//                        // sure it makes any difference. TODO - evaluate this sometime.
+//                        //return F.fcn(F.symbol("and"), exx, tail);
+//                        return F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
+//                    } else if (s.token == JmlToken.COMMENT) {
+//                        continue;
+//                    } else {
+//                        log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
+//                        break;
+//                    }
+//                } else {
+//                    log.error("jml.internal", "Incorrect kind of statement encountered when converting a BasicProgram to SMTLIB: " + stat.getClass());
+//                    break;
+//                }
+//            } catch (RuntimeException ee) {
+//                // skip - error already issued // FIXME - better recovery
+//                break;
+//            }
+//        }
+//        return tail;
+//    }
     
     /** Converts a basic block statement to an SMT expression, tacking it on
      * the front of tail and returning the composite expression.
