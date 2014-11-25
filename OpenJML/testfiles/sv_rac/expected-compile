@@ -10,5 +10,5 @@ testfiles\sv_rac\sv_rac\Decimal.java:107: Note: Not implemented for runtime asse
 testfiles\sv_rac\sv_rac\Decimal.java:127: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
       ensures \fresh(this);
                     ^
-Note: C:\cygwin\home\dcok\eprojects\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: $SPECS\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.

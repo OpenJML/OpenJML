@@ -402,7 +402,10 @@ public abstract class JmlTestCase {
                     diff += ("Less actual input than expected" + eol);
                     return diff;
                 }
-                if (!sexp.equals(sact) && (isWindows || !sexp.equals(sact.replace('/','\\')))) {
+                String env = System.getenv("SPECSDIR");
+                if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
+                else sexp = sexp.replace("$SPECS", env);
+                if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
                     diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
