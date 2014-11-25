@@ -196,7 +196,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // Names for a bunch of synthetic variables 
     
     /** Standard name for the variable that represents the heap (which excludes local variables) */
-    public static final @NonNull String HEAP_VAR = "_heap__";
+    public static final @NonNull String HEAP_VAR = "_heap__"; // FIXME cf JmlAssertionAdder for same string
     
     //-----------------------------------------------------------------
     // Names for various basic blocks
@@ -334,7 +334,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.labelmaps.clear();
         this.bimap.clear();
         this.pathmap.clear();
-        // heapVar is initialized later
+        this.heapVar = treeutils.makeIdent(0,assertionAdder.heapSym);
         // currentMap is set when starting a block
         // premap is set during execution
     }
@@ -581,13 +581,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // It does not have any statements in it
         startBlock(startBlock); // Start it so the currentMap, currentBlock, remainingStatements are defined
 
-        // FIXME - are these needed or not?
-        heapVar = treeutils.makeIdent(0,HEAP_VAR,syms.intType);
-        newIdentIncarnation(heapVar,0);
-        
-        // These are
-        currentMap.putSAVersion(assertionAdder.heapSym,0);
-
         // Add mappings for the method parameters
         for (JCVariableDecl d: methodDecl.params) {
             currentMap.putSAVersion(d.sym, 0);
@@ -788,7 +781,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (sym.owner instanceof Symbol.ClassSymbol) {
                     // If the symbol is owned by a class, then it is implicitly part of each VarMap,
                     // even if it is not explicitly listed.
-
+                    
                     Name maxName = null;
                     long max = -1;
                     //int num = 0;
@@ -1313,6 +1306,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
+//            if (that.token == JmlToken.ASSERT && that.expression.toString().equals("ASSERT_200")) {
+//                Utils.print("");
+//            }
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
@@ -1602,6 +1598,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
             scan(that.ident); // FIXME - is this needed since we already set the encodedname
         } else {
+//            if (that.sym.toString().equals("ASSERT_200") || that.sym.toString().equals("ASSERT_202")) {
+//                Utils.print("");
+//            }
             // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);

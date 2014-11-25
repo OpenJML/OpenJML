@@ -253,6 +253,8 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A counter used to make identifiers unique */
     int uniqueCount = 0;
     
+    private int assumeCount = -2;
+    
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
@@ -349,6 +351,7 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun _isJMLArrayType ("+JMLTYPESORT+") Bool)");
         addCommand(smt,"(declare-fun "+arrayElemType+" ("+JMLTYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= (erasure (_makeJMLArrayType T)) (_makeArrayType (erasure T)))))");
+        addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (erasure T1) (erasure T2)))))");
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" (_makeArrayType T)) T)))");
         if (quants) {
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" (_makeJMLArrayType T)) T)))");
@@ -1041,7 +1044,13 @@ public class SMTTranslator extends JmlTreeScanner {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
                     } else if (s.token == JmlToken.COMMENT) {
-                        continue;
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        s.optionalExpression = k != assumeCount ? null : (treeutils.falseLit);;
+                        if (k != assumeCount) continue;
+                        IExpr exx = convertExpr(treeutils.falseLit);
+                        stack.push(exx);
                     } else {
                         log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
                         break;
@@ -1073,7 +1082,12 @@ public class SMTTranslator extends JmlTreeScanner {
                         //return F.fcn(F.symbol("and"), exx, tail);
                         tail = F.fcn(F.symbol("and"), exx, F.fcn(impliesSym, exx, tail));
                     } else if (s.token == JmlToken.COMMENT) {
-                        continue;
+                        if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                        int k = s.id.indexOf(" ");
+                        k = Integer.valueOf(s.id.substring(k+1));
+                        if (k != assumeCount) continue;
+                        IExpr exx = stack.pop();
+                        tail = exx;
                     } else {
                         log.error("jml.internal", "Incorrect kind of token encountered when converting a BasicProgram to SMTLIB: " + s.token);
                         break;

@@ -829,10 +829,11 @@ public class Main extends com.sun.tools.javac.main.Main {
                 check.equals("exit") || 
                 check.equals("postconditions") || 
                 check.equals("reachable") || 
+                check.equals("debug") || 
                 check.equals("none")) {
             // continue
         } else {
-            Log.instance(context).noticeWriter.println("Expected 'all' or 'none' or 'preconditions' as argument for -checkFeasibility: " + check);
+            Log.instance(context).noticeWriter.println("Unexpected value as argument for -checkFeasibility: " + check);
         }
         Extensions.register(context);
         return true;

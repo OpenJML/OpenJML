@@ -107,6 +107,7 @@ public class JmlEsc extends JmlTreeScanner {
         	tree.accept(this);
         } catch (Exception e) {
         	// No further error messages needed - FIXME - is this true?
+            log.error("jml.internal","Should not be catching an exception in JmlEsc.check");
         }
     }
     
@@ -227,19 +228,29 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         IProverResult res;
-        if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
-            res = new MethodProverBoogie(this).prove(methodDecl);
-        } else {
-            res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
+        try {
+            if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
+                res = new MethodProverBoogie(this).prove(methodDecl);
+            } else {
+                res = new MethodProverSMT(this).prove(methodDecl,proverToUse);
+            }
+            utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+                    + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+                    + " - "
+                    + (  res.isSat() ? "with warnings" 
+                       : res.result() == IProverResult.UNSAT ? "no warnings"
+                               : res.result().toString())
+                    );
+        } catch (Exception e) {
+            log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
+            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+                    + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+                    + " - exception"
+                    );
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
+            // FIXME - add a message? use a factory?
         }
         
-        utils.progress(1,1,"Completed proof of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-                + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
-                + " - "
-                + (  res.isSat() ? "with warnings" 
-                   : res.result() == IProverResult.UNSAT ? "no warnings"
-                           : res.result().toString())
-                );
         //proverResults.put(methodDecl.sym,res);
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);

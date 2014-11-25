@@ -42,6 +42,18 @@ public class racJML extends RacBase {
     }
 
     @Test
+    public void testLBLString() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",\"XYZ\").equals(\"XYZ\"); \n"
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = XYZ"
+                );
+    }
+
+    @Test
     public void testLBLboolean() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -61,8 +73,55 @@ public class racJML extends RacBase {
                 +"     //@ assert JML.lbl(\"AL\",args.length) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"LABEL AL = 0" // FIXME - why so many calls?
                 ,"LABEL AL = 0"
+                );
+    }
+
+    @Test
+    public void testLBLlong() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",(long)args.length) == 0; \n"
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = 0"
+                );
+    }
+
+    @Test
+    public void testLBLshort() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",(short)args.length) == 0; \n"
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = 0"
+                );
+    }
+
+    @Test
+    public void testLBLbyte() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",(byte)args.length) == 0; \n"
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = 0"
+                );
+    }
+
+    @Test
+    public void testLBLchar() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public static void main(String... args) { \n"
+                +"     //@ assert JML.lbl(\"AL\",'Z') == 'Z'; \n"
+                +"  }\n"
+                +"}"
+                ,"LABEL AL = Z"
                 );
     }
 
@@ -76,7 +135,6 @@ public class racJML extends RacBase {
                 +"  public static void main(String... args) { "
                 +"     //@ assert JML.lbl(\"AL\",5.0) != 0.0; }\n"
                 +"}"
-                ,"LABEL AL = 5.0"  // FIXME - why so many calls?
                 ,"LABEL AL = 5.0"
                 );
     }

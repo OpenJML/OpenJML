@@ -227,7 +227,8 @@ public abstract class EscBase extends JmlTestCase {
         int col = ((Integer)list[i+1]).intValue();
         String act = noSource(collector.getDiagnostics().get(j));
         String exp = list[i].toString();
-        if (!exp.equals(act) && (isWindows || !exp.equals(act.replace('/','\\')))) {
+        if (!exp.equals(act) 
+                && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
             failureLocation = j;
             failureString = list[i].toString();
             return false;

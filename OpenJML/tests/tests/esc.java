@@ -57,12 +57,12 @@ public class esc extends EscBase {
 
     @Test  // FIXME: Needs some implementation
     public void testCollectA() {
-        main.addOptions("-nonnullByDefault","-method=m","-timeout=300");
+        main.addOptions("-nonnullByDefault","-method=m","-timeout=300","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
-                +"  public String m(java.lang.Integer i, Number b) {\n"
+                +"  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-                +"    v.add(0,i);\n"
+ //               +"    v.add(0,i);\n"  // FIXME - this is interpreted as changing state of InputStream
                 +"    boolean bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n" // FAILS
                 +"  }\n"

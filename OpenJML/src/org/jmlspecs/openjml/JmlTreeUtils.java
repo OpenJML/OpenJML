@@ -815,6 +815,19 @@ public class JmlTreeUtils {
         return d;
     }
 
+    public JCVariableDecl makeStaticVarDef(Type type, Name name, Symbol owner, @NonNull JCExpression init) {
+        int modifierFlags = Flags.STATIC;
+        // We use type.baseType() here to remove any constType in case the 
+        // expression the type came from is a literal. This made the difference 
+        // in making the racnew2.testLblConst test work.
+        // TODO - figure out why - something in code generation
+        VarSymbol v = new VarSymbol(modifierFlags, name, type.baseType(), owner);
+        v.pos = init.getStartPosition();
+        JCVariableDecl d = factory.VarDef(v,init);
+        d.pos = v.pos;
+        return d;
+    }
+
     /** Makes an attributed variable declaration along with a new VarSymbol (which is not 
      * put into the symbol table); the declaration has no modifiers and no initialization.
      * @param type  the type of the new variable

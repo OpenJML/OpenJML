@@ -149,7 +149,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB","-show","-method=tick");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","testfiles/escDemoB");
     }
 
     @Test
@@ -313,7 +313,7 @@ public class escfiles extends EscBase {
     @Test
     public void testRecursiveInvariant() {
         expectedExit = 1;
-        helpTF("escRecursiveInvariant");
+        helpTF("escRecursiveInvariant","-no-minQuant");
     }
 
     @Test
@@ -354,7 +354,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240","-show","-method=esc.SimpleString.SimpleString(java.lang.Object[])","-subexpressions");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
     }
 
     @Test
@@ -413,6 +413,27 @@ public class escfiles extends EscBase {
     public void testEscConstructor2() {
         helpTF("escConstructor2");
     }
+
+    @Test
+    public void testEscConstructor3() {
+        helpTF("escConstructor3");
+    }
+
+    @Test
+    public void testEscConstructor4() {
+        helpTF("escConstructor4");
+    }
+    
+    @Test
+    public void testEscConstructor5() {
+        helpTF("escConstructor5");
+    }
+
+    @Test
+    public void testEscConstructor6() {
+        helpTF("escConstructor6");
+    }
+
 
 
 }

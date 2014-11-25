@@ -56,6 +56,7 @@ public class escstrings extends EscBase {
     @Test
     public void testStringEquals() {
         main.addOptions("-escMaxWarnings=1");
+//        main.addOptions("-prover=cvc4");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -325,6 +326,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation - whether the result, computed in JML, is non-null*/
     @Test
     public void testStringConcat1a() {
+        main.addOptions("-show","-method=m","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -334,6 +336,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ reachable true;\n"
                 +"       //@ assert (s + ss) != null;\n"
                 +"  }\n"
                 
@@ -432,6 +435,26 @@ public class escstrings extends EscBase {
 
     /** Tests String charAt operation */
     @Test
+    public void testStringCharAt1q() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires s.length() > 0; \n"
+                +"  public void m(String s) {\n"
+                +"       //@ assert s.charAt(0) == s.charAt(0);\n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+
+    /** Tests String charAt operation */
+    @Test
     public void testStringCharAt1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -446,6 +469,9 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
+// FIXME - need to normalize and relativize the following path
+                ,"C:/cygwin/home/dcok/eprojects/Specs/java5/java/lang/String.jml:282: warning: Associated declaration",11
                 );
     }
 
@@ -460,6 +486,7 @@ public class escstrings extends EscBase {
                 +"  public int a;\n"
                 +"  public static int b;\n"
                 
+                +"  //@ requires s.length() > 0; \n"
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       //@ assert s.charAt(0) == ss.charAt(0);\n"
@@ -480,12 +507,36 @@ public class escstrings extends EscBase {
                 +"  public int a;\n"
                 +"  public static int b;\n"
                 
+                +"  //@ requires s.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
+                ,"C:\\cygwin\\home\\dcok\\eprojects\\Specs\\java5\\java\\lang\\String.jml:282: warning: Associated declaration",11
+                );
+    }
+
+    /** Tests String charAt operation */
+    @Test
+    public void testStringCharAt3a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  //@ requires s.length() > 0 && ss.length() > 0;\n"
+                +"  public void m(String s, String ss) {\n"
+                +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 

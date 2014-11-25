@@ -24,6 +24,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
+import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
@@ -40,6 +41,9 @@ import org.smtlib.IResponse.IPair;
 import org.smtlib.ISolver;
 import org.smtlib.IVisitor.VisitorException;
 import org.smtlib.SMT;
+import org.smtlib.command.C_assert;
+import org.smtlib.command.C_check_sat;
+import org.smtlib.command.C_push;
 import org.smtlib.sexpr.ISexpr;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -254,6 +258,8 @@ public class MethodProverSMT {
         BasicBlocker2 basicBlocker;
         BasicProgram program;
         Date start;
+        ICommand.IScript script;
+        boolean usePushPop = true; // FIXME - false is not working yet
         {
             // now convert to basic block form
             basicBlocker = new BasicBlocker2(context);
@@ -267,7 +273,6 @@ public class MethodProverSMT {
             }
 
             // convert the basic block form to SMT
-            ICommand.IScript script;
             try {
                 script = smttrans.convert(program,smt);
                 if (printPrograms) {
@@ -328,20 +333,70 @@ public class MethodProverSMT {
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
                 if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
-                    solver.pop(1); // Pop off previous check_sat
+                    if (usePushPop) {
+                        solver.pop(1); // Pop off previous check_sat
+                    } else {
+                        solver.exit();
+                    }
 
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
                     int k = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         ++k;
-                        String description = stat.description;
-                        solver.pop(1); // Pop off previous setting of assumeCheck
-                        solver.push(1); // Mark the top
-                        JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
-                                treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
-                                treeutils.makeIntLiteral(Position.NOPOS, k));
-                        solver.assertExpr(smttrans.convertExpr(bin));
-                        solverResponse = solver.check_sat();
+//                        if (k < 98) continue;
+//                        if (k > 100) break;
+                        if (!usePushPop) {
+                            ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
+                            if (JmlAssertionAdder.useAssertCount) {
+                                List<ICommand> commands = script.commands();
+                                commands.remove(commands.size()-1);
+                                ICommand c = commands.remove(commands.size()-1);
+                                if (c instanceof C_push) {
+                                    commands.remove(commands.size()-1);
+                                    commands.remove(commands.size()-1);
+                                }
+                                JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
+                                        treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                        treeutils.makeIntLiteral(Position.NOPOS, k));
+                                commands.add(new C_assert(smttrans.convertExpr(bin)));
+                                commands.add(new C_check_sat());
+                            } else {
+                                script = smttrans.convert(program,smt);
+
+                            }
+//                            if (printPrograms) {
+//                                try {
+//                                    log.noticeWriter.println(Strings.empty);
+//                                    log.noticeWriter.println(separator);
+//                                    log.noticeWriter.println(Strings.empty);
+//                                    log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+//                                    org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
+//                                    log.noticeWriter.println();
+//                                    log.noticeWriter.println();
+//                                } catch (VisitorException e) {
+//                                    log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+//                                }
+//                            }
+                            try {
+                                solverResponse = script.execute(solver2); // Note - the solver knows the smt configuration
+                                solver2.exit();
+                            } catch (Exception e) {
+                                // Not sure there is anything to worry about, but just in case
+                                log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+                                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                            }
+                           
+                        }
+                        if (usePushPop) {
+                            solver.pop(1); // Pop off previous setting of assumeCheck
+                            solver.push(1); // Mark the top
+                            JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
+                                    treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
+                                    treeutils.makeIntLiteral(Position.NOPOS, k));
+                            solver.assertExpr(smttrans.convertExpr(bin));
+                            solverResponse = solver.check_sat();
+                        }
+                        String description = stat.description; // + " " + stat;
                         String loc = utils.locationString(stat.pos,stat.source());
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
                         utils.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
@@ -357,7 +412,7 @@ public class MethodProverSMT {
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                             }
                         } else if (solverResponse.isError()) {
-                            solver.exit();
+                            if (usePushPop) solver.exit();
                             log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                         }
@@ -488,7 +543,7 @@ public class MethodProverSMT {
                 pr.setDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
         }
-        solver.exit();
+        if (usePushPop) solver.exit();
         smt.smtConfig.logfile = null;
 //        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
@@ -746,6 +801,14 @@ public class MethodProverSMT {
                     Name n = vd.name;
                     if (vd.init != null) traceSubExpr(vd.init);
                     log.noticeWriter.println("DECL: " + n + " === " + getValue(n.toString(),smt,solver));
+                }
+            }
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.COMMENT) {
+                JmlStatementExpr s = (JmlStatementExpr)stat;
+                if (s.id == null || !s.id.startsWith("ACHECK")) continue;
+                if (s.optionalExpression != null) {
+                    log.noticeWriter.println("FOUND " + s.id);
+                    return pathCondition;
                 }
             }
             if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {

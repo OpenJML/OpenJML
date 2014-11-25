@@ -79,7 +79,7 @@ public enum JmlOption implements IOption {
     SUBEXPRESSIONS("-subexpressions",false,false,"ESC: Enables tracing with subexpressions",null),
     FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
-    MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
+    MINIMIZE_QUANTIFICATIONS("-minQuant",false,false,"Minimizes using quantifications, in favor of inlining",null),
 
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
