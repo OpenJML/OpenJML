@@ -53,6 +53,8 @@ import com.sun.tools.javac.util.Options;
  */
 public abstract class JmlTestCase {
 
+    public final static String specsdir = System.getenv("SPECSDIR");
+
     static protected boolean isWindows = System.getProperty("os.name").contains("Wind");
 
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");

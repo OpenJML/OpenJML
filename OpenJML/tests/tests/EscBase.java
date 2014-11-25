@@ -23,7 +23,7 @@ import com.sun.tools.javac.util.Log;
 
 
 public abstract class EscBase extends JmlTestCase {
-
+    
     @Rule public TestName testname = new TestName();
     @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
     
@@ -226,7 +226,7 @@ public abstract class EscBase extends JmlTestCase {
     protected boolean comparePair(Object[] list, int i, int j) {
         int col = ((Integer)list[i+1]).intValue();
         String act = noSource(collector.getDiagnostics().get(j));
-        String exp = list[i].toString();
+        String exp = list[i].toString().replace("$SPECS", specsdir);
         if (!exp.equals(act) 
                 && !exp.replace('\\','/').equals(act.replace('\\','/'))) {
             failureLocation = j;
@@ -253,7 +253,7 @@ public abstract class EscBase extends JmlTestCase {
                     // allowed to be optional
                     if (j >= collector.getDiagnostics().size()) {
                         // OK - just skip
-                    } else if (list[i].toString().equals(noSource(collector.getDiagnostics().get(j))) &&
+                    } else if (list[i].equals(noSource(collector.getDiagnostics().get(j))) &&
                             -col == Math.abs(collector.getDiagnostics().get(j).getColumnNumber())) {
                         j++;
                     } else {
@@ -265,7 +265,7 @@ public abstract class EscBase extends JmlTestCase {
                     } else {
                         if (j < collector.getDiagnostics().size()) {
                             if (!comparePair(list,i,j)) {
-                                assertEquals("Error " + j, list[i].toString(), noSource(collector.getDiagnostics().get(j)));
+                                assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
                                 assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
                             }
                         }

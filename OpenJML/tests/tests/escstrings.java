@@ -471,7 +471,7 @@ public class escstrings extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
 // FIXME - need to normalize and relativize the following path
-                ,"C:/cygwin/home/dcok/eprojects/Specs/java5/java/lang/String.jml:282: warning: Associated declaration",11
+                ,"$SPECS/java5/java/lang/String.jml:282: warning: Associated declaration",11
                 );
     }
 
@@ -513,9 +513,12 @@ public class escstrings extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                ,"C:\\cygwin\\home\\dcok\\eprojects\\Specs\\java5\\java\\lang\\String.jml:282: warning: Associated declaration",11
+                ,anyorder(
+                        seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12)
+                        ,seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
+                                ,"$SPECS\\java5\\java\\lang\\String.jml:282: warning: Associated declaration",11
+                            )
+                 )
                 );
     }
 
