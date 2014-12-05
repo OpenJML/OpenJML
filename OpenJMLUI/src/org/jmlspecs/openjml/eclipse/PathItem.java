@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -19,6 +20,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 // FIXME - would like to have paths with variables, e.g. ${user.dir}
@@ -354,6 +356,13 @@ abstract public class PathItem {
 	                        } else {
 	                        	Log.errorlog("Failure to interpret an element of the Eclipse source folder list: " + cpe + Utils.space + cpe.getPath() + Utils.space + r, null); //$NON-NLS-1$
 	                        }
+    					} else if (cpe.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+    						IProject proj = (IProject) root.getProject(cpe.getPath()
+    								.toString());
+    						IJavaProject jp = JavaCore.create(proj);
+    						String s = toAbsolute(jp);
+    						sb.append(s);
+                        	sb.append(File.pathSeparator);
     					}
     				}
     				if (sb.length() > 0) sb.setLength(sb.length() - File.pathSeparator.length());
