@@ -55,20 +55,20 @@ public class esc extends EscBase {
               );
     }
 
-    @Test  // FIXME: Needs some implementation
+    @Test
     public void testCollectA() {
-        main.addOptions("-nonnullByDefault","-method=m","-timeout=300","-show");
+        main.addOptions("-nonnullByDefault","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
                 +"  /*@ pure */ public String m(java.lang.Integer i, Number b) {\n"
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
- //               +"    v.add(0,i);\n"  // FIXME - this is interpreted as changing state of InputStream
+                +"    /*v.add(0,i);*/\n" // version of testCollectB without this method call
                 +"    boolean bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n" // FAILS
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",17
+                ,"/tt/TestJava.java:3: warning: Associated declaration",29
               );
     }
 
@@ -82,7 +82,7 @@ public class esc extends EscBase {
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double;\n"
                 +"    Object oo = v.getClass();\n"
-                +"    v.add(0,i);\n"
+                +"    v.add(0,i);\n"  // FIXME - this is interpreted as changing state of InputStream
                 +"    bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n" // FAILS
                 +"  }\n"
@@ -4383,7 +4383,7 @@ public class esc extends EscBase {
                 );
     }
     
-    @Test
+    @Test // FIXME - for reasons unknown, this test appears to be non-deterministic - sometimes succeeding sometimes failing
     public void testMethodAxioms() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"

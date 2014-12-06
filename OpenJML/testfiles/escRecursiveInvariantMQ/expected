@@ -1,0 +1,37 @@
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: error: Recursive attempt to assert or assume invariants - use pure helper methods: RecursiveInvariantMQ
+    //@ public invariant m();
+                          ^
+Proving methods in RecursiveInvariantMQ
+Starting proof of RecursiveInvariantMQ.RecursiveInvariantMQ() with prover !!!!
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariantMQ
+public class RecursiveInvariantMQ {
+       ^
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariantMQ.RecursiveInvariantMQ() with prover !!!! - with warnings
+Starting proof of RecursiveInvariantMQ.m() with prover !!!!
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:6: warning: The prover cannot establish an assertion (InvariantExit) in method m
+    public /*@ pure */ boolean m() { return true; }
+                                     ^
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariantMQ.m() with prover !!!! - with warnings
+Starting proof of RecursiveInvariantMQ.t() with prover !!!!
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:8: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method t:  (Caller: RecursiveInvariantMQ.t(), Callee: RecursiveInvariantMQ.m())
+    //@ requires m();
+                  ^
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method t
+    public void t() {}
+                ^
+testfiles\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated declaration
+    //@ public invariant m();
+               ^
+Completed proof of RecursiveInvariantMQ.t() with prover !!!! - with warnings
+Completed proving methods in RecursiveInvariantMQ
+1 error
+8 warnings

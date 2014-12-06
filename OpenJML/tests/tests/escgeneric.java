@@ -182,10 +182,10 @@ public class escgeneric extends EscBase {
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
-                +"    TestG.<Integer>mm(i);\n"
+                +"    TestG.mm(i);\n"
                 +"  }\n"
                 +"  public void mb(Object o) {\n"
-                +"    TestG.<Object>mm(o);\n"
+                +"    TestG.mm(o);\n"
                 +"  }\n"
                 +"}\n"
                 +"class TestG {\n"

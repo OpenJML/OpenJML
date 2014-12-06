@@ -452,10 +452,13 @@ public class escstrings extends EscBase {
                 +"}"
                 );
     }
+    
+    // FIXME - why do these two give different error messages
 
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1() {
+        main.addOptions("-no-minQuant");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -470,8 +473,29 @@ public class escstrings extends EscBase {
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-// FIXME - need to normalize and relativize the following path
                 ,"$SPECS/java5/java/lang/String.jml:282: warning: Associated declaration",11
+                );
+    }
+
+    /** Tests String charAt operation */
+    @Test
+    public void testStringCharAt1mq() {
+        main.addOptions("-minQuant");
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                +"  public void m(String s) {\n"
+                +"       //@ assert s.charAt(0) == s.charAt(0);\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
+                ,"$SPECS/java5/java/lang/CharSequence.jml:63: warning: Associated declaration",14
                 );
     }
 

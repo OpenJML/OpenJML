@@ -319,7 +319,19 @@ public class escfiles extends EscBase {
     @Test
     public void testRecursiveInvariantMQ() {
         expectedExit = 1;
-        helpTF("escRecursiveInvariant","-minQuant");
+        helpTF("escRecursiveInvariantMQ","-minQuant");
+    }
+
+    @Test
+    public void testRecursiveInvariant2() {
+        expectedExit = 1;
+        helpTF("escRecursiveInvariant2","-no-minQuant");
+    }
+
+    @Test
+    public void testRecursiveInvariant2MQ() {
+        expectedExit = 1;
+        helpTF("escRecursiveInvariant2","-minQuant");
     }
 
     @Test
