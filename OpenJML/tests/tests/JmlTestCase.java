@@ -3,9 +3,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -424,6 +427,52 @@ public abstract class JmlTestCase {
             } catch (Exception e) {}
         }
         return diff.isEmpty() ? null : diff;
+    }
+    
+    public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
+        String outputdir = "testfiles/escTrace";
+        String diffs = "";
+        for (String f: new File(dir).list()) {
+            if (!f.contains(root)) continue;
+            diffs = compareFiles(outputdir + "/" + f, actualFile);
+            if (diffs == null) break;
+        }
+        if (diffs != null) {
+            if (diffs.isEmpty()) {
+                fail("No expected output file");
+            } else {
+                System.out.println(diffs);
+                fail("Unexpected output: " + diffs);
+            }
+        } else {
+            new File(actualFile).delete();
+        }
+    }
+
+    public void compareTextToMultipleFiles(String output, String dir, String root, String actualLocation) {
+        String diffs = "";
+        for (String f: new File(dir).list()) {
+            if (!f.contains(root)) continue;
+            diffs = compareText(dir + "/" + f,output);
+            if (diffs == null) break;
+        }
+        if (diffs != null) {
+            try {
+                BufferedWriter b = new BufferedWriter(new FileWriter(actualLocation));
+                b.write(output);
+                b.close();
+            } catch (IOException e) {
+                fail("Failure writing output");
+            }
+            if (diffs.isEmpty()) {
+                fail("No expected output file");
+            } else {
+                System.out.println(diffs);
+                fail("Unexpected output: " + diffs);
+            }
+        } else {
+            new File(actualLocation).delete();
+        }
     }
 
     /** Compares a file to an actual String (ignoring difference kinds of 

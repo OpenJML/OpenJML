@@ -282,12 +282,22 @@ public abstract class RacBase extends JmlTestCase {
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
             pw.close();
             
-            String compdiffs = compareFiles(outputdir + "/expected-compile", actCompile);
+            String compdiffs = "";
+            for (String file: new File(outputdir).list()) {
+                if (!file.contains("expected-compile")) continue;
+                compdiffs = compareFiles(outputdir + "/" + file, actCompile);
+                if (compdiffs == null) {
+                    new File(actCompile).delete();
+                    break;
+                }
+            }
             if (compdiffs != null) {
-                System.out.println(compdiffs);
-//                fail("Files differ: " + compdiffs);
-            } else {
-                new File(actCompile).delete();
+                if (compdiffs.isEmpty()) {
+                    fail("No expected output file for compiler output");
+                } else {
+                    System.out.println(compdiffs);
+                    //  fail("Files differ: " + compdiffs);
+                }
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
@@ -306,13 +316,22 @@ public abstract class RacBase extends JmlTestCase {
                 ex = p.exitValue();
                 String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
                 if (print) System.out.println(output);
-                String diffs = compareText(outputdir + "/expected-run",output);
+                String diffs = "";
+                for (String file: new File(outputdir).list()) {
+                    if (!file.contains("expected-run")) continue;
+                    diffs = compareText(outputdir + "/" + file,output);
+                    if (diffs == null) break;
+                }
                 if (diffs != null) {
-                    BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
-                    b.write(output);
-                    b.close();
-                    System.out.println(diffs);
-                    fail("Unexpected output: " + diffs);
+                    if (diffs.isEmpty()) {
+                        fail("No expected output file for runtime output");
+                    } else {
+                        BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
+                        b.write(output);
+                        b.close();
+                        System.out.println(diffs);
+                        fail("Unexpected output: " + diffs);
+                    }
                 }
                 if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
             }

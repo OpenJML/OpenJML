@@ -1346,4 +1346,12 @@
             class="org.jmlspecs.openjml.eclipse.ClasspathVariableInitializer"
             variable="OPENJML_RUNTIME_LIBRARY"/>
    </extension>
+   <extension
+         id="OpenJML"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="org.eclipse.ui.ide.workbench"
+            name="OpenJML">
+      </product>
+   </extension>
 </plugin>

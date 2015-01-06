@@ -83,6 +83,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.model.JavacTypes;
@@ -241,6 +242,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A list that accumulates all the Java type constants used */
     final protected Set<Type> javaTypes = new HashSet<Type>();
 
+    /** A list that accumulates all the Java type constants used */
+    final protected Map<String,IExpr> javaParameterizedTypes = new HashMap<String,IExpr>();
+
     /** A list that accumulates all the Java type names as used in SMT */
     final protected Set<String> javaTypeSymbols = new HashSet<String>();
     
@@ -312,7 +316,14 @@ public class SMTTranslator extends JmlTreeScanner {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
             commands.add(c);
         }
+        String q = JmlOption.value(context, JmlOption.QUANTS_FOR_TYPES);
         boolean quants = false;
+        if ("true".equals(q)) quants = true;
+        else if ("false".equals(q)) quants = false;
+        else {
+            boolean b = JmlOption.isOption(context, JmlOption.MINIMIZE_QUANTIFICATIONS);
+            quants = false; // FIXME - set true if there are any type variables
+        }
         // (declare-sort JMLTypeSort 0)
         c = new C_declare_sort(F.symbol(JMLTYPESORT),zero);
         commands.add(c);
@@ -421,6 +432,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                     )));
             commands.add(c);
         }
+        addCommand(smt,"(declare-fun _JMLT_0 ("+JAVATYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(declare-fun _JMLT_2 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
         if (quants) {
@@ -443,6 +455,12 @@ public class SMTTranslator extends JmlTreeScanner {
 //                                    )));
 //            commands.add(c);
             
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (distinct (_JMLT_0 JVT) (_JMLT_1 JVT2 JMLT))))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (distinct (_JMLT_0 JVT) (_JMLT_2 JVT2 JMLT JMLT2))))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (distinct (_JMLT_1 JVT JMLT3) (_JMLT_2 JVT2 JMLT JMLT2))))");
+
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (= (_JMLT_1 JVT JMLT) (_JMLT_1 JVT2 JMLT2)) (and (= JVT JVT2) (= JMLT JMLT2)))))");
+
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (= (erasure (_JMLT_1 JVT JMLT)) JVT)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (= (typearg1_1 (_JMLT_1 JVT JMLT)) JMLT)))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 JVT JMLT1)(_JMLT_1 JVT JMLT2)) (= JMLT1 JMLT2))))");
@@ -507,6 +525,10 @@ public class SMTTranslator extends JmlTreeScanner {
                         jmlTypeSort));
                 jmltypesymbols.add(tjsym);
                 tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+                tcommands.add(new C_assert(F.fcn(
+                        eqSym, 
+                        F.fcn(F.symbol("_JMLT_0"),tisym),
+                        tjsym)));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 
                         F.fcn(F.symbol("erasure"),tjsym),
@@ -638,6 +660,19 @@ public class SMTTranslator extends JmlTreeScanner {
             tcommands.add(new C_assert(e));
         }
         
+        List<IExpr> javatypelist = new LinkedList<IExpr>();
+        for (Type t: javaTypes) {
+            if (t.tag != TypeTags.TYPEVAR && t.tag != TypeTags.WILDCARD) {
+                javatypelist.add(javaTypeSymbol(t));
+            }
+        }
+        tcommands.add(new C_assert(F.fcn(distinctSym, javatypelist)));
+        List<IExpr> jmltypelist = new LinkedList<IExpr>();
+        for (IExpr e: javaParameterizedTypes.values()) {
+            jmltypelist.add(e);
+        }
+        tcommands.add(new C_assert(F.fcn(distinctSym, jmltypelist)));
+
         // Add all the type definitions into the command script before all the uses
         // of the types in the various basic block translations
         commands = saved;
@@ -931,11 +966,22 @@ public class SMTTranslator extends JmlTreeScanner {
             t = ((ArrayType)t).getComponentType();
             addType(t);
         } else {
-            if (javaTypeSymbols.add(t.tsym.toString())) javaTypes.add(t);
-            if (t.isParameterized()) {
-                for (Type ti: t.getTypeArguments()) {
-                    addType(ti);
+            if (javaTypeSymbols.add(t.tsym.toString())) {
+                javaTypes.add(t);
+            }
+            if (t.tsym.type.isParameterized()) { // true if is or should be parameterized
+                if (t.getTypeArguments().size() != 0) {
+                    boolean ok = true;
+                    for (Type ti: t.getTypeArguments()) {
+                        if (ti.tag == TypeTags.TYPEVAR) ok = false; 
+                        if (ti.tag == TypeTags.WILDCARD) ok = false; 
+                        addType(ti);
+                    }
+                    if (ok) javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant and fully parameterized?
                 }
+            } else if (t.tag != TypeTags.TYPEVAR && t.tag != TypeTags.WILDCARD) {
+                IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
+                javaParameterizedTypes.put(tt.toString(),tt);  // FIXME - only when fully a constant?
             }
         }
         if (t.tag == TypeTags.TYPEVAR && !(t instanceof Type.WildcardType)) {

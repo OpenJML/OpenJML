@@ -78,6 +78,7 @@ JML options:
   -subexpressions            ESC: Enables tracing with subexpressions
   -checkFeasibility          ESC: Check feasibility of assumptions
   -benchmarks                ESC: Collects solver communications
+  -minQuant                  Minimizes using quantifications, in favor of inlining
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
   -racJavaChecks             RAC: Enables explicit checking of Java language checks

@@ -6,7 +6,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check running ESC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 
@@ -40,6 +43,22 @@ public class escfiles extends EscBase {
     public escfiles(String option, String solver) {
         super(option,solver);
     }
+    
+    @Parameters
+    static public  Collection<String[]> nonnulldatax() {
+        return (makeData(solvers));
+    }
+    
+    static public  Collection<String[]> makeData(java.util.List<String> solvers) {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        for (String s: solvers) {
+            data.add(new String[]{"-no-minQuant",s});
+            data.add(new String[]{"-minQuant",s});
+        }
+        // FIXME: data.add(new String[]{"-boogie",null}); 
+        return data;
+    }
+
     
     String[] rac = null;
     
@@ -83,6 +102,7 @@ public class escfiles extends EscBase {
             args.add("-progress");
             args.add("-timeout=300");
             args.add("-code-math=java");
+            args.add("-minQuant");
             if (new File(sourceDirname).isDirectory()) args.add("-dir");
             args.add(sourceDirname);
             if (solver != null) args.add("-prover="+solver);
@@ -179,6 +199,20 @@ public class escfiles extends EscBase {
 
     @Test
     public void testDemoTypes() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+    }
+
+    @Test
+    public void testDemoTypesAuto() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-typeQuants=auto","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+    }
+
+    @Test
+    public void testDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","testfiles/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
@@ -433,7 +467,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscConstructor4() {
-        helpTF("escConstructor4");
+        helpTF("escConstructor4","-show","-method=Child.Child(java.lang.Object)","-checkFeasibility=debug");
     }
     
     @Test

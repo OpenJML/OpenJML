@@ -1,8 +1,11 @@
 package tests;
 
+import java.util.Collection;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized.Parameters;
 
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
@@ -10,6 +13,12 @@ import org.junit.runner.RunWith;
  */
 @RunWith(ParameterizedIgnorable.class)
 public class escgeneric extends EscBase {
+
+    @Parameters
+    static public  Collection<String[]> nonnulldatax() {
+        return (makeData(options,solvers));
+    }
+    
 
     public escgeneric(String option, String solver) {
         super(option,solver);
@@ -177,7 +186,50 @@ public class escgeneric extends EscBase {
     }
 
     @Test
+    public void testStaticB() {
+        //main.addOptions("-show","-method=mb");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void ma(Integer i) {\n"
+                +"    TestG.mm(i);\n"
+                +"  }\n"
+                +"  public void mb(Object o) {\n"
+                +"    TestG.mm(o);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG {\n"
+                +"  //@ requires \\type(E) != \\type(Integer) ;\n"
+                +"  public static <E> void mm(E t) {}\n"
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+        );
+    }
+
+    @Test
     public void testStatic2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+
+                +"  public void ma(Integer i) {\n"
+                +"    TestG.<Integer>mm(i);\n"
+                +"  }\n"
+                +"  public void mb(Object o) {\n"
+                +"    TestG.<Object>mm(o);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG {\n"
+                +"  //@ requires \\type(E) == \\type(Integer) ;\n"
+                +"  public static <E> void mm(E t) {}\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
+                ,"/tt/TestJava.java:11: warning: Associated declaration",7
+        );
+    }
+
+    @Test
+    public void testStatic2B() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
@@ -192,7 +244,7 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) == \\type(Integer) ;\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
                 ,"/tt/TestJava.java:11: warning: Associated declaration",7
         );
     }

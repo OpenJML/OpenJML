@@ -28,13 +28,18 @@ public abstract class EscBase extends JmlTestCase {
     @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-        "z3_4_3", 
-//        "cvc4",
-        //"yices2",
-        // "yices", 
-        // "simplify" 
-        });
-    
+            "z3_4_3", 
+//            "cvc4",
+            //"yices2",
+            // "yices", 
+            // "simplify" 
+            });
+        
+    static public java.util.List<String[]> options = java.util.Arrays.asList(new String[][]{ 
+            new String[]{"-minQuant"}, 
+            new String[]{"-no-minQuant"}, 
+            });
+        
     static public  Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(10);
         data.addAll(makeData(solvers));
@@ -47,6 +52,17 @@ public abstract class EscBase extends JmlTestCase {
         return (makeData(solvers));
     }
     
+    static public  Collection<String[]> makeData(java.util.List<String[]> options, java.util.List<String> solvers) {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        for (String s: solvers) {
+            for (String[] option: options) {
+                data.add(new String[]{option[0],s}); // Fix to concatenate - FIXME
+            }
+        }
+        // FIXME: data.add(new String[]{"-boogie",null}); 
+        return data;
+    }
+
     static public  Collection<String[]> makeData(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) data.add(new String[]{"",s});

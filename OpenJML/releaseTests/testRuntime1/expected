@@ -15,9 +15,9 @@ package java.lang;
 openjml.jar(specs17/java/lang/Object.jml):59: error: package org.jmlspecs.annotation does not exist
     public /*@ pure @*/ final /*@non_null*/ Class<?> getClass();
                                  ^
-openjml.jar(specs17/java/lang/Object.jml):95: error: package org.jmlspecs.annotation does not exist
-    public /*@ pure @*/ boolean equals(/*@\readonly*//*@nullable*/ Object obj);
-                                                        ^
+openjml.jar(specs17/java/lang/Object.jml):97: error: package org.jmlspecs.annotation does not exist
+    public /*@ pure @*/ boolean equals(/*@\readonly*//*@ nullable*/ Object obj);
+                                                         ^
 openjml.jar(specs17/java/lang/Object.jml):35: error: cannot find symbol
     //@ public non_null model JMLDataGroup objectState;
                               ^

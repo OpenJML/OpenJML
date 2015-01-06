@@ -199,6 +199,7 @@ public class JmlTypes extends Types {
     /** Overrides Types.unboxedType with functionality for JML primitive types. */
     @Override
     public Type unboxedType(Type t) {
+        if (!allowBoxing) return Type.noType;
         if (t.tsym == repSym(BIGINT)) return BIGINT;
         if (t.tsym == repSym(REAL)) return REAL;
         if (t.tsym == repSym(TYPE)) return TYPE;

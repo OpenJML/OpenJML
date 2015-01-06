@@ -380,6 +380,12 @@ public class Utils {
         }
     }
     
+    public static boolean equalTYPE(IJMLTYPE t1, IJMLTYPE t2) {
+        if (t1 == t2) return true;
+        if (t1 == null || t2 == null) return false;
+        return t1.equals(t2);
+    }
+    
 
     // TODO - document - this and following
     public static  IJMLTYPE makeTYPE(Class<?> base, IJMLTYPE... args) {

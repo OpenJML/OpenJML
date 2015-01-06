@@ -43,7 +43,7 @@ public class racnonpublic extends RacBase {
         String dir = "../OpenJMLDemoNonPublic/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
-        helpTCF(dir,dir,"Game","-cp",dir,"-progress");
+        helpTCF(dir,dir,"Game","-cp",dir,"-progress","-show");
     }
 
     @Test

@@ -45,6 +45,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.internal.dialogs.ViewContentProvider;
 import org.eclipse.ui.internal.dialogs.ViewLabelProvider;
 import org.eclipse.ui.part.ViewPart;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
@@ -234,7 +235,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         	}
         	
         	Kind k = result == null ? null : result.result();
-        	String info = result == null ? "" : (" [" + result.duration() + " " + result.prover() + "]");
+        	String info = result == null ? "" : (" ["
+        			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
+        			+ " " + result.prover() + "]");
         	tiii.removeAll();
         	{
         		Info iteminfo = new Info();

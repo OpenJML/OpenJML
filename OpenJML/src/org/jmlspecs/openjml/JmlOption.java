@@ -80,6 +80,7 @@ public enum JmlOption implements IOption {
     FEASIBILITY("-checkFeasibility",true,null,"ESC: Check feasibility of assumptions",null),
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,false,"Minimizes using quantifications, in favor of inlining",null),
+    QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
 
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
