@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.ant.AntLaunchConfigurationType">
-<booleanAttribute key="org.eclipse.ant.ui.DEFAULT_VM_INSTALL" value="false"/>
+<booleanAttribute key="org.eclipse.ant.ui.DEFAULT_VM_INSTALL" value="true"/>
 <stringAttribute key="org.eclipse.debug.core.ATTR_REFRESH_SCOPE" value="${workspace}"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/OpenJML/build-bash.xml"/>
@@ -10,7 +10,7 @@
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
 <mapEntry key="ANNOTATIONS" value="${project_loc:JMLAnnotations}"/>
-<mapEntry key="ANT_HOME" value="C:\cygwin\home\dcok\apps\eclipse-Juno-development\eclipse\plugins\org.apache.ant_1.8.3.v201301120609"/>
+<mapEntry key="ANT_HOME" value="C:\cygwin\home\dcok\apps\eclipse-Luna-development\eclipse\plugins\org.apache.ant_1.8.3.v201301120609"/>
 <mapEntry key="ROOT" value="${project_loc:OpenJML}/.."/>
 <mapEntry key="SPECS" value="${project_loc:Specs}"/>
 </mapAttribute>
