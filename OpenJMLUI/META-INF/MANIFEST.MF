@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI
 Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
-Bundle-Version: 0.5.36
+Bundle-Version: 0.5.37
 Bundle-ClassPath: bin/,
  jmlruntime.jar,
  jSMTLIB.jar
@@ -39,7 +39,7 @@ Export-Package: org.jmlspecs.annotation,
  org.jmlspecs.utils;uses:="org.jmlspecs.lang"
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.jdt.core;bundle-version="3.4.4",
+ org.eclipse.jdt.core,
  org.eclipse.core.resources;bundle-version="3.4.2",
  org.eclipse.ui.console;bundle-version="3.3.1",
  org.eclipse.ui.ide,
