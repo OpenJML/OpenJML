@@ -89,6 +89,9 @@ public enum JmlOption implements IOption {
     RAC_JAVA_CHECKS("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
 
+    PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
+    PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
+    
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
     NOPURITYCHECKX("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true),

@@ -713,6 +713,19 @@ public class Main extends com.sun.tools.javac.main.Main {
                 }
             }
         }
+        
+        if(o != null && o.equals(JmlOption.PROPERTIES)){
+            Properties properties = System.getProperties();
+            String file = JmlOption.value(context,JmlOption.PROPERTIES);
+            try {
+                if(file != null){
+                    Utils.readProps(properties,file);  
+                }
+            } catch (java.io.IOException e) {
+                Log.instance(context).noticeWriter.println("Failed to read property file " + file); // FIXME - review
+            }
+            setPropertiesFileOptions(options, properties);
+        }
         return i;
     }
     
@@ -954,35 +967,9 @@ public class Main extends com.sun.tools.javac.main.Main {
             filenames = new TreeSet<File>();
             classnames = new ListBuffer<String>();
             coreDefaultOptions(opts);
+            setInitialOptions(opts, args);
             Properties properties = Utils.findProperties(context);
-            for (Map.Entry<Object,Object> p : properties.entrySet()) {
-                Object o = p.getKey();
-                if (!(o instanceof String)) {
-                    Log.instance(context).warning("jml.ignoring.non.string.key", o.getClass());
-                    continue;
-                }
-                String key = (String)o;
-                Object value = p.getValue();
-                if (!(value instanceof String)) {
-                    Log.instance(context).warning("jml.ignoring.non.string.value", o.getClass(),key);
-                    continue;
-                }
-                String v = (String)value;
-                if (key.startsWith(Strings.optionPropertyPrefix)) {
-                    String rest = key.substring(Strings.optionPropertyPrefix.length());
-                    if (v.equals("true")) value = "";
-                    else if (v.equals("false")) value  = null;
-                    rest = "-" + rest;
-                    opts.put(rest, v);
-                } else if (key.startsWith("openjml")) {
-                    opts.put(key,v);
-                } else if (key.startsWith("org.openjml")) {
-                    opts.put(key,v);
-                } else {
-                    opts.put(key,v);
-                }
-            }
-
+            setPropertiesFileOptions(opts, properties);
         } else {
             opts.putAll(options);
         }
@@ -995,6 +982,36 @@ public class Main extends com.sun.tools.javac.main.Main {
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
+    }    
+    
+    protected void setPropertiesFileOptions(Options opts, Properties properties){
+        for (Map.Entry<Object,Object> p : properties.entrySet()) {
+            Object o = p.getKey();
+            if (!(o instanceof String)) {
+                Log.instance(context).warning("jml.ignoring.non.string.key", o.getClass());
+                continue;
+            }
+            String key = (String)o;
+            Object value = p.getValue();
+            if (!(value instanceof String)) {
+                Log.instance(context).warning("jml.ignoring.non.string.value", o.getClass(),key);
+                continue;
+            }
+            String v = (String)value;
+            if (key.startsWith(Strings.optionPropertyPrefix)) {
+                String rest = key.substring(Strings.optionPropertyPrefix.length());
+                if (v.equals("true")) value = "";
+                else if (v.equals("false")) value  = null;
+                rest = "-" + rest;
+                opts.put(rest, v);
+            } else if (key.startsWith("openjml")) {
+                opts.put(key,v);
+            } else if (key.startsWith("org.openjml")) {
+                opts.put(key,v);
+            } else {
+                opts.put(key,v);
+            }
+        }
     }
     
     /** Sets default initial options to the Options instance that is the 
@@ -1006,6 +1023,20 @@ public class Main extends com.sun.tools.javac.main.Main {
         opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
         opts.put(JmlOption.PURITYCHECK.optionName(), null);
     }
+    
+    protected void setInitialOptions(Options opts, String ... args) {
+        for (int i=0; i<args.length; i++){
+            String s = args[i];
+            if(JmlOption.PROPERTIES_DEFAULT.optionName().equals(s)){
+                if(i+1 < args.length){
+                    opts.put(JmlOption.PROPERTIES_DEFAULT.optionName(), args[i+1]);
+                }else{
+                    Log.instance(context).warning("jml.expected.parameter",s);
+                }
+            }
+        }
+    }
+    
     
     /** Adds additional options to those already present (which may change 
      * previous settings). */

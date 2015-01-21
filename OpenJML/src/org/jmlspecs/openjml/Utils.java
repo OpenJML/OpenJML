@@ -435,7 +435,7 @@ public class Utils {
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.
-
+        
         // On the system classpath
         {
             URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
@@ -477,7 +477,21 @@ public class Utils {
 
         // FIXME - add on the application classpath
 
-        // FIXME - add on the command-line
+
+        // check if -properties or -properties-default option is set.
+        {
+            String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
+           
+            if(properties_file != null){
+                try {
+                    boolean found = readProps(properties,properties_file);
+                    if (found && verbose) 
+                        Log.instance(context).noticeWriter.println("Properties read from file: " + properties_file);
+                } catch (java.io.IOException e) {
+                    Log.instance(context).noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
+                }
+            }
+        }
 
         if (verbose) {
             // Print out the properties
