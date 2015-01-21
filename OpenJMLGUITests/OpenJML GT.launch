@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.rcptt.launching.multiaut">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/OpenJMLGUITests/Tests/ESCSimple.test"/>
+<listEntry value="/OpenJMLGUITests/Tests/ZZZExit.test"/>
+<listEntry value="/OpenJMLGUITests/Tests/ESCSimple.test"/>
+<listEntry value="/OpenJMLGUITests/Tests/ZZZExit.test"/>
+<listEntry value="/OpenJMLGUITests/Tests/ESCSimple.test"/>
+<listEntry value="/OpenJMLGUITests/Tests/ZZZExit.test"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+<listEntry value="1"/>
+<listEntry value="1"/>
+<listEntry value="1"/>
+<listEntry value="1"/>
+<listEntry value="1"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
+<listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+</listAttribute>
+<intAttribute key="q7.exec.resources" value="6"/>
+<stringAttribute key="q7.multilaunch.entries" value="[{&quot;testId&quot;:&quot;_1SWL4IFyEeSoSpVMg6WP4Q&quot;,&quot;autName&quot;:&quot;OpenJML-kepler&quot;,&quot;restart&quot;:false},{&quot;testId&quot;:&quot;_x7sjAJOjEeS2qa_i2Qv_7A&quot;,&quot;autName&quot;:&quot;OpenJML-kepler&quot;,&quot;restart&quot;:false},{&quot;testId&quot;:&quot;_1SWL4IFyEeSoSpVMg6WP4Q&quot;,&quot;autName&quot;:&quot;OpenJML-juno&quot;,&quot;restart&quot;:false},{&quot;testId&quot;:&quot;_x7sjAJOjEeS2qa_i2Qv_7A&quot;,&quot;autName&quot;:&quot;OpenJML-juno&quot;,&quot;restart&quot;:false},{&quot;testId&quot;:&quot;_1SWL4IFyEeSoSpVMg6WP4Q&quot;,&quot;autName&quot;:&quot;OpenJML-luna&quot;,&quot;restart&quot;:false},{&quot;testId&quot;:&quot;_x7sjAJOjEeS2qa_i2Qv_7A&quot;,&quot;autName&quot;:&quot;OpenJML-luna&quot;,&quot;restart&quot;:false}]"/>
+</launchConfiguration>

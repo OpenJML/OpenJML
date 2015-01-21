@@ -1,0 +1,17 @@
+--- RCPTT testcase ---
+Format-Version: 1.0
+Element-Name: OpenJML GUI Tests
+Element-Type: testsuite
+Element-Version: 2.0
+Id: _7xMywIF_EeSoSpVMg6WP4Q
+Runtime-Version: 1.5.3.201409120955
+Save-Time: 1/3/15 6:55 PM
+
+------=_testcase-items-62c497da-4241-31f4-811a-6b453a3ecff8
+Content-Type: text/testcase
+Entry-Name: testcase-items
+
+_1SWL4IFyEeSoSpVMg6WP4Q	// kind: 'test' name: 'ESCSimple' path: 'Tests/ESCSimple.test'
+_x7sjAJOjEeS2qa_i2Qv_7A	// kind: 'test' name: 'ZZZExit' path: 'Tests/ZZZExit.test'
+
+------=_testcase-items-62c497da-4241-31f4-811a-6b453a3ecff8--
