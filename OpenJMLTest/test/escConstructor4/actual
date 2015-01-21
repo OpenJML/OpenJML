@@ -1,0 +1,1748 @@
+Proving methods in Child
+Starting proof of Child.Child(java.lang.Object) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Child.Child(java.lang.Object)
+{
+  super(ooo);
+}
+
+--------------------------------------
+
+TRANSFORMATION OF Child.Child(java.lang.Object)
+{
+  Child _JML___result = THIS;
+  java.lang.Exception _JML___exception = null;
+  int _JML___termination = 0;
+  int __JML_AssumeCheck_;
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 1
+  final boolean ASSERT_1 = __JML_AssumeCheck_ != 1;
+  /*@ assert ASSERT_1;*/
+  /*@ assume THIS != null;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 2
+  final boolean ASSERT_3 = __JML_AssumeCheck_ != 2;
+  /*@ assert ASSERT_3;*/
+  /*@ assume THIS == null || THIS instanceof Child && <:(\typeof(THIS), \type(Child));*/
+  // Declare pre-state value of formals
+  java.lang.Object PRE_ooo = ooo;
+  // Assume axioms
+  // Assume static final constant fields
+  // Assume field type, allocation, and nullness
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 3
+  final boolean ASSERT_5 = __JML_AssumeCheck_ != 3;
+  /*@ assert ASSERT_5;*/
+  /*@ assume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647;*/
+  // assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 4
+  final boolean ASSERT_7 = __JML_AssumeCheck_ != 4;
+  /*@ assert ASSERT_7;*/
+  /*@ assume THIS.theString == null || THIS.theString._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 5
+  final boolean ASSERT_9 = __JML_AssumeCheck_ != 5;
+  /*@ assert ASSERT_9;*/
+  /*@ assume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String)));*/
+  // assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 6
+  final boolean ASSERT_11 = __JML_AssumeCheck_ != 6;
+  /*@ assert ASSERT_11;*/
+  /*@ assume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647;*/
+  // assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 7
+  final boolean ASSERT_13 = __JML_AssumeCheck_ != 7;
+  /*@ assert ASSERT_13;*/
+  /*@ assume THIS.owner == null || THIS.owner._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 8
+  final boolean ASSERT_15 = __JML_AssumeCheck_ != 8;
+  /*@ assert ASSERT_15;*/
+  /*@ assume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object));*/
+  // assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 9
+  final boolean ASSERT_17 = __JML_AssumeCheck_ != 9;
+  /*@ assert ASSERT_17;*/
+  /*@ assume THIS.privateState == null || THIS.privateState._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 10
+  final boolean ASSERT_19 = __JML_AssumeCheck_ != 10;
+  /*@ assert ASSERT_19;*/
+  /*@ assume (THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object))) && (THIS.privateState == null || THIS.privateState instanceof java.lang.Cloneable && <:(\typeof(THIS.privateState), \type(java.lang.Cloneable))) && (THIS.privateState == null || THIS.privateState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.privateState), \type(org.jmlspecs.lang.JMLDataGroup)));*/
+  // assume ImplicitAssume (THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object))) && (THIS.privateState == null || THIS.privateState instanceof java.lang.Cloneable && <:(\typeof(THIS.privateState), \type(java.lang.Cloneable))) && (THIS.privateState == null || THIS.privateState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.privateState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 11
+  final boolean ASSERT_21 = __JML_AssumeCheck_ != 11;
+  /*@ assert ASSERT_21;*/
+  /*@ assume THIS.objectState == null || THIS.objectState._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 12
+  final boolean ASSERT_23 = __JML_AssumeCheck_ != 12;
+  /*@ assert ASSERT_23;*/
+  /*@ assume (THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object))) && (THIS.objectState == null || THIS.objectState instanceof java.lang.Cloneable && <:(\typeof(THIS.objectState), \type(java.lang.Cloneable))) && (THIS.objectState == null || THIS.objectState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.objectState), \type(org.jmlspecs.lang.JMLDataGroup)));*/
+  // assume ImplicitAssume (THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object))) && (THIS.objectState == null || THIS.objectState instanceof java.lang.Cloneable && <:(\typeof(THIS.objectState), \type(java.lang.Cloneable))) && (THIS.objectState == null || THIS.objectState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.objectState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 13
+  final boolean ASSERT_25 = __JML_AssumeCheck_ != 13;
+  /*@ assert ASSERT_25;*/
+  /*@ assume THIS.o == null || THIS.o._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 14
+  final boolean ASSERT_27 = __JML_AssumeCheck_ != 14;
+  /*@ assert ASSERT_27;*/
+  /*@ assume THIS.o == null || THIS.o instanceof java.lang.Object && <:(\typeof(THIS.o), \type(java.lang.Object));*/
+  // assume ImplicitAssume THIS.o == null || THIS.o instanceof java.lang.Object && <:(\typeof(THIS.o), \type(java.lang.Object)); ...
+  // Assume parameter type, allocation, and nullness
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 15
+  final boolean ASSERT_29 = __JML_AssumeCheck_ != 15;
+  /*@ assert ASSERT_29;*/
+  /*@ assume ooo != null;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 16
+  final boolean ASSERT_31 = __JML_AssumeCheck_ != 16;
+  /*@ assert ASSERT_31;*/
+  /*@ assume ooo._isalloc__;*/
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 17
+  final boolean ASSERT_33 = __JML_AssumeCheck_ != 17;
+  /*@ assert ASSERT_33;*/
+  /*@ assume ooo == null || ooo instanceof java.lang.Object && <:(\typeof(ooo), \type(java.lang.Object));*/
+  // assume ImplicitAssume ooo == null || ooo instanceof java.lang.Object && <:(\typeof(ooo), \type(java.lang.Object)); ...
+  boolean Pre_1 = false;
+  // Assume invariants for java.lang.Object
+  // Assume invariants for Parent
+  // Assume invariants for Child
+  // Adding invariants for ooo
+  // Assume invariants for java.lang.Object
+  // Assume Preconditions
+  // requires ooo != null; 
+  Pre_1 = ooo != null;
+  // AssumeCheck assertion: __JML_AssumeCheck_ != 18
+  final boolean ASSERT_35 = __JML_AssumeCheck_ != 18;
+  /*@ assert ASSERT_35;*/
+  /*@ assume Pre_1;*/
+  null: {
+  }
+  {
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 19
+    final boolean ASSERT_37 = __JML_AssumeCheck_ != 19;
+    /*@ assert ASSERT_37;*/
+  }
+  try {
+    // Method Body
+    // super(ooo)
+    java.lang.Object _JML__tmp1 = ooo;
+    Child _JML__tmp2 = THIS;
+    {
+      _JMLCALL_91_3: {
+      }
+      // Checking caller invariants before calling method Parent.Parent(java.lang.Object)
+      // Checking invariants for caller parameter ooo before calling method Parent.Parent(java.lang.Object)
+      // Assert invariants for java.lang.Object
+      // Checking preconditions of callee Parent(java.lang.Object) by the caller
+      boolean _JML__tmp4 = _JML__tmp1 != null;
+      {
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 20
+        final boolean ASSERT_38 = __JML_AssumeCheck_ != 20;
+        /*@ assert ASSERT_38;*/
+        // Precondition assertion: _JML__tmp4
+        final boolean ASSERT_39 = _JML__tmp4;
+        /*@ assert ASSERT_39;*/
+      }
+      {
+        if (_JML__tmp4) {
+          // assignable this.*; 
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 22
+          final boolean ASSERT_42 = __JML_AssumeCheck_ != 22;
+          /*@ assert ASSERT_42;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_43 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_43;*/
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 23
+          final boolean ASSERT_44 = __JML_AssumeCheck_ != 23;
+          /*@ assert ASSERT_44;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_45 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_45;*/
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 24
+          final boolean ASSERT_46 = __JML_AssumeCheck_ != 24;
+          /*@ assert ASSERT_46;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_47 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_47;*/
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 25
+          final boolean ASSERT_48 = __JML_AssumeCheck_ != 25;
+          /*@ assert ASSERT_48;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_49 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_49;*/
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 26
+          final boolean ASSERT_50 = __JML_AssumeCheck_ != 26;
+          /*@ assert ASSERT_50;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_51 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_51;*/
+          // AssumeCheck assertion: __JML_AssumeCheck_ != 27
+          final boolean ASSERT_52 = __JML_AssumeCheck_ != 27;
+          /*@ assert ASSERT_52;*/
+          // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+          final boolean ASSERT_53 = !(_JML__tmp2 != null) || _JML__tmp2 != null;
+          /*@ assert ASSERT_53;*/
+          //@ havoc _JML__tmp2.theString, _JML__tmp2.theHashCode, _JML__tmp2.owner, _JML__tmp2.privateState, _JML__tmp2.objectState, _JML__tmp2.o; 
+        }
+      }
+      {
+        // Assuming callee invariants by the caller Child.Child(java.lang.Object) after exiting the callee Parent.Parent(java.lang.Object)
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 28
+        final boolean ASSERT_54 = __JML_AssumeCheck_ != 28;
+        /*@ assert ASSERT_54;*/
+        /*@ assume _JML__tmp2.objectState != null;*/
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 29
+        final boolean ASSERT_56 = __JML_AssumeCheck_ != 29;
+        /*@ assert ASSERT_56;*/
+        /*@ assume _JML__tmp2.privateState != null;*/
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 30
+        final boolean ASSERT_58 = __JML_AssumeCheck_ != 30;
+        /*@ assert ASSERT_58;*/
+        /*@ assume _JML__tmp2.theString != null;*/
+        // Assume invariants for java.lang.Object
+        // Assume invariants for Parent
+        // Assume constraints for java.lang.Object
+        // Assume constraints for Parent
+        // Assuming invariants for callee parameter after exiting the callee Parent.Parent(java.lang.Object)
+        // Assume invariants for java.lang.Object
+      }
+      java.lang.Exception _JML___exceptionCall;
+      if (_JML___exceptionCall == null) {
+        // Assuming callee normal postconditions
+        // Assuming postconditions for Parent.Parent(java.lang.Object)
+        {
+          if (_JML__tmp4) {
+            {
+              // ensures oo.equals(o); 
+              // AssumeCheck assertion: __JML_AssumeCheck_ != 31
+              final boolean ASSERT_60 = __JML_AssumeCheck_ != 31;
+              /*@ assert ASSERT_60;*/
+              // UndefinedNullDeReference assertion: _JML__tmp1 != null
+              final boolean ASSERT_61 = _JML__tmp1 != null;
+              /*@ assert ASSERT_61;*/
+              java.lang.Object _JML__tmp5 = _JML__tmp2.o;
+              boolean _JML__tmp6;
+              {
+                // Checking callee invariants by the caller Child.Child(java.lang.Object) before calling method java.lang.Object.equals(java.lang.Object)
+                // Assert invariants for java.lang.Object
+                // Asserting invariants for callee parameter before calling the callee java.lang.Object.equals(java.lang.Object)
+                // Checking preconditions of callee equals(java.lang.Object) by the caller
+                boolean _JML__tmp7 = _JML__tmp5 != null;
+                boolean _JML__tmp8 = _JML__tmp1 == _JML__tmp5;
+                boolean _JML__tmp9 = _JML__tmp5 != null && \typeof(_JML__tmp1) == \type(java.lang.Object);
+                boolean _JML__tmp10 = _JML__tmp5 == null;
+                {
+                  // AssumeCheck assertion: __JML_AssumeCheck_ != 32
+                  final boolean ASSERT_62 = __JML_AssumeCheck_ != 32;
+                  /*@ assert ASSERT_62;*/
+                  // UndefinedCalledMethodPrecondition assertion: !(_JML__tmp4 && _JML__tmp1 != null) || (_JML__tmp7 || _JML__tmp8 || _JML__tmp9 || _JML__tmp10)
+                  final boolean ASSERT_63 = !(_JML__tmp4 && _JML__tmp1 != null) || (_JML__tmp7 || _JML__tmp8 || _JML__tmp9 || _JML__tmp10);
+                  /*@ assert ASSERT_63;*/
+                }
+                {
+                  if (_JML__tmp7) {
+                    // assignable \nothing; 
+                    //@ havoc \nothing; 
+                  }
+                }
+                {
+                  if (_JML__tmp8) {
+                    // assignable \nothing; 
+                    //@ havoc \nothing; 
+                  }
+                }
+                {
+                  if (_JML__tmp9) {
+                    // assignable \nothing; 
+                    //@ havoc \nothing; 
+                  }
+                }
+                {
+                  if (_JML__tmp10) {
+                    // assignable \nothing; 
+                    //@ havoc \nothing; 
+                  }
+                }
+                {
+                  // Assuming callee invariants by the caller Child.Child(java.lang.Object) after exiting the callee java.lang.Object.equals(java.lang.Object)
+                  // AssumeCheck assertion: __JML_AssumeCheck_ != 34
+                  final boolean ASSERT_66 = __JML_AssumeCheck_ != 34;
+                  /*@ assert ASSERT_66;*/
+                  /*@ assume _JML__tmp1.objectState != null;*/
+                  // AssumeCheck assertion: __JML_AssumeCheck_ != 35
+                  final boolean ASSERT_68 = __JML_AssumeCheck_ != 35;
+                  /*@ assert ASSERT_68;*/
+                  /*@ assume _JML__tmp1.privateState != null;*/
+                  // AssumeCheck assertion: __JML_AssumeCheck_ != 36
+                  final boolean ASSERT_70 = __JML_AssumeCheck_ != 36;
+                  /*@ assert ASSERT_70;*/
+                  /*@ assume _JML__tmp1.theString != null;*/
+                  // Assume constraints for java.lang.Object
+                  // Assuming invariants for callee parameter after exiting the callee java.lang.Object.equals(java.lang.Object)
+                  if (_JML___exception == null) {
+                    // Assuming invariants for the return value by the caller after exiting the callee java.lang.Object.equals(java.lang.Object)
+                  }
+                }
+                {
+                  // Assuming callee normal postconditions
+                  // Assuming postconditions for java.lang.Object.equals(java.lang.Object)
+                  {
+                    if (_JML__tmp7) {
+                      {
+                        // ensures (* \result is true when obj is "equal to" this object *); 
+                        // AssumeCheck assertion: __JML_AssumeCheck_ != 38
+                        final boolean ASSERT_74 = __JML_AssumeCheck_ != 38;
+                        /*@ assert ASSERT_74;*/
+                        /*@ assume true;*/
+                      }
+                    }
+                  }
+                  {
+                    if (_JML__tmp8) {
+                      {
+                        // ensures \result; 
+                        // AssumeCheck assertion: __JML_AssumeCheck_ != 41
+                        final boolean ASSERT_80 = __JML_AssumeCheck_ != 41;
+                        /*@ assert ASSERT_80;*/
+                        /*@ assume _JML__tmp6;*/
+                      }
+                    }
+                  }
+                  {
+                    if (_JML__tmp9) {
+                      {
+                        // ensures \result <==> this == obj; 
+                        // AssumeCheck assertion: __JML_AssumeCheck_ != 44
+                        final boolean ASSERT_86 = __JML_AssumeCheck_ != 44;
+                        /*@ assert ASSERT_86;*/
+                        /*@ assume _JML__tmp6 == (_JML__tmp1 == _JML__tmp5);*/
+                      }
+                    }
+                  }
+                  {
+                    if (_JML__tmp10) {
+                      {
+                        // ensures !\result; 
+                        // AssumeCheck assertion: __JML_AssumeCheck_ != 47
+                        final boolean ASSERT_92 = __JML_AssumeCheck_ != 47;
+                        /*@ assert ASSERT_92;*/
+                        /*@ assume !_JML__tmp6;*/
+                      }
+                    }
+                  }
+                }
+              }
+              // AssumeCheck assertion: __JML_AssumeCheck_ != 49
+              final boolean ASSERT_96 = __JML_AssumeCheck_ != 49;
+              /*@ assert ASSERT_96;*/
+              /*@ assume _JML__tmp6;*/
+            }
+          }
+        }
+      } else {
+        // Exception thrown by Parent(java.lang.Object)
+        // Assuming callee exceptional postconditions
+        _JML___exception = _JML___exceptionCall;
+        _JML___termination = -91;
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 21
+        final boolean ASSERT_40 = __JML_AssumeCheck_ != 21;
+        /*@ assert ASSERT_40;*/
+        /*@ assume false;*/
+        // Assuming exceptional postconditions for Parent.Parent(java.lang.Object)
+        {
+          if (_JML__tmp4) {
+            // AssumeCheck assertion: __JML_AssumeCheck_ != 50
+            final boolean ASSERT_98 = __JML_AssumeCheck_ != 50;
+            /*@ assert ASSERT_98;*/
+            /*@ assume false || _JML___exception instanceof java.lang.RuntimeException;*/
+          }
+        }
+        throw _JML___exceptionCall;
+      }
+    }
+    // Class fields for constructor
+  } finally {
+    // Check Postconditions
+    if (_JML___exception == null) {
+      // Assert invariants for java.lang.Object
+      // Assert invariants for Parent
+      // Assert invariants for Child
+      // Assert constraints for java.lang.Object
+      // Assert constraints for Parent
+      // Assert constraints for Child
+      // Assert invariants for java.lang.Object
+      // Asserting postconditions for Child.Child(java.lang.Object)
+    } else {
+      // Assert invariants for java.lang.Object
+      // Assert invariants for Parent
+      // Assert invariants for Child
+      // Assert constraints for java.lang.Object
+      // Assert constraints for Parent
+      // Assert constraints for Child
+      // Assert invariants for java.lang.Object
+      // Assert constraints for java.lang.Object
+      // Asserting exceptional postconditions for Child.Child(java.lang.Object)
+      {
+        // AssumeCheck assertion: __JML_AssumeCheck_ != 51
+        final boolean ASSERT_100 = __JML_AssumeCheck_ != 51;
+        /*@ assert ASSERT_100;*/
+        // ExceptionList assertion: _JML___exception instanceof java.lang.RuntimeException
+        final boolean ASSERT_101 = _JML___exception instanceof java.lang.RuntimeException;
+        /*@ assert ASSERT_101;*/
+      }
+    }
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 52
+    final boolean ASSERT_102 = __JML_AssumeCheck_ != 52;
+    /*@ assert ASSERT_102;*/
+  }
+}
+
+--------------------------------------
+
+BasicBlock2 FORM of Child.Child(java.lang.Object)
+START = BL_46Start_1
+java.lang.Object_privateState_1345 : org.jmlspecs.lang.JMLDataGroup
+Parent_o_55 : java.lang.Object
+java.lang.Object_theString_6988 : java.lang.String
+java.lang.Object_theHashCode_2129 : int
+java.lang.Object_objectState_1211 : org.jmlspecs.lang.JMLDataGroup
+_isalloc___7 : boolean
+java.lang.Object_owner_1585 : java.lang.Object
+java.lang.Object_objectTimesFinalized_9235 : int
+ooo_0 : java.lang.Object
+_JML___result_7_7___1 : Child
+THIS : Child
+_JML___exception_46_46___2 : java.lang.Exception
+_JML___termination_46_46___3 : int
+ASSERT_1_46_46___4 : boolean
+ASSERT_3_7_7___5 : boolean
+ooo_75 : java.lang.Object
+ASSERT_5_46_46___6 : boolean
+java.lang.Object_objectTimesFinalized_9235 : int
+ASSERT_7_46_46___7 : boolean
+java.lang.Object_theString_6988 : java.lang.String
+_isalloc___7 : boolean
+ASSERT_9_46_46___8 : boolean
+ASSERT_11_46_46___9 : boolean
+java.lang.Object_theHashCode_2129 : int
+ASSERT_13_46_46___10 : boolean
+java.lang.Object_owner_1585 : java.lang.Object
+ASSERT_15_46_46___11 : boolean
+ASSERT_17_46_46___12 : boolean
+java.lang.Object_privateState_1345 : org.jmlspecs.lang.JMLDataGroup
+ASSERT_19_46_46___13 : boolean
+ASSERT_21_46_46___14 : boolean
+java.lang.Object_objectState_1211 : org.jmlspecs.lang.JMLDataGroup
+ASSERT_23_46_46___15 : boolean
+ASSERT_25_46_46___16 : boolean
+Parent_o_55 : java.lang.Object
+ASSERT_27_46_46___17 : boolean
+ASSERT_29_75_75___18 : boolean
+ASSERT_31_75_75___19 : boolean
+ASSERT_33_75_75___20 : boolean
+Pre_1_0_46___21 : boolean
+Pre_1_0_46___22 : boolean
+ASSERT_35_46_46___23 : boolean
+ASSERT_37_46_46___24 : boolean
+ASSERT_38_118_118___25 : boolean
+ASSERT_39_118_118___26 : boolean
+ASSERT_42_118_118___27 : boolean
+ASSERT_43_118_118___28 : boolean
+ASSERT_44_118_118___29 : boolean
+ASSERT_45_118_118___30 : boolean
+ASSERT_46_118_118___31 : boolean
+ASSERT_47_118_118___32 : boolean
+ASSERT_48_118_118___33 : boolean
+ASSERT_49_118_118___34 : boolean
+ASSERT_50_118_118___35 : boolean
+ASSERT_51_118_118___36 : boolean
+ASSERT_52_118_118___37 : boolean
+ASSERT_53_118_118___38 : boolean
+theString_6988_118___39 : java.lang.String
+theHashCode_2129_118___40 : int
+owner_1585_118___41 : java.lang.Object
+privateState_1345_118___42 : org.jmlspecs.lang.JMLDataGroup
+objectState_1211_118___43 : org.jmlspecs.lang.JMLDataGroup
+o_55_118___44 : java.lang.Object
+ASSERT_54_86_86___45 : boolean
+ASSERT_56_86_86___46 : boolean
+ASSERT_58_86_86___47 : boolean
+_JML___exceptionCall_91_91___48 : java.lang.Exception
+ASSERT_60_73_73___49 : boolean
+ASSERT_61_73_73___50 : boolean
+ASSERT_62_46_46___51 : boolean
+ASSERT_63_46_46___52 : boolean
+ASSERT_66_73_73___53 : boolean
+ASSERT_68_73_73___54 : boolean
+ASSERT_70_73_73___55 : boolean
+ASSERT_74_2800_2800___56 : boolean
+ASSERT_80_2963_2963___57 : boolean
+ASSERT_86_3111_3111___58 : boolean
+ASSERT_92_3240_3240___59 : boolean
+ASSERT_96_82_82___60 : boolean
+_JML___exception_46_91___61 : java.lang.Exception
+_JML___termination_46_91___62 : int
+ASSERT_40_0 : boolean
+ASSERT_98_107_107___63 : boolean
+ASSERT_100_46_46___64 : boolean
+ASSERT_101_46_46___65 : boolean
+ASSERT_102_46_46___66 : boolean
+BL_46Start_1:
+    follows
+    goto BL_80bodyBegin_2;
+BL_80bodyBegin_2:
+    follows BL_46Start_1
+    assume Assignment _JML___result_7_7___1 == THIS;
+    assume Assignment _JML___exception_46_46___2 == null;
+    assume Assignment _JML___termination_46_46___3 == 0;
+    int __JML_AssumeCheck_
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 1
+    assume Assignment ASSERT_1_46_46___4 == (__JML_AssumeCheck_ != 1);
+    assert AssumeCheck ASSERT_1_46_46___4;
+    assume ImplicitAssume THIS != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 2
+    assume Assignment ASSERT_3_7_7___5 == (__JML_AssumeCheck_ != 2);
+    assert AssumeCheck ASSERT_3_7_7___5;
+    assume ImplicitAssume THIS == null || THIS instanceof Child && <:(\typeof(THIS), \type(Child));
+    // Declare pre-state value of formals
+    java.lang.Object PRE_ooo_75 = ooo_75
+    // Assume axioms
+    // Assume static final constant fields
+    // Assume field type, allocation, and nullness
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 3
+    assume Assignment ASSERT_5_46_46___6 == (__JML_AssumeCheck_ != 3);
+    assert AssumeCheck ASSERT_5_46_46___6;
+    assume ImplicitAssume -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_9235 && THIS.java.lang.Object_objectTimesFinalized_9235 <= 2147483647;
+    // assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 4
+    assume Assignment ASSERT_7_46_46___7 == (__JML_AssumeCheck_ != 4);
+    assert AssumeCheck ASSERT_7_46_46___7;
+    assume ImplicitAssume THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 5
+    assume Assignment ASSERT_9_46_46___8 == (__JML_AssumeCheck_ != 5);
+    assert AssumeCheck ASSERT_9_46_46___8;
+    assume ImplicitAssume (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.String)));
+    // assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 6
+    assume Assignment ASSERT_11_46_46___9 == (__JML_AssumeCheck_ != 6);
+    assert AssumeCheck ASSERT_11_46_46___9;
+    assume ImplicitAssume -2147483648 <= THIS.java.lang.Object_theHashCode_2129 && THIS.java.lang.Object_theHashCode_2129 <= 2147483647;
+    // assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 7
+    assume Assignment ASSERT_13_46_46___10 == (__JML_AssumeCheck_ != 7);
+    assert AssumeCheck ASSERT_13_46_46___10;
+    assume ImplicitAssume THIS.java.lang.Object_owner_1585 == null || THIS.java.lang.Object_owner_1585._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 8
+    assume Assignment ASSERT_15_46_46___11 == (__JML_AssumeCheck_ != 8);
+    assert AssumeCheck ASSERT_15_46_46___11;
+    assume ImplicitAssume THIS.java.lang.Object_owner_1585 == null || THIS.java.lang.Object_owner_1585 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1585), \type(java.lang.Object));
+    // assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 9
+    assume Assignment ASSERT_17_46_46___12 == (__JML_AssumeCheck_ != 9);
+    assert AssumeCheck ASSERT_17_46_46___12;
+    assume ImplicitAssume THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 10
+    assume Assignment ASSERT_19_46_46___13 == (__JML_AssumeCheck_ != 10);
+    assert AssumeCheck ASSERT_19_46_46___13;
+    assume ImplicitAssume (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Object))) && (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Cloneable))) && (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(org.jmlspecs.lang.JMLDataGroup)));
+    // assume ImplicitAssume (THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object))) && (THIS.privateState == null || THIS.privateState instanceof java.lang.Cloneable && <:(\typeof(THIS.privateState), \type(java.lang.Cloneable))) && (THIS.privateState == null || THIS.privateState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.privateState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 11
+    assume Assignment ASSERT_21_46_46___14 == (__JML_AssumeCheck_ != 11);
+    assert AssumeCheck ASSERT_21_46_46___14;
+    assume ImplicitAssume THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 12
+    assume Assignment ASSERT_23_46_46___15 == (__JML_AssumeCheck_ != 12);
+    assert AssumeCheck ASSERT_23_46_46___15;
+    assume ImplicitAssume (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Cloneable))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(org.jmlspecs.lang.JMLDataGroup)));
+    // assume ImplicitAssume (THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object))) && (THIS.objectState == null || THIS.objectState instanceof java.lang.Cloneable && <:(\typeof(THIS.objectState), \type(java.lang.Cloneable))) && (THIS.objectState == null || THIS.objectState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.objectState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 13
+    assume Assignment ASSERT_25_46_46___16 == (__JML_AssumeCheck_ != 13);
+    assert AssumeCheck ASSERT_25_46_46___16;
+    assume ImplicitAssume THIS.Parent_o_55 == null || THIS.Parent_o_55._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 14
+    assume Assignment ASSERT_27_46_46___17 == (__JML_AssumeCheck_ != 14);
+    assert AssumeCheck ASSERT_27_46_46___17;
+    assume ImplicitAssume THIS.Parent_o_55 == null || THIS.Parent_o_55 instanceof java.lang.Object && <:(\typeof(THIS.Parent_o_55), \type(java.lang.Object));
+    // assume ImplicitAssume THIS.o == null || THIS.o instanceof java.lang.Object && <:(\typeof(THIS.o), \type(java.lang.Object)); ...
+    // Assume parameter type, allocation, and nullness
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 15
+    assume Assignment ASSERT_29_75_75___18 == (__JML_AssumeCheck_ != 15);
+    assert AssumeCheck ASSERT_29_75_75___18;
+    assume NullCheck ooo_75 != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 16
+    assume Assignment ASSERT_31_75_75___19 == (__JML_AssumeCheck_ != 16);
+    assert AssumeCheck ASSERT_31_75_75___19;
+    assume ImplicitAssume ooo_75._isalloc___7;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 17
+    assume Assignment ASSERT_33_75_75___20 == (__JML_AssumeCheck_ != 17);
+    assert AssumeCheck ASSERT_33_75_75___20;
+    assume ImplicitAssume ooo_75 == null || ooo_75 instanceof java.lang.Object && <:(\typeof(ooo_75), \type(java.lang.Object));
+    // assume ImplicitAssume ooo == null || ooo instanceof java.lang.Object && <:(\typeof(ooo), \type(java.lang.Object)); ...
+    assume Assignment Pre_1_0_46___21 == false;
+    // Assume invariants for java.lang.Object
+    // Assume invariants for Parent
+    // Assume invariants for Child
+    // Adding invariants for ooo
+    // Assume invariants for java.lang.Object
+    // Assume Preconditions
+    // requires ooo != null; 
+    assume Assignment Pre_1_0_46___22 == (ooo_75 != null);
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 18
+    assume Assignment ASSERT_35_46_46___23 == (__JML_AssumeCheck_ != 18);
+    assert AssumeCheck ASSERT_35_46_46___23;
+    assume Precondition Pre_1_0_46___22;
+    goto BL_46_AfterLabel_3;
+BL_46_AfterLabel_3:
+    follows BL_80bodyBegin_2
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 19
+    assume Assignment ASSERT_37_46_46___24 == (__JML_AssumeCheck_ != 19);
+    assert AssumeCheck ASSERT_37_46_46___24;
+    // try...
+    // Method Body
+    // super(ooo)
+    java.lang.Object _JML__tmp1 = ooo_75
+    Child _JML__tmp2 = THIS
+    goto BL_91_AfterLabel_11;
+BL_91_AfterLabel_11:
+    follows BL_46_AfterLabel_3
+    // Checking caller invariants before calling method Parent.Parent(java.lang.Object)
+    // Checking invariants for caller parameter ooo before calling method Parent.Parent(java.lang.Object)
+    // Assert invariants for java.lang.Object
+    // Checking preconditions of callee Parent(java.lang.Object) by the caller
+    boolean _JML__tmp4 = _JML__tmp1 != null
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 20
+    assume Assignment ASSERT_38_118_118___25 == (__JML_AssumeCheck_ != 20);
+    assert AssumeCheck ASSERT_38_118_118___25;
+    // Precondition assertion: _JML__tmp4
+    assume Assignment ASSERT_39_118_118___26 == _JML__tmp4;
+    assert Precondition ASSERT_39_118_118___26;
+    // if...
+    goto BL_66_then_13, BL_66_else_14;
+BL_66_then_13:
+    follows BL_91_AfterLabel_11
+    assume BranchThen _JML__tmp4;
+    // assignable this.*; 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 22
+    assume Assignment ASSERT_42_118_118___27 == (__JML_AssumeCheck_ != 22);
+    assert AssumeCheck ASSERT_42_118_118___27;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_43_118_118___28 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_43_118_118___28;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 23
+    assume Assignment ASSERT_44_118_118___29 == (__JML_AssumeCheck_ != 23);
+    assert AssumeCheck ASSERT_44_118_118___29;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_45_118_118___30 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_45_118_118___30;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 24
+    assume Assignment ASSERT_46_118_118___31 == (__JML_AssumeCheck_ != 24);
+    assert AssumeCheck ASSERT_46_118_118___31;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_47_118_118___32 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_47_118_118___32;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 25
+    assume Assignment ASSERT_48_118_118___33 == (__JML_AssumeCheck_ != 25);
+    assert AssumeCheck ASSERT_48_118_118___33;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_49_118_118___34 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_49_118_118___34;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 26
+    assume Assignment ASSERT_50_118_118___35 == (__JML_AssumeCheck_ != 26);
+    assert AssumeCheck ASSERT_50_118_118___35;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_51_118_118___36 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_51_118_118___36;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 27
+    assume Assignment ASSERT_52_118_118___37 == (__JML_AssumeCheck_ != 27);
+    assert AssumeCheck ASSERT_52_118_118___37;
+    // UndefinedNullDeReference assertion: !(_JML__tmp2 != null) || _JML__tmp2 != null
+    assume Assignment ASSERT_53_118_118___38 == (!(_JML__tmp2 != null) || _JML__tmp2 != null);
+    assert UndefinedNullDeReference ASSERT_53_118_118___38;
+    assume Havoc /*missing*/(theString_6988_118___39, java.lang.Object_theString_6988, _JML__tmp2, _JML__tmp2.theString_6988_118___39);
+    assume Havoc /*missing*/(theHashCode_2129_118___40, java.lang.Object_theHashCode_2129, _JML__tmp2, _JML__tmp2.theHashCode_2129_118___40);
+    assume Havoc /*missing*/(owner_1585_118___41, java.lang.Object_owner_1585, _JML__tmp2, _JML__tmp2.owner_1585_118___41);
+    assume Havoc /*missing*/(privateState_1345_118___42, java.lang.Object_privateState_1345, _JML__tmp2, _JML__tmp2.privateState_1345_118___42);
+    assume Havoc /*missing*/(objectState_1211_118___43, java.lang.Object_objectState_1211, _JML__tmp2, _JML__tmp2.objectState_1211_118___43);
+    assume Havoc /*missing*/(o_55_118___44, Parent_o_55, _JML__tmp2, _JML__tmp2.o_55_118___44);
+    goto BL_66_afterIf_12;
+BL_66_else_14:
+    follows BL_91_AfterLabel_11
+    assume BranchElse !_JML__tmp4;
+    assume DSA objectState_1211_118___43 == java.lang.Object_objectState_1211;
+    assume DSA privateState_1345_118___42 == java.lang.Object_privateState_1345;
+    assume DSA theString_6988_118___39 == java.lang.Object_theString_6988;
+    assume DSA theHashCode_2129_118___40 == java.lang.Object_theHashCode_2129;
+    assume DSA owner_1585_118___41 == java.lang.Object_owner_1585;
+    assume DSA o_55_118___44 == Parent_o_55;
+    goto BL_66_afterIf_12;
+BL_66_afterIf_12:
+    follows BL_66_then_13 BL_66_else_14
+    // Assuming callee invariants by the caller Child.Child(java.lang.Object) after exiting the callee Parent.Parent(java.lang.Object)
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 28
+    assume Assignment ASSERT_54_86_86___45 == (__JML_AssumeCheck_ != 28);
+    assert AssumeCheck ASSERT_54_86_86___45;
+    assume PossiblyNullValue _JML__tmp2.objectState_1211_118___43 != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 29
+    assume Assignment ASSERT_56_86_86___46 == (__JML_AssumeCheck_ != 29);
+    assert AssumeCheck ASSERT_56_86_86___46;
+    assume PossiblyNullValue _JML__tmp2.privateState_1345_118___42 != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 30
+    assume Assignment ASSERT_58_86_86___47 == (__JML_AssumeCheck_ != 30);
+    assert AssumeCheck ASSERT_58_86_86___47;
+    assume PossiblyNullValue _JML__tmp2.theString_6988_118___39 != null;
+    // Assume invariants for java.lang.Object
+    // Assume invariants for Parent
+    // Assume constraints for java.lang.Object
+    // Assume constraints for Parent
+    // Assuming invariants for callee parameter after exiting the callee Parent.Parent(java.lang.Object)
+    // Assume invariants for java.lang.Object
+    // if...
+    goto BL_91_then_16, BL_91_else_17;
+BL_91_then_16:
+    follows BL_66_afterIf_12
+    assume BranchThen _JML___exceptionCall_91_91___48 == null;
+    // Assuming callee normal postconditions
+    // Assuming postconditions for Parent.Parent(java.lang.Object)
+    // if...
+    goto BL_66_then_19, BL_66_else_20;
+BL_66_then_19:
+    follows BL_91_then_16
+    assume BranchThen _JML__tmp4;
+    // ensures oo.equals(o); 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 31
+    assume Assignment ASSERT_60_73_73___49 == (__JML_AssumeCheck_ != 31);
+    assert AssumeCheck ASSERT_60_73_73___49;
+    // UndefinedNullDeReference assertion: _JML__tmp1 != null
+    assume Assignment ASSERT_61_73_73___50 == (_JML__tmp1 != null);
+    assert UndefinedNullDeReference ASSERT_61_73_73___50;
+    java.lang.Object _JML__tmp5 = _JML__tmp2.o_55_118___44
+    boolean _JML__tmp6
+    // Checking callee invariants by the caller Child.Child(java.lang.Object) before calling method java.lang.Object.equals(java.lang.Object)
+    // Assert invariants for java.lang.Object
+    // Asserting invariants for callee parameter before calling the callee java.lang.Object.equals(java.lang.Object)
+    // Checking preconditions of callee equals(java.lang.Object) by the caller
+    boolean _JML__tmp7 = _JML__tmp5 != null
+    boolean _JML__tmp8 = _JML__tmp1 == _JML__tmp5
+    boolean _JML__tmp9 = _JML__tmp5 != null && \typeof(_JML__tmp1) == \type(java.lang.Object)
+    boolean _JML__tmp10 = _JML__tmp5 == null
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 32
+    assume Assignment ASSERT_62_46_46___51 == (__JML_AssumeCheck_ != 32);
+    assert AssumeCheck ASSERT_62_46_46___51;
+    // UndefinedCalledMethodPrecondition assertion: !(_JML__tmp4 && _JML__tmp1 != null) || (_JML__tmp7 || _JML__tmp8 || _JML__tmp9 || _JML__tmp10)
+    assume Assignment ASSERT_63_46_46___52 == (!(_JML__tmp4 && _JML__tmp1 != null) || (_JML__tmp7 || _JML__tmp8 || _JML__tmp9 || _JML__tmp10));
+    assert UndefinedCalledMethodPrecondition ASSERT_63_46_46___52;
+    // if...
+    goto BL_2729_then_22, BL_2729_else_23;
+BL_2729_then_22:
+    follows BL_66_then_19
+    assume BranchThen _JML__tmp7;
+    // assignable \nothing; 
+    goto BL_2729_afterIf_21;
+BL_2729_else_23:
+    follows BL_66_then_19
+    assume BranchElse !_JML__tmp7;
+    goto BL_2729_afterIf_21;
+BL_2729_afterIf_21:
+    follows BL_2729_then_22 BL_2729_else_23
+    // if...
+    goto BL_2892_then_25, BL_2892_else_26;
+BL_2892_then_25:
+    follows BL_2729_afterIf_21
+    assume BranchThen _JML__tmp8;
+    // assignable \nothing; 
+    goto BL_2892_afterIf_24;
+BL_2892_else_26:
+    follows BL_2729_afterIf_21
+    assume BranchElse !_JML__tmp8;
+    goto BL_2892_afterIf_24;
+BL_2892_afterIf_24:
+    follows BL_2892_then_25 BL_2892_else_26
+    // if...
+    goto BL_3006_then_28, BL_3006_else_29;
+BL_3006_then_28:
+    follows BL_2892_afterIf_24
+    assume BranchThen _JML__tmp9;
+    // assignable \nothing; 
+    goto BL_3006_afterIf_27;
+BL_3006_else_29:
+    follows BL_2892_afterIf_24
+    assume BranchElse !_JML__tmp9;
+    goto BL_3006_afterIf_27;
+BL_3006_afterIf_27:
+    follows BL_3006_then_28 BL_3006_else_29
+    // if...
+    goto BL_3171_then_31, BL_3171_else_32;
+BL_3171_then_31:
+    follows BL_3006_afterIf_27
+    assume BranchThen _JML__tmp10;
+    // assignable \nothing; 
+    goto BL_3171_afterIf_30;
+BL_3171_else_32:
+    follows BL_3006_afterIf_27
+    assume BranchElse !_JML__tmp10;
+    goto BL_3171_afterIf_30;
+BL_3171_afterIf_30:
+    follows BL_3171_then_31 BL_3171_else_32
+    // Assuming callee invariants by the caller Child.Child(java.lang.Object) after exiting the callee java.lang.Object.equals(java.lang.Object)
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 34
+    assume Assignment ASSERT_66_73_73___53 == (__JML_AssumeCheck_ != 34);
+    assert AssumeCheck ASSERT_66_73_73___53;
+    assume PossiblyNullValue _JML__tmp1.objectState_1211_118___43 != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 35
+    assume Assignment ASSERT_68_73_73___54 == (__JML_AssumeCheck_ != 35);
+    assert AssumeCheck ASSERT_68_73_73___54;
+    assume PossiblyNullValue _JML__tmp1.privateState_1345_118___42 != null;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 36
+    assume Assignment ASSERT_70_73_73___55 == (__JML_AssumeCheck_ != 36);
+    assert AssumeCheck ASSERT_70_73_73___55;
+    assume PossiblyNullValue _JML__tmp1.theString_6988_118___39 != null;
+    // Assume constraints for java.lang.Object
+    // Assuming invariants for callee parameter after exiting the callee java.lang.Object.equals(java.lang.Object)
+    // if...
+    goto BL_82_then_34, BL_82_else_35;
+BL_82_then_34:
+    follows BL_3171_afterIf_30
+    assume BranchThen _JML___exception_46_46___2 == null;
+    // Assuming invariants for the return value by the caller after exiting the callee java.lang.Object.equals(java.lang.Object)
+    goto BL_82_afterIf_33;
+BL_82_else_35:
+    follows BL_3171_afterIf_30
+    assume BranchElse !(_JML___exception_46_46___2 == null);
+    goto BL_82_afterIf_33;
+BL_82_afterIf_33:
+    follows BL_82_then_34 BL_82_else_35
+    // Assuming callee normal postconditions
+    // Assuming postconditions for java.lang.Object.equals(java.lang.Object)
+    // if...
+    goto BL_2729_then_37, BL_2729_else_38;
+BL_2729_then_37:
+    follows BL_82_afterIf_33
+    assume BranchThen _JML__tmp7;
+    // ensures (* \result is true when obj is "equal to" this object *); 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 38
+    assume Assignment ASSERT_74_2800_2800___56 == (__JML_AssumeCheck_ != 38);
+    assert AssumeCheck ASSERT_74_2800_2800___56;
+    assume Postcondition true;
+    goto BL_2729_afterIf_36;
+BL_2729_else_38:
+    follows BL_82_afterIf_33
+    assume BranchElse !_JML__tmp7;
+    goto BL_2729_afterIf_36;
+BL_2729_afterIf_36:
+    follows BL_2729_then_37 BL_2729_else_38
+    // if...
+    goto BL_2892_then_40, BL_2892_else_41;
+BL_2892_then_40:
+    follows BL_2729_afterIf_36
+    assume BranchThen _JML__tmp8;
+    // ensures \result; 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 41
+    assume Assignment ASSERT_80_2963_2963___57 == (__JML_AssumeCheck_ != 41);
+    assert AssumeCheck ASSERT_80_2963_2963___57;
+    assume Postcondition _JML__tmp6;
+    goto BL_2892_afterIf_39;
+BL_2892_else_41:
+    follows BL_2729_afterIf_36
+    assume BranchElse !_JML__tmp8;
+    goto BL_2892_afterIf_39;
+BL_2892_afterIf_39:
+    follows BL_2892_then_40 BL_2892_else_41
+    // if...
+    goto BL_3006_then_43, BL_3006_else_44;
+BL_3006_then_43:
+    follows BL_2892_afterIf_39
+    assume BranchThen _JML__tmp9;
+    // ensures \result <==> this == obj; 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 44
+    assume Assignment ASSERT_86_3111_3111___58 == (__JML_AssumeCheck_ != 44);
+    assert AssumeCheck ASSERT_86_3111_3111___58;
+    assume Postcondition _JML__tmp6 == (_JML__tmp1 == _JML__tmp5);
+    goto BL_3006_afterIf_42;
+BL_3006_else_44:
+    follows BL_2892_afterIf_39
+    assume BranchElse !_JML__tmp9;
+    goto BL_3006_afterIf_42;
+BL_3006_afterIf_42:
+    follows BL_3006_then_43 BL_3006_else_44
+    // if...
+    goto BL_3171_then_46, BL_3171_else_47;
+BL_3171_then_46:
+    follows BL_3006_afterIf_42
+    assume BranchThen _JML__tmp10;
+    // ensures !\result; 
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 47
+    assume Assignment ASSERT_92_3240_3240___59 == (__JML_AssumeCheck_ != 47);
+    assert AssumeCheck ASSERT_92_3240_3240___59;
+    assume Postcondition !_JML__tmp6;
+    goto BL_3171_afterIf_45;
+BL_3171_else_47:
+    follows BL_3006_afterIf_42
+    assume BranchElse !_JML__tmp10;
+    goto BL_3171_afterIf_45;
+BL_3171_afterIf_45:
+    follows BL_3171_then_46 BL_3171_else_47
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 49
+    assume Assignment ASSERT_96_82_82___60 == (__JML_AssumeCheck_ != 49);
+    assert AssumeCheck ASSERT_96_82_82___60;
+    assume Postcondition _JML__tmp6;
+    goto BL_66_afterIf_18;
+BL_66_else_20:
+    follows BL_91_then_16
+    assume BranchElse !_JML__tmp4;
+    goto BL_66_afterIf_18;
+BL_66_afterIf_18:
+    follows BL_66_else_20 BL_3171_afterIf_45
+    goto BL_91_afterIf_15;
+BL_91_else_17:
+    follows BL_66_afterIf_12
+    assume BranchElse !(_JML___exceptionCall_91_91___48 == null);
+    // Exception thrown by Parent(java.lang.Object)
+    // Assuming callee exceptional postconditions
+    assume Assignment _JML___exception_46_91___61 == _JML___exceptionCall_91_91___48;
+    assume Assignment _JML___termination_46_91___62 == -91;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 21
+    assume Assignment ASSERT_40_0 == (__JML_AssumeCheck_ != 21);
+    assert AssumeCheck ASSERT_40_0;
+    assume ImplicitAssume false;
+    // Assuming exceptional postconditions for Parent.Parent(java.lang.Object)
+    // if...
+    goto BL_66_then_49, BL_66_else_50;
+BL_66_then_49:
+    follows BL_91_else_17
+    assume BranchThen _JML__tmp4;
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 50
+    assume Assignment ASSERT_98_107_107___63 == (__JML_AssumeCheck_ != 50);
+    assert AssumeCheck ASSERT_98_107_107___63;
+    assume ExceptionList false || _JML___exception_46_91___61 instanceof java.lang.RuntimeException;
+    goto BL_66_afterIf_48;
+BL_66_else_50:
+    follows BL_91_else_17
+    assume BranchElse !_JML__tmp4;
+    goto BL_66_afterIf_48;
+BL_66_afterIf_48:
+    follows BL_66_then_49 BL_66_else_50
+    goto BL_91_throw_51;
+BL_91_throw_51:
+    follows BL_66_afterIf_48
+    goto BL_46tryTarget_5;
+BL_91_afterIf_15:
+    follows BL_66_afterIf_18
+    // Class fields for constructor
+    assume DSA _JML___exception_46_91___61 == _JML___exception_46_46___2;
+    assume DSA _JML___termination_46_91___62 == _JML___termination_46_46___3;
+    goto BL_46tryTarget_5;
+BL_46tryTarget_5:
+    follows BL_91_afterIf_15 BL_91_throw_51
+    goto BL_46noException_7, BL_46nocatch_8;
+BL_46noException_7:
+    follows BL_46tryTarget_5
+    assume ImplicitAssume _JML___exception_46_91___61 == null;
+    goto BL_46_finally_6;
+BL_46nocatch_8:
+    follows BL_46tryTarget_5
+    assume ImplicitAssume _JML___exception_46_91___61 != null;
+    goto BL_46_finally_6;
+BL_46_finally_6:
+    follows BL_46noException_7 BL_46nocatch_8
+    // Check Postconditions
+    // if...
+    goto BL_46_then_53, BL_46_else_54;
+BL_46_then_53:
+    follows BL_46_finally_6
+    assume BranchThen _JML___exception_46_91___61 == null;
+    // Assert invariants for java.lang.Object
+    // Assert invariants for Parent
+    // Assert invariants for Child
+    // Assert constraints for java.lang.Object
+    // Assert constraints for Parent
+    // Assert constraints for Child
+    // Assert invariants for java.lang.Object
+    // Asserting postconditions for Child.Child(java.lang.Object)
+    goto BL_46_afterIf_52;
+BL_46_else_54:
+    follows BL_46_finally_6
+    assume BranchElse !(_JML___exception_46_91___61 == null);
+    // Assert invariants for java.lang.Object
+    // Assert invariants for Parent
+    // Assert invariants for Child
+    // Assert constraints for java.lang.Object
+    // Assert constraints for Parent
+    // Assert constraints for Child
+    // Assert invariants for java.lang.Object
+    // Assert constraints for java.lang.Object
+    // Asserting exceptional postconditions for Child.Child(java.lang.Object)
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 51
+    assume Assignment ASSERT_100_46_46___64 == (__JML_AssumeCheck_ != 51);
+    assert AssumeCheck ASSERT_100_46_46___64;
+    // ExceptionList assertion: _JML___exception instanceof java.lang.RuntimeException
+    assume Assignment ASSERT_101_46_46___65 == _JML___exception_46_91___61 instanceof java.lang.RuntimeException;
+    assert ExceptionList ASSERT_101_46_46___65;
+    goto BL_46_afterIf_52;
+BL_46_afterIf_52:
+    follows BL_46_then_53 BL_46_else_54
+    // AssumeCheck assertion: __JML_AssumeCheck_ != 52
+    assume Assignment ASSERT_102_46_46___66 == (__JML_AssumeCheck_ != 52);
+    assert AssumeCheck ASSERT_102_46_46___66;
+    goto BL_46finallyNormal_9, BL_46finallyExit_10;
+BL_46finallyNormal_9:
+    follows BL_46_afterIf_52
+    assume ImplicitAssume _JML___termination_46_91___62 == 0;
+    goto BL_46_AfterTry_4;
+BL_46finallyExit_10:
+    follows BL_46_afterIf_52
+    assume ImplicitAssume _JML___termination_46_91___62 != 0;
+    goto BL_46_AfterTry_4;
+BL_46_AfterTry_4:
+    follows BL_46finallyNormal_9 BL_46finallyExit_10
+    return;
+
+
+--------------------------------------
+
+SMT TRANSLATION OF Child.Child(java.lang.Object)
+(
+(set-option :produce-models true)
+(set-logic AUFLIA)
+(declare-sort REF 0)
+(declare-fun NULL () REF)
+(declare-fun THIS () REF)
+(declare-fun stringConcat (REF REF ) REF)
+(declare-fun stringLength (REF ) Int)
+(assert (distinct THIS NULL))
+(declare-fun __JMLlength () (Array REF Int))
+(assert (forall ((o REF) ) (>= (select __JMLlength o) 0)))
+(assert (forall ((s1 REF) (s2 REF) ) (distinct (stringConcat s1 s2) NULL)))
+(declare-fun asIntArray (REF ) (Array Int Int))
+(declare-fun asREFArray (REF ) (Array Int REF))
+(declare-fun intValue (REF ) Int)
+(declare-fun booleanValue (REF ) Bool)
+(declare-sort JMLTypeSort 0)
+(declare-fun javaTypeOf (REF ) REF)
+(declare-fun jmlTypeOf (REF ) JMLTypeSort)
+(declare-fun typearg1_1 (JMLTypeSort ) JMLTypeSort)
+(declare-fun typearg2_1 (JMLTypeSort ) JMLTypeSort)
+(declare-fun typearg2_2 (JMLTypeSort ) JMLTypeSort)
+(declare-fun javaSubType (REF REF ) Bool)
+(declare-fun jmlSubType (JMLTypeSort JMLTypeSort ) Bool)
+(declare-fun erasure (JMLTypeSort ) REF)
+(assert (forall ((o REF) ) (= (erasure (jmlTypeOf o)) (javaTypeOf o))))
+(declare-fun _makeArrayType (REF ) REF)
+(declare-fun _isArrayType (REF ) Bool)
+(declare-fun _makeJMLArrayType (JMLTypeSort ) JMLTypeSort)
+(declare-fun _isJMLArrayType (JMLTypeSort ) Bool)
+(declare-fun __arrayElemType (JMLTypeSort ) JMLTypeSort)
+(assert (forall ((T JMLTypeSort) ) (= (erasure (_makeJMLArrayType T)) (_makeArrayType (erasure T)))))
+(assert (forall ((T1 JMLTypeSort) (T2 JMLTypeSort) ) (=> (jmlSubType T1 T2) (javaSubType (erasure T1) (erasure T2)))))
+(declare-fun nonnullelements (REF (Array REF (Array Int REF)) ) Bool)
+(assert (forall ((a REF) (arrays (Array REF (Array Int REF))) ) (= (nonnullelements a arrays) (forall ((i Int) ) (=> (and (<= 0 i) (< i (select __JMLlength a))) (distinct NULL (select (select arrays a) i)))))))
+(declare-fun _JMLT_0 (REF ) JMLTypeSort)
+(declare-fun _JMLT_1 (REF JMLTypeSort ) JMLTypeSort)
+(declare-fun _JMLT_2 (REF JMLTypeSort JMLTypeSort ) JMLTypeSort)
+(declare-fun T_java_lang_Object () REF)
+(assert (not (_isArrayType T_java_lang_Object)))
+(declare-fun JMLT_java_lang_Object () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_Object)))
+(assert (= (_JMLT_0 T_java_lang_Object) JMLT_java_lang_Object))
+(assert (= (erasure JMLT_java_lang_Object) T_java_lang_Object))
+(declare-fun T_java_lang_Exception () REF)
+(assert (not (_isArrayType T_java_lang_Exception)))
+(declare-fun JMLT_java_lang_Exception () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_Exception)))
+(assert (= (_JMLT_0 T_java_lang_Exception) JMLT_java_lang_Exception))
+(assert (= (erasure JMLT_java_lang_Exception) T_java_lang_Exception))
+(declare-fun T_java_lang_CharSequence () REF)
+(assert (not (_isArrayType T_java_lang_CharSequence)))
+(declare-fun JMLT_java_lang_CharSequence () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_CharSequence)))
+(assert (= (_JMLT_0 T_java_lang_CharSequence) JMLT_java_lang_CharSequence))
+(assert (= (erasure JMLT_java_lang_CharSequence) T_java_lang_CharSequence))
+(declare-fun T_java_lang_Comparable () REF)
+(assert (not (_isArrayType T_java_lang_Comparable)))
+(declare-fun T_java_io_Serializable () REF)
+(assert (not (_isArrayType T_java_io_Serializable)))
+(declare-fun JMLT_java_io_Serializable () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_io_Serializable)))
+(assert (= (_JMLT_0 T_java_io_Serializable) JMLT_java_io_Serializable))
+(assert (= (erasure JMLT_java_io_Serializable) T_java_io_Serializable))
+(declare-fun T_org_jmlspecs_lang_JMLDataGroup () REF)
+(assert (not (_isArrayType T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (forall ((t REF) ) (=> (javaSubType t T_org_jmlspecs_lang_JMLDataGroup) (= t T_org_jmlspecs_lang_JMLDataGroup))))
+(declare-fun JMLT_org_jmlspecs_lang_JMLDataGroup () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (= (_JMLT_0 T_org_jmlspecs_lang_JMLDataGroup) JMLT_org_jmlspecs_lang_JMLDataGroup))
+(assert (= (erasure JMLT_org_jmlspecs_lang_JMLDataGroup) T_org_jmlspecs_lang_JMLDataGroup))
+(assert (forall ((t JMLTypeSort) ) (=> (jmlSubType t JMLT_org_jmlspecs_lang_JMLDataGroup) (= t JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(declare-fun T_java_lang_String () REF)
+(assert (not (_isArrayType T_java_lang_String)))
+(assert (forall ((t REF) ) (=> (javaSubType t T_java_lang_String) (= t T_java_lang_String))))
+(declare-fun JMLT_java_lang_String () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_String)))
+(assert (= (_JMLT_0 T_java_lang_String) JMLT_java_lang_String))
+(assert (= (erasure JMLT_java_lang_String) T_java_lang_String))
+(assert (forall ((t JMLTypeSort) ) (=> (jmlSubType t JMLT_java_lang_String) (= t JMLT_java_lang_String))))
+(declare-fun T_java_lang_RuntimeException () REF)
+(assert (not (_isArrayType T_java_lang_RuntimeException)))
+(declare-fun JMLT_java_lang_RuntimeException () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_RuntimeException)))
+(assert (= (_JMLT_0 T_java_lang_RuntimeException) JMLT_java_lang_RuntimeException))
+(assert (= (erasure JMLT_java_lang_RuntimeException) T_java_lang_RuntimeException))
+(declare-fun T_java_lang_Cloneable () REF)
+(assert (not (_isArrayType T_java_lang_Cloneable)))
+(declare-fun JMLT_java_lang_Cloneable () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_java_lang_Cloneable)))
+(assert (= (_JMLT_0 T_java_lang_Cloneable) JMLT_java_lang_Cloneable))
+(assert (= (erasure JMLT_java_lang_Cloneable) T_java_lang_Cloneable))
+(declare-fun T_Child () REF)
+(assert (not (_isArrayType T_Child)))
+(declare-fun JMLT_Child () JMLTypeSort)
+(assert (not (_isJMLArrayType JMLT_Child)))
+(assert (= (_JMLT_0 T_Child) JMLT_Child))
+(assert (= (erasure JMLT_Child) T_Child))
+(assert (distinct T_java_lang_Object T_java_lang_Exception T_java_lang_CharSequence T_java_lang_Comparable T_java_io_Serializable T_org_jmlspecs_lang_JMLDataGroup T_java_lang_String T_java_lang_RuntimeException T_java_lang_Cloneable T_Child))
+(assert (distinct JMLT_java_lang_Object JMLT_java_lang_Exception JMLT_java_lang_CharSequence JMLT_java_io_Serializable JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_String JMLT_java_lang_RuntimeException JMLT_java_lang_Cloneable JMLT_Child))
+(assert (javaSubType T_java_lang_Object T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_Object JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_Comparable))))
+(assert (not (javaSubType T_java_lang_Object T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_io_Serializable))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_io_Serializable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_io_Serializable))))
+(assert (not (javaSubType T_java_lang_Object T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_lang_Object T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_Object T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Object) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_Object JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Object) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_Exception T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (javaSubType T_java_lang_Exception T_java_lang_Exception))
+(assert (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_Exception)))
+(assert (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_Exception))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_Exception)))
+(assert (not (javaSubType T_java_lang_Exception T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_java_lang_Exception T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_Comparable))))
+(assert (javaSubType T_java_lang_Exception T_java_io_Serializable))
+(assert (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_io_Serializable)))
+(assert (jmlSubType JMLT_java_lang_Exception JMLT_java_io_Serializable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_io_Serializable)))
+(assert (not (javaSubType T_java_lang_Exception T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_Exception T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_java_lang_Exception T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_lang_Exception T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_Exception T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Exception) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_Exception JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Exception) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_CharSequence T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (javaSubType T_java_lang_CharSequence T_java_lang_CharSequence))
+(assert (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_CharSequence)))
+(assert (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_CharSequence))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_CharSequence)))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_Comparable))))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_io_Serializable))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_java_io_Serializable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_io_Serializable))))
+(assert (not (javaSubType T_java_lang_CharSequence T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_lang_CharSequence T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_CharSequence T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_CharSequence) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_CharSequence JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_CharSequence) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_Comparable T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_Object)))
+(assert (not (javaSubType T_java_lang_Comparable T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_Exception))))
+(assert (not (javaSubType T_java_lang_Comparable T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_CharSequence))))
+(assert (javaSubType T_java_lang_Comparable T_java_lang_Comparable))
+(assert (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_Comparable)))
+(assert (not (javaSubType T_java_lang_Comparable T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_io_Serializable))))
+(assert (not (javaSubType T_java_lang_Comparable T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_Comparable T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_String))))
+(assert (not (javaSubType T_java_lang_Comparable T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_lang_Comparable T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_Comparable T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Comparable) (_makeArrayType T_Child))))
+(assert (javaSubType T_java_io_Serializable T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_Comparable))))
+(assert (javaSubType T_java_io_Serializable T_java_io_Serializable))
+(assert (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_io_Serializable)))
+(assert (jmlSubType JMLT_java_io_Serializable JMLT_java_io_Serializable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_io_Serializable)))
+(assert (not (javaSubType T_java_io_Serializable T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_io_Serializable T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_io_Serializable T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_io_Serializable) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_io_Serializable JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_io_Serializable) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_Comparable))))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_io_Serializable))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_io_Serializable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_io_Serializable))))
+(assert (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_org_jmlspecs_lang_JMLDataGroup))
+(assert (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_org_jmlspecs_lang_JMLDataGroup))
+(assert (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_java_lang_Cloneable))
+(assert (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_java_lang_Cloneable)))
+(assert (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_java_lang_Cloneable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_java_lang_Cloneable)))
+(assert (not (javaSubType T_org_jmlspecs_lang_JMLDataGroup T_Child)))
+(assert (not (javaSubType (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_org_jmlspecs_lang_JMLDataGroup JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_String T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_String JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_java_lang_String T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_java_lang_String JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (javaSubType T_java_lang_String T_java_lang_CharSequence))
+(assert (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_CharSequence)))
+(assert (jmlSubType JMLT_java_lang_String JMLT_java_lang_CharSequence))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_CharSequence)))
+(assert (javaSubType T_java_lang_String T_java_lang_Comparable))
+(assert (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_Comparable)))
+(assert (javaSubType T_java_lang_String T_java_io_Serializable))
+(assert (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_io_Serializable)))
+(assert (jmlSubType JMLT_java_lang_String JMLT_java_io_Serializable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_io_Serializable)))
+(assert (not (javaSubType T_java_lang_String T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_String JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (javaSubType T_java_lang_String T_java_lang_String))
+(assert (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_String)))
+(assert (jmlSubType JMLT_java_lang_String JMLT_java_lang_String))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_String)))
+(assert (not (javaSubType T_java_lang_String T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_lang_String JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_java_lang_String T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_lang_String JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_String T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_String) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_String JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_String) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_RuntimeException T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (javaSubType T_java_lang_RuntimeException T_java_lang_Exception))
+(assert (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_Exception)))
+(assert (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_Exception))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_Exception)))
+(assert (not (javaSubType T_java_lang_RuntimeException T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_java_lang_RuntimeException T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_Comparable))))
+(assert (javaSubType T_java_lang_RuntimeException T_java_io_Serializable))
+(assert (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_io_Serializable)))
+(assert (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_io_Serializable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_io_Serializable)))
+(assert (not (javaSubType T_java_lang_RuntimeException T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_RuntimeException JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_RuntimeException T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (javaSubType T_java_lang_RuntimeException T_java_lang_RuntimeException))
+(assert (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_RuntimeException)))
+(assert (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_RuntimeException))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_RuntimeException)))
+(assert (not (javaSubType T_java_lang_RuntimeException T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_java_lang_RuntimeException JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (not (javaSubType T_java_lang_RuntimeException T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_RuntimeException) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_RuntimeException JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_RuntimeException) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_java_lang_Cloneable T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_Comparable))))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_io_Serializable))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_java_io_Serializable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_io_Serializable))))
+(assert (not (javaSubType T_java_lang_Cloneable T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_java_lang_Cloneable T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (javaSubType T_java_lang_Cloneable T_java_lang_Cloneable))
+(assert (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_java_lang_Cloneable)))
+(assert (jmlSubType JMLT_java_lang_Cloneable JMLT_java_lang_Cloneable))
+(assert (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_java_lang_Cloneable)))
+(assert (not (javaSubType T_java_lang_Cloneable T_Child)))
+(assert (not (javaSubType (_makeArrayType T_java_lang_Cloneable) (_makeArrayType T_Child))))
+(assert (not (jmlSubType JMLT_java_lang_Cloneable JMLT_Child)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_java_lang_Cloneable) (_makeJMLArrayType JMLT_Child))))
+(assert (javaSubType T_Child T_java_lang_Object))
+(assert (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_Object)))
+(assert (jmlSubType JMLT_Child JMLT_java_lang_Object))
+(assert (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_Object)))
+(assert (not (javaSubType T_Child T_java_lang_Exception)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_Exception))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_lang_Exception)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_Exception))))
+(assert (not (javaSubType T_Child T_java_lang_CharSequence)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_CharSequence))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_lang_CharSequence)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_CharSequence))))
+(assert (not (javaSubType T_Child T_java_lang_Comparable)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_Comparable))))
+(assert (not (javaSubType T_Child T_java_io_Serializable)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_io_Serializable))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_io_Serializable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_io_Serializable))))
+(assert (not (javaSubType T_Child T_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (jmlSubType JMLT_Child JMLT_org_jmlspecs_lang_JMLDataGroup)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_org_jmlspecs_lang_JMLDataGroup))))
+(assert (not (javaSubType T_Child T_java_lang_String)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_String))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_lang_String)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_String))))
+(assert (not (javaSubType T_Child T_java_lang_RuntimeException)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_RuntimeException))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_lang_RuntimeException)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_RuntimeException))))
+(assert (not (javaSubType T_Child T_java_lang_Cloneable)))
+(assert (not (javaSubType (_makeArrayType T_Child) (_makeArrayType T_java_lang_Cloneable))))
+(assert (not (jmlSubType JMLT_Child JMLT_java_lang_Cloneable)))
+(assert (not (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_java_lang_Cloneable))))
+(assert (javaSubType T_Child T_Child))
+(assert (javaSubType (_makeArrayType T_Child) (_makeArrayType T_Child)))
+(assert (jmlSubType JMLT_Child JMLT_Child))
+(assert (jmlSubType (_makeJMLArrayType JMLT_Child) (_makeJMLArrayType JMLT_Child)))
+(assert (forall ((t1 REF) (t2 REF) (t3 REF) ) (=> (and (javaSubType t1 t2) (javaSubType t2 t3)) (javaSubType t1 t3))))
+(assert (forall ((t1 JMLTypeSort) (t2 JMLTypeSort) (t3 JMLTypeSort) ) (=> (and (jmlSubType t1 t2) (jmlSubType t2 t3)) (jmlSubType t1 t3))))
+(assert (distinct T_java_lang_Object T_java_lang_Exception T_java_lang_CharSequence T_java_lang_Comparable T_java_io_Serializable T_org_jmlspecs_lang_JMLDataGroup T_java_lang_String T_java_lang_RuntimeException T_java_lang_Cloneable T_Child))
+(assert (distinct (_JMLT_1 T_java_lang_Comparable JMLT_java_lang_String) (_JMLT_0 T_java_lang_String) (_JMLT_0 T_org_jmlspecs_lang_JMLDataGroup) (_JMLT_0 T_java_lang_RuntimeException) (_JMLT_0 T_java_io_Serializable) (_JMLT_0 T_java_lang_Exception) (_JMLT_0 T_java_lang_Cloneable) (_JMLT_0 T_java_lang_Object) (_JMLT_0 T_java_lang_CharSequence) (_JMLT_0 T_Child)))
+(declare-fun java.lang.Object_privateState_1345 () (Array REF REF))
+(declare-fun Parent_o_55 () (Array REF REF))
+(declare-fun java.lang.Object_theString_6988 () (Array REF REF))
+(declare-fun java.lang.Object_theHashCode_2129 () (Array REF Int))
+(declare-fun java.lang.Object_objectState_1211 () (Array REF REF))
+(declare-fun _isalloc___7 () (Array REF Bool))
+(declare-fun java.lang.Object_owner_1585 () (Array REF REF))
+(declare-fun java.lang.Object_objectTimesFinalized_9235 () (Array REF Int))
+(declare-fun ooo_0 () REF)
+(declare-fun _JML___result_7_7___1 () REF)
+(declare-fun _JML___exception_46_46___2 () REF)
+(declare-fun _JML___termination_46_46___3 () Int)
+(declare-fun ASSERT_1_46_46___4 () Bool)
+(declare-fun ASSERT_3_7_7___5 () Bool)
+(declare-fun ooo_75 () REF)
+(declare-fun ASSERT_5_46_46___6 () Bool)
+(declare-fun ASSERT_7_46_46___7 () Bool)
+(declare-fun ASSERT_9_46_46___8 () Bool)
+(declare-fun ASSERT_11_46_46___9 () Bool)
+(declare-fun ASSERT_13_46_46___10 () Bool)
+(declare-fun ASSERT_15_46_46___11 () Bool)
+(declare-fun ASSERT_17_46_46___12 () Bool)
+(declare-fun ASSERT_19_46_46___13 () Bool)
+(declare-fun ASSERT_21_46_46___14 () Bool)
+(declare-fun ASSERT_23_46_46___15 () Bool)
+(declare-fun ASSERT_25_46_46___16 () Bool)
+(declare-fun ASSERT_27_46_46___17 () Bool)
+(declare-fun ASSERT_29_75_75___18 () Bool)
+(declare-fun ASSERT_31_75_75___19 () Bool)
+(declare-fun ASSERT_33_75_75___20 () Bool)
+(declare-fun Pre_1_0_46___21 () Bool)
+(declare-fun Pre_1_0_46___22 () Bool)
+(declare-fun ASSERT_35_46_46___23 () Bool)
+(declare-fun ASSERT_37_46_46___24 () Bool)
+(declare-fun ASSERT_38_118_118___25 () Bool)
+(declare-fun ASSERT_39_118_118___26 () Bool)
+(declare-fun ASSERT_42_118_118___27 () Bool)
+(declare-fun ASSERT_43_118_118___28 () Bool)
+(declare-fun ASSERT_44_118_118___29 () Bool)
+(declare-fun ASSERT_45_118_118___30 () Bool)
+(declare-fun ASSERT_46_118_118___31 () Bool)
+(declare-fun ASSERT_47_118_118___32 () Bool)
+(declare-fun ASSERT_48_118_118___33 () Bool)
+(declare-fun ASSERT_49_118_118___34 () Bool)
+(declare-fun ASSERT_50_118_118___35 () Bool)
+(declare-fun ASSERT_51_118_118___36 () Bool)
+(declare-fun ASSERT_52_118_118___37 () Bool)
+(declare-fun ASSERT_53_118_118___38 () Bool)
+(declare-fun theString_6988_118___39 () (Array REF REF))
+(declare-fun theHashCode_2129_118___40 () (Array REF Int))
+(declare-fun owner_1585_118___41 () (Array REF REF))
+(declare-fun privateState_1345_118___42 () (Array REF REF))
+(declare-fun objectState_1211_118___43 () (Array REF REF))
+(declare-fun o_55_118___44 () (Array REF REF))
+(declare-fun ASSERT_54_86_86___45 () Bool)
+(declare-fun ASSERT_56_86_86___46 () Bool)
+(declare-fun ASSERT_58_86_86___47 () Bool)
+(declare-fun _JML___exceptionCall_91_91___48 () REF)
+(declare-fun ASSERT_60_73_73___49 () Bool)
+(declare-fun ASSERT_61_73_73___50 () Bool)
+(declare-fun ASSERT_62_46_46___51 () Bool)
+(declare-fun ASSERT_63_46_46___52 () Bool)
+(declare-fun ASSERT_66_73_73___53 () Bool)
+(declare-fun ASSERT_68_73_73___54 () Bool)
+(declare-fun ASSERT_70_73_73___55 () Bool)
+(declare-fun ASSERT_74_2800_2800___56 () Bool)
+(declare-fun ASSERT_80_2963_2963___57 () Bool)
+(declare-fun ASSERT_86_3111_3111___58 () Bool)
+(declare-fun ASSERT_92_3240_3240___59 () Bool)
+(declare-fun ASSERT_96_82_82___60 () Bool)
+(declare-fun _JML___exception_46_91___61 () REF)
+(declare-fun _JML___termination_46_91___62 () Int)
+(declare-fun ASSERT_40_0 () Bool)
+(declare-fun ASSERT_98_107_107___63 () Bool)
+(declare-fun ASSERT_100_46_46___64 () Bool)
+(declare-fun ASSERT_101_46_46___65 () Bool)
+(declare-fun ASSERT_102_46_46___66 () Bool)
+(declare-fun BL_46Start_1 () Bool)
+(declare-fun BL_80bodyBegin_2 () Bool)
+(declare-fun BL_46_AfterLabel_3 () Bool)
+(declare-fun BL_91_AfterLabel_11 () Bool)
+(declare-fun BL_66_then_13 () Bool)
+(declare-fun BL_66_else_14 () Bool)
+(declare-fun BL_66_afterIf_12 () Bool)
+(declare-fun BL_91_then_16 () Bool)
+(declare-fun BL_66_then_19 () Bool)
+(declare-fun BL_2729_then_22 () Bool)
+(declare-fun BL_2729_else_23 () Bool)
+(declare-fun BL_2729_afterIf_21 () Bool)
+(declare-fun BL_2892_then_25 () Bool)
+(declare-fun BL_2892_else_26 () Bool)
+(declare-fun BL_2892_afterIf_24 () Bool)
+(declare-fun BL_3006_then_28 () Bool)
+(declare-fun BL_3006_else_29 () Bool)
+(declare-fun BL_3006_afterIf_27 () Bool)
+(declare-fun BL_3171_then_31 () Bool)
+(declare-fun BL_3171_else_32 () Bool)
+(declare-fun BL_3171_afterIf_30 () Bool)
+(declare-fun BL_82_then_34 () Bool)
+(declare-fun BL_82_else_35 () Bool)
+(declare-fun BL_82_afterIf_33 () Bool)
+(declare-fun BL_2729_then_37 () Bool)
+(declare-fun BL_2729_else_38 () Bool)
+(declare-fun BL_2729_afterIf_36 () Bool)
+(declare-fun BL_2892_then_40 () Bool)
+(declare-fun BL_2892_else_41 () Bool)
+(declare-fun BL_2892_afterIf_39 () Bool)
+(declare-fun BL_3006_then_43 () Bool)
+(declare-fun BL_3006_else_44 () Bool)
+(declare-fun BL_3006_afterIf_42 () Bool)
+(declare-fun BL_3171_then_46 () Bool)
+(declare-fun BL_3171_else_47 () Bool)
+(declare-fun BL_3171_afterIf_45 () Bool)
+(declare-fun BL_66_else_20 () Bool)
+(declare-fun BL_66_afterIf_18 () Bool)
+(declare-fun BL_91_else_17 () Bool)
+(declare-fun BL_66_then_49 () Bool)
+(declare-fun BL_66_else_50 () Bool)
+(declare-fun BL_66_afterIf_48 () Bool)
+(declare-fun BL_91_throw_51 () Bool)
+(declare-fun BL_91_afterIf_15 () Bool)
+(declare-fun BL_46tryTarget_5 () Bool)
+(declare-fun BL_46noException_7 () Bool)
+(declare-fun BL_46nocatch_8 () Bool)
+(declare-fun BL_46_finally_6 () Bool)
+(declare-fun BL_46_then_53 () Bool)
+(declare-fun BL_46_else_54 () Bool)
+(declare-fun BL_46_afterIf_52 () Bool)
+(declare-fun BL_46finallyNormal_9 () Bool)
+(declare-fun BL_46finallyExit_10 () Bool)
+(declare-fun BL_46_AfterTry_4 () Bool)
+(assert (= BL_46Start_1 BL_80bodyBegin_2))
+(declare-fun __JML_AssumeCheck_ () Int)
+(define-fun PRE_ooo_75 () REF ooo_75)
+(assert (= BL_80bodyBegin_2 (=> (= _JML___result_7_7___1 THIS) (=> (= _JML___exception_46_46___2 NULL) (=> (= _JML___termination_46_46___3 0) (=> (= ASSERT_1_46_46___4 (distinct __JML_AssumeCheck_ 1)) (and ASSERT_1_46_46___4 (=> ASSERT_1_46_46___4 (=> (distinct THIS NULL) (=> (= ASSERT_3_7_7___5 (distinct __JML_AssumeCheck_ 2)) (and ASSERT_3_7_7___5 (=> ASSERT_3_7_7___5 (=> (or (= THIS NULL) (and (and (distinct THIS NULL) (javaSubType (javaTypeOf THIS) T_Child)) (jmlSubType (jmlTypeOf THIS) JMLT_Child))) (=> (= ASSERT_5_46_46___6 (distinct __JML_AssumeCheck_ 3)) (and ASSERT_5_46_46___6 (=> ASSERT_5_46_46___6 (=> (and (<= (- 2147483648) (select java.lang.Object_objectTimesFinalized_9235 THIS)) (<= (select java.lang.Object_objectTimesFinalized_9235 THIS) 2147483647)) (=> (= ASSERT_7_46_46___7 (distinct __JML_AssumeCheck_ 4)) (and ASSERT_7_46_46___7 (=> ASSERT_7_46_46___7 (=> (or (= (select java.lang.Object_theString_6988 THIS) NULL) (select _isalloc___7 (select java.lang.Object_theString_6988 THIS))) (=> (= ASSERT_9_46_46___8 (distinct __JML_AssumeCheck_ 5)) (and ASSERT_9_46_46___8 (=> ASSERT_9_46_46___8 (=> (and (and (and (and (or (= (select java.lang.Object_theString_6988 THIS) NULL) (and (and (distinct (select java.lang.Object_theString_6988 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_theString_6988 THIS)) T_java_lang_Object)) (jmlSubType (jmlTypeOf (select java.lang.Object_theString_6988 THIS)) JMLT_java_lang_Object))) (or (= (select java.lang.Object_theString_6988 THIS) NULL) (and (and (distinct (select java.lang.Object_theString_6988 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_theString_6988 THIS)) T_java_io_Serializable)) (jmlSubType (jmlTypeOf (select java.lang.Object_theString_6988 THIS)) JMLT_java_io_Serializable)))) (or (= (select java.lang.Object_theString_6988 THIS) NULL) (and (and (distinct (select java.lang.Object_theString_6988 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_theString_6988 THIS)) T_java_lang_Comparable)) (jmlSubType (jmlTypeOf (select java.lang.Object_theString_6988 THIS)) (_JMLT_1 T_java_lang_Comparable JMLT_java_lang_String))))) (or (= (select java.lang.Object_theString_6988 THIS) NULL) (and (and (distinct (select java.lang.Object_theString_6988 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_theString_6988 THIS)) T_java_lang_CharSequence)) (jmlSubType (jmlTypeOf (select java.lang.Object_theString_6988 THIS)) JMLT_java_lang_CharSequence)))) (or (= (select java.lang.Object_theString_6988 THIS) NULL) (and (and (distinct (select java.lang.Object_theString_6988 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_theString_6988 THIS)) T_java_lang_String)) (jmlSubType (jmlTypeOf (select java.lang.Object_theString_6988 THIS)) JMLT_java_lang_String)))) (=> (= ASSERT_11_46_46___9 (distinct __JML_AssumeCheck_ 6)) (and ASSERT_11_46_46___9 (=> ASSERT_11_46_46___9 (=> (and (<= (- 2147483648) (select java.lang.Object_theHashCode_2129 THIS)) (<= (select java.lang.Object_theHashCode_2129 THIS) 2147483647)) (=> (= ASSERT_13_46_46___10 (distinct __JML_AssumeCheck_ 7)) (and ASSERT_13_46_46___10 (=> ASSERT_13_46_46___10 (=> (or (= (select java.lang.Object_owner_1585 THIS) NULL) (select _isalloc___7 (select java.lang.Object_owner_1585 THIS))) (=> (= ASSERT_15_46_46___11 (distinct __JML_AssumeCheck_ 8)) (and ASSERT_15_46_46___11 (=> ASSERT_15_46_46___11 (=> (or (= (select java.lang.Object_owner_1585 THIS) NULL) (and (and (distinct (select java.lang.Object_owner_1585 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_owner_1585 THIS)) T_java_lang_Object)) (jmlSubType (jmlTypeOf (select java.lang.Object_owner_1585 THIS)) JMLT_java_lang_Object))) (=> (= ASSERT_17_46_46___12 (distinct __JML_AssumeCheck_ 9)) (and ASSERT_17_46_46___12 (=> ASSERT_17_46_46___12 (=> (or (= (select java.lang.Object_privateState_1345 THIS) NULL) (select _isalloc___7 (select java.lang.Object_privateState_1345 THIS))) (=> (= ASSERT_19_46_46___13 (distinct __JML_AssumeCheck_ 10)) (and ASSERT_19_46_46___13 (=> ASSERT_19_46_46___13 (=> (and (and (or (= (select java.lang.Object_privateState_1345 THIS) NULL) (and (and (distinct (select java.lang.Object_privateState_1345 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_privateState_1345 THIS)) T_java_lang_Object)) (jmlSubType (jmlTypeOf (select java.lang.Object_privateState_1345 THIS)) JMLT_java_lang_Object))) (or (= (select java.lang.Object_privateState_1345 THIS) NULL) (and (and (distinct (select java.lang.Object_privateState_1345 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_privateState_1345 THIS)) T_java_lang_Cloneable)) (jmlSubType (jmlTypeOf (select java.lang.Object_privateState_1345 THIS)) JMLT_java_lang_Cloneable)))) (or (= (select java.lang.Object_privateState_1345 THIS) NULL) (and (and (distinct (select java.lang.Object_privateState_1345 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_privateState_1345 THIS)) T_org_jmlspecs_lang_JMLDataGroup)) (jmlSubType (jmlTypeOf (select java.lang.Object_privateState_1345 THIS)) JMLT_org_jmlspecs_lang_JMLDataGroup)))) (=> (= ASSERT_21_46_46___14 (distinct __JML_AssumeCheck_ 11)) (and ASSERT_21_46_46___14 (=> ASSERT_21_46_46___14 (=> (or (= (select java.lang.Object_objectState_1211 THIS) NULL) (select _isalloc___7 (select java.lang.Object_objectState_1211 THIS))) (=> (= ASSERT_23_46_46___15 (distinct __JML_AssumeCheck_ 12)) (and ASSERT_23_46_46___15 (=> ASSERT_23_46_46___15 (=> (and (and (or (= (select java.lang.Object_objectState_1211 THIS) NULL) (and (and (distinct (select java.lang.Object_objectState_1211 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_objectState_1211 THIS)) T_java_lang_Object)) (jmlSubType (jmlTypeOf (select java.lang.Object_objectState_1211 THIS)) JMLT_java_lang_Object))) (or (= (select java.lang.Object_objectState_1211 THIS) NULL) (and (and (distinct (select java.lang.Object_objectState_1211 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_objectState_1211 THIS)) T_java_lang_Cloneable)) (jmlSubType (jmlTypeOf (select java.lang.Object_objectState_1211 THIS)) JMLT_java_lang_Cloneable)))) (or (= (select java.lang.Object_objectState_1211 THIS) NULL) (and (and (distinct (select java.lang.Object_objectState_1211 THIS) NULL) (javaSubType (javaTypeOf (select java.lang.Object_objectState_1211 THIS)) T_org_jmlspecs_lang_JMLDataGroup)) (jmlSubType (jmlTypeOf (select java.lang.Object_objectState_1211 THIS)) JMLT_org_jmlspecs_lang_JMLDataGroup)))) (=> (= ASSERT_25_46_46___16 (distinct __JML_AssumeCheck_ 13)) (and ASSERT_25_46_46___16 (=> ASSERT_25_46_46___16 (=> (or (= (select Parent_o_55 THIS) NULL) (select _isalloc___7 (select Parent_o_55 THIS))) (=> (= ASSERT_27_46_46___17 (distinct __JML_AssumeCheck_ 14)) (and ASSERT_27_46_46___17 (=> ASSERT_27_46_46___17 (=> (or (= (select Parent_o_55 THIS) NULL) (and (and (distinct (select Parent_o_55 THIS) NULL) (javaSubType (javaTypeOf (select Parent_o_55 THIS)) T_java_lang_Object)) (jmlSubType (jmlTypeOf (select Parent_o_55 THIS)) JMLT_java_lang_Object))) (=> (= ASSERT_29_75_75___18 (distinct __JML_AssumeCheck_ 15)) (and ASSERT_29_75_75___18 (=> ASSERT_29_75_75___18 (=> (distinct ooo_75 NULL) (=> (= ASSERT_31_75_75___19 (distinct __JML_AssumeCheck_ 16)) (and ASSERT_31_75_75___19 (=> ASSERT_31_75_75___19 (=> (select _isalloc___7 ooo_75) (=> (= ASSERT_33_75_75___20 (distinct __JML_AssumeCheck_ 17)) (and ASSERT_33_75_75___20 (=> ASSERT_33_75_75___20 (=> (or (= ooo_75 NULL) (and (and (distinct ooo_75 NULL) (javaSubType (javaTypeOf ooo_75) T_java_lang_Object)) (jmlSubType (jmlTypeOf ooo_75) JMLT_java_lang_Object))) (=> (= Pre_1_0_46___21 false) (=> (= Pre_1_0_46___22 (distinct ooo_75 NULL)) (=> (= ASSERT_35_46_46___23 (distinct __JML_AssumeCheck_ 18)) (and ASSERT_35_46_46___23 (=> ASSERT_35_46_46___23 (=> Pre_1_0_46___22 BL_46_AfterLabel_3)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+(define-fun _JML__tmp1 () REF ooo_75)
+(define-fun _JML__tmp2 () REF THIS)
+(assert (= BL_46_AfterLabel_3 (=> (= ASSERT_37_46_46___24 (distinct __JML_AssumeCheck_ 19)) (and ASSERT_37_46_46___24 (=> ASSERT_37_46_46___24 BL_91_AfterLabel_11)))))
+(define-fun _JML__tmp4 () Bool (distinct _JML__tmp1 NULL))
+(assert (= BL_91_AfterLabel_11 (=> (= ASSERT_38_118_118___25 (distinct __JML_AssumeCheck_ 20)) (and ASSERT_38_118_118___25 (=> ASSERT_38_118_118___25 (=> (= ASSERT_39_118_118___26 _JML__tmp4) (and ASSERT_39_118_118___26 (=> ASSERT_39_118_118___26 (and BL_66_then_13 BL_66_else_14)))))))))
+(assert (= BL_66_then_13 (=> _JML__tmp4 (=> (= ASSERT_42_118_118___27 (distinct __JML_AssumeCheck_ 22)) (and ASSERT_42_118_118___27 (=> ASSERT_42_118_118___27 (=> (= ASSERT_43_118_118___28 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_43_118_118___28 (=> ASSERT_43_118_118___28 (=> (= ASSERT_44_118_118___29 (distinct __JML_AssumeCheck_ 23)) (and ASSERT_44_118_118___29 (=> ASSERT_44_118_118___29 (=> (= ASSERT_45_118_118___30 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_45_118_118___30 (=> ASSERT_45_118_118___30 (=> (= ASSERT_46_118_118___31 (distinct __JML_AssumeCheck_ 24)) (and ASSERT_46_118_118___31 (=> ASSERT_46_118_118___31 (=> (= ASSERT_47_118_118___32 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_47_118_118___32 (=> ASSERT_47_118_118___32 (=> (= ASSERT_48_118_118___33 (distinct __JML_AssumeCheck_ 25)) (and ASSERT_48_118_118___33 (=> ASSERT_48_118_118___33 (=> (= ASSERT_49_118_118___34 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_49_118_118___34 (=> ASSERT_49_118_118___34 (=> (= ASSERT_50_118_118___35 (distinct __JML_AssumeCheck_ 26)) (and ASSERT_50_118_118___35 (=> ASSERT_50_118_118___35 (=> (= ASSERT_51_118_118___36 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_51_118_118___36 (=> ASSERT_51_118_118___36 (=> (= ASSERT_52_118_118___37 (distinct __JML_AssumeCheck_ 27)) (and ASSERT_52_118_118___37 (=> ASSERT_52_118_118___37 (=> (= ASSERT_53_118_118___38 (or (not (distinct _JML__tmp2 NULL)) (distinct _JML__tmp2 NULL))) (and ASSERT_53_118_118___38 (=> ASSERT_53_118_118___38 (=> (= theString_6988_118___39 (store java.lang.Object_theString_6988 _JML__tmp2 (select theString_6988_118___39 _JML__tmp2))) (=> (= theHashCode_2129_118___40 (store java.lang.Object_theHashCode_2129 _JML__tmp2 (select theHashCode_2129_118___40 _JML__tmp2))) (=> (= owner_1585_118___41 (store java.lang.Object_owner_1585 _JML__tmp2 (select owner_1585_118___41 _JML__tmp2))) (=> (= privateState_1345_118___42 (store java.lang.Object_privateState_1345 _JML__tmp2 (select privateState_1345_118___42 _JML__tmp2))) (=> (= objectState_1211_118___43 (store java.lang.Object_objectState_1211 _JML__tmp2 (select objectState_1211_118___43 _JML__tmp2))) (=> (= o_55_118___44 (store Parent_o_55 _JML__tmp2 (select o_55_118___44 _JML__tmp2))) BL_66_afterIf_12)))))))))))))))))))))))))))))))))))))))))))))
+(assert (= BL_66_else_14 (=> (not _JML__tmp4) (=> (= objectState_1211_118___43 java.lang.Object_objectState_1211) (=> (= privateState_1345_118___42 java.lang.Object_privateState_1345) (=> (= theString_6988_118___39 java.lang.Object_theString_6988) (=> (= theHashCode_2129_118___40 java.lang.Object_theHashCode_2129) (=> (= owner_1585_118___41 java.lang.Object_owner_1585) (=> (= o_55_118___44 Parent_o_55) BL_66_afterIf_12)))))))))
+(assert (= BL_66_afterIf_12 (=> (= ASSERT_54_86_86___45 (distinct __JML_AssumeCheck_ 28)) (and ASSERT_54_86_86___45 (=> ASSERT_54_86_86___45 (=> (distinct (select objectState_1211_118___43 _JML__tmp2) NULL) (=> (= ASSERT_56_86_86___46 (distinct __JML_AssumeCheck_ 29)) (and ASSERT_56_86_86___46 (=> ASSERT_56_86_86___46 (=> (distinct (select privateState_1345_118___42 _JML__tmp2) NULL) (=> (= ASSERT_58_86_86___47 (distinct __JML_AssumeCheck_ 30)) (and ASSERT_58_86_86___47 (=> ASSERT_58_86_86___47 (=> (distinct (select theString_6988_118___39 _JML__tmp2) NULL) (and BL_91_then_16 BL_91_else_17)))))))))))))))
+(assert (= BL_91_then_16 (=> (= _JML___exceptionCall_91_91___48 NULL) (and BL_66_then_19 BL_66_else_20))))
+(define-fun _JML__tmp5 () REF (select o_55_118___44 _JML__tmp2))
+(declare-fun _JML__tmp6 () Bool)
+(define-fun _JML__tmp7 () Bool (distinct _JML__tmp5 NULL))
+(define-fun _JML__tmp8 () Bool (= _JML__tmp1 _JML__tmp5))
+(define-fun _JML__tmp9 () Bool (and (distinct _JML__tmp5 NULL) (= (jmlTypeOf _JML__tmp1) JMLT_java_lang_Object)))
+(define-fun _JML__tmp10 () Bool (= _JML__tmp5 NULL))
+(assert (= BL_66_then_19 (=> _JML__tmp4 (=> (= ASSERT_60_73_73___49 (distinct __JML_AssumeCheck_ 31)) (and ASSERT_60_73_73___49 (=> ASSERT_60_73_73___49 (=> (= ASSERT_61_73_73___50 (distinct _JML__tmp1 NULL)) (and ASSERT_61_73_73___50 (=> ASSERT_61_73_73___50 (=> (= ASSERT_62_46_46___51 (distinct __JML_AssumeCheck_ 32)) (and ASSERT_62_46_46___51 (=> ASSERT_62_46_46___51 (=> (= ASSERT_63_46_46___52 (or (not (and _JML__tmp4 (distinct _JML__tmp1 NULL))) (or (or (or _JML__tmp7 _JML__tmp8) _JML__tmp9) _JML__tmp10))) (and ASSERT_63_46_46___52 (=> ASSERT_63_46_46___52 (and BL_2729_then_22 BL_2729_else_23))))))))))))))))
+(assert (= BL_2729_then_22 (=> _JML__tmp7 BL_2729_afterIf_21)))
+(assert (= BL_2729_else_23 (=> (not _JML__tmp7) BL_2729_afterIf_21)))
+(assert (= BL_2729_afterIf_21 (and BL_2892_then_25 BL_2892_else_26)))
+(assert (= BL_2892_then_25 (=> _JML__tmp8 BL_2892_afterIf_24)))
+(assert (= BL_2892_else_26 (=> (not _JML__tmp8) BL_2892_afterIf_24)))
+(assert (= BL_2892_afterIf_24 (and BL_3006_then_28 BL_3006_else_29)))
+(assert (= BL_3006_then_28 (=> _JML__tmp9 BL_3006_afterIf_27)))
+(assert (= BL_3006_else_29 (=> (not _JML__tmp9) BL_3006_afterIf_27)))
+(assert (= BL_3006_afterIf_27 (and BL_3171_then_31 BL_3171_else_32)))
+(assert (= BL_3171_then_31 (=> _JML__tmp10 BL_3171_afterIf_30)))
+(assert (= BL_3171_else_32 (=> (not _JML__tmp10) BL_3171_afterIf_30)))
+(assert (= BL_3171_afterIf_30 (=> (= ASSERT_66_73_73___53 (distinct __JML_AssumeCheck_ 34)) (and ASSERT_66_73_73___53 (=> ASSERT_66_73_73___53 (=> (distinct (select objectState_1211_118___43 _JML__tmp1) NULL) (=> (= ASSERT_68_73_73___54 (distinct __JML_AssumeCheck_ 35)) (and ASSERT_68_73_73___54 (=> ASSERT_68_73_73___54 (=> (distinct (select privateState_1345_118___42 _JML__tmp1) NULL) (=> (= ASSERT_70_73_73___55 (distinct __JML_AssumeCheck_ 36)) (and ASSERT_70_73_73___55 (=> ASSERT_70_73_73___55 (=> (distinct (select theString_6988_118___39 _JML__tmp1) NULL) (and BL_82_then_34 BL_82_else_35)))))))))))))))
+(assert (= BL_82_then_34 (=> (= _JML___exception_46_46___2 NULL) BL_82_afterIf_33)))
+(assert (= BL_82_else_35 (=> (not (= _JML___exception_46_46___2 NULL)) BL_82_afterIf_33)))
+(assert (= BL_82_afterIf_33 (and BL_2729_then_37 BL_2729_else_38)))
+(assert (= BL_2729_then_37 (=> _JML__tmp7 (=> (= ASSERT_74_2800_2800___56 (distinct __JML_AssumeCheck_ 38)) (and ASSERT_74_2800_2800___56 (=> ASSERT_74_2800_2800___56 (=> true BL_2729_afterIf_36)))))))
+(assert (= BL_2729_else_38 (=> (not _JML__tmp7) BL_2729_afterIf_36)))
+(assert (= BL_2729_afterIf_36 (and BL_2892_then_40 BL_2892_else_41)))
+(assert (= BL_2892_then_40 (=> _JML__tmp8 (=> (= ASSERT_80_2963_2963___57 (distinct __JML_AssumeCheck_ 41)) (and ASSERT_80_2963_2963___57 (=> ASSERT_80_2963_2963___57 (=> _JML__tmp6 BL_2892_afterIf_39)))))))
+(assert (= BL_2892_else_41 (=> (not _JML__tmp8) BL_2892_afterIf_39)))
+(assert (= BL_2892_afterIf_39 (and BL_3006_then_43 BL_3006_else_44)))
+(assert (= BL_3006_then_43 (=> _JML__tmp9 (=> (= ASSERT_86_3111_3111___58 (distinct __JML_AssumeCheck_ 44)) (and ASSERT_86_3111_3111___58 (=> ASSERT_86_3111_3111___58 (=> (= _JML__tmp6 (= _JML__tmp1 _JML__tmp5)) BL_3006_afterIf_42)))))))
+(assert (= BL_3006_else_44 (=> (not _JML__tmp9) BL_3006_afterIf_42)))
+(assert (= BL_3006_afterIf_42 (and BL_3171_then_46 BL_3171_else_47)))
+(assert (= BL_3171_then_46 (=> _JML__tmp10 (=> (= ASSERT_92_3240_3240___59 (distinct __JML_AssumeCheck_ 47)) (and ASSERT_92_3240_3240___59 (=> ASSERT_92_3240_3240___59 (=> (not _JML__tmp6) BL_3171_afterIf_45)))))))
+(assert (= BL_3171_else_47 (=> (not _JML__tmp10) BL_3171_afterIf_45)))
+(assert (= BL_3171_afterIf_45 (=> (= ASSERT_96_82_82___60 (distinct __JML_AssumeCheck_ 49)) (and ASSERT_96_82_82___60 (=> ASSERT_96_82_82___60 (=> _JML__tmp6 BL_66_afterIf_18))))))
+(assert (= BL_66_else_20 (=> (not _JML__tmp4) BL_66_afterIf_18)))
+(assert (= BL_66_afterIf_18 BL_91_afterIf_15))
+(assert (= BL_91_else_17 (=> (not (= _JML___exceptionCall_91_91___48 NULL)) (=> (= _JML___exception_46_91___61 _JML___exceptionCall_91_91___48) (=> (= _JML___termination_46_91___62 (- 91)) (=> (= ASSERT_40_0 (distinct __JML_AssumeCheck_ 21)) (and ASSERT_40_0 (=> ASSERT_40_0 (=> false (and BL_66_then_49 BL_66_else_50))))))))))
+(assert (= BL_66_then_49 (=> _JML__tmp4 (=> (= ASSERT_98_107_107___63 (distinct __JML_AssumeCheck_ 50)) (and ASSERT_98_107_107___63 (=> ASSERT_98_107_107___63 (=> (or false (and (distinct _JML___exception_46_91___61 NULL) (javaSubType (javaTypeOf _JML___exception_46_91___61) T_java_lang_RuntimeException))) BL_66_afterIf_48)))))))
+(assert (= BL_66_else_50 (=> (not _JML__tmp4) BL_66_afterIf_48)))
+(assert (= BL_66_afterIf_48 BL_91_throw_51))
+(assert (= BL_91_throw_51 BL_46tryTarget_5))
+(assert (= BL_91_afterIf_15 (=> (= _JML___exception_46_91___61 _JML___exception_46_46___2) (=> (= _JML___termination_46_91___62 _JML___termination_46_46___3) BL_46tryTarget_5))))
+(assert (= BL_46tryTarget_5 (and BL_46noException_7 BL_46nocatch_8)))
+(assert (= BL_46noException_7 (=> (= _JML___exception_46_91___61 NULL) BL_46_finally_6)))
+(assert (= BL_46nocatch_8 (=> (distinct _JML___exception_46_91___61 NULL) BL_46_finally_6)))
+(assert (= BL_46_finally_6 (and BL_46_then_53 BL_46_else_54)))
+(assert (= BL_46_then_53 (=> (= _JML___exception_46_91___61 NULL) BL_46_afterIf_52)))
+(assert (= BL_46_else_54 (=> (not (= _JML___exception_46_91___61 NULL)) (=> (= ASSERT_100_46_46___64 (distinct __JML_AssumeCheck_ 51)) (and ASSERT_100_46_46___64 (=> ASSERT_100_46_46___64 (=> (= ASSERT_101_46_46___65 (and (distinct _JML___exception_46_91___61 NULL) (javaSubType (javaTypeOf _JML___exception_46_91___61) T_java_lang_RuntimeException))) (and ASSERT_101_46_46___65 (=> ASSERT_101_46_46___65 BL_46_afterIf_52)))))))))
+(assert (= BL_46_afterIf_52 (=> (= ASSERT_102_46_46___66 (distinct __JML_AssumeCheck_ 52)) (and ASSERT_102_46_46___66 (=> ASSERT_102_46_46___66 (and BL_46finallyNormal_9 BL_46finallyExit_10))))))
+(assert (= BL_46finallyNormal_9 (=> (= _JML___termination_46_91___62 0) BL_46_AfterTry_4)))
+(assert (= BL_46finallyExit_10 (=> (distinct _JML___termination_46_91___62 0) BL_46_AfterTry_4)))
+(assert (= BL_46_AfterTry_4 true))
+(assert (not BL_46Start_1))
+(push 1)
+(assert (= __JML_AssumeCheck_ 0))
+(push 1)
+(check-sat)
+)
+
+Feasibility check #1 - Extra-Assume : OK
+Feasibility check #2 - Extra-Assume : OK
+Feasibility check #3 - Extra-Assume : OK
+Feasibility check #4 - Extra-Assume : OK
+Feasibility check #5 - Extra-Assume : OK
+Feasibility check #6 - Extra-Assume : OK
+Feasibility check #7 - Extra-Assume : OK
+Feasibility check #8 - Extra-Assume : OK
+Feasibility check #9 - Extra-Assume : OK
+Feasibility check #10 - Extra-Assume : OK
+Feasibility check #11 - Extra-Assume : OK
+Feasibility check #12 - Extra-Assume : OK
+Feasibility check #13 - Extra-Assume : OK
+Feasibility check #14 - Extra-Assume : OK
+Feasibility check #15 - Extra-Assume : OK
+Feasibility check #16 - Extra-Assume : OK
+Feasibility check #17 - Extra-Assume : OK
+Feasibility check #18 - Extra-Assume : OK
+Feasibility check #19 - end of preconditions : OK
+Feasibility check #20 - Extra-Assert : OK
+Feasibility check #21 - Extra-Assume : OK
+Feasibility check #22 - Extra-Assert : OK
+Feasibility check #23 - Extra-Assert : OK
+Feasibility check #24 - Extra-Assert : OK
+Feasibility check #25 - Extra-Assert : OK
+Feasibility check #26 - Extra-Assert : OK
+Feasibility check #27 - Extra-Assert : OK
+Feasibility check #28 - Extra-Assume : OK
+Feasibility check #29 - Extra-Assume : OK
+Feasibility check #30 - Extra-Assume : OK
+Feasibility check #31 - Extra-Assert : OK
+Feasibility check #32 - Extra-Assert : OK
+Feasibility check #33 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:1: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+public class Child extends Parent {
+^
+Feasibility check #34 - Extra-Assume : OK
+Feasibility check #35 - Extra-Assume : OK
+Feasibility check #36 - Extra-Assume : OK
+Feasibility check #37 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:1: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+public class Child extends Parent {
+^
+Feasibility check #38 - Extra-Assume : OK
+Feasibility check #39 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:7: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+Feasibility check #40 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:1: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+public class Child extends Parent {
+^
+Feasibility check #41 - Extra-Assume : OK
+Feasibility check #42 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:7: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+Feasibility check #43 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:1: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+public class Child extends Parent {
+^
+Feasibility check #44 - Extra-Assume : OK
+Feasibility check #45 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:7: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+Feasibility check #46 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:1: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+public class Child extends Parent {
+^
+Feasibility check #47 - Extra-Assume : OK
+Feasibility check #48 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:7: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+Feasibility check #49 - Extra-Assume : OK
+Feasibility check #50 - Extra-Assume : infeasible
+test\escConstructor4\Child.java:7: warning: There is no feasible path to program point Extra-Assume in method Child.Child(java.lang.Object)
+Feasibility check #51 - Extra-Assert : infeasible
+test\escConstructor4\Child.java:3: warning: There is no feasible path to program point Extra-Assert in method Child.Child(java.lang.Object)
+  public Child(/*@ non_null */ Object ooo) {
+         ^
+Feasibility check #52 - at program exit : OK
+Completed proof of Child.Child(java.lang.Object) with prover !!!! - INFEASIBLE
+Completed proving methods in Child
+Proving methods in Parent
+Skipping proof of Parent.Parent(java.lang.Object) (excluded by -method)
+Completed proving methods in Parent
+11 warnings

@@ -1,0 +1,8 @@
+Proving methods in trace
+Starting proof of trace.m4() with prover z3_4_3
+test\escTraceLoops\trace.java:51: warning: The prover cannot establish an assertion (LoopDecreases) in method m4
+        //@ decreases i-j;
+            ^
+Completed proof of trace.m4() with prover z3_4_3 - with warnings
+Completed proving methods in trace
+1 warning

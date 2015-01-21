@@ -1,0 +1,30 @@
+
+TRACE of trace.m(int)
+
+test\escTrace2\trace.java:3:  	requires k < 0; 
+			VALUE: k	 === 0
+			VALUE: 0	 === 0
+			VALUE: k < 0	 === false
+test\escTrace2\trace.java:6:  	requires true; 
+			VALUE: true	 === true
+test\escTrace2\trace.java:7:  	requires k >= 0; 
+			VALUE: k	 === 0
+			VALUE: 0	 === 0
+			VALUE: k >= 0	 === true
+test\escTrace2\trace.java:10:  	return 0;
+			VALUE: 0	 === 0
+test\escTrace2\trace.java:4:  	ensures \result == 0; 
+			VALUE: \result	 === 0
+			VALUE: 0	 === 0
+			VALUE: \result == 0	 === true
+test\escTrace2\trace.java:8:  	ensures \result != 0; 
+			VALUE: \result	 === 0
+			VALUE: 0	 === 0
+			VALUE: \result != 0	 === false
+test\escTrace2\trace.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m
+        return 0;
+        ^
+test\escTrace2\trace.java:8: warning: Associated declaration: test\escTrace2\trace.java:10: 
+    //@ ensures \result != 0;
+        ^
+2 warnings

@@ -1,0 +1,62 @@
+Proving methods in trace
+Starting proof of trace.m2() with prover cvc4
+
+TRACE of trace.m2()
+
+test\escTraceLoops\trace.java:24:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+test\escTraceLoops\trace.java:25:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+test\escTraceLoops\trace.java:27:  	for ...
+test\escTraceLoops\trace.java:27:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+test\escTraceLoops\trace.java:26:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 0
+			VALUE: i	 === 0
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+test\escTraceLoops\trace.java:27:  	Begin loop check
+test\escTraceLoops\trace.java:26:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 2
+			VALUE: i	 === 2
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 2
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 2
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+test\escTraceLoops\trace.java:27:  	Loop test
+			VALUE: i	 === 2
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+test\escTraceLoops\trace.java:27:  	Begin loop body
+test\escTraceLoops\trace.java:28:  	++j
+			VALUE: j	 === 3
+			VALUE: ++j	 === 3
+test\escTraceLoops\trace.java:29:  	if (j == 3) ...
+			VALUE: j	 === 3
+			VALUE: 3	 === 3
+			VALUE: j == 3	 === true
+			VALUE: (j == 3)	 === true
+				Condition = true
+test\escTraceLoops\trace.java:30:  	assert Assert false;
+			VALUE: false	 === false
+test\escTraceLoops\trace.java:30: warning: The prover cannot establish an assertion (Assert) in method m2
+                //@ assert false;
+                    ^
+Completed proof of trace.m2() with prover cvc4 - with warnings
+Completed proving methods in trace
+1 warning

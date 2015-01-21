@@ -1,0 +1,12 @@
+test\racold\ArrayExample.java:10: error: A \result expression is not allowed in an old environment
+    //@ ensures \old(someArray[\result]) == 4;
+                               ^
+test\racold\ArrayExample.java:11: error: A \result expression is not allowed in an old environment
+    //@ ensures \old(someArray[\result] + 2) == 6;
+                               ^
+test\racold\ArrayExample.java:12: error: A \result expression is not allowed in an old environment
+    //@ ensures \old(someArray[\result])+ 2 == 6;
+                               ^
+Note: $SPECS\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+3 errors

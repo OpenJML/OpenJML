@@ -1,0 +1,57 @@
+Proving methods in trace
+Starting proof of trace.m6() with prover yices2
+
+TRACE of trace.m6()
+
+test\escTraceLoops\trace.java:71:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+test\escTraceLoops\trace.java:72:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+test\escTraceLoops\trace.java:75:  	for ...
+test\escTraceLoops\trace.java:75:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+test\escTraceLoops\trace.java:73:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 0
+			VALUE: i	 === 0
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+test\escTraceLoops\trace.java:75:  	Begin loop check
+test\escTraceLoops\trace.java:73:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 4
+			VALUE: i	 === 4
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 4
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+test\escTraceLoops\trace.java:74:  	//@ decreases k - j - 2;
+			VALUE: k	 === 5
+			VALUE: j	 === 4
+			VALUE: k - j	 === 1
+			VALUE: 2	 === 2
+			VALUE: k - j - 2	 === -1
+				Initial Value of Loop Decreases Expression = -1
+test\escTraceLoops\trace.java:75:  	Loop test
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+test\escTraceLoops\trace.java:74: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m6
+        //@ decreases k-j-2;
+            ^
+Completed proof of trace.m6() with prover yices2 - with warnings
+Completed proving methods in trace
+1 warning

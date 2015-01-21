@@ -1,0 +1,11 @@
+Proving methods in trace
+Starting proof of trace.m(int) with prover !!!!
+test\escTrace5\trace.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m
+        return 0;
+        ^
+test\escTrace5\trace.java:4: warning: Associated declaration
+    //@ ensures \result != 0;
+        ^
+Completed proof of trace.m(int) with prover !!!! - with warnings
+Completed proving methods in trace
+2 warnings

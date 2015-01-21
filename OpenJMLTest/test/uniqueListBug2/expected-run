@@ -1,0 +1,11 @@
+OUT:
+\old(values)[\result]: 6
+value: 6 2 7
+test\uniqueListBug2\UniqueListBug2.java:51: JML postcondition is false
+	public int removeValue(int value) {
+	           ^
+test\uniqueListBug2\UniqueListBug2.java:46: Associated declaration: test\uniqueListBug2\UniqueListBug2.java:51: 
+	  @ ensures \old(values)[\result] == value;
+	    ^
+
+ERR:

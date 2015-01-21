@@ -1,0 +1,10 @@
+test\escTrace\trace.java:60: warning: Label AAA has value 17
+        //@ set x = (\lbl AAA k+1);
+                          ^
+test\escTrace\trace.java:83: warning: The prover cannot establish an assertion (Postcondition) in method m
+        return 0;
+        ^
+test\escTrace\trace.java:13: warning: Associated declaration: test\escTrace\trace.java:83: 
+    //@ ensures \result != 0;
+        ^
+3 warnings

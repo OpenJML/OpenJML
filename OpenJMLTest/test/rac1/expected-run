@@ -1,0 +1,14 @@
+OUT:
+LABEL TY = class java.util.LinkedList
+LABEL TY2 = int
+LABEL TY3 = null
+test\rac1\Bug1.java:14: JML assignment of null to a non_null variable
+        //@ set  t = (\lbl TY3 \elemtype(\typeof(k)));
+                   ^
+LABEL TY4 = null
+test\rac1\Bug1.java:15: JML assignment of null to a non_null variable
+        //@ set  t = (\lbl TY4 \elemtype(\typeof(o)));
+                   ^
+END
+
+ERR:

@@ -1,0 +1,255 @@
+
+TRACE of trace.m(int)
+
+test\escTrace\trace.java:12:  	requires true; 
+			VALUE: true	 === true
+test\escTrace\trace.java:15:  	k = 7
+			VALUE: 7	 === 7
+			VALUE: k = 7	 === 7
+test\escTrace\trace.java:16:  	k += 7
+			VALUE: 7	 === 7
+			VALUE: k += 7	 === 14
+test\escTrace\trace.java:17:  	int j
+			VALUE: j	 === 0
+test\escTrace\trace.java:18:  	f = k + 9
+			VALUE: k	 === 14
+			VALUE: 9	 === 9
+			VALUE: k + 9	 === 23
+			VALUE: f = k + 9	 === 23
+test\escTrace\trace.java:19:  	j = f + this.f
+			VALUE: f	 === 23
+			VALUE: this	 === THIS
+			VALUE: this.f	 === 23
+			VALUE: f + this.f	 === 46
+			VALUE: j = f + this.f	 === 46
+test\escTrace\trace.java:20:  	f += k + 9
+			VALUE: k	 === 14
+			VALUE: 9	 === 9
+			VALUE: k + 9	 === 23
+			VALUE: f += k + 9	 === 46
+test\escTrace\trace.java:21:  	this.f = k + 9
+			VALUE: this	 === THIS
+			VALUE: k	 === 14
+			VALUE: 9	 === 9
+			VALUE: k + 9	 === 23
+			VALUE: this.f = k + 9	 === 23
+test\escTrace\trace.java:22:  	this.f += k + 9
+			VALUE: this	 === THIS
+			VALUE: k	 === 14
+			VALUE: 9	 === 9
+			VALUE: k + 9	 === 23
+			VALUE: this.f += k + 9	 === 46
+test\escTrace\trace.java:23:  	mm(k + k, k == 0)
+			VALUE: k	 === 14
+			VALUE: k	 === 14
+			VALUE: k + k	 === 28
+			VALUE: k	 === 14
+			VALUE: 0	 === 0
+			VALUE: k == 0	 === false
+test\escTrace\trace.java:24:  	mmm(9)
+			VALUE: 9	 === 9
+			VALUE: mmm(9)	 === 41
+test\escTrace\trace.java:25:  	j = mmm(j + 1) + mmm(10)
+			VALUE: j	 === 46
+			VALUE: 1	 === 1
+			VALUE: j + 1	 === 47
+			VALUE: mmm(j + 1)	 === 41
+			VALUE: 10	 === 10
+			VALUE: mmm(10)	 === 41
+			VALUE: mmm(j + 1) + mmm(10)	 === 82
+			VALUE: j = mmm(j + 1) + mmm(10)	 === 82
+test\escTrace\trace.java:26:  	synchronized (this) ...
+			VALUE: this	 === THIS
+			VALUE: (this)	 === THIS
+test\escTrace\trace.java:27:  	if (k == 14) ...
+			VALUE: k	 === 14
+			VALUE: 14	 === 14
+			VALUE: k == 14	 === true
+			VALUE: (k == 14)	 === true
+				Condition = true
+test\escTrace\trace.java:28:  	k += 0
+			VALUE: 0	 === 0
+			VALUE: k += 0	 === 14
+test\escTrace\trace.java:33:  	int m = 2
+			VALUE: m	 === 2
+test\escTrace\trace.java:34:  	switch (m) ...
+			VALUE: m	 === 2
+			VALUE: (m)	 === 2
+				Selection = 2
+test\escTrace\trace.java:36:  	case 2:
+			VALUE: 2	 === 2
+test\escTrace\trace.java:36:  	m = 2
+			VALUE: 2	 === 2
+			VALUE: m = 2	 === 2
+test\escTrace\trace.java:36:  	break;
+test\escTrace\trace.java:39:  	m++
+			VALUE: m	 === 3
+			VALUE: m++	 === 2
+test\escTrace\trace.java:40:  	switch (m) ...
+			VALUE: m	 === 3
+			VALUE: (m)	 === 3
+				Selection = 3
+test\escTrace\trace.java:43:  	default:
+test\escTrace\trace.java:43:  	m = 0
+			VALUE: 0	 === 0
+			VALUE: m = 0	 === 0
+test\escTrace\trace.java:45:  	m = k == 14 ? (k += 2) : -k
+			VALUE: k	 === 14
+			VALUE: 14	 === 14
+			VALUE: k == 14	 === true
+			VALUE: 2	 === 2
+			VALUE: k += 2	 === 16
+			VALUE: (k += 2)	 === 16
+			VALUE: k == 14 ? (k += 2) : -k	 === 16
+			VALUE: m = k == 14 ? (k += 2) : -k	 === 16
+test\escTrace\trace.java:47:  	int zz = 9
+			VALUE: zz	 === 9
+test\escTrace\trace.java:48:  	boolean b = zz == 9 || zz == 0
+			VALUE: b	 === true
+test\escTrace\trace.java:49:  	b = zz == 0 || zz == 9
+			VALUE: zz	 === 9
+			VALUE: 0	 === 0
+			VALUE: zz == 0	 === false
+			VALUE: zz	 === 9
+			VALUE: 9	 === 9
+			VALUE: zz == 9	 === true
+			VALUE: zz == 0 || zz == 9	 === true
+			VALUE: b = zz == 0 || zz == 9	 === true
+test\escTrace\trace.java:50:  	b = zz == 0 && zz == 9
+			VALUE: zz	 === 9
+			VALUE: 0	 === 0
+			VALUE: zz == 0	 === false
+			VALUE: zz == 0 && zz == 9	 === false
+			VALUE: b = zz == 0 && zz == 9	 === false
+test\escTrace\trace.java:51:  	b = zz == 9 && zz == 0
+			VALUE: zz	 === 9
+			VALUE: 9	 === 9
+			VALUE: zz == 9	 === true
+			VALUE: zz	 === 9
+			VALUE: 0	 === 0
+			VALUE: zz == 0	 === false
+			VALUE: zz == 9 && zz == 0	 === false
+			VALUE: b = zz == 9 && zz == 0	 === false
+test\escTrace\trace.java:53:  	assert false == false : "asd";
+			VALUE: false	 === false
+			VALUE: false	 === false
+			VALUE: false == false	 === true
+			VALUE: "asd"	 === REF!val!4
+test\escTrace\trace.java:54:  	assert Assert k != 7;
+			VALUE: k	 === 16
+			VALUE: 7	 === 7
+			VALUE: k != 7	 === true
+test\escTrace\trace.java:55:  	assert Assert (k == 7) ==> (k != 7);
+			VALUE: k	 === 16
+			VALUE: 7	 === 7
+			VALUE: k == 7	 === false
+			VALUE: (k == 7)	 === false
+			VALUE: (k == 7) ==> (k != 7)	 === true
+test\escTrace\trace.java:56:  	assert Assert !((k != 7) ==> (k == 7));
+			VALUE: k	 === 16
+			VALUE: 7	 === 7
+			VALUE: k != 7	 === true
+			VALUE: (k != 7)	 === true
+			VALUE: k	 === 16
+			VALUE: 7	 === 7
+			VALUE: k == 7	 === false
+			VALUE: (k == 7)	 === false
+			VALUE: (k != 7) ==> (k == 7)	 === false
+			VALUE: ((k != 7) ==> (k == 7))	 === false
+			VALUE: !((k != 7) ==> (k == 7))	 === true
+test\escTrace\trace.java:57:  	@Ghost 
+int x = 9
+			VALUE: x	 === 9
+test\escTrace\trace.java:58:  	set x = x + 9
+			VALUE: x	 === 9
+			VALUE: 9	 === 9
+			VALUE: x + 9	 === 18
+			VALUE: x = x + 9	 === 18
+test\escTrace\trace.java:60:  	set x = (\lbl AAA k + 1)
+			VALUE: k	 === 16
+			VALUE: 1	 === 1
+			VALUE: k + 1	 === 17
+			VALUE: \lbl AAA k + 1	 === 17
+			VALUE: (\lbl AAA k + 1)	 === 17
+			VALUE: x = (\lbl AAA k + 1)	 === 17
+test\escTrace\trace.java:60: warning: Label AAA has value 17
+        //@ set x = (\lbl AAA k+1);
+                          ^
+test\escTrace\trace.java:62:  	for ...
+test\escTrace\trace.java:62:  	int z = 0
+			VALUE: z	 === 0
+test\escTrace\trace.java:62:  	Begin loop check
+test\escTrace\trace.java:62:  	Loop test
+			VALUE: z	 === 4
+			VALUE: 4	 === 4
+			VALUE: z < 4	 === false
+test\escTrace\trace.java:65:  	assume Assume a.length > 10;
+			VALUE: a	 === REF!val!2
+			VALUE: a.length	 === 11
+			VALUE: 10	 === 10
+			VALUE: a.length > 10	 === true
+test\escTrace\trace.java:66:  	a[2] = 42
+			VALUE: a	 === REF!val!2
+			VALUE: 2	 === 2
+			VALUE: 42	 === 42
+			VALUE: a[2] = 42	 === 42
+test\escTrace\trace.java:67:  	m = a[1 + 1] - a[2]
+			VALUE: a	 === REF!val!2
+			VALUE: 1	 === 1
+			VALUE: 1	 === 1
+			VALUE: 1 + 1	 === 2
+			VALUE: a[1 + 1]	 === 42
+			VALUE: a	 === REF!val!2
+			VALUE: 2	 === 2
+			VALUE: a[2]	 === 42
+			VALUE: a[1 + 1] - a[2]	 === 0
+			VALUE: m = a[1 + 1] - a[2]	 === 0
+test\escTrace\trace.java:68:  	a[1] = k + 1
+			VALUE: a	 === REF!val!2
+			VALUE: 1	 === 1
+			VALUE: k	 === 16
+			VALUE: 1	 === 1
+			VALUE: k + 1	 === 17
+			VALUE: a[1] = k + 1	 === 17
+test\escTrace\trace.java:69:  	a[1] += k + 1
+			VALUE: a	 === REF!val!2
+			VALUE: 1	 === 1
+			VALUE: k	 === 16
+			VALUE: 1	 === 1
+			VALUE: k + 1	 === 17
+			VALUE: a[1] += k + 1	 === 34
+test\escTrace\trace.java:70:  	sf = 4
+			VALUE: 4	 === 4
+			VALUE: sf = 4	 === 4
+test\escTrace\trace.java:71:  	trace.sf = 5
+			VALUE: 5	 === 5
+			VALUE: trace.sf = 5	 === 5
+test\escTrace\trace.java:72:  	m = sf + trace.sf
+			VALUE: sf	 === 5
+			VALUE: trace.sf	 === 5
+			VALUE: sf + trace.sf	 === 10
+			VALUE: m = sf + trace.sf	 === 10
+test\escTrace\trace.java:74:  	m = 8
+			VALUE: 8	 === 8
+			VALUE: m = 8	 === 8
+test\escTrace\trace.java:75:  	throw new Exception();
+			VALUE: new Exception()	 === REF!val!3
+test\escTrace\trace.java:79:  	m = 10
+			VALUE: 10	 === 10
+			VALUE: m = 10	 === 10
+test\escTrace\trace.java:81:  	m = 11
+			VALUE: 11	 === 11
+			VALUE: m = 11	 === 11
+test\escTrace\trace.java:83:  	return 0;
+			VALUE: 0	 === 0
+test\escTrace\trace.java:13:  	ensures \result != 0; 
+			VALUE: \result	 === 0
+			VALUE: 0	 === 0
+			VALUE: \result != 0	 === false
+test\escTrace\trace.java:83: warning: The prover cannot establish an assertion (Postcondition) in method m
+        return 0;
+        ^
+test\escTrace\trace.java:13: warning: Associated declaration: test\escTrace\trace.java:83: 
+    //@ ensures \result != 0;
+        ^
+3 warnings
