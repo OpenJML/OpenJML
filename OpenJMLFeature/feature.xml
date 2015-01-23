@@ -40,12 +40,14 @@ https://sourceforge.net/projects/jmlspecs/
          id="org.jmlspecs.OpenJMLUI"
          download-size="0"
          install-size="0"
-         version="0.5.37"/>
+         version="0.5.37"
+          unpack="false"/>
 
    <plugin
          id="org.jmlspecs.Specs"
          download-size="0"
          install-size="0"
-         version="0.5.37"/>
+         version="0.5.37"
+         unpack="false"/>
 
 </feature>
