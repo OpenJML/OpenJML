@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -25,6 +26,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -236,7 +238,11 @@ public class JMLBuilder extends IncrementalProjectBuilder {
 			return;
 		}
 		ResourceVisitor v = new ResourceVisitor();
-		project.accept(v);
+		for (IPackageFragmentRoot root : jproject.getAllPackageFragmentRoots()) {
+			IResource res = root.getCorrespondingResource();
+			if (res != null) res.accept(v);
+		}
+		//project.accept(v); - Calling accept on the project includes all of the files not on the source path - we don't want that
 		// Don't clear if the rac directory is the bin directory
 		String rd = Activator.utils().getRacDir();
 		IPath rdd = jproject.getProject().findMember(rd).getFullPath(); // relative to workspace
