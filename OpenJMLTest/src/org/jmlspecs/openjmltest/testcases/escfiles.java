@@ -468,7 +468,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscConstructor4() {
-        helpTF("escConstructor4","-show","-method=Child.Child(java.lang.Object)","-checkFeasibility=debug");
+        helpTF("escConstructor4"); //,"-show","-method=Child.Child(java.lang.Object)","-checkFeasibility=debug");
     }
     
     @Test

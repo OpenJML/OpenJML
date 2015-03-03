@@ -2,7 +2,7 @@
 <feature
       id="org.jmlspecs.openjml.OpenJMLFeature"
       label="OpenJML"
-      version="0.5.37"
+      version="0.5.1"
       provider-name="David R. Cok">
 
    <description url="http://jmlspecs.sourceforge.net">
@@ -33,7 +33,7 @@ https://sourceforge.net/projects/jmlspecs/
          id="org.jmlspecs.annotation"
          download-size="0"
          install-size="0"
-         version="0.5.37"
+         version="0.5.1"
          unpack="false"/>
 
    <plugin

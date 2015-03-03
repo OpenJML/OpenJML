@@ -1,5 +1,0 @@
-public class TestPath extends TestPathS {
-  
-    //@ requires q; // BAD
-    public int m();
-}

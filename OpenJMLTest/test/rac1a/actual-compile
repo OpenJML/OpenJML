@@ -1,6 +1,6 @@
 test\rac1a\Bug1.java:12: error: The argument of a \type construct must be a fully parameterized type: LinkedList
         //@ assert (\lbl TY t) == \type(LinkedList);
                                        ^
-Note: C:\cygwin\home\gaggarwal\new_trunk\OpenJML\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: C:\cygwin\home\dcok\eprojects\OpenJML\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
 1 error

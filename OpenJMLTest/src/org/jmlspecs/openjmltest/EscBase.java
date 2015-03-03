@@ -102,7 +102,7 @@ public abstract class EscBase extends JmlTestCase {
     protected int expectedErrors = 0;
     protected boolean noAssociatedDeclaration;
     protected String[] args;
-    protected String openJmlPropertiesDir = "../OpenJML"; 
+//    protected String openJmlPropertiesDir = "../OpenJML"; 
 
     @Override
     public void setUp() throws Exception {
