@@ -1,0 +1,47 @@
+Plug-in TODO items:
+
+Menu items to fix:
+    OpenSpecsEditor
+    ShowSpecs
+    AddToSpecsPath, RemoveFromSpecspath, EditSpecspath
+    COunterexample Value
+    RAC operations
+    
+TODO items in plugin.xml
+
+- change the way that spec chains are handled
+
+- Review and test and document each of the following:
+    All the preferences
+    JML decoration
+    JML checking - various menus, command key, on various kinds of Resource
+    ESC checking - various menus, command key, on various kinds of Resource
+    Auto checking - turning on and off
+    Viewing specs of methods and classes and fields
+    Specifications editor
+    Spec path - default; setting up; using
+    Markers - icons, customizing
+    Deleting markers - various menus, command key, on various kinds of Resource
+    Show proof, counterexample information
+    Show, edit classpath
+    Generate jmldoc
+    
+    Use of Java editor
+        
+    Bundling as a deployed plugin (on pure Windows, on Cygwin, on Mac)
+    
+    RAC - compilation, auto compilation, running, interaction with 
+ 
+Warn about unsaved files, or implement checking of dirty files.
+   
+Naming of problem annotations in Problem View filter
+
+Specialized editor that does JML syntax coloring
+Refactoring, renaming?
+
+Enable JML annotations in next/previous annotation navigation
+    
+Clean up preferences page
+ESC - control over warnings checked (preferences page)
+
+Integration with test generation and checking
