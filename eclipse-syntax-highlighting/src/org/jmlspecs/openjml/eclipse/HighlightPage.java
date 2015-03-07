@@ -56,6 +56,7 @@ public class HighlightPage extends FieldEditorPreferencePage
 		enabledEditor = new BooleanFieldEditor(Options.highlightEnableKey, 
 				Messages.OpenJMLUI_HighlightPage_Enable, getFieldEditorParent());
 		addField(enabledEditor);
+		
 		Composite parent = getFieldEditorParent();
 		ColorFieldEditor editor = new ColorFieldEditor(Options.highlightDefaultKey, 
 				Messages.OpenJMLUI_HighlightPage_Default, parent);
@@ -73,6 +74,7 @@ public class HighlightPage extends FieldEditorPreferencePage
 		colorFieldEditors.put(editor, parent);
 		
 		addField(new LabelFieldEditor("", "", SWT.NONE, getFieldEditorParent()));
+		
 		addField(new LabelFieldEditor("", Messages.OpenJMLUI_HighlightPage_Footer, 
 				SWT.NONE, getFieldEditorParent()));
 	}
@@ -84,8 +86,11 @@ public class HighlightPage extends FieldEditorPreferencePage
 	}
 	
 	public void propertyChange(final PropertyChangeEvent event) {
-		for (ColorFieldEditor c : colorFieldEditors.keySet()) {
-			c.setEnabled(enabledEditor.getBooleanValue(), colorFieldEditors.get(c));
+		if (event.getProperty().equals(Options.highlightEnableKey))
+		{
+			for (ColorFieldEditor c : colorFieldEditors.keySet()) {
+				c.setEnabled(enabledEditor.getBooleanValue(), colorFieldEditors.get(c));
+			}
 		}
 	}
 }
