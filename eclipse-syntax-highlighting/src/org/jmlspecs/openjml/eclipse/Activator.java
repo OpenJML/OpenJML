@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.smtlib.IPos;
@@ -106,6 +109,20 @@ public class Activator extends AbstractUIPlugin {
 		utils = null;
 		plugin = null;
 		super.stop(context);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#initializeDefaultPreferences(org.eclipse.jface.preference.IPreferenceStore)
+	 */
+	@Override
+	protected void initializeDefaultPreferences(IPreferenceStore store) {
+		store.setDefault(Options.highlightEnableKey, true);
+		PreferenceConverter.setDefault(store, Options.highlightDefaultKey,
+				new RGB(117, 85, 0));
+		PreferenceConverter.setDefault(store, Options.highlightKeywordKey,
+				new RGB(117, 85, 0));
+		PreferenceConverter.setDefault(store, Options.highlightOperatorKey,
+				new RGB(117, 85, 0));
 	}
 
 	/**
