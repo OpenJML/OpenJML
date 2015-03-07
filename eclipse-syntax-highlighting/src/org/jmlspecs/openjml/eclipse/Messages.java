@@ -88,6 +88,12 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_SolversPage_Title;
 	public static String OpenJMLUI_SolversListEditor_Title;
 	public static String OpenJMLUI_SolversPage_EditButton;
+	public static String OpenJMLUI_HighlightPage_Title;
+	public static String OpenJMLUI_HighlightPage_Enable;
+	public static String OpenJMLUI_HighlightPage_Default;
+	public static String OpenJMLUI_HighlightPage_Keyword;
+	public static String OpenJMLUI_HighlightPage_Operator;
+	public static String OpenJMLUI_HighlightPage_Footer;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

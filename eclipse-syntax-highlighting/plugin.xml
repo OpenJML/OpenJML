@@ -85,6 +85,12 @@
             category="org.jmlspecs.openjml.eclipse.SettingsPage"
             name="%openjml.ui.PreferencePage.Solvers">
       </page>
+      <page
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            class="org.jmlspecs.openjml.eclipse.HighlightPage"
+            id="org.jmlspecs.openjml.eclipse.HighlightPage"
+            name="%openjml.ui.PreferencePage.Highlight">
+      </page>
    </extension>
    
   <!-- The following set of extensions add various menu items to the
