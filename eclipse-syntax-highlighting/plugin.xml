@@ -1354,4 +1354,12 @@
             name="OpenJML">
       </product>
    </extension>
+   <extension
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            class="org.jmlspecs.openjml.eclipse.PartitioningSetupParticipant"
+            contentTypeId="org.eclipse.jdt.core.javaSource"
+            extensions="java,jml">
+      </participant>
+   </extension>
 </plugin>

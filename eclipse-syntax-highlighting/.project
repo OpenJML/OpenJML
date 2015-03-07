@@ -29,7 +29,7 @@
 		<link>
 			<name>src-annotation</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/JmlAnnotations/src</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/JMLAnnotations/src</locationURI>
 		</link>
 		<link>
 			<name>src-openjdk</name>
