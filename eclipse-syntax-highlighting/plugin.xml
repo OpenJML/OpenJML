@@ -1368,4 +1368,13 @@
             extensions="java,jml">
       </participant>
    </extension>
+   <extension
+         point="org.eclipse.jdt.ui.foldingStructureProviders">
+      <provider
+            class="org.jmlspecs.openjml.eclipse.HighlightingFoldingStructureProvider"
+            id="org.jmlspecs.openjml.eclipse.HighlightingFoldingStructureProvider.PROVIDER_ID"
+            name="JML Syntax Highlighting"
+            preferencesClass="org.jmlspecs.openjml.eclipse.HighlightingFoldingStructureProviderPreferences">
+      </provider>
+   </extension>
 </plugin>

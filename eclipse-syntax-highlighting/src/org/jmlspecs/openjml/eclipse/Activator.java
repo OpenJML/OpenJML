@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.swt.graphics.RGB;
@@ -116,6 +118,9 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	@Override
 	protected void initializeDefaultPreferences(IPreferenceStore store) {
+		store.setDefault(Options.innerFoldingProvider,
+				JavaPlugin.getDefault().getPreferenceStore().getDefaultString(
+				PreferenceConstants.EDITOR_FOLDING_PROVIDER));
 		store.setDefault(Options.highlightEnableKey, true);
 		PreferenceConverter.setDefault(store, Options.highlightDefaultKey,
 				new RGB(117, 85, 0));

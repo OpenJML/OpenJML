@@ -125,14 +125,17 @@ public class Options {
 	final static public String defaultProverKey = Strings.defaultProverProperty;
 
 	/** The preference store key for enabling/disabling JML highlighting. */
-	final static public String highlightEnableKey = prefix + "highlightEnable";
+	final static public String highlightEnableKey = prefix + "highlightEnable"; //$NON-NLS-1$
 	
 	/** The preference store key for the default JML highlight color. */
-	final static public String highlightDefaultKey = prefix + "highlightDefault";
+	final static public String highlightDefaultKey = prefix + "highlightDefault"; //$NON-NLS-1$
 	
 	/** The preference store key for the JML keyword highlight color. */
-	final static public String highlightKeywordKey = prefix + "highlightKeyword";
+	final static public String highlightKeywordKey = prefix + "highlightKeyword"; //$NON-NLS-1$
 	
 	/** The preference store key for the JML operator highlight color. */
-	final static public String highlightOperatorKey = prefix + "highlightOperator";
+	final static public String highlightOperatorKey = prefix + "highlightOperator"; //$NON-NLS-1$
+	
+	/** The ID of the FoldingStructureProvider to forward requests to from ours */
+	final static public String innerFoldingProvider = prefix + "innerFoldingProvider"; //$NON-NLS-1$
 }
