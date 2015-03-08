@@ -1,0 +1,6 @@
+../testfiles/testPath/data/TestPath.java:3: error: cannot find symbol
+    //@ requires z ; // BAD
+                 ^
+  symbol:   variable z
+  location: class TestPath
+1 error

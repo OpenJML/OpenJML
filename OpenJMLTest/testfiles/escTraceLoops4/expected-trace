@@ -1,0 +1,78 @@
+Proving methods in trace
+Starting proof of trace.m4() with prover z3_4_3
+
+TRACE of trace.m4()
+
+testfiles\escTraceLoops\trace.java:48:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+testfiles\escTraceLoops\trace.java:49:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTraceLoops\trace.java:52:  	for ...
+testfiles\escTraceLoops\trace.java:52:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+testfiles\escTraceLoops\trace.java:50:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 0
+			VALUE: i	 === 0
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:52:  	Begin loop check
+testfiles\escTraceLoops\trace.java:50:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 4
+			VALUE: i	 === 4
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 4
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:51:  	//@ decreases i - j;
+			VALUE: i	 === 4
+			VALUE: j	 === 4
+			VALUE: i - j	 === 0
+				Initial Value of Loop Decreases Expression = 0
+testfiles\escTraceLoops\trace.java:52:  	Loop test
+			VALUE: i	 === 4
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+testfiles\escTraceLoops\trace.java:52:  	Begin loop body
+testfiles\escTraceLoops\trace.java:53:  	++j
+			VALUE: j	 === 5
+			VALUE: ++j	 === 5
+testfiles\escTraceLoops\trace.java:52:  	i++
+			VALUE: i	 === 5
+			VALUE: i++	 === 4
+testfiles\escTraceLoops\trace.java:50:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 5
+			VALUE: i	 === 5
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 5
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 5
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+testfiles\escTraceLoops\trace.java:51:  	//@ decreases i - j;
+			VALUE: i	 === 5
+			VALUE: j	 === 5
+			VALUE: i - j	 === 0
+testfiles\escTraceLoops\trace.java:51: warning: The prover cannot establish an assertion (LoopDecreases) in method m4
+        //@ decreases i-j;
+            ^
+Completed proof of trace.m4() with prover z3_4_3 - with warnings
+Completed proving methods in trace
+1 warning

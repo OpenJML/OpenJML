@@ -1,0 +1,9 @@
+This example came from John Singleton ~2/11/2014.
+The particular problem was with compalints about violations of the 
+invariant
+
+openjml.jar(specs17/java/lang/CharSequence.jml):30: warning: Associated declaration: TestDriver.java:55:
+
+    //@ public instance invariant charArray.owner == this;
+
+ 

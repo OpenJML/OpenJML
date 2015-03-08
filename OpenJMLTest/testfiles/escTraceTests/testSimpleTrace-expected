@@ -1,0 +1,74 @@
+
+TRACE of tt.TestJava.m1(int)
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+/tt/TestJava.java:3:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_9235	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_9235	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_9235 && THIS.java.lang.Object_objectTimesFinalized_9235 <= 2147483647	 === ???
+/tt/TestJava.java:2:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_6988	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_6988 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_6988 == null || THIS.java.lang.Object_theString_6988 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_6988), \type(java.lang.String)))	 === ???
+/tt/TestJava.java:3:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2129	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2129	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2129 && THIS.java.lang.Object_theHashCode_2129 <= 2147483647	 === ???
+/tt/TestJava.java:2:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1585	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1585 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1585 == null || THIS.java.lang.Object_owner_1585 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1585), \type(java.lang.Object))	 === ???
+/tt/TestJava.java:2:  	assume ImplicitAssume (THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object))) && (THIS.privateState == null || THIS.privateState instanceof java.lang.Cloneable && <:(\typeof(THIS.privateState), \type(java.lang.Cloneable))) && (THIS.privateState == null || THIS.privateState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.privateState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1345	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1345 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Object))) && (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Cloneable)))	 === ???
+			VALUE: (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Object))) && (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(java.lang.Cloneable))) && (THIS.java.lang.Object_privateState_1345 == null || THIS.java.lang.Object_privateState_1345 instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.java.lang.Object_privateState_1345), \type(org.jmlspecs.lang.JMLDataGroup)))	 === ???
+/tt/TestJava.java:2:  	assume ImplicitAssume (THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object))) && (THIS.objectState == null || THIS.objectState instanceof java.lang.Cloneable && <:(\typeof(THIS.objectState), \type(java.lang.Cloneable))) && (THIS.objectState == null || THIS.objectState instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.objectState), \type(org.jmlspecs.lang.JMLDataGroup))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1211	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1211 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Cloneable)))	 === ???
+			VALUE: (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Cloneable))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(org.jmlspecs.lang.JMLDataGroup)))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+/tt/TestJava.java:3:  	assume ImplicitAssume -2147483648 <= i && i <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: i_81	 === 2
+			VALUE: -2147483648 <= i_81	 === ???
+			VALUE: -2147483648 <= i_81 && i_81 <= 2147483647	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//Assume invariants for tt.TestJava
+ 	//Assume Preconditions
+ 	//try...
+ 	//Method Body
+/tt/TestJava.java:4:  	int j = 5
+			VALUE: 5	 === 5
+			VALUE: j	 === 5
+/tt/TestJava.java:5:  	j = j + i
+			VALUE: j	 === 5
+			VALUE: i	 === 2
+			VALUE: j + i	 === 7
+			VALUE: j = j + i	 === 7
+/tt/TestJava.java:6:  	assert Assert j != 7;
+			VALUE: j	 === 7
+			VALUE: 7	 === 7
+			VALUE: j != 7	 === false
+/tt/TestJava.java:6:  Invalid assertion (Assert)

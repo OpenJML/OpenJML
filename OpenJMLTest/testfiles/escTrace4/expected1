@@ -1,0 +1,47 @@
+Proving methods in trace
+Starting proof of trace.m(int) with prover cvc4
+
+TRACE of trace.m(int)
+
+testfiles\escTrace4\trace.java:12:  	requires true; 
+			VALUE: true	 === true
+testfiles\escTrace4\trace.java:15:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+testfiles\escTrace4\trace.java:16:  	mm(k + k, k == 0)
+			VALUE: k	 === 0
+			VALUE: k	 === 0
+			VALUE: k + k	 === ???
+			VALUE: k	 === 0
+			VALUE: 0	 === 0
+			VALUE: k == 0	 === ???
+testfiles\escTrace4\trace.java:17:  	mmm(9)
+			VALUE: 9	 === 9
+			VALUE: mmm(9)	 === ???
+testfiles\escTrace4\trace.java:18:  	j = mmm(j + 1) + mmm(10) + mmm(j)
+			VALUE: j	 === 0
+			VALUE: 1	 === 1
+			VALUE: j + 1	 === ???
+			VALUE: mmm(j + 1)	 === 41
+			VALUE: 10	 === 10
+			VALUE: mmm(10)	 === 41
+			VALUE: mmm(j + 1) + mmm(10)	 === 82
+			VALUE: j	 === 0
+			VALUE: mmm(j)	 === 41
+			VALUE: mmm(j + 1) + mmm(10) + mmm(j)	 === 123
+			VALUE: j = mmm(j + 1) + mmm(10) + mmm(j)	 === 123
+testfiles\escTrace4\trace.java:19:  	return 0;
+			VALUE: 0	 === 0
+testfiles\escTrace4\trace.java:13:  	ensures \result != 0; 
+			VALUE: \result	 === 0
+			VALUE: 0	 === 0
+			VALUE: \result != 0	 === false
+testfiles\escTrace4\trace.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m
+        return 0;
+        ^
+testfiles\escTrace4\trace.java:13: warning: Associated declaration: testfiles\escTrace4\trace.java:19: 
+    //@ ensures \result != 0;
+        ^
+Completed proof of trace.m(int) with prover cvc4 - with warnings
+Completed proving methods in trace
+2 warnings
