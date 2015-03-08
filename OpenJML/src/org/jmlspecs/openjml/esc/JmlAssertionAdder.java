@@ -9702,6 +9702,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // but if we call this visit method directly, e.g., from the api,
         // it will not be, and we need to find the class
         if (esc && JmlEsc.skip(that)) return;
+        if (rac && utils.hasAny(that.mods, Flags.ABSTRACT)) {
+            classDefs.add(that); // FIXME - should make a fresh copy of the declaration
+            return;
+        }
         
         if (classDecl == null) classDecl = utils.getOwner(that);
         log.useSource(that.source());
