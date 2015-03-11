@@ -44,6 +44,8 @@ public class Messages extends NLS {
 	public static String OPENJMLUI_FoldingPreferences_GroupboxHeader;
 	public static String OPENJMLUI_FoldingPreferences_HeaderNote;
 	public static String OPENJMLUI_FoldingPreferences_InnerFolderLabel;
+	public static String OPENJMLUI_HighlightingProvider_DisableMessage;
+	public static String OPENJMLUI_HighlightingProvider_EnableMessage;
 	public static String OpenJMLUI_PreferencesPage_CheckSpecificationPath;
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;

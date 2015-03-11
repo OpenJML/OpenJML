@@ -4,8 +4,12 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.text.folding.JavaFoldingStructureProviderDescriptor;
 import org.eclipse.jdt.internal.ui.text.folding.JavaFoldingStructureProviderRegistry;
+import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
+import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
 import org.eclipse.jdt.ui.text.folding.IJavaFoldingStructureProvider;
 import org.eclipse.jdt.ui.text.folding.IJavaFoldingStructureProviderExtension;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -51,6 +55,17 @@ public class HighlightingFoldingStructureProvider implements
 	 */
 	private /*@nullable*/ ProjectionViewer installedViewer;
 	
+	/**
+	 * The Java preference store is used in the enableHighlighting and
+	 * disableHighlighting methods, so we put it here for ease of use.
+	 */
+	private static final IPreferenceStore JAVA_STORE =
+			JavaPlugin.getDefault().getCombinedPreferenceStore();
+	
+	/**
+	 * Listens for changes to the Options.innerFoldingProvider preference, so
+	 * that the actual folding provider used can be changed if necessary.
+	 */
 	private final IPropertyChangeListener containedProviderPropertyChangeListener =
 			new IPropertyChangeListener() {
 				@Override
@@ -137,6 +152,45 @@ public class HighlightingFoldingStructureProvider implements
 	}
 	
 	/**
+	 * Enable JML syntax highlighting on the installed editor and viewer. This
+	 * swaps out whatever the current SourceCodeConfiguration is for the JML
+	 * specific one.
+	 */
+	//@ pre installedEditor != null;
+	//@ pre installedViewer != null;
+	private void enableHighlighting()
+	{
+		JMLSourceViewerConfiguration config =
+				new JMLSourceViewerConfiguration(JavaUI.getColorManager(),
+						JAVA_STORE, installedEditor, Partitioner.PARTITIONING);
+		SourceViewerReconfigurer job =
+				new SourceViewerReconfigurer(
+						Messages.OPENJMLUI_HighlightingProvider_EnableMessage,
+						config, installedViewer);
+		job.schedule();
+	}
+	
+	/**
+	 * Disable JML syntax highlighting on the installed editor and viewer. This
+	 * swaps out whatever the current SourceCodeConfiguration is for the JDT
+	 * default one.
+	 */
+	//@ pre my_editor != null;
+	//@ pre my_viewer != null;
+	private void disableHighlighting()
+	{
+		JavaSourceViewerConfiguration config =
+				new JavaSourceViewerConfiguration(JavaUI.getColorManager(),
+						JAVA_STORE, installedEditor,
+						IJavaPartitions.JAVA_PARTITIONING);
+		SourceViewerReconfigurer job =
+				new SourceViewerReconfigurer(
+						Messages.OPENJMLUI_HighlightingProvider_DisableMessage,
+						config, installedViewer);
+		job.schedule();
+	}
+	
+	/**
 	 * Create an inner FoldingStructureProvider to forward requests to, and
 	 * install it.
 	 * 
@@ -147,6 +201,9 @@ public class HighlightingFoldingStructureProvider implements
 		// Keep track of our editor and viewer
 		installedEditor = editor;
 		installedViewer = viewer;
+		
+		// Actually do the highlighting
+		enableHighlighting();
 		
 		// Forward to the folding provider that does the actual work
 		updateContainedProvider();
@@ -166,6 +223,9 @@ public class HighlightingFoldingStructureProvider implements
 		// We no longer care about whether the contained provider changes.
 		Activator.getDefault().getPreferenceStore().removePropertyChangeListener(
 				containedProviderPropertyChangeListener);
+		
+		// Stop highlighting
+		disableHighlighting();
 		
 		// We are no longer installed
 		installedEditor = null;
