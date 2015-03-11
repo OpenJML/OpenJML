@@ -73,16 +73,15 @@ public class HighlightingFoldingStructureProviderPreferences implements
 	@Override
 	public Control createControl(Composite parent) {
 		Group controlGroup = new Group(parent, SWT.NONE);
-		controlGroup.setText("Actual folding structure provider");
+		controlGroup.setText(Messages.OPENJMLUI_FoldingPreferences_GroupboxHeader);
 		controlGroup.setLayout(new GridLayout(2, false));
 		
 		Label lblExplanation = new Label(controlGroup, SWT.WRAP);
 		GridDataFactory.generate(lblExplanation, 2, 1);
-		lblExplanation.setText("NOTE: The above folding provider is actually " +
-				"used to highlight JML; the below one does folding.");		
+		lblExplanation.setText(Messages.OPENJMLUI_FoldingPreferences_HeaderNote);		
 		
 		Label lblActualProvider = new Label(controlGroup, SWT.LEAD);
-		lblActualProvider.setText("Actual folding:");
+		lblActualProvider.setText(Messages.OPENJMLUI_FoldingPreferences_InnerFolderLabel);
 		
 		providerSelectorViewer = new ComboViewer(new Combo(controlGroup,
 				SWT.READ_ONLY));
@@ -98,10 +97,7 @@ public class HighlightingFoldingStructureProviderPreferences implements
 		
 		Label lblInstructions = new Label(controlGroup, SWT.WRAP);
 		GridDataFactory.generate(lblInstructions, 2, 1);
-		lblInstructions.setText("To change settings for the folding provider:"
-				+ "\n1. Select this folding provider in the main list above."
-				+ "\n2. Change the settings there."
-				+ "\n3. Remember to change back to the JML highlighting provider.");
+		lblInstructions.setText(Messages.OPENJMLUI_FoldingPreferences_FooterNote);
 		
 		return controlGroup;
 	}

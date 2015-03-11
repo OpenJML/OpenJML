@@ -40,6 +40,10 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_Editor_Remove;
 	public static String OpenJMLUI_Editor_Up;
 	public static String OpenJMLUI_Editor_Down;
+	public static String OPENJMLUI_FoldingPreferences_FooterNote;
+	public static String OPENJMLUI_FoldingPreferences_GroupboxHeader;
+	public static String OPENJMLUI_FoldingPreferences_HeaderNote;
+	public static String OPENJMLUI_FoldingPreferences_InnerFolderLabel;
 	public static String OpenJMLUI_PreferencesPage_CheckSpecificationPath;
 	public static String OpenJMLUI_PreferencesPage_debug;
 	public static String OpenJMLUI_PreferencesPage_DirectoryForRACOutput;
