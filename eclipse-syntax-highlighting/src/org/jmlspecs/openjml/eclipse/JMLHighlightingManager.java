@@ -73,10 +73,11 @@ public class JMLHighlightingManager {
 					if (event.getProperty().equals(highlightEnableKey) &&
 						! event.getOldValue().equals(event.getNewValue()))
 					{
-						// We only set this property as a boolean, and its
-						// default value is a boolean. We can assume this cast
-						// is valid.
-						if ((Boolean) event.getNewValue())
+						// When an option is set to default, its value is set
+						// as a string, so we need to actually check the current
+						// value. This current value should be equivalent to
+						// event.getNewValue(), except for type.
+						if (Options.isOption(highlightEnableKey))
 						{
 							ensureHighlighting();
 						}
