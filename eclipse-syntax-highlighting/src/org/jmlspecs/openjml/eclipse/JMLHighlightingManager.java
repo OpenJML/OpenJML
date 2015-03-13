@@ -139,7 +139,8 @@ public class JMLHighlightingManager {
 		
 		if (currentProviderID.equals(PROVIDER_ID))
 		{
-			JDT_PREFS.setValue(EDITOR_FOLDING_PROVIDER, innerFoldingProvider);
+			JDT_PREFS.setValue(EDITOR_FOLDING_PROVIDER,
+					Options.value(innerFoldingProvider));
 		}
 	}
 	
