@@ -58,6 +58,8 @@ public class Activator extends AbstractUIPlugin {
 		utils = new Utils();
 		Options.init();
 		
+		JMLHighlightingManager.startUp();
+		
 		if (Options.uiverboseness) {
 			Log.log("JML UI plugin started"); //$NON-NLS-1$
 		}
@@ -105,6 +107,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		JMLHighlightingManager.shutDown();
 		if (Options.uiverboseness) {
 			Log.log("JML UI plugin stopping"); //$NON-NLS-1$
 		}
