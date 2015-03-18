@@ -481,6 +481,21 @@ public class escfiles extends EscBase {
         helpTF("escConstructor6");
     }
 
+    @Test
+    public void testEscJml() {
+        helpTCF("test/escJml/StorageParameters.java","test/escJml","-specspath=test/escJml/specs");
+    }
+
+    @Test
+    public void testEscJml2() {
+        helpTCF("test/escJml2/StorageParameters.java","test/escJml2","-specspath=test/escJml2/specs");
+    }
+
+    @Test
+    public void testEscJmlDup() {
+        helpTF("escDup");
+    }
+
 
 
 }

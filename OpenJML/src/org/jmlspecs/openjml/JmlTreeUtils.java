@@ -482,6 +482,18 @@ public class JmlTreeUtils {
         return fa;
     }
 
+    /** Makes an AST for a field selection (attributed)
+     * @param sym the symbol for which to make an identifier
+     * @return the AST
+     */ 
+    public JCFieldAccess makeSelect(int pos, JCExpression lhs, Name name) {
+        JCFieldAccess fa = factory.Select(lhs, name);
+        fa.pos = pos;
+        fa.type = null;
+        fa.sym = null;
+        return fa;
+    }
+
 
     /** Makes an attributed assignment expression; the expression type is the type of the lhs. */
     public JCAssign makeAssign(int pos, JCExpression lhs, JCExpression rhs) {

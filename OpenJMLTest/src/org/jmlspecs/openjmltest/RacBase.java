@@ -323,17 +323,19 @@ public abstract class RacBase extends JmlTestCase {
                     if (diffs == null) break;
                 }
                 if (diffs != null) {
+                    BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
+                    b.write(output);
+                    b.close();
+                }
+                if (ex != expectedRACExit) fail("Execution ended with exit code " + ex + " " + output);
+                if (diffs != null) {
                     if (diffs.isEmpty()) {
                         fail("No expected output file for runtime output");
                     } else {
-                        BufferedWriter b = new BufferedWriter(new FileWriter(actRun));
-                        b.write(output);
-                        b.close();
                         System.out.println(diffs);
                         fail("Unexpected output: " + diffs);
                     }
                 }
-                if (ex != expectedRACExit) fail("Execution ended with exit code " + ex);
             }
             if (compdiffs != null) fail("Files differ: " + compdiffs);
 

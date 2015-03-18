@@ -208,5 +208,45 @@ public class racfiles extends RacBase {
         runrac = false;
         helpTCF("test/racold","test/racold","ArrayExample");
     }
+    
+    @Test
+    public void racHans4() {
+    	expectedRACExit = 1;
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage");
+    	rac = null;
+    }
+
+    @Test
+    public void racHans4a() {
+    	expectedRACExit = 0;
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorage","-nullableByDefault");
+    	rac = null;
+    }
+
+    @Test
+    public void racHans4b() {
+        expectedRACExit = 1;
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageB");
+    	rac = null;
+    }
+
+    @Test // FIXME - some annotations seeem to have to be in the .java file, not the .jml
+    public void racHans4c() {
+        expectedRACExit = 1;
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageC");
+    	rac = null;
+    }
+
+    @Test  // FIXME - bug in that import statements must be in .java files, not .jml
+    public void racHans4d() {
+        expectedRACExit = 1;
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
+    	rac = null;
+    }
 
 }

@@ -62,7 +62,7 @@ NAMEZ=openjml-${VERSION}.zip
 	test -d temp2 && chmod -R u+rwx,a+rx temp2 || rm -rf temp2
 	(cd src/com/sun/tools/javac/resources; cat version.template | sed s/VERSION/OpenJML-${VERSION}/ > version.properties )
 	cp src/com/sun/tools/javac/resources/version.properties bin/com/sun/tools/javac/resources/version.properties
-	echo "openjml OpenJML-${VERSION}" > releaseTests/testJmlVersion/expected
+	echo "openjml OpenJML-${VERSION}" > ../OpenJMLTest/releaseTests/testJmlVersion/expected
 	mkdir -p temp; chmod -R u+rwx,go+rx temp
 	mkdir -p ${TEMPJAR}; chmod -R u+rwx,go+rx ${TEMPJAR}
 	rm -f ${TEMPJAR}/jmlspecs.jar ${TEMPJAR}/openjml.jar

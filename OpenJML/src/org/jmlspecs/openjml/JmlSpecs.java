@@ -50,6 +50,7 @@ import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.file.ZipArchive;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
@@ -198,6 +199,9 @@ public class JmlSpecs {
     /** The Log tool for this context */
     final protected Log log;
     
+    /** The Names tool for this context */
+    final protected Names names;
+    
     /** The Utils tool for this context */
     final protected Utils utils;
     
@@ -224,6 +228,7 @@ public class JmlSpecs {
         attr = JmlAttr.instance(context);
         log = Log.instance(context);
         utils = Utils.instance(context);
+        names = Names.instance(context);
     }
     
     /** Initializes the specs path given the current settings of options.
@@ -1204,20 +1209,83 @@ public class JmlSpecs {
     
     public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
         if (symbol.type.isPrimitive()) return false;
+        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
         if (nonnullAnnotationSymbol == null) {
             nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
         }
-        // Find the annotation on the given symbol, if any
-        Attribute.Compound attr = symbol.attribute(nonnullAnnotationSymbol);
-        if (attr!=null) return true;
         if (nullableAnnotationSymbol == null) {
             nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
         }
-        attr = symbol.attribute(nullableAnnotationSymbol);
-        if (attr!=null) return false;
-        return defaultNullity(csymbol) == JmlToken.NONNULL;
-
+        Attribute.Compound attr;
+        if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
+            // Field
+            FieldSpecs fspecs = getSpecs((Symbol.VarSymbol)symbol);
+            if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
+            else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
+            else if (symbol.name == names._this) return true;
+            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == JmlToken.NONNULL;
+        } else if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.MethodSymbol) {
+            // Method parameter or variable in body
+            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
+            // FIXME - not clear we are able to look up a particular parameter - which case do we use? don't want inherited specs?
+//            specs.cases.decl
+//            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
+//            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
+            // else return defaultNullity(csymbol) == JmlToken.NONNULL;
+            
+            // Need to distinguish the two cases. The following is correct for variables in the body
+            attr = symbol.attribute(nullableAnnotationSymbol);
+            if (attr != null) return false;
+            attr = symbol.attribute(nonnullAnnotationSymbol);
+            if (attr != null) return true;
+            return defaultNullity(csymbol) == JmlToken.NONNULL;
+            
+        } else if (symbol instanceof Symbol.MethodSymbol) {
+            // Method return value
+            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
+            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
+            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
+            else return defaultNullity(csymbol) == JmlToken.NONNULL;
+        } else {
+            // What else?
+            attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
+            if (attr != null) return false;
+            attr = symbol.attribute(nonnullAnnotationSymbol);
+            if (attr != null) return true;
+            return defaultNullity(csymbol) == JmlToken.NONNULL;
+        }
     }
+    
+    /** Caches the symbol for a Pure annotation, which is computed on demand. */
+    private ClassSymbol pureAnnotationSymbol = null;
+
+    /** Returns true if the given symbol is annotated as Pure */
+    public boolean isPure(Symbol symbol) {
+        if (pureAnnotationSymbol == null) {
+            pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
+        }
+        MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
+        if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol) != null) return true;
+        TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
+        // FIXME - the following will not find a pure annotation on the class in a .jml file.
+        if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol) != null) return true;
+        return false;
+    }
+    
+    public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, JmlToken token) {
+        FieldSpecs fspecs = getSpecs(sym);
+        if (fspecs == null) return null;
+        Symbol annotationSymbol = attr.tokenToAnnotationSymbol.get(token);
+        return utils.findMod(fspecs.mods,annotationSymbol);
+    }
+
+    public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, JmlToken token) {
+        MethodSpecs mspecs = getSpecs(sym);
+        if (mspecs == null) return null;
+        Symbol annotationSymbol = attr.tokenToAnnotationSymbol.get(token);
+        return utils.findMod(mspecs.mods,annotationSymbol);
+    }
+
     
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {

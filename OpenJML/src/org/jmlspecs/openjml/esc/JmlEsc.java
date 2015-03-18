@@ -175,6 +175,18 @@ public class JmlEsc extends JmlTreeScanner {
         return false;
     }
     
+    // FIXME - perhaps shoud not be in JmlEsc
+    public static boolean skipRac(JmlMethodDecl methodDecl) {
+        if (methodDecl.mods != null) {
+            for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
+                if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipRac")) { // FIXME - do this without converting to string
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
         utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         

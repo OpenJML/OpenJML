@@ -944,7 +944,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlToken[] {
         MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC, SKIP_RAC // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1357,7 +1357,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (JCVariableDecl p : decl.params) {
                 if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
                 if (!p.type.isPrimitive()) {
-                    boolean isNonnull = specs.isNonNull(p.sym,decl.sym.enclClass());
+                    boolean isNonnull = specs.isNonNull(p.sym,decl.sym.enclClass()); // FIXME - the nonnull annotation could be in the .jml file
                     JCAnnotation nonnull = findMod(p.mods,JmlToken.NONNULL);
                     if (isNonnull) {
                         JCTree treeForPos = nonnull == null ? p : nonnull;

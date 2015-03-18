@@ -1132,7 +1132,7 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; public class A { static public int m() { return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
                 ,"/tt/A.java:2: JML precondition is false"
                 ,"/$A/tt/A.jml:3: Associated declaration"
-                ,"/tt/A.java:2: JML precondition is false"
+                ,"/$A/tt/A.jml:3: JML precondition is false"
                 ,"END"
                 );
         

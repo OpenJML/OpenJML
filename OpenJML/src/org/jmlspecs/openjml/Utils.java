@@ -20,6 +20,7 @@ import java.util.Set;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
@@ -227,16 +228,6 @@ public class Utils {
         }
         return symbol.attribute(helperAnnotationSymbol)!=null;
     }
-
-    /** Returns true if the given symbol is annotated as Pure */
-    public boolean isPure(Symbol symbol) {
-        if (pureAnnotationSymbol == null) {
-            pureAnnotationSymbol = createClassSymbol(Strings.pureAnnotation);
-        }
-        return symbol.attribute(pureAnnotationSymbol)!=null;
-    }
-    /** Caches the symbol for a Pure annotation, which is computed on demand. */
-    private ClassSymbol pureAnnotationSymbol = null;
 
     /** Returns true if the given symbol is marked static or is a member of a JML interface
      * that is not marked as 'instance'
