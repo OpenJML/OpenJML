@@ -1,0 +1,177 @@
+\chapter{Summary of JML Features}
+
+The definition of the Java Modeling Language is contained in the JML reference manual.\cite{TBD}
+This document does not repeat that definition in detail. However, the following sections summarize the features of JML, indicate what is and is not implemented in OpenJML, describes any extensions to JML contained in OpenJML, and includes
+comments about relevant implementation aspects of OpenJML.
+
+\section{JML Syntax}
+
+\subsection{Syntax of JML specifications}
+
+JML specifications may be written as Java annotations. Currently these are only implemented for modifiers (cf. section TBD). In Java 8, the use of Java annotations for JML features will be expanded.
+
+JML specifications may also be written in specially formatted Java comments:
+a JML specification includes everything between either (a) an opening {\tt /*\at} and closing {\tt */}
+or (b) an opening {\tt //\at} and the next line ending character ({\tt \bs n}
+or {\tt \bs r}) that is not within a string or character literal.
+
+Such comments that occur within the body of a class or interface definition are
+considered to be a specification of the class, a field, or a method, depending on the
+kind of specification clause it is. JML specifications may also occur in the body of 
+a method.
+
+\paragraph{Obsolete syntax.} In previous versions of JML, JML specifications could be placed
+within javadoc comments. Such specifications are no longer standard JML and are not supported by OpenJML.
+
+\subsection{Conditional JML specifications}
+
+JML has a mechanism for conditional specifications, based on a system of keys.
+A key is a Java identifier (consisting of alphanumeric characters, including the underscore character, and beginning with a non-digit).
+A conditional JML comment is guarded by one or more positive or negative keys (or both).
+The keys are placed just before the \at~character that is part of the opening sequence of the JML comment
+(the {\tt //\at} or the {\tt /*\at}). Each key is preceded by a '+' or a '-' sign, to indicate whether it is a positive
+or negative key, respectively. {\it No white-space is allowed}. If there is white-space anywhere between the
+initial {\tt //} or {\tt /*} and the first \at~character, the comment will appear to be a normal Java comment and will be
+silently ignored.
+
+The keys are interpreted as follows. Each tool that processes the Java+JML input will have a means
+(e.g. by command-line options) to specify the set of keys that are enabled.
+\begin{itemize}
+\item If the JML annotation has no keys, the annotation is always processed.
+\item If there are only positive keys, the annotation is processed only if at least one of the keys is enabled.
+\item If there are only negative keys, the annotation is processed unless one of the keys is enabled.
+\item If there are both positive and negative keys, the annotation is processed only if (a) at least one of the
+positive keys is enabled AND (b) none of the negative keys are enabled.
+\end{itemize}
+
+JML previously defined one conditional annotation: those that began with {\tt /*+\at} or {\tt //+\at}. ESC/Java2 also defined
+{\tt /*-\at} and {\tt //-\at}. Both of these are now deprecated. OpenJML does have an option to enable the +-style comments.
+
+The particular keys do not have any defined meaning in the JML reference manual. OpenJML implicitly enables the following keys:
+\begin{itemize} 
+\item {\bf ESC} : the ESC key is enabled when OpenJML is performing
+ESC static checking; 
+\item {\bf RAC} : the RAC key is enabled when OpenJML is performing Runtime-Assertion-Checking.
+\item {\bf OPENJML} : The OPENJML key is enabled whenever OpenJML is processing annotations (and presumably is not enabled by other tools).
+\item {\bf DEBUG} : The DEBUG key is not implicitly enabled. However it is defined as the key that enables the {\bf debug} JML statement. That is the {\bf debug} statement is ignored by default and is used by OpenJML if the user enables the DEBUG key.
+\end{itemize}
+Thus, for
+example, one can turn off a non-executable assert statement for RAC-processing by writing //-RAC@ assert ... 
+
+
+\subsection{Finding specification files and the refine statement}
+
+JML allows specifications to be placed directly in the .java files that contain the implementation of methods and
+classes. Indeed, specifications such as assert statements or loop invariants are necessarily placed directly in
+a method body. Other specifications, such as class invariants and method pre- and post-conditions, may be placed in
+auxiliary files. For classes which are only present as .class files and not as .java files, the auxiliary file is
+a necessity.
+
+Current JML allows one such auxiliary file. It is similar to the corresponding .java file except that
+\begin{itemize} \nospace
+\item it has a .jml suffix
+\item it contains no method bodies (method declarations are terminated with semi-colons, as if they were abstract)
+\end{itemize}
+The .jml file is in the same package as the corresponding .java file and has the same name, except for the suffix. It need not be in the same folder.
+If there is no source file, then there is a .jml file for each compilation unit that has a specification. All the nested, inner, or top-level classes that are defined in one Java compilation unit will have their specifications in one corresponding jml file.
+
+The search for specification files is analogous to the way in  which .class files are found on the {\it classpath}, except that the {\it specspath} is used instead. To find the specifications for a public top-level class {\it T}:
+\begin{itemize} 
+\item look in each element of the {\it specspath} (cf. section TBD), in order, for a fully-qualified file whose name is {\it T}{\tt .jml}.
+If found, the contents of that file are used as the specifications of {\it T}.
+\item if no such .jml file is found, look in each element of the {\it specspath}, in order, for a fully-qualified file whose name is {\it T}{\tt .java}.
+\end{itemize}
+There are two (silent) consequences of this search algorithm that can be confusing:
+\begin{itemize}
+\item If both a .jml and a .java file exist on the specspath and both contain JML specification text, the specifications in the .java file will be (silently) ignored.
+\item If a .java file is listed on the command-line it will be compiled (for its Java content), but if it is not a member of an element of the specspath, it will (silently) not be used as the source of specifications for itself.
+\end{itemize}
+
+\paragraph{Obsolete syntax.} The {\tt refine} and {\tt refines} statements are no longer recognized.
+The previous (complicated) method of finding specification files and merging the specifications
+from multiple files is also no longer implemented. The only specification file suffix allowed is 
+{\tt .jml}; the others --- {\tt .spec}, {\tt .refines-java}, {\tt .refines-spec}, {\tt .refines-jml} --- 
+are no longer implemented.
+
+In addition, the {\tt .jml} file is sought before seeking the {\tt .java} file; if a {\tt .jml}
+file is found anywhere in the specs path, then any specifications in the {\tt .java} file are 
+ignored. This is a different search algorithm than was previously used.
+
+\subsection{JML specifications and Java annotations}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Model import statements}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Modifiers}
+\textit{This section will be added later.} %% TBD
+
+- note elimination of weakly
+
+\subsection{Method specification clauses}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Class specification clauses}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Visibility of specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Statement specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Refining statement specifications}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML expressions}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML operators}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML types}
+\textit{This section will be added later.} %% TBD
+
+\subsection{JML informal comments}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Non-Null and Nullable}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Race condition detection}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Arithmetic modes}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Universe types}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Dynamic frames}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Code contracts}
+\textit{This section will be added later.} %% TBD
+
+\subsection{redundantly suffixes}
+\textit{This section will be added later.} %% TBD
+
+\subsection{nowarn lexical construct}
+
+\textit{This section will be added later.} %% TBD
+
+
+\section{Interaction with Java features}
+
+\textit{This section will be added later.} %% TBD
+
+
+\section{Other issues}
+
+\subsection{Interaction with JSR-308}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Interaction with FindBugs}
+
+\textit{This section will be added later.} %% TBD
+

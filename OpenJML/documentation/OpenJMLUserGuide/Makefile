@@ -1,32 +1,34 @@
 
 PDF="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe"
 BIB="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/bibtex.exe"
-HEV="C:/cygwin/home/dcok/mybin/HEVEA.BAT"
-HACHA="C:/hevea/HACHA.BAT"
+HTL="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/htlatex.exe"
 ARGS="macro.hva"
 
 R=OpenJMLUserGuide
 
-all: pdf html
+all: clean pdf html
 
 once:
 	${PDF} -interaction=nonstopmode $R.tex
 
 pdf:
-	${PDF} -interaction=nonstopmode $R.tex
-	${PDF} -interaction=nonstopmode $R.tex
+	-${PDF} -interaction=nonstopmode $R.tex
+	-${PDF} -interaction=nonstopmode $R.tex
 	make bib
-	${PDF} -interaction=nonstopmode $R.tex
+	-${PDF} -interaction=nonstopmode $R.tex
 
 
 html:
-	${HEV} -fix ${ARGS} $R.tex |& grep -v "Warning: minipage"
-	javac Transform.java && java -cp "." Transform $R.html
-	${HACHA} $R.html
+	${HTL} $R "html, fn-in, index=2"
+	cp $R.html $R-onepage.html
+	${HTL} $R "html, frames, next, 3, index=2"
+
+## NOTE: fn-in appears to be incompatible with frames; mouseover does not seem to work
+##	${HTL} $R "html, frames, 3, fn-in, mouseover, next, index=2"
 
 bib:
 	${BIB} $R
 
 clean:
-	rm *.log *.aux *.out *.pdf *.bbl *.blg *.toc *.html *.haux *.class *.css *backup *.htoc
+	rm -f *.log *.aux *.out *.pdf *.bbl *.blg *.toc *.html *.class *.css *backup  *.4* *.div *.idv *.lg *.tmp *.xref
 

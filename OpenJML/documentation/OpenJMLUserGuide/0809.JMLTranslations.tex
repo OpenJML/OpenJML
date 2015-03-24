@@ -1,0 +1,136 @@
+
+\chapter{Statement translations}
+
+TODO: Need to insert both RAC and ESC in all of the following.
+
+\section{While loop}
+
+\noindent
+Java and JML statement:
+
+\noindent
+{\tt }\\
+{\tt //@ invariant} {\em\bf invariant\_condition} {\tt ;}\\
+{\tt //@ decreases} {\em\bf counter} {\tt ;}\\
+{\tt while (}{\em\bf condition) }{\tt \{}\\
+\ind{\tt }{\em\bf body}\\
+{\tt \}}\\
+
+\noindent
+Translation: {\em TODO: Needs variant condition, havoc information}
+
+\noindent
+{\tt }\\
+{\tt \{}\\
+\ind {\tt //@ assert }{\em jmltranslate({\bf invariant\_condition})} {\tt ;}\\
+\ind {\tt //@ assert }{\em jmltranslate({\bf variant\_condition}) }{\tt > 0} {\tt ;}\\
+\ind {\tt while (true) \{}\\
+\ind\ind {\em stats(tmp,{\bf condition})}\\
+\ind\ind {\tt if (!}{\em tmp}{) \{}\\
+\ind\ind\ind {\tt //@ assume !}{\em tmp}{\tt ;}\\
+\ind\ind\ind {\tt break;}\\
+\ind\ind {\tt \}}\\
+\ind\ind{\tt //@ assume }{\em tmp}{\tt ;}\\
+\ind\ind {\tt }{\em stats({\bf body})}\\
+\ind {\tt \} }\\
+{\tt \}}
+
+\chapter{Java expression translations}
+
+\section{Implicit or explicit arithmetic conversions}
+
+{\em TODO}
+
+\section{Arithmetic expressions}
+{\em TODO: need arithmetic range assertions}
+
+In these, {\em T} is the type of the result of the operation. The two operands in binary operations are already assumed to have been converted to a common type according to Java's rules.
+
+\noindent
+{\em stats(tmp, }{\tt -} {\bf a} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em T tmp} {\tt =} {\tt - }{\em tmpa} {\tt ;} \\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt +} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt +} {\em tmpb} {\tt ;} \\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt -} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt -} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt *} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt *} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt /} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\tt //@ assert} {\em tmpb} {\tt != 0;} {\em // No division by zero}\\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt /} {\em tmpb} {\tt ;}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt \%} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\tt //@ assert} {\em tmpb} {\tt != 0;} {\em // No division by zero}\\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\tt \%} {\em tmpb} {\tt ;}\\
+
+\section{Bit-shift expressions}
+
+{\em TODO}
+
+\section{Relational expressions}
+
+\noindent
+No assertions are generated for the relational operations {\tt < > <= >= == !=}. The operands are presumed to have been converted to a common type according to Java's rules.\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\em op} {\bf b} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind {\em T tmp} {\tt =} {\em tmpa} {\em op} {\em tmpb} {\tt ;}\\
+
+\section{Logical expressions}
+
+\noindent
+{\em stats(tmp,} {\tt !} {\bf a} {\em )} ==> \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\em T tmp} {\tt =} {\tt !} {\em tmpa} {\tt ;}\\
+
+\noindent
+The {\tt \&\&} and {\tt ||} operations are short-circuit operations in which the second operand is conditionally evaluated.
+Here {\tt \&} and {\tt |} are the (FOL) boolean non-short-circuit conjunction and disjunction.\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt \&\&} {\bf b} {\em )} ==> \\
+\ind {\tt boolean } {\em tmp} {\tt ;} \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\tt if (} {\em tmpa} {\tt ) \{} \\
+\ind\ind {\tt //@ assume} {\em tmpa} {\tt ;} \\
+\ind\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt \&} {\em tmpb} {\tt ;}\\
+\ind {\tt \} else \{}\\
+\ind\ind {\tt //@ assume !} {\em tmpa} {\tt ;} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt ;}\\
+\ind {\tt \}}\\
+
+\noindent
+{\em stats(tmp, }{\bf a} {\tt ||} {\bf b} {\em )} ==> \\
+\ind {\tt boolean } {\em tmp} {\tt ;} \\
+\ind {\em stats(tmpa, }{\bf a} {\em )} \\
+\ind {\tt if ( !} {\em tmpa} {\tt ) \{} \\
+\ind\ind {\tt //@ assume !} {\em tmpa} {\tt ;} \\
+\ind\ind {\em stats(tmpb, }{\bf b} {\em )} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt |} {\em tmpb} {\tt ;}\\
+\ind {\tt \} else \{}\\
+\ind\ind {\tt //@ assume} {\em tmpa} {\tt ;} \\
+\ind\ind {\em tmp} {\tt =} {\em tmpa} {\tt ;}\\
+\ind {\tt \}}\\

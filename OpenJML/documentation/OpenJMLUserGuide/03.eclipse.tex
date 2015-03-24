@@ -1,0 +1,29 @@
+\chapter{The Eclipse Plug-in}
+\label{EclipsePlugin}
+
+Since OpenJML operates on Java files, it is natural that it be integrated into the Eclipse IDE for Java.
+OpenJML provides a conventional Eclipse plug-in that encapsulates the OpenJML command-line tool and integrates it
+with the Eclipse Java development environment.
+
+\section{Installation and System Requirements}
+Your system must have the following:
+\begin{itemize}
+\item A Java 1.7 JRE as described in section \ref{Running}. This must be the JRE in use in the environment in which Eclipse is invoked. If you start Eclipse by a command in a shell, it is straightforward to make sure that the correct Java JRE is defined in that shell.  However, if you start Eclipse by, for example, double-clicking a desktop icon, then you must ensure that the Java 1.7 JRE is set by the system at startup.
+\item Eclipse 4.2 or later
+\end{itemize}
+
+Installation of the plug-in follows the conventional Eclipse procedure.
+\begin{itemize}
+\item Invoke the "Install New Software" dialog under the Eclipse "Help" menubar item.
+\item "Add" a new location, giving the URL \url{http://jmlspecs.sourceforge.net/openjml-updatesite} and some name of your choice (e.g. OpenJML).
+\item Select the "OpenJML" category and push "Next"
+\item Proceed through the rest of the wizard dialogs to install OpenJML.
+\item Restart Eclipse when asked to obtain full functionality.
+\end{itemize}
+
+If the plug-in is successfully installed, a yellow coffee cup (the JML icon) will appear in the menubar (along with other menubar items).
+The installation will fail (without obvious error messages), if the underlying Java VM is not a suitable Java 1.7 VM.
+
+\section{GUI Features}
+
+\textit{This section will be added later.} %% TBD
