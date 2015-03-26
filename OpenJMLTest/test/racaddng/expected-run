@@ -23,10 +23,6 @@ Total tests run: 13, Failures: 0, Skips: 10
 
 
 ERR:
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -52,10 +48,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -81,10 +73,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -110,10 +98,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -139,10 +123,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -168,10 +148,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
@@ -197,10 +173,6 @@ element: runSuitesSequentially
 element: runSuitesLocally
 element: run
 element: main
-element: newInstance0
-element: newInstance
-element: newInstance
-element: newInstance
 element: createException
 element: assertionFailureL
 element: test_Add__int_the_x__int_the_y__0
