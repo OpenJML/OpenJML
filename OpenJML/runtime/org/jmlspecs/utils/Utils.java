@@ -76,7 +76,11 @@ public class Utils {
         if (c != null) {
             try {
                 Constructor<? extends Error> cc = ((Class<? extends Error>)c).getConstructor(String.class,String.class);
-                return cc.newInstance(message,label);
+                if (cc != null) {
+                    Error e = cc.newInstance(message,label);
+                    e.fillInStackTrace();
+                    return e;
+                }
             } catch (ClassCastException e) {
                 return new JmlAssertionError("User-defined JML assertion is not a subtype of java.lang.Error: " + exname
                         + System.getProperty("line.separator") + "    " + message, label);
