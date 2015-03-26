@@ -1,6 +1,3 @@
 OUT:
 
 ERR:
-Exception in thread "main" java.lang.ArrayStoreException: java.lang.Boolean
-	at features.ArrayStore.test(ArrayStore.java:11)
-	at features.ArrayStore.main(ArrayStore.java:6)

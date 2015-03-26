@@ -143,7 +143,7 @@ public class escfeatures extends EscBase {
     }
     
     public void helpFeatures(String n) {
-        helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/escFeatures/"+n);
+        helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/escFeatures/"+n,"-racJavaChecks");
     }
 
 

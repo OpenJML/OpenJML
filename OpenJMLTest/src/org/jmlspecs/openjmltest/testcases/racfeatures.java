@@ -38,18 +38,19 @@ public class racfeatures extends RacBase {
     }
     
     public void helpFeature(String n, String ... options) {
-    	expectedRACExit = 1;
     	helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
     }
     
     
     @Test
     public void NegativeArraySize() {
+    	expectedRACExit = 1;
     	helpFeature("NegativeArraySize");
     }
 
     @Test
     public void JavaAssertion() {
+    	expectedRACExit = 1;
     	helpFeature("JavaAssertion","-racJavaChecks");
     }
 
@@ -61,6 +62,7 @@ public class racfeatures extends RacBase {
 
     @Test
     public void ArrayStore() {
+    	expectedRACExit = 0;
     	helpFeature("ArrayStore");
     }
 
