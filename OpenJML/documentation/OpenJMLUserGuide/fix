@@ -1,0 +1,1 @@
+sed -e "s/<title>Does your software do what it should?/<title>/" -e "s/Specification and verification with the Java Modeling Language and OpenJML.//"  -e "sxDRAFT IN PROGRESS</title>x</title>x"

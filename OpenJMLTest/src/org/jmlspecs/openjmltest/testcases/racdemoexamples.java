@@ -29,7 +29,7 @@ import org.junit.Test;
  * </UL>
  */
 
-public class racfeatures extends RacBase {
+public class racdemoexamples extends RacBase {
 
     @Override
     @Before
@@ -38,31 +38,14 @@ public class racfeatures extends RacBase {
     }
     
     public void helpFeature(String n, String ... options) {
-    	expectedRACExit = 1;
-    	helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
+    	helpTCF("../OpenJMLDemo/src/examples/"+n,"test/racdemoexamples/"+n,"EntryPreconditionTest", options);
     }
     
     
     @Test
-    public void NegativeArraySize() {
-    	helpFeature("NegativeArraySize");
+    public void EntryPrecondition() {
+    	expected_compile = "../expected_compile";
+    	helpFeature("EntryPrecondition","-racCheckAssumptions","-racPreconditionEntry");
     }
-
-    @Test
-    public void JavaAssertion() {
-    	helpFeature("JavaAssertion","-racJavaChecks");
-    }
-
-    @Test
-    public void JavaAssertion2() {
-    	expectedRACExit = 1;
-    	helpTCF("../OpenJMLDemo/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
-    }
-
-    @Test
-    public void ArrayStore() {
-    	helpFeature("ArrayStore");
-    }
-
 
 }

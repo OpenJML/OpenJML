@@ -7,6 +7,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +41,9 @@ public abstract class RacBase extends JmlTestCase {
     protected int expectedNotes; // Number of messages to ignore (e.g. uninteresting compiler warnings)
     protected boolean jdkrac = false; // Set to true to do external system tests of RAC (emulating outside of JUnit)
     protected boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
+    
+    protected String expected_compile = "expected-compile";
+    protected String expected_run = "expected-run";
 
     /** These are the default command-line arguments for running the RACed
      * program.  The first argument is the java executable; the null argument
@@ -283,13 +288,20 @@ public abstract class RacBase extends JmlTestCase {
             pw.close();
             
             String compdiffs = "";
-            for (String file: new File(outputdir).list()) {
-                if (!file.contains("expected-compile")) continue;
-                compdiffs = compareFiles(outputdir + "/" + file, actCompile);
-                if (compdiffs == null) {
-                    new File(actCompile).delete();
-                    break;
-                }
+            if (new File(outputdir + "/" + expected_compile).exists()) {
+            	compdiffs = compareFiles(outputdir + "/" + expected_compile, actCompile);
+        		if (compdiffs == null) {
+        			new File(actCompile).delete();
+        		} 
+        	} else {
+            	for (String file: new File(outputdir).list()) {
+            		if (!file.contains("expected-compile")) continue;
+            		compdiffs = compareFiles(outputdir + "/" + file, actCompile);
+            		if (compdiffs == null) {
+            			new File(actCompile).delete();
+            			break;
+            		}
+            	}
             }
             if (compdiffs != null) {
                 if (compdiffs.isEmpty()) {

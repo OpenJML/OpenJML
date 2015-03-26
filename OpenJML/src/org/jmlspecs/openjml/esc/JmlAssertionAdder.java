@@ -907,6 +907,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body);
                 }
                 
+                
                 // The outerTryStatement just has a finally clause in which the
                 // postconditions and exceptional postconditions are checked.
                 JCCatch c;
@@ -950,12 +951,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
             if (!pureCopy) {
                 addPreConditions(initialStatements);
-
                 pushBlock();
                 addAssumeCheck(methodDecl,currentStatements,Strings.preconditionAssumeCheckDescription); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
                 JCStatement preconditionAssumeCheck = popBlock(0,methodDecl);
                 addStat(initialStatements,preconditionAssumeCheck);
-                
             }
             
             
@@ -974,7 +973,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body,check);
-            
+
             
             // The outerTryStatement just has a finally clause in which the
             // postconditions and exceptional postconditions are checked.
@@ -989,6 +988,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     v.equals("exit") || v.equals("debug"))) {
                 addAssumeCheck(methodDecl,outerFinalizeStats,Strings.atExitAssumeCheckDescription);
             }
+            
             JCCatch c;
             {
                 // global catch block
@@ -1004,6 +1004,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
                             M.Block(0, outerFinalizeStats.toList()));
             
+            
+            // This block is to create the try-catch block for converting PreconditionEntry to Precondition
+            if (rac && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
+                // precondition catch block
+                JCBlock tryBlock = M.at(methodDecl).Block(0, List.<JCStatement>of(outerTryStatement));
+                ClassSymbol preex = ClassReader.instance(context).loadClass(names.fromString("org.jmlspecs.utils.JmlAssertionError$PreconditionEntry"));
+                JCVariableDecl ex = treeutils.makeVarDef(preex.type,names.fromString("_JML__ex"),methodDecl.sym,methodDecl.pos);
+                pushBlock();
+                JCMethodInvocation m = treeutils.makeUtilsMethodCall(methodDecl.pos, "convertPrecondition", treeutils.makeIdent(methodDecl.pos,ex.sym));
+                addStat(M.at(methodDecl.pos).Exec(m));
+                JCBlock catchBlock = popBlock(0,methodDecl);
+                JCCatch cc = M.at(methodDecl.pos).Catch(ex, catchBlock);
+                JCTry preconditionTryStatement = M.at(methodDecl).Try(
+                        tryBlock,
+                        List.<JCCatch>of(cc),
+                        null);
+                outerTryStatement = preconditionTryStatement;
+            }
+
+            
+
             initialStatements.add(outerTryStatement);
             return M.at(methodDecl).Block(0,initialStatements.toList());
         } catch (JmlNotImplementedException e) {
@@ -1756,16 +1777,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @return an assert statement indication an assertion failure
      */
     protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label) {
-        JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
-        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,label.info()))).setType(syms.voidType);
+        String n = label.info();
+        JCFieldAccess m;
+        if (rac && label == Label.PRECONDITION && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
+            n = "PreconditionEntry";
+            m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE_EX);
+        } else {
+            m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
+        }
+        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,n))).setType(syms.voidType);
         return M.at(pos).Exec(c);
     }
 
-    protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label, JCExpression arg) {
-        JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
-        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,label.info()))).setType(syms.voidType);
-        return M.at(pos).Exec(c);
-    }
+//    protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label, JCExpression arg) {
+//        JCFieldAccess m = findUtilsMethod(pos,org.jmlspecs.utils.Utils.ASSERTION_FAILURE);
+//        JCExpression c = M.at(pos).Apply(null,m,List.<JCExpression>of(sp,treeutils.makeStringLiteral(0,label.info()))).setType(syms.voidType);
+//        return M.at(pos).Exec(c);
+//    }
 
     
     /** Creates an assumption that two expressions are equal, adding the assumption to 'currentStatements'. */
@@ -1959,7 +1987,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Returns true if the given symbol has a Helper annotation */
     public boolean isHelper(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
+        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null; // FIXME - need to get this from the spec
 
     }
     
@@ -1971,7 +1999,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Returns true if the given symbol has a Model annotation */
     public boolean isModel(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.MODEL))!=null;
+        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.MODEL))!=null; // FIXME - need to get this from the spec
     }
     
 
@@ -2822,6 +2850,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (d.sym.type.isPrimitive()) continue;
             if (!d.sym.isStatic() && methodDecl.sym.isStatic()) continue;
             
+            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+            
             JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
             addStat(comment(dd,"Adding invariants for " + d.sym,null));
             addRecInvariants(true,d,fa);
@@ -2865,6 +2895,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCVariableDecl v: methodDecl.params) {
             if (v.type.isPrimitive()) continue;
             JCVariableDecl d = preparams.get(v.sym);
+            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             if (owner.type.tsym == v.type.tsym && methodDecl.sym.isConstructor()) {
                 JCIdent id = treeutils.makeIdent(v.pos,d.sym);
                 addAssume(v,Label.IMPLICIT_ASSUME,
@@ -3145,6 +3176,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCVariableDecl v: methodDecl.params) {
             if (v.type.isPrimitive()) continue;
             JCVariableDecl d = preparams.get(v.sym);
+            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+
             JCIdent id = treeutils.makeIdent(v.pos,d.sym);
             addInvariants(v,v.type,id,ensuresStats,true,false,false,false,true,false,Label.INVARIANT_EXIT,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
@@ -3167,6 +3200,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCVariableDecl v: methodDecl.params) {
             if (v.type.isPrimitive()) continue;
             JCVariableDecl d = preparams.get(v.sym);
+            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             JCIdent id = treeutils.makeIdent(v.pos,d.sym);
             addInvariants(v,v.type,id,exsuresStats,false,false,false,false,true,false,Label.INVARIANT_EXCEPTION_EXIT,
                     utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
@@ -3182,6 +3216,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCVariableDecl d = (JCVariableDecl)dd;
             if (d.sym.type.isPrimitive()) continue;
             if (!d.sym.isStatic() && methodDecl.sym.isStatic()) continue;
+            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             
             JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
             addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
@@ -4313,7 +4348,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fullTranslation ? treeutils.makeDuplicateLiteral(opt.pos, (JCLiteral)opt) :
                 opt;
         
-        if (pureCopy || rac) {
+        if (pureCopy) {
+            result = addStat( M.at(that).Assert(cond, info).setType(that.type) );
+        } else if (rac) {
+            if (JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)) {
+                result = addAssert(true,that,Label.EXPLICIT_ASSERT,cond,null,null,info);
+                if (info != null) newTemp(info); // The detail expression is evaluated but not used anywhere
+            }
             result = addStat( M.at(that).Assert(cond, info).setType(that.type) );
         } else { // esc
             result = addAssert(true,that,Label.EXPLICIT_ASSERT,cond,null,null,info);

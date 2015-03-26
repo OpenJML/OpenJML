@@ -20,8 +20,10 @@ pdf:
 
 html:
 	${HTL} $R "html, fn-in, index=2"
-	cp $R.html $R-onepage.html
+	./fix < $R.html > $R-onepage.html
 	${HTL} $R "html, frames, next, 3, index=2"
+	./fix < $R.html > x.html
+	mv x.html $R.html
 
 ## NOTE: fn-in appears to be incompatible with frames; mouseover does not seem to work
 ##	${HTL} $R "html, frames, 3, fn-in, mouseover, next, index=2"

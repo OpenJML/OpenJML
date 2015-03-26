@@ -8,7 +8,13 @@ public class JmlAssertionError extends java.lang.Error {
     private static final long serialVersionUID = 1L;
     
     /** The Label used to identify the kind of JML assertion. */
-    public String jmlAssertionType;
+    protected String jmlAssertionType;
+    
+    /** The Label used to identify the kind of JML assertion. */
+    //@ pure
+    public String getLabel() {
+        return jmlAssertionType;
+    }
     
     /** The constructor with an informational message string
      * @param s the reason for the failure
@@ -25,6 +31,22 @@ public class JmlAssertionError extends java.lang.Error {
          * @param s the reason for the failure
          */
         public Precondition(String s, String label) {
+            super(s,label);
+        }
+        
+        public Precondition(Precondition e) {
+            super(e.getMessage(),"Precondition");
+        }
+
+    }
+    
+    public static class PreconditionEntry extends Precondition {
+        private static final long serialVersionUID = 1L;
+
+        /** The constructor with an informational message string
+         * @param s the reason for the failure
+         */
+        public PreconditionEntry(String s, String label) {
             super(s,label);
         }
 

@@ -157,6 +157,11 @@ public class escfeatures extends EscBase {
         helpFeatures("ArrayStore");
     }
 
+    @Test
+    public void testJavaAssertion() {
+        helpFeatures("JavaAssertion");
+    }
+
 
 
 }

@@ -1,0 +1,7 @@
+OUT:
+BEFORE
+
+ERR:
+Exception in thread "main" java.lang.AssertionError
+	at features.JavaAssertion.test(JavaAssertion.java:11)
+	at features.JavaAssertion.main(JavaAssertion.java:6)

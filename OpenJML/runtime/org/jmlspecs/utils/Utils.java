@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.jmlspecs.lang.Real;
-
-
+import org.jmlspecs.utils.JmlAssertionError.Precondition;
 
 
 /** 
@@ -53,17 +53,23 @@ public class Utils {
         } else { 
             System.out.println(message); System.out.flush();
             if (showStack) { 
-                Error e = ("Precondition".equals(label)) ? new JmlAssertionError.Precondition(message,label): new JmlAssertionError(message,label);
+                Error e = createException(message,label);
                 e.printStackTrace(System.out); // Keep the new expressions on line 47 or some test results will change
             }
         }
+    }
+    
+    /** This version of runtime assertion reporting reports only using exceptions */
+    public static final String ASSERTION_FAILURE_EX = "assertionFailureE"; // Must match the method name
+    public static void assertionFailureE(String message, /*@ nullable */String label) {
+        throw createException(message,label);
     }
     
     /** Helper method to create the appropriate class of JmlAssertion */
     static private Error createException(String message, /*@ nullable */String label) {
         String exname = System.getProperty("org.openjml.exception."+label);
         if (exname == null) {
-            exname = "org.jmlspecs.utils.JmlAssertionError" + "." + label;
+            exname = "org.jmlspecs.utils.JmlAssertionError" + "$" + label;
         }
         Class<?> c;
         try { c = Class.forName(exname); } catch (ClassNotFoundException e) { c = null; }
@@ -84,13 +90,11 @@ public class Utils {
                 return new JmlAssertionError(message,label);
             }
         }
-        // FIXmE - why this test on Precondition - isn't it handled above?
-        if ("Precondition".equals(label)) {
-            return new JmlAssertionError.Precondition(message,label); 
-        } else {
-            return new JmlAssertionError(message,label);
-        }
-
+        return new JmlAssertionError(message,label);
+    }
+    
+    static public void convertPrecondition(Precondition ex) {
+        throw new Precondition(ex);
     }
     
     /** Used to create empty lists for RAC handling of loops */
