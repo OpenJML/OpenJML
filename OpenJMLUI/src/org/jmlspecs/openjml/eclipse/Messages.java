@@ -57,6 +57,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_CompileToJavaAssert;
 	public static String OpenJMLUI_PreferencesPage_racCheckJavaFeatures;
 	public static String OpenJMLUI_PreferencesPage_racCheckAssumptions;
+	public static String OpenJMLUI_PreferencesPage_racPreconditionEntry;
 	public static String OpenJMLUI_PreferencesPage_racNoShowSource;
 	public static String OpenJMLUI_PreferencesPage_progress;
 	public static String OpenJMLUI_PreferencesPage_quiet;

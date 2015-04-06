@@ -96,12 +96,14 @@ public class Options {
 	/** The preference store key for the noInternalRuntime option. */
 	final static public String otherOptionsKey = prefix + "otherOptions"; //$NON-NLS-1$
 
-	/** RAC option which says to use Java asserts when compiling assertions */
+	/** RAC option that says to use Java asserts when compiling assertions */
 	final static public String compileToJavaAssert = prefix + "compileToJavaAssert"; //$NON-NLS-1$
-	/** RAC option which skips checking Java features such as Null Pointer Exceptions, letting Java issue its own exception */
+	/** RAC option that skips checking Java features such as Null Pointer Exceptions, letting Java issue its own exception */
 	final static public String racCheckJavaFeatures = prefix + "racCheckJavaFeatures"; //$NON-NLS-1$
-	/** RAC option which disables checking assumptions */
+	/** RAC option that disables checking assumptions */
 	final static public String racCheckAssumptions = prefix + "racCheckAssumptions"; //$NON-NLS-1$
+	/** RAC option that distinguishes internal and entry precondition errors */
+	final static public String racPreconditionEntry = prefix + "racPreconditionEntry"; //$NON-NLS-1$
 	/** RAC option which disables including source code in compiled-in error messages */
 	final static public String racNoShowSource = prefix + "racNoShowSource"; //$NON-NLS-1$
 

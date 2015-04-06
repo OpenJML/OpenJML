@@ -224,6 +224,8 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.racCheckAssumptions, Messages.OpenJMLUI_PreferencesPage_racCheckAssumptions,
                 getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.racPreconditionEntry, Messages.OpenJMLUI_PreferencesPage_racPreconditionEntry,
+                getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.racNoShowSource, Messages.OpenJMLUI_PreferencesPage_racNoShowSource,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotExecutableKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonExecutableConstructs,
