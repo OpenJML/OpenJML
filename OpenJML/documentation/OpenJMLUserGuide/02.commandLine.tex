@@ -23,19 +23,30 @@ You should ensure that the {\tt jmlruntime.jar} and {\tt jmlspecs.jar} files rem
 \section{Running OpenJML}
 \label{Running}
 
-To run OpenJML using a Java 1.7 VM, use this command line. Here \${OPENJML} designates the folder in which the {\tt openjml.jar} file resides.
+To run OpenJML, be sure that the java command uses a 1.7 JVM and use the following command line. Here \textit{\$OPENJML} designates the folder in which the {\tt openjml.jar} file resides.
 \boxedexampleZ{
-java -jar \${OPENJML}/openjml.jar {\it <options>} {\it <files>}
+java -jar \textit{\$OPENJML}/openjml.jar {\it <options>} {\it <files>}
 }
 
 Here {\it <files>} and {\it <options>} stand for text described below.
 
 The following command is currently a viable alternative as well.
 \boxedexampleZ{
-java -cp \${OPENJML}/openjml.jar org.jmlspecs.openjml.Main {\it <options>} {\it <files>}
+java -cp \textit{\$OPENJML}/openjml.jar org.jmlspecs.openjml.Main {\it <options>} {\it <files>}
 }
 
 The valid options are listed in Table \ref{Tab:Options} and are described in subsections below. Options and files can appear in any order.
+
+\subsection{Exit codes}
+
+When OpenJML runs as a command-line tool, it emits one of several exit codes:
+\begin{itemize}[noitemsep,nolistsep]
+\item 0 (\texttt{EXIT\_OK}) : successful operation, no errors, there may be warnings (including static checking warnings)
+\item 1 (\texttt{EXIT\_ERROR}) : normal operation, but with errors (parsing or type-checking)
+\item 2 (\texttt{EXIT\_CMDERR}) : an error in the formulation of the command-line, such as invalid options
+\item 3 (\texttt{EXIT\_SYSERR}) : a system error, such as out of memory
+\item 4 (\texttt{EXIT\_ABNORMAL}) : a fatal error, such as a program crash or internal inconsistency, caused by an internal bug
+\end{itemize}
 
 \subsection{Files}
 
@@ -341,8 +352,8 @@ These options apply only when performing ESC:
 check (default is all methods in all listed classes)
 \item \textbf{-exclude} \textit{<methodlist>} : a comma-separated list of method names to exclude from checking
 \item \textbf{-checkFeasibility} \textit{<where>} : checks feasibility of the program at various points --- a comma-separated list of
-one of <code>none</code>, <code>all</code>, <code>exit</code> [TBD, finish list,  give default]
-\item \textbf{-escMaxWarnings} \textit{<int>} : the maximum number of assertion violations to look for; the argument is either a positive integer or <code>All</code>; the default is <code>All</code>
+one of \texttt{none}, \texttt{all}, \texttt{exit} [TBD, finish list,  give default]
+\item \textbf{-escMaxWarnings} \textit{<int>} : the maximum number of assertion violations to look for; the argument is either a positive integer or \texttt{All}; the default is \texttt{All}
 \item \textbf{-counterexample} : prints out a counterexample for failed proofs
 \item \textbf{-trace} : prints out a counterexample trace for each failed assert (includes -counterexample)
 \item \textbf{-subexpressions} : prints out a counterexample trace with model values for each subexpression (includes -trace)

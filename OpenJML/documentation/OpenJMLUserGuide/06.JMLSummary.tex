@@ -1,3 +1,35 @@
+\chapter{JML concepts}
+
+\section{JML modifiers and Java annotations}
+
+\section{Model and Ghost}
+
+\section{Visibility}
+
+\section{JML types}
+
+\section{Evaluation and well-formedness of JML expressions}
+
+\section{Null and non-null references}
+
+\section{Static and Instance}
+
+\section{Location sets}
+
+\section{Arithmetic modes}
+
+\section{org.jmlspecs.lang.JML}
+\label{JMLlang}
+
+Some JML features are defined in the \texttt{org.jmlspecs.lang.JML} class. The \texttt{org.jmlspecs.lang} package is included as a model import by default, just as the \texttt{java.lang} package is included by default in a Java file. \texttt{org.jmlspecs.lang.*}
+contains these elements:
+\begin{itemize}
+\item \texttt{JML.informal(\textit{<string>}\texttt{)}} : This method is a replacement for (and is equivalent to) the informal expression syntax (\S\ref{JMLinformal}) \texttt{(* ... *)}. Both expressions return a boolean value, which is always \texttt{true}.
+
+\item TBD
+
+\end{itemize}
+
 \chapter{Summary of JML Features}
 
 The definition of the Java Modeling Language is contained in the JML reference manual.\cite{TBD}
@@ -102,6 +134,14 @@ ignored. This is a different search algorithm than was previously used.
 
 \subsection{Model import statements}
 \textit{This section will be added later.} %% TBD
+Java \texttt{import} statements introduce class names into the namespace of a .java file.
+JML has a \texttt{model import} statement:
+\boxedexampleB{//@ model import ...}
+The effect of a JML model import statement is the same as a Java import statement, except that the names imported by the JML statement are only visible within JML annotations. If the model import statement is within a .jml file, the imported names are
+visible only within annotations in the .jml file, and not outside JML annotations and not in the .java file.
+
+\textit{Note:} Most tools only approximately implement this feature. For example, see FIXME for a discussion of this feature in OpenJML.
+
 
 \subsection{Modifiers}
 \textit{This section will be added later.} %% TBD
@@ -110,6 +150,8 @@ ignored. This is a different search algorithm than was previously used.
 
 \subsection{Method specification clauses}
 \textit{This section will be added later.} %% TBD
+
+\subsubsection{Behaviors}
 
 \subsection{Class specification clauses}
 \textit{This section will be added later.} %% TBD
@@ -120,22 +162,189 @@ ignored. This is a different search algorithm than was previously used.
 \subsection{Statement specifications}
 \textit{This section will be added later.} %% TBD
 
-\subsection{Refining statement specifications}
+JML defines some statements that are used in the body of a method's implementation. These are not method specifications per se; 
+rather, they are assertions or assumptions that are used to aid the proof of the specifications themselves, in the way that lemmas
+are aids to proving a resulting theorem. They can also be used to state predicates that the user believes to be true, and wants checked, or assumptions that are true but are too difficult for the prover to prove itself.
+
+\subsubsection{JML assert statement}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{Java assert statement}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{JML assume statement}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{Ghost declaration}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{set statement}
+\textit{This section will be added later.} %% TBD
+
+
+\subsubsection{debug statement}
+\textit{This section will be added later.} %% TBD
+
+
+\subsubsection{loop invariants}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{loop variants}
+\textit{This section will be added later.} %% TBD
+
+\subsubsection{loop assignable declarations}
+\textit{This section will be added later.} %% TBD
+
+
+\subsubsection{Refining statement specifications}
 \textit{This section will be added later.} %% TBD
 
 \subsection{JML expressions}
+
+Expressions in JML annotations are Java expressions with three adjustments:
+\begin{itemize}
+\item Expressions with side-effects are not allowed. Specifically, JML excludes
+\begin{itemize}[noitemsep,nolistsep]
+\item the \texttt{++} and \texttt{--} pre- and post- increment and decrement operations
+\item the assignment operator
+\item assignment operators that combine an operation with assignment (e.g., \texttt{+=})
+\item method invocations that are not explicitly declared \texttt{pure} (cf. \S TBD)
+\end{itemize}
+\item JML adds additional operators to the Java set of operators, discussed in subsection \S\ref{JMLoperators} below.
+\item JML adds specific keywords that are used as constants or function-like expressions within JML expressions, discussed in subsection \S\ref{JMLkeywords} below
+\end{itemize}
+
+\subsubsection{JML operators}
+\label{JMLoperators}
+
+Table \ref{Tab:operators} lists all of the Java and JML operators, in order of precedence. The JML operators have identified by a comment and a reference to a subsection describing them. All of the JML keyword expressions in \S\ref{JMLkeywords} are primitives with precedence higher than any operator.
+
+Most operators are left-associative, if associativity is applicable. The exceptions are TBD...
+
+%% TBD - we really want a subsubsubsection instad of paragraph
+
+\paragraph{JML implies (\texttt{==>}) and reverse implies (\texttt{<==})}
+\label{JMLimplies}
+
+The \texttt{==>} and \texttt{<==} are the JML implication and reverse implication operators. They are short circuit operations taking boolean operands with these equivalences:
+\begin{itemize}[noitemsep,nolistsep]
+\item \textit{p} \texttt{==>} \textit{q} is equivalent to \texttt{!}\textit{p}\texttt{ || }\textit{q}
+\item \textit{p} \texttt{<==} \textit{q} is equivalent to \textit{p}\texttt{ || }\texttt{!}\textit{q}
+\end{itemize}
+Note that because of the short-circuit characteristic, \textit{p} \texttt{<==} \textit{q} is not quite equivalent to \textit{q} \texttt{==>} \textit{p}
+
+\paragraph{JML equivalence (\texttt{<==>}) and inequivalence (\texttt{<=!=>})}
+\label{JMLequivalence}
+
+The \texttt{<==>} and \texttt{<=!=>} are the JML equivalence and inequivalence operators. They are equivalent to 
+\texttt{==} and \texttt{!=} except that they take only boolean operands and have much lower precedence.
+
+\paragraph{JML subtype operator (\texttt{<:})}
+\label{JMLsubtype}
+In JML expressions, \texttt{<:} denotes the subtype operation among classes and interfaces; the operands both have type \texttt{\bs TYPE} (cf. \S\ref{TBD}). Note that the subtype operation (despite not including the \texttt{=} character) includes both type equality and proper subtypes. Note also that in JML, types can express the full parameterized type, not just the erased type in runtime Java. More discussion of JML types is found in \S\ref{TBD}.
+
+\paragraph{JML lock ordering operators (\texttt{<\#}) and \texttt{<\#=}})
+\label{JMLlockorder}
+The lock ordering oeprators are used to determine ordering among objects used for locking in a multi-threaded application; the operands are any Java objects. The only predefined property of these operators is that for any two 
+object references \texttt{o} and \texttt{oo}, \texttt{o <\#= oo} is equivalent to \texttt{o == oo || o <\# oo}; that is \texttt{<\#} is like less than and \texttt{<\#=} is like less-than-or-equals. There is no predefined ordering among objects. The user must define an intended ordering with some axioms or invariants. An example of using the lock ordering operators for specification and reasoning about concurrency is found in \S\ref{TBD}.
+
+\begin{table}
+\begin{tabular}{|c|c|l|}
+\hline
+\texttt{new ()} \texttt{[] .} and method calls  \\ \hline
+unary \texttt{+} unary \texttt{-} \texttt{~} \texttt{!} \texttt{(}typecast\texttt{)} & - & \\ \hline
+\texttt{* / \%}  & L & \\ \hline
+\texttt{+} (binary) \texttt{-} (binary) & L & \\ \hline
+\texttt{<< >> >>>} & L & \\ \hline
+\texttt{< <= > >= <: instanceof  <\# <\#=}  & - & \texttt{<:} is the JML subtype operation (\S\ref{JMLsubtype}); \\
+						                                           & & <\# and <\#= are lock ordering operators (\S\ref{JMLlockorder}) \\ \hline
+\texttt{== !=} & L & \\ \hline
+\texttt{\&} & L & \\ \hline
+\texttt{\^} & L &  \\ \hline
+\texttt{|} & L &  \\ \hline
+\texttt{\&\&} & L &  \\ \hline
+\texttt{||} & L &  \\ \hline
+\texttt{==>} \texttt{<==} & ? & JML implies and reverse implies (\S\ref{JMLimplies}) \\ \hline
+\texttt{<==>} \texttt{<=!=>} & ? & JML equivalence and inequivalence (\S\ref{JMLequivalence}) \\ \hline
+\texttt{?:} & - & \\ \hline
+\texttt{= *= /= \%= += -= <<= >>= >>>= \&= \^= |=} & L & Java only\\ \hline
+
+\end{tabular}
+\label{Tab:precedence}
+\caption{Java and JML operators, in order of precedence, from highest (most tightly binding) to lowest precedence. Operators on the same line have the same precedence. The associativity is given in the central column.}
+\end{table}
+
+
+TBD - add ++ -- into the table as Java only; check precedence
+
+\subsubsection{JML expression keywords}
+\label{JMLkeywords}
 \textit{This section will be added later.} %% TBD
 
-\subsection{JML operators}
-\textit{This section will be added later.} %% TBD
+\paragraph{Referring to the result of a method: \texttt{\bs result}}
+
+\paragraph{informal specification}. In some situations a specification needs to be expressed informally, in natural language, perhaps in anticipation of a formal expression or because a formal expression is too complex. The original JML informal expression is
+{\center \texttt{(* ... *)}}
+where the text between the delimiters is any natural language text not including the characters \texttt{*)}. 
+An alternate expression (cf. \S\ref{JMLlang}) is the form \texttt{JML.informal(...)}, where the argument is a "`-delimited String, as permitted by Java.
+
+In both cases the expression always has the value \texttt{true}.
+
+
+
+\paragraph{Advanced quantifiers: \texttt{\bs max} \texttt{\bs min}
+                \texttt{\bs num\_of} \texttt{\bs product} \texttt{\bs sum}}
+
+\paragraph{Evaluating expressions in previous program states: \texttt{\bs old}, \texttt{\bs pre}, \texttt{\bs past}}
+
+\paragraph{Newly allocated objects: \texttt{\bs fresh}}
+
+\paragraph{Type expressions: \texttt{\bs type}, \texttt{\bs typeof}, \texttt{\bs elemtype}}
+
+\paragraph{Loop expressions: \texttt{\bs index} and \texttt{\bs values}}
+
+
+\paragraph{\texttt{\bs not\_modified}}
+
+\paragraph{\texttt{\bs nonnullelements}}
+
+\paragraph{\texttt{\bs not\_assigned}, \texttt{\bs only\_accessed}, \texttt{\bs only\_assigned}, \texttt{\bs only\_called}, \texttt{\bs only\_captured}}
+
+TBD - reach, duration, space, working\_space
+
+TBD - lockset, max
+
+TBD - is\_initialized, invariant\_for
+
+TBD - lblneg, lblpos, lbl (JML extension)
+
+TBD - reach (object sets?)
 
 \subsection{JML types}
-\textit{This section will be added later.} %% TBD
+Specifications are sometimes best written using infinite-precision mathematical types, rather than the fixed bit-width types of Java.
+JML's arithmetic modes (\S\ref{TBD}) allow choosing among various numerical precisions.
+In this section we simply note the type names that JML defines.
 
-\subsection{JML informal comments}
-\textit{This section will be added later.} %% TBD
+All of the Java type names are legal and useful in JML: \texttt{int short long byte char boolean double real} and class and interface types. In addition, JML defines the following:
+\begin{itemize}
+\item \texttt{\bs bigint} - the type of infinite-precision integers, represented as java.lang.BigInteger during run-time checking
+\item \texttt{\bs real} - the type of mathematical real numbers, represented as TBD during runtime-checking
+\item \texttt{\bs TYPE} - the type of JML type objects
+\end{itemize}
+
+The familiar operators are defined on values of the \texttt{\bs bigint} and \texttt{\bs real} types: unary and binary \texttt{+} and \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}. Also, these types can be used in quantified expressions and variables of these types
+can be declared as ghost or model variables.
+  
+The set of \texttt{\bs TYPE} values includes non-generic types such has \texttt{\bs type(org.lang.Object)}, fully parameterized generic types, such as \texttt{\bs type(org.utils.List<Integer>)}, and primitive types, such as \texttt{\bs type(int)}. 
+The subtype operator (\texttt{<:}) is defined on values of type \texttt{\bs TYPE}.
+
+TBD - what about other constructors or acccessors of TYPE values 
+
 
 \subsection{Non-Null and Nullable}
+\textit{This section will be added later.} %% TBD
+
+\subsection{Observable purity: \texttt{\bs query} and \texttt{\bs secret}}
 \textit{This section will be added later.} %% TBD
 
 \subsection{Race condition detection}

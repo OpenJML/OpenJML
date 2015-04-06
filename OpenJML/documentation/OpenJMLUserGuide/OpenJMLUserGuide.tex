@@ -42,6 +42,7 @@
 \usepackage{threeparttable}
 \usepackage{verbatim}
 \usepackage{tabularx}
+\usepackage{enumitem}
 \usepackage[parfill]{parskip} %% This avoicds indenting paragraphs and adds blank lines
 %%\usepackage{listings}
 
@@ -94,6 +95,7 @@
 \newlength{\thickframedwidth}
 
 \newcommand{\boxedexampleZ}[1]{\boxspace \\ \fbox{\begin{minipage}{\textwidth}{\tt #1}\end{minipage}}\boxspace\\*}
+\newcommand{\boxedexampleS}[1]{\fbox{\begin{minipage}{\textwidth}{\tt #1}\end{minipage}}\boxspace\\*}
 
 \newcommand{\boxedexample}[1]{\boxspace \\ \fbox{\begin{minipage}{5.50in}{\tt #1}\end{minipage}}\boxspace\\*}
 %\newcommand{\boxedexampleA}[1]{\boxspace \\ \fbox{\parbox{6.00in}{\tt #1}}\boxspace\\*}
@@ -124,6 +126,10 @@
 \newcommand{\smt}{{\tt \$\{SMTLIB\}}}
 \newcommand{\cht}{\char'136}
 \newcommand{\ind}{\hspace*{2em}}
+
+\newcommand{\row}{}
+%%\newcommand{\S}{section}  // TBD change this to the section symbol
+
 %%\makeindex
 
 %% The adjustment amounts depend on the font
