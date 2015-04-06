@@ -249,4 +249,11 @@ public class racfiles extends RacBase {
     	rac = null;
     }
 
+    @Test
+    public void racNoGhostField() {
+        expectedRACExit = 0;
+        helpTCF("test/racNoGhostField","test/racNoGhostField","Magic");
+    }
+
+
 }

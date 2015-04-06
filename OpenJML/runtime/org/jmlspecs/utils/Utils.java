@@ -256,6 +256,14 @@ public class Utils {
         System.out.println(str);
     }
     
+    public static void reportNoSuchField(NoSuchFieldError t) {
+        String msg = t.getMessage();
+        int k = msg.indexOf('(');
+        if (k >= 0) msg = msg.substring(0,k);
+        msg = "Skipping a specification clause because it contains an uncompiled ghost or model field: " + msg;
+        report(msg);
+    }
+    
     public static void reportNoSuchMethod(NoSuchMethodError t) {
         String msg = t.getMessage();
         int k = msg.indexOf('(');
