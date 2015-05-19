@@ -88,8 +88,8 @@
    </extension>
    
   <!-- The following set of extensions add various menu items to the
-  	popup menus that appear when right-clicking on items in the
-  	Package Explorer. They appear in the UI in reverse order of how they are
+  	popup menus that appear when right-clicking on items in various Views. 
+  	They appear in the UI in reverse order of how they are
   	listed here.
   	 -->
 
