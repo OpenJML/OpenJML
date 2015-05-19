@@ -4,8 +4,9 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escConstantFields extends EscBase {
 
     public escConstantFields(String option, String solver) {

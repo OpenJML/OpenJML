@@ -4,10 +4,11 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
 // Tests the rules about which specification cases are enforced by a method's implementation
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escvisibility extends EscBase {
 
     public escvisibility(String option, String solver) {

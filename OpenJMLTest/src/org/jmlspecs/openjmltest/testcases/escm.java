@@ -4,8 +4,9 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escm extends EscBase {
     
     public escm(String option, String solver) {

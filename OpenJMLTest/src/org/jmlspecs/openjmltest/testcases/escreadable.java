@@ -6,10 +6,11 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escreadable extends EscBase {
 
     public escreadable(String option, String solver) {

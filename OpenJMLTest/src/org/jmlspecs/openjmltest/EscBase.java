@@ -30,10 +30,10 @@ public abstract class EscBase extends JmlTestCase {
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
-//            "cvc4",
+ //           "cvc4",
             //"yices2",
  //             "yices", 
-            // "simplify" 
+ //            "simplify" 
             });
         
     static public java.util.List<String[]> options = java.util.Arrays.asList(new String[][]{ 

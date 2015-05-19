@@ -4,10 +4,11 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedWithNames;
 
 // FIXME - these were old tests - are they duplicates? should we use them?
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escArithmeticModes extends EscBase {
 
 //    public escArithmeticModes() {

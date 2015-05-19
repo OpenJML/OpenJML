@@ -8,13 +8,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.Options;
 
 // FIXME - these were old tests - are they duplicates? should we use them?
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class esc extends EscBase {
 
 //    public esc() {

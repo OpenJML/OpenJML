@@ -4,10 +4,11 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
 // Tests the rules about which visibility of identifiers can be used in specification constructs
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escvisibility1 extends EscBase {
 
     public escvisibility1(String option, String solver) {

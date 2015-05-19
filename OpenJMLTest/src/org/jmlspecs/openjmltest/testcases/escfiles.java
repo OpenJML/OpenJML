@@ -19,6 +19,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check running ESC on files in the file system, comparing the
@@ -36,7 +37,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escfiles extends EscBase {
 
     boolean enableSubexpressions = false;

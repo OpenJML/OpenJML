@@ -4,6 +4,7 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
 
 /** This class of JUnit tests checks that assertion violations for assertions
@@ -11,7 +12,7 @@ import org.junit.runners.Parameterized;
  * @author David R. Cok
  *
  */
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class esclocation extends EscBase {
 
     public esclocation(String option, String solver) {

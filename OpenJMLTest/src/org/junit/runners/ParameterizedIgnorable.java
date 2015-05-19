@@ -1,4 +1,4 @@
-package org.jmlspecs.openjmltest.testcases;
+package org.junit.runners;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;

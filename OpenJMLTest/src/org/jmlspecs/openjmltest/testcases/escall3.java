@@ -4,8 +4,9 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedWithNames;
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escall3 extends EscBase {
 
     public escall3(String option, String solver) {

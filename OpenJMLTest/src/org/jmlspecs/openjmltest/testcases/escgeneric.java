@@ -6,13 +6,14 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
 /** This class of JUnit tests checks various uses of generic types.
  * @author David R. Cok
  *
  */
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escgeneric extends EscBase {
 
     @Parameters

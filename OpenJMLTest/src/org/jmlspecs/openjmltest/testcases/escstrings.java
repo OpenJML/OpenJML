@@ -6,9 +6,10 @@ import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
     
     public escstrings(String option, String solver) {

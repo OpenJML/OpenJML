@@ -15,6 +15,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 
 /** These tests check running ESC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 
@@ -31,7 +32,7 @@ import org.junit.runners.Parameterized;
  * </UL>
  */
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class demofiles extends EscBase {
 
     boolean enableSubexpressions = false;
