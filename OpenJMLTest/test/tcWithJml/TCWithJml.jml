@@ -1,0 +1,54 @@
+
+
+import org.jmlspecs.annotation.*;
+public class TCWithJml {
+
+    @NonNull
+    public Object m2() ;
+    
+    @NonNull
+    public Object m2ok();
+
+    @NonNull @Nullable
+    public Object m3() ;
+    
+    /*@ non_null nullable */
+    public Object m3a() ;
+    
+    @Monitored
+    public Object m4() ;
+    
+    /*@ monitored */
+    public Object m4a() ;
+    
+    int f;
+    @Nullable Object f1;
+    @Nullable @NonNull Object f2;
+    /*@ non_null nullable */ Object f2a;
+    @Pure Object f3;
+    /*@ pure */ Object f3a;
+    @Nullable Object fok;
+    
+    protected static Object m( int i, final int j, int k, final int l);
+    
+    public static Object p(Integer i, @Nullable Integer j, Integer k, @Nullable  Integer l);
+
+    public static Object q(@NonNull @Nullable Integer j);
+    public static Object qa(/*@ non_null nullable */ Integer j);
+
+    public static Object r(@Pure Integer j);
+    public static Object ra(/*@ pure */ Integer j);
+
+    protected Object mm();
+    
+}
+
+class AA {}
+
+class BB {}
+
+@Pure final class CC {}
+
+@NonNullByDefault @NullableByDefault class DD {}
+
+@SpecPublic class EE {}
