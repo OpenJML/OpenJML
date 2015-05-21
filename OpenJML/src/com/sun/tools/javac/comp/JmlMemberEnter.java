@@ -15,6 +15,7 @@ import static com.sun.tools.javac.code.TypeTags.CLASS;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -583,10 +584,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         break;
                     }
                 }
+            } else {
+                javaMatch.specsDecl = specsVarDecl;
             }
 
-           if (javaMatch != null)  javaMatch.specsDecl = specsVarDecl; // FIXME - should it ever be that javaMatch is null?
-            
             if (javaMatch != specsVarDecl) {
                 if (specsVarDecl.init != null) {
                     // FIXME - error ?
@@ -638,6 +639,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     javaMatch.specsDecl = specsMethodDecl;
                     javaMatch.methodSpecsCombined = combinedSpecs;
                     combinedSpecs.cases.decl = javaMatch;
+                    Iterator<JCVariableDecl> javaiter = javaMatch.params.iterator();
+                    Iterator<JCVariableDecl> jmliter = specsMethodDecl.params.iterator();
+                    while (javaiter.hasNext() && jmliter.hasNext()) {
+                        JmlVariableDecl javaparam = (JmlVariableDecl)javaiter.next();
+                        JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
+                        javaparam.specsDecl = jmlparam;
+                        jmlparam.sym = javaparam.sym;
+                        long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags);
+                        if (diffs != 0) {
+                            Log.instance(context).error(jmlparam.pos(),"jml.mismatched.parameter.modifiers", jmlparam.name, csym.getQualifiedName()+"."+matchSym.name,Flags.toString(diffs));  // FIXME - test this
+                        }
+                    }
                 } else {
                     // Lack of match already complained about in matchMethod
                     // Could be because it is a model method.

@@ -482,14 +482,24 @@ public class escfiles extends EscBase {
         helpTF("escConstructor6");
     }
 
-    @Test
+    @Test // FIXME - still has problems with imports in JML files and with checks on field initializers
     public void testEscJml() {
-        helpTCF("test/escJml/StorageParameters.java","test/escJml","-specspath=test/escJml/specs");
+        helpTCF("test/escJml/Test.java","test/escJml","-specspath=test/escJml/specs");
+    }
+
+    @Test
+    public void testEscJml1() {
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");
     }
 
     @Test
     public void testEscJml2() {
         helpTCF("test/escJml2/StorageParameters.java","test/escJml2","-specspath=test/escJml2/specs");
+    }
+
+    @Test
+    public void testEscJml3() {
+        helpTCF("test/escJml3/StorageParameters.java","test/escJml3","-specspath=test/escJml2/specs");
     }
 
     @Test

@@ -3,8 +3,8 @@
 \label{CommandLineTool}
 \section{Installation and System Requirements}
 
-The command-line tool is supplied as a .tar.gz file, downloadable from \url{http://jmlspecs.sourceforge.net/}.
-Download the file to a directory of your choice and unzip and untar it in place.
+The command-line tool is supplied as a .zip or a .tar.gz file, downloadable from \url{http://jmlspecs.sourceforge.net/}.
+Download the file to a directory of your choice and unzip or untar it in place.
 It contains the following files:
 \begin{itemize}\nospace
 \item openjml.jar - the main jar file for the application
@@ -15,15 +15,18 @@ It contains the following files:
 \item OpenJMLUserGuide.pdf - this document
 \end{itemize}
 
-You can run OpenJML in a Java 1.7 JRE.
+You must run OpenJML in a Java 1.7 JRE; it is not compatible with Java 1.8 or 1.9.
 
 You should ensure that the {\tt jmlruntime.jar} and {\tt jmlspecs.jar} files remain in the same folder as the {\tt openjml.jar} file.
 
+In addition to OpenJML itself, you will also need a SMT solver if you intend to use the static checking capability of OpenJML.
+
+TBD - more on installing SMT solvers
 
 \section{Running OpenJML}
 \label{Running}
 
-To run OpenJML, be sure that the java command uses a 1.7 JVM and use the following command line. Here \textit{\$OPENJML} designates the folder in which the {\tt openjml.jar} file resides.
+To run OpenJML, be sure that the \texttt{java} command uses a 1.7 JVM and use the following command line. Here \textit{\$OPENJML} designates the folder in which the {\tt openjml.jar} file resides.
 \boxedexampleZ{
 java -jar \textit{\$OPENJML}/openjml.jar {\it <options>} {\it <files>}
 }
@@ -37,9 +40,9 @@ java -cp \textit{\$OPENJML}/openjml.jar org.jmlspecs.openjml.Main {\it <options>
 
 The valid options are listed in Table \ref{Tab:Options} and are described in subsections below. Options and files can appear in any order.
 
-\subsection{Exit codes}
+\subsection{Exit values}
 
-When OpenJML runs as a command-line tool, it emits one of several exit codes:
+When OpenJML runs as a command-line tool, it emits one of several values on exit:
 \begin{itemize}[noitemsep,nolistsep]
 \item 0 (\texttt{EXIT\_OK}) : successful operation, no errors, there may be warnings (including static checking warnings)
 \item 1 (\texttt{EXIT\_ERROR}) : normal operation, but with errors (parsing or type-checking)
@@ -48,17 +51,24 @@ When OpenJML runs as a command-line tool, it emits one of several exit codes:
 \item 4 (\texttt{EXIT\_ABNORMAL}) : a fatal error, such as a program crash or internal inconsistency, caused by an internal bug
 \end{itemize}
 
+In the itemized list above, the symbolic names are defined in {\tt org.jmlspecs.openjml.Main}. For example, when executing OpenJML programmatically (cf. section TBD), the user's Java program should use the 
+symbol {\tt org.jmlspecsopenjml.Main.EXIT\_ERROR}, rather than a specific integer.
+
+Compiler warnings and static checking warnings will be reported as errors if the \texttt{-Werror} option is used. This may change an \texttt{EXIT\_OK} result to an \texttt{EXIT\_ERROR} result.
+
+
+
 \subsection{Files}
 
 In the command templates above, {\it <files>} refers to a list of {\tt .java} or {\tt .jml} files.
-Each one must be specified with an absolute file system path or with a path relative
+Each file must be specified with an absolute file system path or with a path relative
 to the current working directory (in particular, not with respect to the classpath or
 the sourcepath). 
 
 You can also specify directories on the command line using the {\tt -dir} and {\tt -dirs} options.
 The {\tt -dir {\it <directory>}} option indicates that the {\it <directory>} value (an absolute or
 relative path to a folder) should be understood as a folder; all {\tt .java} or specification files
-within the folder are included as if they were individually listed on the command-line. The
+recursively (TBD - check recursively) within the folder are included as if they were individually listed on the command-line. The
 {\tt -dirs} option indicates that each one of the remaining command-line arguments is interpreted as 
 either a source file (if it is a file with a {\tt .java} or {\tt .jml}suffix) or as a folder (if it is a folder)
 whose contents are processed as if listed on the command-line. Note that the {\tt -dirs} option must be
@@ -163,18 +173,6 @@ processed by OpenJML, the corresponding {\tt .jml} file is automatically found (
 \label{Tab:Options}
 \end{table}
 
-\subsection{Exit values}
-The command-line tool exits, returning a defined exit value:
-\begin{itemize}
-\item 0 ({\tt EXIT\_OK}) : successful operation, no errors, there may be warnings (including static checking warnings)
-\item 1 ({\tt EXIT\_ERROR}) : normal operation, but with errors (parsing or type-checking)
-\item 2 ({\tt EXIT\_CMDERR}) : an error in the formulation of the command-line, such as invalid options
-\item 3 ({\tt EXIT\_SYSERR}): a system error, such as out of memory
-\item 4 ({\tt EXIT\_ABNORMAL}): a fatal error, such as a program crash, caused by an internal bug
-\end{itemize}
-In the itemized list above, the symbolic names are defined in {\tt org.jmlspecs.openjml.Main}. For example, when executing OpenJML programmatically (cf. section TBD), the user's Java program can use the 
-symbol {\tt org.jmlspecsopenjml.Main.EXIT\_ERROR}.
-
 \subsection{Specification files}
 \label{SpecFiles}
 
@@ -240,7 +238,48 @@ The distribution includes a file named {\tt openjml-template.properties} that co
 You should copy that file, rename it as {\tt openjml.properties}, and edit it to reflect your system configuration.
 (If you are an OpenJML developer, take care not to commit your system's {\tt openjml.properties} file into the OpenJML shared SVN repository.)
 
-\subsection{Options: Finding files and classes: class, source, and specs paths}
+\subsection{OpenJML options}
+
+There are many options that control or modify the behavior of OpenJML. Some of these are inherited from the Java compiler on 
+which OpenJML is based. Options for the command-line tool are expressed as standard command-line options. In the Eclipse GUI, the values of options are set on a typical Eclipse preference or properties page for OpenJML.
+
+The command-line options follow the style of the OpenJDK compiler --- they begin 
+with a single hyphen and there are no two-hyphen versions.
+OpenJML (but not OpenJDK) options that require a parameter may either use an = followed directly by the argument with no whitespace or 
+may provide the argument as the subsequent entry of the argument list. 
+For example, either \texttt{--racbin=output} or
+\texttt{--racbin output} is permitted. If the argument is optional 
+but present, the = form must be used. Values of options that contain whitespace must be quoted as appropriate for the operating system being used.
+
+Options that are boolean in nature can be enabled and disabled by either
+\begin{itemize}[noitemsep,nolistsep]
+\item adding a prefix -no, as in \texttt{-showRacSource} and \texttt{-no-showRacSource}
+\item or using the = form, as in \texttt{-showRacSource=true} and \texttt{-showRacSource=false}
+\end{itemize}
+
+\subsubsection{Options: Operational modes}
+These operational modes are mutually exclusive.
+\begin{itemize}[noitemsep,nolistsep]
+\item \textbf{-jml} (default) : use the OpenJML implementation to process the listed files, including embedded JML comments and any .jml files
+\item \textbf{-no-jml}: uses the OpenJML implementation to type-check and possibly compile the listed files, but ignores all JML annotations in those files
+\item \textbf{-java}: processes the command-line options and files using only OpenJDK functionality. No OpenJML functionality is invoked. Must be the first option and overrides the others.
+\end{itemize}
+
+\subsubsection{Options: JML tools}
+\label{OptionsTools}
+The following mutually exclusive options determine which OpenJML tool is applied to the input files. They presume that the \texttt{-jml} mode is in effect.
+\begin{itemize}
+\item \textbf{-command} {\it <tool>} : initiates the given function; the value of {\it <tool>} may be one of {\tt check}, {\tt esc}, {\tt rac}, TBD.
+The default is to use the OpenJML tool to do only typechecking of Java and JML in the source files.
+\item \textbf{-check} : causes OpenJML to do only type-checking of the Java and JML in the input files (alias for \texttt{-command=check})
+\item \textbf{-compile} : TBD
+\item \textbf{-esc} : causes OpenJML to do (type-checking and) static checking of the JML specifications against the implementations in the input files  (alias for \texttt{-command=esc})
+\item \textbf{-rac} : compiles the given Java files as OpenJDK would do, but with JML checks included for checking at runtime  (alias for \texttt{-command=rac})
+\item \textbf{-doc} : executes javadoc but adds JML specifications into the javadoc output files.  (alias for \texttt{-command=doc})\textit{Not yet implemented.} 
+\end{itemize}
+
+
+\subsubsection{Options: Finding files and classes: class, source, and specs paths}
 \label{OptionsPaths}
 
 A common source of confusion is the various different paths used to find files, specifications and classes in OpenJML.
@@ -307,22 +346,7 @@ Java class library. If you do not you will likely see a large number of static c
 The internal specifications are written for programs that conform to Java 1.7.  [ TBD - change this to adhere to the {\tt -source} option?] 
 [TBD - what about the specs in jmlspecs for different source levels.]
 
-\subsection{Options: JML tools}
-\label{OptionsTools}
-The following mutually exclusive options determine which OpenJML tool is applied to the input files.
-\begin{itemize}
-\item \textbf{-command} {\it <tool>} : initiates the given function; the value of {\it <tool>} may be one of {\tt check}, {\tt esc}, {\tt rac}, TBD.
-The default is to use the OpenJML tool to do only typechecking of Java and JML in the source files.
-\item \textbf{-java} : causes OpenJML to ignore all OpenJML extensions and use only the core OpenJDK functionality, so the tool should run precisely like the OpenJDK javac tool
-\item \textbf{-noJML} : causes OpenJML to use its extensions but to ignore all JML constructs (TBD - does this still recognize -check, -compile?)
-\item \textbf{-check} : causes OpenJML to do only type-checking of the Java and JML in the input files
-\item \textbf{-compile} : TBD
-\item \textbf{-esc} : causes OpenJML to do (type-checking and) static checking of the JML specifications against the implementations in the input files
-\item \textbf{-rac} : compiles the given Java files as OpenJDK would do, but with JML checks included for checking at runtime
-\item \textbf{-doc} : TBD
-\end{itemize}
-
-\subsection{Options: OpenJML options applicable to all OpenJML tools }
+\subsubsection{Options: OpenJML options applicable to all OpenJML tools }
 \label{OptionsJML}
 
 \begin{itemize}
@@ -340,7 +364,7 @@ declarations are implicitly \texttt{@NonNull} (the default)
 \item \textbf{-purityCheck} : turns on (default is on) purity checking (recommended since the Java library specifications are not complete for \texttt{@Pure} declarations)
 \end{itemize}
 
-\subsection{Options: Extended Static Checking}
+\subsubsection{Options: Extended Static Checking}
 \label{OptionsESC}
 
 These options apply only when performing ESC:
@@ -371,7 +395,7 @@ These options apply only when doing RAC:
 \item \textbf{-racCompileToJavaAssert} : compile RAC checks using Java asserts (which must then be enabled using \texttt{-ea}) (default is disabled; disable with \texttt{-no-racCompileToJavaAssert})
 \end{itemize}
 
-\subsection{Options: Version of Java language or class files}
+\subsubsection{Options: Version of Java language or class files}
 
 \begin{itemize}
 \item \textbf{-source} {\it <level>} : this option specifies the Java version of the source files, with values of {\tt 1.4}, {\tt 1.5}, {\tt 1.6}, {\tt 1.7}... or {\tt 4}, {\tt 5}, {\tt 6}, {\tt 7}, ... . This controls whether some syntax features  
@@ -383,20 +407,39 @@ correspond to the source version being used.
 \end{itemize}
 
 
-\subsection{Options: Other Java compiler options applicable to OpenJML}
+\subsubsection{Options: Other Java compiler options applicable to OpenJML}
+
+All the OpenJDK compiler options apply to OpenJML as well. The most commonly used or important OpenJDK options are listed here.
 
 These options control where output is written:
 \begin{itemize}
-\item \textbf{-d} {\it <dir>} : specifies the directory in which output class files are placed
-\item \textbf{-s} {\it <dir>} : specifies the directory in which output source files are placed (such as those produced by annotation processors)
+\item \textbf{-d} {\it <dir>} : specifies the directory in which output class files are placed; the directory must already exist
+\item \textbf{-s} {\it <dir>} : specifies the directory in which output source files are placed; such as those produced by annotation processors; the directory must already exist
 \end{itemize}
+
+These are Java options relevant to OpenJML whose meaning is unchanged in OpenJML. 
+\begin{itemize}[noitemsep,nolistsep]
+\item \textbf{-cp} or \textbf{-classpath}: the parameter gives the classpath to use to find unnamed but referenced class files (cf. section TBD)
+\item \textbf{-sourcepath}: the parameter gives the sequence of directories in which to find source files for unnamed but referenced classes (cf. section TBD)
+\item \textbf{-deprecation}: enables warnings about the use of deprecated features (applies to deprecated JML features as well)
+\item \textbf{-nowarn}: shuts off all compiler warnings, \textit{including the static check warnings produced by ESC}
+\item \textbf{-Werror}: turns all warnings into errors, including JML (and static check) warnings
+\item \textbf{@\textit{filename}}: the given \textit{filename} contains a list of arguments
+\item \textbf{-source}: specifies the Java version to use (default 1.7)
+\item \textbf{-verbose}: turn on Java verbose output
+\item \textbf{-Xprefer:source} or \textbf{-Xprefer:newer}: when both a .java and a .class file are present, 
+whether to choose the .java (source) file or the file that has the more recent modification time [ TBD - check that this works ]
+\item \textbf{-stopIfParseErrors}: if enabled (disabled by default), processing stops after parsing if there are any parsing errors (TBD - check this, describe the default)
+\end{itemize}
+
+
+
 
 Other Java options, whose meaning and use is unchanged from javac:
 \begin{itemize}
 \item \textbf{@}\textit{<filename>} : reads the contents of \textit{<filename>} as a sequence of command-line arguments (options, arguments and files)
 \item \textbf{-Akey}
 \item \textbf{-bootclasspath}
-\item \textbf{-deprecation} : warn about the use of deprecated Java elements
 \item \textbf{-encoding}
 \item \textbf{-endorsedirs}
 \item \textbf{-extdirs}
@@ -418,7 +461,7 @@ These Java options are discussed elsewhere in this document:
 \end{itemize}
 
 
-\subsection{Options: Information and debugging}
+\subsubsection{Options: Information and debugging}
 \label{OptionsDebugging}
 These options print summary information and immediately exit (despite the presence of other command-line arguments):
 \begin{itemize}
@@ -430,7 +473,7 @@ The following options provide different levels of verboseness. If more than one 
 \item \textbf{-quiet} : no informational output, only errors and warnings
 \item \textbf{-normal} : (default) some informational output, in addition to errors and warnings
 \item \textbf{-progress} : prints out summary information as individual files are processed (includes -normal)
-\item \textbf{-verbose} : prints out verbose information about the Java processing
+\item \textbf{-verbose} : prints out verbose information about the Java processing in OpenJDK (does not include other OpenJML information)
 \item \textbf{-jmlverbose} : prints out verbose information about the JML processing (includes -verbose and -progress)
 \item \textbf{-jmldebug} : prints out (voluminous) debugging information (includes -jmlverbose)
 \item \textbf{-verboseness} {\it <int>} : sets the verboseness level to a value from 0 - 4, corresponding to -quiet, -normal, -progress, -jmlverbose, -jmldebug
@@ -438,12 +481,15 @@ The following options provide different levels of verboseness. If more than one 
 
 Other debugging options:
 \begin{itemize}
-\item \textbf{-show} : prints out rewritten versions of the Java program files for informational and debugging purposes; disable
-with \texttt{-no-show}; the default is disabled
+\item \textbf{-show} : prints out rewritten versions of the Java program files for informational and debugging purposes
 \item \textbf{-showNotImplemented} : prints warnings about JML features that are ignored because they are not implemented; 
 disable with \texttt{-no-showNotImplemented}; the default is disabled.
 \end{itemize}
 
+An option used primarily for testing:
+\begin{itemize}[noitemsep,nolistsep]
+\item \textbf{-jmltesting}: adjusts the output so that test output is more stable
+\end{itemize}
 
 \subsection{Options related to Static Checking}
 \begin{itemize}
@@ -475,6 +521,18 @@ disable with \texttt{-no-showNotImplemented}; the default is disabled.
 \subsection{Other JML Options}
 \begin{itemize}
 \item -roots
+\end{itemize}
+
+
+\paragraph{General options}
+\begin{itemize}[noitemsep,nolistsep]
+\item \textbf{-dir}: Indicates that its argument is a directory. All the .java and .jml files in the directory and its subdirectories are processed. (TBD - is this necessary?)
+\item \textbf{-dirs}: Indicates that all subsequent command-line arguments are directories, to be processed as for \texttt{-dir}, until an argument is reached that begins with a hyphen. 
+\item \textbf{-specspath}: the parameter gives the sequence of directories in which to find .jml specification files for unnamed but referenced classes (cf. section TBD)
+\item \textbf{-checkSpecsPath}: if enabled (the default), warns about \texttt{specspath} elements that do not exist
+\item \textbf{-keys}: comma-separated list of the optional JML comment keys to enable (empty by default)
+\item \textbf{-strictJML}: (disabled by default) warns about the use of any OpenJML extensions to standard JML; disable with -no-strictJML
+\item \textbf{-showNotImplemented}: (disabled by default) warns about the use of features that are not implemented; disable with -no-showNotImplemented
 \end{itemize}
 
 

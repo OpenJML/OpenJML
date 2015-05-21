@@ -61,6 +61,12 @@ public class Strings {
     /** The fully-qualified name of the Nullable annotation */
     static public final String nullableAnnotation = jmlAnnotationPackage + ".Nullable"; //$NON-NLS-1$
     
+    /** The fully-qualified name of the Nullable annotation */
+    static public final String nullablebydefaultAnnotation = jmlAnnotationPackage + ".NullableByDefault"; //$NON-NLS-1$
+    
+    /** The fully-qualified name of the Nullable annotation */
+    static public final String nonnullbydefaultAnnotation = jmlAnnotationPackage + ".NonNullByDefault"; //$NON-NLS-1$
+    
     /** The fully-qualified name of the Helper annotation */
     static public final String helperAnnotation = jmlAnnotationPackage + ".Helper"; //$NON-NLS-1$
     

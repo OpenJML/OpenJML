@@ -560,7 +560,7 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
-                +"  public static class A {\n" // Tests whether this gets the enclosing class's annotation
+                +"  public static class A {\n" // Tests whether this gets the enclosing class's annotation; global option is nullable
                 +"      String q; @NonNull String qq; @Nullable String qqq; \n"
                 +"      static String r; static @NonNull String rr; static @Nullable String rrr; \n"
                 +"   }\n"

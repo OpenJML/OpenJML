@@ -68,6 +68,7 @@ public class typecheckingJmlFiles extends TCBase {
 
 
     @Test public void test() {
+    	expectedExit = 1;
         helpTCF("test/tcWithJml/TCWithJml.java","test/tcWithJml", "-cp", "test/tcWithJml");
     }
     

@@ -212,6 +212,13 @@ public class JmlParser extends EndPosParser {
         }
         return t;
     }
+    
+    @Override
+    JCAnnotation annotation(int pos) {
+        JCAnnotation a = super.annotation(pos);
+        ((JmlTree.JmlAnnotation)a).sourcefile = log.currentSourceFile();
+        return a;
+    }
 
     /**
      * This parses a class, interface or enum declaration after the parser has
@@ -385,7 +392,8 @@ public class JmlParser extends EndPosParser {
                         skipThroughSemi();
                     }
                     for (JCStatement vdef : vdefs) {
-                        utils.setJML(((JmlVariableDecl) vdef).mods);
+                        JmlVariableDecl jmldef = (JmlVariableDecl) vdef;
+                        utils.setJML(jmldef.mods);
                         list.append(vdef);
                     }
                 } else {
@@ -460,6 +468,11 @@ public class JmlParser extends EndPosParser {
                     jmlerror(getStartPos(loops.first()), loops.first().pos,
                             endPos, "jml.loop.spec.misplaced");
                     loops = new ListBuffer<JmlStatementLoop>();
+                }
+                if (s instanceof JmlVariableDecl) {
+                    // Local variables are always their own specifications
+                    JmlVariableDecl jmldef = (JmlVariableDecl) s;
+                    jmldef.specsDecl = jmldef;
                 }
             }
             newlist.append(s);
@@ -2247,6 +2260,7 @@ public class JmlParser extends EndPosParser {
         t = to(F.at(position).Select(t, names.fromString(c.getSimpleName())));
         JCAnnotation ann = to(F.at(position).Annotation(t,
                 List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
         storeEnd(ann, endpos);
         return ann;
     }

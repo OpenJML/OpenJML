@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
@@ -565,7 +566,10 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     
     @Override
     public JCTree visitAnnotation(AnnotationTree node, Void p) {
-        return super.visitAnnotation(node,p);
+        JmlAnnotation a = (JmlAnnotation)super.visitAnnotation(node,p);
+        a.setType(((JCAnnotation)node).type);
+        if (node instanceof JmlAnnotation) a.sourcefile = ((JmlAnnotation)node).sourcefile;
+        return a;
     }
 
     @Override

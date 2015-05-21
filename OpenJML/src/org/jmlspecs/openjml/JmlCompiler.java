@@ -7,6 +7,8 @@ package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.util.ListBuffer.lb;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.tools.JavaFileObject;
@@ -36,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -146,7 +149,19 @@ public class JmlCompiler extends JavaCompiler {
                     jmlcu.specsCompilationUnit = jmlcu;
                 } else {
                     JmlCompilationUnit jcu = jmlcu.specsCompilationUnit;
-                    if (jcu != cu) jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
+                    if (jcu != cu) {
+                        jcu.mode = JmlCompilationUnit.SPEC_FOR_SOURCE;
+                        // Insert import statements
+                        // FIXME - This is not the best solution - since it adds imports to the Java compilation unit, which may make it invalid
+                        Map<String,JCImport> map = new HashMap<String,JCImport>();
+                        ListBuffer<JCTree> extras = new ListBuffer<JCTree>();
+                        for (JCImport imp: jmlcu.getImports()) map.put(imp.qualid.toString(),imp);
+                        for (JCImport def: jcu.getImports()) {
+                            JCImport imp = map.get(def.qualid.toString());
+                            if (imp == null) extras.add(def);
+                        }
+                        cu.defs = cu.defs.appendList(extras);
+                    }
                 }
                 // Only need dependencies in interactive situations - Eclipse and programmatic api
                 // Needs to be false for testing or we run out of memory

@@ -26,6 +26,7 @@ import javax.tools.JavaFileObject;
 
 import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
@@ -34,6 +35,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.code.Attribute;
@@ -44,7 +46,11 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Enter;
+import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.file.RelativePath;
 import com.sun.tools.javac.file.ZipArchive;
@@ -52,6 +58,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -1157,6 +1164,7 @@ public class JmlSpecs {
      */
     //@ ensures \result != null;
     public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
+        if (csymbol != null && csymbol.name.toString().endsWith("A")) Utils.print(null);
         if (csymbol == null) {
             // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
@@ -1164,20 +1172,44 @@ public class JmlSpecs {
             // default as NONNULL.
             if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
                 return JmlToken.NULLABLE;
-            } else {
+            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
                 return JmlToken.NONNULL;
+            } else {
+                return JmlToken.NONNULL;  // The default when nothing is specified
             }
         }
+        {
+            Env<AttrContext> env = JmlEnter.instance(context).getEnv(csymbol);
+            if (env != null) {
+                JCTree tree = env.tree;
+                if (tree != null && tree instanceof JmlClassDecl) {
+                    JmlClassDecl decl = (JmlClassDecl)tree;
+                    return isNonNull(decl) ? JmlToken.NONNULL : JmlToken.NULLABLE;
+                }
+            }
+        }
+        
         TypeSpecs spec = get(csymbol); // FIXME - why would spec be null?
         if (spec == null || spec.defaultNullity == null) {
+            if (csymbol.toString().equals("B")) Utils.print(null);
             JmlToken t = null;
-            if (csymbol.getAnnotationMirrors() != null) {
-                if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
+            if (spec.decl == null) {
+                if (csymbol.getAnnotationMirrors() != null) {
+                    if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
+                        t = JmlToken.NULLABLE;
+                    } else if (csymbol.attribute(attr.nonnullbydefaultAnnotationSymbol) != null) {
+                        t = JmlToken.NONNULL;
+                    }
+                } 
+            } else {
+                JCModifiers mods = spec.decl.mods;
+                if (spec.decl.specsDecls != null) mods = spec.decl.specsDecls.mods;
+                if (utils.findMod(mods, attr.nullablebydefaultAnnotationSymbol) != null) {
                     t = JmlToken.NULLABLE;
-                } else if (csymbol.attribute(attr.nonnullbydefaultAnnotationSymbol) != null) {
+                } else if (utils.findMod(mods, attr.nonnullbydefaultAnnotationSymbol) != null) {
                     t = JmlToken.NONNULL;
                 }
-            } 
+            }
             if (t == null) {
                 Symbol sym = csymbol.owner; // The owner might be a package - currently no annotations for packages
                 if (sym instanceof ClassSymbol) {
@@ -1186,16 +1218,46 @@ public class JmlSpecs {
                     t = defaultNullity(null);
                 }
             }
-            if (spec == null) return t;
             spec.defaultNullity = t;
         }
         return spec.defaultNullity;
+    }
+
+    // Not complete
+    public /*@non_null*/ JCAnnotation defaultNullityAnnotation(/*@ nullable*/ ClassSymbol csymbol) {
+        if (csymbol != null && csymbol.name.toString().endsWith("A")) Utils.print(null);
+        if (csymbol == null) {
+            // FIXME - this is no longer true
+            // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
+            // If neither one is present, then the logic here will give the
+            // default as NONNULL.
+            JmlAnnotation a;
+//            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
+//                a = new JmlAnnotation(nullablebydefaultAnnotationSymbol.type, com.sun.tools.javac.util.List.<JCExpression>nil());
+//            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
+//                return JmlToken.NONNULL;
+//            } else {
+//                return JmlToken.NONNULL;  // The default when nothing is specified
+//            }
+            return null;
+        }
+        
+        JCModifiers mods = JmlSpecs.instance(context).getSpecs(csymbol).decl.mods;
+        JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
+        if (a != null) return a;
+        a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
+        if (a != null) return a;
+        Symbol owner = csymbol.owner;
+        if (owner instanceof Symbol.PackageSymbol) owner = null;
+        return defaultNullityAnnotation((Symbol.ClassSymbol)owner);
     }
 
     /** Caches the symbol for the org.jmlspecs.annotation.NonNull */
     ClassSymbol nonnullAnnotationSymbol = null;
     /** Caches the symbol for the org.jmlspecs.annotation.Nullable */
     ClassSymbol nullableAnnotationSymbol = null;
+    ClassSymbol nullablebydefaultAnnotationSymbol = null;
+    ClassSymbol nonnullbydefaultAnnotationSymbol = null;
     
     /** Returns whether the given symbol is non-null (either explicitly or by
      * default); the second parameter is the enclosing class.
@@ -1208,15 +1270,60 @@ public class JmlSpecs {
         return isNonNull(symbol,symbol.enclClass());
     }
     
-    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
-        if (symbol.type.isPrimitive()) return false;
-        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
+    public boolean isNonNull(JmlVariableDecl decl) {
+        if (decl.type.isPrimitive()) return false;
+        makeAnnotationSymbols();
+        if (decl.specsDecl != null) {
+            if (utils.findMod(decl.specsDecl.mods, nullableAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.specsDecl.mods, nonnullAnnotationSymbol) != null) return true;
+        } 
+            
+        // Need the owning class - fields are owned by the class, but parameters and local variables are owned by the method
+        Symbol owner = decl.sym.owner;
+        if (owner instanceof MethodSymbol) owner = owner.owner;
+        JmlClassDecl cdecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((Symbol.TypeSymbol)owner).tree;
+        if (cdecl.specsDecls == cdecl || cdecl.specsDecls == null) {
+            if (utils.findMod(decl.mods, nullableAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.mods, nonnullAnnotationSymbol) != null) return true;
+        }
+        return isNonNull(cdecl);
+    }
+    
+    public boolean isNonNull(JmlClassDecl decl) { // FIXM E- change this to return the token that defines the nullity
+        if (decl.specsDecls != null) {
+            makeAnnotationSymbols();
+            if (utils.findMod(decl.specsDecls.mods, nullablebydefaultAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.specsDecls.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
+        } else {
+            if (utils.findMod(decl.mods, nullablebydefaultAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
+        }
+        Symbol parent = decl.sym.owner;
+        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlToken.NONNULL;  // FIXME - is this OK for interfaces
+        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlToken.NONNULL;
+        JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
+        return isNonNull(encl);
+    }
+    
+    public void makeAnnotationSymbols() {
         if (nonnullAnnotationSymbol == null) {
             nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
         }
         if (nullableAnnotationSymbol == null) {
             nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
         }
+        if (nullablebydefaultAnnotationSymbol == null) {
+            nullablebydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullablebydefaultAnnotation));
+        }
+        if (nonnullbydefaultAnnotationSymbol == null) {
+            nonnullbydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullbydefaultAnnotation));
+        }
+    }
+    
+    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
+        if (symbol.type.isPrimitive()) return false;
+        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
+        makeAnnotationSymbols();
         Attribute.Compound attr;
         if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
             // Field

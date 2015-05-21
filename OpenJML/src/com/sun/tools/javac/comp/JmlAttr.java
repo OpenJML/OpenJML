@@ -15,7 +15,6 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
-
 import static org.jmlspecs.openjml.JmlToken.*;
 
 import java.util.EnumMap;
@@ -106,6 +105,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.Position;
 
 /**
@@ -217,6 +217,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ClassSymbol pureAnnotationSymbol = null;
     /** Cached value of the @NonNull annotation symbol */
     public ClassSymbol nonnullAnnotationSymbol = null;
+    /** Cached value of the @Nullable annotation symbol */
+    public ClassSymbol nullableAnnotationSymbol = null;
     /** Cached value of the @NonNullByDefault annotation symbol */
     public ClassSymbol nonnullbydefaultAnnotationSymbol = null;
     /** Cached value of the @NullableByDefault annotation symbol */
@@ -337,9 +339,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
-        nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NullableByDefault");
+        nullablebydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NullableByDefault"); // FIXME - use defined Strings
         nonnullbydefaultAnnotationSymbol = createClass("org.jmlspecs.annotation.NonNullByDefault");
         nonnullAnnotationSymbol = createClass("org.jmlspecs.annotation.NonNull");
+        nullableAnnotationSymbol = createClass("org.jmlspecs.annotation.Nullable");
         pureAnnotationSymbol = createClass("org.jmlspecs.annotation.Pure");
         modelAnnotationSymbol = createClass("org.jmlspecs.annotation.Model");
 
@@ -755,7 +758,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         checkForConflict(specsModifiers,NON_NULL_BY_DEFAULT,NULLABLE_BY_DEFAULT);
         checkForConflict(specsModifiers,PURE,QUERY);
-        if (javaDecl.specsDecls != null) checkSameAnnotations(javaDecl.sym,javaDecl.specsDecls.mods); // Use combined modifiers - FIXME
+        if (javaDecl.specsDecls != null) {
+            attribAnnotationTypes(javaDecl.specsDecls.mods.annotations,env); // FIXME - should this be done in the Enter or MemberEnter phase?
+            checkSameAnnotations(javaDecl.mods,javaDecl.specsDecls.mods); // Use combined modifiers - FIXME - or javaDecl.mods
+        }
     }
     
     //public void checkTypeMatch(JmlClassDecl javaDecl, JmlClassDecl specsClassDecl) {
@@ -817,8 +823,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods) {
         PackageSymbol p = annotationPackageSymbol;
         for (JCAnnotation a: javaMods.getAnnotations()) {
-            if (a.type.tsym.owner.equals(p) && utils.findMod(specMods,a.type.tsym) == null) {
-                log.error(specMods.pos,"jml.missing.annotation",a);
+            // if sourcefile is null, the annotation was inserted to make an implicit annotation explicit; we don't complain about those, as the default may be superseded by a different explicit annotation
+            if (((JmlTree.JmlAnnotation)a).sourcefile != null && a.type.tsym.owner.equals(p) && utils.findMod(specMods,a.type.tsym) == null) {
+                JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+                log.error(a.pos,"jml.missing.annotation",a); 
+                log.useSource(prev);
             }
         }
     }
@@ -996,6 +1005,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Does the various checks of method/constructor modifiers */
     public void checkMethodModifiers(JmlMethodDecl javaMethodTree) {
         JmlSpecs.MethodSpecs mspecs = javaMethodTree.methodSpecsCombined;
+        if (javaMethodTree.specsDecl != null && javaMethodTree.specsDecl != javaMethodTree) {
+            for (JCAnnotation a: javaMethodTree.mods.annotations) {
+                JCAnnotation aa = utils.findMod(javaMethodTree.specsDecl.mods, a.type.tsym);
+                if (aa == null) {
+                    log.warning(a.pos(), "jml.java.annotation.superseded", "method result", javaMethodTree.name.toString(), a.toString());
+                }
+            }
+            log.useSource(javaMethodTree.specsDecl.source());
+        }
         JCModifiers mods = mspecs.mods;
         boolean inJML = utils.isJML(mods);
         boolean model = isModel(mods);
@@ -1046,6 +1064,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
             checkForRedundantSpecMod(mods);
         }
+        if (javaMethodTree.specsDecl != null && javaMethodTree.specsDecl != javaMethodTree) {
+            log.useSource(javaMethodTree.source());
+        }
+
     }
     
     protected void determineQueryAndSecret(JmlMethodDecl tree, JmlSpecs.MethodSpecs mspecs) {
@@ -1351,16 +1373,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
             
             // A list in which to collect clauses
+            if (decl.name.toString().equals("n3")) Utils.print(null);
             ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
 
             // Add a precondition for each nonnull parameter
             for (JCVariableDecl p : decl.params) {
                 if (p.type == null && p.sym != null) p.type = p.sym.type; // FIXME - A hack - why is p.type null - has the corresponding class not been Attributed?
                 if (!p.type.isPrimitive()) {
-                    boolean isNonnull = specs.isNonNull(p.sym,decl.sym.enclClass()); // FIXME - the nonnull annotation could be in the .jml file
-                    JCAnnotation nonnull = findMod(p.mods,JmlToken.NONNULL);
+                    JmlVariableDecl jp = (JmlVariableDecl)p;
+                    boolean isNonnull = specs.isNonNull(jp); 
+                    JCAnnotation nonnull = jp.specsDecl == null ? null : findMod(jp.specsDecl.mods,JmlToken.NONNULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
+                    if (nonnull == null) nonnull = findMod(jp.mods,JmlToken.NONNULL); // FIXME - this is not necessarily the correct position - could be in a .jml file
                     if (isNonnull) {
-                        JCTree treeForPos = nonnull == null ? p : nonnull;
+                        JCTree treeForPos = nonnull == null ? jp : nonnull;
                         int endPos = treeForPos.getEndPosition(endPosTable); 
                         JCIdent id = makeIdent(p,treeForPos.pos);
                         endPosTable.put(id, endPos);
@@ -1733,7 +1758,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         // Check the mods after the specs, because the modifier checks depend on
         // the specification clauses being attributed
-        if (tree instanceof JmlVariableDecl) checkVarMods((JmlVariableDecl)tree);
+        if (tree instanceof JmlVariableDecl) {
+            checkVarMods((JmlVariableDecl)tree);
+        }
     }
     
     // MAINTENANCE ISSUE - copied from super class
@@ -1802,9 +1829,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarMods(JmlVariableDecl tree) {
         boolean inJML = utils.isJML(tree.mods);
         boolean ghost = isGhost(tree.mods);
+        
         JCModifiers mods = tree.mods;
         if (tree.sym.owner.kind == Kinds.TYP) {  // Field declarations
-            boolean model = isModel(tree.mods);
+            if (tree.specsDecl != null) {
+                JCModifiers jmlmods = tree.specsDecl.mods;
+                attribAnnotationTypes(jmlmods.annotations,env);
+                for (JCAnnotation a: tree.mods.annotations) {
+                    JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
+                    if (aa == null) {
+                        log.warning(a.pos(), "jml.java.annotation.superseded", "field", tree.name.toString(), a.toString());
+                    }
+                }
+                mods = tree.specsDecl.mods;
+                log.useSource(tree.specsDecl.source());
+            }
+            boolean model = isModel(mods);
             boolean modelOrGhost = model || ghost;
             if (ghost) {
                 allAllowed(mods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
@@ -1834,8 +1874,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 a = utils.findMod(tree.mods,tokenToAnnotationName.get(MODEL));
                 log.error(a.pos(),"jml.conflicting.modifiers","model","final");
             }
+            checkForConflict(mods,NONNULL,NULLABLE);
+            if (tree.specsDecl != null) log.useSource(tree.source());
         } else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
-            allAllowed(tree.mods.annotations, allowedFormalParameterModifiers, "formal parameter");
+            JCModifiers pmods = tree.mods;
+            if (tree.specsDecl != null) {
+                JCModifiers jmlmods = tree.specsDecl.mods;
+                attribAnnotationTypes(jmlmods.annotations,env);
+                for (JCAnnotation a: tree.mods.annotations) {
+                    JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
+                    if (aa == null) {
+                        log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
+                    }
+                }
+                pmods = jmlmods;
+            }
+            if (tree.specsDecl != null) log.useSource(tree.specsDecl.source());
+            allAllowed(pmods.annotations, allowedFormalParameterModifiers, "formal parameter");
+            checkForConflict(pmods,NONNULL,NULLABLE);
+            if (tree.specsDecl != null) log.useSource(tree.source());
+            
         } else { // local declaration
             allAllowed(tree.mods.annotations, allowedLocalVarModifiers, "local variable declaration");
             if (inJML && !ghost  && !isInJmlDeclaration) {
@@ -1843,10 +1901,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else if (!inJML && ghost) {
                 log.error(tree.pos,"jml.ghost.on.java");
             } 
+            checkForConflict(tree.mods,NONNULL,NULLABLE);
         }
         
-        checkSameAnnotations(tree.sym,tree.mods);
-        checkForConflict(tree.mods,NONNULL,NULLABLE);
+        if (tree.specsDecl != null) checkSameAnnotations(tree.mods,tree.specsDecl.mods);
         
         // Secret
         JCAnnotation secret = findMod(mods,JmlToken.SECRET);
@@ -4627,7 +4685,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         a = utils.findMod(mods,tokenToAnnotationName.get(ta));
         b = utils.findMod(mods,tokenToAnnotationName.get(tb));
         if (a != null && b != null) {
+            JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)b).sourcefile);
             log.error(b.pos(),"jml.conflicting.modifiers",ta.internedName(),tb.internedName());
+            log.useSource(prev);
             return true;
         }
         return false;
@@ -4750,6 +4810,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
 
+    }
+    
+    public JCAnnotation hasAnnotation(JmlVariableDecl decl, JmlToken token) {
+        if (decl.specsDecl != null) {
+            return findMod(decl.specsDecl.mods, token);
+        } else {
+            return findMod(decl.mods, token);
+        }
     }
     
     /** Returns true if the given modifiers/annotations includes ghost
@@ -5245,6 +5313,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodDecl(JmlMethodDecl that) {
         visitMethodDef(that);
     }
+    
+    public static class SpecialDiagnosticPosition extends com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition {
+        String message;
+        public SpecialDiagnosticPosition(String message) {
+            super(-1);
+            this.message = message;
+        }
+    }
 
     // FIXME - is this only ghost declarations
     // and don't the modifiers get checked twice - does the super.visitVarDef actually work?
@@ -5257,9 +5333,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
 
+        // If there is a .jml file containing the specifications, then just use those instead of the annotations in the
+        // .java file. FIXME - really we should always be looking in the specs database, rather than modifying the ast
+        JCModifiers originalMods = that.mods;
+        JCModifiers newMods = originalMods;
+        if (that.specsDecl != null) newMods = that.mods = that.specsDecl.mods;
+        
     	// FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
         attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); 
         for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
+        
         boolean prev = false;
         if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(true);
         super.visitVarDef(that);
@@ -5267,11 +5350,47 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // which are not JML nodes.
         FieldSpecs fspecs = specs.getSpecs(that.sym);
         if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+        
+        if (!that.type.isPrimitive()) {
+            JCAnnotation snullness;
+            JmlToken nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
+            if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
+                nullness = JmlToken.NONNULL;
+            } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null) {
+                nullness = JmlToken.NULLABLE;
+            } else {
+                Symbol s = (nullness == JmlToken.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+                Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                List<Compound> atts = that.sym.getAnnotationMirrors();
+                that.sym.attributes_field = atts.append(a);
+                JCAnnotation an = factory.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
+                ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                an.type = an.annotationType.type;
+                that.mods.annotations = that.mods.annotations.append(an);
+                snullness = an;
+            }
+            Symbol s = (nullness == JmlToken.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+            if (that.sym.attribute(s) == null) {
+                Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                List<Compound> atts = that.sym.getAnnotationMirrors();
+                that.sym.attributes_field = atts.append(a);
+            }
+        }
+//        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
+
 
         // Check the mods after the specs, because the modifier checks depend on
         // the specification clauses being attributed
+
+        that.mods = originalMods; 
         checkVarMods(that);
+        that.mods = newMods;
         if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
+        
+//        if (that.specsDecl != null) {
+//            that.mods.annotations = that.specsDecl.mods.annotations;
+//        }
+        
     }
     
     // These are here mostly to make them visible to extensions

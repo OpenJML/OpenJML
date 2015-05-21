@@ -1,22 +1,10 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.util.Collection;
-
-import junit.framework.Assert;
-
-import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
-import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(ParameterizedWithNames.class)
 public class escTrace extends EscBase {
@@ -51,7 +39,7 @@ public class escTrace extends EscBase {
                 );
         String output = output();
         String error = errorOutput();
-        Assert.assertEquals("",error);
+        Assert.assertEquals("Mismatched error output","",error);
         
         compareTextToMultipleFiles(output, dir, "testSimpleTrace-expected", dir + "/testSimpleTrace-actual");
    }
@@ -77,7 +65,7 @@ public class escTrace extends EscBase {
                 );
         String output = output();
         String error = errorOutput();
-        Assert.assertEquals("",error);
+        Assert.assertEquals("Mismatched error output","",error);
         compareTextToMultipleFiles(output, dir, "testFieldTrace-expected", dir + "/testFieldTrace-actual");
        //Assert.assertEquals(expectedOut,output);
     }

@@ -12,13 +12,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=04.tools.tex
+Document=02.commandLine.tex
 
 [Frame0_View0,0]
-TopLine=274
-Cursor=16481
+TopLine=577
+Cursor=32724
 
 [Frame1]
 Flags=0
@@ -30,13 +30,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=05.api.tex
+Document=03.eclipse.tex
 
 [Frame1_View0,0]
-TopLine=37
-Cursor=12438
+TopLine=81
+Cursor=4875
 
 [Frame2]
 Flags=0
@@ -48,13 +48,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=06.JMLSummary.tex
+Document=04.tools.tex
 
 [Frame2_View0,0]
-TopLine=316
-Cursor=16603
+TopLine=69
+Cursor=5045
 
 [Frame3]
 Flags=0
@@ -66,13 +66,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=07.JMLIntroduction.tex
+Document=05.api.tex
 
 [Frame3_View0,0]
-TopLine=0
-Cursor=255
+TopLine=38
+Cursor=12438
 
 [Frame4]
 Flags=0
@@ -84,13 +84,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=0809.JMLTranslations.tex
+Document=06.JMLSummary.tex
 
 [Frame4_View0,0]
-TopLine=95
-Cursor=3338
+TopLine=66
+Cursor=3145
 
 [Frame5]
 Flags=0
@@ -102,13 +102,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=00.opening.tex
+Document=07.JMLIntroduction.tex
 
 [Frame5_View0,0]
-TopLine=46
-Cursor=3379
+TopLine=0
+Cursor=255
 
 [Frame6]
 Flags=0
@@ -120,13 +120,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=OpenJMLUserGuide.tex
+Document=0809.JMLTranslations.tex
 
 [Frame6_View0,0]
-TopLine=178
-Cursor=7890
+TopLine=96
+Cursor=3338
 
 [Frame7]
 Flags=0
@@ -138,13 +138,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=01.introduction.tex
+Document=00.opening.tex
 
 [Frame7_View0,0]
-TopLine=0
-Cursor=878
+TopLine=46
+Cursor=3379
 
 [Frame8]
 Flags=0
@@ -156,13 +156,13 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=02.commandLine.tex
+Document=OpenJMLUserGuide.tex
 
 [Frame8_View0,0]
-TopLine=9
-Cursor=368
+TopLine=90
+Cursor=3760
 
 [Frame9]
 Flags=0
@@ -174,19 +174,20 @@ MaxPos.y=-1
 NormalPos.left=4
 NormalPos.top=26
 NormalPos.right=1313
-NormalPos.bottom=491
+NormalPos.bottom=381
 Class=LaTeXView
-Document=03.eclipse.tex
+Document=01.introduction.tex
 
 [Frame9_View0,0]
 TopLine=0
-Cursor=1769
+Cursor=878
 
 [SessionInfo]
 FrameCount=10
-ActiveFrame=6
+ActiveFrame=2
 
 [Bookmarks]
-06.JMLSummary.tex=179 184 168 203 331 
+02.commandLine.tex=428 
+06.JMLSummary.tex=179 184 168 203 331 195 192 213 
 OpenJMLUserGuide.tex=97 
 

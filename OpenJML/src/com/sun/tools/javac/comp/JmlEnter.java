@@ -153,6 +153,24 @@ public class JmlEnter extends Enter {
         this.specs = JmlSpecs.instance(context);
     }
     
+    @Override
+    public void complete(List<JCCompilationUnit> trees, ClassSymbol c) {
+        super.complete(trees, c);
+        
+        for (JCCompilationUnit tree : trees) {
+//            if (((JmlCompilationUnit)tree).specsCompilationUnit != null) {
+//                ((JmlCompilationUnit)tree).specsCompilationUnit.
+//            }
+//            if (tree.starImportScope.elems == null) {
+//                JavaFileObject prev = log.useSource(tree.sourcefile);
+//                Env<AttrContext> topEnv = topLevelEnv(tree);
+//                memberEnter.memberEnter(tree, topEnv);
+//                log.useSource(prev);
+//            }
+        }
+
+    }
+    
     /** This method visits the designated compilation unit; first it matches
      * class declarations in the specification files to class declarations in
      * Java; then it calls the super class visitTopLevel method to initiate

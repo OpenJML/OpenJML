@@ -1,12 +1,12 @@
 
-//@ nullable_by_default   // FIXME - should be able to get rid of this
+
 public final class StorageParameters 
 {
-	//@ spec_public  // FIXME - should be able to get rid of this
+    @org.jmlspecs.annotation.SpecPublic // FIXME - Should be able to get rid of this
 	private long[] configurationSizes;
 	
 	//@ pure  // FIXME - should be able to get rid of this
-	public StorageParameters(/*@ nullable */ long[] sizes) {
+	public StorageParameters(long[] sizes) {
 
 		this.configurationSizes = sizes;
 	}

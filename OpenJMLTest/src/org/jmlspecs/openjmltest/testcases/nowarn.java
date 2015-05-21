@@ -2,6 +2,7 @@ package org.jmlspecs.openjmltest.testcases;
 
 /** This tests parsing of nowarn. */
 
+import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjmltest.ParseBase;
@@ -91,7 +92,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 34,
                 JCModifiers.class, 16,
-                JCAnnotation.class, 16,
+                JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -107,7 +108,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 33,
                 JCModifiers.class, 16,
-                JCAnnotation.class, 16,
+                JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
@@ -123,12 +124,12 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 54,
                 JCModifiers.class, 16,
-                JCAnnotation.class, 16,
+                JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
                 JCIdent.class, 16,
-                JCAnnotation.class, 31,
+                JmlAnnotation.class, 31,
                 JCFieldAccess.class, 31,
                 JCFieldAccess.class, 31,
                 JCFieldAccess.class, 31,
@@ -144,7 +145,7 @@ public class nowarn extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 53,
                 JCModifiers.class, 16,
-                JCAnnotation.class, 16,
+                JmlAnnotation.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,
                 JCFieldAccess.class, 16,

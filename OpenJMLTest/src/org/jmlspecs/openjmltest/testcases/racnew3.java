@@ -187,6 +187,7 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast1() {
+    	main.addOptions("-show","-method=m0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -197,7 +198,7 @@ public class racnew3 extends RacBase {
                 +"  public static void m0() {\n"
                 +"    {/*@ nullable */ Short s = null;\n"
                 +"    try { //@ assert 0 == (short)s; \n} catch (NullPointerException e) {}\n" 
-                +"    try { short d = (Short)null; \n} catch (NullPointerException e) {}\n"
+                +"    try { short d = (Short)null; \n} catch (NullPointerException e) {}\n"  // Lines 10-11
                 +"    }\n"
                 +"    {/*@ nullable */ Long s = null;\n"
                 +"    try { //@ assert 0 == (long)s;\n} catch (NullPointerException e) {}\n" 

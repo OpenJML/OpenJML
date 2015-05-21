@@ -17,7 +17,7 @@ public class TCWithJml {
     public Object m4a() { return null; }
 
 	final int f;
-	@NonNull Object f1;
+	@NonNull Object f1;   // Warning - annotation ignored
     Object f2;
     Object f2a;
     Object f3;
@@ -28,7 +28,7 @@ public class TCWithJml {
 		return null;
 	}
 	
-	public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {
+	public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {  // Warning - annotation ignored
 		return null;
 	}
 

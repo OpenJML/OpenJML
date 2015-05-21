@@ -2371,7 +2371,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (esc) do {
                 for (Symbol s: cs.getElements()) {
                     if (!(s instanceof VarSymbol)) continue;
-                    addNullnessAllocationTypeCondition(d,s,false);
+                    addNullnessAllocationTypeCondition2(d,s,false);
                 }
                 cs = cs.next;
             } while (cs != null) ;
@@ -2571,12 +2571,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeCondition(JCVariableDecl d, boolean instanceBeingConstructed) {
-        return addNullnessAllocationTypeCondition(d, d.sym, instanceBeingConstructed);
+    protected boolean addNullnessAllocationTypeCondition2(JCVariableDecl d, Symbol sym, boolean instanceBeingConstructed) {
+        boolean isNonNull = true;
+        Symbol owner = d.sym.owner;
+        if (owner instanceof MethodSymbol) owner = owner.owner;
+        if (!d.sym.type.isPrimitive()) {
+            isNonNull = specs.isNonNull((JmlVariableDecl)d) ;
+        }
+        
+        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed);
+    }
+    
+    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
+        boolean isNonNull = true;
+        Symbol owner = sym.owner;
+        if (owner instanceof MethodSymbol) owner = owner.owner;
+        if (!sym.type.isPrimitive()) {
+            isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
+        }
+        return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
     }
 
+
     /** Returns true iff the declaration is explicitly or implicitly non_null */
-    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean instanceBeingConstructed) {
+    protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
         boolean nnull = true;
         JCExpression id;
@@ -2608,8 +2626,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             Symbol owner = sym.owner;
             if (owner instanceof MethodSymbol) owner = owner.owner;
-            boolean nn = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) &&
-                    !instanceBeingConstructed;
+            boolean nn = isNonNull && !instanceBeingConstructed;
             nnull = nn;
             if (nn) {
                 // assume id != null
@@ -2659,7 +2676,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeAnd(p,lo,hi));
                 addTraceableComment(s);
             }
-            
         }
         return nnull;
     }
@@ -2828,7 +2844,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
             boolean isNonNull = true;
             for (JCVariableDecl d: methodDecl.params) {
-                isNonNull = addNullnessAllocationTypeCondition(d,false);
+                isNonNull = addNullnessAllocationTypeCondition2(d,d.sym,false);
             }
             if (varargs && !isNonNull) { // isNonNull is the nullness of the last parameter, so the varargs parameter
                 JCVariableDecl d = methodDecl.params.last();
@@ -3062,8 +3078,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected void addNullnessAndTypeConditionsForFields(TypeSymbol csym, boolean beingConstructed) {
             // For Java fields
-            for (Symbol sy: csym.members().getElements()) {
+            x: for (Symbol sy: csym.members().getElements()) {
                 if (!(sy instanceof VarSymbol)) continue;
+                // Find the field declaration for the given symbol
+                if (sy.name.toString().equals("fii")) Utils.print(null);
+                Env<AttrContext> e = Enter.instance(context).getEnv(csym);
+                if (e != null && e.tree instanceof JmlClassDecl) {
+                    JmlClassDecl cdecl = (JmlClassDecl)e.tree;
+                    for (JCTree def : cdecl.defs) {
+                        if (def instanceof JmlVariableDecl) {
+                            if (((JmlVariableDecl)def).sym == sy) {
+                                if (sy.toString().equals("fii")) Utils.print(null);
+                                addNullnessAllocationTypeCondition2((JmlVariableDecl)def, sy, beingConstructed && !utils.isJMLStatic(sy));
+                                continue x;
+                            }
+                        }
+                    }
+                }
                 // FIXME - should have a DiagnosticPosition for the actual declaration
                 addNullnessAllocationTypeCondition(methodDecl, sy, beingConstructed && !utils.isJMLStatic(sy));
             }
@@ -5494,6 +5525,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     
                     MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
+                    if (newCalleeSym == null) {
+                        log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+                    }
 
                     result = eresult = treeutils.makeMethodInvocation(that,null,newCalleeSym,ntrArgs);
                 } else {
@@ -7045,7 +7079,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression rhs = convertExpr(that.rhs);
             rhs = addImplicitConversion(that,lhs.type, rhs);
 
-            if (specs.isNonNull(id.sym,methodDecl.sym.enclClass())) {
+            Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
+//            specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
+            if (specs.isNonNull(vsym)) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nullLit);
                 // FIXME - location of nnonnull declaration?
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
@@ -7541,9 +7577,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 
         } else if (translatingJML) {
-            if (tag == JCTree.EQ) { // && that.getLeftOperand().toString().contains("elemtype")) {
-                Utils.print("");
-            }
             Type maxJmlType = that.getLeftOperand().type;
             boolean lhsIsPrim = that.getLeftOperand().type.isPrimitive() && that.getLeftOperand().type.tag != TypeTags.BOT;
             boolean rhsIsPrim = that.getRightOperand().type.isPrimitive() && that.getRightOperand().type.tag != TypeTags.BOT;
@@ -11529,7 +11562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 init = convertExpr(that.init);
                 if (init != null) init = addImplicitConversion(init,that.type,init);
 
-                if (init != null && !init.type.isPrimitive() && specs.isNonNull(that.sym,that.sym.enclClass())) {
+                if (init != null && !init.type.isPrimitive() && specs.isNonNull(that)) { // isNonNull returns false if that.type is primitive
                     nn = treeutils.makeNeqObject(init.pos, init, treeutils.nullLit);
                     if (init instanceof JCLiteral) {
                         // FIXME - potential optimizations, but they need testing, particularly the second one
@@ -12094,6 +12127,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             List<Type> newParamTypes = newparamtypes.toList();
 
+            // Create the symbol for the new method
+            JCModifiers newmods = M.at(methodDecl.mods.pos).Modifiers(methodDecl.mods.flags | Flags.STATIC, methodDecl.mods.annotations); // Note: annotations not duplicated
+            MethodSymbol newsym = treeutils.makeMethodSym(newmods, newMethodName, msym.getReturnType(), (TypeSymbol)methodDecl.sym.owner, newParamTypes);
+            pureMethod.put(msym,newsym);
+            
             // Now go through each spec case for each overridden method and construct axioms for each ensures clause
             for (Pair<MethodSymbol,Type> pair: overridden) {
                 MethodSymbol mpsym = pair.first;
@@ -12114,11 +12152,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent id = treeutils.makeIdent(d,iter.next().sym);
                     paramActuals.put(d.sym, id);
                 }
-                
-                // Create the symbol for the new method
-                JCModifiers newmods = M.at(methodDecl.mods.pos).Modifiers(methodDecl.mods.flags | Flags.STATIC, methodDecl.mods.annotations); // Note: annotations not duplicated
-                MethodSymbol newsym = treeutils.makeMethodSym(newmods, newMethodName, msym.getReturnType(), (TypeSymbol)methodDecl.sym.owner, newParamTypes);
-                pureMethod.put(msym,newsym);
                 
                 // Create an instance of a call of the new method, to be used in place of \result in translating the method specs
                 JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);

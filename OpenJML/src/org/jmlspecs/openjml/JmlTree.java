@@ -76,6 +76,7 @@ public class JmlTree implements IJmlTree {
      * the pos field is set using other methods on the factory.
      */
     public interface JmlFactory extends JCTree.Factory {
+        JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
         JmlBinary JmlBinary(JmlToken t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlChoose JmlChoose(JmlToken token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
@@ -228,6 +229,13 @@ public class JmlTree implements IJmlTree {
             }
             return t;
         }
+        
+        public JmlAnnotation Annotation(JCTree type, List<JCExpression> args) {
+            JmlAnnotation a = new JmlAnnotation(type,args);
+            a.pos = pos;
+            return a;
+        }
+
         
         /** Convenience method to create a JCIdent from a string
          * (use a Name if you have one, since this method creates a Name).
@@ -3413,5 +3421,17 @@ public class JmlTree implements IJmlTree {
             this.fieldId = fieldId;
             this.type = fieldId.type;
         }
-    }    
+    }
+
+    public static class JmlAnnotation extends JCAnnotation {
+        public JmlAnnotation(JCTree annotationType, List<JCExpression> args) {
+            super(annotationType,args);
+            //if (pos <= 0) Utils.print(null);
+        }
+        
+        /** The origin of the annotation, which may not be the same as the item being annotated;
+         * if null, the annotation is inserted to make a default explicit.
+         */
+        @Nullable public JavaFileObject sourcefile;
+    }
 }

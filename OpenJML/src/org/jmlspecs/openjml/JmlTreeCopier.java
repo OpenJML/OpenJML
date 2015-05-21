@@ -579,7 +579,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     @Override
     public JCTree visitAnnotation(AnnotationTree node, Void p) {
-        return super.visitAnnotation(node,p).setType(((JCAnnotation)node).type);
+        JmlAnnotation a = (JmlAnnotation)super.visitAnnotation(node,p);
+        a.setType(((JCAnnotation)node).type);
+        if (node instanceof JmlAnnotation) a.sourcefile = ((JmlAnnotation)node).sourcefile;
+        return a;
     }
 
     @Override

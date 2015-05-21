@@ -335,9 +335,9 @@ public class Utils {
             if (t != null) {
                 if (t.tsym.equals(asym)) return a; 
             } else {
-                // FIXME this is not going to work for unattributed and not-fully qualified annotations
+                // FIXME this is not going to work for unattributed and not-fully qualified annotations, and at best is a real hack
                 String s = a.annotationType.toString();
-                if (asym.flatName().toString().equals(s)) return a;
+                if (asym.flatName().toString().endsWith(s)) return a;
             }
         }
         return null;
