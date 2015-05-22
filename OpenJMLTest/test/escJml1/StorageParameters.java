@@ -1,14 +1,14 @@
 import org.jmlspecs.annotation.*;
 public final class StorageParameters 
 {
-	//@ spec_public // FIXME - should not need
+
 	private long[] configurationSizes;
 	
 	public StorageParameters( long[] sizes) {
 		this.configurationSizes = sizes;
 	}
 	
-	//@ pure spec_public //FIXME - should not need
+
 	long[] getConfigurationSizes() {
 		return configurationSizes;
 	}

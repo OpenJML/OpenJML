@@ -131,7 +131,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
      *  @param toScope   The (import) scope in which imported classes
      *               are entered.
      */
-    private void importAll(int pos,
+    protected void importAll(int pos,   // DRC - changed from private
                            final TypeSymbol tsym,
                            Env<AttrContext> env) {
         // Check that packages imported from exist (JLS ???).

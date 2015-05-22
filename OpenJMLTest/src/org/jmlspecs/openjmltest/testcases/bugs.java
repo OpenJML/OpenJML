@@ -18,6 +18,12 @@ public class bugs extends TCBase {
 //        jmldebug = true;
         super.setUp();
     }
+    
+    @Test
+    public void testSF57() {
+    	// Used to crash - note that the import is the only content of the file
+    	helpTCF("A.java","import java.awt.geom.GeneralPath;\n");
+    }
 
     
     @Test

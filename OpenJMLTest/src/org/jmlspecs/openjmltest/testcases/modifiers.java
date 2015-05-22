@@ -1118,7 +1118,7 @@ public class modifiers extends TCBase {
         addMockFile("$A/A.jml","  public class A {}");
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/$A/A.jml:1: The specification must include all the annotations that the Java declaration declares: @org.jmlspecs.annotation.Pure", 3);
+                "/A.java:2: The specification must include all the annotations that the Java declaration declares: @Pure", 8);
     }
 
     // TODO - the next two could use better error messages

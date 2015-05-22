@@ -1,15 +1,15 @@
 test\tcWithJml\TCWithJml.jml:24: error: The field f in the specification matches a Java field TCWithJml.f with different modifiers: final
     int f;   // Error - different modifiers
         ^
-test\tcWithJml\TCWithJml.jml:32: error: The method m in the specification matches a Java method m(int,int,int,int) with different modifiers: public protected
-    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
-                            ^
 test\tcWithJml\TCWithJml.jml:32: error: The parameter i has different modifiers in the .java and .jml files: final
     protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
                                    ^
 test\tcWithJml\TCWithJml.jml:32: error: The parameter j has different modifiers in the .java and .jml files: final
     protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
                                                 ^
+test\tcWithJml\TCWithJml.jml:32: error: The method m in the specification matches a Java method m(int,int,int,int) with different modifiers: public protected
+    protected static Object m( int i, final int j, int k, final int l);  // Error - different modifiers (3 places)
+                            ^
 test\tcWithJml\TCWithJml.jml:42: error: The method mm in the specification matches a Java method mm() with different modifiers: public protected
     protected Object mm(); // Error - different modifiers
                      ^

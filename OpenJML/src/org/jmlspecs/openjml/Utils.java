@@ -304,21 +304,26 @@ public class Utils {
      * @return the annotation AST if present, null if not
      */
     //@ nullable
-    public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Name m) {
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Name m) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
             Type t = a.annotationType.type;
             if (t != null) {
                 // FIXME - can this be done by comparing symbols rather than strings
-                if (((Symbol.ClassSymbol)t.tsym).fullname.equals(m)) return a; 
+                if (((Symbol.ClassSymbol)t.tsym).fullname.equals(m)) return (JmlTree.JmlAnnotation)a; 
             } else {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations
                 String s = a.annotationType.toString();
-                if (m.toString().equals(s)) return a;
-                if (m.toString().equals(Strings.jmlAnnotationPackage + "."+s)) return a; // FIXME - fix attribution of annotations in MemberEnter
+                if (m.toString().equals(s)) return (JmlTree.JmlAnnotation)a;
+                if (m.toString().equals(Strings.jmlAnnotationPackage + "."+s)) return (JmlTree.JmlAnnotation)a; // FIXME - fix attribution of annotations in MemberEnter
             }
         }
         return null;
+    }
+
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */JmlToken ta) {
+        if (mods == null) return null;
+        return findMod(mods,JmlAttr.instance(context).tokenToAnnotationSymbol.get(ta));
     }
 
     /** Finds whether a specified annotation is present in the given modifiers,
@@ -328,21 +333,24 @@ public class Utils {
      * @param asym the symbol of the annotation type to find
      * @return the annotation AST if present, null if not
      */
-    public JCTree.JCAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Symbol asym) {
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */Symbol asym) {
         if (mods == null) return null;
         for (JCTree.JCAnnotation a: mods.annotations) {
             Type t = a.annotationType.type;
             if (t != null) {
-                if (t.tsym.equals(asym)) return a; 
+                if (t.tsym.equals(asym)) return (JmlTree.JmlAnnotation)a; 
             } else {
                 // FIXME this is not going to work for unattributed and not-fully qualified annotations, and at best is a real hack
                 String s = a.annotationType.toString();
-                if (asym.flatName().toString().endsWith(s)) return a;
+                if (asym.flatName().toString().endsWith(s)) return (JmlTree.JmlAnnotation)a;
             }
         }
         return null;
     }
     
+    /** Finds a member of a class with a given name; note that this works for methods only
+     * if the method is uniquely named.
+     */
     public Symbol findMember(TypeSymbol sym, String name) {
         Name n = Names.instance(context).fromString(name);
         for (Symbol s: sym.getEnclosedElements()) {

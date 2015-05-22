@@ -1048,12 +1048,24 @@ public class JmlTree implements IJmlTree {
 
     /** This class adds some JML specific information to the JCMethodDecl node. */
     public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource {
-        // FIXME - need some documentation of these fields
-        public JmlMethodDecl specsDecl;
-        public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
-        public JmlSpecs.MethodSpecs methodSpecsCombined;
-        //public JmlClassDecl owner;
+
+        /** The file containing this declaration */
         public JavaFileObject sourcefile;
+
+        /** The declaration in the jml file, 
+         * or null if there is a jml file but no declaration of this method in it, 
+         * or the same as the java declaration if there is no jml file
+         * (set in JmlMemberEnter); set to self in the parser for 
+         * methods in anonymous classes.
+         */
+        @Nullable public JmlMethodDecl specsDecl; 
+
+        /** The final, combined specs from all sources (set in JmlMemberEnter);
+         * set to self in parser for methods in anonymous classes */
+        public JmlSpecs.MethodSpecs methodSpecsCombined; 
+
+        public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
+
         public String docComment = null; // FIXME - clarify why needed
         public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;
                                         // valid after attribution

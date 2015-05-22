@@ -1,0 +1,7 @@
+test\sfpatch25\A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method test17a
+private void test17a(){
+             ^
+test\sfpatch25\A.java:3: warning: Associated declaration
+	//@ ensures false;
+	    ^
+2 warnings

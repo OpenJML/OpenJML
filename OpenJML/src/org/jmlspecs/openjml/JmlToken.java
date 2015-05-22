@@ -228,13 +228,13 @@ public enum JmlToken {
     public String internedName() { return name; }
     
     
+    /** Constructs an Enum instance using an empty string */
+    private JmlToken() { this("",null); }
+    
     /** Constructs an Enum token from a string - not available to users
      * @param s The string that will be the canonical form of the token
      */
-    private JmlToken(String s) { name = s.intern(); }
-    
-    /** Constructs an Enum instance using an empty string */
-    private JmlToken() { name = "".intern(); }
+    private JmlToken(String s) { this(s,null); }
     
     /** Constructs an Enum token from a string and annotation type - not available to users.
      * Any modifier token should use this constructor

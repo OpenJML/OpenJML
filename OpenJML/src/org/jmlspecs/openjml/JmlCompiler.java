@@ -327,9 +327,9 @@ public class JmlCompiler extends JavaCompiler {
         // It can happen that the specs are loaded during the loading of the super class 
         // since complete() may be called on the class in order to fetch its superclass
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
-        JmlCompilationUnit speccu;
+        JmlCompilationUnit speccu = null;
         if (JmlSpecs.instance(context).get(csymbol) != null) {
-            speccu = tspecs.decl.toplevel;
+            if (tspecs.decl != null) speccu = tspecs.decl.toplevel;
         } else {
             speccu = parseSpecs(csymbol);
             if (verbose && speccu == null) {
