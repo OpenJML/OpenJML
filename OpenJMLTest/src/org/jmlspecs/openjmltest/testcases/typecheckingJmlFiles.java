@@ -112,5 +112,10 @@ public class typecheckingJmlFiles extends TCBase {
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "-esc","-progress");
     }
     
+    @Test public void sfbug414() {
+    	expectedExit = 0;
+        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress");
+    }
+    
     
 }

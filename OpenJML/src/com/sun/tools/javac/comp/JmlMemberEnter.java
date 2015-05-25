@@ -574,7 +574,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // TODO - is there a better way to find a declaration for a symbol?
             for (JCTree t: javaDecl.defs) {
                 if (t instanceof JmlVariableDecl && ((JmlVariableDecl)t).sym == matchSym) {
-                    javaMatch=(JmlVariableDecl)t;
+                    javaMatch = (JmlVariableDecl)t;
                     break;
                 }
             }
@@ -2311,7 +2311,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 return "conditional annotate " + annotations + " onto " + s + " in " + s.owner;
             }
             public void enterAnnotation() {
-                assert s.kind == PCK || s.attributes_field == null;
+                assert s.kind == PCK || s.attributes_field == null; // FIXME - SF patch # says this assert triggers incorrectly when -ea option is used
                 JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                 try {
                     if (s.attributes_field != null &&
