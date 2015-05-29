@@ -1394,7 +1394,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
             
             // A list in which to collect clauses
-            if (decl.name.toString().equals("n3")) Utils.print(null);
             ListBuffer<JmlMethodClause> clauses = new ListBuffer<JmlMethodClause>();
 
             // Add a precondition for each nonnull parameter

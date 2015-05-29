@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.ext;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.IArithmeticMode;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.Strings;
@@ -26,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
+
 import org.jmlspecs.openjml.JmlOption;
 
 abstract public class Arithmetic extends ExpressionExtension {
@@ -232,8 +234,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
-                    rewriter.addAssert(that,
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
                 }
@@ -293,8 +295,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
-                    rewriter.addAssert(that,
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.condition == null ? nonzero : rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
                 }
@@ -436,8 +438,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
-                    rewriter.addAssert(that,
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.condition == null ? nonzero : rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
                 }

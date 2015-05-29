@@ -677,6 +677,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             addAnnotations(matchSym,env,specsMethodDecl.mods);
             specs.putSpecs(matchSym,combinedSpecs);
+//            todo.append(env); // So the .jml file is attributed
         }
 
         // FIXME - this stuff is all about query and secret - do we need any of it?
@@ -764,6 +765,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (tsp == null) {
                 tsp = new JmlSpecs.TypeSpecs();
                 specs.putSpecs(specsDecl.sym,tsp);
+                todo.append(env);
             }
             tsp.decl = specsDecl;
             tsp.modifiers = specsDecl.mods;
@@ -1890,6 +1892,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 completeSpecClassForBinary(d);
             }
         }
+        todo.append(env); // So the .jml file is attributed
+
         // Model declarations will already have been processed as regular source classes
         
         // We need to put the compilation unit on the todo list for attribution

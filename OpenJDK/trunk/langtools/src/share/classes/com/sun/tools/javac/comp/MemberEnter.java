@@ -70,7 +70,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final Symtab syms;
     private final TreeMaker make;
     private final ClassReader reader;
-    private final Todo todo;
+    protected final Todo todo; // DRC - changed from privagte to protected
     protected final Annotate annotate; // DRC - changed from private to protected
     private final Types types;
     private final JCDiagnostic.Factory diags;

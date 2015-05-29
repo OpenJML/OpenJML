@@ -1021,9 +1021,6 @@ public class MethodProverSMT {
                         String sv = cemap.get(that);
                         if (sv == null && that instanceof JCIdent) {
                             sv = getValue(expr,smt,solver,false); // Fail softly
-                            if (sv == null) {
-                            	Utils.print(null);
-                            }
                         }
                         String userString = normalizeConstant(sv);
                         if (that.type.tag == TypeTags.BOOLEAN) { 

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -2246,6 +2247,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     //      callee is constructor - invariants on post
                                     //      callee is method - invariants on pre and post
                                     case INVARIANT:
+                                    {
                                         if (contextIsStatic && !clauseIsStatic) break;
                                         if (isHelper) break;
                                         if (isSuper) break;
@@ -2273,12 +2275,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             //                                        log.useSource(source);
                                         }
                                         break;
+                                    }
                                     default:
                                         // Skip
 
                                 }
                             } catch (NoModelMethod e) {
-                                // FIXME - what to do.
+//                                log.error(clause.pos, "jml.message", e.getMessage());
                             } catch (JmlNotImplementedException e) {
                                 notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
                             }
@@ -2566,6 +2569,82 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     }
     
+    public void addRepresentsAxioms(ClassSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
+        reps.add(0,varsym);
+        try {
+            if (rac) {
+                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
+                java.util.List<Type> p = parents(clsym.type);
+                ListIterator<Type> iter = p.listIterator(p.size());
+                while (iter.hasPrevious()) {
+                    JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
+                    for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
+                        if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
+                            JmlMethodDecl md = (JmlMethodDecl)x.decl;
+                            JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
+                            result = eresult = app;
+                            treeutils.copyEndPosition(eresult, that);
+                            return;
+                        }
+                    }
+                }
+                result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
+                //log.warning(that.pos, "jml.no.model.method.implementation", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+                throw new NoModelMethod("No represents clause for model field " + varsym);
+                //return;
+            }
+            if (esc) {
+                java.util.List<Type> p = parents(clsym.type);
+                ListIterator<Type> iter = p.listIterator(p.size());
+                while (iter.hasPrevious()) {
+
+                    TypeSpecs tspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
+                    for (JmlTypeClause tc : tspecs.clauses) {
+                        if (tc.token == JmlToken.REPRESENTS) {
+                            JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+                            if (rep.ident instanceof JCIdent) {
+                                if (((JCIdent)rep.ident).sym != varsym) continue;
+                                if (rep.suchThat){
+                                    addAssume(that,Label.IMPLICIT_ASSUME,
+                                            convertExpr(rep.expression));
+                                    result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+
+                                } else {
+                                    // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
+                                    //                                        if (localVariables.isEmpty()) {
+                                    //                                            addAssumeEqual(that,Label.IMPLICIT_ASSUME,
+                                    //                                                    convertExpr(rep.ident),
+                                    //                                                    convertExpr(rep.expression));
+                                    //                                        } else {
+                                    if (varsym.toString().equals("total_seconds") && methodDecl.name.toString().equals("later")) Utils.print(null);
+                                    JCExpression prev = currentThisExpr;
+                                    currentThisExpr = translatedSelector;
+                                    try {
+                                        //JCIdent id = newTemp(convertExpr(rep.expression)); // New variable is initialized - no assume statement needed
+//                                        JCExpression e = treeutils.makeEquality(rep.pos,id,convertExpr(rep.expression));
+//                                        addAssume(that,Label.IMPLICIT_ASSUME,e);
+                                        //result = eresult = id;
+                                        result = eresult = convertExpr(rep.expression);
+                                      
+                                    } finally {
+                                        currentThisExpr = prev;
+                                    }
+                                }
+                            } else {
+                                log.error("jml.internal","Kind of represents ID that is not implemented: " + rep.ident.getClass());
+                            }
+                            return;
+                        }
+                    }
+                    result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+                    return;
+                }
+            }
+        } finally {
+            reps.remove(varsym);
+        }
+    }
+
     protected void addInvariantsForVar(JCExpression thisExpr) {
         assertInvariants(thisExpr,thisExpr);
     }
@@ -2998,6 +3077,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     try {
                         preexpr = convertJML(preexpr);
+                    } catch (NoModelMethod e) {
+                        // FIXME - what to do
                     } catch (JmlNotImplementedException e) {
                         notImplemented("requires clause containing ",e); // FIXME - needs source
                         continue;
@@ -5429,7 +5510,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-
+            if (calleeMethodSym.name.toString().equals("erasure")) Utils.print(null);
             
             // Collect all the methods overridden by the method being called
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
@@ -6488,6 +6569,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         // FIXME - implement others
                                         break;
                                 }
+                            } catch (NoModelMethod e) {
+                                // FIXME - need to catch to skip the clause
                             } catch (JmlNotImplementedException e) {
                                 // FIXME - should not need this anymore
                                 notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
@@ -7450,8 +7533,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         
         if (op == JCTree.DIV || op == JCTree.MOD) {
-            JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
-            if (javaChecks) addAssert(that,Label.POSSIBLY_DIV0,nonzero);
+            @Nullable JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
+            if (javaChecks && nonzero != null) addAssert(that,Label.POSSIBLY_DIV0,nonzero);
         }
         // NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the lhs);
         // a shift by a positive or negative amount s is actually a shift by 
@@ -7592,8 +7675,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 lhs = addImplicitConversion(lhs,that.type,lhs);
                 rhs = convertExpr(rhs);
                 rhs = addImplicitConversion(rhs,that.type,rhs);
-                JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
-                if (javaChecks) addAssert(that,Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero));
+                @Nullable JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
+                if (javaChecks && nonzero != null) addAssert(that,Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero));
             } else if (equality && maxJmlType == jmltypes.TYPE) {
                 rhs = convertExpr(rhs);
                 if (rac) lhs = treeutils.makeUtilsMethodCall(that.pos,"isEqualTo",lhs,rhs);
@@ -7739,8 +7822,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Returns the AST for (rhs != 0), for the appropriate type */
-    public JCExpression nonZeroCheck(JCTree that, JCExpression rhs, Type maxJmlType) {
+    public @Nullable JCExpression nonZeroCheck(JCTree that, JCExpression rhs, Type maxJmlType) {
         JCExpression nonzero;
+        if (rhs instanceof JCLiteral) {
+            Object value = ((JCLiteral)rhs).value;
+            if (value instanceof Integer && ((Integer)value).intValue() != 0) return null;
+        } else if (rhs instanceof JCTypeCast && ((JCTypeCast)rhs).expr instanceof JCLiteral) {
+            Object value = ((JCLiteral)((JCTypeCast)rhs).expr).value;
+            if (value instanceof Integer && ((Integer)value).intValue() != 0) return null;
+        }
         if (rac && maxJmlType == jmltypes.BIGINT) {
             nonzero = treeutils.makeUtilsMethodCall(that.pos, "bigint_nonzero", rhs);
         } else if (rac && maxJmlType == jmltypes.REAL) {
@@ -8135,81 +8225,85 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.pos = that.pos;
             fa.sym = null;
             result = eresult = fa;
-        } else if (translatingJML && attr.isModel(s) && !convertingAssignable) {
+        } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
+
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
-            if (rac) {
-                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
-                JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
-                for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                    if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
-                        JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                        JCMethodInvocation app = treeutils.makeMethodInvocation(that,sel,md.sym);
-                        result = eresult = app;
-                        treeutils.copyEndPosition(result, that);
-                        return;
-                    }
-                }
-                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
-                    
-                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
-                    result = eresult = m.meth;
-                    return;
-                }
-                // This is an internal error - the wrapper for the model field method
-                // should have been created during the MemberEnter phase.
-                throw new NoModelMethod();
-            }
-            if (esc) {
-                JCFieldAccess fa = M.Select(sel, that.name);
-                fa.pos = that.pos;
-                fa.sym = s;
-                fa.type = that.type;
-                result = eresult = fa;
-                if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
-                    JCExpression nonnull = treeutils.makeNeqObject(that.pos,fa,treeutils.nullLit);
-                    condition = treeutils.makeAnd(fa.pos, condition, nonnull);
-                }
-                TypeSpecs tspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
-                for (JmlTypeClause tc : tspecs.clauses) {
-                    if (tc.token == JmlToken.REPRESENTS) {
-                        JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+            addRepresentsAxioms((ClassSymbol)that.selected.type.tsym, s, that, trexpr);
 
-                        if (((JCIdent)rep.ident).sym.equals(s)) {
-                            // FIXME - why this?
-//                            if (oldenv == null) {
-//                                JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
-//                                addStat(st);
-//                            }
-                            if (rep.suchThat){
-                                addAssume(that,Label.IMPLICIT_ASSUME,
-                                        convertExpr(rep.expression));
-
-                            } else {
-                                // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
-//                                if (localVariables.isEmpty()) {
-//                                    addAssumeEqual(that,Label.IMPLICIT_ASSUME,
-//                                            convertExpr(rep.ident),
-//                                            convertExpr(rep.expression));
-//                                } else {
-                                JCIdent thisId = currentThisId;
-                                JCExpression thisExpr = currentThisExpr;
-                                try {
-                                    currentThisExpr = sel;
-                                    currentThisId = sel instanceof JCIdent ? (JCIdent)sel : null;
-                                    result = eresult = convertExpr(rep.expression);
-                                } finally {
-                                    currentThisId = thisId;
-                                    currentThisExpr = thisExpr;
-                                }
-                                    // FIXME - we could get recursion here
-                                return;
+            //            if (rac) {
+//                Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
+//                JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)that.sym.owner);
+//                for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
+//                    if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
+//                        JmlMethodDecl md = (JmlMethodDecl)x.decl;
+//                        JCMethodInvocation app = treeutils.makeMethodInvocation(that,sel,md.sym);
+//                        result = eresult = app;
+//                        treeutils.copyEndPosition(result, that);
+//                        return;
+//                    }
+//                }
+//                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
+//                    
+//                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
+//                    result = eresult = m.meth;
+//                    return;
+//                }
+//                // This is an internal error - the wrapper for the model field method
+//                // should have been created during the MemberEnter phase.
+//                throw new NoModelMethod();
+//            }
+//            if (esc) {
+//                JCFieldAccess fa = M.Select(sel, that.name);
+//                fa.pos = that.pos;
+//                fa.sym = s;
+//                fa.type = that.type;
+//                result = eresult = fa;
+//                if (fa.sym instanceof VarSymbol && specs.isNonNull(fa.sym)) {
+//                    JCExpression nonnull = treeutils.makeNeqObject(that.pos,fa,treeutils.nullLit);
+//                    condition = treeutils.makeAnd(fa.pos, condition, nonnull);
+//                }
+//                // Use the specs of the (static) type of the object being selected
+//                TypeSpecs tspecs = specs.getSpecs((ClassSymbol)fa.selected.type.tsym);
+//                for (JmlTypeClause tc : tspecs.clauses) {
+//                    if (tc.token == JmlToken.REPRESENTS) {
+//                        JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+//
+//                        if (((JCIdent)rep.ident).sym.equals(s)) {
+//                            // FIXME - why this?
+////                            if (oldenv == null) {
+////                                JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
+////                                addStat(st);
+////                            }
+//                            if (rep.suchThat){
+//                                addAssume(that,Label.IMPLICIT_ASSUME,
+//                                        convertExpr(rep.expression));
+//
+//                            } else {
+//                                // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
+////                                if (localVariables.isEmpty()) {
+////                                    addAssumeEqual(that,Label.IMPLICIT_ASSUME,
+////                                            convertExpr(rep.ident),
+////                                            convertExpr(rep.expression));
+////                                } else {
+//                                JCIdent thisId = currentThisId;
+//                                JCExpression thisExpr = currentThisExpr;
+//                                try {
+//                                    currentThisExpr = sel;
+//                                    currentThisId = sel instanceof JCIdent ? (JCIdent)sel : null;
+//                                    result = eresult = convertExpr(rep.expression);
+//                                } finally {
+//                                    currentThisId = thisId;
+//                                    currentThisExpr = thisExpr;
 //                                }
-                            }
-                        }
-                    }
-                }
+//                                    // FIXME - we could get recursion here
+//                                return;
+////                                }
+//                            }
+//                        }
+//                    }
+//                }
                 return;
-            }
+//            }
         } else if (s instanceof Symbol.TypeSymbol) {
             // This is a type name, so the tree should be copied, but without inserting temporary assignments
             // makeType creates a fully-qualified name
@@ -8229,6 +8323,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            if (oldenv != null) {
 //                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
 //            }
+        } else if (s instanceof MethodSymbol && s.name.toString().equals("erasure") && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
+            result = eresult = m.meth;
         } else {
             selected = trexpr;
             boolean var = false;
@@ -8280,6 +8377,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public static class NoModelMethod extends RuntimeException {
         private static final long serialVersionUID = 1L;
+        public NoModelMethod() { super(); }
+        public NoModelMethod(String msg) { super(msg); }
     }
     
     // FIXME - check use of condition everywhere 
@@ -8332,62 +8431,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // instead of just inlining the represents clause expression because
             // the model field/method may be overridden in derived classes.
 
-            if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
-                if (!reps.contains(sym)) {
-                    reps.add(0,sym);
-                    try {
-                        if (rac) {
-                            Name mmName = names.fromString(Strings.modelFieldMethodPrefix + that.name.toString());
-                            JmlSpecs.TypeSpecs tyspecs = specs.getSpecs(classDecl.sym);
-                            for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                                if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
-                                    JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                                    JCMethodInvocation app = treeutils.makeMethodInvocation(that,currentThisExpr,md.sym);
-                                    result = eresult = app;
-                                    treeutils.copyEndPosition(eresult, that);
-                                    return;
-                                }
-                            }
-                            if (rac) throw new NoModelMethod();
-                            error(that, "No corresponding model method for " + that.sym);
-                            return;
-                        }
-                        if (esc) {
-                            TypeSpecs tspecs = specs.getSpecs((ClassSymbol)sym.owner);
-                            for (JmlTypeClause tc : tspecs.clauses) {
-                                if (tc.token == JmlToken.REPRESENTS) {
-                                    JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
+            if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
-                                    if (((JCIdent)rep.ident).sym.equals(that.sym)) {
-                                        // FIXME - why this?
-                                        //                                    if (oldenv == null) {
-                                        //                                        JmlStatementHavoc st = M.at(that.pos).JmlHavocStatement(List.<JCExpression>of(rep.ident));
-                                        //                                        addStat(st);
-                                        //                                    }
-                                        if (rep.suchThat){
-                                            addAssume(that,Label.IMPLICIT_ASSUME,
-                                                    convertExpr(rep.expression));
-
-                                        } else {
-                                            // FIXME - This does not work if the model variable is used within a pure method spec, because it ends up in the body of a constructed quantifier, but localVariables is not used
-                                            //                                        if (localVariables.isEmpty()) {
-                                            //                                            addAssumeEqual(that,Label.IMPLICIT_ASSUME,
-                                            //                                                    convertExpr(rep.ident),
-                                            //                                                    convertExpr(rep.expression));
-                                            //                                        } else {
-                                            result = eresult = convertExpr(rep.expression);
-                                            // FIXME - we could get recursion here
-                                            return;
-                                            //                                        }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } finally {
-                        reps.remove(that.sym);
-                    }
-                }
+                addRepresentsAxioms((ClassSymbol)currentThisExpr.type.tsym, sym, that, currentThisExpr);
+                return;
             }
 
             // Lookup if there is some other translation of the id. For example, 
@@ -10948,6 +10995,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (arg instanceof JCMethodInvocation || arg instanceof JCAssign || arg instanceof JCAssignOp || arg instanceof JCUnary) {
                         result = addStat( M.at(that).Exec(arg).setType(that.type) );
                     }
+                } catch (NoModelMethod e) {
+                    // Ignore - don't add a statement
                 } catch (JmlNotImplementedException e) {
                     notImplemented(that.token.internedName() + " statement containing ",e);
                     result = null;
@@ -12054,6 +12103,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden) {
+        if (msym.name.toString().equals("length")) Utils.print(null);
         boolean isFunction = false;
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);

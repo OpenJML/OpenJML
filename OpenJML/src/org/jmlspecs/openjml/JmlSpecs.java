@@ -944,6 +944,7 @@ public class JmlSpecs {
         MethodSpecs s = getSpecs(m);
         if (s == null) return null;
         if (s.cases.deSugared == null) {
+            if (m.name.toString().equals("getMaxPriority")) Utils.print(null);
             attr.deSugarMethodSpecs(s.cases.decl,s);
         }
         return s.cases.deSugared;
@@ -1164,7 +1165,6 @@ public class JmlSpecs {
      */
     //@ ensures \result != null;
     public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
-        if (csymbol != null && csymbol.name.toString().endsWith("A")) Utils.print(null);
         if (csymbol == null) {
             // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.

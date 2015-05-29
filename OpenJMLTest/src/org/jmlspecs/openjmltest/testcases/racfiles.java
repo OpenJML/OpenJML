@@ -248,6 +248,19 @@ public class racfiles extends RacBase {
     	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
     	rac = null;
     }
+    
+    @Test
+    public void racHansE() {
+    	runrac = false;
+    	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
+    			"test/hans",
+    			null,
+    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",
+    			"-rac",
+    			"-specspath","test/hans/OpenJMLTest/specs",
+    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			);
+    }
 
     @Test
     public void racNoGhostField() {
