@@ -1602,7 +1602,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        
+        if (label.toString().equals("Postcondition")) Utils.print("");
         if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
@@ -1731,7 +1731,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // assumeCHeckVar == k, to check feasibility at point k.
         
         ++assumeCheckCount;
-//        if (assumeCheckCount == 95) Utils.print("");
+        if (assumeCheckCount == 163) Utils.print(null);
         java.util.List<JmlStatementExpr> descs = assumeChecks.get(methodDecl);
         if (descs == null) assumeChecks.put(methodDecl, descs = new LinkedList<JmlStatementExpr>());
         if (useAssertCount) {
@@ -3404,12 +3404,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 try {
                                     JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
                                     ex = convertJML(ex,preident,true);
-                                    ex = treeutils.makeImplies(clause.pos, preident, ex);
+                                    //ex = treeutils.makeImplies(clause.pos, preident, ex);
                                     addTraceableComment(ex,clause.toString());
                                     // FIXME - if the clause is synthetic, the source file may be null, and for signals clause
                                     addAssert(true,methodDecl,Label.POSTCONDITION,ex,clause,clause.sourcefile,null);
                                 } finally {
-                                    addStat(popBlock(0,clause));
+                                    JCBlock bl = popBlock(0,clause);
+                                    JCStatement st = M.at(clause.pos).If(preident, bl, null);
+                                    addStat(st);
                                 }
 
                                 break;
@@ -5001,7 +5003,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (condition != treeutils.trueLit) {
                 condition = treeutils.makeImplies(scannedItem.pos, precondition, condition);
                 condition = makeAssertionOptional(condition);
-                addAssert(callPosition,token == JmlToken.ASSIGNABLE ? Label.ASSIGNABLE : Label.ACCESSIBLE,condition,c,c.sourcefile,scannedItem.toString());
+                String message = scannedItem.toString();
+                addAssert(callPosition,token == JmlToken.ASSIGNABLE ? Label.ASSIGNABLE : Label.ACCESSIBLE,condition,c,c.sourcefile,message);
                 // FIXME - do we also want to identify the position or identity of the scannedItem?
             }
         }
@@ -12103,7 +12106,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden) {
-        if (msym.name.toString().equals("length")) Utils.print(null);
         boolean isFunction = false;
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
