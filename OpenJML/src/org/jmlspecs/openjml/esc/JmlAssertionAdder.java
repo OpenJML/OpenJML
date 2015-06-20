@@ -1602,7 +1602,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        if (label.toString().equals("Postcondition")) Utils.print("");
+        
         if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
@@ -1731,7 +1731,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // assumeCHeckVar == k, to check feasibility at point k.
         
         ++assumeCheckCount;
-        if (assumeCheckCount == 163) Utils.print(null);
         java.util.List<JmlStatementExpr> descs = assumeChecks.get(methodDecl);
         if (descs == null) assumeChecks.put(methodDecl, descs = new LinkedList<JmlStatementExpr>());
         if (useAssertCount) {
