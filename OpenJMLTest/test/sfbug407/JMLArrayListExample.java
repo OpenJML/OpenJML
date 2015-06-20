@@ -6,6 +6,7 @@ public JMLArrayListExample () {
     elements = new ArrayList<String>();
 }
 
+//@ assignable elements.objectState;
 //@ ensures (elements.contains(s));
 public void add(String s){
     elements.add(s);

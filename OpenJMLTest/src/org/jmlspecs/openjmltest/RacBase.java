@@ -274,9 +274,10 @@ public abstract class RacBase extends JmlTestCase {
             new File(actCompile).delete();
             new File(actRun).delete();
             List<String> args = new LinkedList<String>();
-            args.add("-rac");
+            //args.add("-no-jml");
             args.add("-d");
             args.add("testdata");
+            args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
             if (new File(dirname).isDirectory()) args.add("-dir");

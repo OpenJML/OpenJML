@@ -9,9 +9,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class typecheckingJmlFiles extends TCBase {
+public class SFBugs extends TCBase {
 
 //    @Override
 //    public void setUp() throws Exception {
@@ -79,12 +80,12 @@ public class typecheckingJmlFiles extends TCBase {
     
     @Test public void sfbug407() {
     	expectedExit = 0;
-        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "-esc");
+        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "-esc", "-progress","-show","-method=add","-checkFeasibility=debug");
     }
     
     @Test public void sfbug398() {
     	expectedExit = 0;
-        helpTCF("test/sfbug398","test/sfbug398", "-cp", "test/sfbug398", "-esc");
+        helpTCF("test/sfbug398","test/sfbug398", "-cp", "test/sfbug398", "-esc", "-progress");
     }
     
     @Test public void sfbug399() {
@@ -92,9 +93,10 @@ public class typecheckingJmlFiles extends TCBase {
         helpTCF("test/sfbug399","test/sfbug399", "-cp", "test/sfbug399", "-esc","-progress");
     }
     
+    @Ignore // very long running
     @Test public void sfbug404() {
     	expectedExit = 0;
-        helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "-esc","-progress");
+        helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "-esc","-progress","-logic=AUFNIRA");
     }
     
     @Test public void sfbug408() {

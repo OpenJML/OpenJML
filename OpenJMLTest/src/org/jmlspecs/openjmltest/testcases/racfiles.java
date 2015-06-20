@@ -233,17 +233,17 @@ public class racfiles extends RacBase {
     	rac = null;
     }
 
-    @Test // FIXME - some annotations seeem to have to be in the .java file, not the .jml
+    @Test // Bug in that some annotations had to be in the .java file, not the .jml, fixed
     public void racHans4c() {
-        expectedRACExit = 1;
+        expectedRACExit = 0;
     	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageC");
     	rac = null;
     }
 
-    @Test  // FIXME - bug in that import statements must be in .java files, not .jml
+    @Test  // Bug in that import statements must be in .java files, not .jml // FIXME - partially fixed - .jml imports are merged into .java imports
     public void racHans4d() {
-        expectedRACExit = 1;
+        expectedRACExit = 0;
     	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata","-Dorg.jmlspecs.openjml.racexceptions=true","-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
     	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","-racCheckAssumptions","-specspath=test/racHansStorageD");
     	rac = null;
@@ -263,6 +263,21 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void racHans2() {
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",null};
+
+    	runrac = true;
+    	helpTCF("test/racHans2/account",
+    			"test/racHans2",
+    			"account.AllTests",
+    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin;test/racHans2",
+    			//"-rac",
+    			"-specspath","test/racHans2/specs",
+    			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
+    			);
+    }
+
+    @Test
     public void racNoGhostField() {
         expectedRACExit = 0;
         helpTCF("test/racNoGhostField","test/racNoGhostField","Magic");
@@ -271,7 +286,7 @@ public class racfiles extends RacBase {
     @Test
     public void sfbug413() {
         expectedRACExit = 0;
-        helpTCF("test/sfbug413","test/sfbug413","Main");
+        helpTCF("test/sfbug413","test/sfbug413","Main","-show");
     }
 
 

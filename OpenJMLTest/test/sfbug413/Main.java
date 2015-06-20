@@ -21,3 +21,6 @@ public class Main
         }
     }
 }
+
+// This bug resulted in a ClassFormat error on trying to run the rac-compiled program.
+// The program was OK if C.m() returns an X instead of a C.

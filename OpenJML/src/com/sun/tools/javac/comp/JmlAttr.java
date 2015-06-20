@@ -1369,8 +1369,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlSpecs.MethodSpecs msp) {
         //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym + decl.toString());
         if (msp == null) return;
+//        if (decl.name.toString().equals("m")) Utils.print(null);
         JmlMethodSpecs methodSpecs = msp.cases;
         Env<AttrContext> prevEnv = env;
+        
+        Symbol owner = decl.sym.owner; 
+        boolean specsCompletelyEmpty = methodSpecs.cases.isEmpty();
+        
         env = enter.getEnv((ClassSymbol)decl.sym.owner);
         JCMethodDecl prevEnclMethod = env == null ? null : env.enclMethod;
         if (env != null) env.enclMethod = decl; // This is here to handle the situation when deSugarMethodSPecs
@@ -1391,6 +1396,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
+            JCAnnotation pure;
+            desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
+            if (!desugaringPure) {
+                if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
+            }
+
+            if (specsCompletelyEmpty && !desugaringPure && !decl.sym.isConstructor()) {
+                // If the local specs are completely empty, then the desugaring depends on what is inherited:
+                // If the method at hand does not override anything, then we go on to add the default specs;
+                // If the method at hand does override some parent methods, then we add no additional specs here
+                if (utils.parents(decl.sym).size() > 1) { // The override list will always include the method itself
+                    JmlMethodSpecs newspecs = jmlMaker.at(methodSpecs.pos).JmlMethodSpecs(List.<JmlTree.JmlSpecificationCase>nil());
+                    newspecs.decl = methodSpecs.decl;
+                    methodSpecs.deSugared = newspecs;
+                    return;
+                }
+            }
+
             JCLiteral nulllit = make.Literal(TypeTags.BOT, null).setType(syms.objectType.constType(null));
             
             // A list in which to collect clauses
@@ -1447,11 +1470,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             
             // Add an assignable clause if the method is pure and has no assignable clause
-            JCAnnotation pure;
-            desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
-            if (!desugaringPure) {
-                if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
-            }
             JmlMethodClause clp = null;
             if (desugaringPure) {
                 if (decl.sym.isConstructor()) {
@@ -1641,9 +1659,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		    JmlTree.Maker jmlF = (JmlTree.Maker)make;
 		    JmlToken t = cse.token;
 		    if (t == JmlToken.NORMAL_BEHAVIOR || t == JmlToken.NORMAL_EXAMPLE) {
-		        pr.append(jmlF.at(cse.pos).JmlMethodClauseSignals(JmlToken.SIGNALS,null,falseLit));
+		        JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(JmlToken.SIGNALS,null,falseLit);
+		        cl.sourcefile = cse.sourcefile;
+		        pr.append(cl);
 		    } else if (t == JmlToken.EXCEPTIONAL_BEHAVIOR || t == JmlToken.EXCEPTIONAL_EXAMPLE) {
-		        pr.append(jmlF.at(cse.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit));
+		        JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(JmlToken.ENSURES,falseLit);
+		        cl.sourcefile = cse.sourcefile;
+		        pr.append(cl);
 		    }
 		}
 		newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl,mods));
