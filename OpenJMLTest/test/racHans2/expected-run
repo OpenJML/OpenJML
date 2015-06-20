@@ -1,0 +1,27 @@
+OUT:
+test\racHans2\account\Accounts.java:8: JML postcondition is false
+	public Accounts (Object[] frames) throws IllegalArgumentException {
+	       ^
+test\racHans2\specs\account\Accounts.jml:19: Associated declaration: test\racHans2\account\Accounts.java:8: 
+      exceptional_behavior
+      ^
+test\racHans2\account\TestAccounts.java:34: JML postcondition is false
+			  new Accounts (new Object[] {frame0, null, frame2});
+			  ^
+test\racHans2\specs\account\Accounts.jml:19: Associated declaration: test\racHans2\account\TestAccounts.java:34: 
+      exceptional_behavior
+      ^
+test\racHans2\account\TestAccounts.java:35: JML assertion is false
+			  assert false; 
+			  ^
+
+Test of Accounts:
+    Test cases:  1
+    Test errors: 1
+    JML errors:  0
+
+Test errors are in:
+Accounts(account.AllTests$1)
+Test number is 1, null
+
+ERR:
