@@ -48,7 +48,7 @@ TRACE of tt.TestJava.m1(int)
 			VALUE: THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))	 === ???
 			VALUE: (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Cloneable)))	 === ???
 			VALUE: (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Object))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof java.lang.Cloneable && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(java.lang.Cloneable))) && (THIS.java.lang.Object_objectState_1211 == null || THIS.java.lang.Object_objectState_1211 instanceof org.jmlspecs.lang.JMLDataGroup && <:(\typeof(THIS.java.lang.Object_objectState_1211), \type(org.jmlspecs.lang.JMLDataGroup)))	 === ???
-/tt/TestJava.java:4:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+/tt/TestJava.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
 			VALUE: -2147483648	 === ???
 			VALUE: THIS	 === THIS
 			VALUE: THIS.k_71	 === ???
