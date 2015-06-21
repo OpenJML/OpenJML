@@ -8,20 +8,20 @@ public class BoxingTests {
 
     public Integer i;
     
-//    //@ requires b != null;
-//    //@ requires b.i != null;
-//    public static void incr_test2(BoxingTests b) {
-//        b.i++;
-//        //@ assert b.i == \old(b.i) + 1;
-//    }
-//
-//    //@ requires a.length > 1;
-//    //@ requires a[0] != null;
-//    //@ requires a[0] == 5;
-//    public static void incr_test3(Integer[] a) {
-//        a[0]++;
-//        //@ assert a[0] == 6;
-//    }
+    //@ requires b != null;
+    //@ requires b.i != null;
+    public static void incr_test2(BoxingTests b) {
+        b.i++;
+        //@ assert b.i == \old(b.i) + 1;
+    }
+
+    //@ requires a.length > 1;
+    //@ requires a[0] != null;
+    //@ requires a[0] == 5;
+    public static void incr_test3(Integer[] a) {
+        a[0]++;
+        //@ assert a[0] == 6;
+    }
 
     //@ ensures \result == false;
     public static Boolean and_test() {
