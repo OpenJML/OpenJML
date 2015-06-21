@@ -7006,8 +7006,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 expr = M.at(expr).TypeCast(newtype,expr);
                 expr.type = newtype;
                 return expr;
+//            } else if (expr.type.isPrimitive() && newtype.isPrimitive() && expr.type.tag > newtype.tag) {
+//                // TODO: understand - it appears that RAC does not like unnecessary casts - e.g. short to int
+//                expr = M.at(expr).TypeCast(newtype,expr);
+//                expr.type = newtype;
+//                expr = newTemp(expr);
+//                return expr; // - need to do casts explicitly at least for op= operations
             } else {
-                return expr; // RAC handles implicit conversions implicitly
+                return expr;// RAC handles implicit conversions implicitly
             }
         }
         
@@ -7339,8 +7345,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             lhs = convertExpr(lhs); // This may no longer be a JCIdent (e.g. f may become this.f or T.f) 
             lhsscanned = true;
         }
+//        if (!lhs.type.isPrimitive() && rhs.type.isPrimitive()) {
+//            // FIXME - this is still not quite right if either lhs or rhs needs implicit conversion to int or long
+//            // FIXME - also this results in any computations in the lhs being performed twice
+//            JCExpression lcast = M.at(lhs.pos).TypeCast(rhs.type, lhs).setType(rhs.type);
+//            JCExpression newop = M.at(that.pos).Binary(op, lcast, rhs).setType(rhs.type);
+//            JCExpression rcast = M.at(that.pos).TypeCast(lhs.type, newop).setType(lhs.type);
+//            rcast = M.at(that.pos).Assign(lhs,rcast).setType(that.type);
+//            result = eresult = convert(rcast);
+//            return;
+//        }
         Type maxJmlType = that.lhs.type;
         if (jmltypes.isJmlType(that.rhs.type)) maxJmlType = that.rhs.type;
+        Type optype = treeutils.opType(that.lhs.type,that.rhs.type);
         if (lhs instanceof JCIdent) {
             // We start with: id = expr
             // We generate
@@ -7351,15 +7368,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             Type t = unboxedType(that.type);
             
-            JCExpression lhsc = addImplicitConversion(lhs,t,lhs);
+            JCExpression lhsc = addImplicitConversion(lhs,optype,lhs);
 
             rhs = convertExpr(rhs);
-            rhs = addImplicitConversion(rhs,t,rhs);
+            rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
             
 
             addBinaryChecks(that, op, lhsc, rhs, maxJmlType);
 
-            rhs = makeBin(that,op,that.getOperator(),lhs,rhs,maxJmlType);
+  //          if (jmltypes.isJmlType(maxJmlType)) {
+            	rhs = makeBin(that, op, that.getOperator(), lhsc , rhs, maxJmlType); // or lhsc
+  //          } else {
+  //          	rhs = treeutils.makeBinary(that.pos,op,lhsc,rhs);
+  //          }
             treeutils.copyEndPosition(rhs, that);
 
             checkAccess(JmlToken.ASSIGNABLE, that, lhs, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
@@ -7369,8 +7390,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // identifiers that may be captured by the lhs. - TODO - need an example?
             JCIdent id = newTemp(rhs);
             JCExpression newlhs = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
-            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, id));
-            result = eresult = post ? id : newlhs;
+            JCExpression nid = addImplicitConversion(id,lhs.type,id);
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, nid));
+            result = eresult = post ? nid : newlhs;
             exprBiMap.put(that.lhs,eresult);
             lastStat = st.expr;
             
@@ -7385,6 +7407,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newfa = treeutils.makeSelect(fa.selected.pos, typetree, fa.sym);
                 newfa.name = fa.name;
                 rhs = convertExpr(rhs);
+                rhs = addImplicitConversion(rhs,optype,rhs);
                 
             } else {
                 JCExpression sel = lhsscanned ? fa.selected : convertExpr(fa.selected);
@@ -7401,12 +7424,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 checkRW(JmlToken.WRITABLE,fa.sym,sel,fa);
 
                 rhs = convertExpr(rhs);
-                rhs = addImplicitConversion(rhs,that.type,rhs);
-                if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
-                    JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nullLit);
-                    // FIXME - location of nnonnull declaration?
-                    addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
-                }
+                rhs = addImplicitConversion(rhs,optype,rhs);
+//                if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
+//                    JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nullLit);
+//                    // FIXME - location of nnonnull declaration?
+//                    addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
+//                }
 
             }
             addBinaryChecks(that,op,newfa,rhs,maxJmlType);
@@ -7416,13 +7439,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // a name field, when in fact they must be different
             JCFieldAccess newlhs = treeutils.makeSelect(newfa.pos,newfa.selected,newfa.sym);
 
+            JCExpression newfac = addImplicitConversion(newfa,optype,newfa);
             // Note that we need to introduce the temporary since the rhs may contain
             // identifiers that will be captured by the lhs. (TODO - example?)
-            rhs = treeutils.makeBinary(that.pos,op ,newfa,rhs);
+            rhs = treeutils.makeBinary(that.pos,op ,newfac,rhs);
             JCIdent id = newTemp(rhs);
-            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, id));
+            JCExpression idc = addImplicitConversion(id, newlhs.type, id);
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, idc));
             treeutils.copyEndPosition(st, that);
-            result = eresult = post ? id : newTemp(newlhs);
+            result = eresult = post ? idc : newTemp(newlhs);
             exprBiMap.put(that.lhs, eresult);
             lastStat = st.expr;
             
@@ -7451,27 +7476,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAccess(JmlToken.ASSIGNABLE, that, lhs, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
 
             rhs = convertExpr(rhs);
-            rhs = addImplicitConversion(rhs,that.type,rhs);
+            rhs = addImplicitConversion(rhs,optype,rhs);
 
-            lhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
-            lhs.pos = aa.pos;
-            lhs.type = aa.type;
-            lhs = newTemp(lhs);
+            JCExpression nlhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
+            nlhs.pos = aa.pos;
+            nlhs.type = aa.type;
+            nlhs = newTemp(nlhs);
+            nlhs = addImplicitConversion(nlhs,optype,nlhs);
 
-            addBinaryChecks(that,op,lhs,rhs,maxJmlType);
+            addBinaryChecks(that,op,nlhs,rhs,optype);
             
             // Note that we need to introduce the temporary since the rhs contains
             // identifiers that will be captured by the lhs. (TODO _ example?)
-            rhs = treeutils.makeBinary(that.pos,op,lhs,rhs);
+            rhs = treeutils.makeBinary(that.pos,op,nlhs,rhs);
             JCIdent id = newTemp(rhs);
+            JCExpression idc = addImplicitConversion(id, lhs.type, id);
             
             lhs = new JmlBBArrayAccess(null,array,index); // FIXME - use factory
             lhs.pos = aa.pos;
             lhs.type = aa.type;
             
-            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), lhs, id));
+            JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), lhs, idc));
             treeutils.copyEndPosition(st, that);
-            result = eresult = post ? id : newTemp(lhs);
+            result = eresult = post ? idc : newTemp(lhs);
             exprBiMap.put(that.lhs, eresult);
             lastStat = st.expr;
             
@@ -7499,7 +7526,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCAssignOp b = M.at(that.getStartPosition()).Assignop(tag == JCTree.PREDEC ? JCTree.MINUS_ASG : JCTree.PLUS_ASG ,that.getExpression(),treeutils.one);
             treeutils.copyEndPosition(b, that);
             b.setType(that.type);
-            b.operator = treeutils.findOpSymbol(tag == JCTree.PREDEC ? JCTree.MINUS : JCTree.PLUS ,that.type);
+            Type t = that.type.tag < TypeTags.INT ? syms.intType : unboxedType(that.type);
+            b.operator = treeutils.findOpSymbol(tag == JCTree.PREDEC ? JCTree.MINUS : JCTree.PLUS , t);
             visitAssignopHelper(b,false);
         } else if (tag == JCTree.POSTDEC || tag == JCTree.POSTINC){
             JCExpression arg = convertExpr(that.getExpression());
@@ -7507,7 +7535,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCAssignOp b = M.at(that).Assignop(tag == JCTree.POSTDEC ? JCTree.MINUS_ASG : JCTree.PLUS_ASG, that.getExpression() ,treeutils.one);
             treeutils.copyEndPosition(b, that);
             b.setType(that.type);
-            Type t = that.type.tag < TypeTags.INT ? syms.intType : that.type;
+            Type t = that.type.tag < TypeTags.INT ? syms.intType : unboxedType(that.type);
             b.operator = treeutils.findOpSymbol(tag == JCTree.POSTDEC ? JCTree.MINUS : JCTree.PLUS, t);
             visitAssignopHelper(b,true);
             exprBiMap.put(that.getExpression(),eresult);
@@ -7535,7 +7563,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         
         if (op == JCTree.DIV || op == JCTree.MOD) {
-            @Nullable JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
+            @Nullable JCExpression nonzero = nonZeroCheck(that,rhs);
             if (javaChecks && nonzero != null) addAssert(that,Label.POSSIBLY_DIV0,nonzero);
         }
         // NOTE: In Java, a shift by 0 is a no-op (aside from type promotion of the lhs);
@@ -7677,7 +7705,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 lhs = addImplicitConversion(lhs,that.type,lhs);
                 rhs = convertExpr(rhs);
                 rhs = addImplicitConversion(rhs,that.type,rhs);
-                @Nullable JCExpression nonzero = nonZeroCheck(that,rhs,maxJmlType);
+                @Nullable JCExpression nonzero = nonZeroCheck(that,rhs);
                 if (javaChecks && nonzero != null) addAssert(that,Label.UNDEFINED_DIV0,treeutils.makeImplies(that.pos, condition, nonzero));
             } else if (equality && maxJmlType == jmltypes.TYPE) {
                 rhs = convertExpr(rhs);
@@ -7824,7 +7852,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     /** Returns the AST for (rhs != 0), for the appropriate type */
-    public @Nullable JCExpression nonZeroCheck(JCTree that, JCExpression rhs, Type maxJmlType) {
+    public @Nullable JCExpression nonZeroCheck(JCTree that, JCExpression rhs) {
         JCExpression nonzero;
         if (rhs instanceof JCLiteral) {
             Object value = ((JCLiteral)rhs).value;
@@ -7833,12 +7861,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Object value = ((JCLiteral)((JCTypeCast)rhs).expr).value;
             if (value instanceof Integer && ((Integer)value).intValue() != 0) return null;
         }
-        if (rac && maxJmlType == jmltypes.BIGINT) {
+        if (rac && rhs.type == jmltypes.BIGINT) {
             nonzero = treeutils.makeUtilsMethodCall(that.pos, "bigint_nonzero", rhs);
-        } else if (rac && maxJmlType == jmltypes.REAL) {
+        } else if (rac && rhs.type == jmltypes.REAL) {
             nonzero = treeutils.makeUtilsMethodCall(that.pos, "real_nonzero", rhs);
         } else {
-            nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeZeroEquivalentLit(rhs.pos, that.type));
+            nonzero = treeutils.makeBinary(that.pos, JCTree.NE, rhs, treeutils.makeZeroEquivalentLit(rhs.pos, rhs.type));
         }
         return nonzero;
     }

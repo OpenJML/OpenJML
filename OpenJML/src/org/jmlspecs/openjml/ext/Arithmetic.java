@@ -234,7 +234,7 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
                     if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
@@ -295,7 +295,7 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
                     if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.condition == null ? nonzero : rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));
@@ -438,7 +438,7 @@ abstract public class Arithmetic extends ExpressionExtension {
 
             if (javaChecks) {
                 if (op == JCTree.DIV || op == JCTree.MOD) {
-                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs,newtype);
+                    @Nullable JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
                     if (nonzero != null) rewriter.addAssert(that,
                             rewriter.translatingJML ? Label.UNDEFINED_DIV0 : Label.POSSIBLY_DIV0,
                             rewriter.condition == null ? nonzero : rewriter.treeutils.makeImplies(that.pos, rewriter.condition, nonzero));

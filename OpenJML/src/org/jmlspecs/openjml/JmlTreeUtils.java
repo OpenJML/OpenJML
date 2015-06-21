@@ -245,13 +245,32 @@ public class JmlTreeUtils {
     public Symbol findOpSymbol(int optag, Type argtype) {
         Name opName = TreeInfo.instance(context).operatorName(optag);
         Scope.Entry e = syms.predefClass.members().lookup(opName);
-        while (e != null && e.sym != null) {
-            if (types.isSameType(((MethodType)e.sym.type).argtypes.head,argtype)) return e.sym;
-            e = e.next();
+        //Type unboxedArgtype = unboxedType(argtype);
+        if (true) {// || unboxedArgtype == argtype) {
+            while (e != null && e.sym != null) {
+                MethodType mt = (MethodType)e.sym.type;
+                if (types.isSameType(mt.argtypes.head,argtype)) return e.sym;
+                e = e.next();
+            }
+            if (argtype != syms.objectType && !argtype.isPrimitive()) return findOpSymbol(optag,syms.objectType);
+//        } else {
+//            argtype = unboxedArgtype;
+//            while (e != null && e.sym != null) {
+//                MethodType mt = (MethodType)e.sym.type;
+//                if (types.isSameType(mt.argtypes.head,argtype)) return e.sym;
+//                e = e.next();
+//            }
         }
-        if (argtype != syms.objectType && !argtype.isPrimitive()) return findOpSymbol(optag,syms.objectType);
         throw new JmlInternalError("The operation symbol " + opName + " for type " + argtype + " could not be resolved");
     }
+    
+    // FIXME - duplicated in JmlAssertionAdder
+    protected Type unboxedType(Type t) {
+        Type tt = types.unboxedType(t);
+        if (tt == Type.noType) tt = t;
+        return tt;
+    }
+
     
     /** Returns an attributed AST for "org.jmlspecs.utils.Utils.<methodName>" */
     public JCFieldAccess findUtilsMethod(int pos, String methodName) {
@@ -535,10 +554,24 @@ public class JmlTreeUtils {
 
     /** Returns the 'larger' of the two types as numeric types are compared;
      * not appropriate for Boolean types; floats test larger than long */
-    private Type maxType(Type lhs, Type rhs) {
+    public Type maxType(Type lhs, Type rhs) {
         Type t = lhs.tag >= rhs.tag || rhs.tag == TypeTags.BOT ? lhs : rhs;
         if (TypeTags.INT > t.tag) t = syms.intType;
         return t;
+    }
+    
+    public Type opType(Type lhs, Type rhs) {
+        Type lhsu = unboxedType(lhs);
+        Type rhsu = unboxedType(rhs);
+        if (lhsu.tag == TypeTags.BOOLEAN) return syms.booleanType;
+        if (!lhsu.isPrimitive() || !rhsu.isPrimitive()) return syms.stringType;
+        if (lhs == types.REAL || rhs == types.REAL) return types.REAL;
+        if (lhs == types.BIGINT || rhs == types.BIGINT) return types.BIGINT;
+        if (lhs == types.TYPE || rhs == types.TYPE) return types.TYPE;
+        if (TypeTags.INT >= lhsu.tag && TypeTags.INT >= rhsu.tag) return syms.intType;
+        if (TypeTags.LONG >= lhsu.tag && TypeTags.LONG >= rhsu.tag) return syms.longType;
+        if (TypeTags.DOUBLE >= lhsu.tag && TypeTags.DOUBLE >= rhsu.tag) return syms.doubleType;
+        throw new JmlInternalError("Unknown combined type for " + lhs + " and " + rhs);
     }
     
     /** Makes a Java unary operator node; it may be constant-folded

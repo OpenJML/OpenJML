@@ -114,6 +114,7 @@ public class SFBugs extends TCBase {
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "-esc","-progress");
     }
     
+    @Ignore // Can be very long running
     @Test public void sfbug414() {
     	expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5","-show","-method=Sqrt.sqrt","-subexpressions");

@@ -1497,6 +1497,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingString() {
+    	main.addOptions("-show");
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static int unbox(int i) { return i;}  \n"
                 +"public static Integer box(Integer i) { return i;}  \n"
