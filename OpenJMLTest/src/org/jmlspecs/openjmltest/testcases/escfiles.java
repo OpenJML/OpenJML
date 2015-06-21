@@ -147,7 +147,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","test/escDemo","-subexpressions");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","test/escDemo");
     }
 
     @Test
@@ -171,7 +171,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","test/escDemoB");
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","test/escDemoB","-method=tick","-show","-subexpressions","-escMaxWarnings=1");
     }
 
     @Test
@@ -200,13 +200,19 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testDemoD() {
+        expectedExit = 0;
+        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockD.java","test/escDemoD","-subexpressions");
+    }
+
+    @Test
     public void testDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
-    @Test
+    @Test // Problem with reasoning about generic types
     public void testDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
@@ -469,7 +475,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscConstructor4() {
-        helpTF("escConstructor4"); //,"-show","-method=Child.Child(java.lang.Object)","-checkFeasibility=debug");
+        helpTF("escConstructor4");
     }
     
     @Test

@@ -1,10 +1,10 @@
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock.java:31: error: An identifier with protected visibility may not be used in a assignable clause with public visibility
-      @  assignable hour, minute, second; // NB for expository purposes only
+      @  assignable hour, minute, second; // ERROR - these fields are not public
                     ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock.java:31: error: An identifier with protected visibility may not be used in a assignable clause with public visibility
-      @  assignable hour, minute, second; // NB for expository purposes only
+      @  assignable hour, minute, second; // ERROR - these fields are not public
                           ^
 ..\OpenJMLDemo\src\openjml\clock\TickTockClock.java:31: error: An identifier with protected visibility may not be used in a assignable clause with public visibility
-      @  assignable hour, minute, second; // NB for expository purposes only
+      @  assignable hour, minute, second; // ERROR - these fields are not public
                                   ^
 3 errors

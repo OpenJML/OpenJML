@@ -5331,6 +5331,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                       treeutils.makeIntLiteral(p, heapCount));
 //                    treeutils.makeBinary(p, JCTree.PLUS, treeutils.makeIdent(p,heapSym), treeutils.makeIntLiteral(p,1)));
             currentStatements.add(assign);
+            wellDefinedCheck.clear();
         }
         clearInvariants(); // FIXME - is this needed for rac?
     }
@@ -12167,11 +12168,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 newparamsWithHeap.add(treeutils.makeIdent(Position.NOPOS,heapSym));
             }
             JCIdent qthisid = null;
+            JCExpression qthisnn = null;
             if (!isStatic) {
                 JCVariableDecl newDecl = treeutils.makeVarDef(currentThisExpr.type, names.fromString("QTHIS"), methodDecl.sym, pos);
                 newDecls.add(newDecl);
                 qthisid = treeutils.makeIdent(callLocation,newDecl.sym);
                 newparamsWithHeap.add(qthisid);
+                qthisnn = treeutils.makeNotNull(qthisid.pos, qthisid);
             }
             currentThisExpr = currentThisId = qthisid;
             if (calleeSpecs != null && calleeSpecs.decl != null) {
@@ -12253,9 +12256,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     // FIXME - will need to add OLD and FORALL clauses in here
                     
-                    JCExpression pre = treeutils.trueLit;
+                    JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
                     if (qthisid != null && classType != syms.objectType) {
-                        pre = treeutils.trueLit;
                         // FIXME - not sure this is needed and it makes valid assertions harder to prove
                         pre = treeutils.makeInstanceOf(cs.pos,qthisid,classType);
                         pre = convertCopy(pre);
