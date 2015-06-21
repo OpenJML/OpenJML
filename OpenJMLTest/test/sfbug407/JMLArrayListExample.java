@@ -9,8 +9,9 @@ public JMLArrayListExample () {
 //@ assignable elements.objectState;
 //@ ensures (elements.contains(s));
 public void add(String s){
+    //@ reachable;
     elements.add(s);
-
+    //@ reachable;
 }
 
 public static void main (String[] args){

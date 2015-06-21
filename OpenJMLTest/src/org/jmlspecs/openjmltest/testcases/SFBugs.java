@@ -80,7 +80,7 @@ public class SFBugs extends TCBase {
     
     @Test public void sfbug407() {
     	expectedExit = 0;
-        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "-esc", "-progress","-show","-method=add","-checkFeasibility=debug");
+        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "-esc", "-progress");
     }
     
     @Test public void sfbug398() {

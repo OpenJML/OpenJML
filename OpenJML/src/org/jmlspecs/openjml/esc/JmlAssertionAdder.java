@@ -6229,7 +6229,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                     JCExpression e = fa.selected;
                                                     boolean isStatic = treeutils.isATypeTree(e);
                                                     for (VarSymbol v: utils.listJmlVisibleFields(e.type.tsym, Flags.PRIVATE, isStatic)) {
-                                                        if (!isModel(v) && isContainedIn(v,(VarSymbol)fa.sym)) { 
+                                                        if (isContainedIn(v,(VarSymbol)fa.sym)) { 
                                                             JCFieldAccess newfa = treeutils.makeSelect(location.pos, e, v);
                                                             JCExpression trfa= convertAssignable(newfa,newThisId == null ? null : (VarSymbol)newThisId.sym);
                                                             newlist.add(trfa);
