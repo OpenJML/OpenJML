@@ -1274,19 +1274,24 @@ public class JmlSpecs {
         if (decl.type.isPrimitive()) return false;
         makeAnnotationSymbols();
         if (decl.specsDecl != null) {
+            // FIXME specsDecl should not be null - it should point back to decl at a minimum
             if (utils.findMod(decl.specsDecl.mods, nullableAnnotationSymbol) != null) return false;
             if (utils.findMod(decl.specsDecl.mods, nonnullAnnotationSymbol) != null) return true;
-        } 
+        } else {
+            if (utils.findMod(decl.mods, nullableAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.mods, nonnullAnnotationSymbol) != null) return true;
+        }
             
         // Need the owning class - fields are owned by the class, but parameters and local variables are owned by the method
         Symbol owner = decl.sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
-        JmlClassDecl cdecl = (JmlClassDecl)JmlEnter.instance(context).getEnv((Symbol.TypeSymbol)owner).tree;
-        if (cdecl.specsDecls == cdecl || cdecl.specsDecls == null) {
-            if (utils.findMod(decl.mods, nullableAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.mods, nonnullAnnotationSymbol) != null) return true;
+        Env<AttrContext> env = JmlEnter.instance(context).getEnv((Symbol.TypeSymbol)owner);
+        if (env != null) {
+            JmlClassDecl cdecl = (JmlClassDecl)env.tree;
+            return isNonNull(cdecl);
+        } else {
+            return defaultNullity((ClassSymbol)owner) == JmlToken.NONNULL;
         }
-        return isNonNull(cdecl);
     }
     
     public boolean isNonNull(JmlClassDecl decl) { // FIXM E- change this to return the token that defines the nullity
