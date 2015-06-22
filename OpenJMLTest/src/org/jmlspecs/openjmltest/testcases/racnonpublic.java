@@ -39,12 +39,12 @@ public class racnonpublic extends RacBase {
     }
 
 
-    @Test
+    @Test // FIXME - crashes in code generation
     public void racSokoban() {
         String dir = "../OpenJMLDemoNonPublic/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
-        helpTCF(dir,dir,"Game","-cp",dir,"-progress","-show");
+        helpTCF(dir,dir,"Game","-cp",dir,"-progress");
     }
 
     @Test

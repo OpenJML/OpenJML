@@ -226,7 +226,7 @@ public class escfiles extends EscBase {
         helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","test/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
-    @Test // FIXME - Problem with int / sort conversions
+    @Test // FIXME - Problem with int / short conversions
     public void testDemoTime() {
         expectedExit = 0;
         helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","test/escDemoTime","-logic=AUFNIA");

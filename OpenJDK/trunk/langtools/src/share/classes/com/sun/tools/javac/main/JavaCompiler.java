@@ -902,16 +902,18 @@ public class JavaCompiler implements ClassReader.SourceCompleter {
 
     private List<JCClassDecl> rootClasses;
 
+    public Set<JavaFileObject> filesSoFar = new HashSet<JavaFileObject>();
+
     /**
      * Parses a list of files.
      */
-   public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
+    public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
        if (shouldStop(CompileState.PARSE))
            return List.nil();
 
         //parse all files
         ListBuffer<JCCompilationUnit> trees = lb();
-        Set<JavaFileObject> filesSoFar = new HashSet<JavaFileObject>();
+        filesSoFar.clear();
         for (JavaFileObject fileObject : fileObjects) {
             if (!filesSoFar.contains(fileObject)) {
                 filesSoFar.add(fileObject);
