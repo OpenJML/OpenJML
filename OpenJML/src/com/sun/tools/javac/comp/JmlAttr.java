@@ -1369,7 +1369,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void deSugarMethodSpecs(JmlMethodDecl decl, JmlSpecs.MethodSpecs msp) {
         //log.noticeWriter.println("DESUGARING " + decl.sym.owner + " " + decl.sym + decl.toString());
         if (msp == null) return;
-//        if (decl.name.toString().equals("m")) Utils.print(null);
         JmlMethodSpecs methodSpecs = msp.cases;
         Env<AttrContext> prevEnv = env;
         

@@ -136,6 +136,7 @@ public class JmlCompiler extends JavaCompiler {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + specsFile);
                     jmlcu.specsCompilationUnit = jmlcu;
                 } else {
+                    filesSoFar.add(specsFile);
                     jmlcu.specsCompilationUnit = parseSingleFile(specsFile);
                 }
 
