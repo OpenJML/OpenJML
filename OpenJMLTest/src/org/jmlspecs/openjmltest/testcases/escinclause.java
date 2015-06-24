@@ -13,15 +13,14 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escinclause extends EscBase {
 
-    public escinclause(String option, String solver) {
-        super(option,solver);
+    public escinclause(String options, String solver) {
+        super(options,solver);
     }
         
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
         //main.addOptions("-jmlverbose");
         //main.addOptions("-method",   "m2bad");
         //main.addOptions("-jmldebug");

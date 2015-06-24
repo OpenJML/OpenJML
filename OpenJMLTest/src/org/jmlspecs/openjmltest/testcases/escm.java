@@ -9,15 +9,14 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escm extends EscBase {
     
-    public escm(String option, String solver) {
-        super(option,solver);
+    public escm(String options, String solver) {
+        super(options,solver);
     }
     
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("-jmltesting");
         main.addOptions("-code-math=java");
     }
     

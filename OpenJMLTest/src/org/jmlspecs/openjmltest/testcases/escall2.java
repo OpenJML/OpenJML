@@ -11,8 +11,8 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escall2 extends EscBase {
 
-    public escall2(String option, String solver) {
-        super(option,solver);
+    public escall2(String options, String solver) {
+        super(options,solver);
     }
 
 
@@ -21,7 +21,6 @@ public class escall2 extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-nullableByDefault"); // Tests were written this way
-        main.addOptions("-jmltesting");
     }
 
     @Test

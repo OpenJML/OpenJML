@@ -14,8 +14,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escnew3 extends EscBase {
 
-    public escnew3(String option, String solver) {
-        super(option,solver);
+    public escnew3(String options, String solver) {
+        super(options,solver);
     }
     
     // Test well-definedness within the implicit old

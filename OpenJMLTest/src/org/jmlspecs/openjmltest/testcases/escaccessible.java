@@ -13,8 +13,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escaccessible extends EscBase {
 
-    public escaccessible(String option, String solver) {
-        super(option,solver);
+    public escaccessible(String options, String solver) {
+        super(options,solver);
     }
     
     @Test @Ignore

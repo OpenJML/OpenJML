@@ -8505,6 +8505,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (that.name.toString().equals("super")) {
                 result = eresult = currentThisExpr != null ? convertCopy(currentThisExpr) : convertCopy(that); // FIXME - want this instead of super
 
+            } else if (that.name.equals(heapVarName)) {
+                result = eresult = convertCopy(that);
+
             } else if (sym instanceof Symbol.TypeSymbol) {
                 Type t = that.type;
                 if (t instanceof Type.TypeVar) {
@@ -12165,7 +12168,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCVariableDecl> newDecls = new ListBuffer<JCVariableDecl>();
             ListBuffer<JCExpression> newparamsWithHeap = new ListBuffer<JCExpression>();
             if (!isFunction) {
-                newparamsWithHeap.add(treeutils.makeIdent(Position.NOPOS,heapSym));
+                newparamsWithHeap.add(convert(treeutils.makeIdent(Position.NOPOS,heapSym)));
             }
             JCIdent qthisid = null;
             JCExpression qthisnn = null;

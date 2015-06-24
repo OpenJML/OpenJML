@@ -10,8 +10,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class esccode extends EscBase {
 
-    public esccode(String option, String solver) {
-        super(option,solver);
+    public esccode(String options, String solver) {
+        super(options,solver);
     }
     
 

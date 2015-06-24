@@ -18,7 +18,6 @@ public class escall3 extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         //print = true;
-        main.addOptions("-jmltesting");
     }
     
     @Test

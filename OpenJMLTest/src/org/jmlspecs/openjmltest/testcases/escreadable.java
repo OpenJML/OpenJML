@@ -21,7 +21,6 @@ public class escreadable extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
         //main.addOptions("-jmlverbose");
         //main.addOptions("-method",   "m2bad");
         //main.addOptions("-jmldebug");

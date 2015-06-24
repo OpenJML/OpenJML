@@ -13,8 +13,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escenums extends EscBase {
 
-    public escenums(String option, String solver) {
-        super(option,solver);
+    public escenums(String options, String solver) {
+        super(options,solver);
     }
     
     @Test

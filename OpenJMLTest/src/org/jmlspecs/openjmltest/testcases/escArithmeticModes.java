@@ -15,8 +15,8 @@ public class escArithmeticModes extends EscBase {
 //        super("",isWindows?null:"cvc4");
 //    }
 
-    public escArithmeticModes(String option, String solver) {
-        super(option,solver);
+    public escArithmeticModes(String options, String solver) {
+        super(options,solver);
     }
     
     // FIXME - the -custom option fails significantly when escdebug and -trace are on
@@ -26,8 +26,6 @@ public class escArithmeticModes extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
-        main.addOptions("-jmltesting");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;

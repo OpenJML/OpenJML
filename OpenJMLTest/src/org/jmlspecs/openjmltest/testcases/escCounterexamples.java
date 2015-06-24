@@ -19,25 +19,17 @@ import org.junit.runners.Parameterized.Parameters;
  *
  */
 @RunWith(ParameterizedWithNames.class)
-public class counterexamples extends EscBase {
+public class escCounterexamples extends EscBase {
 
-    public counterexamples(String option, String solver) {
-        super(option,solver);
+    public escCounterexamples(String options, String solver) {
+        super(options,solver);
     }
-
-//    @Parameters // FIXME add back solver, boogie and custom tests
-//    static public  Collection<String[]> datax() {
-//        Collection<String[]> data = new ArrayList<String[]>(10);
-//        data.add(new String[]{"",null}); 
-//        return data;
-//    }
 
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         main.addOptions("-trace","-counterexample");
-        main.addOptions("-jmltesting");
         main.addOptions("-code-math=java");
     }
     

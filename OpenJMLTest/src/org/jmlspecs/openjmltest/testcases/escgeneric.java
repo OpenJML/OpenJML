@@ -16,16 +16,16 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escgeneric extends EscBase {
 
+
+    public escgeneric(String options, String solver) {
+        super(options,solver);
+    }
+
     @Parameters
-    static public  Collection<String[]> nonnulldatax() {
-        return (makeData(options,solvers));
+    static public Collection<String[]> parameters() {
+        return minQuantAndSolvers(solvers);
     }
     
-
-    public escgeneric(String option, String solver) {
-        super(option,solver);
-    }
-
 
     @Override
     public void setUp() throws Exception {
@@ -34,7 +34,6 @@ public class escgeneric extends EscBase {
         super.setUp();
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
-        main.addOptions("-jmltesting");
         main.addOptions("-timeout=30");
     }
     

@@ -15,17 +15,15 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnowarn extends EscBase {
 
-    public escnowarn(String option, String solver) {
-        super(option,solver);
+    public escnowarn(String options, String solver) {
+        super(options,solver);
     }
     
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this wasy
         //JmlEsc.escdebug = true;
-        main.addOptions("-jmltesting");
     }
     
     @Test

@@ -42,25 +42,10 @@ public class escfiles extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public escfiles(String option, String solver) {
-        super(option,solver);
+    public escfiles(String options, String solver) {
+        super(options,solver);
     }
     
-    @Parameters
-    static public  Collection<String[]> nonnulldatax() {
-        return (makeData(solvers));
-    }
-    
-    static public  Collection<String[]> makeData(java.util.List<String> solvers) {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) {
-            data.add(new String[]{"-no-minQuant",s});
-            data.add(new String[]{"-minQuant",s});
-        }
-        // FIXME: data.add(new String[]{"-boogie",null}); 
-        return data;
-    }
-
     
     String[] rac = null;
     
@@ -92,55 +77,7 @@ public class escfiles extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-        boolean print = false;
-        try {
-            new File(outDir).mkdirs();
-            String actCompile = outDir + "/actual";
-            new File(actCompile).delete();
-            List<String> args = new LinkedList<String>();
-            args.add("-esc");
-            args.add("-no-purityCheck");
-            args.add("-jmltesting");
-            args.add("-progress");
-            args.add("-timeout=300");
-            args.add("-code-math=java");
-            args.add("-minQuant");
-            if (new File(sourceDirname).isDirectory()) args.add("-dir");
-            args.add(sourceDirname);
-            if (solver != null) args.add("-prover="+solver);
-            if (option != null) {
-                for (String o: option.split(" ")) if (!o.isEmpty()) args.add(o);
-            }
-            
-            args.addAll(Arrays.asList(opts));
-            
-            PrintWriter pw = new PrintWriter(actCompile);
-            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-            pw.close();
-            
-            String diffs = compareFiles(outDir + "/expected", actCompile);
-            int n = 0;
-            while (diffs != null) {
-                n++;
-                String name = outDir + "/expected" + n;
-                if (!new File(name).exists()) break;
-                diffs = compareFiles(name, actCompile);
-            }
-            if (diffs != null) {
-                System.out.println(diffs);
-                fail("Files differ: " + diffs);
-            }  
-            new File(actCompile).delete();
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            throw e;
-        } finally {
-            // Should close open objects
-        }
+    	escOnFiles(sourceDirname,outDir,opts);
     }
 
 

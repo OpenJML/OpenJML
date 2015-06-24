@@ -1,5 +1,6 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
@@ -12,17 +13,17 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
     
-    public escstrings(String option, String solver) {
-        super(option,solver);
+    public escstrings(String options, String solver) {
+        super(options,solver);
     }
     
     @Parameters
-    static public  Collection<String[]> datax() {
+    static public Collection<String[]> parameters() {
         java.util.List<String> ss = new java.util.LinkedList<String>();
         ss.addAll(solvers);
         ss.remove("cvc4"); // FIXME - hangs up on CVC4 - fix the long proof times
         ss.remove("yices2"); // FIXME - yices2 does not support quantifiers and so works poorly with strings
-        return makeData(ss);
+        return optionsAndSolvers(minQuantOptions,ss);
     }
     
 

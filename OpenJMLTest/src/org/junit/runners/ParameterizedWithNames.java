@@ -104,7 +104,9 @@ public class ParameterizedWithNames extends Suite
         }
         
         String toString(Object o) {
-            if (o.getClass().isArray()) {
+        	if (o == null) {
+        		return "null";
+        	} else if (o.getClass().isArray()) {
                 return arrayToString((Object[])o);
             } else if (o instanceof String) {
                 return o.toString();

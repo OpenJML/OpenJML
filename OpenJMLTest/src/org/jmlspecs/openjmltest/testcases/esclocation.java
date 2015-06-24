@@ -15,21 +15,19 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class esclocation extends EscBase {
 
-    public esclocation(String option, String solver) {
-        super(option,solver);
+    public esclocation(String options, String solver) {
+        super(options,solver);
     }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-jmlverbose");
         //main.addOptions("-jmldebug");
         //main.addOptions("-noInternalSpecs");
         //JmlEsc.escdebug = true;
-        main.addOptions("-jmltesting");
     }
     
     @Test

@@ -22,8 +22,13 @@ public class esc extends EscBase {
 //        super("",isWindows?null:"cvc4");
 //    }
 
-    public esc(String option, String solver) {
-        super(option,solver);
+    public esc(String options, String solver) {
+        super(options,solver);
+    }
+    
+    @Parameters
+    static public Collection<String[]> parameters() {
+        return minQuantAndSolvers(solvers);
     }
     
     // FIXME = significant failures in boogie
@@ -32,8 +37,6 @@ public class esc extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
-        main.addOptions("-jmltesting");
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;

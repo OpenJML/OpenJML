@@ -3,12 +3,17 @@ package org.jmlspecs.openjmltest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 
 import javax.tools.JavaFileObject;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Utils;
@@ -36,62 +41,110 @@ public abstract class EscBase extends JmlTestCase {
  //            "simplify" 
             });
         
-    static public java.util.List<String[]> options = java.util.Arrays.asList(new String[][]{ 
+    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
+    		null,
+            "z3_4_3", 
+ //           "cvc4",
+            //"yices2",
+ //             "yices", 
+ //            "simplify" 
+            });
+        
+    static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
             new String[]{"-minQuant"}, 
             new String[]{"-no-minQuant"}, 
             });
         
-    static public  Collection<String[]> datax() {
-        Collection<String[]> data = new ArrayList<String[]>(10);
-        data.addAll(makeData(solvers));
-        data.addAll(makeData((String)null)); // FIXME - Boogie twice?
-        return data;
-    }
-    
+    /** The parameters must be a String[] and a String */
     @Parameters
-    static public  Collection<String[]> nonnulldatax() {
-        return (makeData(solvers));
+    static public Collection<String[]> parameters() {
+        return minQuantAndSolvers(solvers);
     }
     
-    static public  Collection<String[]> makeData(java.util.List<String[]> options, java.util.List<String> solvers) {
+    static public Collection<String[]> solversOnly() {
+        return makeParameters(solvers);
+    }
+    
+    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
+    
+    static public  Collection<String[]> minQuantAndSolvers(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
-            for (String[] option: options) {
-                data.add(new String[]{option[0],s}); // Fix to concatenate - FIXME
+            data.add(new String[]{"-no-minQuant",s});
+            data.add(new String[]{"-minQuant",s});
+        }
+        return data;
+    }
+
+    static public  Collection<String[]> optionsAndSolvers(String[] options, java.util.List<String> solvers) {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        for (String s: solvers) {
+        	for (String opts: options) {
+        		data.add(new String[]{opts,s});
+        	}
+        }
+        return data;
+    }
+
+    
+    static public  Collection<String[]> makeParameters(java.util.List<String> options, java.util.List<String> solvers) {
+        Collection<String[]> data = new ArrayList<String[]>(10);
+        for (String s: solvers) {
+            for (String option: options) {
+                data.add(new String[]{option,s});
             }
         }
-        // FIXME: data.add(new String[]{"-boogie",null}); 
         return data;
     }
 
-    static public  Collection<String[]> makeData(java.util.List<String> solvers) {
+    static public  Collection<String[]> makeParameters(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"",s});
-        // FIXME: data.add(new String[]{"-boogie",null}); 
+        for (String s: solvers) data.add(new String[]{null,s});
         return data;
     }
 
-    static public  Collection<String[]> makeData(String... solvers) {
+    static public  Collection<String[]> makeParameters(String... solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
-        for (String s: solvers) data.add(new String[]{"",s});
-        // FIXME: data.add(new String[]{"-boogie",null}); 
+        for (String s: solvers) data.add(new String[]{null,s});
         return data;
+    }
+    
+    static public void addOptionsToArgs(String options, java.util.List<String> args) {
+        if (options != null) {
+            if (options.indexOf(',')>= 0) {
+            	for (String o: options.split(",")) if (!o.isEmpty()) args.add(o);
+            } else {
+            	for (String o: options.split(" ")) if (!o.isEmpty()) args.add(o);
+            }
+        }
+    }
+    
+    public void addOptions(String options) {
+        if (options != null) {
+            if (options.indexOf(',')>= 0) {
+            	main.addOptions(options.split(","));
+            } else {
+            	main.addOptions(options.split(","));
+            }
+        }
     }
     
     protected static boolean runLongTests = false;
     
 
-    protected String option;
+    /** options is a comma- or space-separated list of options to be added */
+    protected String options;
     protected String solver;
     protected boolean captureOutput = false;
     
-    public EscBase(String option, String solver) {
-        this.option = option;
+    /** options is a comma- or space-separated list of options to be added */
+    public EscBase(String options, String solver) {
+        this.options = options;
         this.solver = solver;
     }
     
     public void printDiagnostics() {
-        System.out.println("SOLVER: " + solver + " " + option);
+        System.out.println("SOLVER: " + solver + " " + options);
         super.printDiagnostics();
     }
 
@@ -115,8 +168,9 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-no-purityCheck");
         main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        setOption(option,solver);
-        //main.setupOptions();
+        main.addUncheckedOption("openjml.defaultProver=z3_4_3");
+        addOptions(options);
+        if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);
         expectedExit = 0;
         expectedErrors = 0;
@@ -126,29 +180,61 @@ public abstract class EscBase extends JmlTestCase {
         MethodProverSMT.benchmarkName = 
                 (this.getClass() + "." + testname.getMethodName()).replace("[0]", "").substring(6);
     }
+
+    public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
+    	boolean print = false;
+    	try {
+    		java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
+    		String actCompile = outDir + "/actual";
+    		new File(actCompile).delete();
+    		PrintWriter pw = new PrintWriter(actCompile);
+    		int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    		pw.close();
+
+    		String diffs = compareFiles(outDir + "/expected", actCompile);
+    		int n = 0;
+    		while (diffs != null) {
+    			n++;
+    			String name = outDir + "/expected" + n;
+    			if (!new File(name).exists()) break;
+    			diffs = compareFiles(name, actCompile);
+    		}
+    		if (diffs != null) {
+    			System.out.println(diffs);
+    			fail("Files differ: " + diffs);
+    		}  
+    		new File(actCompile).delete();
+    		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+
+    	} catch (Exception e) {
+    		e.printStackTrace(System.out);
+    		fail("Exception thrown while processing test: " + e);
+    	} catch (AssertionError e) {
+    		throw e;
+    	} finally {
+    		// Should close open objects
+    	}
+    }
+
+    public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+        new File(outDir).mkdirs();
+        java.util.List<String> args = new LinkedList<String>();
+        args.add("-esc");
+        args.add("-no-purityCheck");
+        args.add("-jmltesting");
+        args.add("-progress");
+        args.add("-timeout=300");
+        args.add("-code-math=java");
+        if (new File(sourceDirname).isDirectory()) args.add("-dir");
+        args.add(sourceDirname);
+        if (solver != null) args.add("-prover="+solver);
+        addOptionsToArgs(options,args);        
+        args.addAll(Arrays.asList(opts));
+        return args;
+    }
     
-    protected void setOption(String option) {
-        if (option == null) {
-            // nothing set
-        } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-        } else {
-            main.addUncheckedOption("openjml.defaultProver=z3_4_3");
-        }
-    }
-
-    protected void setOption(String option, String solver) {
-        if (option == null) {
-            // nothing set
-        } else if (option.equals("-boogie")) {
-            main.addUncheckedOption(JmlOption.BOOGIE.optionName());
-        } else {
-            main.addUncheckedOption("openjml.defaultProver=z3_4_3");
-        }
-        // solver == null means use the default
-        if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
-    }
-
+    
+    
     @Override
     public void tearDown() throws Exception {
         super.tearDown();

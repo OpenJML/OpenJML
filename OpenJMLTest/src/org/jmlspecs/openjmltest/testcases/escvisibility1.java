@@ -11,15 +11,14 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escvisibility1 extends EscBase {
 
-    public escvisibility1(String option, String solver) {
-        super(option, solver);
+    public escvisibility1(String options, String solver) {
+        super(options, solver);
     }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         main.addOptions("-classpath",   testspecpath);

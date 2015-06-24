@@ -13,8 +13,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escnewBoxing extends EscBase {
 
-    public escnewBoxing(String option, String solver) {
-        super(option,solver);
+    public escnewBoxing(String options, String solver) {
+        super(options,solver);
     }
     
     @Override

@@ -13,8 +13,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class esccallable extends EscBase {
 
-    public esccallable(String option, String solver) {
-        super(option,solver);
+    public esccallable(String options, String solver) {
+        super(options,solver);
     }
     
     @Test

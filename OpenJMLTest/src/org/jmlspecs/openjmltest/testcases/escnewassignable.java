@@ -22,8 +22,8 @@ public class escnewassignable extends EscBase {
     // a[i] a[i..j] a[*] a[i..*] a[*..j] a[*..*]
     // \everything \nothing \not_specified
     
-    public escnewassignable(String option, String solver) {
-        super(option,solver);
+    public escnewassignable(String options, String solver) {
+        super(options,solver);
     }
 
     @Override
@@ -31,7 +31,6 @@ public class escnewassignable extends EscBase {
         //noCollectDiagnostics = true;
         super.setUp();
         //print = true;
-        main.addOptions("-jmltesting");
     }
 
     @Test

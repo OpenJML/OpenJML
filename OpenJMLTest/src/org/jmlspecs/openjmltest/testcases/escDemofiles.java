@@ -6,9 +6,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Assume;
 import org.junit.Ignore;
@@ -16,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
+import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check running ESC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 
@@ -33,12 +36,17 @@ import org.junit.runners.ParameterizedWithNames;
  */
 
 @RunWith(ParameterizedWithNames.class)
-public class demofiles extends EscBase {
+public class escDemofiles extends EscBase {
 
     boolean enableSubexpressions = false;
     
-    public demofiles(String option, String solver) {
-        super(option,solver);
+    public escDemofiles(String options, String solver) {
+        super(options,solver);
+    }
+    
+    @Parameters
+    static public Collection<String[]> parameters() {
+        return minQuantAndSolvers(solvers);
     }
     
     String[] rac = null;
@@ -61,47 +69,22 @@ public class demofiles extends EscBase {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-        boolean print = false;
-        try {
-            new File(outDir).mkdirs();
-            String actCompile = outDir + "/actual";
-            new File(actCompile).delete();
-            List<String> args = new LinkedList<String>();
-            args.add("-esc");
-            args.add("-jmltesting");
-            args.add("-no-purityCheck");
-            args.add("-dir");
-            args.add(sourceDirname);
-            args.addAll(Arrays.asList(opts));
-            
-            PrintWriter pw = new PrintWriter(actCompile);
-            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-            pw.close();
-            
-            String diffs = compareFiles(outDir + "/expected", actCompile);
-            int n = 0;
-            while (diffs != null) {
-                n++;
-                String name = outDir + "/expected" + n;
-                if (!new File(name).exists()) break;
-                diffs = compareFiles(name, actCompile);
-            }
-            if (diffs != null) {
-                System.out.println(diffs);
-                fail("Files differ: " + diffs);
-            }  
-            new File(actCompile).delete();
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            throw e;
-        } finally {
-            // Should close open objects
-        }
+    	escOnFiles(sourceDirname,outDir,opts);
     }
+
+    public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+        new File(outDir).mkdirs();
+        java.util.List<String> args = new LinkedList<String>();
+        args.add("-esc");
+        args.add("-jmltesting");
+        args.add("-no-purityCheck");
+        args.add("-dir");
+        args.add(sourceDirname);
+        addOptionsToArgs(options,args);
+        args.addAll(Arrays.asList(opts));
+        return args;
+    }
+    
 
 
     @Test

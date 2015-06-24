@@ -9,8 +9,8 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escConstantFields extends EscBase {
 
-    public escConstantFields(String option, String solver) {
-        super(option,solver);
+    public escConstantFields(String options, String solver) {
+        super(options,solver);
     }
     
     @Test

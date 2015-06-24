@@ -13,16 +13,14 @@ import org.junit.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew extends EscBase {
 
-    public escnew(String option, String solver) {
-        super(option,solver);
+    public escnew(String options, String solver) {
+        super(options,solver);
     }
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-purityCheck=false");
-        main.addOptions("-jmltesting");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
