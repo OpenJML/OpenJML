@@ -1,0 +1,36 @@
+## Copies a new version of the vendor branch on top of the old one, doing
+## svn add and delete commands as necessary. Modified files are just copied 
+## on top of the old.
+
+OLD=OpenJDK/trunk
+NEW=openjdk-7u6
+
+## Changed files
+diff -rq $NEW/langtools $OLD/langtools | grep differ | sed -e 's/ and / /' | sed -e 's/differ//' | sed -s 's/Files/cp /' > out
+. ./out
+
+## New files
+for f in `diff -rq $NEW/langtools $OLD/langtools | grep Only | grep $NEW | grep -v hgtags | grep -v hgignore | grep -v jcheck | sed -e 's/Only in//'| sed -e 'sx: x/x'` ; do
+ff=`echo $f | sed -e s:$NEW:$OLD:`
+
+if [ -d $f ] ; then
+    cp -r $f $ff
+    svn add $ff
+else
+    cp -r $f $ff
+    svn add $ff
+    echo ADDING $ff
+fi
+   
+done
+
+## Deleted files
+for f in `diff -rq $NEW/langtools $OLD/langtools | grep Only | grep -v '.project' | grep trunk | sed -e 's/Only in//'| sed -e 'sx: x/x'` ; do
+    echo DELETE $f
+    svn delete $f
+done
+
+## Final check
+echo Check results
+diff -rq $NEW/langtools $OLD/langtools
+rm -f out

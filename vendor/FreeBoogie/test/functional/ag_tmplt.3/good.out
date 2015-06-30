@@ -1,0 +1,330 @@
+
+
+// array_type
+public class ArrayType {
+  private static ArrayType array_type; // first instance
+  public ArrayType() { 
+    if (array_type == null) array_type = this;
+  }
+}
+
+// assert_assume_cmd
+public class AssertAssumeCmd {
+  private static AssertAssumeCmd assert_assume_cmd; // first instance
+  public AssertAssumeCmd() { 
+    if (assert_assume_cmd == null) assert_assume_cmd = this;
+  }
+}
+
+// assignment_cmd
+public class AssignmentCmd {
+  private static AssignmentCmd assignment_cmd; // first instance
+  public AssignmentCmd() { 
+    if (assignment_cmd == null) assignment_cmd = this;
+  }
+}
+
+// atom
+public class Atom {
+  private static Atom atom; // first instance
+  public Atom() { 
+    if (atom == null) atom = this;
+  }
+}
+
+// atom_cast
+public class AtomCast {
+  private static AtomCast atom_cast; // first instance
+  public AtomCast() { 
+    if (atom_cast == null) atom_cast = this;
+  }
+}
+
+// atom_fun
+public class AtomFun {
+  private static AtomFun atom_fun; // first instance
+  public AtomFun() { 
+    if (atom_fun == null) atom_fun = this;
+  }
+}
+
+// atom_id
+public class AtomId {
+  private static AtomId atom_id; // first instance
+  public AtomId() { 
+    if (atom_id == null) atom_id = this;
+  }
+}
+
+// atom_lit
+public class AtomLit {
+  private static AtomLit atom_lit; // first instance
+  public AtomLit() { 
+    if (atom_lit == null) atom_lit = this;
+  }
+}
+
+// atom_num
+public class AtomNum {
+  private static AtomNum atom_num; // first instance
+  public AtomNum() { 
+    if (atom_num == null) atom_num = this;
+  }
+}
+
+// atom_old
+public class AtomOld {
+  private static AtomOld atom_old; // first instance
+  public AtomOld() { 
+    if (atom_old == null) atom_old = this;
+  }
+}
+
+// atom_quant
+public class AtomQuant {
+  private static AtomQuant atom_quant; // first instance
+  public AtomQuant() { 
+    if (atom_quant == null) atom_quant = this;
+  }
+}
+
+// axiom
+public class Axiom {
+  private static Axiom axiom; // first instance
+  public Axiom() { 
+    if (axiom == null) axiom = this;
+  }
+}
+
+// binary_op
+public class BinaryOp {
+  private static BinaryOp binary_op; // first instance
+  public BinaryOp() { 
+    if (binary_op == null) binary_op = this;
+  }
+}
+
+// block
+public class Block {
+  private static Block block; // first instance
+  public Block() { 
+    if (block == null) block = this;
+  }
+}
+
+// block_end
+public class BlockEnd {
+  private static BlockEnd block_end; // first instance
+  public BlockEnd() { 
+    if (block_end == null) block_end = this;
+  }
+}
+
+// body
+public class Body {
+  private static Body body; // first instance
+  public Body() { 
+    if (body == null) body = this;
+  }
+}
+
+// call_cmd
+public class CallCmd {
+  private static CallCmd call_cmd; // first instance
+  public CallCmd() { 
+    if (call_cmd == null) call_cmd = this;
+  }
+}
+
+// command
+public class Command {
+  private static Command command; // first instance
+  public Command() { 
+    if (command == null) command = this;
+  }
+}
+
+// commands
+public class Commands {
+  private static Commands commands; // first instance
+  public Commands() { 
+    if (commands == null) commands = this;
+  }
+}
+
+// constant_decl
+public class ConstantDecl {
+  private static ConstantDecl constant_decl; // first instance
+  public ConstantDecl() { 
+    if (constant_decl == null) constant_decl = this;
+  }
+}
+
+// declaration
+public class Declaration {
+  private static Declaration declaration; // first instance
+  public Declaration() { 
+    if (declaration == null) declaration = this;
+  }
+}
+
+// expr
+public class Expr {
+  private static Expr expr; // first instance
+  public Expr() { 
+    if (expr == null) expr = this;
+  }
+}
+
+// exprs
+public class Exprs {
+  private static Exprs exprs; // first instance
+  public Exprs() { 
+    if (exprs == null) exprs = this;
+  }
+}
+
+// function
+public class Function {
+  private static Function function; // first instance
+  public Function() { 
+    if (function == null) function = this;
+  }
+}
+
+// havoc_cmd
+public class HavocCmd {
+  private static HavocCmd havoc_cmd; // first instance
+  public HavocCmd() { 
+    if (havoc_cmd == null) havoc_cmd = this;
+  }
+}
+
+// identifier
+public class Identifier {
+  private static Identifier identifier; // first instance
+  public Identifier() { 
+    if (identifier == null) identifier = this;
+  }
+}
+
+// identifiers
+public class Identifiers {
+  private static Identifiers identifiers; // first instance
+  public Identifiers() { 
+    if (identifiers == null) identifiers = this;
+  }
+}
+
+// implementation
+public class Implementation {
+  private static Implementation implementation; // first instance
+  public Implementation() { 
+    if (implementation == null) implementation = this;
+  }
+}
+
+// index
+public class Index {
+  private static Index index; // first instance
+  public Index() { 
+    if (index == null) index = this;
+  }
+}
+
+// local_decls
+public class LocalDecls {
+  private static LocalDecls local_decls; // first instance
+  public LocalDecls() { 
+    if (local_decls == null) local_decls = this;
+  }
+}
+
+// matrix_type
+public class MatrixType {
+  private static MatrixType matrix_type; // first instance
+  public MatrixType() { 
+    if (matrix_type == null) matrix_type = this;
+  }
+}
+
+// parameters
+public class Parameters {
+  private static Parameters parameters; // first instance
+  public Parameters() { 
+    if (parameters == null) parameters = this;
+  }
+}
+
+// primitive_type
+public class PrimitiveType {
+  private static PrimitiveType primitive_type; // first instance
+  public PrimitiveType() { 
+    if (primitive_type == null) primitive_type = this;
+  }
+}
+
+// procedure
+public class Procedure {
+  private static Procedure procedure; // first instance
+  public Procedure() { 
+    if (procedure == null) procedure = this;
+  }
+}
+
+// program
+public class Program {
+  private static Program program; // first instance
+  public Program() { 
+    if (program == null) program = this;
+  }
+}
+
+// specification
+public class Specification {
+  private static Specification specification; // first instance
+  public Specification() { 
+    if (specification == null) specification = this;
+  }
+}
+
+// type
+public class Type {
+  private static Type type; // first instance
+  public Type() { 
+    if (type == null) type = this;
+  }
+}
+
+// type_decl
+public class TypeDecl {
+  private static TypeDecl type_decl; // first instance
+  public TypeDecl() { 
+    if (type_decl == null) type_decl = this;
+  }
+}
+
+// unary_op
+public class UnaryOp {
+  private static UnaryOp unary_op; // first instance
+  public UnaryOp() { 
+    if (unary_op == null) unary_op = this;
+  }
+}
+
+// variable_decl
+public class VariableDecl {
+  private static VariableDecl variable_decl; // first instance
+  public VariableDecl() { 
+    if (variable_decl == null) variable_decl = this;
+  }
+}
+
+// variable_decls
+public class VariableDecls {
+  private static VariableDecls variable_decls; // first instance
+  public VariableDecls() { 
+    if (variable_decls == null) variable_decls = this;
+  }
+}
+

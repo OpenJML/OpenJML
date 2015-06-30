@@ -1,0 +1,45 @@
+<html>
+<head></head>
+
+<body>
+
+<p>Interface for doing prover queries</p>
+
+<p><b>Author</b>: rgrig, based on work of mjm, reviewed by NAME (DATE)</p>
+
+<p>This package is responsible for building prover queries and
+for querying the prover(s). As a small bonus, there is runtime
+check that the queries are well-sorted (or typed, whatever you
+prefer, but I shall use `sorted' to not confuse it with Java
+types).</p>
+
+<p>The clients of this package should get a Prover instance,
+build queries using the Builder provided by the Prover, and
+use the Prover to ask if queries are theorems or not.</p>
+
+<p>(NOTE: A formula is a term whose sort is PRED.)</p>
+
+<p>There are three types of terms. The most general is 
+<tt>term_id(a1, ..., an)</tt>, that is, it has an identifier,
+gets applied to a number (possibly 0) of arguments and returns
+a value. It's sort is <tt>t1 x ... x tn -&gt; t</tt>. A constant
+is just the case <tt>n=0</tt>. Before using a term it has
+to be registered, that is, you have to tell the builder that
+<tt>term_id: t1 x ... x tn -&gt; t</tt> is going to be used. Surely,
+having to register the constants "1", "2", "41" individually
+would be unpleasant. That's why the second type of term
+is a facility that makes it easy to use such constants.
+Informally, you register <tt>const_int : JavaInteger -&gt; ProverInt</tt>.
+Finally, for associative-commutative operators it is convenient
+to allow a variable number of arguments. That is the third type
+of term.</p>
+
+<p>The Prover interface is also small. One can push/pop assumptions,
+make queries, and optionally inquire about details of the query
+answer. (The simple answer is a boolean, or an exception.)
+</p>
+
+
+</body>
+
+</html>

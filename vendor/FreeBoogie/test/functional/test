@@ -1,0 +1,113 @@
+#!/bin/bash 
+
+# Results
+FAILED=""
+PASSED=""
+
+# Reporting functions
+error() {
+    if (( $VERBOSE )); then
+        echo $1
+    fi
+    FAILED="$FAILED $2"
+}
+
+list() {
+    while (( $# )); do echo "  $1" > /dev/stderr; shift; done
+}
+
+# Constants
+RUN="./run"           # the command used to run a test
+GOOD_OUT="good.out"   # the expected output file
+GOOD_ERR="good.err"   # the expected error file
+
+# Default values for options
+VERBOSE=0
+QUIET=0
+HELP=0
+TESTS=""
+
+# Parse command line arguments
+while (( $# )); do
+    if [ $1 = "-q" ]; then QUIET=1; else
+    if [ $1 = "-v" ]; then VERBOSE=1; else
+    if [ $1 = "-help" ]; then HELP=1; else
+        TESTS="$TESTS $1"
+    fi; fi; fi
+    shift
+done
+if [[ -z $TESTS ]]; then TESTS=`cat alltests`; fi 
+
+# Check consistency of arguments
+if (( ($VERBOSE && $QUIET) || $HELP )); then
+    cat test.usage
+    exit 0
+fi
+
+# Run tests
+for t in $TESTS; do
+    # Run test $t
+    if [[ ! -d $t ]]; then
+        error "Test $t does not exist!" $t
+        continue
+    fi
+    cd $t
+    if [[ ! -x $RUN ]]; then
+        error "The run command for test $t does not exist!" $t
+        cd ..
+        continue
+    fi
+    if [[ ! -r $GOOD_OUT ]]; then
+        error "Expected output missing for test $t!" $t
+        cd ..
+        continue
+    fi
+    if [[ ! -r $GOOD_ERR ]]; then
+        error "Expected error output missing for test $t!" $t
+        cd ..
+        continue
+    fi
+    eval "$RUN > out 2> err" > /dev/null
+    
+    if (( `echo $?` )); then
+        error "Unexpected error while running test $t!" $t
+        cd ..
+        continue
+    fi
+    
+    # Check if results match the expected ones.
+    diff -u $GOOD_OUT out > diff.out 2> /dev/null
+    OUT_WRONG=`echo $?`
+    diff -u $GOOD_ERR err > diff.err 2> /dev/null
+    ERR_WRONG=`echo $?`
+
+    if (( $OUT_WRONG || $ERR_WRONG )); then
+        error "Expected output is wrong for test $t!" $t
+	cd ..
+        continue
+    else
+        PASSED="$PASSED $t"
+    fi
+
+    cd ..
+    if (( $VERBOSE )); then
+        echo "Passed test $t."
+    fi
+done
+
+# Report results
+if (( ! $QUIET )); then
+    if [[ ! -z $FAILED ]]; then
+        echo Tests that fail in `pwd`: > /dev/stderr
+        list $FAILED
+    fi
+    if (( $VERBOSE )); then
+        if [[ ! -z $PASSED ]]; then
+            echo Tests that pass in `pwd`: > /dev/stderr
+            list $PASSED
+        fi
+    fi
+fi
+if [[ ! -z $FAILED ]]; then exit 1; fi
+exit 0
+

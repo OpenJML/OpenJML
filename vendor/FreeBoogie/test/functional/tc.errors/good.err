@@ -1,0 +1,44 @@
+assert-bool.bpl:9:5: Found type int instead of bool.
+assume-bool.bpl:9:5: Found type int instead of bool.
+ax1.bpl:1:7: Found type int instead of bool.
+call-proc-in-expr.bpl:16:10: Undeclared identifier a.
+cmp-bool-int.bpl:5:15: Unrelated types: bool and int.
+deduce-array-type.bpl:5:7: Can't deduce array type.
+dep-in-impl.bpl:5:21: Dependent type in implementation signature.
+ensures-bool.bpl:8:15: Found type int instead of bool.
+ensures-local.bpl:6:11: Undeclared identifier a.
+global-shadowing.bpl:4:5: Identifier f was already defined.
+global-shadowing2.bpl:6:10: Identifier a was already defined.
+global-shadowing3.bpl:6:11: Identifier a was already defined.
+havoc.bpl:9:11: Undeclared identifier a.
+impl-proc-mismatch.bpl:1:16: Implementation-Procedure parameter count mismatch.
+index2.bpl:9:5: Found type ref instead of int.
+int-any-thing.bpl:5:8: Found type any instead of int.
+missing-block.bpl:9:10: Inexistent block imaginary.
+modifes-local.bpl:6:21: Undeclared identifier x.
+modifes-undef.bpl:6:21: Undeclared identifier trabka.
+plus-on-bool.bpl:5:7: Found type bool instead of int.
+requires-bool.bpl:7:16: Found type int instead of bool.
+requires-local.bpl:6:12: Undeclared identifier a.
+ret-int-any.bpl:7:5: Found type any instead of int.
+ret-int-bool-2.bpl:7:5: Found type bool instead of int.
+ret-int-bool.bpl:7:5: Found type bool instead of int.
+s1.bpl:6:9: Found type ref instead of int.
+s1.bpl:6:22: Unrelated types: bool and int.
+s2.bpl:6:9: Found type any instead of int.
+s2.bpl:6:22: Unrelated types: bool and int.
+s3.bpl:5:9: Found type ref instead of int.
+s4.bpl:5:9: Found type ref instead of int.
+shadowing.bpl:8:7: Variable already defined.
+shadowing.bpl:9:7: Variable already defined.
+shadowing2.bpl:6:36: Variable already defined.
+shadowing2.bpl:6:36: Variable already defined.
+shadowing2.bpl:8:7: Variable already defined.
+shadowing2.bpl:9:7: Variable already defined.
+small.bpl:6:9: Found type any instead of int.
+small.bpl:6:22: Unrelated types: bool and int.
+line 12:0 no viable alternative at input '}'
+line 5:0 no viable alternative at input '{'
+line 12:0 mismatched input 'procedure' expecting '}'
+line 19:0 no viable alternative at input '}'
+line 12:0 mismatched input 'procedure' expecting '}'

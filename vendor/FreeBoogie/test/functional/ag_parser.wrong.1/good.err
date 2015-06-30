@@ -1,0 +1,7 @@
+AG(7, 6)--(7, 6): I'm confused by '>'
+I skipped:  PrimitiveType, Identifier, ArrayType, MatrixType;
+AG(40, 1)--(40, 4): I'm confused by 'Expr'
+I skipped: :> BinaryOp, UnaryOp, Atom;
+AG(42, 21)--(42, 22): I was expecting a comma between enum values.
+AG(42, 21)--(42, 22): I'm confused by 'GE'
+I skipped: , GT, SUBTYPE, EQUIV, IMPLIES, AND, OR) op, Expr! left, Expr! right;

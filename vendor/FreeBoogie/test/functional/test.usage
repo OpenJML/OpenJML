@@ -1,0 +1,23 @@
+Usage:
+  ./test -help
+  ./test [-v|-q] [testlist]
+
+
+Switches
+  -q  quiet
+      Print nothing.
+
+  -v  verbose
+      Print information about passed tests. By default
+      only failures are reported.
+
+
+Which tests to run?
+  By default all good tests from file `alltests' are run.
+  If the name of some tests is specified explicitly on
+  the command line then only those tests are runned.
+
+
+Exit code.
+  An exit code of 0 means all tests passed. If there are
+  any failures the exit code is 1.

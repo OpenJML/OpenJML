@@ -1,0 +1,3 @@
+#!/bin/bash
+ulimit -t 5 # should process 1MB in at most five seconds
+fbrun freeboogie.ast.gen.Main in.ag

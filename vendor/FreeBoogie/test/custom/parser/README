@@ -1,0 +1,5 @@
+Use freeboogie.parser.Main to parse and pretty print a file.
+Lex both the original and the pretty printed version (ignoring
+paranthesis). Then do a diff between the two lexed versions.
+There should be no difference.
+

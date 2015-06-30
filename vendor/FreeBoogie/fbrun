@@ -1,0 +1,10 @@
+#!/bin/bash
+SCRIPT=`which $0`
+HERE=`dirname $SCRIPT`
+CP=$HERE/classes
+for lib in `ls $HERE/lib/*.jar`; do
+  CP=$CP:$lib
+done
+java -agentlib:hprof=cpu=samples,depth=1 -ea -cp $CP $*
+#java -Xms64m -Xmx64m -ea -cp $CP $*
+

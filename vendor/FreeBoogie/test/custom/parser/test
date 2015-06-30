@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Assumes one parameter which is the name of a bpl file.
+
+rm -f tmp.bpl original.lex parsed.lex
+fbrun freeboogie.parser.Main $1 > tmp.bpl
+./lex < $1 > original.lex
+./lex < tmp.bpl > parsed.lex
+diff original.lex parsed.lex
+

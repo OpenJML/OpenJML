@@ -1,0 +1,4 @@
+64 VC generation design
+24 VC generation implementation
+ 6 simple interface to parse from strings
+

@@ -1,0 +1,7 @@
+The tests use a bash script, so they are rather linux-dependent.
+They also depend on the existence of a fbrun command in the path.
+Look at the fbrun script in this directory to see what it is supposed
+to do.
+
+Note: Now working on VC generation.
+

@@ -1,0 +1,202 @@
+<html><head></head>
+
+<!-- Audience: Vali -->
+
+<body>
+
+<p>Generator for OO data structures based on an abstract grammar.</p>
+
+<p><b>Author:</b> rgrig, reviewed by NAME (DATE)</p>
+
+<p>
+The code generator fills in macros in a template with information from
+an abstract grammar. The abstract grammar notation is described in 
+the package {@link freeboogie.ast}. Here we describe the template macros
+and the design of the code generator.
+</p>
+
+<p>
+The information present in an abstract grammar can be represented by
+an abstract grammar. It's useful to take a look at it before moving on
+to macros.
+</p>
+
+<pre>
+AbstractClass = String! name;
+NormalClass = String! name, String! base, Members members, Enums enums, Invariants invs;
+Members = String! type, String! name, boolean isPrimitive, boolean nonNull, Members tail;
+Enums = String! name, EnumValues values, Enums tail;
+EnumValues = String! name, EnumValues tail;
+Invariants = String! inv; Invariants tail;
+</pre>
+
+<p>Here is an example of a template file:</p>
+
+<pre>
+\file{proc_functions.java}
+\normal_classes{
+  public Node proc\ClassName(\ClassName old) {
+  \children{
+    \MemberType old_\member_name = old.get\MemberName();
+    \MemberType \member_name = (\MemberType)process(old_\member_name);
+  }
+  if (
+    \children[||]{(\member_name != null && \member_name != old_\member_name)}
+  ) return new \MemberType(
+    \members[,]{\if_primitive{old.get\MemberName()}{\member_name}}
+  )
+  }
+}
+</pre>
+
+<p>Three type of macros appear above. The macro <tt>\file</tt> can appear
+anywhere and directs the output of the code generator. The macros
+<tt>\class_name</tt>,
+<tt>\base_name</tt>,
+<tt>\member_type</tt>,
+<tt>\member_name</tt>,
+<tt>\enum_name</tt>, and
+<tt>\value_name</tt>
+expand to identifiers and they come in four flavors, CORRESPONDING_TO
+the_four widelyUsed CaseConventions. The macros
+<tt>\abstract_classes</tt>,
+<tt>\normal_classes</tt>,
+<tt>\members</tt>,
+<tt>\children</tt>,
+<tt>\primitives</tt>,
+<tt>\enums</tt>,
+<tt>\values</tt>, and
+<tt>\invariants</tt>
+expand to lists and have an optional first argument to be used as a
+separator. This optional argument is delimited by square brackets,
+while all others are delimited by curly brackets in TeX style.
+(Note: This syntax requires optional arguments to contain balanced
+square brackets and mandatory arguments to contain balanced curly
+brackets.)
+</p>
+
+<p>Here is the full list of macros:</p>
+
+<table border="1">
+<tr><th>Macro</th><th>Description</th></tr>
+
+<tr>
+<td>\file{<i>name</i>}</td>
+<td>The following characters will be written to file <i>name</i>.
+By default no output is produced, meaning that the portion of the
+template file before the first <tt>\file</tt> macro can be used
+freely for comments.</td>
+</tr>
+
+<tr>
+<td>\classes[<i>sep</i>]{<i>text</i>}</td>
+<td>For each class writes <i>text</i>.
+    A separator <i>sep</i> is used if specified.</td>
+</tr>
+
+<tr>
+<td>\if_abstract{<i>yes</i>}{<i>no</i>}</td>
+<td>If the current class is abstract writes <i>yes</i>, otherwise
+writes <i>no</i>.</td>
+</tr>
+
+<tr>
+<td>\abstract_classes[<i>sep</i>]{<i>text</i>}</td>
+<td>\classes[<i>sep</i>]{\if_abstract{<i>text</i>}{}}</td>
+</tr>
+
+<tr>
+<td>\normal_classes[<i>sep</i>]{<i>text</i>}</td>
+<td>\classes[<i>sep</i>]{\if_abstract{}{<i>text</i>}}</td>
+</tr>
+
+<tr>
+<td>\class_name</tt></td>
+<td>The (current) class name. (also \ClassName, \className, and \CLASS_NAME)</td>
+</tr>
+
+<tr>
+<td>\base_name</td>
+<td>The name of the base class. (also \BaseName, \baseName, and \BASE_NAME)</td>
+</tr>
+
+<tr>
+<td>\members[<i>sep</i>]{<i>text</i>}</td>
+<td>For each member of the current class writes <i>text</i>.
+    A separator <i>sep</i> is used if specified.</td>
+</tr>
+
+<tr>
+<td>\member_type</td>
+<td>The type of the current member. (also \MemberType, \memberType, and \MEMBER_TYPE)</td>
+</tr>
+
+<tr>
+<td>\member_name</td>
+<td>The name of the current member. (also \MemberName, \memberName, and \MEMBER_NAME)</td>
+</tr>
+
+<tr>
+<td>\if_primitive{<i>yes</i>}{<i>no</i>}</td>
+<td>If the current member is a primitive writes <i>yes</i>, otherwise
+writes <i>no</i>. A member is considered a primitive if it does not
+appear on the left hand side of a '=' rule in the abstract grammar.</td>
+</tr>
+
+<tr>
+<td>\if_nonnull{<i>yes</i>}{<i>no</i>}</td>
+<td>If the current member is a nonnull writes <i>yes</i>, otherwise
+writes <i>no</i>.</td>
+</tr>
+
+<tr>
+<td>\if_enum{<i>yes</i>}{<i>no</i>}</td>
+<td>If the current member's type is an enum type it writes <i>yes</i>, otherwise
+writes <i>no</i>.</td>
+</tr>
+
+<tr>
+<td>\children[<i>sep</i>]{<i>text</i>}</td>
+<td>\members[<i>sep</i>]{\if_primitive{}{<i>text</i>}}</td>
+</tr>
+
+<tr>
+<td>\primitives[<i>sep</i>]{<i>text</i>}</td>
+<td>\members[<i>sep</i>]{\if_primitive{<i>text</i>}{}}</td>
+</tr>
+
+<tr>
+<td>\enums[<i>sep</i>]{<i>text</i>}</td>
+<td>For each enum in the current class write <i>text</i>.</td>
+</tr>
+
+<tr>
+<td>\enum_name</td>
+<td>The enum name. (also \EnumName, \enumName, and \ENUM_NAME)</td>
+</tr>
+
+<tr>
+<td>\values[<i>sep</i>]{<i>text</i>}</td>
+<td>For each value of the current enum write <i>text</i>.
+    A separator <i>sep</i> is used if specified.</td>
+</tr>
+
+<tr>
+<td>\value_name</td>
+<td>The enum value name. (also \ValueName, \valueName, \VALUE_NAME)</td>
+</tr>
+
+<tr>
+<td>\invariants[<i>sep</i>]{<i>text</i>}</td>
+<td>For each class invariant (annotation) write <i>text</i>.
+    A separator <i>sep</i> is used if specified.</td>
+</tr>
+
+<tr>
+<td>\inv_text</td>
+<td>The invariant text.</td>
+</tr>
+
+</table>
+
+</body></html>

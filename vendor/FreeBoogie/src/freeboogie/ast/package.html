@@ -1,0 +1,138 @@
+<html>
+<head></head>
+
+<body>
+
+<p>Data structures for representing the abstract syntax tree of BoogiePL.</p>
+
+<p><b>Author</b>: rgrig, reviewed by NAME (DATE)</p>
+
+
+<h2>Principles</h2>
+
+<ul>
+<li>few AST nodes
+<li>support pretty print and verbose dump for debug
+<li>must be able to parse/print programs and program fragments (expr, stmt)
+<li>must read from both streams and strings (TODO: is there a stream
+   wrapper around a string?)
+<li>good location tracking for error reporting
+</ul>
+
+<p>NOTE: <a href="http://manju.cs.berkeley.edu/cil/">CIL</a> has a pretty 
+  good design. I will borrow heavily from that.</p>
+
+<h2>The abstract grammar</h2>
+
+<p>The AST is kept as flat as possible.</p>
+
+<p>
+The abstract syntax is described using the following language.
+An inheritance rule <tt>A :> B, C</tt> means that classes <code>B</code>
+and <code>C</code> are derived from <code>A</code>. The composition rule
+<code>A = B f1, C f2</code> means that class <code>A</code> has a field
+<code>f1</code> of type <code>B</code> and a field <code>f2</code> fo type
+<code>C</code>. In this context a type (<code>B</code> or <code>C</code>)
+can have the special form <tt>enum(ENUM_NAME: VAL1, VAL2, ...)</tt>.
+All the values corresponding to a certain enum name (there might be more than
+one occurence of the name!) appear in an enum declaration embedded in the
+current class. A type name followed by an exclamation mark means that 
+that reference must be non-null.
+</p>
+
+<p>
+The data structures are functional. The lists are implemented in the usual
+head/tail (or singly linked, depending on where you come from) style. There
+are no setter methods.
+</p>
+
+<pre>
+// This is the abstract grammar for FreeBoogie used to generate
+// the AST. See also the template (*.tpl) files.
+
+// TODO: there is some repetition here (the tail). Make the
+// code generator smarter
+
+// The program is a (functional) list of (global) declarations
+Declaration :> TypeDecl, ConstDecl, Function, Axiom, 
+               VariableDecl, Procedure, Implementation;
+
+TypeDecl =     String! name, Declaration tail;
+ConstDecl=     String! id, Type! type, Declaration tail;
+Function =     Signature! sig, Declaration tail;
+Axiom =        Expr! expr, Declaration tail;
+VariableDecl = String name, Type! type, Declaration tail;
+Procedure =    Signature! sig, Specification spec, Declaration tail;
+Implementation = Signature! sig, Body! body, Declaration tail;
+
+
+// Types and constants
+Type :> PrimitiveType, UserType, ArrayType, GenericType, DepType, TupleType;
+ArrayType = Type! rowType, Type colType, Type! elemType;
+PrimitiveType = enum(Ptype: BOOL, INT, REF, NAME, ANY, ERROR) ptype;
+GenericType = Type! param, Type! type;
+DepType = Type! type, Expr! pred;
+UserType = String! name;
+TupleType = Type! type, TupleType tail;
+  // Not constructed during parsing.
+  // In BoogiePL equal(TupleType(t,null), t).
+  // The alternative is to put tails on all types but that looked
+  // much more invasive that this solution which affects only one
+  // place in the typechecker (roughly) in an ugly way.
+  
+
+// Signatures are used to represent uninterpreted functions
+Signature = String! name, Declaration args, Declaration results;
+
+// Procedures and implementations
+Specification = enum(SpecType: REQUIRES, MODIFIES, ENSURES) type,
+                Expr! expr, boolean free, Specification tail;
+Body = Declaration vars, Block blocks;
+Block = String! name, Commands cmds, BlockEnd! end, Block tail;
+BlockEnd = enum(BlockType: GOTO, RETURN) type, Identifiers dest;
+
+// Commands
+Commands = Command! cmd, Commands tail;
+Command :> AssignmentCmd, AssertAssumeCmd, HavocCmd, CallCmd;
+AssignmentCmd = Expr! lhs, Expr! rhs; // TODO: define exactly what lhs can be
+AssertAssumeCmd = enum(CmdType: ASSERT, ASSUME) type, Expr! expr;
+HavocCmd = AtomId! id;
+CallCmd = String! procedure, Identifiers results, Exprs args;
+
+// Expressions
+Expr :> BinaryOp, UnaryOp, Atom, Exprs;
+BinaryOp = enum(Op: PLUS, MINUS, MUL, DIV, MOD, EQ, NEQ, LT, LE,
+                    GE, GT, SUBTYPE, EQUIV, IMPLIES, AND, OR) op,
+           Expr! left, Expr! right;
+UnaryOp = enum(Op: MINUS, NOT) op, Expr! e;
+Atom :> AtomLit, AtomNum, AtomId, AtomFun, AtomOld, AtomCast, AtomQuant, AtomIdx;
+AtomLit = enum(AtomType: FALSE, TRUE, NULL) val;
+AtomNum = BigInteger val;
+AtomId = String! id;
+AtomFun = String! function, Exprs args;
+AtomOld = Expr! e;
+AtomCast = Expr! e, Type! type;
+AtomQuant = enum(QuantType: EXISTS, FORALL) quant, Declaration! vars,
+            Trigger trig, Expr! e;
+AtomIdx = Atom! atom, Index! idx;
+Index = Expr! a, Expr b;
+
+// Some simple lists
+Trigger = String label, Exprs! exprs, Trigger tail;
+Identifiers = AtomId! id, Identifiers tail;
+Exprs = Expr! expr, Exprs tail;
+
+// TODO: the invariants
+Specification: type==Type.MODIFIES ==> \typeof(expr)==AtomId
+
+</pre>
+
+<p>The invariants specified for classes are delimited by the end of the
+line, not by semicolons. This way you are free to use semicolons when
+writing them. In fact, everything up to the end of the line is considered
+as just text by the code generator in {@code freeboogie.ast.gen}, but
+we will typically use JML invariants.</p>
+
+</body>
+
+</html>

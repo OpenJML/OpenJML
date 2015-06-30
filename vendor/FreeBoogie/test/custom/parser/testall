@@ -1,0 +1,8 @@
+#!/bin/bash
+# Runs test on all the files in a directory (the Boogie benchmark)
+DIR=../../functional/parser
+for f in `ls $DIR/*.bpl`; do
+  echo === $f ===
+  ./test $f
+done
+

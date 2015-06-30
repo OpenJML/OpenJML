@@ -1,0 +1,94 @@
+JAVA PROFILE 1.0.1, created Tue May 22 17:34:05 2007
+
+Header for -agentlib:hprof (or -Xrunhprof) ASCII Output (JDK 5.0 JVMTI based)
+
+@(#)jvm.hprof.txt	1.5 06/01/28
+
+ Copyright (c) 2006 Sun Microsystems, Inc. All  Rights Reserved.
+
+WARNING!  This file format is under development, and is subject to
+change without notice.
+
+This file contains the following types of records:
+
+THREAD START
+THREAD END      mark the lifetime of Java threads
+
+TRACE           represents a Java stack trace.  Each trace consists
+                of a series of stack frames.  Other records refer to
+                TRACEs to identify (1) where object allocations have
+                taken place, (2) the frames in which GC roots were
+                found, and (3) frequently executed methods.
+
+HEAP DUMP       is a complete snapshot of all live objects in the Java
+                heap.  Following distinctions are made:
+
+                ROOT    root set as determined by GC
+                CLS     classes 
+                OBJ     instances
+                ARR     arrays
+
+SITES           is a sorted list of allocation sites.  This identifies
+                the most heavily allocated object types, and the TRACE
+                at which those allocations occurred.
+
+CPU SAMPLES     is a statistical profile of program execution.  The VM
+                periodically samples all running threads, and assigns
+                a quantum to active TRACEs in those threads.  Entries
+                in this record are TRACEs ranked by the percentage of
+                total quanta they consumed; top-ranked TRACEs are
+                typically hot spots in the program.
+
+CPU TIME        is a profile of program execution obtained by measuring
+                the time spent in individual methods (excluding the time
+                spent in callees), as well as by counting the number of
+                times each method is called. Entries in this record are
+                TRACEs ranked by the percentage of total CPU time. The
+                "count" field indicates the number of times each TRACE 
+                is invoked.
+
+MONITOR TIME    is a profile of monitor contention obtained by measuring
+                the time spent by a thread waiting to enter a monitor.
+                Entries in this record are TRACEs ranked by the percentage
+                of total monitor contention time and a brief description
+                of the monitor.  The "count" field indicates the number of 
+                times the monitor was contended at that TRACE.
+
+MONITOR DUMP    is a complete snapshot of all the monitors and threads in 
+                the System.
+
+HEAP DUMP, SITES, CPU SAMPLES|TIME and MONITOR DUMP|TIME records are generated 
+at program exit.  They can also be obtained during program execution by typing 
+Ctrl-\ (on Solaris) or by typing Ctrl-Break (on Win32).
+
+--------
+
+THREAD START (obj=5000013e, id = 200001, name="main", group="main")
+THREAD END (id = 200001)
+THREAD START (obj=5000013e, id = 200006, name="DestroyJavaVM", group="main")
+THREAD END (id = 200006)
+THREAD END (id = 200002)
+TRACE 300051:
+	java.lang.String.toLowerCase(String.java:2432)
+TRACE 300108:
+	freeboogie.tc.TypeChecker$1.<clinit>(TypeChecker.java:536)
+TRACE 300109:
+	java.lang.String.substring(String.java:1931)
+TRACE 300110:
+	org.antlr.runtime.ANTLRStringStream.consume(ANTLRStringStream.java:97)
+TRACE 300111:
+	java.io.FileOutputStream.writeBytes(FileOutputStream.java:Unknown line)
+TRACE 300112:
+	freeboogie.parser.FbParser.expr(FbParser.java:1592)
+TRACE 300113:
+	org.antlr.runtime.BaseRecognizer.pushFollow(BaseRecognizer.java:585)
+CPU SAMPLES BEGIN (total = 7) Tue May 22 17:34:05 2007
+rank   self  accum   count trace method
+   1 14.29% 14.29%       1 300051 java.lang.String.toLowerCase
+   2 14.29% 28.57%       1 300108 freeboogie.tc.TypeChecker$1.<clinit>
+   3 14.29% 42.86%       1 300109 java.lang.String.substring
+   4 14.29% 57.14%       1 300110 org.antlr.runtime.ANTLRStringStream.consume
+   5 14.29% 71.43%       1 300111 java.io.FileOutputStream.writeBytes
+   6 14.29% 85.71%       1 300112 freeboogie.parser.FbParser.expr
+   7 14.29% 100.00%       1 300113 org.antlr.runtime.BaseRecognizer.pushFollow
+CPU SAMPLES END
