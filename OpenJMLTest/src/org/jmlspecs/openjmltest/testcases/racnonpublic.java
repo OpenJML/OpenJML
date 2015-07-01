@@ -15,7 +15,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedIgnorable;
+import org.junit.runners.Ignorable;
 
 /** These tests check running RAC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 
@@ -32,7 +32,7 @@ import org.junit.runners.ParameterizedIgnorable;
  * </UL>
  */
 
-@RunWith(ParameterizedIgnorable.class)
+// @RunWith(Ignorable.class)
 public class racnonpublic extends RacBase {
 
 	boolean nonpublicPresent;
