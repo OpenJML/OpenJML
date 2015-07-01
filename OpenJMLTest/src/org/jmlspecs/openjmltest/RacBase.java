@@ -18,6 +18,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -59,6 +60,14 @@ public abstract class RacBase extends JmlTestCase {
     protected String[] rac; // initialized in subclasses
     
 
+    @BeforeClass
+    public static void mktempdirectory() {
+    	File f = new File("testdata");
+    	if (!f.exists()) {
+    		f.mkdir();
+    	}
+    }
+    
     /** Derived classes can initialize
      * testspecpath1 - the specspath to use
      * <BR>jdkrac - default is false; if true, adjusts the classpath???
