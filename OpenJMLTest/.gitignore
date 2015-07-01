@@ -2,3 +2,5 @@
 /temp-release/
 /benchmarks/
 /testdata/
+/test/**/actual
+/test/**/actual-compile
