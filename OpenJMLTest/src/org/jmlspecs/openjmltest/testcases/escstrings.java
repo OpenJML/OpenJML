@@ -543,7 +543,7 @@ public class escstrings extends EscBase {
                 ,anyorder(
                         seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                                ,"$SPECS\\java5\\java\\lang\\String.jml:282: warning: Associated declaration",11
+                                ,"$SPECS\\java5\\java\\lang\\CharSequence.jml:63: warning: Associated declaration",14
                             )
                  )
                 );
