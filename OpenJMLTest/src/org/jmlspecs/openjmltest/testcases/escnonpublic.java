@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
+import org.junit.runners.ParameterizedIgnorable;
 import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check running ESC on files in the file system, comparing the
@@ -37,7 +38,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
-@RunWith(ParameterizedWithNames.class)
+@RunWith(ParameterizedIgnorable.class)
 public class escnonpublic extends EscBase {
     
     String dir = "../../OpenJMLDemoNonPublic/";
