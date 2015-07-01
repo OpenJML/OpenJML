@@ -359,13 +359,13 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test @Ignore // FIXME - long running
+    @Test @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges() {
         helpTF("escDiverges","-nonnullByDefault","-logic=AUFNIRA");
     }
 
 
-    @Test
+    @Test @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges2() {
         helpTF("escDiverges2","-nonnullByDefault","-logic=AUFNIRA");
     }
