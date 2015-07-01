@@ -14,6 +14,8 @@ import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedIgnorable;
 
 /** These tests check running RAC on files in the file system, comparing the
  * output against expected files. These tests are a bit easier to create, since 
@@ -30,6 +32,7 @@ import org.junit.Test;
  * </UL>
  */
 
+@RunWith(ParameterizedIgnorable.class)
 public class racnonpublic extends RacBase {
 
 	boolean nonpublicPresent;
@@ -39,14 +42,13 @@ public class racnonpublic extends RacBase {
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
-        nonpublicPresent =  new File("../../OpenJMLDemoNonPulic").exists();
+        Assume.assumeTrue( new File(OpenJMLNonPublicDemoPath).exists() );
     }
 
 
     @Test // FIXME - crashes in code generation
     public void racSokoban() {
-    	Assume.assumeTrue(nonpublicPresent);
-        String dir = "../../OpenJMLDemoNonPublic/src/sokoban/src";
+        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -54,8 +56,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban2() {
-    	Assume.assumeTrue(nonpublicPresent);
-        String dir = "../../OpenJMLDemoNonPublic/src/sokoban2/src";
+        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban2/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -63,8 +64,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3() {
-    	Assume.assumeTrue(nonpublicPresent);
-        String dir = "../../OpenJMLDemoNonPublic/src/sokoban3/src";
+        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban3/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -72,8 +72,7 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3Bug() {  // FIXME - currently the expected result says too big for a try statement, but originally it had a crash
-    	Assume.assumeTrue(nonpublicPresent);
-        String dir = "../../OpenJMLDemoNonPublic/src/sokoban3/src";
+        String dir = OpenJMLNonPublicDemoPath + "/src/sokoban3/src";
         expectedExit = 1;
         runrac = false;
         expectedRACExit = 0;
