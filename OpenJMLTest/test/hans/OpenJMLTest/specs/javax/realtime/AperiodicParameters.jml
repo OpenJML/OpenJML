@@ -1,0 +1,21 @@
+package javax.realtime;
+
+public class AperiodicParameters extends ReleaseParameters {
+  
+  /*@ 
+    public behavior
+      requires true;
+      ensures getDeadline() == null;
+      ensures getMissHandler() == null; 
+   @*/
+  public AperiodicParameters();
+  
+  /*@ 
+    public behavior
+      requires true; 
+      ensures ( deadline != null ==> getDeadline().equals (deadline) ) || 
+                getDeadline() == null;
+      ensures getMissHandler() == missHandler;
+    @*/
+  public AperiodicParameters(RelativeTime deadline, AsyncEventHandler missHandler);
+}

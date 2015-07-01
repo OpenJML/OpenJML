@@ -1,0 +1,17 @@
+package javax.realtime.test.memoryArea;
+
+
+public class MissionStub extends Mission {
+
+    protected void initialize();
+    
+    public long missionMemorySize ();
+    
+    /*@ 
+      public behaviour
+        requires true;     
+        ensures MemoryArea.getMemoryArea(\result) instanceof MissionMemory;      
+      @*/
+    public PeriodicEventHandler createInMissionMem ();
+
+}

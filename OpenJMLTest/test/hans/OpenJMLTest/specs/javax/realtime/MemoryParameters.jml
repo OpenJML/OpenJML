@@ -1,0 +1,31 @@
+package javax.realtime;
+
+public class MemoryParameters implements Cloneable {
+
+  /*@ 
+    public normal_behavior
+      requires maxMemoryArea >= 0 || maxMemoryArea == MemoryParameters.getNO_MAX();
+      requires maxImmortal >= 0   || maxImmortal   == MemoryParameters.getNO_MAX();
+      
+      ensures getMaxMemoryArea() == maxMemoryArea;
+      ensures getMaxImmortal()   == maxImmortal;
+    also
+    public exceptional_behaviour
+      requires (maxMemoryArea != MemoryParameters.getNO_MAX()) && !(maxMemoryArea >= 0) ;
+      signals (IllegalArgumentException e) true ;
+    also
+    public exceptional_behaviour
+      requires maxImmortal != MemoryParameters.getNO_MAX() && !(maxImmortal >= 0);
+      signals (IllegalArgumentException e) true;    
+    @*/
+  public MemoryParameters(long maxMemoryArea, long maxImmortal); 
+
+  //@ pure helper
+  /*@ spec_public @*/ long getMaxMemoryArea();
+
+  //@ pure helper
+  /*@ spec_public @*/ long getMaxImmortal();
+  
+  //@ pure helper
+  /*@ spec_public @*/ static long getNO_MAX(); 
+}

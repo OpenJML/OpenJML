@@ -1,0 +1,10 @@
+package account;
+
+public interface IAccount {
+
+  /*@ public behavior
+    requires true;
+    ensures \result >= 0;  
+  @*/
+  public abstract /*@ pure @*/ int balance();
+}

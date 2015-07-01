@@ -1,0 +1,27 @@
+package javax.safetycritical;
+
+
+public abstract class CyclicExecutive extends Mission {
+  
+  /*@ 
+    public behavior
+      requires true;    
+      ensures true;
+    @*/
+  public CyclicExecutive();
+   
+  /*@ 
+    public behavior
+      requires handlers != null;   
+      requires (\forall int i; 0 <= i && i < handlers.length;
+                 Mission.getMission().isRegistered(handlers[i]) && 
+                 Mission.getMission().inMissionScope(handlers[i])
+               );
+      
+      ensures \result != null;
+      ensures Mission.getMission().inMissionScope(\result);
+      //ensures feasible(handlers,\result);
+    @*/
+  public abstract CyclicSchedule getSchedule(PeriodicEventHandler[] handlers);
+
+}

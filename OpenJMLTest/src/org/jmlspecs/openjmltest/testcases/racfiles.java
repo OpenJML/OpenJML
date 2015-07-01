@@ -133,37 +133,37 @@ public class racfiles extends RacBase {
     @Test
     public void demoStudent() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/student","test/demoStudent","ExecuteCStudent2","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test
     public void testECU() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","test/ecurac","Test","-racJavaChecks","-racCheckAssumptions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","-racJavaChecks","-racCheckAssumptions");
     }
 
     @Test
     public void purseCardTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","test/purse","CardTest");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","CardTest");
     }
 
     @Test
     public void purseModTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","test/purseMod","CardTest");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purseMod","test/purseMod","CardTest");
     }
 
     @Test
     public void racTime() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","test/racTime","Time");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/racTime","Time");
     }
 
     @Test
     public void racQueue() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Queue.java","test/racQueue","Queue");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
 
     @Test

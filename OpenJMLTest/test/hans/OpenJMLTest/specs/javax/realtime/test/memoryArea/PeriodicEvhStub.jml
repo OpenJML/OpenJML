@@ -1,0 +1,18 @@
+package javax.realtime.test.memoryArea;
+
+
+public class PeriodicEvhStub extends PeriodicEventHandler {
+
+  protected PeriodicEvhStub (PriorityParameters priority,
+            PeriodicParameters periodic,
+            StorageParameters storage);   
+  
+  public void handleAsyncEvent(); 
+    
+  /*@ 
+    public behaviour
+      requires true;   
+      ensures MemoryArea.getMemoryArea(\result) instanceof PrivateMemory  ; //   MissionMemory  
+   @*/
+  public Integer createInPrivateMem ();
+}

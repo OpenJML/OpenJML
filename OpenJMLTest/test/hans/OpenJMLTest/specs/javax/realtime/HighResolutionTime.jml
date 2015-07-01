@@ -1,0 +1,138 @@
+package javax.realtime;
+
+public abstract class HighResolutionTime implements Comparable<HighResolutionTime>  {
+  
+  /*@ 
+    public invariant 
+        ( getMillis() >= 0L && (0 <= getNanos() && getNanos() < 1000000) ) 
+      ||
+        ( getMillis() <= 0L && (-1000000 < getNanos() && getNanos() <= 0) );
+    @*/
+
+  /*@ 
+    behaviour
+     requires true;
+     ensures (millis-getMillis())*NANOS_PER_MILLI +
+             (nanos-getNanos()) == 0;
+    @*/
+  HighResolutionTime(long millis, int nanos, Clock clock);
+  
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+    @*/
+  public final Clock getClock();
+   
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+    @*/
+  public final long getMilliseconds();
+  
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+    @*/
+  public final int getNanoseconds();
+  
+  /*@ 
+    public normal_behaviour
+      requires time != null  && 
+               this.getClass() == time.getClass();
+               
+      ensures getMilliseconds() == time.getMilliseconds(); 
+      ensures getNanoseconds() == time.getNanoseconds();
+      ensures getClock() == time.getClock();
+    also
+    public exceptional_behaviour
+      requires time == null; 
+      signals (IllegalArgumentException) true;
+    also  
+    public exceptional_behaviour
+      requires time != null && getClass() != time.getClass();
+      signals (ClassCastException) true;
+    @*/
+  public void set(HighResolutionTime time);
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() == millis; 
+      ensures getNanoseconds() == 0;
+    @*/
+  public void set(long millis);
+   
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() - millis + (getNanoseconds() - nanos) / 1000000 == 0;
+      ensures (getNanoseconds() - nanos) % 1000000 == 0;
+   @*/
+  public void set(long millis, int nanos);
+  
+  public int hashCode();
+  
+  /*@ 
+    public behaviour
+      requires true;
+  
+      ensures 
+      ( 
+        \result == ( time != null  && 
+                     getClass()        == time.getClass() &&
+                     getMilliseconds() == time.getMilliseconds()  &&
+                     getNanoseconds()  == time.getNanoseconds()   &&
+                     getClock()        == time.getClock() 
+                   )
+      ); 
+    @*/
+  public boolean equals(HighResolutionTime time);
+    
+  public boolean equals(Object object);
+  
+  /*@  
+    public normal_behaviour
+      requires time != null  && 
+               this.getClass() == time.getClass() &&
+               this.getClock() == time.getClock();   
+   
+      ensures 
+        ( \result < 0 ==> ( (getMilliseconds() < time.getMilliseconds()) 
+                            || (getMilliseconds() == time.getMilliseconds() 
+                               && getNanoseconds() < time.getNanoseconds()) )  ) 
+         ||               
+         ( \result > 0 ==> ( (getMilliseconds() == time.getMilliseconds() 
+                                && getNanoseconds() > time.getNanoseconds()) 
+                             || (getMilliseconds() > time.getMilliseconds()) )  ) 
+         ||  
+         ( \result ==  0 ==> ( getMilliseconds() == time.getMilliseconds() 
+                               && getNanoseconds() == time.getNanoseconds() ) );       
+      also
+      public exceptional_behaviour
+        requires time == null; 
+        signals (IllegalArgumentException) true;
+      also  
+      public exceptional_behaviour
+        requires time != null && getClass() != time.getClass();
+        signals (ClassCastException) true; 
+      also
+      public exceptional_behaviour
+        requires time != null && getClass() == time.getClass() && this.getClock() != time.getClock();
+        signals (IllegalArgumentException) true; 
+    @*/
+  public int compareTo(HighResolutionTime time);
+  
+  public String toString();
+    
+//  public static boolean waitForObject(Object target, HighResolutionTime time);
+
+  //@ pure helper
+  /*@ spec_public @*/ long getMillis();
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getNanos();
+
+}

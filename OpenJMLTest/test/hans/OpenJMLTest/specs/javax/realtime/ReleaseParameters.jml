@@ -1,0 +1,44 @@
+package javax.realtime;
+
+public abstract class ReleaseParameters implements Cloneable {
+  
+  /*@ 
+    public invariant 
+      getDeadline() != null ==> 
+        ( getDeadline().getMilliseconds() >= 0L && 
+          getDeadline().getNanoseconds()  >= 0 );
+   @*/
+
+  /*@ 
+    protected behaviour
+      requires true; 
+      ensures getDeadline() == null && getMissHandler() == null;
+  @*/
+  protected ReleaseParameters(); 
+
+  /*@ 
+    protected behaviour
+      requires true;
+     
+      ensures (deadline != null) ==> getDeadline().equals(deadline);
+      ensures deadline == null ==> getDeadline() == null;
+      ensures getMissHandler() == missHandler;
+    @*/
+  protected ReleaseParameters(RelativeTime deadline,
+      AsyncEventHandler missHandler); 
+  
+  /*@ 
+    public behaviour
+      requires true; 
+      ensures this.clone() != clone();
+      ensures this.clone().getClass() == this.getClass();
+      ensures this.clone().equals(this);
+  @*/
+  public Object clone() throws CloneNotSupportedException;  
+
+  //@ pure helper
+  /*@ spec_public @*/ RelativeTime getDeadline(); 
+
+  //@ pure helper
+  /*@ spec_public @*/ AsyncEventHandler getMissHandler(); 
+}

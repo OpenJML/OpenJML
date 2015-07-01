@@ -90,38 +90,38 @@ public class escDemofiles extends EscBase {
     @Test
     public void testInvertInjection() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/InvertInjection.java","test/demoInvertInjection","-progress","-noInternalSpecs");
     }
 
     @Test
     public void testBinarySearch() {
         Assume.assumeTrue(runLongTests);
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/BinarySearch.java","test/demoBinarySearch","-progress","-noInternalSpecs","-logic=AUFNIRA");
     }
 
     @Test // FIXME: Fails because of inadequate specs and use of \created
     public void testCustomer() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
     }
 
     @Test // FIXME: Failure to reason about quantifiers
     public void testMaxByElimination() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress");
     }
 
     @Test // FIXME: Cannot reason about \sum
     public void testSumAndMax() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");
     }
 
     @Test // FIXME: Fails to reason about quantifiers
     public void testEscTest() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");//,"-subexpressions","-method=zero_matrix","-show");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");//,"-subexpressions","-method=zero_matrix","-show");
     }
 
 

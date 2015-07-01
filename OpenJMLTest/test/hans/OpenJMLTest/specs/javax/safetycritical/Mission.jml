@@ -1,0 +1,48 @@
+package javax.safetycritical;
+
+import javax.realtime.AbsoluteTime;
+import javax.safetycritical.annotate.Phase;
+
+public abstract class Mission {
+  
+  public Mission(AbsoluteTime start);
+  
+  public Mission(); 
+  
+  protected boolean cleanUp();  
+
+  public static Mission getMission();  
+  
+  
+  public MissionSequencer<?> getSequencer();  
+  
+//  /*@ 
+//    behaviour
+//      requires Mission.getCurrentMission().getSequencer().getMissionMemory() 
+//               == ManagedMemory.getCurrentMemory();
+//      ensures true ;  
+//    @*/ 
+  protected abstract void initialize();
+
+  
+  public abstract long missionMemorySize();
+
+ 
+  public final boolean requestTermination();  
+  
+  public final boolean terminationPending();  
+
+  
+  //@ pure helper
+  /*@ spec_public @*/ boolean isRegistered(ManagedSchedulable target);
+
+  //@ pure helper
+  /*@ spec_public @*/boolean inMissionScope(ManagedSchedulable target); 
+
+  //@ pure helper
+  /*@ spec_public @*/boolean inMissionScope(CyclicSchedule cs); 
+
+  //@ pure helper
+  /*@ spec_public @*/Phase getPhase(); 
+
+}

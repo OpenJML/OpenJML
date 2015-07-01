@@ -30,6 +30,8 @@ import com.sun.tools.javac.util.Log;
 
 public abstract class EscBase extends JmlTestCase {
     
+	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
+	
     @Rule public TestName testname = new TestName();
     @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
     

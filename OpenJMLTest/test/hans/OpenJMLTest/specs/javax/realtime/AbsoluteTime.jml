@@ -1,0 +1,203 @@
+package javax.realtime;
+
+public class AbsoluteTime extends HighResolutionTime {
+  
+  /*@ 
+  public behavior
+    requires true;        
+    ensures getMilliseconds() == 0L && getNanoseconds() == 0;
+    ensures getClock() == Clock.getRealtimeClock(); 
+  @*/
+  public AbsoluteTime(); 
+  
+  /*@ 
+    also
+    public behavior
+      requires true;
+      ensures getMilliseconds() - millis + (getNanoseconds() - nanos ) / 1000000 == 0;
+      ensures (getNanoseconds() - nanos ) % 1000000 == 0;     
+      ensures getClock() == Clock.getRealtimeClock();
+    @*/
+  public AbsoluteTime(long millis, int nanos);
+  
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      ensures equals(time);
+    also
+    public exceptional_behavior
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    @*/
+  public AbsoluteTime(AbsoluteTime time);
+  
+  /*@ 
+    public behavior
+      requires true;  
+      ensures getMilliseconds() - millis + (getNanoseconds() - nanos ) / 1000000 == 0;
+      ensures (getNanoseconds() - nanos ) % 1000000 == 0;
+      ensures this.getClock()  == clock;
+    @*/
+  public AbsoluteTime(long millis, int nanos, Clock clock);
+  
+  
+  
+  public AbsoluteTime(Clock clock); 
+  
+  /*@ 
+    public behavior
+      requires true;  
+      ensures \result != null && \result instanceof AbsoluteTime;
+      ensures \result.getMilliseconds() - getMilliseconds() - millis + 
+                (\result.getNanoseconds() - getNanoseconds() - nanos) / 1000000 == 0;      
+      ensures ( \result.getNanoseconds() - getNanoseconds() - nanos ) % 1000000 == 0;      
+      ensures \result.getClock() == getClock();
+    @*/
+  public AbsoluteTime add(long millis, int nanos); 
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result != null && \result instanceof AbsoluteTime;
+    
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) - millis + 
+              (\result.getNanoseconds() - \old(this.getNanoseconds()) - nanos) / 1000000 == 0;      
+      ensures  (\result.getNanoseconds() - \old(this.getNanoseconds()) - nanos) % 1000000  == 0;
+           
+      ensures dest== null || \result == dest; 
+  @*/
+  public AbsoluteTime add(long millis, int nanos, AbsoluteTime dest);
+ 
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      requires time.getClock() == this.getClock();
+  
+      ensures \result != null && \result instanceof AbsoluteTime;
+      ensures \result.getMilliseconds() - getMilliseconds() - time.getMilliseconds() + 
+                ( \result.getNanoseconds() - getNanoseconds() - time.getNanoseconds() ) / 1000000 == 0;      
+      ensures ( \result.getNanoseconds() - getNanoseconds() - time.getNanoseconds() ) % 1000000  == 0;       
+      ensures \result.getClock() == getClock();
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != getClock();
+      signals (IllegalArgumentException e) true;
+    @*/
+  public AbsoluteTime add(RelativeTime time);
+ 
+  /*@ 
+    public normal_behavior
+      requires time != null; 
+      requires time.getClock() == this.getClock();
+    
+      ensures \result != null && \result instanceof AbsoluteTime;
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) - time.getMilliseconds() + 
+                (\result.getNanoseconds() - \old(this.getNanoseconds()) - time.getNanoseconds()) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - \old(this.getNanoseconds()) - time.getNanoseconds() ) % 1000000 == 0; 
+      
+      ensures \result.getClock() == time.getClock();     
+      ensures dest== null || \result == dest; 
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public AbsoluteTime add(RelativeTime time, AbsoluteTime dest);
+   
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      requires time.getClock() == this.getClock();
+
+      ensures \result != null && \result instanceof RelativeTime;      
+      ensures \result.getMilliseconds() - (this.getMilliseconds() - time.getMilliseconds()) + 
+                (\result.getNanoseconds() - (this.getNanoseconds() - time.getNanoseconds())) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - (getNanoseconds() - time.getNanoseconds()) ) % 1000000 == 0;       
+      ensures \result.getClock() == getClock();
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public RelativeTime subtract(AbsoluteTime time);
+  
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      requires time.getClock() == this.getClock();
+    
+      ensures \result != null && \result instanceof RelativeTime;
+      ensures (\result.getMilliseconds() - (getMilliseconds() - time.getMilliseconds()) + 
+                (\result.getNanoseconds() - (getNanoseconds() - time.getNanoseconds())) / 1000000) == 0;      
+      ensures (\result.getNanoseconds() - (getNanoseconds() - time.getNanoseconds()) ) % 1000000 == 0;
+      
+      ensures \result.getClock() == getClock(); 
+      ensures dest== null || \result == dest;
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public RelativeTime subtract(AbsoluteTime time, RelativeTime dest);
+  
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      requires time.getClock() == getClock();
+
+      ensures \result != null && \result instanceof AbsoluteTime;
+      ensures \result.getMilliseconds() - (getMilliseconds() - time.getMilliseconds()) + 
+                (\result.getNanoseconds() - (getNanoseconds() - time.getNanoseconds())) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - (getNanoseconds() - time.getNanoseconds()) ) % 1000000  == 0;
+      ensures \result.getClock() == getClock();
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true;  
+    @*/
+  public AbsoluteTime subtract(RelativeTime time); 
+  
+  /*@ 
+    public normal_behavior
+      requires time != null;
+      requires time.getClock() == getClock();
+    
+      ensures \result != null && \result instanceof AbsoluteTime;
+      ensures \result.getMilliseconds() - (\old(this.getMilliseconds()) - time.getMilliseconds()) + 
+                (\result.getNanoseconds() - (\old(this.getNanoseconds()) - time.getNanoseconds())) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - (\old(this.getNanoseconds()) - time.getNanoseconds()) ) % 1000000  == 0;
+      
+      ensures \result.getClock() == getClock();
+      ensures dest== null || \result == dest; 
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public AbsoluteTime subtract(RelativeTime time, AbsoluteTime dest);
+   
+}

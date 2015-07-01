@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,17 +32,21 @@ import org.junit.Test;
 
 public class racnonpublic extends RacBase {
 
+	boolean nonpublicPresent;
+	
     @Override
     @Before
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
+        nonpublicPresent =  new File("../../OpenJMLDemoNonPulic").exists();
     }
 
 
     @Test // FIXME - crashes in code generation
     public void racSokoban() {
-        String dir = "../OpenJMLDemoNonPublic/src/sokoban/src";
+    	Assume.assumeTrue(nonpublicPresent);
+        String dir = "../../OpenJMLDemoNonPublic/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -49,7 +54,8 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban2() {
-        String dir = "../OpenJMLDemoNonPublic/src/sokoban2/src";
+    	Assume.assumeTrue(nonpublicPresent);
+        String dir = "../../OpenJMLDemoNonPublic/src/sokoban2/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -57,7 +63,8 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3() {
-        String dir = "../OpenJMLDemoNonPublic/src/sokoban3/src";
+    	Assume.assumeTrue(nonpublicPresent);
+        String dir = "../../OpenJMLDemoNonPublic/src/sokoban3/src";
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
@@ -65,7 +72,8 @@ public class racnonpublic extends RacBase {
 
     @Test
     public void racSokoban3Bug() {  // FIXME - currently the expected result says too big for a try statement, but originally it had a crash
-        String dir = "../OpenJMLDemoNonPublic/src/sokoban3/src";
+    	Assume.assumeTrue(nonpublicPresent);
+        String dir = "../../OpenJMLDemoNonPublic/src/sokoban3/src";
         expectedExit = 1;
         runrac = false;
         expectedRACExit = 0;

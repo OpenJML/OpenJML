@@ -1,0 +1,41 @@
+package javax.realtime;
+
+public abstract class MemoryArea extends Object {
+  
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+      ensures \result >= 0;
+    @*/
+  public long memoryConsumed(); 
+  
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+      ensures \result == size() - memoryConsumed();
+    @*/
+  public long memoryRemaining(); 
+  
+  /*@ 
+    public behaviour
+      requires true;
+      assignable \nothing;
+      ensures \result >= 0;
+    @*/
+  public long size();  
+
+  // public static int getRemainingMemorySize(); 
+
+  // public int getRemainingBackingstoreSize();  
+  
+  
+  /*@  
+     public behavior    
+       requires object != null;  
+       ensures  \result != null;  // is tested elsewhere, see javax.realtime.test.TestMemoryArea
+    @*/
+  public static MemoryArea getMemoryArea(Object object); 
+  
+}

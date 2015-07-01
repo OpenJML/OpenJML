@@ -1,0 +1,69 @@
+package javax.realtime;
+
+
+public class PeriodicParameters extends ReleaseParameters {
+  
+  /*@ 
+    public normal_behavior
+      requires period != null &&
+               (period.getMilliseconds() > 0L ||
+               (period.getMilliseconds() == 0L && period.getNanoseconds() > 0)); 
+      requires (start != null) ==> 
+            start.getMilliseconds() >= 0L && start.getNanoseconds() >= 0; 
+    
+      ensures ( start != null ==> getStart().equals (start) ) || 
+                (getStart().getMilliseconds() == 0 && getStart().getNanoseconds() == 0 ); 
+      
+      ensures getPeriod() != null && getPeriod().equals(period);
+      ensures getDeadline() != null && getDeadline().equals (period);
+      ensures getMissHandler() == null;
+    also
+    public exceptional_behavior
+      requires period == null;
+      signals (IllegalArgumentException) true;  
+  @*/
+  public PeriodicParameters(RelativeTime start, RelativeTime period);
+   
+  /*@ 
+    public normal_behavior
+      requires  period != null &&
+                (period.getMilliseconds() > 0L ||
+                 period.getMilliseconds() == 0L && period.getNanoseconds() > 0 );
+      requires (start != null) ==> start.getMilliseconds() >= 0L && start.getNanoseconds() >= 0;
+    
+      ensures ( start != null ==> getStart().equals (start) ) || 
+               (getStart().getMilliseconds() == 0 && getStart().getNanoseconds() == 0 );
+                   
+      ensures getPeriod() != null && getPeriod().equals(period);  
+        
+      ensures ( deadline != null ==> getDeadline().equals (deadline) ) ||
+                (getDeadline().equals (period) );    
+      ensures ( missHandler != null ==> getMissHandler().equals (missHandler) ) ||
+                (getMissHandler() == null );
+    
+    also
+    public exceptional_behavior
+      requires period == null;
+      signals (IllegalArgumentException) true; 
+  @*/
+  public PeriodicParameters(RelativeTime start, RelativeTime period,
+      RelativeTime deadline, AsyncEventHandler missHandler);
+       
+  /*@ public behavior
+        requires true;
+        ensures \result == period(); 
+  @*/  
+  public /*@ pure @*/ RelativeTime getPeriod(); 
+
+  /*@ public behavior
+        requires true;
+        ensures \result == start();  
+  @*/ 
+  public /*@ pure @*/RelativeTime getStart(); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ RelativeTime period(); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ RelativeTime start();
+}

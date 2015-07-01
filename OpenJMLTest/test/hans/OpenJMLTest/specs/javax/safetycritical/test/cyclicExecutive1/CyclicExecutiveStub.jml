@@ -1,0 +1,34 @@
+package javax.safetycritical.test.cyclic;
+
+
+public class CyclicExecutiveStub extends CyclicExecutive
+  {
+    public void initialize();
+   
+    
+    public long missionMemorySize ();
+    
+    
+    public CyclicSchedule getSchedule (PeriodicEventHandler[] handlers);
+    
+    /*@ 
+      public behaviour
+        requires true; 
+      
+        // evh6.time < evh2.time < evh3.time < evh2.time < evh2.time < evh3.time
+//        ensures TestCyclicExecutive.timeRecord[0] < TestCyclicExecutive.timeRecord[1];
+                        
+//          (\forall int i; 0 < i && i < SIZE-2; timeRecord[i] < timeRecord[i + 1]);
+//        // frame 0    
+//        ensures (timeRecord[1] - timeRecord[0] <= 1* minorCycleInNanos);
+//        // frame 1
+//        ensures (timeRecord[3] - timeRecord[0] <= 2* minorCycleInNanos);
+//        // frame 2
+//        ensures (timeRecord[4] - timeRecord[0] <= 3* minorCycleInNanos);
+//        // frame 4
+//        ensures (timeRecord[5] - timeRecord[0] <= 5* minorCycleInNanos);
+//        ensures (timeRecord[6] - timeRecord[0] <= 5* minorCycleInNanos);
+    @*/
+    public boolean cleanUp();
+    
+  }

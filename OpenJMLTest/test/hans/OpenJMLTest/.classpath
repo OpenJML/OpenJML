@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/icecapSDK"/>
+	<classpathentry kind="lib" path="lib/jmlruntime.jar"/>
+	<classpathentry kind="lib" path="lib/jmlspecs.jar"/>
+	<classpathentry kind="lib" path="lib/openjml.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/icecaptoolstest"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/icecaptools"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

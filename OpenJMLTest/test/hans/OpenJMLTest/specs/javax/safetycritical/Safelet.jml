@@ -1,0 +1,34 @@
+package javax.safetycritical;
+
+import javax.realtime.MemoryArea;
+import javax.safetycritical.ManagedMemory;
+
+public interface Safelet<MissionType extends Mission> {
+  
+    /*@ 
+      public behavior
+        requires true;
+     
+        ensures \result != null;
+        ensures MemoryArea.getMemoryArea(\result) instanceof PrivateMemory  ; // ManagedMemory.ImmortalMemory 
+      @*/
+    public MissionSequencer<MissionType> getSequencer();
+
+    
+    /*@ 
+      public behavior
+        requires true;     
+        ensures \result > 0;
+      @*/
+    public long immortalMemorySize();
+
+    /*@ 
+     public behavior
+       requires true;
+       ensures true;
+        //requires ManagedMemory.getCurretAllocationArea() == ManagedMemory.ImmortalMemory;  // ??
+        //ensures ManagedMemory.getCurretAllocationArea() == ManagedMemory.ImmortalMemory;   // ??
+      @*/
+    public void initializeApplication();
+
+}

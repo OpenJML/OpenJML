@@ -71,7 +71,7 @@ public class escfeatures extends EscBase {
     }
 
     public void helpDemo(String testDirname, String outdir, String ... opts) {
-        String d = "../OpenJMLDemo/src/openjml/" + testDirname;
+        String d = OpenJMLDemoPath + "/src/openjml/" + testDirname;
         String[] newopts = new String[opts.length+2];
         newopts[0] = "-classpath";
         newopts[1] = d;
@@ -81,7 +81,7 @@ public class escfeatures extends EscBase {
 
     
     public void helpFeatures(String n) {
-        helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/escFeatures/"+n,"-racJavaChecks");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/escFeatures/"+n,"-racJavaChecks");
     }
 
 

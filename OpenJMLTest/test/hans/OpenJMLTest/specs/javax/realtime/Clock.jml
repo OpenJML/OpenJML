@@ -1,0 +1,78 @@
+package javax.realtime;
+
+public abstract class Clock {
+ 
+//  /*@ 
+//    public static invariant 
+//      Clock.getRealtimeClock() != null;
+//  @*/
+
+//  /*@ 
+//    instance invariant 
+//      getResol() != null; // &&
+//     ( getResol().getMilliseconds() > 0 || 
+//     getResol().getMilliseconds() == 0 && getResol().getNanoseconds() > 0) ;
+//    @*/
+
+ /*@ 
+   protected behavior
+     ensures getAct() == active;
+    @*/ 
+  protected Clock(boolean active); 
+  
+  public abstract RelativeTime getEpochOffset();
+
+  /*@ 
+    public behavior
+      requires true;    
+//      ensures \result != null;
+//      ensures \result.getResolution() != null;
+//      ensures ( \result.getResolution().getMilliseconds() > 0 || 
+//                \result.getResolution().getMilliseconds() == 0 
+//                 && \result.getResolution().getNanoseconds() > 0) ;
+    @*/
+  public static Clock getRealtimeClock(); 
+  
+  /*@ 
+    public behavior
+      requires true;
+      assignable \nothing;
+      ensures \result != null;
+      ensures ( \result.getMilliseconds() > 0 || 
+                \result.getMilliseconds() == 0 && \result.getNanoseconds() > 0) ;
+    @*/
+  public abstract RelativeTime getResolution();
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result != null;
+      ensures (dest == null) || dest.equals(\result);
+      ensures ( \result.getMilliseconds() > 0 || 
+                \result.getMilliseconds() == 0 && \result.getNanoseconds() > 0) ;
+    @*/
+  public abstract RelativeTime getResolution(RelativeTime dest);
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result != null;
+    @*/
+  public abstract AbsoluteTime getTime();
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result != null;
+      ensures (dest == null) || dest.equals(\result);
+    @*/
+  public abstract AbsoluteTime getTime(AbsoluteTime dest);
+  
+  //@ pure helper
+  /*@ spec_protected @*/ boolean getAct(); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ RelativeTime getResol(); 
+ 
+
+}

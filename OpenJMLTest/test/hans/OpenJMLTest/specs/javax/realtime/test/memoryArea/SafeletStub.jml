@@ -1,0 +1,22 @@
+package javax.realtime.test.memoryArea;
+
+public class SafeletStub implements Safelet<MissionStub>
+  { 
+    /*@ 
+      public behavior  // specification from Safelet
+        requires true;
+   
+        ensures \result != null;
+        ensures (MemoryArea.getMemoryArea(\result) instanceof ManagedMemory.ImmortalMemory);
+      
+      also  // indicates there are inherited specifications
+    
+        requires true;     
+        ensures MemoryArea.getMemoryArea(\result) instanceof ManagedMemory.ImmortalMemory;      
+      @*/
+    public MissionSequencer<MissionStub> getSequencer(); 
+    
+    public long immortalMemorySize();
+    
+    public void initializeApplication();  
+  }  

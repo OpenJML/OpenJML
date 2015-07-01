@@ -1,0 +1,50 @@
+package javax.realtime;
+
+
+public class PriorityParameters extends SchedulingParameters {
+
+  /*@ 
+    public invariant 
+      javax.safetycritical.PriorityScheduler.instance().getMinPriority() <= getPr() && 
+      getPr() <= javax.safetycritical.PriorityScheduler.instance().getMaxPriority();
+    @*/
+  
+   /*@ 
+      public normal_behavior
+        requires 
+          javax.safetycritical.PriorityScheduler.instance().getMinPriority() <= priority && 
+          priority <= javax.safetycritical.PriorityScheduler.instance().getMaxPriority();
+  
+        ensures getPriority() == priority; 
+      also
+      public exceptional_behaviour
+        requires
+          priority < javax.safetycritical.PriorityScheduler.instance().getMinPriority()  ||
+          priority > javax.safetycritical.PriorityScheduler.instance().getMaxPriority();
+  
+        signals (IllegalArgumentException) true; 
+    @*/ 
+  public PriorityParameters(int priority);
+   
+  /*@
+    public behavior 
+      requires true;
+      ensures \result == getPr();
+    @*/
+  public int getPriority();  
+
+  /*@
+    public behavior 
+      requires 
+        javax.safetycritical.PriorityScheduler.instance().getMinPriority() <= value && 
+        value <= javax.safetycritical.PriorityScheduler.instance().getMaxPriority(); 
+     
+      ensures getPriority() == value;   
+    @*/
+  public void setPriority(int value); // not public in SCJ; called in javax.safetycritical.Monitor
+  
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getPr();
+
+}

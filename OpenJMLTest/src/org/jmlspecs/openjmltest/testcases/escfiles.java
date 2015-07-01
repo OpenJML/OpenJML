@@ -68,7 +68,7 @@ public class escfiles extends EscBase {
     }
 
     public void helpDemo(String testDirname, String outdir, String ... opts) {
-        String d = "../OpenJMLDemo/src/openjml/" + testDirname;
+        String d = OpenJMLDemoPath + "/src/openjml/" + testDirname;
         String[] newopts = new String[opts.length+2];
         newopts[0] = "-classpath";
         newopts[1] = d;
@@ -84,89 +84,89 @@ public class escfiles extends EscBase {
     @Test
     public void testDemo() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock.java","test/escDemo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClock.java","test/escDemo");
     }
 
     @Test
     public void testDemo1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClock1.java","test/escDemo1","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClock1.java","test/escDemo1","-escMaxWarnings=1");
     }
 
     @Test
     public void testDemoA() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA.java","test/escDemoA","-subexpressions","-method=tick");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA.java","test/escDemoA","-subexpressions","-method=tick");
     }
 
     @Test
     public void testDemoA1() {
         expectedExit = 1;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockA1.java","test/escDemoA1","-subexpressions","-method=tick");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockA1.java","test/escDemoA1","-subexpressions","-method=tick");
     }
 
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB.java","test/escDemoB","-method=tick","-show","-subexpressions","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB","-method=tick","-show","-subexpressions","-escMaxWarnings=1");
     }
 
     @Test
     public void testDemoB1() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB1.java","test/escDemoB1",
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB1.java","test/escDemoB1",
                 "-progress","-escMaxWarningsPath",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
     public void testDemoB2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB2.java","test/escDemoB2");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB2.java","test/escDemoB2");
     }
 
     @Test
     public void testDemoB3() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockB3.java","test/escDemoB3",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB3.java","test/escDemoB3",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
     public void testDemoC() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockC.java","test/escDemoC","-subexpressions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockC.java","test/escDemoC","-subexpressions");
     }
 
     @Test
     public void testDemoD() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/clock/TickTockClockD.java","test/escDemoD","-subexpressions");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockD.java","test/escDemoD","-subexpressions");
     }
 
     @Test
     public void testDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test // Problem with reasoning about generic types
     public void testDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test
     public void testDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Types.java","test/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test // FIXME - Problem with int / short conversions
     public void testDemoTime() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Time.java","test/escDemoTime","-logic=AUFNIA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime","-logic=AUFNIA");
     }
 
 
@@ -192,34 +192,34 @@ public class escfiles extends EscBase {
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purse","test/purse","-logic=AUFNIA","-timeout=15");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-logic=AUFNIA","-timeout=15");
     }
 
     @Test @Ignore // FIXME - CVC4 crashes
     public void testPurseCardMod() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/purseMod","test/purseMod","-classpath","../OpenJMLDemo/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purseMod","test/purseMod","-classpath",OpenJMLDemoPath + "/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
     }
 
     @Test
     public void testTaxpayer() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/TaxPayer.java","test/demoTaxpayer","-classpath","../OpenJMLDemo/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/TaxPayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
     }
 
     @Test
     public void testBeanCan() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath","../OpenJMLDemo/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
     }
 
     @Test @Ignore // FIXME - stuck or just long?
     public void testECU() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/ecudemo","test/ecuesc","-classpath","../OpenJMLDemo/src/openjml/ecudemo","-logic=AUFNIA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-logic=AUFNIA");
     }
 
     @Test
@@ -237,25 +237,25 @@ public class escfiles extends EscBase {
     @Test 
     public void testCashAmount() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
     public void testCashAmount2() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath","../OpenJMLDemo/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountOnlyPrivate.java","test/escCashAmountonlyPrivate","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
     }
 
     @Test
     public void testCashAmountMutable() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath","../OpenJMLDemo/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
     }
 
     @Test
     public void testCashAmountMF() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath","../OpenJMLDemo/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMF.java","test/escCashAmountMF","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
@@ -359,7 +359,7 @@ public class escfiles extends EscBase {
     }
 
 
-    @Test
+    @Test @Ignore // FIXME - long running
     public void testEscDiverges() {
         helpTF("escDiverges","-nonnullByDefault","-logic=AUFNIRA");
     }

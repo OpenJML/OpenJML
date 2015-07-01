@@ -1,0 +1,49 @@
+package javax.safetycritical;
+
+import javax.realtime.RelativeTime;
+
+public final class Frame {
+
+   /*@ 
+    public invariant 
+      this.getDuration() != null && this.getHandlers() != null &&
+      this.getDuration().getMilliseconds() * 1000000 + this.getDuration().getNanoseconds() > 0;
+    @*/
+
+  /*@ 
+    public normal_behavior
+      requires duration != null && handlers != null;
+      requires duration.getMilliseconds() * 1000000 + duration.getNanoseconds() > 0;
+      
+      requires handlers.length > 0 ==>
+        (\forall int i; 0 <= i && i < handlers.length;
+               handlers[i] != null &&
+               Mission.getMission().isRegistered(handlers[i])  && 
+               Mission.getMission().inMissionScope(handlers[i]) 
+        ); // thus no need to copy.
+      
+      ensures this.getDuration() == duration && this.getHandlers() == handlers; 
+      
+    also
+    public exceptional_behavior
+      requires duration == null; 
+      signals (IllegalArgumentException) true;
+      
+    also
+    public exceptional_behavior
+      requires duration != null && duration.getMilliseconds() <= 0 && duration.getNanoseconds() <= 0;
+      signals (IllegalArgumentException) true;
+  
+    also
+    public exceptional_behavior
+      requires handlers == null;
+      signals (IllegalArgumentException) true;     
+    @*/
+  public Frame(RelativeTime duration, PeriodicEventHandler[] handlers); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ PeriodicEventHandler[] getHandlers();
+
+  //@ pure helper
+  /*@ spec_public @*/ RelativeTime getDuration(); 
+}

@@ -1,7 +1,7 @@
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash
     my_loaded = false;
               ^
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:44: warning: Associated declaration
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:44: warning: Associated declaration
   //@ assignable amount, loaded;
       ^
 
@@ -14,18 +14,18 @@ TRACE of dmz2.Cash.Cash(int)
  	//Assume invariants for java.lang.Object
  	//Assume invariants for dmz2.Cash
  	//Assume Preconditions
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:41:  	requires 0 < the_amount; 
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:41:  	requires 0 < the_amount; 
 			VALUE: 0	 === 0
 			VALUE: the_amount	 === 1
 			VALUE: 0 < the_amount	 === true
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:45:  	AssumeCheck assertion: __JML_AssumeCheck_ != 1
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:45:  	AssumeCheck assertion: __JML_AssumeCheck_ != 1
 			VALUE: __JML_AssumeCheck_	 === 0
 			VALUE: 1	 === 1
 			VALUE: __JML_AssumeCheck_ != 1	 === true
  	//try...
  	//End of pre-state
  	//Method Body
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:45:  	super()
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:45:  	super()
  	//Checking caller invariants before calling method java.lang.Object.Object()
  	//Checking preconditions of callee Object() by the caller
  	//if...
@@ -44,10 +44,10 @@ TRACE of dmz2.Cash.Cash(int)
  	//Assuming callee normal postconditions
  	//Assuming postconditions for java.lang.Object.Object()
  	//Class fields for constructor
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:46:  	my_amount = the_amount
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:46:  	my_amount = the_amount
 			VALUE: the_amount	 === 1
 			VALUE: my_amount = the_amount	 === 1
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:46:  	Assignable assertion: !Pre_1 || (_JML__tmp4._isalloc__ && !\old(_JML__tmp4._isalloc__) || THIS == THIS)
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:46:  	Assignable assertion: !Pre_1 || (_JML__tmp4._isalloc__ && !\old(_JML__tmp4._isalloc__) || THIS == THIS)
 			VALUE: Pre_1	 === true
 			VALUE: !Pre_1	 === false
 			VALUE: _JML__tmp4	 === THIS
@@ -55,17 +55,17 @@ TRACE of dmz2.Cash.Cash(int)
 			VALUE: _JML__tmp4._isalloc__ && !\old(_JML__tmp4._isalloc__)	 === ( and false true )
 			VALUE: _JML__tmp4._isalloc__ && !\old(_JML__tmp4._isalloc__) || THIS == THIS	 === true
 			VALUE: !Pre_1 || (_JML__tmp4._isalloc__ && !\old(_JML__tmp4._isalloc__) || THIS == THIS)	 === true
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  	my_loaded = false
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  	my_loaded = false
 			VALUE: false	 === false
 			VALUE: my_loaded = false	 === true
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  	Assignable assertion: !Pre_1 || _JML__tmp6._isalloc__ && !\old(_JML__tmp6._isalloc__)
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  	Assignable assertion: !Pre_1 || _JML__tmp6._isalloc__ && !\old(_JML__tmp6._isalloc__)
 			VALUE: Pre_1	 === true
 			VALUE: !Pre_1	 === false
 			VALUE: _JML__tmp6	 === THIS
 			VALUE: _JML__tmp6._isalloc__	 === false
 			VALUE: _JML__tmp6._isalloc__ && !\old(_JML__tmp6._isalloc__)	 === ( and false true )
 			VALUE: !Pre_1 || _JML__tmp6._isalloc__ && !\old(_JML__tmp6._isalloc__)	 === ( and false true )
-..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  Invalid assertion (Assignable)
+..\..\OpenJMLDemo\src\nonpublic\dmz2\Cash.java:47:  Invalid assertion (Assignable)
  Associated location
 
 2 warnings

@@ -1,0 +1,163 @@
+package javax.realtime;
+
+public class RelativeTime extends HighResolutionTime {
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() == 0L && getNanoseconds() == 0 && 
+              getClock() == Clock.getRealtimeClock();
+    @*/
+  public RelativeTime();
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() - millis + (getNanoseconds() - nanos ) / 1000000 == 0;
+      ensures (getNanoseconds() - nanos ) % 1000000 == 0;   
+      ensures getClock() == Clock.getRealtimeClock();
+    @*/
+  public RelativeTime(long millis, int nanos);
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() == 0L && getNanoseconds() == 0;
+      ensures getClock() == clock || (clock == null && getClock() == Clock.getRealtimeClock() );
+  @*/
+  public RelativeTime(Clock clock);
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures getMilliseconds() - millis + (getNanoseconds() - nanos ) / 1000000 == 0;
+      ensures (getNanoseconds() - nanos ) % 1000000 == 0; 
+      ensures getClock() == clock || (clock == null && getClock() == Clock.getRealtimeClock() );  
+    @*/
+  public RelativeTime(long millis, int nanos, Clock clock);
+ 
+  /*@
+    public normal_behaviour
+      requires time != null;
+      ensures equals(time);
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public RelativeTime(RelativeTime time);
+  
+  /*@ 
+    public behaviour
+      requires true;
+      ensures \result != null && \result instanceof RelativeTime;
+      ensures \result.getMilliseconds() - getMilliseconds() - millis + 
+                (\result.getNanoseconds() - getNanoseconds() - nanos) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - getNanoseconds() - nanos ) % 1000000 == 0; 
+    @*/
+  public RelativeTime add(long millis, int nanos);
+ 
+  /*@ 
+    public normal_behaviour
+      requires time != null;
+      requires time.getClock() == getClock();
+  
+      ensures \result != null && \result instanceof RelativeTime;
+  
+      ensures \result.getMilliseconds() - getMilliseconds() - time.getMilliseconds() + 
+                (\result.getNanoseconds() - getNanoseconds() - time.getNanoseconds()) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - getNanoseconds() - time.getNanoseconds()) % 1000000 == 0; 
+      ensures \result.getClock() == getClock(); 
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException) true;   
+  @*/
+  public RelativeTime add(RelativeTime time);
+  
+  /*@ 
+    public behaviour
+      requires true;
+    
+      ensures \result != null && \result instanceof RelativeTime;
+    
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) - millis + 
+                (\result.getNanoseconds() - \old(this.getNanoseconds()) - nanos) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - \old(this.getNanoseconds()) - nanos)  % 1000000 == 0;
+    
+      ensures dest == null || \result == dest;
+    @*/
+  public RelativeTime add(long millis, int nanos, RelativeTime dest);
+  
+  /*@    
+    public normal_behaviour
+      requires time != null;
+      requires time.getClock() == getClock();
+  
+      ensures \result != null && \result instanceof RelativeTime;
+    
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) - time.getMilliseconds() + 
+                (\result.getNanoseconds() - \old(this.getNanoseconds()) - time.getNanoseconds()) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - \old(this.getNanoseconds()) - time.getNanoseconds()) % 1000000 == 0;  
+      ensures dest == null || \result == dest; 
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+    @*/
+  public RelativeTime add(RelativeTime time, RelativeTime dest);
+  
+  /*@ 
+    public normal_behaviour
+      requires time != null;
+      requires time.getClock() == this.getClock(); 
+    
+      ensures \result != null && \result instanceof RelativeTime;
+    
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) + time.getMilliseconds() + 
+                (\result.getNanoseconds() - \old(this.getNanoseconds()) + time.getNanoseconds()) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - \old(this.getNanoseconds()) + time.getNanoseconds()) % 1000000 == 0;
+      ensures \result.getClock() == getClock();
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true;   
+    @*/
+  public RelativeTime subtract(RelativeTime time);
+  
+  /*@ 
+    public normal_behaviour
+      requires time != null;
+      requires time.getClock() == getClock();
+  
+      ensures \result != null && \result instanceof RelativeTime;
+  
+      ensures \result.getMilliseconds() - \old(this.getMilliseconds()) + time.getMilliseconds() + 
+               (\result.getNanoseconds() - \old(this.getNanoseconds()) + time.getNanoseconds()) / 1000000 == 0;      
+      ensures (\result.getNanoseconds() - \old(this.getNanoseconds()) + time.getNanoseconds()) % 1000000 == 0;
+    
+      ensures dest== null || \result == dest;
+    also
+    public exceptional_behaviour
+      requires time == null;
+      signals (IllegalArgumentException e) true;
+    also
+    public exceptional_behaviour
+      requires time != null && time.getClock() != this.getClock();
+      signals (IllegalArgumentException e) true; 
+   @*/
+  public RelativeTime subtract(RelativeTime time, RelativeTime dest);
+  
+}

@@ -14,6 +14,7 @@ import java.util.List;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,12 +40,13 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class escnonpublic extends EscBase {
     
-    String dir = "../OpenJMLDemoNonPublic/";
+    String dir = "../../OpenJMLDemoNonPublic/";
 
     boolean enableSubexpressions = false;
     
     public escnonpublic(String options, String solver) {
         super(options,solver);
+        Assume.assumeTrue( new File(dir).exists() );
     }
     
     @Parameters
@@ -161,7 +163,7 @@ public class escnonpublic extends EscBase {
     
     @Test
     public void escSokoban() { // FIXME
-        //helpTCF("../../OpenJMLDemoNonPublic/src/sokoban/Game.java","test/sokoban","-classpath","test/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
+        //helpTCF("../../../OpenJMLDemoNonPublic/src/sokoban/Game.java","test/sokoban","-classpath","test/sokoban","-progress","-escMaxWarnings=10","-method=main","-show");
         helpTCF(dir + "src/sokoban/src",dir + "src/sokoban/src","-no-minQuant","-progress","-timeout=120");
     }
 

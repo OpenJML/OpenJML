@@ -38,7 +38,7 @@ public class racfeatures extends RacBase {
     }
     
     public void helpFeature(String n, String ... options) {
-    	helpTCF("../OpenJMLDemo/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
+    	helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/racfeatures/"+n,"features."+n, options);
     }
     
     
@@ -57,7 +57,7 @@ public class racfeatures extends RacBase {
     @Test
     public void JavaAssertion2() {
     	expectedRACExit = 1;
-    	helpTCF("../OpenJMLDemo/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
+    	helpTCF(OpenJMLDemoPath + "/src/features/JavaAssertion.java","test/racfeatures/JavaAssertion2","features.JavaAssertion");
     }
 
     @Test

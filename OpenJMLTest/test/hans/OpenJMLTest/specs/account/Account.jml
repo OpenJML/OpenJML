@@ -1,0 +1,33 @@
+package account;
+
+public class Account 
+{
+  //@ public invariant 0 <= getBalance() && getBalance() <= getMaxBalance();
+  
+  /*@ public behavior             
+    @   requires amt > 0 && amt <= getMaxBalance();
+    @   ensures getBalance() == amt;
+    @*/
+  public Account(int amt); 
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result == getBalance();  
+    @*/
+  public int balance();
+  
+  /*@ 
+    public behavior
+      requires amt > 0 && amt <= getBalance();
+      ensures getBalance() == \old(getBalance()) - amt;  
+    @*/
+  public void withdraw (int amt);
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getBalance(); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getMaxBalance(); 
+ 
+}

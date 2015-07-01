@@ -1,0 +1,94 @@
+=========================================================================
+Using OpenJML on SCJ
+=========================================================================
+
+Directories (project):
+
+SCJ is in project icecapSDK:
+
+  /home/hso/git/hvm-scj/icecapSDK
+
+    Source files are in                           ./src
+    Class files are in                            ./bin
+ 
+
+JML specifications and test files are in project OpenJMLTest:
+
+  /home/hso/java/SCJ_Workspace/OpenJMLTest
+
+    Specification files are organized similar in  ./specs
+    
+    Test files are in .src
+        package test.javax.realtime
+        package test.javax.safetycritical
+
+
+OpenJML jar files are in project OpenJMLTest:
+
+  /home/hso/java/SCJ_Workspace/OpenJMLTest/lib
+
+    jmlruntime.jar
+    jmlspecs.jar
+    openjml.jar
+  
+=========================================================================   
+
+Check of specification only (class StorageParameters):
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp /home/hso/git/hvm-scj/icecapSDK/bin/ -check -specspath ./specs /home/hso/git/hvm-scj/icecapSDK/src/javax/safetycritical/StorageParameters.java
+
+
+RAC compile:
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp /home/hso/git/hvm-scj/icecapSDK/bin/ -d /home/hso/git/hvm-scj/icecapSDK/bin/ -noInternalSpecs -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath ./specs /home/hso/git/hvm-scj/icecapSDK/src/javax/safetycritical/StorageParameters.java
+
+RAC compile a test class:
+
+Directory is: /home/hso/java/SCJ_Workspace/OpenJMLTest
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp /home/hso/git/hvm-scj/icecapSDK/bin/:./bin/ -d /home/hso/java/SCJ_Workspace/OpenJMLTest/bin/ -noInternalSpecs -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath /home/hso/java/SCJ_Workspace/OpenJMLTest/src/javax/safetycritical/test/cyclic/ /home/hso/java/SCJ_Workspace/OpenJMLTest/src/javax/safetycritical/test/cyclic/CyclicExecutiveStub.java 
+
+Include .jml  file in the specspath for a test stub file:
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -cp /home/hso/git/hvm-scj/icecapSDK/bin/:./bin/ -d /home/hso/java/SCJ_Workspace/OpenJMLTest/bin/ -noInternalSpecs -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath ./specs/javax/safetycritical/test/cyclicExecutive1/ /home/hso/java/SCJ_Workspace/OpenJMLTest/src/javax/safetycritical/test/cyclic/CyclicExecutiveStub.java 
+
+=========================================================================
+
+Run (on Eclipse):
+
+java -ea -Dorg.jmlspecs.openjml.racexceptions=true -Dorg.jmlspecs.openjml.racjavaassert=true -cp ./lib/jmlruntime.jar:/home/hso/git/hvm-scj/icecapSDK/bin/:./bin javax.safetycritical.test.storageParameters.AllTests
+
+Option -ea = enable assertions, see http://docs.oracle.com/javase/7/docs/technotes/guides/language/assert.html
+
+=========================================================================
+
+Run (on HVM):
+
+1) Compile for HVM using CompilationManagerHSO:
+
+    // For OpenJML test:
+        String inputFolder = "/home/hso/java/SCJ_Workspace/OpenJMLTest/bin/" +
+         pathSeparator + "/home/hso/java/SCJ_Workspace/OpenJMLTest/lib/jmlruntime.jar" +
+         pathSeparator + "/home/hso/git/hvm-scj/icecapSDK/bin/";        
+        
+        String outputFolder = "";
+
+        String inputPackage = "javax.realtime.test";
+        
+        String inputClass = "TckTestMemoryParameters";
+        
+2) The usual three steps in 
+
+     /home/hso/git/hvm-scj/icecapvm/src:
+
+  a) copy ...
+  
+    cp /home/hso/git/hvm-scj/icecaptoolstest/*.[ch] . 
+   
+  b) gcc compile ... 
+     Remember to add natives_jml.c to the gcc command
+     The JAVA_HEAP_SIZE and JAVA_STACK_SIZE may be smaller
+     
+     gcc -Wall -pedantic -g -O0 -DPC32 -DPRINTFSUPPORT -DJAVA_HEAP_SIZE=40240000 -DJAVA_STACK_SIZE=16384 classes.c  icecapvm.c  methodinterpreter.c  methods.c gc.c native_scj.c natives_allOS.c natives_i86.c print.c rom_heap.c rom_access.c allocation_point.c natives_jml.c x86_32_interrupt.s -lpthread -lrt -lm
+    
+  c) ./a.out        

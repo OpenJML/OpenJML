@@ -77,7 +77,7 @@ public class escfilesTrace extends EscBase {
     @Test 
     public void testDMZCashTrace() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/nonpublic/dmz2","test/escDmz2Trace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
+        helpTCF(OpenJMLDemoPath + "/src/nonpublic/dmz2","test/escDmz2Trace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
     }
 
 
@@ -85,13 +85,13 @@ public class escfilesTrace extends EscBase {
     @Test @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void testDemoPaths() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/Paths.java","test/escDemoPaths","-subexpressions","-progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","-subexpressions","-progress");
     }
 
     @Test 
     public void testDemoChangeCase() {
         expectedExit = 0;
-        helpTCF("../OpenJMLDemo/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
     }
 
     @Test

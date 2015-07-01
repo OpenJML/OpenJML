@@ -38,7 +38,7 @@ public class racdemoexamples extends RacBase {
     }
     
     public void helpFeature(String n, String ... options) {
-    	helpTCF("../OpenJMLDemo/src/examples/"+n,"test/racdemoexamples/"+n,"EntryPreconditionTest", options);
+    	helpTCF(OpenJMLDemoPath + "/src/examples/"+n,"test/racdemoexamples/"+n,"EntryPreconditionTest", options);
     }
     
     

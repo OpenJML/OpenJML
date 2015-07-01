@@ -1,0 +1,39 @@
+package javax.safetycritical;
+
+
+public final class StorageParameters extends javax.realtime.MemoryParameters {
+  
+  /*@ 
+    also
+      requires totalBackingStore > 0;
+      requires (sizes != null) ==>  
+         (\forall int i; 0 <= i && i < sizes.length; sizes[i] >= 0 );   
+      requires messageLength >= 0;
+      requires stackTraceLength >= 0;
+      requires maxMissionMemory >= 0;
+      
+      ensures getBackingStoreSize() == totalBackingStore;   
+    @*/
+  public StorageParameters(long totalBackingStore, /*@ nullable @*/ long[] sizes,
+      int messageLength, int stackTraceLength, long maxMemoryArea,
+      long maxImmortal, long maxMissionMemory);
+      
+  /*@ 
+    also
+      requires totalBackingStore > 0;
+      requires (sizes != null) ==>  
+        (\forall int i; 0 <= i && i < sizes.length; sizes[i] >= 0 ); 
+      requires maxMissionMemory >= 0;
+    
+      ensures getBackingStoreSize() == totalBackingStore;      
+  @*/
+  public StorageParameters(long totalBackingStore, /*@ nullable @*/ long[] sizes,
+      long maxMemoryArea, long maxImmortal, long maxMissionMemory); 
+      
+      
+  //@ pure helper
+  /*@ spec_public @*/ long getBackingStoreSize();
+  
+  // //@ pure helper
+  // /*@ spec_public @*/ long[] getConfigurationSizes();
+}

@@ -21,24 +21,25 @@ if [[ "${ROOT}" == "" ]]; then
     ROOT=..
 fi
 if [[ "${ANNOTATIONS}" == "" ]]; then
-    ANNOTATIONS=../JMLAnnotations
+    ANNOTATIONS=../../JMLAnnotations
 fi
 if [[ "${SPECS}" == "" ]]; then
-    SPECS=../Specs
+    SPECS=../../Specs
 fi
 
 ## Within Eclipse (in Cygwin at least), the paths that are defined do not work
 ## here, so we just set them.
     ROOT=..
-    ANNOTATIONS=../JMLAnnotations
-    SPECS=../Specs
+    ANNOTATIONS=../../JMLAnnotations
+    SPECS=../../Specs
     UI=../OpenJMLUI
 
 TEMPJAR=tempjars
 
-svn up
-REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
-VERSION=`date +%Y%m%d`-REV${REVISION}
+##svn up
+##REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
+##VERSION=`date +%Y%m%d`-REV${REVISION}
+VERSION=`date +%Y%m%d`
 NAME=openjml-${VERSION}.tar.gz
 NAMEZ=openjml-${VERSION}.zip
 

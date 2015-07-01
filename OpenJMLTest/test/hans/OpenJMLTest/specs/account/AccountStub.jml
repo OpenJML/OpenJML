@@ -1,0 +1,29 @@
+package account;
+
+public class AccountStub implements IAccount
+{ 
+    //@ public invariant getBalance() >= 0;  
+    
+    /*@ public behavior             
+      @   requires amt >= 0;
+      @   ensures getBalance() == amt;  
+      @*/
+    public AccountStub(int amt);
+    
+    /*@ 
+      also
+        ensures \result == getBalance();
+      @*/
+    public int balance();
+    
+    /*@ 
+      public behavior
+        requires amt > 0 && amt <= getBalance();
+        ensures getBalance() == \old(getBalance()) - amt;  
+      @*/
+    public void withdraw (int amt); 
+
+  //@ pure helper
+  /*@ spec_public @*/ int getBalance(); 
+  
+}

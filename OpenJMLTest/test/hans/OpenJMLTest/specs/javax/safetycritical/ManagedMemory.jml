@@ -1,0 +1,38 @@
+
+package javax.safetycritical;
+
+
+import javax.realtime.MemoryArea;
+import vm.Memory;
+
+
+public abstract class ManagedMemory extends MemoryArea {
+
+//  /*@ 
+//    public static normal_behavior
+//      requires logic != null;  
+//      ensures true;  // not finished
+//    also
+//    public static exceptional_behaviour
+//      requires logic == null; 
+//      signals (IllegalStateException) true;
+//    
+//    @*/
+  public static void enterPrivateMemory(int size, Runnable logic) throws IllegalStateException; 
+  
+ 
+  public static void executeInAreaOf(Object obj, Runnable logic);  
+
+ 
+  public static void executeInOuterArea(Runnable logic);  
+  
+  public long getRemainingBackingStore(); 
+  
+  //@ pure helper
+  /*@ spec_public @*/ static MemoryArea getCurretAllocationArea();
+ 
+  
+  //@ pure helper
+  /*@ spec_public @*/ MemoryArea getTopMostArea();
+ 
+}

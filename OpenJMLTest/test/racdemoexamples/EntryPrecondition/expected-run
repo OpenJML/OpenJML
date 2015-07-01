@@ -1,14 +1,14 @@
 OUT:
 Correctly threw class org.jmlspecs.utils.JmlAssertionError$PreconditionEntry PreconditionEntry
-..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:3: JML precondition is false
+..\..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:3: JML precondition is false
 	//@ requires i > 0;
 	    ^
 m() called with 1
 Correctly threw class org.jmlspecs.utils.JmlAssertionError$Precondition Precondition
-..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:6: JML precondition is false
+..\..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:6: JML precondition is false
 		n(i);
 		 ^
-..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:9: Associated declaration: ..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:6: 
+..\..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:9: Associated declaration: ..\..\OpenJMLDemo\src\examples\EntryPrecondition\EntryPrecondition.java:6: 
 	//@ requires i > 1;
 	    ^
 m() called with 2

@@ -1,0 +1,157 @@
+
+OpenJML from command line
+=========================================================================
+
+Directory (project):
+
+/home/hso/java/SCJ_Workspace/OpenJMLTest
+
+Source files are in                           ./src
+Specification files are organized similar in  ./specs
+Class files are in                            ./bin
+
+Check of specification only:
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -check -specspath ./specs ./src/test/JMLTest1.java
+
+
+RAC compile:
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -d ./bin -rac -racCheckAssumptions -specspath ./specs ./src/test/JMLTest1.java
+
+
+Run:
+
+java -ea -classpath ./lib/jmlruntime.jar:./bin test.JMLTest1
+
+Option -ea = enable assertions, see Programming with Assertions,
+http://docs.oracle.com/javase/7/docs/technotes/guides/language/assert.html
+    
+==========================================================================
+Account example
+==========================================================================
+
+RAC compile Account.java:
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -d ./bin -rac -racCheckAssumptions -specspath ./specs ./src/account/Account.java
+
+Run AllTests:
+
+java -ea -Dorg.jmlspecs.openjml.racexceptions=true -Dorg.jmlspecs.openjml.racjavaassert=true -classpath ./lib/jmlruntime.jar:/home/hso/git/hvm-scj/icecapSDK/bin/:./bin account.AllTests
+
+
+==========================================================================
+scj.safetycritical.StorageParameters example
+==========================================================================
+
+RAC compile StorageParameters: 
+
+java -jar /home/hso/java/SCJ_Workspace/OpenJMLTest/lib/openjml.jar -d ./bin/ -rac -racCheckAssumptions -racJavaChecks -nullableByDefault -showNotImplemented -specspath ./specs ./src/scj/safetycritical/StorageParameters.java
+
+Run AllTests:
+java -ea -Dorg.jmlspecs.openjml.racexceptions=true -Dorg.jmlspecs.openjml.racjavaassert=true -cp ./lib/jmlruntime.jar:/home/hso/git/hvm-scj/icecapSDK/bin/:./bin scj.safetycritical.AllTests
+
+
+==========================================================================
+CompilationManagerHSO.java
+==========================================================================
+
+        /* HSO begin ********************************************************* */
+
+        String sourceFileName = null;
+
+        //String inputFolder = "/home/hso/java/SCJ_Workspace/SCJ_HVM/bin";
+        
+        // String inputFolder = "/home/hso/java/SCJ_Workspace/icecapSDK/bin";
+        // String inputFolder = "/home/hso/java/SCJ_Workspace/icecaptools/bin";
+        //String inputFolder = "/home/hso/java/SCJ_Workspace/icecaptoolstest/bin";
+        // String inputFolder = "/home/hso/java/SCJ_Workspace/EmbeddedSDJ/bin";
+
+        // For JML test  with jml4c:
+        //String inputFolder = "/home/hso/java/SCJ_Workspace/SCJJMLTest/bin/" +
+        // pathSeparator + "/home/hso/java/SCJ_Workspace/JML/jml4c.jar";
+
+        // For OpenJML test:
+        String inputFolder = "/home/hso/java/SCJ_Workspace/OpenJMLTest/bin/" +
+         pathSeparator + "/home/hso/java/SCJ_Workspace/OpenJMLTest/lib/jmlruntime.jar";
+        
+        
+        String outputFolder = "";
+
+        // String inputPackage = "test.safetycritical.cyclicschedule3";
+        //String inputPackage = "test.safetycritical.priorityschedule0";
+        // String inputPackage = "test.safetycritical.oneshot1";
+        // String inputPackage = "test.safetycritical.sharedResource1";
+        // String inputPackage = "test.safetycritical.boundedbuffer";
+        // String inputPackage = "test.safetycritical.sleepingQueue1";
+        // String inputPackage = "test.safetycritical.twoMissions";
+        // String inputPackage = "test.safetycritical.executeInAreaOf";
+         //String inputPackage = "test.safetycritical.enterPrivateMemory";
+        // String inputPackage =
+        // "test.safetycritical.priorityscheduleMemAreaNesting";
+         
+         //String inputPackage = "test";
+
+        // String inputPackage = "esdj.scj.test.example1";
+        // String inputPackage = "esdj.scj.priorityschedule0";
+        // String inputPackage = "esdj.scj.cyclicschedule1";
+
+        // String inputClass = "MyApp";
+        // String inputClass = "TestSCJSleepingQueue1";
+        // String inputClass = "TestSCJBoundedBuffer";
+        // String inputClass = "TestSCJSharedResource1";
+        // String inputClass = "MyAppTestCase";
+        // String inputClass = "Test_ESDJ_Example1";
+         
+         /* Level 1-2 tests */
+         
+         //String inputPackage = "test.safetycritical.managedMemoryTest1";
+         //String inputClass = "TestManagedMemory";
+         
+         //String inputPackage = "test.safetycritical.memoryModelTest3";
+         //String inputClass = "MySCJ";
+         
+         //String inputPackage = "test.safetycritical.level2ThreadTest1";
+         //String inputClass = "MyApp";
+         //String inputClass = "TestSCJLevel2Thread0";
+         
+         //String inputPackage = "test.safetycritical.level2NestedSequencerTest1";
+         //String inputClass = "MySCJ";
+         
+         //String inputPackage = "test.safetycritical.waitAndNotifyTest2";
+         //String inputClass = "MySCJ";
+         
+         
+         /* Level 1-2 tests  end */
+        
+        /* OpenJML tests */
+        
+        //String inputPackage = "test";
+        //String inputClass = "JMLTest1";
+        
+        String inputPackage = "account";
+        String inputClass = "AllTests";
+        
+        /* OpenJML tests end */
+
+        /* JML tests */
+
+        //String inputPackage = "jml.account.test";
+
+         //String inputPackage = "javax.realtime.test.clock";
+         //String inputPackage = "javax.realtime.test.priorityParameters";
+         //String inputPackage = "javax.realtime.test.releaseParameters";
+         //String inputPackage = "javax.realtime.test.timeClasses";
+        
+         
+         //String inputPackage = "javax.safetycritical.test.priorityScheduling";
+         //String inputPackage = "javax.safetycritical.test.cyclicExecutive"; 
+         //String inputPackage = "javax.safetycritical.test.storageParameters";
+         //String inputClass = "AllTests";
+
+        //String inputClass = "Main2Clock";
+        // String inputClass = "Main2RealtimeClock";
+        // String inputClass = "Issue";
+
+        /* JML tests end */
+        
+        /* HSO end ************************************************** */

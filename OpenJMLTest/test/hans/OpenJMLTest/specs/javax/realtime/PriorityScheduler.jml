@@ -1,0 +1,33 @@
+package javax.realtime;
+
+public class PriorityScheduler extends Scheduler {
+
+  /*@ 
+    public behavior
+      requires true;
+      ensures \result > getMinPr();  
+   @*/
+  public int getMaxPriority();  
+  
+   /*@ 
+    public behavior
+      requires true;
+      ensures \result < getMaxPr();
+   @*/
+  public int getMinPriority();
+  
+   /*@ 
+    public behavior
+      requires true;
+      ensures \result >= getMinPr() && \result <= getMaxPr();  
+   @*/
+  public int getNormPriority();
+  
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getMaxPr();
+  
+  //@ pure helper
+  /*@ spec_public @*/ int getMinPr();
+
+}
