@@ -286,7 +286,7 @@ public class racfiles extends RacBase {
     @Test
     public void sfbug413() {
         expectedRACExit = 0;
-        helpTCF("test/sfbug413","test/sfbug413","Main","-show");
+        helpTCF("test/sfbug413","test/sfbug413","Main");
     }
 
 

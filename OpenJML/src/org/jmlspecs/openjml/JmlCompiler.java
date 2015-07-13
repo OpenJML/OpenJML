@@ -581,15 +581,18 @@ public class JmlCompiler extends JavaCompiler {
             // If there is more than one class in the compilation unit, we are
             // presuming that each one that is to be translated will be 
             // separately called - so we just translate each one when it comes.
-            List<JCTree> t = env.toplevel.defs;
-            while (t.head != null) {
-                if (t.head == env.tree) {
+            for (List<JCTree> l = env.toplevel.defs; l.nonEmpty(); l = l.tail) {
+                if(l.head == env.tree){
                     env.tree = newtree;
-                    //reattribute(env);
-                    t.head = newtree;
+                    l.head = newtree;
                     break;
                 }
-                t = t.tail;
+            }
+            
+            // it's not enough to update the toplevels. If you have nested classes, you must 
+            // update the type envs, otherwise the wrong typeenv gets selected during the desugaring phase
+            if(newtree instanceof JmlClassDecl){
+                updateTypeEnvs((JmlClassDecl)newtree);
             }
             
             // After adding the assertions, we will need to add the OpenJML libraries 
@@ -617,6 +620,19 @@ public class JmlCompiler extends JavaCompiler {
         //       flow(env);  // FIXME - give a better explanation if this produces errors.
         // IF it does, it is because we have done the RAC translation wrong.
         return env;
+    }
+    
+    
+
+    private void updateTypeEnvs(JmlClassDecl tree){
+        
+        enter.getEnv(tree.sym).tree = tree;
+        
+        for(List<JCTree> l = tree.defs; l.nonEmpty(); l=l.tail){
+            if(l.head instanceof JmlClassDecl){
+                updateTypeEnvs((JmlClassDecl)l.head);
+            }
+        }
     }
     
     /** Does the ESC processing for the given class
