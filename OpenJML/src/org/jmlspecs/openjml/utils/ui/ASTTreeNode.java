@@ -62,8 +62,12 @@ public class ASTTreeNode {
         }else if(tree instanceof JCMethodDecl){
             JCMethodDecl n = (JCMethodDecl) tree;
             
+            String resType = (n.restype==null) ? "N/A" : n.restype.getClass().getSimpleName();
+            String sym = (n.sym==null) ? "N/A" : n.sym.getClass().getSimpleName();
+            String type = (n.type==null) ? "N/A" : n.type.getClass().getSimpleName();
+                    
             if(detail)
-                return String.format("%s [%s] %s() [%s]", n.mods.toString(), n.mods.getClass().getSimpleName(), n.name, n.getClass().getSimpleName());
+                return String.format("%s [%s] %s() [%s] [[restype=%s, sym=%s, type=%s]]", n.mods.toString(), n.mods.getClass().getSimpleName(), n.name, n.getClass().getSimpleName(), resType, sym, type);
             else
                 return String.format("%s() [%s]", n.name, n.getClass().getSimpleName());
             
