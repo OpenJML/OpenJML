@@ -623,8 +623,8 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     
-
-    private void updateTypeEnvs(JmlClassDecl tree){
+    /** Recursively updates nested class declarations */
+    protected void updateTypeEnvs(JmlClassDecl tree){
         
         enter.getEnv(tree.sym).tree = tree;
         
