@@ -38,7 +38,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
-@RunWith(ParameterizedIgnorable.class)
+@RunWith(ParameterizedWithNames.class)
 public class escnonpublic extends EscBase {
     
     String dir = "../../OpenJMLDemoNonPublic/";
