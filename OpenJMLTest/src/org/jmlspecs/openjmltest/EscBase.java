@@ -285,6 +285,7 @@ public abstract class EscBase extends JmlTestCase {
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
 
         } catch (Exception e) {
+        	printDiagnostics();
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
@@ -293,44 +294,74 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
     
-    protected interface Special {}
+    protected class Special {
+        public String toString(String head, Object[] list) {
+        	String s = head + "(";
+        	for (Object o: list) {
+        		if (o instanceof Object[]) {
+        			s = s + toString("",(Object[])o);
+        		} else {
+        			s = s + o + ",\n";
+        		}
+        	}
+        	s = s + ")\n";
+        	return s;
+        }
+    }
     
-    protected class Optional implements Special {
+    protected class Optional extends Special {
         public Object[] list;
-        public Optional(Object[] list) {
+        public Optional(Object... list) {
             this.list = list;
         }
-    }
-    
-    protected class OneOf implements Special {
-        public Object[][] lists;
-        public OneOf(Object[] ... lists) {
-            this.lists = lists;
+        public String toString() {
+        	return toString("optional",list);
         }
     }
     
-    protected class Seq implements Special {
+    protected class OneOf extends Special {
+        public Object[] list;
+        public OneOf(Object ... list) {
+            this.list = list;
+        }
+        public String toString() {
+        	return toString("oneof",list);
+        }
+    }
+    
+    protected class Seq extends Special {
         public Object[] list;
         public Seq(Object ... list) {
             this.list = list;
         }
+        public String toString() {
+        	return toString("seq",list);
+        }
     }
     
-    protected class AnyOrder implements Special {
-        public Object[][] lists;
-        public AnyOrder(Object[] ... lists) {
-            this.lists = lists;
+    protected class AnyOrder extends Special {
+        public Object[] list;
+        public AnyOrder(Object ... list) {
+            this.list = list;
+        }
+        public String toString() {
+        	return toString("anyorder",list);
         }
     }
 
-    protected OneOf oneof(Object[] ... lists) { return new OneOf(lists); }
-    protected AnyOrder anyorder(Object[] ... lists) { return new AnyOrder(lists); }
-    protected Optional optional(Object[] ... lists) { return new Optional(lists); }
-    protected Object[] seq(Object ... list) { return list; }
+    protected OneOf oneof(Object ... list) { return new OneOf(list); }
+    protected AnyOrder anyorder(Object ... list) { return new AnyOrder(list); }
+    protected Optional optional(Object ... list) { return new Optional(list); }
+    protected Seq seq(Object ... list) { return new Seq(list); }
     
 
     protected boolean comparePair(Object[] list, int i, int j) {
         int col = ((Integer)list[i+1]).intValue();
+        if (collector.getDiagnostics().size() <= j) {
+            failureLocation = j;
+            failureString = null;
+        	return false;
+        }
         String act = noSource(collector.getDiagnostics().get(j));
         String exp = list[i].toString().replace("$SPECS", specsdir);
         if (!exp.equals(act) 
@@ -347,9 +378,21 @@ public abstract class EscBase extends JmlTestCase {
             return true;
         }
     }
-    
+
+    /** Compares actual diagnostics against the given list of expected results */
     protected int compareResults(Object[] list) {
-        int j = 0; // counts the errors in list, accounting for optional or null entries
+    	return compareResults(list,0,false);
+    }
+
+    /** Compares actual diagnostics, beginning at position j, to given list. The
+     * returned result is either the initial value of j, if no match was made,
+     * or the value of j advanced over all matching items. If optional is false,
+     * then error messages are printed if no match is found.
+     */
+    protected int compareResults(Object list, int j, boolean optional) {
+    	return compareResults(new Object[]{list}, j, optional);
+    }
+    protected int compareResults(Object[] list, int j, boolean optional) {
         int i = 0;
         while (i < list.length) {
             if (list[i] == null) { i+=2; continue; }
@@ -370,9 +413,11 @@ public abstract class EscBase extends JmlTestCase {
                         // OK - skip
                     } else {
                         if (j < collector.getDiagnostics().size()) {
-                            if (!comparePair(list,i,j)) {
-                                assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
-                                assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                        	if (!comparePair(list,i,j)) {
+                                if (!optional) {
+                                	assertEquals("Error " + j, list[i], noSource(collector.getDiagnostics().get(j)));
+                                    assertEquals("Error " + j, col, collector.getDiagnostics().get(j).getColumnNumber());
+                                }
                             }
                         }
                         j++;
@@ -380,13 +425,16 @@ public abstract class EscBase extends JmlTestCase {
                 }
                 i += 2;
             } else if (list[i] instanceof AnyOrder) {
-                j = compareAnyOrder(((AnyOrder)list[i]).lists, j);
+                j = compareAnyOrder(((AnyOrder)list[i]).list, j, optional);
                 ++i;
             } else if (list[i] instanceof OneOf) {
-                j = compareOneOf(((OneOf)list[i]).lists, j);
+                j = compareOneOf(((OneOf)list[i]).list, j, optional);
                 ++i;
             } else if (list[i] instanceof Optional) {
                 j = compareOptional(((Optional)list[i]).list, j);
+                ++i;
+            } else if (list[i] instanceof Seq) {
+                j = compareResults(((Seq)list[i]).list, j, optional);
                 ++i;
             }
         }
@@ -411,15 +459,15 @@ public abstract class EscBase extends JmlTestCase {
         return j;
     }
 
-    protected int compareOneOf(Object[][] lists, int j) {
+    protected int compareOneOf(Object[] list, int j, boolean optional) {
         // None of lists[i] may be null or empty
         int i = 0;
         int jj = j;
         int latestFailure = -2;
         String latestString = null;
         int latestCol = 0;
-        while (i < lists.length) {
-            int jjj = compareOptional(lists[i],j);
+        while (i < list.length) {
+            int jjj = compareResults(list[i],j,true);
             if (jjj > j) {
                 // Matched
                 return jjj;
@@ -432,25 +480,27 @@ public abstract class EscBase extends JmlTestCase {
             }
         }
         failureLocation = latestFailure;
-        // None matched;
-        assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-        assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+        if (!optional) { // None matched;
+        	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+        	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+        }
         return jj;
     }
 
-    protected int compareAnyOrder(Object[][] lists, int j) {
+
+    protected int compareAnyOrder(Object[] list, int j, boolean optional) {
         // None of lists[i] may be null or empty
-        boolean[] used = new boolean[lists.length];
+        boolean[] used = new boolean[list.length];
         for (int i=0; i<used.length; ++i) used[i] = false;
         
         int latestFailure = -2;
         String latestString = null;
         int latestCol = 0;
-        int toMatch = lists.length;
+        int toMatch = list.length;
         more: while (toMatch > 0) {
-            for (int i = 0; i < lists.length; ++i) {
+            for (int i = 0; i < list.length; ++i) {
                 if (used[i]) continue;
-                int jjj = compareOptional(lists[i],j);
+                int jjj = compareResults(list[i],j,true);
                 if (jjj > j) {
                     // Matched
                     j = jjj;
@@ -471,8 +521,12 @@ public abstract class EscBase extends JmlTestCase {
         if (toMatch > 0) {
             failureLocation = latestFailure;
             // None matched;
-            assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
-            assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+            if (failureLocation >= collector.getDiagnostics().size()) {
+            	fail("Less output than expected");
+            } else {
+            	assertEquals("Error " + failureLocation, latestString, noSource(collector.getDiagnostics().get(failureLocation)));
+            	assertEquals("Error " + failureLocation, latestCol, collector.getDiagnostics().get(failureLocation).getColumnNumber());
+            }
         }
         return j;
     }
