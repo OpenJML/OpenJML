@@ -113,6 +113,7 @@ public class escDemofiles extends EscBase {
     }
 
     @Test // FIXME: Cannot reason about \sum
+    @Ignore
     public void testSumAndMax() {
         expectedExit = 1;
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");

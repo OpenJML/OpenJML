@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests check running RAC on files in the file system, comparing the
@@ -249,14 +250,18 @@ public class racfiles extends RacBase {
     	rac = null;
     }
     
+    // This test case doesn't appear to be viable. It should be repalced with a clean test case. 
+    
     @Test
+    @Ignore
     public void racHansE() {
     	runrac = false;
     	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
     			"test/hans",
     			null,
-    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",
-    			"-rac",
+    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin;",
+    			"-sourcepath", "test/hans/OpenJMLTest/src/",
+    			//"-out", "test/hans/OpenJMLTest/build"
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
     			);
@@ -271,7 +276,6 @@ public class racfiles extends RacBase {
     			"test/racHans2",
     			"account.AllTests",
     			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin;test/racHans2",
-    			//"-rac",
     			"-specspath","test/racHans2/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
     			);
