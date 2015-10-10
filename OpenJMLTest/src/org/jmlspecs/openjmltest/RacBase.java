@@ -271,8 +271,8 @@ public abstract class RacBase extends JmlTestCase {
     /** This method does the running of a RAC test that is based in an external file.  No output is
      * expected from running openjml to produce the RACed program;
      * the number of expected diagnostics is set by 'expectedErrors'.
-     * @param dirname The directory containing the test sources, a relative path
-     * from the project folder
+     * @param dirname A path to a directory or a filename. If it is a directory, the sources are expected to reside in this directory. 
+     * If it is a file then the file is passed to the RAC directly. 
      * @param classname The fully-qualified classname for the test class (where main is)
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */

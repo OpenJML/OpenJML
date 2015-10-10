@@ -382,6 +382,8 @@ public abstract class JmlTestCase {
         return dd.noSource();
     }
 
+    private static final String REGEXP_START = "#{{";
+    private static final String REGEXP_END   = "}}#";
 
     /** Compares two files, returning null if the same; returning a String of
      * explanation if they are different.
@@ -411,10 +413,26 @@ public abstract class JmlTestCase {
                 String env = System.getenv("SPECSDIR");
                 if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
                 else sexp = sexp.replace("$SPECS", env);
-                if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                    diff += ("Lines differ at " + line + eol)
-                            + ("EXP: " + sexp + eol)
-                            + ("ACT: " + sact + eol);
+                
+                //
+                // We allow for regular expressions to be used to check (for inputs that may vary)
+                //
+                if(sexp.contains(REGEXP_START) && sexp.contains(REGEXP_END)){ // if it's a regular expression
+                	// remove the markers
+                	String rsexp = sexp.replace(REGEXP_START, "").replaceAll(REGEXP_END, "");
+                	
+                	if(!sact.matches(rsexp)){
+                		diff += ("Lines differ at " + line + eol)
+	                            + ("EXP: " + sexp + eol)
+	                            + ("ACT: " + sact + eol);
+                	}
+                	
+                }else{                                                        // it's a straight text match
+	                if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
+	                    diff += ("Lines differ at " + line + eol)
+	                            + ("EXP: " + sexp + eol)
+	                            + ("ACT: " + sact + eol);
+	                }
                 }
             }
         } catch (FileNotFoundException e) {
