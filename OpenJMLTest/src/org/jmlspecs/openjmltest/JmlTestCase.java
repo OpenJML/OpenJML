@@ -62,6 +62,8 @@ public abstract class JmlTestCase {
 
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
     
+    static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
     
@@ -408,6 +410,7 @@ public abstract class JmlTestCase {
                     diff += ("Less actual input than expected" + eol);
                     return diff;
                 }
+                sexp = sexp.replace("$ROOT",root);
                 String env = System.getenv("SPECSDIR");
                 if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
                 else sexp = sexp.replace("$SPECS", env);
@@ -505,6 +508,7 @@ public abstract class JmlTestCase {
                     diff += ("Less actual input than expected" + eol);
                     return diff;
                 }
+                sexp = sexp.replace("$ROOT",root);
                 String env = System.getenv("SPECSDIR");
                 if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
                 else sexp = sexp.replace("$SPECS", env);
