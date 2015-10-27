@@ -158,7 +158,7 @@ public class ConfigureSMTProversDialog extends JDialog {
 
         comboProver = new JComboBox();
         comboProver.setModel(new DefaultComboBoxModel(new String[] { 
-                "Z3 (version 4.4.x)", "Z3 (version 4.3.x)",
+                "Z3 (version 4.3.x)",
                 "CVC4 (version 1.1+)", "Yices (version 2.1+)" }));
 
         final JLabel lblExecutable = new JLabel("Z3 Executable:");
