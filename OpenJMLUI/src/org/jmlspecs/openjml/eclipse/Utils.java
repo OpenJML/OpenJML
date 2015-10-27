@@ -381,9 +381,9 @@ public class Utils {
 			IPath path = ResourcesPlugin.getWorkspace().getRoot().getLocation()
 					.append(org.jmlspecs.openjml.Strings.propertiesFileName);
 			try {
-				boolean found = org.jmlspecs.openjml.Utils.readProps(
+				org.jmlspecs.openjml.Utils.readProps(
 						properties, path.toFile().getAbsolutePath());
-				if (found && Options.uiverboseness)
+				if (Options.uiverboseness)
 					Log.log("Properties read from the workspace: "
 							+ path.toOSString());
 			} catch (java.io.IOException e) {
@@ -405,9 +405,9 @@ public class Utils {
 					.findMember(org.jmlspecs.openjml.Strings.propertiesFileName);
 			if (res != null) {
 				try {
-					boolean found = org.jmlspecs.openjml.Utils.readProps(
+					org.jmlspecs.openjml.Utils.readProps(
 							properties, res.getLocation().toOSString());
-					if (found && Options.uiverboseness)
+					if (Options.uiverboseness)
 						Log.log("Properties read from the project directory: "
 								+ res.getLocation().toOSString());
 				} catch (java.io.IOException e) {

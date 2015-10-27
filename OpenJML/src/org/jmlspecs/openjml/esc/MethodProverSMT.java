@@ -44,6 +44,7 @@ import org.smtlib.SMT;
 import org.smtlib.command.C_assert;
 import org.smtlib.command.C_check_sat;
 import org.smtlib.command.C_push;
+import org.smtlib.impl.SMTExpr.Symbol;
 import org.smtlib.sexpr.ISexpr;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -441,7 +442,7 @@ public class MethodProverSMT {
                             IExpr.IAttributeValue value = attrList.attributes().get(0).attrValue();
                             if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
                                 // continue on
-                            } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
+                            } else if (value.toString().equals("ok") || value.toString().equals("success")) { // FIXME - this might be only Z3
                                     // continue on
                             } else {
                                 String msg = "Aborted proof: " + smt.smtConfig.defaultPrinter.toString(value);
@@ -453,7 +454,10 @@ public class MethodProverSMT {
                                     break b;
                                 }
                             }
-                        } else {
+                        } 
+                        //else if(unknownReason instanceof Symbol && ((Symbol)unknownReason).value().equals("success")){} // for z3 4.4.x
+                        
+                        else {
                             // Unexpected result
                             log.error("jml.internal.notsobad","Unexpected result when querying SMT solver for reason for an unknown result: " + unknownReason);
                             break b;

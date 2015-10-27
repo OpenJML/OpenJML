@@ -100,7 +100,7 @@ public enum JmlOption implements IOption {
     NO_RAC_SOURCEX("-noRacSource",false,false,"RAC: Error messages will not include source information","-racShowSource=false",true),
     NO_RAC_CHECK_ASSUMPTIONSX("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","-racCheckAssumptions=false",true),
     NO_RAC_JAVA_CHECKSX("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false",true),
-
+    RECONFIGURE("-reconfigure",false, false, "Reconfigure the default provers used by OpenJML",null),
     ;
     
     /** Holds the name of the option, as it is used in the command-line,

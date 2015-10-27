@@ -21,6 +21,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
+import java.awt.HeadlessException;
+import org.jmlspecs.openjml.utils.ProverConfigurationException;
+import org.jmlspecs.openjml.utils.ui.MessageUtil;
+import org.jmlspecs.openjml.utils.ui.res.ApplicationMessages.ApplicationMessageKey;
 import javax.annotation.processing.Processor;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -343,6 +347,9 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code
      */
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
+        
+       
+        
         int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
         try {
             if (args == null) {
@@ -363,6 +370,15 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else {
+                    
+                    //
+                    // Before starting the compiler, see if we should reconfigure the prover settings
+                    //
+                    if(Utils.shouldReconfigure(args)){
+                        Utils.configureProvers(null);
+                    }
+                    
+                    
                     // We create an instance of main through which to call the
                     // actual compile method. Note though that the compile method
                     // does its own initialization (in the super class). Thus the
@@ -831,6 +847,32 @@ public class Main extends com.sun.tools.javac.main.Main {
                 utils.maxWarnings = Integer.MAX_VALUE;
             }
         }
+        
+        
+     // Don't initiate the checks unless we will actually do static checking
+        // TODO Possibly add Boogie?
+        boolean staticCheckingConfigurationDone = !(utils.esc);
+
+        while (staticCheckingConfigurationDone == false) {
+            try {
+                
+                Utils.validateStaticCheckingProps(options);
+                staticCheckingConfigurationDone = true;
+                
+            } catch (ProverConfigurationException e) {
+                Log.instance(context).noticeWriter.println(e.getMessage());
+
+                // give the user a chance to fix things
+                if(Utils.configureProvers(context)!=null){
+                    // update the options
+                    Utils.mergeStaticCheckingProperties(Utils.findProperties(context), options);
+                }else{
+                    return false;
+                }
+
+            }
+        }
+        
         
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
         if (check == null) {
