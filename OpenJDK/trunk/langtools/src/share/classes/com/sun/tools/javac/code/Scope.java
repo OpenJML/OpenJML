@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,8 +25,9 @@
 
 package com.sun.tools.javac.code;
 
-import com.sun.tools.javac.util.*;
 import java.util.Iterator;
+
+import com.sun.tools.javac.util.*;
 
 /** A scope represents an area of visibility in a Java program. The
  *  Scope class is a container for symbols which provides
@@ -198,7 +199,7 @@ public class Scope {
     }
 
     public void enter(Symbol sym, Scope s) {
-        enter(sym, s, s);
+        enter(sym, s, s, false);
     }
 
     /**
@@ -206,7 +207,7 @@ public class Scope {
      * given scope `s' accessed through `origin'.  The last two
      * arguments are only used in import scopes.
      */
-    public void enter(Symbol sym, Scope s, Scope origin) {
+    public void enter(Symbol sym, Scope s, Scope origin, boolean staticallyImported) {
         Assert.check(shared == 0);
         if (nelems * 3 >= hashMask * 2)
             dble();
@@ -216,7 +217,7 @@ public class Scope {
             old = sentinel;
             nelems++;
         }
-        Entry e = makeEntry(sym, old, elems, s, origin);
+        Entry e = makeEntry(sym, old, elems, s, origin, staticallyImported);
         table[hash] = e;
         elems = e;
 
@@ -226,7 +227,7 @@ public class Scope {
         }
     }
 
-    Entry makeEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope, Scope origin) {
+    Entry makeEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope, Scope origin, boolean staticallyImported) {
         return new Entry(sym, shadowed, sibling, scope);
     }
 
@@ -315,6 +316,7 @@ public class Scope {
     public Entry lookup(Name name) {
         return lookup(name, noFilter);
     }
+
     public Entry lookup(Name name, Filter<Symbol> sf) {
         Entry e = table[getIndex(name)];
         if (e == null || e == sentinel)
@@ -358,6 +360,10 @@ public class Scope {
                 return i;
             i = (i + x) & hashMask;
         }
+    }
+
+    public boolean anyMatch(Filter<Symbol> sf) {
+        return getElements(sf).iterator().hasNext();
     }
 
     public Iterable<Symbol> getElements() {
@@ -493,6 +499,10 @@ public class Scope {
             else return shadowed.next(sf);
         }
 
+        public boolean isStaticallyImported() {
+            return false;
+        }
+
         public Scope getOrigin() {
             // The origin is only recorded for import scopes.  For all
             // other scope entries, the "enclosing" type is available
@@ -511,20 +521,19 @@ public class Scope {
         }
 
         @Override
-        Entry makeEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope, Scope origin) {
-            return new ImportEntry(sym, shadowed, sibling, scope, origin);
-        }
+        Entry makeEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope,
+                final Scope origin, final boolean staticallyImported) {
+            return new Entry(sym, shadowed, sibling, scope) {
+                @Override
+                public Scope getOrigin() {
+                    return origin;
+                }
 
-        static class ImportEntry extends Entry {
-            private Scope origin;
-
-            ImportEntry(Symbol sym, Entry shadowed, Entry sibling, Scope scope, Scope origin) {
-                super(sym, shadowed, sibling, scope);
-                this.origin = origin;
-            }
-
-            @Override
-            public Scope getOrigin() { return origin; }
+                @Override
+                public boolean isStaticallyImported() {
+                    return staticallyImported;
+                }
+            };
         }
     }
 
@@ -718,7 +727,7 @@ public class Scope {
         }
 
         @Override
-        public void enter(Symbol sym, Scope s, Scope origin) {
+        public void enter(Symbol sym, Scope s, Scope origin, boolean staticallyImported) {
             throw new UnsupportedOperationException();
         }
 

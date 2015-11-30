@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,8 +34,6 @@ import javax.lang.model.type.DeclaredType;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.util.*;
 
-import static com.sun.tools.javac.code.TypeTags.*;
-
 /** An annotation value.
  *
  *  <p><b>This is NOT part of any supported API.
@@ -62,6 +60,11 @@ public abstract class Attribute implements AnnotationValue {
         throw new UnsupportedOperationException();
     }
 
+    public boolean isSynthesized() {
+        return false;
+    }
+
+    public TypeAnnotationPosition getPosition() { return null; };
 
     /** The value for an annotation element of primitive type or String. */
     public static class Constant extends Attribute {
@@ -82,7 +85,7 @@ public abstract class Attribute implements AnnotationValue {
                 return v.visitString((String) value, p);
             if (value instanceof Integer) {
                 int i = (Integer) value;
-                switch (type.tag) {
+                switch (type.getTag()) {
                 case BOOLEAN:   return v.visitBoolean(i != 0, p);
                 case CHAR:      return v.visitChar((char) i, p);
                 case BYTE:      return v.visitByte((byte) i, p);
@@ -90,7 +93,7 @@ public abstract class Attribute implements AnnotationValue {
                 case INT:       return v.visitInt(i, p);
                 }
             }
-            switch (type.tag) {
+            switch (type.getTag()) {
             case LONG:          return v.visitLong((Long) value, p);
             case FLOAT:         return v.visitFloat((Float) value, p);
             case DOUBLE:        return v.visitDouble((Double) value, p);
@@ -103,11 +106,11 @@ public abstract class Attribute implements AnnotationValue {
      *  represented as a ClassSymbol.
      */
     public static class Class extends Attribute {
-        public final Type type;
+        public final Type classType;
         public void accept(Visitor v) { v.visitClass(this); }
         public Class(Types types, Type type) {
             super(makeClassType(types, type));
-            this.type = type;
+            this.classType = type;
         }
         static Type makeClassType(Types types, Type type) {
             Type arg = type.isPrimitive()
@@ -118,13 +121,13 @@ public abstract class Attribute implements AnnotationValue {
                                       types.syms.classType.tsym);
         }
         public String toString() {
-            return type + ".class";
+            return classType + ".class";
         }
         public Type getValue() {
-            return type;
+            return classType;
         }
         public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p) {
-            return v.visitType(type, p);
+            return v.visitType(classType, p);
         }
     }
 
@@ -138,6 +141,18 @@ public abstract class Attribute implements AnnotationValue {
          *  access this attribute.
          */
         public final List<Pair<MethodSymbol,Attribute>> values;
+
+        private boolean synthesized = false;
+
+        @Override
+        public boolean isSynthesized() {
+            return synthesized;
+        }
+
+        public void setSynthesized(boolean synthesized) {
+            this.synthesized = synthesized;
+        }
+
         public Compound(Type type,
                         List<Pair<MethodSymbol,Attribute>> values) {
             super(type);
@@ -178,8 +193,13 @@ public abstract class Attribute implements AnnotationValue {
         }
 
         public Attribute member(Name member) {
+            Pair<MethodSymbol,Attribute> res = getElemPair(member);
+            return res == null ? null : res.snd;
+        }
+
+        private Pair<MethodSymbol, Attribute> getElemPair(Name member) {
             for (Pair<MethodSymbol,Attribute> pair : values)
-                if (pair.fst.name == member) return pair.snd;
+                if (pair.fst.name == member) return pair;
             return null;
         }
 
@@ -195,12 +215,82 @@ public abstract class Attribute implements AnnotationValue {
             return (DeclaredType) type;
         }
 
+        @Override
+        public TypeAnnotationPosition getPosition() {
+            if (values.size() != 0) {
+                Name valueName = values.head.fst.name.table.names.value;
+                Pair<MethodSymbol, Attribute> res = getElemPair(valueName);
+                    return res == null ? null : res.snd.getPosition();
+            }
+            return null;
+        }
+
         public Map<MethodSymbol, Attribute> getElementValues() {
             Map<MethodSymbol, Attribute> valmap =
                 new LinkedHashMap<MethodSymbol, Attribute>();
             for (Pair<MethodSymbol, Attribute> value : values)
                 valmap.put(value.fst, value.snd);
             return valmap;
+        }
+    }
+
+    public static class TypeCompound extends Compound {
+        public TypeAnnotationPosition position;
+
+        public TypeCompound(Compound compound,
+                TypeAnnotationPosition position) {
+            this(compound.type, compound.values, position);
+        }
+        public TypeCompound(Type type,
+                List<Pair<MethodSymbol, Attribute>> values,
+                TypeAnnotationPosition position) {
+            super(type, values);
+            this.position = position;
+        }
+
+        @Override
+        public TypeAnnotationPosition getPosition() {
+            if (hasUnknownPosition()) {
+                position = super.getPosition();
+            }
+            return position;
+        }
+
+        public boolean hasUnknownPosition() {
+            return position.type == TargetType.UNKNOWN;
+        }
+
+        public boolean isContainerTypeCompound() {
+            if (isSynthesized() && values.size() == 1)
+                return getFirstEmbeddedTC() != null;
+            return false;
+        }
+
+        private TypeCompound getFirstEmbeddedTC() {
+            if (values.size() == 1) {
+                Pair<MethodSymbol, Attribute> val = values.get(0);
+                if (val.fst.getSimpleName().contentEquals("value")
+                        && val.snd instanceof Array) {
+                    Array arr = (Array) val.snd;
+                    if (arr.values.length != 0
+                            && arr.values[0] instanceof Attribute.TypeCompound)
+                        return (Attribute.TypeCompound) arr.values[0];
+                }
+            }
+            return null;
+        }
+
+        public boolean tryFixPosition() {
+            if (!isContainerTypeCompound())
+                return false;
+
+            TypeCompound from = getFirstEmbeddedTC();
+            if (from != null && from.position != null &&
+                    from.position.type != TargetType.UNKNOWN) {
+                position = from.position;
+                return true;
+            }
+            return false;
         }
     }
 
@@ -212,6 +302,12 @@ public abstract class Attribute implements AnnotationValue {
             super(type);
             this.values = values;
         }
+
+        public Array(Type type, List<Attribute> values) {
+            super(type);
+            this.values = values.toArray(new Attribute[values.size()]);
+        }
+
         public void accept(Visitor v) { v.visitArray(this); }
         public String toString() {
             StringBuilder buf = new StringBuilder();
@@ -231,6 +327,14 @@ public abstract class Attribute implements AnnotationValue {
         }
         public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p) {
             return v.visitArray(getValue(), p);
+        }
+
+        @Override
+        public TypeAnnotationPosition getPosition() {
+            if (values.length != 0)
+                return values[0].getPosition();
+            else
+                return null;
         }
     }
 
@@ -267,6 +371,14 @@ public abstract class Attribute implements AnnotationValue {
         }
         public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p) {
             return v.visitString(toString(), p);
+        }
+    }
+
+    public static class UnresolvedClass extends Error {
+        public Type classType;
+        public UnresolvedClass(Type type, Type classType) {
+            super(type);
+            this.classType = classType;
         }
     }
 

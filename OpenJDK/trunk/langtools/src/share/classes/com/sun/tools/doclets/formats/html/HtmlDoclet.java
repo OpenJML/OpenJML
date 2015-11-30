@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,16 +24,23 @@
  */
 package com.sun.tools.doclets.formats.html;
 
+import java.io.*;
+import java.util.*;
+
+import com.sun.javadoc.*;
+import com.sun.tools.javac.sym.Profiles;
+import com.sun.tools.javac.jvm.Profile;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.builders.*;
 import com.sun.tools.doclets.internal.toolkit.util.*;
 
-import com.sun.javadoc.*;
-import java.util.*;
-import java.io.*;
-
 /**
  * The class with "start" method, calls individual Writers.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Atul M Dambalkar
  * @author Robert Field
@@ -41,14 +48,17 @@ import java.io.*;
  *
  */
 public class HtmlDoclet extends AbstractDoclet {
+    // An instance will be created by validOptions, and used by start.
+    private static HtmlDoclet docletToStart = null;
+
     public HtmlDoclet() {
-        configuration = (ConfigurationImpl) configuration();
+        configuration = new ConfigurationImpl();
     }
 
     /**
      * The global configuration information for this run.
      */
-    public ConfigurationImpl configuration;
+    public final ConfigurationImpl configuration;
 
     /**
      * The "start" method as required by Javadoc.
@@ -58,12 +68,16 @@ public class HtmlDoclet extends AbstractDoclet {
      * @return true if the doclet ran without encountering any errors.
      */
     public static boolean start(RootDoc root) {
-        try {
-            HtmlDoclet doclet = new HtmlDoclet();
-            return doclet.start(doclet, root);
-        } finally {
-            ConfigurationImpl.reset();
+        // In typical use, options will have been set up by calling validOptions,
+        // which will create an HtmlDoclet for use here.
+        HtmlDoclet doclet;
+        if (docletToStart != null) {
+            doclet = docletToStart;
+            docletToStart = null;
+        } else {
+            doclet = new HtmlDoclet();
         }
+        return doclet.start(doclet, root);
     }
 
     /**
@@ -72,7 +86,7 @@ public class HtmlDoclet extends AbstractDoclet {
      * configuration.
      */
     public Configuration configuration() {
-        return ConfigurationImpl.getInstance();
+        return configuration;
     }
 
     /**
@@ -89,31 +103,18 @@ public class HtmlDoclet extends AbstractDoclet {
             throws Exception {
         super.generateOtherFiles(root, classtree);
         if (configuration.linksource) {
-            if (configuration.destDirName.length() > 0) {
-                SourceToHTMLConverter.convertRoot(configuration,
-                    root, configuration.destDirName + File.separator
-                    + DocletConstants.SOURCE_OUTPUT_DIR_NAME);
-            } else {
-                SourceToHTMLConverter.convertRoot(configuration,
-                    root, DocletConstants.SOURCE_OUTPUT_DIR_NAME);
-            }
+            SourceToHTMLConverter.convertRoot(configuration,
+                root, DocPaths.SOURCE_OUTPUT);
         }
 
-        if (configuration.topFile.length() == 0) {
+        if (configuration.topFile.isEmpty()) {
             configuration.standardmessage.
                 error("doclet.No_Non_Deprecated_Classes_To_Document");
             return;
         }
         boolean nodeprecated = configuration.nodeprecated;
-        String configdestdir = configuration.destDirName;
-        String confighelpfile = configuration.helpfile;
-        String configstylefile = configuration.stylesheetfile;
-        performCopy(configdestdir, confighelpfile);
-        performCopy(configdestdir, configstylefile);
-        Util.copyResourceFile(configuration, "background.gif", false);
-        Util.copyResourceFile(configuration, "tab.gif", false);
-        Util.copyResourceFile(configuration, "titlebar.gif", false);
-        Util.copyResourceFile(configuration, "titlebar_end.gif", false);
+        performCopy(configuration.helpfile);
+        performCopy(configuration.stylesheetfile);
         // do early to reduce memory footprint
         if (configuration.classuse) {
             ClassUseWriter.generate(configuration, classtree);
@@ -149,11 +150,13 @@ public class HtmlDoclet extends AbstractDoclet {
         }
         // If a stylesheet file is not specified, copy the default stylesheet
         // and replace newline with platform-specific newline.
+        DocFile f;
         if (configuration.stylesheetfile.length() == 0) {
-            Util.copyFile(configuration, "stylesheet.css", Util.RESOURCESDIR,
-                    (configdestdir.isEmpty()) ?
-                        System.getProperty("user.dir") : configdestdir, false, true);
+            f = DocFile.createFileForOutput(configuration, DocPaths.STYLESHEET);
+            f.copyResource(DocPaths.RESOURCES.resolve(DocPaths.STYLESHEET), false, true);
         }
+        f = DocFile.createFileForOutput(configuration, DocPaths.JAVASCRIPT);
+        f.copyResource(DocPaths.RESOURCES.resolve(DocPaths.JAVASCRIPT), true, true);
     }
 
     /**
@@ -185,9 +188,58 @@ public class HtmlDoclet extends AbstractDoclet {
                             .getClassBuilder(curr, prev, next, classtree);
                     classBuilder.build();
                 }
+            } catch (IOException e) {
+                throw new DocletAbortException(e);
+            } catch (DocletAbortException de) {
+                throw de;
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new DocletAbortException();
+                throw new DocletAbortException(e);
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void generateProfileFiles() throws Exception {
+        if (configuration.showProfiles && configuration.profilePackages.size() > 0) {
+            ProfileIndexFrameWriter.generate(configuration);
+            Profile prevProfile = null, nextProfile;
+            String profileName;
+            for (int i = 1; i < configuration.profiles.getProfileCount(); i++) {
+                profileName = Profile.lookup(i).name;
+                // Generate profile package pages only if there are any packages
+                // in a profile to be documented. The profilePackages map will not
+                // contain an entry for the profile if there are no packages to be documented.
+                if (!configuration.shouldDocumentProfile(profileName))
+                    continue;
+                ProfilePackageIndexFrameWriter.generate(configuration, profileName);
+                PackageDoc[] packages = configuration.profilePackages.get(
+                        profileName);
+                PackageDoc prev = null, next;
+                for (int j = 0; j < packages.length; j++) {
+                    // if -nodeprecated option is set and the package is marked as
+                    // deprecated, do not generate the profilename-package-summary.html
+                    // and profilename-package-frame.html pages for that package.
+                    if (!(configuration.nodeprecated && Util.isDeprecated(packages[j]))) {
+                        ProfilePackageFrameWriter.generate(configuration, packages[j], i);
+                        next = (j + 1 < packages.length
+                                && packages[j + 1].name().length() > 0) ? packages[j + 1] : null;
+                        AbstractBuilder profilePackageSummaryBuilder =
+                                configuration.getBuilderFactory().getProfilePackageSummaryBuilder(
+                                packages[j], prev, next, Profile.lookup(i));
+                        profilePackageSummaryBuilder.build();
+                        prev = packages[j];
+                    }
+                }
+                nextProfile = (i + 1 < configuration.profiles.getProfileCount()) ?
+                        Profile.lookup(i + 1) : null;
+                AbstractBuilder profileSummaryBuilder =
+                        configuration.getBuilderFactory().getProfileSummaryBuilder(
+                        Profile.lookup(i), prevProfile, nextProfile);
+                profileSummaryBuilder.build();
+                prevProfile = Profile.lookup(i);
             }
         }
     }
@@ -225,6 +277,9 @@ public class HtmlDoclet extends AbstractDoclet {
         }
     }
 
+    public static final ConfigurationImpl sharedInstanceForOptions =
+            new ConfigurationImpl();
+
     /**
      * Check for doclet added options here.
      *
@@ -233,7 +288,7 @@ public class HtmlDoclet extends AbstractDoclet {
      */
     public static int optionLength(String option) {
         // Construct temporary configuration for check
-        return (ConfigurationImpl.getInstance()).optionLength(option);
+        return sharedInstanceForOptions.optionLength(option);
     }
 
     /**
@@ -249,36 +304,30 @@ public class HtmlDoclet extends AbstractDoclet {
      */
     public static boolean validOptions(String options[][],
             DocErrorReporter reporter) {
-        // Construct temporary configuration for check
-        return (ConfigurationImpl.getInstance()).validOptions(options, reporter);
+        docletToStart = new HtmlDoclet();
+        return docletToStart.configuration.validOptions(options, reporter);
     }
 
-    private void performCopy(String configdestdir, String filename) {
+    private void performCopy(String filename) {
+        if (filename.isEmpty())
+            return;
+
         try {
-            String destdir = (configdestdir.length() > 0) ?
-                configdestdir + File.separatorChar: "";
-            if (filename.length() > 0) {
-                File helpstylefile = new File(filename);
-                String parent = helpstylefile.getParent();
-                String helpstylefilename = (parent == null)?
-                    filename:
-                    filename.substring(parent.length() + 1);
-                File desthelpfile = new File(destdir + helpstylefilename);
-                if (!desthelpfile.getCanonicalPath().equals(
-                        helpstylefile.getCanonicalPath())) {
-                    configuration.message.
-                        notice((SourcePosition) null,
-                            "doclet.Copying_File_0_To_File_1",
-                            helpstylefile.toString(), desthelpfile.toString());
-                    Util.copyFile(desthelpfile, helpstylefile);
-                }
-            }
+            DocFile fromfile = DocFile.createFileForInput(configuration, filename);
+            DocPath path = DocPath.create(fromfile.getName());
+            DocFile toFile = DocFile.createFileForOutput(configuration, path);
+            if (toFile.isSameFile(fromfile))
+                return;
+
+            configuration.message.notice((SourcePosition) null,
+                    "doclet.Copying_File_0_To_File_1",
+                    fromfile.toString(), path.getPath());
+            toFile.copyFile(fromfile);
         } catch (IOException exc) {
-            configuration.message.
-                error((SourcePosition) null,
+            configuration.message.error((SourcePosition) null,
                     "doclet.perform_copy_exception_encountered",
                     exc.toString());
-            throw new DocletAbortException();
+            throw new DocletAbortException(exc);
         }
     }
 }

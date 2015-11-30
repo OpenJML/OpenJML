@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -60,7 +60,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.SimpleTypeVisitor7;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.lang.model.util.Types;
 
 import javax.tools.Diagnostic;
@@ -79,7 +79,7 @@ import com.sun.tools.javac.main.CommandLine;
 
 /**
  * Javah generates support files for native methods.
- * Parse commandline options & Invokes javadoc to execute those commands.
+ * Parse commandline options and invokes javadoc to execute those commands.
  *
  * <p><b>This is NOT part of any supported API.
  * If you write code that depends on this, you do so at your own
@@ -147,7 +147,7 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
         }
     }
 
-    static Option[] recognizedOptions = {
+    static final Option[] recognizedOptions = {
         new Option(true, "-o") {
             void process(JavahTask task, String opt, String arg) {
                 task.ofile = new File(arg);
@@ -217,12 +217,6 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
         new HiddenOption(false, "-Xnew") {
             void process(JavahTask task, String opt, String arg) {
                 // we're already using the new javah
-            }
-        },
-
-        new HiddenOption(false, "-old") {
-            void process(JavahTask task, String opt, String arg) {
-                task.old = true;
             }
         },
 
@@ -500,13 +494,13 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
         g.setForce(force);
 
         if (fileManager instanceof JavahFileManager)
-            ((JavahFileManager) fileManager).setIgnoreSymbolFile(true);
+            ((JavahFileManager) fileManager).setSymbolFileEnabled(false);
 
         JavaCompiler c = ToolProvider.getSystemJavaCompiler();
         List<String> opts = new ArrayList<String>();
         opts.add("-proc:only");
         opts.addAll(javac_extras);
-        CompilationTask t = c.getTask(log, fileManager, diagnosticListener, opts, internalize(classes), null);
+        CompilationTask t = c.getTask(log, fileManager, diagnosticListener, opts, classes, null);
         JavahProcessor p = new JavahProcessor(g);
         t.setProcessors(Collections.singleton(p));
 
@@ -514,14 +508,6 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
         if (p.exit != null)
             throw new Util.Exit(p.exit);
         return ok;
-    }
-
-    private List<String> internalize(List<String> classes) {
-        List<String> l = new ArrayList<String>();
-        for (String c: classes) {
-            l.add(c.replace('$', '.'));
-        }
-        return l;
     }
 
     private List<File> pathToFiles(String path) {
@@ -545,7 +531,7 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
             String name = o.aliases[0].substring(1); // there must always be at least one name
             log.println(getMessage("main.opt." + name));
         }
-        String[] fmOptions = { "-classpath", "-bootclasspath" };
+        String[] fmOptions = { "-classpath", "-cp", "-bootclasspath" };
         for (String o: fmOptions) {
             if (fileManager.isSupportedOption(o) == -1)
                 continue;
@@ -671,7 +657,6 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
     boolean llni;
     boolean doubleAlign;
     boolean force;
-    boolean old;
     Set<String> javac_extras = new LinkedHashSet<String>();
 
     PrintWriter log;
@@ -753,7 +738,7 @@ public class JavahTask implements NativeHeaderTool.NativeHeaderTask {
         }
 
         private TypeVisitor<Void,Types> checkMethodParametersVisitor =
-                new SimpleTypeVisitor7<Void,Types>() {
+                new SimpleTypeVisitor8<Void,Types>() {
             @Override
             public Void visitArray(ArrayType t, Types types) {
                 visit(t.getComponentType(), types);

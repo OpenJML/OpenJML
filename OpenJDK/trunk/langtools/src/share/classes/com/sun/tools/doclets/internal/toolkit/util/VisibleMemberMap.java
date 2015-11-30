@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,10 +25,11 @@
 
 package com.sun.tools.doclets.internal.toolkit.util;
 
-import com.sun.javadoc.*;
-import com.sun.tools.doclets.internal.toolkit.*;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import com.sun.javadoc.*;
+import com.sun.tools.doclets.internal.toolkit.*;
 
 /**
  * A data structure that encapsulates the visible members of a particular
@@ -37,9 +38,10 @@ import java.util.regex.Pattern;
  * or method) and the leaf of the class tree.  The data structure will map
  * all visible members in the leaf and classes above the leaf in the tree.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Atul M Dambalkar
  * @author Jamie Ho (rewrite)
@@ -53,14 +55,15 @@ public class VisibleMemberMap {
     public static final int FIELDS          = 2;
     public static final int CONSTRUCTORS    = 3;
     public static final int METHODS         = 4;
-    public static final int ANNOTATION_TYPE_MEMBER_OPTIONAL = 5;
-    public static final int ANNOTATION_TYPE_MEMBER_REQUIRED = 6;
-    public static final int PROPERTIES      = 7;
+    public static final int ANNOTATION_TYPE_FIELDS = 5;
+    public static final int ANNOTATION_TYPE_MEMBER_OPTIONAL = 6;
+    public static final int ANNOTATION_TYPE_MEMBER_REQUIRED = 7;
+    public static final int PROPERTIES      = 8;
 
     /**
      * The total number of member types is {@value}.
      */
-    public static final int NUM_MEMBER_TYPES = 8;
+    public static final int NUM_MEMBER_TYPES = 9;
 
     public static final String STARTLEVEL = "start";
 
@@ -93,9 +96,9 @@ public class VisibleMemberMap {
     private final int kind;
 
     /**
-     * Deprected members should be excluded or not?
+     * The configuration this VisibleMemberMap was created with.
      */
-    private final boolean nodepr;
+    private final Configuration configuration;
 
     private static final Map<ClassDoc, ProgramElementDoc[]> propertiesCache =
             new HashMap<ClassDoc, ProgramElementDoc[]>();
@@ -106,17 +109,21 @@ public class VisibleMemberMap {
 
     /**
      * Construct a VisibleMemberMap of the given type for the given
-     * class.  If nodepr is true, exclude the deprecated members from
-     * the map.
+     * class.
      *
      * @param classdoc the class whose members are being mapped.
      * @param kind the kind of member that is being mapped.
-     * @param nodepr if true, exclude the deprecated members from the map.
+     * @param configuration the configuration to use to construct this
+     * VisibleMemberMap. If the field configuration.nodeprecated is true the
+     * deprecated members are excluded from the map. If the field
+     * configuration.javafx is true the JavaFX features are used.
      */
-    public VisibleMemberMap(ClassDoc classdoc, int kind, boolean nodepr) {
+    public VisibleMemberMap(ClassDoc classdoc,
+                            int kind,
+                            Configuration configuration) {
         this.classdoc = classdoc;
-        this.nodepr = nodepr;
         this.kind = kind;
+        this.configuration = configuration;
         new ClassMembers(classdoc, STARTLEVEL).build();
     }
 
@@ -161,7 +168,7 @@ public class VisibleMemberMap {
      * Return the package private members inherited by the class.  Only return
      * if parent is package private and not documented.
      *
-     * @param configuation the current configuration of the doclet.
+     * @param configuration the current configuration of the doclet.
      * @return the package private members inherited by the class.
      */
     private List<ProgramElementDoc> getInheritedPackagePrivateMethods(Configuration configuration) {
@@ -184,7 +191,7 @@ public class VisibleMemberMap {
      * end of the list members that are inherited by inaccessible parents. We
      * document these members in the child because the parent is not documented.
      *
-     * @param configuation the current configuration of the doclet.
+     * @param configuration the current configuration of the doclet.
      */
     public List<ProgramElementDoc> getLeafClassMembers(Configuration configuration) {
         List<ProgramElementDoc> result = getMembersFor(classdoc);
@@ -366,10 +373,10 @@ public class VisibleMemberMap {
             List<ProgramElementDoc> incllist = new ArrayList<ProgramElementDoc>();
             for (int i = 0; i < cdmembers.size(); i++) {
                 ProgramElementDoc pgmelem = cdmembers.get(i);
-                if (!found(members, pgmelem)
-                    && memberIsVisible(pgmelem)
-                    && !isOverridden(pgmelem, level)
-                    && !isTreatedAsPrivate(pgmelem)) {
+                if (!found(members, pgmelem) &&
+                    memberIsVisible(pgmelem) &&
+                    !isOverridden(pgmelem, level) &&
+                    !isTreatedAsPrivate(pgmelem)) {
                         incllist.add(pgmelem);
                 }
             }
@@ -381,12 +388,8 @@ public class VisibleMemberMap {
         }
 
         private boolean isTreatedAsPrivate(ProgramElementDoc pgmelem) {
-            if (!Configuration.getJavafxJavadoc()) {
+            if (!configuration.javafx) {
                 return false;
-            }
-
-            if (pgmelem.isPrivate() || pgmelem.isPackagePrivate()) {
-                return true;
             }
 
             Tag[] aspTags = pgmelem.tags("@treatAsPrivate");
@@ -431,6 +434,9 @@ public class VisibleMemberMap {
             }
             ProgramElementDoc[] members = null;
             switch (kind) {
+                case ANNOTATION_TYPE_FIELDS:
+                    members = cd.fields(filter);
+                    break;
                 case ANNOTATION_TYPE_MEMBER_OPTIONAL:
                     members = cd.isAnnotationType() ?
                         filter((AnnotationTypeDoc) cd, false) :
@@ -463,7 +469,8 @@ public class VisibleMemberMap {
                 default:
                     members = new ProgramElementDoc[0];
             }
-            if (nodepr) {
+            // Deprected members should be excluded or not?
+            if (configuration.nodeprecated) {
                 return Util.excludeDeprecatedMembersAsList(members);
             }
             return Arrays.asList(members);
@@ -528,7 +535,7 @@ public class VisibleMemberMap {
 
         private ProgramElementDoc[] properties(final ClassDoc cd, final boolean filter) {
             final MethodDoc[] allMethods = cd.methods(filter);
-            final FieldDoc[] allFields = cd.fields();
+            final FieldDoc[] allFields = cd.fields(false);
 
             if (propertiesCache.containsKey(cd)) {
                 return propertiesCache.get(cd);
@@ -565,6 +572,7 @@ public class VisibleMemberMap {
                     || field.getRawCommentText().length() == 0) {
                 addToPropertiesMap(setter, propertyMethod);
                 addToPropertiesMap(getter, propertyMethod);
+                addToPropertiesMap(propertyMethod, propertyMethod);
             } else {
                 addToPropertiesMap(getter, field);
                 addToPropertiesMap(setter, field);
@@ -578,7 +586,13 @@ public class VisibleMemberMap {
                 return;
             }
             final String methodRawCommentText = propertyMethod.getRawCommentText();
-            if (null == methodRawCommentText || 0 == methodRawCommentText.length()) {
+
+            /* The second condition is required for the property buckets. In
+             * this case the comment is at the property method (not at the field)
+             * and it needs to be listed in the map.
+             */
+            if ((null == methodRawCommentText || 0 == methodRawCommentText.length())
+                    || propertyMethod.equals(commentSource)) {
                 classPropertiesMap.put(propertyMethod, commentSource);
             }
         }
@@ -592,17 +606,17 @@ public class VisibleMemberMap {
             final String fieldNameUppercased =
                     "" + Character.toUpperCase(fieldName.charAt(0))
                                             + fieldName.substring(1);
-            final String getterName;
+            final String getterNamePattern;
             final String fieldTypeName = propertyMethod.returnType().toString();
             if ("boolean".equals(fieldTypeName)
                     || fieldTypeName.endsWith("BooleanProperty")) {
-                getterName = "is" + fieldNameUppercased;
+                getterNamePattern = "(is|get)" + fieldNameUppercased;
             } else {
-                getterName = "get" + fieldNameUppercased;
+                getterNamePattern = "get" + fieldNameUppercased;
             }
 
             for (MethodDoc methodDoc : methods) {
-                if (getterName.equals(methodDoc.name())) {
+                if (Pattern.matches(getterNamePattern, methodDoc.name())) {
                     if (0 == methodDoc.parameters().length
                             && (methodDoc.isPublic() || methodDoc.isProtected())) {
                         return methodDoc;
@@ -668,17 +682,18 @@ public class VisibleMemberMap {
 
         private void checkOnPropertiesTags(MethodDoc[] members) {
             for (MethodDoc methodDoc: members) {
-                for (Tag tag: methodDoc.tags()) {
-                    String tagName = tag.name();
-                    if (tagName.equals("@propertySetter")
-                            || tagName.equals("@propertyGetter")
-                            || tagName.equals("@propertyDescription")) {
-                        if (!isPropertyGetterOrSetter(members, methodDoc)) {
-                            System.out.println(methodDoc.containingClass().qualifiedName()
-                                    +  ": "
-                                    + Util.RESOURCE_BUNDLE.getString("doclet.javafx_tag_misuse"));
+                if (methodDoc.isIncluded()) {
+                    for (Tag tag: methodDoc.tags()) {
+                        String tagName = tag.name();
+                        if (tagName.equals("@propertySetter")
+                                || tagName.equals("@propertyGetter")
+                                || tagName.equals("@propertyDescription")) {
+                            if (!isPropertyGetterOrSetter(members, methodDoc)) {
+                                configuration.message.warning(tag.position(),
+                                        "doclet.javafx_tag_misuse");
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -725,11 +740,7 @@ public class VisibleMemberMap {
      * @return true if this map has no visible members.
      */
     public boolean noVisibleMembers() {
-        if (Configuration.getJavafxJavadoc()) {
-            return false;
-        } else {
-            return noVisibleMembers;
-        }
+        return noVisibleMembers;
     }
 
     private ClassMember getClassMember(MethodDoc member) {

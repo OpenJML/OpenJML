@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,13 +27,19 @@ package com.sun.tools.doclets.formats.html;
 
 import java.io.*;
 import java.util.*;
+
 import com.sun.javadoc.*;
+import com.sun.tools.doclets.formats.html.markup.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.util.*;
-import com.sun.tools.doclets.formats.html.markup.*;
 
 /**
  * Write the Constants Summary Page in HTML format.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @author Bhavesh Patel (Modified)
@@ -63,7 +69,7 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
      */
     public ConstantsSummaryWriterImpl(ConfigurationImpl configuration)
             throws IOException {
-        super(configuration, ConfigurationImpl.CONSTANTS_FILE_NAME);
+        super(configuration, DocPaths.CONSTANT_VALUES);
         this.configuration = configuration;
         constantsTableSummary = configuration.getText("doclet.Constants_Table_Summary",
                 configuration.getText("doclet.Constants_Summary"));
@@ -101,13 +107,14 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
         //add link to summary
         Content link;
         if (packageName.length() == 0) {
-            link = getHyperLink("#" + DocletConstants.UNNAMED_PACKAGE_ANCHOR,
-                    "", defaultPackageLabel, "", "");
+            link = getHyperLink(getDocLink(
+                    SectionName.UNNAMED_PACKAGE_ANCHOR),
+                    defaultPackageLabel, "", "");
         } else {
             Content packageNameContent = getPackageLabel(parsedPackageName);
             packageNameContent.addContent(".*");
-            link = getHyperLink("#" + parsedPackageName,
-                    "", packageNameContent, "", "");
+            link = getHyperLink(DocLink.fragment(parsedPackageName),
+                    packageNameContent, "", "");
             printedPackageHeaders.add(parsedPackageName);
         }
         contentListTree.addContent(HtmlTree.LI(link));
@@ -147,7 +154,7 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
         Content pkgNameContent;
         if (parsedPackageName.length() == 0) {
             summariesTree.addContent(getMarkerAnchor(
-                    DocletConstants.UNNAMED_PACKAGE_ANCHOR));
+                    SectionName.UNNAMED_PACKAGE_ANCHOR));
             pkgNameContent = defaultPackageLabel;
         } else {
             summariesTree.addContent(getMarkerAnchor(
@@ -178,13 +185,17 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
      */
     public Content getConstantMembersHeader(ClassDoc cd) {
         //generate links backward only to public classes.
-        String classlink = (cd.isPublic() || cd.isProtected())?
-            getLink(new LinkInfoImpl(LinkInfoImpl.CONTEXT_CONSTANT_SUMMARY, cd,
-                false)) :
-            cd.qualifiedName();
+        Content classlink = (cd.isPublic() || cd.isProtected()) ?
+            getLink(new LinkInfoImpl(configuration,
+                    LinkInfoImpl.Kind.CONSTANT_SUMMARY, cd)) :
+            new StringContent(cd.qualifiedName());
         String name = cd.containingPackage().name();
         if (name.length() > 0) {
-            return getClassName(name + "." + classlink);
+            Content cb = new ContentBuilder();
+            cb.addContent(name);
+            cb.addContent(".");
+            cb.addContent(classlink);
+            return getClassName(cb);
         } else {
             return getClassName(classlink);
         }
@@ -196,8 +207,8 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
      * @param classStr the class name to print.
      * @return the table caption and header
      */
-    protected Content getClassName(String classStr) {
-        Content table = HtmlTree.TABLE(0, 3, 0, constantsTableSummary,
+    protected Content getClassName(Content classStr) {
+        Content table = HtmlTree.TABLE(HtmlStyle.constantsSummary, 0, 3, 0, constantsTableSummary,
                 getTableCaption(classStr));
         table.addContent(getSummaryTableHeader(constantsTableHeader, "col"));
         return table;
@@ -254,8 +265,8 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
             code.addContent(modifier);
             code.addContent(getSpace());
         }
-        Content type = new RawHtml(getLink(new LinkInfoImpl(
-                LinkInfoImpl.CONTEXT_CONSTANT_SUMMARY, member.type())));
+        Content type = getLink(new LinkInfoImpl(configuration,
+                LinkInfoImpl.Kind.CONSTANT_SUMMARY, member.type()));
         code.addContent(type);
         tdType.addContent(code);
         return tdType;
@@ -268,8 +279,8 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
      * @return the name column of the constant table row
      */
     private Content getNameColumn(FieldDoc member) {
-        Content nameContent = new RawHtml(getDocLink(
-                LinkInfoImpl.CONTEXT_CONSTANT_SUMMARY, member, member.name(), false));
+        Content nameContent = getDocLink(
+                LinkInfoImpl.Kind.CONSTANT_SUMMARY, member, member.name(), false);
         Content code = HtmlTree.CODE(nameContent);
         return HtmlTree.TD(code);
     }
@@ -297,7 +308,7 @@ public class ConstantsSummaryWriterImpl extends HtmlDocletWriter
     /**
      * {@inheritDoc}
      */
-    public void printDocument(Content contentTree) {
+    public void printDocument(Content contentTree) throws IOException {
         printHtmlDocument(null, true, contentTree);
     }
 }

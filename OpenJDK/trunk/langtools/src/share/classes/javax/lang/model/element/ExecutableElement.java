@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,7 +26,6 @@
 package javax.lang.model.element;
 
 import java.util.List;
-import javax.lang.model.util.Types;
 import javax.lang.model.type.*;
 
 /**
@@ -70,6 +69,25 @@ public interface ExecutableElement extends Element, Parameterizable {
     List<? extends VariableElement> getParameters();
 
     /**
+     * Returns the receiver type of this executable,
+     * or {@link javax.lang.model.type.NoType NoType} with
+     * kind {@link javax.lang.model.type.TypeKind#NONE NONE}
+     * if the executable has no receiver type.
+     *
+     * An executable which is an instance method, or a constructor of an
+     * inner class, has a receiver type derived from the {@linkplain
+     * #getEnclosingElement declaring type}.
+     *
+     * An executable which is a static method, or a constructor of a
+     * non-inner class, or an initializer (static or instance), has no
+     * receiver type.
+     *
+     * @return the receiver type of this executable
+     * @since 1.8
+     */
+    TypeMirror getReceiverType();
+
+    /**
      * Returns {@code true} if this method or constructor accepts a variable
      * number of arguments and returns {@code false} otherwise.
      *
@@ -77,6 +95,16 @@ public interface ExecutableElement extends Element, Parameterizable {
      * number of arguments and {@code false} otherwise
      */
     boolean isVarArgs();
+
+    /**
+     * Returns {@code true} if this method is a default method and
+     * returns {@code false} otherwise.
+     *
+     * @return {@code true} if this method is a default method and
+     * {@code false} otherwise
+     * @since 1.8
+     */
+    boolean isDefault();
 
     /**
      * Returns the exceptions and other throwables listed in this

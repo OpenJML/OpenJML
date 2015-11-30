@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,13 +26,18 @@
 package com.sun.tools.doclets.formats.html;
 
 import com.sun.javadoc.*;
+import com.sun.tools.doclets.formats.html.markup.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.taglets.*;
-import com.sun.tools.doclets.formats.html.markup.*;
 
 /**
  * Generate serialized form for Serializable/Externalizable methods.
  * Documentation denoted by the <code>serialData</code> tag is processed.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Joe Fialli
  * @author Bhavesh Patel (Modified)
@@ -80,12 +85,10 @@ public class HtmlSerialMethodWriter extends MethodWriterImpl implements
      * @return a content tree for the serializable methods content
      */
     public Content getSerializableMethods(String heading, Content serializableMethodContent) {
-        Content li = HtmlTree.LI(HtmlStyle.blockList, writer.getMarkerAnchor(
-                "serialized_methods"));
         Content headingContent = new StringContent(heading);
         Content serialHeading = HtmlTree.HEADING(HtmlConstants.SERIALIZED_MEMBER_HEADING,
                 headingContent);
-        li.addContent(serialHeading);
+        Content li = HtmlTree.LI(HtmlStyle.blockList, serialHeading);
         li.addContent(serializableMethodContent);
         return li;
     }
@@ -108,8 +111,6 @@ public class HtmlSerialMethodWriter extends MethodWriterImpl implements
      * @param methodsContentTree the content tree to which the member header will be added
      */
     public void addMemberHeader(MethodDoc member, Content methodsContentTree) {
-        methodsContentTree.addContent(writer.getMarkerAnchor(
-                writer.getAnchor(member)));
         methodsContentTree.addContent(getHead(member));
         methodsContentTree.addContent(getSignature(member));
     }
@@ -141,34 +142,20 @@ public class HtmlSerialMethodWriter extends MethodWriterImpl implements
      * @param methodsContentTree the tree to which the member tags info will be added
      */
     public void addMemberTags(MethodDoc member, Content methodsContentTree) {
-        TagletOutputImpl output = new TagletOutputImpl("");
+        Content tagContent = new ContentBuilder();
         TagletManager tagletManager =
-            ConfigurationImpl.getInstance().tagletManager;
+            configuration.tagletManager;
         TagletWriter.genTagOuput(tagletManager, member,
-            tagletManager.getSerializedFormTags(),
-            writer.getTagletWriterInstance(false), output);
-        String outputString = output.toString().trim();
+            tagletManager.getSerializedFormTaglets(),
+            writer.getTagletWriterInstance(false), tagContent);
         Content dlTags = new HtmlTree(HtmlTag.DL);
-        if (!outputString.isEmpty()) {
-            Content tagContent = new RawHtml(outputString);
-            dlTags.addContent(tagContent);
-        }
-        methodsContentTree.addContent(dlTags);
+        dlTags.addContent(tagContent);
+        methodsContentTree.addContent(dlTags);  // TODO: what if empty?
         MethodDoc method = member;
         if (method.name().compareTo("writeExternal") == 0
                 && method.tags("serialData").length == 0) {
             serialWarning(member.position(), "doclet.MissingSerialDataTag",
                 method.containingClass().qualifiedName(), method.name());
-        }
-    }
-
-    protected void printTypeLinkNoDimension(Type type) {
-        ClassDoc cd = type.asClassDoc();
-        if (type.isPrimitive() || cd.isPackagePrivate()) {
-            print(type.typeName());
-        } else {
-            writer.printLink(new LinkInfoImpl(
-                LinkInfoImpl.CONTEXT_SERIAL_MEMBER,type));
         }
     }
 }

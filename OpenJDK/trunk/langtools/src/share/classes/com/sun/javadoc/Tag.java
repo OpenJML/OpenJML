@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -54,36 +54,44 @@ public interface Tag {
      * <code>{&#064;link}</code>, the curly brackets
      * are not part of the name, so in this example the name
      * would be simply <code>@link</code>.
+     *
+     * @return the name of this tag
      */
     String name();
 
     /**
      * Return the containing {@link Doc} of this Tag element.
+     *
+     * @return the containing {@link Doc} of this Tag element
      */
     Doc holder();
 
     /**
      * Return the kind of this tag.
-     * similar or synonymous tags.  For most tags,
+     * For most tags,
      * <code>kind()&nbsp;==&nbsp;name()</code>;
      * the following table lists those cases where there is more
      * than one tag of a given kind:
-     * <p>
-     * <table border="1" cellpadding="4" cellspacing="0">
-     * <tr><th><tt> kind()  </th>  <th><tt> name()      </th></tr>
-     * <tr><td><tt> @throws </td>  <td><tt> @throws     </td></tr>
-     * <tr><td><tt> @throws </td>  <td><tt> @exception  </td></tr>
-     * <tr><td><tt> @see    </td>  <td><tt> @see        </td></tr>
-     * <tr><td><tt> @see    </td>  <td><tt> @link       </td></tr>
-     * <tr><td><tt> @see    </td>  <td><tt> @linkplain  </td></tr>
-     * <tr><td><tt> @serial </td>  <td><tt> @serial     </td></tr>
-     * <tr><td><tt> @serial </td>  <td><tt> @serialData </td></tr>
+     *
+     * <table border="1" cellpadding="4" cellspacing="0" summary="related tags">
+     * <tr><th>{@code kind()  }</th>  <th>{@code name()      }</th></tr>
+     * <tr><td>{@code @throws }</td>  <td>{@code @throws     }</td></tr>
+     * <tr><td>{@code @throws }</td>  <td>{@code @exception  }</td></tr>
+     * <tr><td>{@code @see    }</td>  <td>{@code @see        }</td></tr>
+     * <tr><td>{@code @see    }</td>  <td>{@code @link       }</td></tr>
+     * <tr><td>{@code @see    }</td>  <td>{@code @linkplain  }</td></tr>
+     * <tr><td>{@code @serial }</td>  <td>{@code @serial     }</td></tr>
+     * <tr><td>{@code @serial }</td>  <td>{@code @serialData }</td></tr>
      * </table>
+     *
+     * @return the kind of this tag.
      */
     String kind();
 
     /**
-     * Return the text of this tag, that is, portion beyond tag name.
+     * Return the text of this tag, that is, the portion beyond tag name.
+     *
+     * @return the text of this tag
      */
     String text();
 
@@ -127,7 +135,7 @@ public interface Tag {
     /**
      * Return the first sentence of the comment as an array of tags.
      * Includes inline tags
-     * (i.e. {&#64link <i>reference</i>} tags)  but not
+     * (i.e. {&#64;link <i>reference</i>} tags)  but not
      * block tags.
      * Each section of plain text is represented as a {@link Tag}
      * of kind "Text".

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,12 +25,21 @@
 
 package com.sun.tools.doclets.formats.html.markup;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
+import java.nio.charset.*;
+
 import com.sun.tools.doclets.internal.toolkit.Content;
 import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * Class for generating HTML tree for javadoc output.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Bhavesh Patel
  */
@@ -70,8 +79,12 @@ public class HtmlTree extends Content {
      */
     public void addAttr(HtmlAttr attrName, String attrValue) {
         if (attrs.isEmpty())
-            attrs = new LinkedHashMap<HtmlAttr,String>();
-        attrs.put(nullCheck(attrName), nullCheck(attrValue));
+            attrs = new LinkedHashMap<HtmlAttr,String>(3);
+        attrs.put(nullCheck(attrName), escapeHtmlChars(attrValue));
+    }
+
+    public void setTitle(Content body) {
+        addAttr(HtmlAttr.TITLE, stripHtml(body));
     }
 
     /**
@@ -89,7 +102,12 @@ public class HtmlTree extends Content {
      * @param tagContent tag content to be added
      */
     public void addContent(Content tagContent) {
-        if (tagContent == HtmlTree.EMPTY || tagContent.isValid()) {
+        if (tagContent instanceof ContentBuilder) {
+            for (Content content: ((ContentBuilder)tagContent).contents) {
+                addContent(content);
+            }
+        }
+        else if (tagContent == HtmlTree.EMPTY || tagContent.isValid()) {
             if (content.isEmpty())
                 content = new ArrayList<Content>();
             content.add(tagContent);
@@ -115,6 +133,82 @@ public class HtmlTree extends Content {
             addContent(new StringContent(stringContent));
     }
 
+    public int charCount() {
+        int n = 0;
+        for (Content c : content)
+            n += c.charCount();
+        return n;
+    }
+
+    /**
+     * Given a string, escape all special html characters and
+     * return the result.
+     *
+     * @param s The string to check.
+     * @return the original string with all of the HTML characters escaped.
+     */
+    private static String escapeHtmlChars(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            switch (ch) {
+                // only start building a new string if we need to
+                case '<': case '>': case '&':
+                    StringBuilder sb = new StringBuilder(s.substring(0, i));
+                    for ( ; i < s.length(); i++) {
+                        ch = s.charAt(i);
+                        switch (ch) {
+                            case '<': sb.append("&lt;");  break;
+                            case '>': sb.append("&gt;");  break;
+                            case '&': sb.append("&amp;"); break;
+                            default:  sb.append(ch);      break;
+                        }
+                    }
+                    return sb.toString();
+            }
+        }
+        return s;
+    }
+
+    /**
+     * A set of ASCII URI characters to be left unencoded.
+     */
+    public static final BitSet NONENCODING_CHARS = new BitSet(256);
+
+    static {
+        // alphabetic characters
+        for (int i = 'a'; i <= 'z'; i++) {
+            NONENCODING_CHARS.set(i);
+        }
+        for (int i = 'A'; i <= 'Z'; i++) {
+            NONENCODING_CHARS.set(i);
+        }
+        // numeric characters
+        for (int i = '0'; i <= '9'; i++) {
+            NONENCODING_CHARS.set(i);
+        }
+        // Reserved characters as per RFC 3986. These are set of delimiting characters.
+        String noEnc = ":/?#[]@!$&'()*+,;=";
+        // Unreserved characters as per RFC 3986 which should not be percent encoded.
+        noEnc += "-._~";
+        for (int i = 0; i < noEnc.length(); i++) {
+            NONENCODING_CHARS.set(noEnc.charAt(i));
+        }
+    }
+
+    private static String encodeURL(String url) {
+        byte[] urlBytes = url.getBytes(Charset.forName("UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < urlBytes.length; i++) {
+            int c = urlBytes[i];
+            if (NONENCODING_CHARS.get(c & 0xFF)) {
+                sb.append((char) c);
+            } else {
+                sb.append(String.format("%%%02X", c & 0xFF));
+            }
+        }
+        return sb.toString();
+    }
+
     /**
      * Generates an HTML anchor tag.
      *
@@ -124,7 +218,7 @@ public class HtmlTree extends Content {
      */
     public static HtmlTree A(String ref, Content body) {
         HtmlTree htmltree = new HtmlTree(HtmlTag.A, nullCheck(body));
-        htmltree.addAttr(HtmlAttr.HREF, nullCheck(ref));
+        htmltree.addAttr(HtmlAttr.HREF, encodeURL(ref));
         return htmltree;
     }
 
@@ -234,17 +328,6 @@ public class HtmlTree extends Content {
     }
 
     /**
-     * Generates a EM tag with some content.
-     *
-     * @param body content to be added to the tag
-     * @return an HtmlTree object for the EM tag
-     */
-    public static HtmlTree EM(Content body) {
-        HtmlTree htmltree = new HtmlTree(HtmlTag.EM, nullCheck(body));
-        return htmltree;
-    }
-
-    /**
      * Generates a FRAME tag.
      *
      * @param src the url of the document to be shown in the frame
@@ -309,7 +392,7 @@ public class HtmlTree extends Content {
             HtmlStyle styleClass, Content body) {
         HtmlTree htmltree = new HtmlTree(headingTag, nullCheck(body));
         if (printTitle)
-            htmltree.addAttr(HtmlAttr.TITLE, Util.stripHtml(body.toString()));
+            htmltree.setTitle(body);
         if (styleClass != null)
             htmltree.addStyle(styleClass);
         return htmltree;
@@ -368,17 +451,6 @@ public class HtmlTree extends Content {
     }
 
     /**
-     * Generates a I tag with some content.
-     *
-     * @param body content for the tag
-     * @return an HtmlTree object for the I tag
-     */
-    public static HtmlTree I(Content body) {
-        HtmlTree htmltree = new HtmlTree(HtmlTag.I, nullCheck(body));
-        return htmltree;
-    }
-
-    /**
      * Generates a LI tag with some content.
      *
      * @param body content for the tag
@@ -423,16 +495,16 @@ public class HtmlTree extends Content {
     /**
      * Generates a META tag with the http-equiv, content and charset attributes.
      *
-     * @param http-equiv http equiv attribute for the META tag
+     * @param httpEquiv http equiv attribute for the META tag
      * @param content type of content
-     * @param charset character set used
+     * @param charSet character set used
      * @return an HtmlTree object for the META tag
      */
     public static HtmlTree META(String httpEquiv, String content, String charSet) {
         HtmlTree htmltree = new HtmlTree(HtmlTag.META);
+        String contentCharset = content + "; charset=" + charSet;
         htmltree.addAttr(HtmlAttr.HTTP_EQUIV, nullCheck(httpEquiv));
-        htmltree.addAttr(HtmlAttr.CONTENT, nullCheck(content));
-        htmltree.addAttr(HtmlAttr.CHARSET, nullCheck(charSet));
+        htmltree.addAttr(HtmlAttr.CONTENT, contentCharset);
         return htmltree;
     }
 
@@ -486,6 +558,20 @@ public class HtmlTree extends Content {
     }
 
     /**
+     * Generates a SCRIPT tag with the type and src attributes.
+     *
+     * @param type type of link
+     * @param src the path for the script
+     * @return an HtmlTree object for the SCRIPT tag
+     */
+    public static HtmlTree SCRIPT(String type, String src) {
+        HtmlTree htmltree = new HtmlTree(HtmlTag.SCRIPT);
+        htmltree.addAttr(HtmlAttr.TYPE, nullCheck(type));
+        htmltree.addAttr(HtmlAttr.SRC, nullCheck(src));
+        return htmltree;
+    }
+
+    /**
      * Generates a SMALL tag with some content.
      *
      * @param body content for the tag
@@ -493,17 +579,6 @@ public class HtmlTree extends Content {
      */
     public static HtmlTree SMALL(Content body) {
         HtmlTree htmltree = new HtmlTree(HtmlTag.SMALL, nullCheck(body));
-        return htmltree;
-    }
-
-    /**
-     * Generates a STRONG tag with some content.
-     *
-     * @param body content for the tag
-     * @return an HtmlTree object for the STRONG tag
-     */
-    public static HtmlTree STRONG(Content body) {
-        HtmlTree htmltree = new HtmlTree(HtmlTag.STRONG, nullCheck(body));
         return htmltree;
     }
 
@@ -532,21 +607,19 @@ public class HtmlTree extends Content {
     }
 
     /**
-     * Generates a Table tag with border, width and summary attributes and
-     * some content.
+     * Generates a SPAN tag with id and style class attributes. It also encloses
+     * a content.
      *
-     * @param border border for the table
-     * @param width width of the table
-     * @param summary summary for the table
-     * @param body content for the table
-     * @return an HtmlTree object for the TABLE tag
+     * @param id the id for the tag
+     * @param styleClass stylesheet class for the tag
+     * @param body content for the tag
+     * @return an HtmlTree object for the SPAN tag
      */
-    public static HtmlTree TABLE(int border, int width, String summary,
-            Content body) {
-        HtmlTree htmltree = new HtmlTree(HtmlTag.TABLE, nullCheck(body));
-        htmltree.addAttr(HtmlAttr.BORDER, Integer.toString(border));
-        htmltree.addAttr(HtmlAttr.WIDTH, Integer.toString(width));
-        htmltree.addAttr(HtmlAttr.SUMMARY, nullCheck(summary));
+    public static HtmlTree SPAN(String id, HtmlStyle styleClass, Content body) {
+        HtmlTree htmltree = new HtmlTree(HtmlTag.SPAN, nullCheck(body));
+        htmltree.addAttr(HtmlAttr.ID, nullCheck(id));
+        if (styleClass != null)
+            htmltree.addStyle(styleClass);
         return htmltree;
     }
 
@@ -572,22 +645,6 @@ public class HtmlTree extends Content {
         htmltree.addAttr(HtmlAttr.CELLSPACING, Integer.toString(cellSpacing));
         htmltree.addAttr(HtmlAttr.SUMMARY, nullCheck(summary));
         return htmltree;
-    }
-
-    /**
-     * Generates a Table tag with border, cell padding,
-     * cellspacing and summary attributes and some content.
-     *
-     * @param border border for the table
-     * @param cellPadding cell padding for the table
-     * @param cellSpacing cell spacing for the table
-     * @param summary summary for the table
-     * @param body content for the table
-     * @return an HtmlTree object for the TABLE tag
-     */
-    public static HtmlTree TABLE(int border, int cellPadding,
-            int cellSpacing, String summary, Content body) {
-        return TABLE(null, border, cellPadding, cellSpacing, summary, body);
     }
 
     /**
@@ -734,6 +791,9 @@ public class HtmlTree extends Content {
                 return (hasAttr(HtmlAttr.HREF) && !hasContent());
             case META :
                 return (hasAttr(HtmlAttr.CONTENT) && !hasContent());
+            case SCRIPT :
+                return ((hasAttr(HtmlAttr.TYPE) && hasAttr(HtmlAttr.SRC) && !hasContent()) ||
+                        (hasAttr(HtmlAttr.TYPE) && hasContent()));
             default :
                 return hasContent();
         }
@@ -751,35 +811,59 @@ public class HtmlTree extends Content {
     /**
      * {@inheritDoc}
      */
-    public void write(StringBuilder contentBuilder) {
-        if (!isInline() && !endsWithNewLine(contentBuilder))
-            contentBuilder.append(DocletConstants.NL);
+    @Override
+    public boolean write(Writer out, boolean atNewline) throws IOException {
+        if (!isInline() && !atNewline)
+            out.write(DocletConstants.NL);
         String tagString = htmlTag.toString();
-        contentBuilder.append("<");
-        contentBuilder.append(tagString);
+        out.write("<");
+        out.write(tagString);
         Iterator<HtmlAttr> iterator = attrs.keySet().iterator();
         HtmlAttr key;
-        String value = "";
+        String value;
         while (iterator.hasNext()) {
             key = iterator.next();
             value = attrs.get(key);
-            contentBuilder.append(" ");
-            contentBuilder.append(key.toString());
+            out.write(" ");
+            out.write(key.toString());
             if (!value.isEmpty()) {
-                contentBuilder.append("=\"");
-                contentBuilder.append(value);
-                contentBuilder.append("\"");
+                out.write("=\"");
+                out.write(value);
+                out.write("\"");
             }
         }
-        contentBuilder.append(">");
+        out.write(">");
+        boolean nl = false;
         for (Content c : content)
-            c.write(contentBuilder);
+            nl = c.write(out, nl);
         if (htmlTag.endTagRequired()) {
-            contentBuilder.append("</");
-            contentBuilder.append(tagString);
-            contentBuilder.append(">");
+            out.write("</");
+            out.write(tagString);
+            out.write(">");
         }
-        if (!isInline())
-            contentBuilder.append(DocletConstants.NL);
+        if (!isInline()) {
+            out.write(DocletConstants.NL);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Given a Content node, strips all html characters and
+     * return the result.
+     *
+     * @param body The content node to check.
+     * @return the plain text from the content node
+     *
+     */
+    private static String stripHtml(Content body) {
+        String rawString = body.toString();
+        // remove HTML tags
+        rawString = rawString.replaceAll("\\<.*?>", " ");
+        // consolidate multiple spaces between a word to a single space
+        rawString = rawString.replaceAll("\\b\\s{2,}\\b", " ");
+        // remove extra whitespaces
+        return rawString.trim();
     }
 }
