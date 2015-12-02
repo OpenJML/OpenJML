@@ -36,10 +36,10 @@ fi
 
 TEMPJAR=tempjars
 
-##svn up
-##REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
-##VERSION=`date +%Y%m%d`-REV${REVISION}
 VERSION=`date +%Y%m%d`
+VERSION=`git rev-parse --abbrev-ref HEAD`
+
+
 NAME=openjml-${VERSION}.tar.gz
 NAMEZ=openjml-${VERSION}.zip
 
@@ -122,9 +122,6 @@ NAMEZ=openjml-${VERSION}.zip
 	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
-	
-##### Build the web pages, even though we are not including them here
-    (cd ../OpenJML-UpdateSite/web/src; . create > log)
-    
+	    
 ##### End	
 	echo Release complete
