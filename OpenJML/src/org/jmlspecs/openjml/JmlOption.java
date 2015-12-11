@@ -235,6 +235,12 @@ public enum JmlOption implements IOption {
      //@ non_null
     public String optionName() { return name; }
 
+    /** The name of the option, including any leading - sign
+     * @see org.jmlspecs.openjml.IOption#optionName()
+     */
+     //@ non_null
+    public String getText() { return name; }
+    
     /* Whether the option takes an argument
      * @see org.jmlspecs.openjml.OptionInterface#hasArg()
      */

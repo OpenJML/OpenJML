@@ -36,6 +36,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 /**  FIXME - revise this
@@ -762,7 +763,7 @@ public class JmlEnter extends Enter {
         //      checkInvariantDecl, checkStaticInvariantDecl (RAC related)
 
         if (tspecs.decl != null && specTypeDecl != tspecs.decl ) {
-            log.noticeWriter.println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
+            log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
         }
 
         JmlSpecs.TypeSpecs nspecs = null;
@@ -821,7 +822,7 @@ public class JmlEnter extends Enter {
      * compilation unit)
      */
     public void enterSpecsForBinaryClasses(ClassSymbol csymbol, JmlCompilationUnit speccu) {
-    	if (utils.jmlverbose >= Utils.JMLDEBUG)  log.noticeWriter.println("ENTER TOPLEVEL (BINARY) " + csymbol);
+    	if (utils.jmlverbose >= Utils.JMLDEBUG)  log.getWriter(WriterKind.NOTICE).println("ENTER TOPLEVEL (BINARY) " + csymbol);
 
         // First do all the linking of java types to specifications
         // Since we do not have a Java compilation Unit to walk down, we will

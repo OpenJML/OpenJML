@@ -13,6 +13,7 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -62,6 +63,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 
@@ -257,7 +259,7 @@ public class JmlSpecs {
      * @return true if found, false if not
      */
     public boolean appendInternalSpecs(boolean verbose, java.util.List<Dir> dirs) {
-        
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         String versionString = System.getProperty("java.version");
         int version;
         if (versionString.startsWith("1.6")) version = 6;
@@ -266,10 +268,10 @@ public class JmlSpecs {
         else if (versionString.startsWith("1.7")) version = 7;
         else if (versionString.startsWith("1.")) version = versionString.charAt(2) - '0';
         else {
-            log.noticeWriter.println("Unrecognized version: " + versionString);
+            noticeWriter.println("Unrecognized version: " + versionString);
             version = 6; // default, if the version string is in an unexpected format
         }
-        if (verbose) log.noticeWriter.println("Java version " + version);
+        if (verbose) noticeWriter.println("Java version " + version);
        
         // Look for a openjml.jar or jmlspecs.jar file on the classpath
         // If present, use it (and use the first one found).  
@@ -285,7 +287,7 @@ public class JmlSpecs {
             if (s.endsWith(Strings.releaseJar)) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
@@ -295,7 +297,7 @@ public class JmlSpecs {
             if (s.endsWith(Strings.specsJar)) {
                 d = new JarDir(s,"");
                 if (d.exists()) {
-                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
@@ -309,13 +311,13 @@ public class JmlSpecs {
             if (s.endsWith(".jar")) {
                 d = new JarDir(s,libToUse);
                 if (d.exists()) {
-                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
                 d = new JarDir(s,prefix + (version-1));
                 if (d.exists()) {
-                    if (verbose) log.noticeWriter.println("Using internal specs " + d);
+                    if (verbose) noticeWriter.println("Using internal specs " + d);
                     dirs.add(d);
                     return true;
                 }
@@ -416,6 +418,7 @@ public class JmlSpecs {
     public void setSpecsPath(String[] specsPathArray) {
         boolean verbose = utils.jmlverbose >= Utils.JMLVERBOSE ||
             Options.instance(context).get("-verbose") != null;
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
 
         specsDirs = new LinkedList<Dir>();
         List<String> todo = new LinkedList<String>();
@@ -490,17 +493,17 @@ public class JmlSpecs {
             }
         }
         if (verbose) {
-            log.noticeWriter.print("specspath:");
+            noticeWriter.print("specspath:");
             for (Dir s: specsDirs) {
-                log.noticeWriter.print(" ");
-                log.noticeWriter.print(s);
+                noticeWriter.print(" ");
+                noticeWriter.print(s);
             }
             Options options = Options.instance(context);
-            log.noticeWriter.println("");
-            log.noticeWriter.println("sourcepath: " + options.get("-sourcepath"));
-            log.noticeWriter.println("classpath: " + options.get("-classpath"));
-            log.noticeWriter.println("java.class.path: " + System.getProperty("java.class.path"));
-            log.noticeWriter.flush();
+            noticeWriter.println("");
+            noticeWriter.println("sourcepath: " + options.get("-sourcepath"));
+            noticeWriter.println("classpath: " + options.get("-classpath"));
+            noticeWriter.println("java.class.path: " + System.getProperty("java.class.path"));
+            noticeWriter.flush();
         }
     }
 
@@ -814,41 +817,42 @@ public class JmlSpecs {
     
     /** A debugging method that prints the content of the specs database */
     public void printDatabase() {
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         try {
             for (Map.Entry<ClassSymbol,TypeSpecs> e : specsmap.entrySet()) {
                 String n = e.getKey().flatname.toString();
                 JavaFileObject f = e.getValue().file;
-                log.noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
+                noticeWriter.println(n + " " + (f==null?"<NOFILE>":f.getName()));
                 ListBuffer<JmlTree.JmlTypeClause> clauses = e.getValue().clauses;
-                log.noticeWriter.println("  " + clauses.size() + " CLAUSES");
+                noticeWriter.println("  " + clauses.size() + " CLAUSES");
                 for (JmlTree.JmlTypeClause j: clauses) {
-                    log.noticeWriter.println("  " + JmlPretty.write(j));
+                    noticeWriter.println("  " + JmlPretty.write(j));
                 }
-                log.noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
+                noticeWriter.println("  " + e.getValue().methods.size() + " METHODS");
                 for (MethodSymbol m: e.getValue().methods.keySet()) {
                     MethodSpecs sp = getSpecs(m);
-                    log.noticeWriter.println("  " + JmlPretty.write(sp.mods));
-                    log.noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
-                    log.noticeWriter.print(JmlPretty.write(sp.cases));
+                    noticeWriter.println("  " + JmlPretty.write(sp.mods));
+                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+                    noticeWriter.print(JmlPretty.write(sp.cases));
                     //log.noticeWriter.println(sp.toString("     "));
                 }
-                log.noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
+                noticeWriter.println("  " + e.getValue().fields.size() + " FIELDS");
                 for (VarSymbol m: e.getValue().fields.keySet()) {
                     FieldSpecs sp = getSpecs(m);
-                    log.noticeWriter.print("  " + JmlPretty.write(sp.mods));
-                    log.noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
+                    noticeWriter.print("  " + JmlPretty.write(sp.mods));
+                    noticeWriter.println(" " + m.enclClass().toString() + " " + m.flatName());
                     for (JmlTypeClause t: sp.list) {
-                        log.noticeWriter.print(JmlPretty.write(t));
-                        //log.noticeWriter.println(sp.toString("     "));
+                        noticeWriter.print(JmlPretty.write(t));
+                        //noticeWriter.println(sp.toString("     "));
                     }
                 }
             }
-            log.noticeWriter.println("MOCK FILES");
+            noticeWriter.println("MOCK FILES");
             for (String s: mockFiles.keySet()) {
-                log.noticeWriter.println(s + " :: " + mockFiles.get(s));
+                noticeWriter.println(s + " :: " + mockFiles.get(s));
             }
         } catch (Exception e) {
-            log.noticeWriter.println("Exception occurred in printing the database: " + e);
+            noticeWriter.println("Exception occurred in printing the database: " + e);
         }
     }
     
@@ -893,7 +897,7 @@ public class JmlSpecs {
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         spec.csymbol = type;
         specsmap.put(type,spec);
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     /** Adds the specs for a given method to the database, overwriting anything
@@ -902,7 +906,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving method specs for " + m.enclClass() + " " + m);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).methods.put(m,spec);
     }
     
@@ -914,7 +918,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the block
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving initializer block specs " );
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving initializer block specs " );
         specsmap.get(csym).blocks.put(m,spec);
     }
     
@@ -925,7 +929,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("            Saving field specs for " + m.enclClass() + " " + m);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     
@@ -969,7 +973,7 @@ public class JmlSpecs {
             list.add(t);
         }
         list.add(JmlTreeUtils.instance(context).makeType(m.pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlToken.SIGNALS_ONLY, list.toList());
+        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(m.pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
         JmlSpecificationCase cs = new JmlSpecificationCase(m.pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         return mspecs;
@@ -994,7 +998,7 @@ public class JmlSpecs {
             list.add(e);
         }
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
-        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(pos,JmlToken.SIGNALS_ONLY, list.toList());
+        JmlMethodClauseSignalsOnly cl = new JmlMethodClauseSignalsOnly(pos,JmlTokenKind.SIGNALS_ONLY, list.toList());
         JmlSpecificationCase cs = new JmlSpecificationCase(pos, M.Modifiers(0), false,null,null,com.sun.tools.javac.util.List.<JmlMethodClause>of(cl));
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         return mspecs;
@@ -1057,7 +1061,7 @@ public class JmlSpecs {
          * on containing classes, and the system default.
          */
         //@ nullable
-        private JmlToken defaultNullity = null;
+        private JmlTokenKind defaultNullity = null;
         
         /** All the specification clauses for the class (not method clauses or field clauses or block clauses) */
         /*@ non_null */
@@ -1164,18 +1168,18 @@ public class JmlSpecs {
      * @return JmlToken.NULLABLE or JmlToken.NONNULL
      */
     //@ ensures \result != null;
-    public /*@non_null*/ JmlToken defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
+    public /*@non_null*/ JmlTokenKind defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
         if (csymbol == null) {
             // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
             if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
-                return JmlToken.NULLABLE;
+                return JmlTokenKind.NULLABLE;
             } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
-                return JmlToken.NONNULL;
+                return JmlTokenKind.NONNULL;
             } else {
-                return JmlToken.NONNULL;  // The default when nothing is specified
+                return JmlTokenKind.NONNULL;  // The default when nothing is specified
             }
         }
         {
@@ -1184,7 +1188,7 @@ public class JmlSpecs {
                 JCTree tree = env.tree;
                 if (tree != null && tree instanceof JmlClassDecl) {
                     JmlClassDecl decl = (JmlClassDecl)tree;
-                    return isNonNull(decl) ? JmlToken.NONNULL : JmlToken.NULLABLE;
+                    return isNonNull(decl) ? JmlTokenKind.NONNULL : JmlTokenKind.NULLABLE;
                 }
             }
         }
@@ -1192,22 +1196,22 @@ public class JmlSpecs {
         TypeSpecs spec = get(csymbol); // FIXME - why would spec be null?
         if (spec == null || spec.defaultNullity == null) {
             if (csymbol.toString().equals("B")) Utils.print(null);
-            JmlToken t = null;
+            JmlTokenKind t = null;
             if (spec.decl == null) {
                 if (csymbol.getAnnotationMirrors() != null) {
                     if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
-                        t = JmlToken.NULLABLE;
+                        t = JmlTokenKind.NULLABLE;
                     } else if (csymbol.attribute(attr.nonnullbydefaultAnnotationSymbol) != null) {
-                        t = JmlToken.NONNULL;
+                        t = JmlTokenKind.NONNULL;
                     }
                 } 
             } else {
                 JCModifiers mods = spec.decl.mods;
                 if (spec.decl.specsDecls != null) mods = spec.decl.specsDecls.mods;
                 if (utils.findMod(mods, attr.nullablebydefaultAnnotationSymbol) != null) {
-                    t = JmlToken.NULLABLE;
+                    t = JmlTokenKind.NULLABLE;
                 } else if (utils.findMod(mods, attr.nonnullbydefaultAnnotationSymbol) != null) {
-                    t = JmlToken.NONNULL;
+                    t = JmlTokenKind.NONNULL;
                 }
             }
             if (t == null) {
@@ -1290,7 +1294,7 @@ public class JmlSpecs {
             JmlClassDecl cdecl = (JmlClassDecl)env.tree;
             return isNonNull(cdecl);
         } else {
-            return defaultNullity((ClassSymbol)owner) == JmlToken.NONNULL;
+            return defaultNullity((ClassSymbol)owner) == JmlTokenKind.NONNULL;
         }
     }
     
@@ -1304,8 +1308,8 @@ public class JmlSpecs {
             if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         }
         Symbol parent = decl.sym.owner;
-        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlToken.NONNULL;  // FIXME - is this OK for interfaces
-        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlToken.NONNULL;
+        if (!(parent instanceof Symbol.ClassSymbol)) return defaultNullity(null) == JmlTokenKind.NONNULL;  // FIXME - is this OK for interfaces
+        if (Enter.instance(context).getEnv((Symbol.TypeSymbol)parent) == null) return defaultNullity(null) == JmlTokenKind.NONNULL;
         JmlClassDecl encl = (JmlClassDecl)Enter.instance(context).getEnv((Symbol.TypeSymbol)parent).tree;
         return isNonNull(encl);
     }
@@ -1336,7 +1340,7 @@ public class JmlSpecs {
             if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
             else if (symbol.name == names._this) return true;
-            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == JmlToken.NONNULL;
+            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == JmlTokenKind.NONNULL;
         } else if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.MethodSymbol) {
             // Method parameter or variable in body
             MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
@@ -1351,21 +1355,21 @@ public class JmlSpecs {
             if (attr != null) return false;
             attr = symbol.attribute(nonnullAnnotationSymbol);
             if (attr != null) return true;
-            return defaultNullity(csymbol) == JmlToken.NONNULL;
+            return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
             
         } else if (symbol instanceof Symbol.MethodSymbol) {
             // Method return value
             MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
             if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-            else return defaultNullity(csymbol) == JmlToken.NONNULL;
+            else return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
         } else {
             // What else?
             attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
             if (attr != null) return false;
             attr = symbol.attribute(nonnullAnnotationSymbol);
             if (attr != null) return true;
-            return defaultNullity(csymbol) == JmlToken.NONNULL;
+            return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
         }
     }
     
@@ -1385,14 +1389,14 @@ public class JmlSpecs {
         return false;
     }
     
-    public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, JmlToken token) {
+    public JCAnnotation fieldSpecHasAnnotation(VarSymbol sym, JmlTokenKind token) {
         FieldSpecs fspecs = getSpecs(sym);
         if (fspecs == null) return null;
         Symbol annotationSymbol = attr.tokenToAnnotationSymbol.get(token);
         return utils.findMod(fspecs.mods,annotationSymbol);
     }
 
-    public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, JmlToken token) {
+    public JCAnnotation methodSpecHasAnnotation(MethodSymbol sym, JmlTokenKind token) {
         MethodSpecs mspecs = getSpecs(sym);
         if (mspecs == null) return null;
         Symbol annotationSymbol = attr.tokenToAnnotationSymbol.get(token);

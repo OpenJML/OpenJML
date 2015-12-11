@@ -6,6 +6,7 @@ package org.jmlspecs.openjml;
 
 import java.util.Map;
 
+import com.sun.tools.javac.tree.EndPosTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -69,17 +70,17 @@ public class DiagnosticPositionSES implements DiagnosticPosition {
         return preferred;
     }
 
-    @Override
-    public int getEndPosition(Map<JCTree, Integer> endPosTable) {
-        return end;
-    }
-    
     public int getEndPosition() {
         return end;
     }
     
     public DiagnosticSource getSource() {
         return source;
+    }
+
+    @Override
+    public int getEndPosition(EndPosTable endPosTable) {
+        return end;// FIXME
     }
     
 }

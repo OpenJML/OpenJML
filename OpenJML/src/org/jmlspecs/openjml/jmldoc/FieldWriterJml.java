@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
@@ -136,7 +136,7 @@ public class FieldWriterJml extends FieldWriterImpl {
 //    }
     
     public void writeJmlGhostModelFieldDetail(@NonNull ClassDoc classDoc,
-            @NonNull JmlToken token,String showString) {
+            @NonNull JmlTokenKind token,String showString) {
 // Hard coding this
 //        <Header/>
 //        <FieldDoc>

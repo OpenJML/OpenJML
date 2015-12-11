@@ -114,6 +114,7 @@ import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
@@ -374,7 +375,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
-        log.noticeWriter.println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass());
+        log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass());
         result = trueLiteral;
     }
     
@@ -637,7 +638,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @param statement
      */
     protected void addAssert(Label label, JCExpression trExpr, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
-        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(JmlToken.ASSERT,label,trExpr);
+        JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(JmlTokenKind.ASSERT,label,trExpr);
         st.optionalExpression = null;
         st.source = source; // source file in which st.pos resides
         //st.line = -1; 
@@ -693,17 +694,18 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     // FIXME - REVIEW and document
     static protected String encodeType(Type t) {   // FIXME String? char? void? unsigned?
+        TypeTag tag = t.getTag();
         if (t instanceof ArrayType) {
             return "refA$" + encodeType(((ArrayType)t).getComponentType());
         } else if (!t.isPrimitive()) {
             return "REF";
-        } else if (t.tag == TypeTags.INT || t.tag == TypeTags.SHORT || t.tag == TypeTags.LONG || t.tag == TypeTags.BYTE) {
+        } else if (tag == TypeTag.INT || tag == TypeTag.SHORT || tag == TypeTag.LONG || tag == TypeTag.BYTE) {
             return "int";
-        } else if (t.tag == TypeTags.BOOLEAN) {
+        } else if (tag == TypeTag.BOOLEAN) {
             return "bool";
-        } else if (t.tag == TypeTags.FLOAT || t.tag == TypeTags.DOUBLE) {
+        } else if (tag == TypeTag.FLOAT || tag == TypeTag.DOUBLE) {
             return "real";
-        } else if (t.tag == TypeTags.CHAR) {
+        } else if (tag == TypeTag.CHAR) {
             return "int";
         } else {
             return "unknown";
@@ -879,18 +881,18 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected JCExpression makeNNInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,e1,e2);
         return ee;
     }
     
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = factory.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
+        JCExpression id = factory.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
-                    JCTree.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
+                    JCTree.Tag.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
         }
         return e;
     }
@@ -1002,7 +1004,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE || that.token == JmlToken.BSPAST) {
+        if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
             VarMap savedMap = currentMap;
             try {
                 if (that.args.size() == 1) {
@@ -1021,37 +1023,37 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlToken.BSSAME; // A no-op // TODO - Review this
+                that.token = JmlTokenKind.BSSAME; // A no-op // TODO - Review this
             } finally {
                 currentMap = savedMap;
             }
-        } else if (that.token == JmlToken.SUBTYPE_OF || that.token == JmlToken.JSUBTYPE_OF) {
+        } else if (that.token == JmlTokenKind.SUBTYPE_OF || that.token == JmlTokenKind.JSUBTYPE_OF) {
             scan(that.args.get(0));
             JCExpression lhs = result;
             scan(that.args.get(1));
             JCExpression rhs = result;
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(lhs,rhs);
             result = that;
-        } else if (that.token == JmlToken.BSNONNULLELEMENTS) {
+        } else if (that.token == JmlTokenKind.BSNONNULLELEMENTS) {
             scan(that.args.get(0));
             JCExpression arg = result;
             JCExpression argarrays = getArrayIdent(syms.objectType,that.pos);
             that.args = com.sun.tools.javac.util.List.<JCExpression>of(arg,argarrays);
             result = that;
-        } else if (that.token == null || that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF || that.token == JmlToken.BSDISTINCT) {
+        } else if (that.token == null || that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF || that.token == JmlTokenKind.BSDISTINCT) {
             //super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlToken.BSELEMTYPE || that.token == JmlToken.BSERASURE) {
+        } else if (that.token == JmlTokenKind.BSELEMTYPE || that.token == JmlTokenKind.BSERASURE) {
             scan(that.typeargs);
             scan(that.meth);
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
-        } else if (that.token == JmlToken.BSSAME) {
+        } else if (that.token == JmlTokenKind.BSSAME) {
             // In this context, BSSAME is a noop
             scanList(that.args);
             result = that;
@@ -1097,12 +1099,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     scan(fa.selected);
                     JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                     if (isDefined.add(oldfield.name)) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + oldfield.sym + " " + oldfield.name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("AddedFF " + oldfield.sym + " " + oldfield.name);
                         addDeclaration(oldfield);
                     }
                     JCIdent newfield = newIdentIncarnation(oldfield,sp);
                     if (isDefined.add(newfield.name)) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("AddedFF " + newfield.sym + " " + newfield.name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("AddedFF " + newfield.sym + " " + newfield.name);
                         addDeclaration(newfield);
                     }
                     if (fa.selected != null) {
@@ -1117,8 +1119,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
-            JmlToken t = ((JmlStoreRefKeyword)storeref).token;
-            if (t == JmlToken.BSEVERYTHING) {
+            JmlTokenKind t = ((JmlStoreRefKeyword)storeref).token;
+            if (t == JmlTokenKind.BSEVERYTHING) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol
@@ -1213,7 +1215,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 JCExpression lo = result;
                 JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
                 JCIdent ind = treeutils.makeIdent(p, decl.sym);
-                JCExpression comp = treeutils.makeBinary(p,JCTree.LT,treeutils.intltSymbol,ind,lo);
+                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,ind,lo);
                 JCExpression newelem = new JmlBBArrayAccess(nid,ex,ind);
                 newelem.pos = p;
                 newelem.type = aa.type;
@@ -1225,11 +1227,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 if (aa.hi != null) {
                     scan(aa.hi);
                     JCExpression hi = result;
-                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.LT,treeutils.intltSymbol,hi,ind));
+                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
                 }
                 
                 // FIXME - set line and source
-                expr = factory.at(p).JmlQuantifiedExpr(JmlToken.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
+                expr = factory.at(p).JmlQuantifiedExpr(JmlTokenKind.BSFORALL,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,eq);
                 expr.setType(syms.booleanType);
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 //log.warning(storeref.pos,"jml.internal","Ignoring unknown kind of storeref in havoc: " + storeref);
@@ -1260,7 +1262,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //        
 //        // Change everything in the current map
 //        for (VarSymbol vsym : currentMap.keySet()) {
-//            if (vsym.owner == null || vsym.owner.type.tag != TypeTags.CLASS) {
+//            if (vsym.owner == null || vsym.owner.type.tag != TypeTag.CLASS) {
 //                continue;
 //            }
 //            JCIdent oldid = newIdentUse(vsym,newpos);
@@ -1301,11 +1303,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
-        if (that.token == JmlToken.COMMENT) {
+        if (that.token == JmlTokenKind.COMMENT) {
             // Comments are included in the BB program without rewriting
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
-        } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
+        } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
 //            if (that.token == JmlToken.ASSERT && that.expression.toString().equals("ASSERT_200")) {
 //                Utils.print("");
 //            }
@@ -1357,7 +1359,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } else {
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + vsym + " " + that.name);
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
                     addDeclaration(that);
                 }
             }
@@ -1534,14 +1536,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         currentBlock.statements.add(comment(that));
         JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
         isDefined.add(lhs.name);
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("Added " + lhs.sym + " " + lhs.name);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + lhs.sym + " " + lhs.name);
         if (that.init != null) {
             // Create and store the new lhs incarnation before translating the
             // initializer because the initializer is in the scope of the newly
             // declared variable.  Actually if there is such a situation, it 
             // will likely generate an error about use of an uninitialized variable.
             scan(that.init);
-            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ,lhs,that.init);
+            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
             addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
         }
     }
@@ -1609,7 +1611,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
-                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ, that.ident != null ? that.ident : lhs,that.init);
+                JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ, that.ident != null ? that.ident : lhs,that.init);
                 addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
             }
         }

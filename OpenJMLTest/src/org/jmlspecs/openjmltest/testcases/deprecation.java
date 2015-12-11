@@ -6,11 +6,11 @@ package org.jmlspecs.openjmltest.testcases;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
-import com.sun.tools.javac.main.OptionName;
+import com.sun.tools.javac.main.Option;
 
 public class deprecation extends TCBase {
 
-    String opt = OptionName.DEPRECATION.name();
+    String opt = Option.DEPRECATION.name();
     
     @Override
     public void setUp() throws Exception {

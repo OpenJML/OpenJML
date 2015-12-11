@@ -15,7 +15,7 @@ public interface IJmlTree {
     
     public static interface IJmlBinary extends BinaryTree {
         public ExpressionTree getLeftOperand();
-        public JmlToken getOp();
+        public JmlTokenKind getOp();
         public ExpressionTree getRightOperand();
     }
 

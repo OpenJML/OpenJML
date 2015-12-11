@@ -1,9 +1,9 @@
 package com.sun.tools.javac.code;
 
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 
 /** This class extends Type in order to implement new JML primitive types. */
 public class JmlType extends Type {
@@ -11,7 +11,7 @@ public class JmlType extends Type {
     /** The token defining the primitive type - 
      * is immutable after construction.
      */
-    final protected JmlToken jmlTypeTag;
+    final protected JmlTokenKind jmlTypeTag;
     
     /** The fully-qualified name of the class used as the runtime
      * representation of this type.
@@ -25,14 +25,14 @@ public class JmlType extends Type {
     
     /** Creates a new primitive type with the given token - should be a 
      * singleton for each new JML type */
-    public JmlType(JmlToken token, String fullyQualifiedClassName) {
-        super(TypeTags.UNKNOWN,null);
+    public JmlType(JmlTokenKind token, String fullyQualifiedClassName) {
+        super(null);
         jmlTypeTag = token;
         fqName = fullyQualifiedClassName;
     }
     
     /** The JmlToken that designates this type */
-    public JmlToken jmlTypeTag() {
+    public JmlTokenKind jmlTypeTag() {
         return jmlTypeTag;
     }
     
@@ -44,6 +44,11 @@ public class JmlType extends Type {
     // returns true for these new JML primitive types
     @Override public boolean isPrimitive() {
         return true;
+    }
+
+    @Override
+    public TypeTag getTag() {
+        return TypeTag.NONE;
     }
 
 }

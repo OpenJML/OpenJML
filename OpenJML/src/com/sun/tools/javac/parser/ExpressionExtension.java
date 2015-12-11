@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.ext.Arithmetic.Safe;
@@ -24,6 +24,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /* FIXME - do more to implement extensions */
 
@@ -88,7 +89,7 @@ abstract public class ExpressionExtension {
      * @param msg the String to write
      */
     public void info(@NonNull String msg) {
-        Log.instance(context).noticeWriter.println(msg);
+        Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
     }
     
     /** Sets the end position of the given tree node to be the end position of
@@ -128,7 +129,7 @@ abstract public class ExpressionExtension {
         // TODO Auto-generated method stub
         this.parser = parser;
         this.scanner = parser.getScanner();
-        JmlToken jt = scanner.jmlToken();
+        JmlTokenKind jt = scanner.jmlToken();
         int p = scanner.pos();
         scanner.nextToken();
         if (scanner.token() != Token.LPAREN) {

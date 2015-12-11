@@ -5,8 +5,7 @@
 // FIXME - do a review
 package org.jmlspecs.openjml;
 
-import static com.sun.tools.javac.util.ListBuffer.lb;
-
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -32,7 +31,7 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JavaCompiler.CompileState;
+import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -42,6 +41,7 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 
@@ -133,7 +133,7 @@ public class JmlCompiler extends JavaCompiler {
                 // duplicate error messages) - what does JavaCompiler do?
                 //log.noticeWriter.println(f.toUri().normalize().getPath() + " VS " + javaCU.getSourceFile().toUri().normalize().getPath());
                 if (specsFile != null && specsFile.equals(jmlcu.getSourceFile())) {
-                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + specsFile);
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("The java file is its own specs for " + specsFile);
                     jmlcu.specsCompilationUnit = jmlcu;
                 } else {
                     filesSoFar.add(specsFile);
@@ -313,6 +313,7 @@ public class JmlCompiler extends JavaCompiler {
     public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
         // Don't load over again
         
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
         // FIXME - need to figure out what the environment should be
 
@@ -334,7 +335,7 @@ public class JmlCompiler extends JavaCompiler {
         } else {
             speccu = parseSpecs(csymbol);
             if (verbose && speccu == null) {
-                log.noticeWriter.println("No specs for " + csymbol);
+                noticeWriter.println("No specs for " + csymbol);
             }
         }
         // FIXME - not sure env or mode below are still used
@@ -347,10 +348,10 @@ public class JmlCompiler extends JavaCompiler {
             if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
-        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) log.noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
-        else log.noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
+        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
+        else noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
         ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;
      }
@@ -375,7 +376,7 @@ public class JmlCompiler extends JavaCompiler {
     
     /** Overridden in order to put out some information about stopping */
     @Override
-    protected  <T> List<T> stopIfError(CompileState cs, List<T> list) {
+    public  <T> List<T> stopIfError(CompileState cs, List<T> list) {
         if (errorCount() != 0) {
             if (JmlOption.isOption(context,JmlOption.STOPIFERRORS)) {
                 if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,1,"Stopping because of parsing errors");
@@ -391,15 +392,15 @@ public class JmlCompiler extends JavaCompiler {
     // env because we have to do all the rac before any of the desugaring
     @Override
     public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
-        ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = lb();
+        ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
 
         if (utils.check || utils.doc) {
             // Stop here
-            return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
+            return new ListBuffer<Pair<Env<AttrContext>, JCClassDecl>>();
         } else if (utils.esc) {
             for (Env<AttrContext> env: envs)
                 esc(env);
-            return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
+            return new ListBuffer<Pair<Env<AttrContext>, JCClassDecl>>();
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
@@ -476,7 +477,7 @@ public class JmlCompiler extends JavaCompiler {
     /** This is overridden so that if attribute() returns null, processing continues (instead of crashing). */
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
-        ListBuffer<Env<AttrContext>> results = lb();
+        ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         while (!envs.isEmpty()) {
             Env<AttrContext> env = attribute(envs.remove());
             if (env != null) results.append(env);
@@ -516,6 +517,7 @@ public class JmlCompiler extends JavaCompiler {
     /** Does the RAC processing on the argument. */
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         
         // TODO - will sourcefile always exist? -- JLS
         String currentFile = env.toplevel.sourcefile.getName();
@@ -524,7 +526,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlTree.Maker M = JmlTree.Maker.instance(context);
             JCClassDecl that = (JCClassDecl)tree;
             
-            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlToken.SKIP_RAC)) {
+            if (((JmlAttr)attr).hasAnnotation(that.sym,JmlTokenKind.SKIP_RAC)) {
                 utils.progress(1,1,"Skipping RAC of " + that.name.toString() + " (SkipRac annotation)");
                 return env;
             }
@@ -533,7 +535,7 @@ public class JmlCompiler extends JavaCompiler {
             Name n = names.fromString("org.jmlspecs.annotation.RACCompiled");
             ClassSymbol sym = ClassReader.instance(context).enterClass(n);
             Attribute.Compound ac = new Attribute.Compound(sym.type, List.<Pair<Symbol.MethodSymbol,Attribute>>nil());
-            that.sym.attributes_field = that.sym.attributes_field.append(ac);
+            that.sym.appendAttributes(List.<Attribute.Compound>of(ac));
         }
 
 
@@ -558,20 +560,20 @@ public class JmlCompiler extends JavaCompiler {
         // class declarations in the compilation unit will be translated on 
         // other calls.
         utils.progress(0,1,"RAC-Compiling " + utils.envString(env));
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("rac " + utils.envString(env));
+        if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("rac " + utils.envString(env));
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree;
             if (JmlOption.isOption(context,JmlOption.SHOW)) {
                 // FIXME - these are not writing out during rac, at least in debug in development, to the console
-                log.noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
-                log.noticeWriter.println(
+                noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
+                noticeWriter.println(
                             JmlPretty.toFancyLineFormat(
                                     currentFile,
                                     JmlPretty.racFormatter,            // the formatter 
                                     JmlPretty.write(env.toplevel,true) // the source to format
                                     ));
-                log.noticeWriter.println("");
+                noticeWriter.println("");
             }
             newtree = new JmlAssertionAdder(context,false,true).convert(env.tree);
                 
@@ -601,9 +603,9 @@ public class JmlCompiler extends JavaCompiler {
             // Add the Import: import org.jmlspecs.utils.*;
             
             if (JmlOption.isOption(context,JmlOption.SHOW)) { 
-                log.noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
+                noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
                 // this could probably be better - is it OK to modify the AST beforehand? JLS
-                log.noticeWriter.println(
+                noticeWriter.println(
                         JmlPretty.toFancyLineFormat(
                             currentFile,
                             JmlPretty.racFormatter,            // the formatter 

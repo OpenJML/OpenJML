@@ -4,11 +4,11 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -37,12 +37,12 @@ public class ReachableStatement extends StatementExtension {
     
     public static void register(Context context) {}
     
-    static public JmlToken[] tokens() { return new JmlToken[]{
-            JmlToken.REACHABLE}; }
+    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
+            JmlTokenKind.REACHABLE}; }
     
     public JCStatement parse(JmlParser parser) {
         init(parser);
-        JmlToken jt = scanner.jmlToken();
+        JmlTokenKind jt = scanner.jmlToken();
         int p = scanner.pos();
         scanner.nextToken();
         if (scanner.token() == Token.SEMI) {

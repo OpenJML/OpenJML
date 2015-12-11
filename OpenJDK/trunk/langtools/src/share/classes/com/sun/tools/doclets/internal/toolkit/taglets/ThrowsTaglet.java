@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,16 +25,19 @@
 
 package com.sun.tools.doclets.internal.toolkit.taglets;
 
-import com.sun.javadoc.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
 import java.util.*;
+
+import com.sun.javadoc.*;
+import com.sun.tools.doclets.internal.toolkit.Content;
+import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * A taglet that represents the @throws tag.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @since 1.4
@@ -58,15 +61,15 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
                 throwsTag.exceptionName() :
                 throwsTag.exception().qualifiedName();
         } else {
-            exception = input.method.containingClass().findClass(input.tagId);
+            exception = input.element.containingClass().findClass(input.tagId);
         }
 
-        ThrowsTag[] tags = input.method.throwsTags();
+        ThrowsTag[] tags = ((MethodDoc)input.element).throwsTags();
         for (int i = 0; i < tags.length; i++) {
             if (input.tagId.equals(tags[i].exceptionName()) ||
                 (tags[i].exception() != null &&
                     (input.tagId.equals(tags[i].exception().qualifiedName())))) {
-                output.holder = input.method;
+                output.holder = input.element;
                 output.holderTag = tags[i];
                 output.inlineTags = input.isFirstSentence ?
                     tags[i].firstSentenceTags() : tags[i].inlineTags();
@@ -81,10 +84,10 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
     /**
      * Add links for exceptions that are declared but not documented.
      */
-    private TagletOutput linkToUndocumentedDeclaredExceptions(
+    private Content linkToUndocumentedDeclaredExceptions(
             Type[] declaredExceptionTypes, Set<String> alreadyDocumented,
             TagletWriter writer) {
-        TagletOutput result = writer.getOutputInstance();
+        Content result = writer.getOutputInstance();
         //Add links to the exceptions declared but not documented.
         for (int i = 0; i < declaredExceptionTypes.length; i++) {
             if (declaredExceptionTypes[i].asClassDoc() != null &&
@@ -93,9 +96,9 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
                 ! alreadyDocumented.contains(
                     declaredExceptionTypes[i].asClassDoc().qualifiedName())) {
                 if (alreadyDocumented.size() == 0) {
-                    result.appendOutput(writer.getThrowsHeader());
+                    result.addContent(writer.getThrowsHeader());
                 }
-                result.appendOutput(writer.throwsTagOutput(declaredExceptionTypes[i]));
+                result.addContent(writer.throwsTagOutput(declaredExceptionTypes[i]));
                 alreadyDocumented.add(declaredExceptionTypes[i].asClassDoc().name());
             }
         }
@@ -106,10 +109,10 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
      * Inherit throws documentation for exceptions that were declared but not
      * documented.
      */
-    private TagletOutput inheritThrowsDocumentation(Doc holder,
+    private Content inheritThrowsDocumentation(Doc holder,
             Type[] declaredExceptionTypes, Set<String> alreadyDocumented,
             TagletWriter writer) {
-        TagletOutput result = writer.getOutputInstance();
+        Content result = writer.getOutputInstance();
         if (holder instanceof MethodDoc) {
             Set<Tag> declaredExceptionTags = new LinkedHashSet<Tag>();
             for (int j = 0; j < declaredExceptionTypes.length; j++) {
@@ -123,7 +126,7 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
                 }
                 declaredExceptionTags.addAll(inheritedDoc.tagList);
             }
-            result.appendOutput(throwsTagsOutput(
+            result.addContent(throwsTagsOutput(
                 declaredExceptionTags.toArray(new ThrowsTag[] {}),
                 writer, alreadyDocumented, false));
         }
@@ -133,18 +136,18 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
     /**
      * {@inheritDoc}
      */
-    public TagletOutput getTagletOutput(Doc holder, TagletWriter writer) {
+    public Content getTagletOutput(Doc holder, TagletWriter writer) {
         ExecutableMemberDoc execHolder = (ExecutableMemberDoc) holder;
         ThrowsTag[] tags = execHolder.throwsTags();
-        TagletOutput result = writer.getOutputInstance();
+        Content result = writer.getOutputInstance();
         HashSet<String> alreadyDocumented = new HashSet<String>();
         if (tags.length > 0) {
-            result.appendOutput(throwsTagsOutput(
+            result.addContent(throwsTagsOutput(
                 execHolder.throwsTags(), writer, alreadyDocumented, true));
         }
-        result.appendOutput(inheritThrowsDocumentation(holder,
+        result.addContent(inheritThrowsDocumentation(holder,
             execHolder.thrownExceptionTypes(), alreadyDocumented, writer));
-        result.appendOutput(linkToUndocumentedDeclaredExceptions(
+        result.addContent(linkToUndocumentedDeclaredExceptions(
             execHolder.thrownExceptionTypes(), alreadyDocumented, writer));
         return result;
     }
@@ -158,11 +161,11 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
      * @param alreadyDocumented the set of exceptions that have already
      *        been documented.
      * @param allowDups True if we allow duplicate throws tags to be documented.
-     * @return the TagletOutput representation of this <code>Tag</code>.
+     * @return the Content representation of this <code>Tag</code>.
      */
-    protected TagletOutput throwsTagsOutput(ThrowsTag[] throwTags,
+    protected Content throwsTagsOutput(ThrowsTag[] throwTags,
         TagletWriter writer, Set<String> alreadyDocumented, boolean allowDups) {
-        TagletOutput result = writer.getOutputInstance();
+        Content result = writer.getOutputInstance();
         if (throwTags.length > 0) {
             for (int i = 0; i < throwTags.length; ++i) {
                 ThrowsTag tt = throwTags[i];
@@ -172,9 +175,9 @@ public class ThrowsTaglet extends BaseExecutableMemberTaglet
                     continue;
                 }
                 if (alreadyDocumented.size() == 0) {
-                    result.appendOutput(writer.getThrowsHeader());
+                    result.addContent(writer.getThrowsHeader());
                 }
-                result.appendOutput(writer.throwsTagOutput(tt));
+                result.addContent(writer.throwsTagOutput(tt));
                 alreadyDocumented.add(cd != null ?
                     cd.qualifiedName() : tt.exceptionName());
             }

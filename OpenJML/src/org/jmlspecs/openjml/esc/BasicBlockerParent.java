@@ -118,6 +118,7 @@ import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
@@ -365,7 +366,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
-        log.noticeWriter.println("Internal error - visit method NOT IMPLEMENTED: " + getClass() + " - "+ that.getClass());
+        log.getWriter(WriterKind.NOTICE).println("Internal error - visit method NOT IMPLEMENTED: " + getClass() + " - "+ that.getClass());
         result = treeutils.trueLit;
     }
     
@@ -449,7 +450,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             for (T pb: b.preceders()) {
                 //log.noticeWriter.println("   " + b.id() + " follows " + pb.id());
                 if (!program.blocks.contains(pb)) {
-                    log.noticeWriter.println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it"); //$NON-NLS-1$ //$NON-NLS-2$
+                    log.getWriter(WriterKind.NOTICE).println("Internal Error: block " + pb.id.name + " precedes block " + b.id.name + " , but was not processed before it"); //$NON-NLS-1$ //$NON-NLS-2$
                     processBlock(pb);
                     continue loop; // the list of preceding blocks might have changed - check it over again
                 }
@@ -636,10 +637,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * is part of log.currentSource(). No action happens if either argument is null.
      */
     public void copyEndPosition(@Nullable JCTree newnode, @Nullable JCTree srcnode) {
-        Map<JCTree,Integer> z = log.currentSource().getEndPosTable();
+        EndPosTable z = log.currentSource().getEndPosTable();
         if (z != null && srcnode != null) { // srcnode can be null when processing a switch statement
             int end = srcnode.getEndPosition(z);
-            if (end != Position.NOPOS) z.put(newnode, end);
+            if (end != Position.NOPOS) z.storeEnd(newnode, end);
         }
     }
     
@@ -655,7 +656,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
         copyEndPosition(st,that);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -672,7 +673,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos;
-        JmlStatementExpr st = M.at(startpos).JmlExpressionStatement(JmlToken.ASSUME,label,that);
+        JmlStatementExpr st = M.at(startpos).JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
         copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -683,7 +684,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * given String.
      */
     public JmlStatementExpr comment(DiagnosticPosition pos, String s) {
-        return M.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,M.Literal(s));
+        return M.at(pos).JmlExpressionStatement(JmlTokenKind.COMMENT,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
@@ -762,7 +763,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             
             program.declarations.add(vd);
 
-            JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.EQ,vd,switchExpression);
+            JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.Tag.EQ,vd,switchExpression);
             addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
             T switchStart = currentBlock;
 
@@ -792,7 +793,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 
                 // create the case test, or null if this is the default case
                 JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.EQ,vdd,(caseValue));
+                /*@ nullable */ JCBinary eq = caseValue == null ? null : treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
                 JmlStatementExpr asm = addAssume(vdd.pos,
                 		Label.CASECONDITION,eq,blockForTest.statements);
                 
@@ -832,7 +833,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             // Now fix up the default case (which is not necessarily last).
             // Fortunately we remembered it
             int dpos = defaultAsm == null ? pos : defaultAsm.pos;
-            JCExpression eq = treeutils.makeUnary(dpos,JCTree.NOT,defaultCond);
+            JCExpression eq = treeutils.makeUnary(dpos,JCTree.Tag.NOT,defaultCond);
             if (defaultAsm != null) {
                 // There was a default case already made, but at the time we just
                 // put in null for the case condition, since we did not know it
@@ -982,12 +983,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(finallyBlock,finallyNormalBlock);
         follows(finallyNormalBlock,afterTry);
         JCIdent term = treeutils.makeIdent(pos, terminationSym);
-        JCBinary bin = treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol,term,treeutils.zero);
+        JCBinary bin = treeutils.makeBinary(pos,JCTree.Tag.EQ,treeutils.inteqSymbol,term,treeutils.zero);
         addAssume(pos,Label.IMPLICIT_ASSUME,bin,finallyNormalBlock.statements);
 
         T finallyExitBlock = newBlock(TRYFINALLYEXIT,pos);
         term = treeutils.makeIdent(pos, terminationSym);
-        bin = treeutils.makeBinary(pos,JCTree.NE,treeutils.intneqSymbol,term,treeutils.zero);
+        bin = treeutils.makeBinary(pos,JCTree.Tag.NE,treeutils.intneqSymbol,term,treeutils.zero);
         addAssume(pos,Label.IMPLICIT_ASSUME,bin,finallyExitBlock.statements);
         follows(finallyBlock,finallyExitBlock);
         if (!finallyStack.isEmpty()) follows(finallyExitBlock,finallyStack.get(0));

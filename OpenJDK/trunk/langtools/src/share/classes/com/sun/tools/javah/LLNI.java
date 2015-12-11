@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -45,7 +45,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.SimpleTypeVisitor7;
+import javax.lang.model.util.SimpleTypeVisitor8;
 
 /*
  * <p><b>This is NOT part of any supported API.
@@ -628,7 +628,7 @@ public class LLNI extends Gen {
     }
 
     protected final boolean isLongOrDouble(TypeMirror t) {
-        TypeVisitor<Boolean,Void> v = new SimpleTypeVisitor7<Boolean,Void>() {
+        TypeVisitor<Boolean,Void> v = new SimpleTypeVisitor8<Boolean,Void>() {
             public Boolean defaultAction(TypeMirror t, Void p){
                 return false;
             }
@@ -647,7 +647,7 @@ public class LLNI extends Gen {
        %%% This may not be right, but should be called more often. */
     protected final String nameToIdentifier(String name) {
         int len = name.length();
-        StringBuffer buf = new StringBuffer(len);
+        StringBuilder buf = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             char c = name.charAt(i);
             if (isASCIILetterOrDigit(c))

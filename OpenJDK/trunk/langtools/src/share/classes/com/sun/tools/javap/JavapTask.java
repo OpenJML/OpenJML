@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -117,7 +117,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
         final String[] aliases;
     }
 
-    static Option[] recognizedOptions = {
+    static final Option[] recognizedOptions = {
 
         new Option(false, "-help", "--help", "-?") {
             void process(JavapTask task, String opt, String arg) {
@@ -140,6 +140,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
         new Option(false, "-v", "-verbose", "-all") {
             void process(JavapTask task, String opt, String arg) {
                 task.options.verbose = true;
+                task.options.showDescriptors = true;
                 task.options.showFlags = true;
                 task.options.showAllAttrs = true;
             }
@@ -190,49 +191,13 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
 
         new Option(false, "-s") {
             void process(JavapTask task, String opt, String arg) {
-                task.options.showInternalSignatures = true;
-            }
-        },
-
-//        new Option(false, "-all") {
-//            void process(JavapTask task, String opt, String arg) {
-//                task.options.showAllAttrs = true;
-//            }
-//        },
-
-        new Option(false, "-h") {
-            void process(JavapTask task, String opt, String arg) throws BadArgs {
-                throw task.new BadArgs("err.h.not.supported");
-            }
-        },
-
-        new Option(false, "-verify", "-verify-verbose") {
-            void process(JavapTask task, String opt, String arg) throws BadArgs {
-                throw task.new BadArgs("err.verify.not.supported");
+                task.options.showDescriptors = true;
             }
         },
 
         new Option(false, "-sysinfo") {
             void process(JavapTask task, String opt, String arg) {
                 task.options.sysInfo = true;
-            }
-        },
-
-        new Option(false, "-Xold") {
-            void process(JavapTask task, String opt, String arg) throws BadArgs {
-                task.log.println(task.getMessage("warn.Xold.not.supported"));
-            }
-        },
-
-        new Option(false, "-Xnew") {
-            void process(JavapTask task, String opt, String arg) throws BadArgs {
-                // ignore: this _is_ the new version
-            }
-        },
-
-        new Option(false, "-XDcompat") {
-            void process(JavapTask task, String opt, String arg) {
-                task.options.compat = true;
             }
         },
 
@@ -308,7 +273,9 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
             void process(JavapTask task, String opt, String arg) throws BadArgs {
                 int sep = opt.indexOf(":");
                 try {
-                    task.options.indentWidth = Integer.valueOf(opt.substring(sep + 1));
+                    int i = Integer.valueOf(opt.substring(sep + 1));
+                    if (i > 0) // silently ignore invalid values
+                        task.options.indentWidth = i;
                 } catch (NumberFormatException e) {
                 }
             }
@@ -324,7 +291,9 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
             void process(JavapTask task, String opt, String arg) throws BadArgs {
                 int sep = opt.indexOf(":");
                 try {
-                    task.options.tabColumn = Integer.valueOf(opt.substring(sep + 1));
+                    int i = Integer.valueOf(opt.substring(sep + 1));
+                    if (i > 0) // silently ignore invalid values
+                        task.options.tabColumn = i;
                 } catch (NumberFormatException e) {
                 }
             }
@@ -362,7 +331,8 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
         }
 
         try {
-            handleOptions(options, false);
+            if (options != null)
+                handleOptions(options, false);
         } catch (BadArgs e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -374,8 +344,8 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
         task_locale = locale;
     }
 
-    public void setLog(PrintWriter log) {
-        this.log = log;
+    public void setLog(Writer log) {
+        this.log = getPrintWriterForWriter(log);
     }
 
     public void setLog(OutputStream s) {
@@ -383,7 +353,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
     }
 
     private static PrintWriter getPrintWriterForStream(OutputStream s) {
-        return new PrintWriter(s, true);
+        return new PrintWriter(s == null ? System.err : s, true);
     }
 
     private static PrintWriter getPrintWriterForWriter(Writer w) {
@@ -450,8 +420,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
             }
 
             try {
-                boolean ok = run();
-                return ok ? EXIT_OK : EXIT_ERROR;
+                return run();
             } finally {
                 if (defaultFileManager != null) {
                     try {
@@ -465,7 +434,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
         } catch (BadArgs e) {
             reportError(e.key, e.args);
             if (e.showUsage) {
-                log.println(getMessage("main.usage.summary", progname));
+                printLines(getMessage("main.usage.summary", progname));
             }
             return EXIT_CMDERR;
         } catch (InternalError e) {
@@ -519,7 +488,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
                 throw new BadArgs("err.unknown.option", arg).showUsage(true);
         }
 
-        if (!options.compat && options.accessOptions.size() > 1) {
+        if (options.accessOptions.size() > 1) {
             StringBuilder sb = new StringBuilder();
             for (String opt: options.accessOptions) {
                 if (sb.length() > 0)
@@ -560,75 +529,79 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
             }
         }
 
-        if (fileManager.handleOption(name, rest))
-            return;
+        try {
+            if (fileManager.handleOption(name, rest))
+                return;
+        } catch (IllegalArgumentException e) {
+            throw new BadArgs("err.invalid.use.of.option", name).showUsage(true);
+        }
 
         throw new BadArgs("err.unknown.option", name).showUsage(true);
     }
 
     public Boolean call() {
-        return run();
+        return run() == 0;
     }
 
-    public boolean run() {
-        if (classes == null || classes.size() == 0)
-            return false;
+    public int run() {
+        if (classes == null || classes.isEmpty()) {
+            return EXIT_ERROR;
+        }
 
         context.put(PrintWriter.class, log);
         ClassWriter classWriter = ClassWriter.instance(context);
         SourceWriter sourceWriter = SourceWriter.instance(context);
         sourceWriter.setFileManager(fileManager);
 
-        attributeFactory.setCompat(options.compat);
-
-        boolean ok = true;
+        int result = EXIT_OK;
 
         for (String className: classes) {
-            JavaFileObject fo;
             try {
-                writeClass(classWriter, className);
+                result = writeClass(classWriter, className);
             } catch (ConstantPoolException e) {
                 reportError("err.bad.constant.pool", className, e.getLocalizedMessage());
-                ok = false;
+                result = EXIT_ERROR;
             } catch (EOFException e) {
                 reportError("err.end.of.file", className);
-                ok = false;
+                result = EXIT_ERROR;
             } catch (FileNotFoundException e) {
                 reportError("err.file.not.found", e.getLocalizedMessage());
-                ok = false;
+                result = EXIT_ERROR;
             } catch (IOException e) {
                 //e.printStackTrace();
                 Object msg = e.getLocalizedMessage();
-                if (msg == null)
+                if (msg == null) {
                     msg = e;
+                }
                 reportError("err.ioerror", className, msg);
-                ok = false;
+                result = EXIT_ERROR;
             } catch (Throwable t) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
                 pw.close();
                 reportError("err.crash", t.toString(), sw.toString());
-                ok = false;
+                result = EXIT_ABNORMAL;
             }
         }
 
-        return ok;
+        return result;
     }
 
-    protected boolean writeClass(ClassWriter classWriter, String className)
+    protected int writeClass(ClassWriter classWriter, String className)
             throws IOException, ConstantPoolException {
         JavaFileObject fo = open(className);
         if (fo == null) {
             reportError("err.class.not.found", className);
-            return false;
+            return EXIT_ERROR;
         }
 
         ClassFileInfo cfInfo = read(fo);
         if (!className.endsWith(".class")) {
             String cfName = cfInfo.cf.getName();
-            if (!cfName.replaceAll("[/$]", ".").equals(className.replaceAll("[/$]", ".")))
+            if (!cfName.replaceAll("[/$]", ".").equals(className.replaceAll("[/$]", "."))) {
                 reportWarning("warn.unexpected.class", className, cfName.replace('/', '.'));
+            }
         }
         write(cfInfo);
 
@@ -638,7 +611,7 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
             if (a instanceof InnerClasses_attribute) {
                 InnerClasses_attribute inners = (InnerClasses_attribute) a;
                 try {
-                    boolean ok = true;
+                    int result = EXIT_OK;
                     for (int i = 0; i < inners.classes.length; i++) {
                         int outerIndex = inners.classes[i].outer_class_info_index;
                         ConstantPool.CONSTANT_Class_info outerClassInfo = cf.constant_pool.getClassInfo(outerIndex);
@@ -649,21 +622,22 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
                             String innerClassName = innerClassInfo.getName();
                             classWriter.println("// inner class " + innerClassName.replaceAll("[/$]", "."));
                             classWriter.println();
-                            ok = ok & writeClass(classWriter, innerClassName);
+                            result = writeClass(classWriter, innerClassName);
+                            if (result != EXIT_OK) return result;
                         }
                     }
-                    return ok;
+                    return result;
                 } catch (ConstantPoolException e) {
                     reportError("err.bad.innerclasses.attribute", className);
-                    return false;
+                    return EXIT_ERROR;
                 }
             } else if (a != null) {
                 reportError("err.bad.innerclasses.attribute", className);
-                return false;
+                return EXIT_ERROR;
             }
         }
 
-        return true;
+        return EXIT_OK;
     }
 
     protected JavaFileObject open(String className) throws IOException {
@@ -874,26 +848,32 @@ public class JavapTask implements DisassemblerTool.DisassemblerTask, Messages {
     }
 
     private void showHelp() {
-        log.println(getMessage("main.usage", progname));
+        printLines(getMessage("main.usage", progname));
         for (Option o: recognizedOptions) {
             String name = o.aliases[0].substring(1); // there must always be at least one name
             if (name.startsWith("X") || name.equals("fullversion") || name.equals("h") || name.equals("verify"))
                 continue;
-            log.println(getMessage("main.opt." + name));
+            printLines(getMessage("main.opt." + name));
         }
-        String[] fmOptions = { "-classpath", "-bootclasspath" };
+        String[] fmOptions = { "-classpath", "-cp", "-bootclasspath" };
         for (String o: fmOptions) {
             if (fileManager.isSupportedOption(o) == -1)
                 continue;
             String name = o.substring(1);
-            log.println(getMessage("main.opt." + name));
+            printLines(getMessage("main.opt." + name));
         }
 
     }
 
     private void showVersion(boolean full) {
-        log.println(version(full ? "full" : "release"));
+        printLines(version(full ? "full" : "release"));
     }
+
+    private void printLines(String msg) {
+        log.println(msg.replace("\n", nl));
+    }
+
+    private static final String nl = System.getProperty("line.separator");
 
     private static final String versionRBName = "com.sun.tools.javap.resources.version";
     private static ResourceBundle versionRB;

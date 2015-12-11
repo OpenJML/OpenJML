@@ -276,7 +276,7 @@ public abstract class EscBase extends JmlTestCase {
         try {
             for (JavaFileObject f: mockFiles) files = files.append(f);
             
-            int ex = main.compile(args, null, context, files, null);
+            int ex = main.compile(args, null, context, files, null).exitCode;
             if (captureOutput) collectOutput(false);
             
             if (print) printDiagnostics();

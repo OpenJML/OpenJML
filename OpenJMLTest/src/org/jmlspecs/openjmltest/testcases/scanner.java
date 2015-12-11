@@ -1,9 +1,9 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import static com.sun.tools.javac.parser.Token.*;
-import static org.jmlspecs.openjml.JmlToken.*;
+import static org.jmlspecs.openjml.JmlTokenKind.*;
 
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjmltest.JmlTestCase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 
 public class scanner extends JmlTestCase {
 
-    final static JmlToken EJML = ENDJMLCOMMENT;
+    final static JmlTokenKind EJML = ENDJMLCOMMENT;
     
     ScannerFactory fac;
     

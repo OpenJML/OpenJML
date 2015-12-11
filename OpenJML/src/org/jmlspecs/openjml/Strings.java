@@ -29,9 +29,9 @@ public class Strings {
     static public final String eol = System.getProperty("line.separator");
 	
     // Names of Java options, from the JDK compiler
-    static public final String classpathOptionName = com.sun.tools.javac.main.OptionName.CLASSPATH.optionName;
-    static public final String sourcepathOptionName = com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName;
-    static public final String outputOptionName = com.sun.tools.javac.main.OptionName.D.optionName;
+    static public final String classpathOptionName = com.sun.tools.javac.main.Option.CLASSPATH.getText();
+    static public final String sourcepathOptionName = com.sun.tools.javac.main.Option.SOURCEPATH.getText();
+    static public final String outputOptionName = com.sun.tools.javac.main.Option.D.getText();
 
     // Suffixes
     static public final String javaSuffix = ".java"; //$NON-NLS-1$

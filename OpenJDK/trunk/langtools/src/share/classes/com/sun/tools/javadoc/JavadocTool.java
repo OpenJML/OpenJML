@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2014, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.tools.JavaFileManager.Location;
@@ -38,8 +39,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
-import com.sun.tools.javac.comp.Annotate;
-import com.sun.tools.javac.parser.DocCommentScanner;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -55,16 +54,21 @@ import com.sun.tools.javac.util.Position;
  *  component in a larger software system. It provides operations to
  *  construct a new javadoc processor, and to run it on a set of source
  *  files.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  *  @author Neal Gafter
  */
 public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
     DocEnv docenv;
 
-    final Context context;
     final Messager messager;
-    final JavadocClassReader reader;
-    final JavadocEnter enter;
-    final Annotate annotate;
+    final JavadocClassReader javadocReader;
+    final JavadocEnter javadocEnter;
+    final Set<JavaFileObject> uniquefiles;
 
     /**
      * Construct a new JavaCompiler processor, using appropriately
@@ -72,11 +76,10 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
      */
     protected JavadocTool(Context context) {
         super(context);
-        this.context = context;
         messager = Messager.instance0(context);
-        reader = JavadocClassReader.instance0(context);
-        enter = JavadocEnter.instance0(context);
-        annotate = Annotate.instance(context);
+        javadocReader = JavadocClassReader.instance0(context);
+        javadocEnter = JavadocEnter.instance0(context);
+        uniquefiles = new HashSet<>();
     }
 
     /**
@@ -119,6 +122,7 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
                                       ModifierFilter filter,
                                       List<String> javaNames,
                                       List<String[]> options,
+                                      Iterable<? extends JavaFileObject> fileObjects,
                                       boolean breakiterator,
                                       List<String> subPackages,
                                       List<String> excludedPackages,
@@ -133,28 +137,33 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
         docenv.setEncoding(encoding);
         docenv.docClasses = docClasses;
         docenv.legacyDoclet = legacyDoclet;
-        reader.sourceCompleter = docClasses ? null : this;
+        javadocReader.sourceCompleter = docClasses ? null : thisCompleter;
 
         ListBuffer<String> names = new ListBuffer<String>();
         ListBuffer<JCCompilationUnit> classTrees = new ListBuffer<JCCompilationUnit>();
         ListBuffer<JCCompilationUnit> packTrees = new ListBuffer<JCCompilationUnit>();
 
         try {
-            StandardJavaFileManager fm = (StandardJavaFileManager) docenv.fileManager;
+            StandardJavaFileManager fm = docenv.fileManager instanceof StandardJavaFileManager
+                    ? (StandardJavaFileManager) docenv.fileManager : null;
             for (List<String> it = javaNames; it.nonEmpty(); it = it.tail) {
                 String name = it.head;
-                if (!docClasses && name.endsWith(".java") && new File(name).exists()) {
+                if (!docClasses && fm != null && name.endsWith(".java") && new File(name).exists()) {
                     JavaFileObject fo = fm.getJavaFileObjects(name).iterator().next();
-                    docenv.notice("main.Loading_source_file", name);
-                    JCCompilationUnit tree = parse(fo);
-                    classTrees.append(tree);
+                    parse(fo, classTrees, true);
                 } else if (isValidPackageName(name)) {
                     names = names.append(name);
                 } else if (name.endsWith(".java")) {
-                    docenv.error(null, "main.file_not_found", name);
+                    if (fm == null)
+                        throw new IllegalArgumentException();
+                    else
+                        docenv.error(null, "main.file_not_found", name);
                 } else {
                     docenv.error(null, "main.illegal_package_name", name);
                 }
+            }
+            for (JavaFileObject fo: fileObjects) {
+                parse(fo, classTrees, true);
             }
 
             if (!docClasses) {
@@ -174,7 +183,7 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
 
                 // Enter symbols for all files
                 docenv.notice("main.Building_tree");
-                enter.main(classTrees.toList().appendList(packTrees.toList()));
+                javadocEnter.main(classTrees.toList().appendList(packTrees.toList()));
             }
         } catch (Abort ex) {}
 
@@ -202,7 +211,7 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
      * .java files found in such a directory to args.
      */
     private void parsePackageClasses(String name,
-            Iterable<JavaFileObject> files,
+            List<JavaFileObject> files,
             ListBuffer<JCCompilationUnit> trees,
             List<String> excludedPackages)
             throws IOException {
@@ -210,7 +219,6 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
             return;
         }
 
-        boolean hasFiles = false;
         docenv.notice("main.Loading_source_files_for_package", name);
 
         if (files == null) {
@@ -227,16 +235,22 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
             }
             files = lb.toList();
         }
-
-        for (JavaFileObject fo : files) {
-            // messager.notice("main.Loading_source_file", fn);
-            trees.append(parse(fo));
-            hasFiles = true;
+        if (files.nonEmpty()) {
+            for (JavaFileObject fo : files) {
+                parse(fo, trees, false);
+            }
+        } else {
+            messager.warning(Messager.NOPOS, "main.no_source_files_for_package",
+                             name.replace(File.separatorChar, '.'));
         }
+    }
 
-        if (!hasFiles) {
-            messager.warning(null, "main.no_source_files_for_package",
-                    name.replace(File.separatorChar, '.'));
+    private void parse(JavaFileObject fo, ListBuffer<JCCompilationUnit> trees,
+                       boolean trace) {
+        if (uniquefiles.add(fo)) { // ignore duplicates
+            if (trace)
+                docenv.notice("main.Loading_source_file", fo.getName());
+            trees.append(parse(fo));
         }
     }
 
@@ -387,7 +401,7 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
     /**
      * Return true if given file name is a valid class name
      * (including "package-info").
-     * @param clazzname the name of the class to check.
+     * @param s the name of the class to check.
      * @return true if given class name is a valid class name
      * and false otherwise.
      */
@@ -420,7 +434,7 @@ public class JavadocTool extends com.sun.tools.javac.main.JavaCompiler {
         ListBuffer<JCClassDecl> result = new ListBuffer<JCClassDecl>();
         for (JCCompilationUnit t : trees) {
             for (JCTree def : t.defs) {
-                if (def.getTag() == JCTree.CLASSDEF)
+                if (def.hasTag(JCTree.Tag.CLASSDEF))
                     result.append((JCClassDecl)def);
             }
         }

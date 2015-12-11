@@ -71,9 +71,9 @@ public class TargetFinder extends JmlTreeScanner {
     
     @Override
     public void visitUnary(JCUnary that) {
-        int op = that.getTag();
-        if (op == JCTree.POSTDEC || op == JCTree.POSTINC ||
-                op == JCTree.PREINC || op == JCTree.PREDEC)
+        JCTree.Tag op = that.getTag();
+        if (op == JCTree.Tag.POSTDEC || op == JCTree.Tag.POSTINC ||
+                op == JCTree.Tag.PREINC || op == JCTree.Tag.PREDEC)
             vars.add(that.getExpression());
     }
     

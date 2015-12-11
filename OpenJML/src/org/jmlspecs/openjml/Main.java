@@ -48,6 +48,7 @@ import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 
 /**
@@ -343,11 +344,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return the exit code
      */
     public static int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
-        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
-                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+                errorcode = com.sun.tools.javac.main.Main.Result.CMDERR.exitCode; // 2
             } else {
                 // We have to interpret the -java option before we start
                 // the compiler (which does the normal option processing).
@@ -373,8 +374,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     Main compiler = new Main(Strings.applicationName, writer, diagListener, options, emptyArgs);
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
-                    errorcode = compiler.compile(args); // context and new options are created in here
-                    if (errorcode > EXIT_CMDERR || 
+                    errorcode = compiler.compile(args).exitCode; // context and new options are created in here
+                    if (errorcode > Result.CMDERR.exitCode || 
                             Utils.instance(compiler.context()).jmlverbose > Utils.PROGRESS) {
                         writer.println("ENDING with exit code " + errorcode);
                     }
@@ -382,7 +383,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         } catch (JmlCanceledException e) {
             // Error message already issued
-            errorcode = EXIT_CMDERR;
+            errorcode = Result.CMDERR.exitCode;
         } catch (Exception e) {
             // Most exceptions are caught prior to this, so this will happen only for the
             // most catastrophic kinds of failure such as failures to initialize
@@ -390,7 +391,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             // block above.)
             uninitializedLog().error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
-            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+            errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
         }
         return errorcode;
     }
@@ -404,11 +405,11 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @return
      */
     public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, @Nullable Options options, @NonNull String[] args) {
-        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
-                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+                errorcode = com.sun.tools.javac.main.Main.Result.CMDERR.exitCode; // 2
             } else {
                 // We create an instance of main through which to call the
                 // actual compile method. Note though that the compile method
@@ -420,8 +421,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 savedOptions = Options.instance(context());
                 initialize(writer, diagListener, options, emptyArgs);
                 // The following line does an end-to-end compile, in a fresh context
-                errorcode = compile(args); // context and new options are created in here
-                if (errorcode > EXIT_CMDERR || 
+                errorcode = compile(args).exitCode; // context and new options are created in here
+                if (errorcode > Result.CMDERR.exitCode || 
                         Utils.instance(context()).jmlverbose > Utils.PROGRESS) {
                     writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
@@ -436,7 +437,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             // block above.)
             uninitializedLog().error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
-            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+            errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
         }
         return errorcode;
     }
@@ -445,12 +446,12 @@ public class Main extends com.sun.tools.javac.main.Main {
     public IAPI.IProofResultListener proofResultListener;
 
     public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
-        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         this.proofResultListener = prListener;
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
-                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+                errorcode = com.sun.tools.javac.main.Main.Result.CMDERR.exitCode; // 2
             } else {
                 // We create an instance of main through which to call the
                 // actual compile method. Note though that the compile method
@@ -463,8 +464,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 initialize(writer, diagListener, options, emptyArgs);
                 
                 // The following lines do an end-to-end compile, in a fresh context
-                errorcode = compile(args); // context and new options are created in here
-                if (errorcode > EXIT_CMDERR || 
+                errorcode = compile(args).exitCode; // context and new options are created in here
+                if (errorcode > Result.CMDERR.exitCode || 
                         Utils.instance(context()).jmlverbose > Utils.PROGRESS) {
                     writer.println("ENDING with exit code " + errorcode); // TODO - not sure we want this - but we'll need to change the tests
                 }
@@ -479,7 +480,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             // block above.)
             uninitializedLog().error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
-            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+            errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
         }
         return errorcode;
     }
@@ -518,7 +519,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     //public int compile(String[] args, Context context) {
 
     @Override
-    public int compile(String[] args,
+    public Main.Result compile(String[] args,
                 Context context,
                 List<JavaFileObject> fileObjects,
                 Iterable<? extends Processor> processors) {
@@ -530,7 +531,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
-        int exit = super.compile(args,context,fileObjects,processors);
+        Main.Result exit = super.compile(args,context,fileObjects,processors);
 //        if (Options.instance(context).get(helpOption) != null) {
 //            helpJML(out);
 //        }
@@ -722,7 +723,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     Utils.readProps(properties,file);  
                 }
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + file); // FIXME - review
+                Log.instance(context).getWriter(WriterKind.NOTICE).println("Failed to read property file " + file); // FIXME - review
             }
             setPropertiesFileOptions(options, properties);
         }
@@ -782,7 +783,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
-            Log.instance(context).noticeWriter.println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         
         Cmd cmd = Cmd.CHECK; // default
@@ -827,7 +828,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
             } catch (NumberFormatException e) {
                 // FIXME _ change to an error
-                Log.instance(context).noticeWriter.println("Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
+                Log.instance(context).getWriter(WriterKind.NOTICE).println("Expected a number or 'all' as argument for -escMaxWarnings: " + limit);
                 utils.maxWarnings = Integer.MAX_VALUE;
             }
         }
@@ -846,7 +847,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 check.equals("none")) {
             // continue
         } else {
-            Log.instance(context).noticeWriter.println("Unexpected value as argument for -checkFeasibility: " + check);
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + check);
         }
         Extensions.register(context);
         return true;
@@ -1162,13 +1163,13 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (jmlruntimePath != null) {
             if (Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
-                Log.instance(context).noticeWriter.println("Using internal runtime " + jmlruntimePath);
+                Log.instance(context).getWriter(WriterKind.NOTICE).println("Using internal runtime " + jmlruntimePath);
             String cp = Options.instance(context).get("-classpath");
             if (cp == null) cp = System.getProperty("java.class.path");
             cp = cp==null ? jmlruntimePath : (cp + java.io.File.pathSeparator + jmlruntimePath);
             Options.instance(context).put("-classpath",cp);
             if (Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE) 
-                Log.instance(context).noticeWriter.println("Classpath: " + Options.instance(context).get("-classpath"));
+                Log.instance(context).getWriter(WriterKind.NOTICE).println("Classpath: " + Options.instance(context).get("-classpath"));
         } else {
             Log.instance(context).warning("jml.no.internal.runtime");
         }

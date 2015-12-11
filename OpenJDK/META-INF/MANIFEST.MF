@@ -6,21 +6,8 @@ Bundle-Version: 0.0.0
 Bundle-Vendor: David R. Cok
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.sun.javadoc,
- com.sun.mirror.apt,
- com.sun.mirror.declaration,
- com.sun.mirror.type,
- com.sun.mirror.util,
  com.sun.source.tree,
  com.sun.source.util,
- com.sun.tools.apt,
- com.sun.tools.apt.comp,
- com.sun.tools.apt.main,
- com.sun.tools.apt.mirror,
- com.sun.tools.apt.mirror.apt,
- com.sun.tools.apt.mirror.declaration,
- com.sun.tools.apt.mirror.type,
- com.sun.tools.apt.mirror.util,
- com.sun.tools.apt.util,
  com.sun.tools.classfile,
  com.sun.tools.doclets,
  com.sun.tools.doclets.formats.html,
@@ -49,3 +36,5 @@ Export-Package: com.sun.javadoc,
  com.sun.tools.javah,
  com.sun.tools.javap
 Bundle-ClassPath: bin/
+Import-Package: com.sun.tools.javac.api
+Require-Bundle: org.eclipse.jdt.core

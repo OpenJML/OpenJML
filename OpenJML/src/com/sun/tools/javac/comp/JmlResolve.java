@@ -6,7 +6,7 @@ package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
@@ -21,6 +21,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 /**
@@ -164,7 +165,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     public Symbol resolveBinaryOperator(DiagnosticPosition pos,
-            int optag,
+            JCTree.Tag optag,
             Env<AttrContext> env,
             Type left,
             Type right) {
@@ -173,11 +174,11 @@ public class JmlResolve extends Resolve {
         // FIXME - should compare against Float or Double or Character or Short or Byte or Long as well?
         if (allowJML && !left.isPrimitive() && !right.isPrimitive()) {
             if (!types.isSameType(left,integerType) && !types.isSameType(right,integerType)) {
-                if (optag == JCTree.LT) {
+                if (optag == JCTree.Tag.LT) {
                     log.warning(pos,"lock.ops");
                     return lockLT;
                 }
-                if (optag == JCTree.LE) {
+                if (optag == JCTree.Tag.LE) {
                     log.warning(pos,"lock.ops");
                     return lockLE;
                 }
@@ -219,7 +220,7 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("LOADING REQUESTED " + name );
+         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("LOADING REQUESTED " + name );
          Symbol s = super.loadClass(env, name);
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
@@ -233,15 +234,15 @@ public class JmlResolve extends Resolve {
          JmlSpecs specs = JmlSpecs.instance(context);
          JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
          if (tsp == null) {
-             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+             //if (true || utils.jmldebug) log.getWriter(WriterKind.NOTICE).println("   LOADING SPECS FOR (BINARY) CLASS " + name);
              // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
              if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
              jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+             //if (true || utils.jmldebug) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
              if (specs.get((ClassSymbol)s) == null) 
-                 log.noticeWriter.println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
+                 log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
          } else {
-             //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+             //log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
          }
          return s;
      }
@@ -273,10 +274,10 @@ public class JmlResolve extends Resolve {
          }
          
          if (specPublicSym == null) {
-             specPublicSym = attr.tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC);
+             specPublicSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC);
          }
          if (specProtectedSym == null) {
-             specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED);
+             specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
          }
          // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
          // (Is this because the binary file will not have the attributes in it - they are added ad hoc when the spec file is parsed???)
@@ -311,7 +312,7 @@ public class JmlResolve extends Resolve {
      }
      
      /** Returns the predefined operator with the given operator and type */
-     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Type arg) {
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Type arg) {
          Scope.Entry e = syms.predefClass.members().lookup(treeinfo.operatorName(optag));
          return e.sym;
      }

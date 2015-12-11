@@ -3,6 +3,7 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -28,6 +29,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
 
@@ -232,11 +234,12 @@ public class JmlEsc extends JmlTreeScanner {
 
         // print the body of the method to be proved
         if (printPrograms) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(methodDecl.body));
+            PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
         
         IProverResult res;
@@ -302,7 +305,7 @@ public class JmlEsc extends JmlTreeScanner {
                     }
                 }
                 if (utils.jmlverbose > Utils.PROGRESS) {
-                    log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+                    log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
             }
@@ -316,7 +319,7 @@ public class JmlEsc extends JmlTreeScanner {
                         simpleName.equals(exclude) ||
                         Pattern.matches(exclude,fullyQualifiedName)) {
                     if (utils.jmlverbose > Utils.PROGRESS)
-                        log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }
             }

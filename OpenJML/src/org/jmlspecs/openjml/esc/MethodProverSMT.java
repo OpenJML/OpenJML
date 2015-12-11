@@ -49,7 +49,7 @@ import org.smtlib.sexpr.ISexpr;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
@@ -71,6 +71,7 @@ import com.sun.tools.javac.tree.JCTree.JCSynchronized;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Position;
 
@@ -220,11 +221,11 @@ public class MethodProverSMT {
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
         }
         if (printPrograms) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(newblock));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
         }
 
         // determine the executable
@@ -265,11 +266,11 @@ public class MethodProverSMT {
             basicBlocker = new BasicBlocker2(context);
             program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
             if (printPrograms) {
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println(separator);
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
-                log.noticeWriter.println(program.toString());
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println(separator);
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
+                log.getWriter(WriterKind.NOTICE).println(program.toString());
             }
 
             // convert the basic block form to SMT
@@ -277,15 +278,15 @@ public class MethodProverSMT {
                 script = smttrans.convert(program,smt);
                 if (printPrograms) {
                     try {
-                        log.noticeWriter.println(Strings.empty);
-                        log.noticeWriter.println(separator);
-                        log.noticeWriter.println(Strings.empty);
-                        log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
-                        log.noticeWriter.println();
-                        log.noticeWriter.println();
+                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                        log.getWriter(WriterKind.NOTICE).println(separator);
+                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                        log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
+                        log.getWriter(WriterKind.NOTICE).println();
+                        log.getWriter(WriterKind.NOTICE).println();
                     } catch (VisitorException e) {
-                        log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+                        log.getWriter(WriterKind.NOTICE).print("Exception while printing SMT script: " + e); //$NON-NLS-1$
                     }
                 }
             } catch (Exception e) {
@@ -301,7 +302,7 @@ public class MethodProverSMT {
         		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             } else {
             	// Try the prover
-            	if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+            	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
             	try {
             		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
@@ -316,7 +317,7 @@ public class MethodProverSMT {
         // Now assemble and report the result
 
         if (verbose) {
-            log.noticeWriter.println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
+            log.getWriter(WriterKind.NOTICE).println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
         }
 
         IProverResult proofResult = null;
@@ -329,7 +330,7 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             }
             if (solverResponse.equals(unsatResponse)) {
-                if (verbose) log.noticeWriter.println("Method checked OK");
+                if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
                 if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
@@ -355,7 +356,7 @@ public class MethodProverSMT {
                                     commands.remove(commands.size()-1);
                                     commands.remove(commands.size()-1);
                                 }
-                                JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
+                                JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                         treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
                                         treeutils.makeIntLiteral(Position.NOPOS, k));
                                 commands.add(new C_assert(smttrans.convertExpr(bin)));
@@ -366,15 +367,15 @@ public class MethodProverSMT {
                             }
 //                            if (printPrograms) {
 //                                try {
-//                                    log.noticeWriter.println(Strings.empty);
-//                                    log.noticeWriter.println(separator);
-//                                    log.noticeWriter.println(Strings.empty);
-//                                    log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-//                                    org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
-//                                    log.noticeWriter.println();
-//                                    log.noticeWriter.println();
+//                                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//                                    log.getWriter(WriterKind.NOTICE).println(separator);
+//                                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//                                    log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+//                                    org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
+//                                    log.getWriter(WriterKind.NOTICE).println();
+//                                    log.getWriter(WriterKind.NOTICE).println();
 //                                } catch (VisitorException e) {
-//                                    log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+//                                    log.getWriter(WriterKind.NOTICE).print("Exception while printing SMT script: " + e); //$NON-NLS-1$
 //                                }
 //                            }
                             try {
@@ -390,7 +391,7 @@ public class MethodProverSMT {
                         if (usePushPop) {
                             solver.pop(1); // Pop off previous setting of assumeCheck
                             solver.push(1); // Mark the top
-                            JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.EQ,treeutils.inteqSymbol,
+                            JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                     treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
                                     treeutils.makeIntLiteral(Position.NOPOS, k));
                             solver.assertExpr(smttrans.convertExpr(bin));
@@ -482,11 +483,11 @@ public class MethodProverSMT {
                     }
 
 
-                    if (print) log.noticeWriter.println("Some assertion is not valid");
+                    if (print) log.getWriter(WriterKind.NOTICE).println("Some assertion is not valid");
 
                     // FIXME - decide how to show counterexamples when there is no tracing
                     if (showCounterexample && false) {
-                        log.noticeWriter.println("\nCOUNTEREXAMPLE");
+                        log.getWriter(WriterKind.NOTICE).println("\nCOUNTEREXAMPLE");
                         for (VarSymbol v: basicBlocker.premap.keySet()) {
                             Name n = basicBlocker.premap.getName(v);
                             String ns = n.toString();
@@ -496,9 +497,9 @@ public class MethodProverSMT {
                             if (ns.equals("_heap__")) continue;
 
                             String s = getValue(n.toString(),smt,solver);
-                            log.noticeWriter.println(n.toString() + " = " + s);
+                            log.getWriter(WriterKind.NOTICE).println(n.toString() + " = " + s);
                         }
-                        log.noticeWriter.println(Strings.empty);
+                        log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                     }
                     
                     Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
@@ -515,7 +516,7 @@ public class MethodProverSMT {
                             program,smt,solver,methodDecl,cemap,jmap,
                             jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
                     
-                    if (showTrace) log.noticeWriter.println(tracer.text());
+                    if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
 
                     if (pathCondition != null) {
                         Counterexample ce = new Counterexample(tracer.text(),cemap,path);
@@ -580,7 +581,7 @@ public class MethodProverSMT {
         String result = cemap.get(e);
         String expr = smttrans.convertExpr(e).toString();// TODO - use the pretty printer?
         if (result != null) constantTraceMap.put(result,e.toString()); 
-        if (e.type.tag == TypeTags.CHAR) result = showChar(result); 
+        if (e.type.getTag() == TypeTag.CHAR) result = showChar(result); 
         if (utils.jmlverbose  >= Utils.JMLVERBOSE) tracer.appendln("\t\t\tVALUE: " + expr + "\t === " + 
                  result);
 
@@ -607,9 +608,9 @@ public class MethodProverSMT {
     Map<JCTree,String> exprValues = new HashMap<JCTree,String>();
     
     // These strings must mirror the strings used in JmlAsssertionAdder.visitJmlLblExpression
-    private final static String prefix_lblpos = Strings.labelVarString + JmlToken.BSLBLPOS.internedName().substring(1) + "_";
-    private final static String prefix_lblneg = Strings.labelVarString + JmlToken.BSLBLNEG.internedName().substring(1) + "_";
-    private final static String prefix_lbl = Strings.labelVarString + JmlToken.BSLBLANY.internedName().substring(1) + "_";
+    private final static String prefix_lblpos = Strings.labelVarString + JmlTokenKind.BSLBLPOS.internedName().substring(1) + "_";
+    private final static String prefix_lblneg = Strings.labelVarString + JmlTokenKind.BSLBLNEG.internedName().substring(1) + "_";
+    private final static String prefix_lbl = Strings.labelVarString + JmlTokenKind.BSLBLANY.internedName().substring(1) + "_";
 
     public int checkTerminationPosition(String id, int terminationPos) {
         // The BasicBlocker2 implementation creates special RETURN and 
@@ -765,7 +766,7 @@ public class MethodProverSMT {
                         val = cemap.get(toTrace);
                         spanType = val == null ? Span.NORMAL : val.equals("true") ? Span.TRUE : Span.FALSE;
                     }
-                    //log.noticeWriter.println("SPAN " + sp + " " + ep + " " + spanType);
+                    //log.getWriter(WriterKind.NOTICE).println("SPAN " + sp + " " + ep + " " + spanType);
                     if (sp != Position.NOPOS) {
                         if (ep >= sp) path.add(new Span(sp,ep,spanType));
 //                        else log.warning(Position.NOPOS,"jml.internal.notsobad","Incomplete position information (" + sp + " " + ep + ") for " + origStat);
@@ -790,28 +791,28 @@ public class MethodProverSMT {
             }
             
             if (showBBTrace) {
-                log.noticeWriter.println("STATEMENT: " + stat);
+                log.getWriter(WriterKind.NOTICE).println("STATEMENT: " + stat);
                 if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr x = (JmlStatementExpr)stat;
                     traceSubExpr(x.expression);
-                    log.noticeWriter.println(tracer.text());
+                    log.getWriter(WriterKind.NOTICE).println(tracer.text());
                     tracer.clear();
                 } else if (stat instanceof JCVariableDecl) {
                     JCVariableDecl vd = (JCVariableDecl)stat;
                     Name n = vd.name;
                     if (vd.init != null) traceSubExpr(vd.init);
-                    log.noticeWriter.println("DECL: " + n + " === " + getValue(n.toString(),smt,solver));
+                    log.getWriter(WriterKind.NOTICE).println("DECL: " + n + " === " + getValue(n.toString(),smt,solver));
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.COMMENT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT) {
                 JmlStatementExpr s = (JmlStatementExpr)stat;
                 if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                 if (s.optionalExpression != null) {
-                    log.noticeWriter.println("FOUND " + s.id);
+                    log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
                     return pathCondition;
                 }
             }
-            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSERT) {
+            if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSERT) {
                 JmlStatementExpr assertStat = (JmlStatementExpr)stat;
                 JCExpression e = assertStat.expression;
                 Label label = assertStat.label;
@@ -848,7 +849,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    if (JmlOption.isOption(context, JmlOption.SHOW)) log.noticeWriter.println("Failed assert: " + e.toString());
+                    if (JmlOption.isOption(context, JmlOption.SHOW)) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
@@ -935,7 +936,7 @@ public class MethodProverSMT {
     }
     
 
-    /** Write out (through log.noticeWriter) the values of the given expression
+    /** Write out (through log.getWriter(WriterKind.NOTICE)) the values of the given expression
      * and, recursively, of any subexpressions.
      */
     public void traceSubExpr(JCExpression e) {
@@ -1023,13 +1024,13 @@ public class MethodProverSMT {
                             sv = getValue(expr,smt,solver,false); // Fail softly
                         }
                         String userString = normalizeConstant(sv);
-                        if (that.type.tag == TypeTags.BOOLEAN) { 
+                        if (that.type.getTag() == TypeTag.BOOLEAN) { 
                             userString = userString.replaceAll("\\( _ bv0 1 \\)", "false");
                             userString = userString.replaceAll("\\( _ bv1 1 \\)", "true");
                             userString = userString.replaceAll("\\( not true \\)", "false");
                             userString = userString.replaceAll("\\( not false \\)", "true");
                         }
-                        if (that.type.tag == TypeTags.CHAR) userString = showChar(userString);
+                        if (that.type.getTag() == TypeTag.CHAR) userString = showChar(userString);
                         traceText.append("\t\t\tVALUE: " + expr + "\t === " + userString);
                         traceText.append(Strings.eol);
                     }
@@ -1059,7 +1060,7 @@ public class MethodProverSMT {
                 sv = getValue(n.toString(),smt,solver);
                 cemap.put(e, sv);
             }
-            if (e.type.tag == TypeTags.CHAR) sv = showChar(sv); 
+            if (e.type.getTag() == TypeTag.CHAR) sv = showChar(sv); 
             traceText.append("\t\t\tVALUE: " + e.sym + " = " + 
                         (sv == null ? "???" : sv));
             traceText.append(Strings.eol);
@@ -1085,11 +1086,11 @@ public class MethodProverSMT {
         @Override
         public void visitBinary(JCBinary tree) {
             // Special handling of short-circuit cases
-            if (tree.getTag() == JCTree.OR) {
+            if (tree.getTag() == JCTree.Tag.OR) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("false".equals(v)) scan(tree.rhs);
-            } else if (tree.getTag() == JCTree.AND) {
+            } else if (tree.getTag() == JCTree.Tag.AND) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("true".equals(v)) scan(tree.rhs);
@@ -1102,11 +1103,11 @@ public class MethodProverSMT {
         @Override
         public void visitJmlBinary(JmlBinary tree) {
             // Special handling of short-circuit cases
-            if (tree.op == JmlToken.IMPLIES) {
+            if (tree.op == JmlTokenKind.IMPLIES) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("true".equals(v)) scan(tree.rhs);
-            } else if (tree.op == JmlToken.REVERSE_IMPLIES) {
+            } else if (tree.op == JmlTokenKind.REVERSE_IMPLIES) {
                 scan(tree.lhs);
                 String v = cemap.get(tree.lhs);
                 if ("false".equals(v)) scan(tree.rhs);
@@ -1159,12 +1160,12 @@ public class MethodProverSMT {
             for (JCExpression a: tree.args) {
                 scan(a);
             }
-            if (tree.type.tag == TypeTags.VOID) print = false;
+            if (tree.type.getTag() == TypeTag.VOID) print = false;
         }
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
-            if (tree.token != JmlToken.BSTYPELC) {
+            if (tree.token != JmlTokenKind.BSTYPELC) {
                 for (JCExpression a: tree.args) {
                     scan(a);
                 }
@@ -1244,35 +1245,35 @@ public class MethodProverSMT {
     public Map<JCTree,String> constructCounterexample(JmlAssertionAdder assertionAdder, BasicBlocker2 basicBlocker, SMTTranslator smttrans, SMT smt, ISolver solver) {
         boolean verbose = false;
         if (verbose) {
-            log.noticeWriter.println("ORIGINAL <==> TRANSLATED");
+            log.getWriter(WriterKind.NOTICE).println("ORIGINAL <==> TRANSLATED");
             for (JCTree e: assertionAdder.exprBiMap.forward.keySet()) {
                 if (!(e instanceof JCExpression) && !(e instanceof JCVariableDecl)) continue;
                 JCTree v = assertionAdder.exprBiMap.getf(e);
                 if (v != null && assertionAdder.exprBiMap.getr(v) == e) {
-                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " <==> " + v);
                 } else {
-                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " ===> " + v);
                 }
             }
-            log.noticeWriter.println("\nTRANSLATED <==> BB");
+            log.getWriter(WriterKind.NOTICE).println("\nTRANSLATED <==> BB");
             for (JCTree e: basicBlocker.bimap.forward.keySet()) {
                 JCExpression v = basicBlocker.bimap.getf(e);
                 if (v != null && basicBlocker.bimap.getr(v) == e) {
-                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " <==> " + v);
                 } else {
-                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " ===> " + v);
                 }
             }
-            log.noticeWriter.println("\nBB <==> SMT");
+            log.getWriter(WriterKind.NOTICE).println("\nBB <==> SMT");
             for (JCExpression e: smttrans.bimap.forward.keySet()) {
                 IExpr v = smttrans.bimap.getf(e);
                 if (v != null && smttrans.bimap.getr(v) == e) {
-                    log.noticeWriter.println(e.toString() + " <==> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " <==> " + v);
                 } else {
-                    log.noticeWriter.println(e.toString() + " ===> " + v);
+                    log.getWriter(WriterKind.NOTICE).println(e.toString() + " ===> " + v);
                 }
             }
-            log.noticeWriter.println("\nORIGINAL <==> SMT");
+            log.getWriter(WriterKind.NOTICE).println("\nORIGINAL <==> SMT");
         }
         IExpr[] ee = new IExpr[1];
         IPrinter p = smt.smtConfig.defaultPrinter;
@@ -1312,7 +1313,7 @@ public class MethodProverSMT {
 
 //            String t3 = t2 == null ? null : ce.get(t2.toString());
             values.put(t, t3);
-            if (verbose) log.noticeWriter.println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
+            if (verbose) log.getWriter(WriterKind.NOTICE).println(t + " >>>> " + t1 + " >>>> " + t2 + " >>>> " + 
                     smt.smtConfig.defaultPrinter.toString(smtexpr) + " >>>> "+ t3);
         }
         return values;
@@ -1330,12 +1331,12 @@ public class MethodProverSMT {
         
         @Override
         public void logOut(String msg) {
-            log.noticeWriter.println(msg);
+            log.getWriter(WriterKind.NOTICE).println(msg);
         }
 
         @Override
         public void logOut(IResponse result) {
-            log.noticeWriter.println(printer.toString(result));
+            log.getWriter(WriterKind.NOTICE).println(printer.toString(result));
         }
 
         @Override
@@ -1350,7 +1351,7 @@ public class MethodProverSMT {
 
         @Override
         public void logDiag(String msg) {
-            log.noticeWriter.println(msg);
+            log.getWriter(WriterKind.NOTICE).println(msg);
         }
 
         @Override

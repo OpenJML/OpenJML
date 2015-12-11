@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 // FIXME - not ready for use - review and fix
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlTree.*;
 
@@ -38,16 +39,17 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
     public <T extends JCTree> ListBuffer<T> translate(ListBuffer<T> trees) {
         if (trees == null) return null;
-        if (!copy) {
-            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
-                l.head = translate(l.head);
-            return trees;
-        } else {
+//        if (!copy) {
+//            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
+//                l.head = translate(l.head);
+//            return trees;
+//        } else {
             ListBuffer<T> newlist = new ListBuffer<T>();
-            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
-                newlist.append(translate(l.head));
+            Iterator<T> iter = trees.iterator();
+            while (iter.hasNext())
+                newlist.append(translate(iter.next()));
             return newlist;
-        }
+//        }
     }
 
     public <T extends JCTree> java.util.List<T> translate(java.util.List<T> trees) {

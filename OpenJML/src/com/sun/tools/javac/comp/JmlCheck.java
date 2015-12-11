@@ -4,16 +4,16 @@
  */
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.TypeTags.FORALL;
+import static com.sun.tools.javac.code.TypeTag.FORALL;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -88,7 +88,7 @@ public class JmlCheck extends Check {
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
         if (!isInJml) return super.checkCastable(pos,found,req);
-        if (found.tag == FORALL) {
+        if (found.getTag() == FORALL) {
             instantiatePoly(pos, (ForAll) found, req, new NoWarningsAtAll());
             return req;
         } else if (types.isCastable(found, req, new NoWarningsAtAll())) {
@@ -110,7 +110,7 @@ public class JmlCheck extends Check {
         long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (d != null) {
-            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlToken.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlTokenKind.INSTANCE) != null;
             if (isInstance) k &= ~Flags.STATIC;
         }
         return k;
@@ -118,7 +118,7 @@ public class JmlCheck extends Check {
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) {
-        if (found.tag == TypeTags.ARRAY && req.tag == TypeTags.ARRAY &&
+        if (found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 found.toString().equals("org.jmlspecs.utils.IJMLTYPE[]") &&
                 req.toString().equals("\\TYPE[]")) {
             // FIXME - can we do the above without converting to String

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,35 +25,44 @@
 
 package com.sun.tools.javadoc;
 
-import com.sun.javadoc.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+
+import com.sun.javadoc.*;
 import com.sun.tools.javac.main.CommandLine;
+import com.sun.tools.javac.util.ClientCodeException;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
-
-import java.io.IOException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-
-import java.util.StringTokenizer;
-
 import static com.sun.tools.javac.code.Flags.*;
 
 /**
  * Main program of Javadoc.
  * Previously named "Main".
  *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  * @since 1.2
  * @author Robert Field
  * @author Neal Gafter (rewrite)
  */
-public class Start {  // DRC - changed to public from package-default
-    
-    protected Context context; // DRC - added to allow setting before methods are called
-    
+public class Start extends ToolOption.Helper {
+    /** Context for this invocation. */
+    private final Context context;
+
     private final String defaultDocletClassName;
     private final ClassLoader docletParentClassLoader;
 
@@ -62,27 +71,17 @@ public class Start {  // DRC - changed to public from package-default
     private static final String standardDocletClassName =
         "com.sun.tools.doclets.standard.Standard";
 
-    private ListBuffer<String[]> options = new ListBuffer<String[]>();
-
-    private ModifierFilter showAccess = null;
-
     private long defaultFilter = PUBLIC | PROTECTED;
 
-    private Messager messager;
-
-    String docLocale = "";
-
-    boolean breakiterator = false;
-    boolean quiet = false;
-    String encoding = null;
+    private final Messager messager;
 
     private DocletInvoker docletInvoker;
 
-    private static final int F_VERBOSE = 1 << 0;
-    private static final int F_WARNINGS = 1 << 2;
-
-    /* Treat warnings as errors. */
-    private boolean rejectWarnings = false;
+    /**
+     * In API mode, exceptions thrown while calling the doclet are
+     * propagated using ClientCodeException.
+     */
+    private boolean apiMode;
 
     public Start(String programName,  // DRC - changed to public
           PrintWriter errWriter,
@@ -98,8 +97,8 @@ public class Start {  // DRC - changed to public from package-default
           PrintWriter noticeWriter,
           String defaultDocletClassName,
           ClassLoader docletParentClassLoader) {
-        Context tempContext = new Context(); // interim context until option decoding completed
-        messager = new Messager(tempContext, programName, errWriter, warnWriter, noticeWriter);
+        context = new Context();
+        messager = new Messager(context, programName, errWriter, warnWriter, noticeWriter);
         this.defaultDocletClassName = defaultDocletClassName;
         this.docletParentClassLoader = docletParentClassLoader;
     }
@@ -110,8 +109,8 @@ public class Start {  // DRC - changed to public from package-default
 
     Start(String programName, String defaultDocletClassName,
           ClassLoader docletParentClassLoader) {
-        Context tempContext = new Context(); // interim context until option decoding completed
-        messager = new Messager(tempContext, programName);
+        context = new Context();
+        messager = new Messager(context, programName);
         this.defaultDocletClassName = defaultDocletClassName;
         this.docletParentClassLoader = docletParentClassLoader;
     }
@@ -132,25 +131,68 @@ public class Start {  // DRC - changed to public from package-default
         this(javadocName);
     }
 
-    /**
-     * Usage
-     */
-    protected void usage() { // Changed from private to protected
-        String message = messager.getText("main.usage");
-        message = message.replace("javadoc","jmldoc");
-        messager.printNotice(message);
+    public Start(Context context) {
+        context.getClass(); // null check
+        this.context = context;
+        apiMode = true;
+        defaultDocletClassName = standardDocletClassName;
+        docletParentClassLoader = null;
 
-        // let doclet print usage information (does nothing on error)
-        if (docletInvoker != null) {
-            docletInvoker.optionLength("-help");
+        Log log = context.get(Log.logKey);
+        if (log instanceof Messager)
+            messager = (Messager) log;
+        else {
+            PrintWriter out = context.get(Log.outKey);
+            messager = (out == null) ? new Messager(context, javadocName)
+                    : new Messager(context, javadocName, out, out, out);
         }
     }
 
     /**
      * Usage
      */
-    private void Xusage() {
-        messager.notice("main.Xusage");
+    @Override
+    protected void usage() { // DRC - Changed from private to protected
+        usage(true);
+    }
+
+    void usage(boolean exit) {
+    // DRC - FIXME - is this still a correct change?
+        String message = messager.getText("main.usage");
+        message = message.replace("javadoc","jmldoc");
+        messager.printNotice(message);
+        //usage("main.usage", "-help", null, exit);
+    }
+
+    @Override
+    protected void Xusage() { // DRC - Changed from private to protected
+        Xusage(true);
+    }
+
+    void Xusage(boolean exit) {
+    // DRC - FIXME _ perhaps make the same adjustments as above
+        usage("main.Xusage", "-X", "main.Xusage.foot", exit);
+    }
+
+    private void usage(String main, String doclet, String foot, boolean exit) {
+        // RFE: it would be better to replace the following with code to
+        // write a header, then help for each option, then a footer.
+        messager.notice(main);
+
+        // let doclet print usage information (does nothing on error)
+        if (docletInvoker != null) {
+            // RFE: this is a pretty bad way to get the doclet to show
+            // help info. Moreover, the output appears on stdout,
+            // and <i>not</i> on any of the standard streams passed
+            // to javadoc, and in particular, not to the noticeWriter
+            // But, to fix this, we need to fix the Doclet API.
+            docletInvoker.optionLength(doclet);
+        }
+
+        if (foot != null)
+            messager.notice(foot);
+
+        if (exit) exit();
     }
 
     /**
@@ -165,22 +207,36 @@ public class Start {  // DRC - changed to public from package-default
      * Main program - external wrapper
      */
     public int begin(String... argv) { // DRC - changed to public from default
+        boolean ok = begin(null, argv, Collections.<JavaFileObject> emptySet());
+        return ok ? 0 : 1;
+    }
+
+    public boolean begin(Class<?> docletClass, Iterable<String> options, Iterable<? extends JavaFileObject> fileObjects) {
+        Collection<String> opts = new ArrayList<String>();
+        for (String opt: options) opts.add(opt);
+        return begin(docletClass, opts.toArray(new String[opts.size()]), fileObjects);
+    }
+
+    private boolean begin(Class<?> docletClass, String[] options, Iterable<? extends JavaFileObject> fileObjects) {
         boolean failed = false;
 
         try {
-            failed = !parseAndExecute(argv);
-        } catch(Messager.ExitJavadoc exc) {
+            failed = !parseAndExecute(docletClass, options, fileObjects);
+        } catch (Messager.ExitJavadoc exc) {
             // ignore, we just exit this way
         } catch (OutOfMemoryError ee) {
-            messager.error(null, "main.out.of.memory");
+            messager.error(Messager.NOPOS, "main.out.of.memory");
             failed = true;
+        } catch (ClientCodeException e) {
+            // simply rethrow these exceptions, to be caught and handled by JavadocTaskImpl
+            throw e;
         } catch (Error ee) {
-            ee.printStackTrace();
-            messager.error(null, "main.fatal.error");
+            ee.printStackTrace(System.err);
+            messager.error(Messager.NOPOS, "main.fatal.error");
             failed = true;
         } catch (Exception ee) {
-            ee.printStackTrace();
-            messager.error(null, "main.fatal.exception");
+            ee.printStackTrace(System.err);
+            messager.error(Messager.NOPOS, "main.fatal.exception");
             failed = true;
         } finally {
             messager.exitNotice();
@@ -188,22 +244,16 @@ public class Start {  // DRC - changed to public from package-default
         }
         failed |= messager.nerrors() > 0;
         failed |= rejectWarnings && messager.nwarnings() > 0;
-        return failed ? 1 : 0;
-    }
-
-    private void addToList(ListBuffer<String> list, String str){
-        StringTokenizer st = new StringTokenizer(str, ":");
-        String current;
-        while(st.hasMoreTokens()){
-            current = st.nextToken();
-            list.append(current);
-        }
+        return !failed;
     }
 
     /**
      * Main program - internal
      */
-    private boolean parseAndExecute(String... argv) throws IOException {
+    private boolean parseAndExecute(
+            Class<?> docletClass,
+            String[] argv,
+            Iterable<? extends JavaFileObject> fileObjects) throws IOException {
         long tm = System.currentTimeMillis();
 
         ListBuffer<String> javaNames = new ListBuffer<String>();
@@ -212,132 +262,41 @@ public class Start {  // DRC - changed to public from package-default
         try {
             argv = CommandLine.parse(argv);
         } catch (FileNotFoundException e) {
-            messager.error(null, "main.cant.read", e.getMessage());
+            messager.error(Messager.NOPOS, "main.cant.read", e.getMessage());
             exit();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
             exit();
         }
 
-        setDocletInvoker(argv);
-        ListBuffer<String> subPackages = new ListBuffer<String>();
-        ListBuffer<String> excludedPackages = new ListBuffer<String>();
 
-        Context context = this.context != null ? this.context : new Context(); // DRC - modified was: Context context = new Context();
-        // Setup a new Messager, using the same initial parameters as the
-        // existing Messager, except that this one will be able to use any
-        // options that may be set up below.
-        Messager.preRegister(context,
-                messager.programName,
-                messager.errWriter, messager.warnWriter, messager.noticeWriter);
+        JavaFileManager fileManager = context.get(JavaFileManager.class);
+        setDocletInvoker(docletClass, fileManager, argv);
 
-        Options compOpts = Options.instance(context);
-        boolean docClasses = false;
+        compOpts = Options.instance(context);
+        // Make sure no obsolete source/target messages are reported
+        compOpts.put("-Xlint:-options", "-Xlint:-options");
 
         // Parse arguments
         for (int i = 0 ; i < argv.length ; i++) {
             String arg = argv[i];
-            if (arg.equals("-subpackages")) {
-                oneArg(argv, i++);
-                addToList(subPackages, argv[i]);
-            } else if (arg.equals("-exclude")){
-                oneArg(argv, i++);
-                addToList(excludedPackages, argv[i]);
-            } else if (arg.equals("-verbose")) {
-                setOption(arg);
-                compOpts.put("-verbose", "");
-            } else if (arg.equals("-encoding")) {
-                oneArg(argv, i++);
-                encoding = argv[i];
-                compOpts.put("-encoding", argv[i]);
-            } else if (arg.equals("-breakiterator")) {
-                breakiterator = true;
-                setOption("-breakiterator");
-            } else if (arg.equals("-quiet")) {
-                quiet = true;
-                setOption("-quiet");
-            } else if (arg.equals("-help")) {
-                usage();
-                exit();
-            } else if (arg.equals("-Xclasses")) {
-                setOption(arg);
-                docClasses = true;
-            } else if (arg.equals("-Xwerror")) {
-                setOption(arg);
-                rejectWarnings = true;
-            } else if (arg.equals("-private")) {
-                setOption(arg);
-                setFilter(ModifierFilter.ALL_ACCESS);
-            } else if (arg.equals("-package")) {
-                setOption(arg);
-                setFilter(PUBLIC | PROTECTED |
-                          ModifierFilter.PACKAGE );
-            } else if (arg.equals("-protected")) {
-                setOption(arg);
-                setFilter(PUBLIC | PROTECTED );
-            } else if (arg.equals("-public")) {
-                setOption(arg);
-                setFilter(PUBLIC);
-            } else if (arg.equals("-source")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-source") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-source", argv[i]);
-            } else if (arg.equals("-prompt")) {
-                compOpts.put("-prompt", "-prompt");
-                messager.promptOnError = true;
-            } else if (arg.equals("-sourcepath")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-sourcepath") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-sourcepath", argv[i]);
-            } else if (arg.equals("-classpath")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-classpath") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-classpath", argv[i]);
-            } else if (arg.equals("-sysclasspath")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-bootclasspath") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-bootclasspath", argv[i]);
-            } else if (arg.equals("-bootclasspath")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-bootclasspath") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-bootclasspath", argv[i]);
-            } else if (arg.equals("-extdirs")) {
-                oneArg(argv, i++);
-                if (compOpts.get("-extdirs") != null) {
-                    usageError("main.option.already.seen", arg);
-                }
-                compOpts.put("-extdirs", argv[i]);
-            } else if (arg.equals("-overview")) {
-                oneArg(argv, i++);
-            } else if (arg.equals("-doclet")) {
-                i++;  // handled in setDocletInvoker
-            } else if (arg.equals("-docletpath")) {
-                i++;  // handled in setDocletInvoker
-            } else if (arg.equals("-locale")) {
-                if (i != 0)
+
+            ToolOption o = ToolOption.get(arg);
+            if (o != null) {
+                // hack: this restriction should be removed
+                if (o == ToolOption.LOCALE && i > 0)
                     usageError("main.locale_first");
-                oneArg(argv, i++);
-                docLocale = argv[i];
-            } else if (arg.equals("-Xmaxerrs") || arg.equals("-Xmaxwarns")) {
-                oneArg(argv, i++);
-                if (compOpts.get(arg) != null) {
-                    usageError("main.option.already.seen", arg);
+
+                if (o.hasArg) {
+                    oneArg(argv, i++);
+                    o.process(this, argv[i]);
+                } else {
+                    setOption(arg);
+                    o.process(this);
                 }
-                compOpts.put(arg, argv[i]);
-            } else if (arg.equals("-X")) {
-                Xusage();
-                exit();
+
             } else if (arg.startsWith("-XD")) {
+                // hidden javac options
                 String s = arg.substring("-XD".length());
                 int eq = s.indexOf('=');
                 String key = (eq < 0) ? s : s.substring(0, eq);
@@ -346,7 +305,7 @@ public class Start {  // DRC - changed to public from package-default
             }
             // call doclet for its options
             // other arg starts with - is invalid
-            else if ( arg.startsWith("-") ) {
+            else if (arg.startsWith("-")) {
                 int optionLength;
                 optionLength = docletInvoker.optionLength(arg);
                 if (optionLength < 0) {
@@ -370,8 +329,9 @@ public class Start {  // DRC - changed to public from package-default
                 javaNames.append(arg);
             }
         }
+        compOpts.notifyListeners();
 
-        if (javaNames.isEmpty() && subPackages.isEmpty()) {
+        if (javaNames.isEmpty() && subPackages.isEmpty() && isEmpty(fileObjects)) {
             usageError("main.No_packages_or_classes_specified");
         }
 
@@ -382,7 +342,6 @@ public class Start {  // DRC - changed to public from package-default
 
         JavadocTool comp = JavadocTool.make0(context);
         if (comp == null) return false;
-        //moreRegister(context);
 
         if (showAccess == null) {
             setFilter(defaultFilter);
@@ -390,20 +349,26 @@ public class Start {  // DRC - changed to public from package-default
 
         LanguageVersion languageVersion = docletInvoker.languageVersion();
         RootDocImpl root = comp.getRootDocImpl(
-                docLocale, encoding, showAccess,
-                javaNames.toList(), options.toList(), breakiterator,
-                subPackages.toList(), excludedPackages.toList(),
+                docLocale,
+                encoding,
+                showAccess,
+                javaNames.toList(),
+                options.toList(),
+                fileObjects,
+                breakiterator,
+                subPackages.toList(),
+                excludedPackages.toList(),
                 docClasses,
                 // legacy?
-                languageVersion == null || languageVersion == LanguageVersion.JAVA_1_1, quiet);
+                languageVersion == null || languageVersion == LanguageVersion.JAVA_1_1,
+                quiet);
+
+        // release resources
+        comp = null;
 
         // pass off control to the doclet
         boolean ok = root != null;
         if (ok) ok = docletInvoker.start(root);
-
-        Messager docletMessager = Messager.instance0(context);
-        messager.nwarnings += docletMessager.nwarnings;
-        messager.nerrors += docletMessager.nerrors;
 
         // We're done.
         if (compOpts.get("-verbose") != null) {
@@ -414,21 +379,43 @@ public class Start {  // DRC - changed to public from package-default
         return ok;
     }
 
-    private void setDocletInvoker(String[] argv) {
+    private <T> boolean isEmpty(Iterable<T> iter) {
+        return !iter.iterator().hasNext();
+    }
+
+    /**
+     * Init the doclet invoker.
+     * The doclet class may be given explicitly, or via the -doclet option in
+     * argv.
+     * If the doclet class is not given explicitly, it will be loaded from
+     * the file manager's DOCLET_PATH location, if available, or via the
+     * -doclet path option in argv.
+     * @param docletClass The doclet class. May be null.
+     * @param fileManager The file manager used to get the class loader to load
+     * the doclet class if required. May be null.
+     * @param argv Args containing -doclet and -docletpath, in case they are required.
+     */
+    private void setDocletInvoker(Class<?> docletClass, JavaFileManager fileManager, String[] argv) {
+        if (docletClass != null) {
+            docletInvoker = new DocletInvoker(messager, docletClass, apiMode);
+            // TODO, check no -doclet, -docletpath
+            return;
+        }
+
         String docletClassName = null;
         String docletPath = null;
 
         // Parse doclet specifying arguments
         for (int i = 0 ; i < argv.length ; i++) {
             String arg = argv[i];
-            if (arg.equals("-doclet")) {
+            if (arg.equals(ToolOption.DOCLET.opt)) {
                 oneArg(argv, i++);
                 if (docletClassName != null) {
                     usageError("main.more_than_one_doclet_specified_0_and_1",
                                docletClassName, argv[i]);
                 }
                 docletClassName = argv[i];
-            } else if (arg.equals("-docletpath")) {
+            } else if (arg.equals(ToolOption.DOCLETPATH.opt)) {
                 oneArg(argv, i++);
                 if (docletPath == null) {
                     docletPath = argv[i];
@@ -443,18 +430,10 @@ public class Start {  // DRC - changed to public from package-default
         }
 
         // attempt to find doclet
-        docletInvoker = new DocletInvoker(messager,
-                                          docletClassName, docletPath,
-                                          docletParentClassLoader);
-    }
-
-    private void setFilter(long filterBits) {
-        if (showAccess != null) {
-            messager.error(null, "main.incompatible.access.flags");
-            usage();
-            exit();
-        }
-        showAccess = new ModifierFilter(filterBits);
+        docletInvoker = new DocletInvoker(messager, fileManager,
+                docletClassName, docletPath,
+                docletParentClassLoader,
+                apiMode);
     }
 
     /**
@@ -469,22 +448,10 @@ public class Start {  // DRC - changed to public from package-default
         }
     }
 
-    private void usageError(String key) {
-        messager.error(null, key);
-        usage();
-        exit();
-    }
-
-    private void usageError(String key, String a1) {
-        messager.error(null, key, a1);
-        usage();
-        exit();
-    }
-
-    private void usageError(String key, String a1, String a2) {
-        messager.error(null, key, a1, a2);
-        usage();
-        exit();
+    @Override
+    void usageError(String key, Object... args) {
+        messager.error(Messager.NOPOS, key, args);
+        usage(true);
     }
 
     /**
@@ -513,9 +480,6 @@ public class Start {  // DRC - changed to public from package-default
         for (List<String> i = arguments; i.nonEmpty(); i=i.tail) {
             args[k++] = i.head;
         }
-        options = options.append(args);
+        options.append(args);
     }
-    
-    protected void moreRegister(Context context) {}
-
 }

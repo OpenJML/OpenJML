@@ -4,7 +4,7 @@
  */
 package org.jmlspecs.openjml.esc;
 
-import static com.sun.tools.javac.code.TypeTags.CLASS;
+import static com.sun.tools.javac.code.TypeTag.CLASS;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ import org.jmlspecs.openjml.JmlInternalError;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.JmlTreeScanner;
@@ -40,12 +40,14 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Symbol.TypeVariableSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -54,6 +56,7 @@ import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
@@ -522,7 +525,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(stat);
 //            that = id;
 //        }
-        JmlTree.JmlStatementExpr st = M.at(statement.pos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        JmlTree.JmlStatementExpr st = M.at(statement.pos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -542,7 +545,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * it is presumed the statement will be translated later */
     protected void addUntranslatedAssert(Label label, JCExpression that, int declpos, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = M.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
         st.optionalExpression = null;
         st.source = source;
         st.associatedPos = declpos;
@@ -555,7 +558,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     /** Adds an assertion to the given statement list; the expression is presumed translated */
     protected void addAssertNoTrack(Label label, JCExpression that, List<JCStatement> statements, int usepos, /*@Nullable*/JavaFileObject source) {
         JmlStatementExpr st;
-        st = M.at(usepos).JmlExpressionStatement(JmlToken.ASSERT,label,that);
+        st = M.at(usepos).JmlExpressionStatement(JmlTokenKind.ASSERT,label,that);
         st.optionalExpression = null;
         st.type = null; // no type for a statement
         st.source = source;
@@ -594,7 +597,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- end position?
 //            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,that);
         st.type = null; // statements do not have a type
@@ -614,7 +617,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //            newdefs.add(new BasicProgram.Definition(that.pos,id,that)); // FIXME- start, end position?
 //            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,id);
 //        } else {
-            st = M.JmlExpressionStatement(JmlToken.ASSUME,label,that);
+            st = M.JmlExpressionStatement(JmlTokenKind.ASSUME,label,that);
 //        }
 //        copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
@@ -666,17 +669,18 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     
     // FIXME - REVIEW and document
     static public String encodeType(Type t) {   // FIXME String? char? void? unsigned?
+        TypeTag tag = t.getTag();
         if (t instanceof ArrayType) {
             return "refA$" + encodeType(((ArrayType)t).getComponentType());
         } else if (!t.isPrimitive()) {
             return "REF";
-        } else if (t.tag == TypeTags.INT || t.tag == TypeTags.SHORT || t.tag == TypeTags.LONG || t.tag == TypeTags.BYTE) {
+        } else if (tag == TypeTag.INT || tag == TypeTag.SHORT || tag == TypeTag.LONG || tag == TypeTag.BYTE) {
             return "int";
-        } else if (t.tag == TypeTags.BOOLEAN) {
+        } else if (tag == TypeTag.BOOLEAN) {
             return "bool";
-        } else if (t.tag == TypeTags.FLOAT || t.tag == TypeTags.DOUBLE) {
+        } else if (tag == TypeTag.FLOAT || tag == TypeTag.DOUBLE) {
             return "real";
-        } else if (t.tag == TypeTags.CHAR) {
+        } else if (tag == TypeTag.CHAR) {
             return "int";
         } else {
             return "unknown";
@@ -710,7 +714,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
      * given String.
      */
     public JmlStatementExpr comment(int pos, String s) {
-        return M.at(pos).JmlExpressionStatement(JmlToken.COMMENT,null,M.Literal(s));
+        return M.at(pos).JmlExpressionStatement(JmlTokenKind.COMMENT,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
@@ -725,7 +729,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - do we need this - here?
     /** Makes a JML \typeof expression, with the given expression as the argument */
     protected JCExpression makeTypeof(JCExpression e) {
-        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(JmlToken.BSTYPEOF,e);
+        JCExpression typeof = M.at(e.pos).JmlMethodInvocation(JmlTokenKind.BSTYPEOF,e);
         typeof.type = syms.classType;
         return typeof;
     }
@@ -742,7 +746,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         JCExpression e1 = makeTypeof(e);
         JCExpression e2 = makeTypeLiteral(type,typepos);
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
-        JCExpression ee = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,e1,e2);
+        JCExpression ee = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,e1,e2);
         return ee;
     }
     
@@ -750,9 +754,9 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     /** Makes the equivalent of an instanceof operation: e !=null && \typeof(e) <: \type(type) */
     protected JCExpression makeInstanceof(JCExpression e, int epos, Type type, int typepos) {
         JCExpression e1 = treeutils.makeNeqObject(epos,e,treeutils.nullLit);
-        JCExpression e2 = treeutils.makeJmlBinary(epos,JmlToken.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
+        JCExpression e2 = treeutils.makeJmlBinary(epos,JmlTokenKind.SUBTYPE_OF,makeTypeof(e),makeTypeLiteral(type,typepos));
         //if (inSpecExpression) e2 = trSpecExpr(e2,null);
-        JCExpression ee = treeutils.makeBinary(epos,JCTree.AND,e1,e2);
+        JCExpression ee = treeutils.makeBinary(epos,JCTree.Tag.AND,e1,e2);
         return ee;
     }
     
@@ -775,11 +779,11 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review and document
     protected JCExpression makeSignalsOnly(JmlMethodClauseSignalsOnly clause) {
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
-        JCExpression id = M.at(0).JmlSingleton(JmlToken.BSEXCEPTION);
+        JCExpression id = M.at(0).JmlSingleton(JmlTokenKind.BSEXCEPTION);
         for (JCExpression typetree: clause.list) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
-                    JCTree.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
+                    JCTree.Tag.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
         }
         return e;
     }
@@ -793,7 +797,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         } else {
             // FIXME - fix this sometime - we don't know the end position of
             // statements that are not blocks
-            if (JmlEsc.escdebug) log.noticeWriter.println("UNKNOWN END POS");
+            if (JmlEsc.escdebug) log.getWriter(WriterKind.NOTICE).println("UNKNOWN END POS");
             return t.pos;
         }
     }
@@ -884,7 +888,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     typeargs.put(tv.next().tsym,e.next().type);
                 }
             } else {
-                log.noticeWriter.println("NOT IMPLEMENTED - parameterized method call with implicit type parameters");
+                log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED - parameterized method call with implicit type parameters");
             }
         }
 
@@ -904,7 +908,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // FIXME - review this
     //boolean extraEnv = false;
     public void visitJmlMethodInvocation(JmlMethodInvocation that) { 
-        if (that.token == JmlToken.BSOLD || that.token == JmlToken.BSPRE || that.token == JmlToken.BSPAST) {
+        if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPRE || that.token == JmlTokenKind.BSPAST) {
                 if (that.args.size() == 1) {
                     that.args.get(0).accept(this);
                 } else {
@@ -912,7 +916,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));
                 }
-                that.token = JmlToken.BSSAME; // A no-op // TODO - Review this
+                that.token = JmlTokenKind.BSSAME; // A no-op // TODO - Review this
         } else if (that.token == null) {
             super.visitApply(that);  // See testBox - this comes from the implicitConversion - should it be a JCMethodInvocation instead?
             scan(that.typeargs);
@@ -1236,14 +1240,14 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                 id = M.at(expr.pos).Ident(n); // No symbol - FIXME ???
                 id.type = syms.intType;
                 ns.append(n);
-                fullRange = treeutils.makeBinary(a.pos,JCTree.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.LE,treeutils.makeZeroEquivalentLit(a.pos,syms.intType),id));
+                fullRange = treeutils.makeBinary(a.pos,JCTree.Tag.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.Tag.LE,treeutils.makeZeroEquivalentLit(a.pos,syms.intType),id));
                 //JCExpression len = M.at(a.pos).Select(a.expression,lengthSym);
                 JCExpression len = new JmlBBFieldAccess(lengthIdent,a.expression);
                 len.pos = a.pos;
                 len.type = syms.intType;
-                fullRange = treeutils.makeBinary(a.pos,JCTree.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.LT,id,len));
-                if (a.lo != null) accumRange = treeutils.makeBinary(a.lo.pos,JCTree.AND,accumRange,treeutils.makeBinary(a.lo.pos,JCTree.LE,a.lo,id));
-                if (a.hi != null) accumRange = treeutils.makeBinary(a.hi.pos,JCTree.AND,accumRange,treeutils.makeBinary(a.hi.pos,JCTree.LE,id,a.hi));
+                fullRange = treeutils.makeBinary(a.pos,JCTree.Tag.AND,fullRange,treeutils.makeBinary(a.pos,JCTree.Tag.LT,id,len));
+                if (a.lo != null) accumRange = treeutils.makeBinary(a.lo.pos,JCTree.Tag.AND,accumRange,treeutils.makeBinary(a.lo.pos,JCTree.Tag.LE,a.lo,id));
+                if (a.hi != null) accumRange = treeutils.makeBinary(a.hi.pos,JCTree.Tag.AND,accumRange,treeutils.makeBinary(a.hi.pos,JCTree.Tag.LE,id,a.hi));
             }
             e = M.at(expr.pos).Indexed(e,id);
             e.type = expr.type;
@@ -1318,7 +1322,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         
         // Change everything in the current map
 //        for (VarSymbol vsym : currentMap.keySet()) {
-//            if (vsym.owner == null || vsym.owner.type.tag != TypeTags.CLASS) {
+//            if (vsym.owner == null || vsym.owner.type.tag != TypeTag.CLASS) {
 //                continue;
 //            }
 //            JCIdent oldid = newIdentUse(vsym,newpos);
@@ -1357,9 +1361,9 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
     // OK
     @Override
     public void visitJmlStatementExpr(JmlStatementExpr that) { 
-        if (that.token == JmlToken.COMMENT) {
+        if (that.token == JmlTokenKind.COMMENT) {
             currentBlock.statements.add(that);
-        } else if (that.token == JmlToken.ASSUME || that.token == JmlToken.ASSERT) {
+        } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
             scan(that.expression);
             currentBlock.statements.add(that);
         } else {
@@ -1375,7 +1379,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
         while (iter.hasNext()) {
             JCExpression x = iter.next();
-            if (x instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)x).token == JmlToken.BSNOTHING)
+            if (x instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)x).token == JmlTokenKind.BSNOTHING)
                 {}
             else newlist.add(x);
         }
@@ -1617,7 +1621,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
             // declared variable.  Actually if there is such a situation, it 
             // will likely generate an error about use of an uninitialized variable.
             scan(that.init);
-            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ,lhs,that.init);
+            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
             // FIXME - INITIALIZATION instead of ASSIGNMENT?
             addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
         }
@@ -1646,7 +1650,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         if (type.getTypeArguments() != null && type.getTypeArguments().size() != 0) {
             pushTypeArgs();
             Iterator<Type> args = type.getTypeArguments().iterator();
-            Iterator<TypeSymbol> params = type.tsym.getTypeParameters().iterator();
+            Iterator<TypeVariableSymbol> params = type.tsym.getTypeParameters().iterator();
             while (params.hasNext()) {
                 typeargs.put(params.next(),args.next());
             }
@@ -2088,9 +2092,9 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         }
         
         public void visitUnary(JCUnary that) {
-            int op = that.getTag();
-            if (op == JCTree.POSTDEC || op == JCTree.POSTINC ||
-                    op == JCTree.PREINC || op == JCTree.PREDEC)
+            JCTree.Tag op = that.getTag();
+            if (op == JCTree.Tag.POSTDEC || op == JCTree.Tag.POSTINC ||
+                    op == JCTree.Tag.PREINC || op == JCTree.Tag.PREDEC)
                 vars.add(that.getExpression());
         }
         
@@ -2203,21 +2207,21 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
                     //newlist.append(tt);
                 }
             } else {
-                JmlToken token = c.token;
-                if (token == JmlToken.INVARIANT) {
+                JmlTokenKind token = c.token;
+                if (token == JmlTokenKind.INVARIANT) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
                     //copy.expression = treetrans.translate(copy.expression);
                     if (isStatic) classInfo.staticinvariants.add(copy);
                     else          classInfo.invariants.add(copy);
-                } else if (token == JmlToken.REPRESENTS) {
+                } else if (token == JmlTokenKind.REPRESENTS) {
                     JmlTypeClauseRepresents r = (JmlTypeClauseRepresents)c;
                     represents.append(r);
-                } else if (token == JmlToken.CONSTRAINT) {
+                } else if (token == JmlTokenKind.CONSTRAINT) {
                     if (isStatic) classInfo.staticconstraints.add((JmlTypeClauseConstraint)c);
                     else          classInfo.constraints.add((JmlTypeClauseConstraint)c);
-                } else if (token == JmlToken.INITIALLY) {
+                } else if (token == JmlTokenKind.INITIALLY) {
                     classInfo.initiallys.add((JmlTypeClauseExpr)c);
-                } else if (token == JmlToken.AXIOM) {
+                } else if (token == JmlTokenKind.AXIOM) {
                     JmlTypeClauseExpr copy = (JmlTypeClauseExpr)c.clone();
                     //copy.expression = treetrans.translate(copy.expression);
                     classInfo.axioms.add(copy);
@@ -3010,7 +3014,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //                for (JCBinary bin: exprs) {
 //                    JCIdent id = (JCIdent)bin.lhs;
 //                    String value = nce.get(id.toString());
-//                    if (value != null && id.type.tag == TypeTags.CHAR) {
+//                    if (value != null && id.type.tag == TypeTag.CHAR) {
 //                        value = ((Character)(char)Integer.parseInt(value)).toString() + " (" + value + ")";
 //                    }
 //                    if (value == null) value = "?";
@@ -3053,7 +3057,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
 //                    if (values != null) {
 //                        JCExpression ee = exprlist[k];
 //                        String e = ee.toString();
-//                        if (ee.type.tag == TypeTags.CHAR) {
+//                        if (ee.type.tag == TypeTag.CHAR) {
 //                            e = ((Character)(char)Integer.parseInt(e)).toString();
 //                        }
 //                        values.put(e,value);

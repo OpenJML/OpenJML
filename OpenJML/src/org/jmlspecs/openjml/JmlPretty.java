@@ -206,7 +206,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             } else {
                 print(that.token.internedName());
                 if (that.javaType && 
-                        (that.token == JmlToken.BSTYPELC || that.token == JmlToken.BSTYPEOF)
+                        (that.token == JmlTokenKind.BSTYPELC || that.token == JmlTokenKind.BSTYPEOF)
                         ) print("j");
                 print("(");
                 printExprs(that.args);
@@ -287,7 +287,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
         try { 
-            print(JmlToken.CALLABLE.internedName());
+            print(JmlTokenKind.CALLABLE.internedName());
             print(" ");
             if (that.keyword != null) {
                 that.keyword.accept(this);
@@ -429,7 +429,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlSingleton(JmlSingleton that) {
         try {
-            if (that.token == JmlToken.INFORMAL_COMMENT) {
+            if (that.token == JmlTokenKind.INFORMAL_COMMENT) {
                 print("(*");
                 print(that.info);
                 print("*)");
@@ -448,10 +448,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 that.modifiers.accept(this); // presumes that this call adds a trailing space
             }
             if (that.code) {
-                print(JmlToken.CODE.internedName());
+                print(JmlTokenKind.CODE.internedName());
                 print(" ");
             }
-            if (that.token == JmlToken.MODEL_PROGRAM) {
+            if (that.token == JmlTokenKind.MODEL_PROGRAM) {
                 print(that.token.internedName());
                 print(" ");
                 that.block.accept(this);
@@ -505,7 +505,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlStatementExpr(JmlStatementExpr that) {
         try { 
-            if (that.token == JmlToken.COMMENT) {
+            if (that.token == JmlTokenKind.COMMENT) {
                 print("// ");
                 if (that.expression != null) print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?
                 else {
@@ -821,7 +821,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlChoose(JmlChoose that) {
         try { // FIXME - this needs testing
             align();
-            print(JmlToken.CHOOSE.internedName());
+            print(JmlTokenKind.CHOOSE.internedName());
             println();
             indent();
             Iterator<JCBlock> iter = that.orBlocks.iterator();
@@ -829,7 +829,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             iter.next().accept(this);
             while (iter.hasNext()) {
                 align();
-                print(JmlToken.CHOOSE.internedName());
+                print(JmlTokenKind.CHOOSE.internedName());
                 println();
                 align();
                 iter.next().accept(this);
@@ -881,7 +881,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             }
             boolean firstImport = true;
             for (List<JCTree> l = tree.defs; l.nonEmpty(); l = l.tail) {
-                if (l.head.getTag() == JCTree.IMPORT) {
+                if (l.head.getTag() == JCTree.Tag.IMPORT) {
                     JCImport imp = (JCImport)l.head;
                     if (true) {
                         if (firstImport) {
@@ -957,7 +957,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         indent();
         for (JmlTypeClause t: fspecs.list) {
             try {
-                if (t.token == JmlToken.IN || t.token == JmlToken.MAPS) {
+                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) {
                     align(); t.accept(this); println();
                 }
             } catch (IOException e) {
@@ -966,7 +966,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         for (JmlTypeClause t: fspecs.list) {
             try{
-                if (t.token == JmlToken.IN || t.token == JmlToken.MAPS) continue;
+                if (t.token == JmlTokenKind.IN || t.token == JmlTokenKind.MAPS) continue;
                 align(); t.accept(this); println(); // FIXME - what might theses be?
             } catch (IOException e) {
                 perr(t,e);

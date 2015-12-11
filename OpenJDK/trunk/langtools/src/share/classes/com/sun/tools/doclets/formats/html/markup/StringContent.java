@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,15 +25,23 @@
 
 package com.sun.tools.doclets.formats.html.markup;
 
+import java.io.IOException;
+import java.io.Writer;
+
 import com.sun.tools.doclets.internal.toolkit.Content;
 import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * Class for generating string content for HTML tags of javadoc output.
  *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  * @author Bhavesh Patel
  */
-public class StringContent extends Content{
+public class StringContent extends Content {
 
     private StringBuilder stringContent;
 
@@ -50,8 +58,8 @@ public class StringContent extends Content{
      * @param initialContent initial content for the object
      */
     public StringContent(String initialContent) {
-        stringContent = new StringBuilder(
-                Util.escapeHtmlChars(nullCheck(initialContent)));
+        stringContent = new StringBuilder();
+        appendChars(initialContent);
     }
 
     /**
@@ -62,8 +70,9 @@ public class StringContent extends Content{
      *                              DocletAbortException because it
      *                              is not supported.
      */
+    @Override
     public void addContent(Content content) {
-        throw new DocletAbortException();
+        throw new DocletAbortException("not supported");
     }
 
     /**
@@ -72,20 +81,28 @@ public class StringContent extends Content{
      *
      * @param strContent string content to be added
      */
+    @Override
     public void addContent(String strContent) {
-        stringContent.append(Util.escapeHtmlChars(nullCheck(strContent)));
+        appendChars(strContent);
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isEmpty() {
         return (stringContent.length() == 0);
     }
 
+    @Override
+    public int charCount() {
+        return RawHtml.charCount(stringContent.toString());
+    }
+
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString() {
         return stringContent.toString();
     }
@@ -93,7 +110,22 @@ public class StringContent extends Content{
     /**
      * {@inheritDoc}
      */
-    public void write(StringBuilder contentBuilder) {
-        contentBuilder.append(stringContent);
+    @Override
+    public boolean write(Writer out, boolean atNewline) throws IOException {
+        String s = stringContent.toString();
+        out.write(s);
+        return s.endsWith(DocletConstants.NL);
+    }
+
+    private void appendChars(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            switch (ch) {
+                case '<': stringContent.append("&lt;");  break;
+                case '>': stringContent.append("&gt;");  break;
+                case '&': stringContent.append("&amp;"); break;
+                default:  stringContent.append(ch);      break;
+            }
+        }
     }
 }

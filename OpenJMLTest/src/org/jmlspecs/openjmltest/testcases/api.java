@@ -42,7 +42,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -663,7 +663,7 @@ public class api extends JmlTestCase {
           // protected int field = 5;
           JCModifiers mods2 = f.Modifiers(Flags.PROTECTED);
           Name field = f.Name("field");
-          JCExpression ty = f.TypeIdent(TypeTags.INT);
+          JCExpression ty = f.TypeIdent(TypeTag.INT);
           JCExpression init = f.Literal(true);   // Intentional error
           JCVariableDecl vdecl = f.VarDef(mods2,field,ty,init);
           
@@ -748,7 +748,7 @@ public class api extends JmlTestCase {
           // protected int field = 5;
           JCModifiers mods2 = f.Modifiers(Flags.PROTECTED);
           Name field = f.Name("field");
-          JCExpression ty = f.TypeIdent(TypeTags.INT);
+          JCExpression ty = f.TypeIdent(TypeTag.INT);
           JCExpression init = f.Literal(true);   // Intentional error
           JCVariableDecl vdecl = f.VarDef(mods2,field,ty,init);
           

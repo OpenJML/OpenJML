@@ -6,6 +6,7 @@ package org.jmlspecs.openjml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
@@ -242,7 +244,7 @@ public class Utils {
             Symbol csym = sym.owner;
             if ((csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,JmlToken.INSTANCE)) return false;
+                if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 
         }
         return true;
@@ -255,7 +257,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,JmlToken.INSTANCE) != null) return false;
+            if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
     }
@@ -321,7 +323,7 @@ public class Utils {
         return null;
     }
 
-    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */JmlToken ta) {
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */JmlTokenKind ta) {
         if (mods == null) return null;
         return findMod(mods,JmlAttr.instance(context).tokenToAnnotationSymbol.get(ta));
     }
@@ -431,6 +433,7 @@ public class Utils {
 
         boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
         Properties properties = System.getProperties();
+        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.
@@ -443,9 +446,9 @@ public class Utils {
                 try {
                     boolean found = readProps(properties,s);
                     if (found && verbose) 
-                        Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+                        noticeWriter.println("Properties read from system classpath: " + s);
                 } catch (java.io.IOException e) {
-                    Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
                 }
             }
         }
@@ -456,9 +459,9 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+                    noticeWriter.println("Properties read from user's home directory: " + s);
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
@@ -468,9 +471,9 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+                    noticeWriter.println("Properties read from working directory: " + s);
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
@@ -485,9 +488,9 @@ public class Utils {
                 try {
                     boolean found = readProps(properties,properties_file);
                     if (found && verbose) 
-                        Log.instance(context).noticeWriter.println("Properties read from file: " + properties_file);
+                        noticeWriter.println("Properties read from file: " + properties_file);
                 } catch (java.io.IOException e) {
-                    Log.instance(context).noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
+                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
                 }
             }
         }
@@ -495,10 +498,10 @@ public class Utils {
         if (verbose) {
             // Print out the properties
             for (String key: new String[]{"user.home","user.dir"}) {
-                Log.instance(context).noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
+                noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
             }
             for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
-                Log.instance(context).noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+                noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
             }
         }
         return properties;
@@ -656,7 +659,7 @@ public class Utils {
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
-        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
+        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null) return true;
 
         // Otherwise a public method sees nothing
         if (methodFlags == Flags.PUBLIC) return false;
@@ -669,7 +672,7 @@ public class Utils {
         // The target is either protected or package or private
         // FIXME - comment more
         if (flags == Flags.PRIVATE && s != null && 
-                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED)) == null
+                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) == null
                 ) return false;
         
         if (flags == 0) return methodFlags == 0;

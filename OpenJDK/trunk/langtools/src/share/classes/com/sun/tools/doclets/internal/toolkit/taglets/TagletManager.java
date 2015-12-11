@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,20 +25,25 @@
 
 package com.sun.tools.doclets.internal.toolkit.taglets;
 
-import com.sun.javadoc.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
-
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.*;
 import java.util.*;
 
+import javax.tools.DocumentationTool;
+import javax.tools.JavaFileManager;
+
+import com.sun.javadoc.*;
+import com.sun.tools.doclets.internal.toolkit.util.*;
+import com.sun.tools.javac.util.StringUtils;
+
 /**
  * Manages the<code>Taglet</code>s used by doclets.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @since 1.4
@@ -47,16 +52,16 @@ import java.util.*;
 public class TagletManager {
 
     /**
-     * The default seperator for the simple tag option.
+     * The default separator for the simple tag option.
      */
-    public static final char SIMPLE_TAGLET_OPT_SEPERATOR = ':';
+    public static final char SIMPLE_TAGLET_OPT_SEPARATOR = ':';
 
     /**
-     * The alternate seperator for simple tag options.  Use this
-     * with you want the default seperator to be in the name of the
+     * The alternate separator for simple tag options.  Use this
+     * when you want the default separator to be in the name of the
      * custom tag.
      */
-    public static final String ALT_SIMPLE_TAGLET_OPT_SEPERATOR = "-";
+    public static final String ALT_SIMPLE_TAGLET_OPT_SEPARATOR = "-";
 
     /**
      * The map of custom tags.
@@ -153,6 +158,12 @@ public class TagletManager {
     private boolean showauthor;
 
     /**
+     * True if we want to use JavaFX-related tags (@propertyGetter,
+     * @propertySetter, @propertyDescription, @defaultValue, @treatAsPrivate).
+     */
+    private boolean javafx;
+
+    /**
      * Construct a new <code>TagletManager</code>.
      * @param nosince true if we do not want to use @since tags.
      * @param showversion true if we want to use @version tags.
@@ -160,7 +171,8 @@ public class TagletManager {
      * @param message the message retriever to print warnings.
      */
     public TagletManager(boolean nosince, boolean showversion,
-                         boolean showauthor, MessageRetriever message){
+                         boolean showauthor, boolean javafx,
+                         MessageRetriever message) {
         overridenStandardTags = new HashSet<String>();
         potentiallyConflictingTags = new HashSet<String>();
         standardTags = new HashSet<String>();
@@ -170,8 +182,9 @@ public class TagletManager {
         this.nosince = nosince;
         this.showversion = showversion;
         this.showauthor = showauthor;
+        this.javafx = javafx;
         this.message = message;
-        initStandardTags();
+        initStandardTaglets();
         initStandardTagsLowercase();
     }
 
@@ -193,24 +206,34 @@ public class TagletManager {
         }
     }
 
+    public Set<String> getCustomTagNames() {
+        return customTags.keySet();
+    }
+
     /**
      * Add a new <code>Taglet</code>.  Print a message to indicate whether or not
      * the Taglet was registered properly.
      * @param classname  the name of the class representing the custom tag.
      * @param tagletPath  the path to the class representing the custom tag.
      */
-    public void addCustomTag(String classname, String tagletPath) {
+    public void addCustomTag(String classname, JavaFileManager fileManager, String tagletPath) {
         try {
             Class<?> customTagClass = null;
             // construct class loader
             String cpString = null;   // make sure env.class.path defaults to dot
 
-            // do prepends to get correct ordering
-            cpString = appendPath(System.getProperty("env.class.path"), cpString);
-            cpString = appendPath(System.getProperty("java.class.path"), cpString);
-            cpString = appendPath(tagletPath, cpString);
-            URLClassLoader appClassLoader = new URLClassLoader(pathToURLs(cpString));
-            customTagClass = appClassLoader.loadClass(classname);
+            ClassLoader tagClassLoader;
+            if (fileManager != null && fileManager.hasLocation(DocumentationTool.Location.TAGLET_PATH)) {
+                tagClassLoader = fileManager.getClassLoader(DocumentationTool.Location.TAGLET_PATH);
+            } else {
+                // do prepends to get correct ordering
+                cpString = appendPath(System.getProperty("env.class.path"), cpString);
+                cpString = appendPath(System.getProperty("java.class.path"), cpString);
+                cpString = appendPath(tagletPath, cpString);
+                tagClassLoader = new URLClassLoader(pathToURLs(cpString));
+            }
+
+            customTagClass = tagClassLoader.loadClass(classname);
             Method meth = customTagClass.getMethod("register",
                                                    new Class<?>[] {java.util.Map.class});
             Object[] list = customTags.values().toArray();
@@ -252,51 +275,17 @@ public class TagletManager {
      * @param path the search path string
      * @return the resulting array of directory and JAR file URLs
      */
-    private static URL[] pathToURLs(String path) {
-        StringTokenizer st = new StringTokenizer(path, File.pathSeparator);
-        URL[] urls = new URL[st.countTokens()];
-        int count = 0;
-        while (st.hasMoreTokens()) {
-            URL url = fileToURL(new File(st.nextToken()));
-            if (url != null) {
-                urls[count++] = url;
+    private URL[] pathToURLs(String path) {
+        Set<URL> urls = new LinkedHashSet<URL>();
+        for (String s: path.split(File.pathSeparator)) {
+            if (s.isEmpty()) continue;
+            try {
+                urls.add(new File(s).getAbsoluteFile().toURI().toURL());
+            } catch (MalformedURLException e) {
+                message.error("doclet.MalformedURL", s);
             }
         }
-        if (urls.length != count) {
-            URL[] tmp = new URL[count];
-            System.arraycopy(urls, 0, tmp, 0, count);
-            urls = tmp;
-        }
-        return urls;
-    }
-
-    /**
-     * Returns the directory or JAR file URL corresponding to the specified
-     * local file name.
-     *
-     * @param file the File object
-     * @return the resulting directory or JAR file URL, or null if unknown
-     */
-    private static URL fileToURL(File file) {
-        String name;
-        try {
-            name = file.getCanonicalPath();
-        } catch (IOException e) {
-            name = file.getAbsolutePath();
-        }
-        name = name.replace(File.separatorChar, '/');
-        if (!name.startsWith("/")) {
-            name = "/" + name;
-        }
-        // If the file does not exist, then assume that it's a directory
-        if (!file.isFile()) {
-            name = name + "/";
-        }
-        try {
-            return new URL("file", "", name);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("file");
-        }
+        return urls.toArray(new URL[urls.size()]);
     }
 
 
@@ -316,7 +305,7 @@ public class TagletManager {
             return;
         }
         Taglet tag = customTags.get(tagName);
-        locations = locations.toLowerCase();
+        locations = StringUtils.toLowerCase(locations);
         if (tag == null || header != null) {
             customTags.remove(tagName);
             customTags.put(tagName, new SimpleTaglet(tagName, header, locations));
@@ -387,7 +376,7 @@ public class TagletManager {
                 name = name.substring(1, name.length());
             }
             if (! (standardTags.contains(name) || customTags.containsKey(name))) {
-                if (standardTagsLowercase.contains(name.toLowerCase())) {
+                if (standardTagsLowercase.contains(StringUtils.toLowerCase(name))) {
                     message.warning(tags[i].position(), "doclet.UnknownTagLowercase", tags[i].name());
                     continue;
                 } else {
@@ -452,7 +441,7 @@ public class TagletManager {
             //This known tag is excluded.
             return;
         }
-        StringBuffer combined_locations = new StringBuffer();
+        StringBuilder combined_locations = new StringBuilder();
         for (int i = 0; i < locations.length; i++) {
             if (i > 0) {
                 combined_locations.append(", ");
@@ -469,9 +458,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in packages.
      */
-    public Taglet[] getPackageCustomTags() {
+    public Taglet[] getPackageCustomTaglets() {
         if (packageTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return packageTags;
     }
@@ -482,9 +471,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in classes or interfaces.
      */
-    public Taglet[] getTypeCustomTags() {
+    public Taglet[] getTypeCustomTaglets() {
         if (typeTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return typeTags;
     }
@@ -495,9 +484,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in comments.
      */
-    public Taglet[] getInlineCustomTags() {
+    public Taglet[] getInlineCustomTaglets() {
         if (inlineTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return inlineTags;
     }
@@ -508,9 +497,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in field.
      */
-    public Taglet[] getFieldCustomTags() {
+    public Taglet[] getFieldCustomTaglets() {
         if (fieldTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return fieldTags;
     }
@@ -521,9 +510,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in the serialized form.
      */
-    public Taglet[] getSerializedFormTags() {
+    public Taglet[] getSerializedFormTaglets() {
         if (serializedFormTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return serializedFormTags;
     }
@@ -532,19 +521,19 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in the given Doc.
      */
-    public Taglet[] getCustomTags(Doc doc) {
+    public Taglet[] getCustomTaglets(Doc doc) {
         if (doc instanceof ConstructorDoc) {
-            return getConstructorCustomTags();
+            return getConstructorCustomTaglets();
         } else if (doc instanceof MethodDoc) {
-            return getMethodCustomTags();
+            return getMethodCustomTaglets();
         } else if (doc instanceof FieldDoc) {
-            return getFieldCustomTags();
+            return getFieldCustomTaglets();
         } else if (doc instanceof ClassDoc) {
-            return getTypeCustomTags();
+            return getTypeCustomTaglets();
         } else if (doc instanceof PackageDoc) {
-            return getPackageCustomTags();
+            return getPackageCustomTaglets();
         } else if (doc instanceof RootDoc) {
-            return getOverviewCustomTags();
+            return getOverviewCustomTaglets();
         }
         return null;
     }
@@ -555,9 +544,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in constructors.
      */
-    public Taglet[] getConstructorCustomTags() {
+    public Taglet[] getConstructorCustomTaglets() {
         if (constructorTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return constructorTags;
     }
@@ -568,9 +557,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in methods.
      */
-    public Taglet[] getMethodCustomTags() {
+    public Taglet[] getMethodCustomTaglets() {
         if (methodTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return methodTags;
     }
@@ -581,9 +570,9 @@ public class TagletManager {
      * @return the array of <code>Taglet</code>s that can
      * appear in overview.
      */
-    public Taglet[] getOverviewCustomTags() {
+    public Taglet[] getOverviewCustomTaglets() {
         if (overviewTags == null) {
-            initCustomTagArrays();
+            initCustomTagletArrays();
         }
         return overviewTags;
     }
@@ -591,7 +580,7 @@ public class TagletManager {
     /**
      * Initialize the custom tag arrays.
      */
-    private void initCustomTagArrays() {
+    private void initCustomTagletArrays() {
         Iterator<Taglet> it = customTags.values().iterator();
         ArrayList<Taglet> pTags = new ArrayList<Taglet>(customTags.size());
         ArrayList<Taglet> tTags = new ArrayList<Taglet>(customTags.size());
@@ -600,6 +589,7 @@ public class TagletManager {
         ArrayList<Taglet> mTags = new ArrayList<Taglet>(customTags.size());
         ArrayList<Taglet> iTags = new ArrayList<Taglet>(customTags.size());
         ArrayList<Taglet> oTags = new ArrayList<Taglet>(customTags.size());
+        ArrayList<Taglet> sTags = new ArrayList<Taglet>();
         Taglet current;
         while (it.hasNext()) {
             current = it.next();
@@ -634,89 +624,83 @@ public class TagletManager {
         inlineTags = iTags.toArray(new Taglet[] {});
 
         //Init the serialized form tags
-        serializedFormTags = new Taglet[4];
-        serializedFormTags[0] = customTags.get("serialData");
-        serializedFormTags[1] = customTags.get("throws");
-        serializedFormTags[2] = customTags.get("since");
-        serializedFormTags[3] = customTags.get("see");
+        sTags.add(customTags.get("serialData"));
+        sTags.add(customTags.get("throws"));
+        if (!nosince)
+            sTags.add(customTags.get("since"));
+        sTags.add(customTags.get("see"));
+        serializedFormTags = sTags.toArray(new Taglet[] {});
     }
 
     /**
      * Initialize standard Javadoc tags for ordering purposes.
      */
-    private void initStandardTags() {
+    private void initStandardTaglets() {
+        if (javafx) {
+            initJavaFXTaglets();
+        }
+
         Taglet temp;
-        customTags.put((temp = new ParamTaglet()).getName(), temp);
-        customTags.put((temp = new ReturnTaglet()).getName(), temp);
-        customTags.put((temp = new ThrowsTaglet()).getName(), temp);
-        customTags.put((temp = new SimpleTaglet("exception",
-            null, SimpleTaglet.METHOD + SimpleTaglet.CONSTRUCTOR)).getName(), temp);
-        if (!nosince) {
-            customTags.put((temp = new SimpleTaglet("since", message.getText("doclet.Since"),
-               SimpleTaglet.ALL)).getName(), temp);
-        }
-        if (showversion) {
-            customTags.put((temp = new SimpleTaglet("version", message.getText("doclet.Version"),
-                SimpleTaglet.PACKAGE + SimpleTaglet.TYPE + SimpleTaglet.OVERVIEW)).getName(), temp);
-        }
-        if (showauthor) {
-            customTags.put((temp = new SimpleTaglet("author", message.getText("doclet.Author"),
-                SimpleTaglet.PACKAGE + SimpleTaglet.TYPE + SimpleTaglet.OVERVIEW)).getName(), temp);
-        }
-        customTags.put((temp = new PropertyGetterTaglet()).getName(), temp);
-        customTags.put((temp = new PropertySetterTaglet()).getName(), temp);
-        customTags.put((temp = new SimpleTaglet("propertyDescription",
-                                  message.getText("doclet.PropertyDescription"),
-            SimpleTaglet.FIELD + SimpleTaglet.METHOD)).getName(), temp);
-        customTags.put((temp = new SimpleTaglet("defaultValue",
-                                  message.getText("doclet.DefaultValue"),
-            SimpleTaglet.FIELD + SimpleTaglet.METHOD)).getName(), temp);
-        customTags.put((temp = new SimpleTaglet("serialData",
-                                  message.getText("doclet.SerialData"),
-            SimpleTaglet.EXCLUDED)).getName(), temp);
+        addStandardTaglet(new ParamTaglet());
+        addStandardTaglet(new ReturnTaglet());
+        addStandardTaglet(new ThrowsTaglet());
+        addStandardTaglet(new SimpleTaglet("exception", null,
+                SimpleTaglet.METHOD + SimpleTaglet.CONSTRUCTOR));
+        addStandardTaglet(!nosince, new SimpleTaglet("since", message.getText("doclet.Since"),
+               SimpleTaglet.ALL));
+        addStandardTaglet(showversion, new SimpleTaglet("version", message.getText("doclet.Version"),
+                SimpleTaglet.PACKAGE + SimpleTaglet.TYPE + SimpleTaglet.OVERVIEW));
+        addStandardTaglet(showauthor, new SimpleTaglet("author", message.getText("doclet.Author"),
+                SimpleTaglet.PACKAGE + SimpleTaglet.TYPE + SimpleTaglet.OVERVIEW));
+        addStandardTaglet(new SimpleTaglet("serialData", message.getText("doclet.SerialData"),
+            SimpleTaglet.EXCLUDED));
         customTags.put((temp = new SimpleTaglet("factory", message.getText("doclet.Factory"),
             SimpleTaglet.METHOD)).getName(), temp);
-        customTags.put((temp = new SeeTaglet()).getName(), temp);
+        addStandardTaglet(new SeeTaglet());
         //Standard inline tags
-        customTags.put((temp = new DocRootTaglet()).getName(), temp);
-        customTags.put((temp = new InheritDocTaglet()).getName(), temp);
-        customTags.put((temp = new ValueTaglet()).getName(), temp);
-        customTags.put((temp = new LegacyTaglet(new LiteralTaglet())).getName(),
-            temp);
-        customTags.put((temp = new LegacyTaglet(new CodeTaglet())).getName(),
-            temp);
-        customTags.put((temp = new SimpleTaglet("treatAsPrivate", null ,
-                SimpleTaglet.FIELD + SimpleTaglet.METHOD + SimpleTaglet.TYPE)).getName(), temp);
-        customTags.put((temp = new LegacyTaglet(new ExpertTaglet())).getName(), temp);
+        addStandardTaglet(new DocRootTaglet());
+        addStandardTaglet(new InheritDocTaglet());
+        addStandardTaglet(new ValueTaglet());
+        addStandardTaglet(new LiteralTaglet());
+        addStandardTaglet(new CodeTaglet());
 
-        //Keep track of the names of standard tags for error
-        //checking purposes.
-        standardTags.add("param");
-        standardTags.add("return");
-        standardTags.add("throws");
-        standardTags.add("exception");
-        standardTags.add("since");
-        standardTags.add("version");
-        standardTags.add("author");
-        standardTags.add("propertyGetter");
-        standardTags.add("propertySetter");
-        standardTags.add("propertyDescription");
-        standardTags.add("defaultValue");
-        standardTags.add("see");
+        // Keep track of the names of standard tags for error
+        // checking purposes. The following are not handled above.
+        // See, for example, com.sun.tools.javadoc.Comment
         standardTags.add("deprecated");
         standardTags.add("link");
         standardTags.add("linkplain");
-        standardTags.add("inheritDoc");
-        standardTags.add("docRoot");
-        standardTags.add("value");
         standardTags.add("serial");
-        standardTags.add("serialData");
         standardTags.add("serialField");
         standardTags.add("Text");
-        standardTags.add("literal");
-        standardTags.add("code");
-        standardTags.add("treatAsPrivate");
-        standardTags.add("expert");
+    }
+
+    /**
+     * Initialize JavaFX-related tags.
+     */
+    private void initJavaFXTaglets() {
+        addStandardTaglet(new PropertyGetterTaglet());
+        addStandardTaglet(new PropertySetterTaglet());
+        addStandardTaglet(new SimpleTaglet("propertyDescription",
+                message.getText("doclet.PropertyDescription"),
+                SimpleTaglet.FIELD + SimpleTaglet.METHOD));
+        addStandardTaglet(new SimpleTaglet("defaultValue", message.getText("doclet.DefaultValue"),
+            SimpleTaglet.FIELD + SimpleTaglet.METHOD));
+        addStandardTaglet(new SimpleTaglet("treatAsPrivate", null,
+                SimpleTaglet.FIELD + SimpleTaglet.METHOD + SimpleTaglet.TYPE));
+    }
+
+    void addStandardTaglet(Taglet taglet) {
+        String name = taglet.getName();
+        customTags.put(name, taglet);
+        standardTags.add(name);
+    }
+
+    void addStandardTaglet(boolean enable, Taglet taglet) {
+        String name = taglet.getName();
+        if (enable)
+            customTags.put(name, taglet);
+        standardTags.add(name);
     }
 
     /**
@@ -725,7 +709,7 @@ public class TagletManager {
     private void initStandardTagsLowercase() {
         Iterator<String> it = standardTags.iterator();
         while (it.hasNext()) {
-            standardTagsLowercase.add(it.next().toLowerCase());
+            standardTagsLowercase.add(StringUtils.toLowerCase(it.next()));
         }
     }
 

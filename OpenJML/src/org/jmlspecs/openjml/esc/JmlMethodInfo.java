@@ -1,6 +1,6 @@
 package org.jmlspecs.openjml.esc;
 
-import static com.sun.tools.javac.code.TypeTags.CLASS;
+import static com.sun.tools.javac.code.TypeTag.CLASS;
 
 import java.util.LinkedList;
 
@@ -99,7 +99,7 @@ public class JmlMethodInfo {
     protected void findOverrides(MethodSymbol sym, Context context) {
         MethodSymbol msym = sym;
         Types types = Types.instance(context);
-        for (Type t = types.supertype(msym.owner.type); t.tag == CLASS; t = types.supertype(t)) {
+        for (Type t = types.supertype(msym.owner.type); t.getTag() == CLASS; t = types.supertype(t)) {
             TypeSymbol c = t.tsym;
             Scope.Entry e = c.members().lookup(msym.name);
             while (e.scope != null) {

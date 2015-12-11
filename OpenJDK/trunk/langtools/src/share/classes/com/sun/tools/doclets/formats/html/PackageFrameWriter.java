@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,16 +27,21 @@ package com.sun.tools.doclets.formats.html;
 
 import java.io.*;
 import java.util.*;
+
 import com.sun.javadoc.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
-import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.formats.html.markup.*;
-import com.sun.tools.doclets.internal.toolkit.builders.PackageSummaryBuilder;
+import com.sun.tools.doclets.internal.toolkit.*;
+import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * Class to generate file for each package contents in the left-hand bottom
  * frame. This will list all the Class Kinds in the package. A click on any
  * class-kind will update the right-hand frame with the clicked class-kind page.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Atul M Dambalkar
  * @author Bhavesh Patel (Modified)
@@ -55,17 +60,12 @@ public class PackageFrameWriter extends HtmlDocletWriter {
     private Set<ClassDoc> documentedClasses;
 
     /**
-     * The name of the output file.
-     */
-    public static final String OUTPUT_FILE_NAME = "package-frame.html";
-
-    /**
      * Constructor to construct PackageFrameWriter object and to generate
      * "package-frame.html" file in the respective package directory.
      * For example for package "java.lang" this will generate file
      * "package-frame.html" file in the "java/lang" directory. It will also
      * create "java/lang" directory in the current or the destination directory
-     * if it doesen't exist.
+     * if it doesn't exist.
      *
      * @param configuration the configuration of the doclet.
      * @param packageDoc PackageDoc under consideration.
@@ -73,7 +73,7 @@ public class PackageFrameWriter extends HtmlDocletWriter {
     public PackageFrameWriter(ConfigurationImpl configuration,
                               PackageDoc packageDoc)
                               throws IOException {
-        super(configuration, DirectoryManager.getDirectoryPath(packageDoc), OUTPUT_FILE_NAME, DirectoryManager.getRelativePath(packageDoc));
+        super(configuration, DocPath.forPackage(packageDoc).resolve(DocPaths.PACKAGE_FRAME));
         this.packageDoc = packageDoc;
         if (configuration.root.specifiedPackages().length == 0) {
             documentedClasses = new HashSet<ClassDoc>(Arrays.asList(configuration.root.classes()));
@@ -94,7 +94,7 @@ public class PackageFrameWriter extends HtmlDocletWriter {
             packgen = new PackageFrameWriter(configuration, packageDoc);
             String pkgName = Util.getPackageName(packageDoc);
             Content body = packgen.getBody(false, packgen.getWindowTitle(pkgName));
-            Content pkgNameContent = new RawHtml(pkgName);
+            Content pkgNameContent = new StringContent(pkgName);
             Content heading = HtmlTree.HEADING(HtmlConstants.TITLE_HEADING, HtmlStyle.bar,
                     packgen.getTargetPackageLink(packageDoc, "classFrame", pkgNameContent));
             body.addContent(heading);
@@ -108,8 +108,8 @@ public class PackageFrameWriter extends HtmlDocletWriter {
         } catch (IOException exc) {
             configuration.standardmessage.error(
                     "doclet.exception_encountered",
-                    exc.toString(), OUTPUT_FILE_NAME);
-            throw new DocletAbortException();
+                    exc.toString(), DocPaths.PACKAGE_FRAME.getPath());
+            throw new DocletAbortException(exc);
         }
     }
 
@@ -121,7 +121,7 @@ public class PackageFrameWriter extends HtmlDocletWriter {
      * @param contentTree the content tree to which the listing will be added
      */
     protected void addClassListing(Content contentTree) {
-        Configuration config = configuration();
+        Configuration config = configuration;
         if (packageDoc.isIncluded()) {
             addClassKindListing(packageDoc.interfaces(),
                 getResource("doclet.Interfaces"), contentTree);
@@ -161,12 +161,12 @@ public class PackageFrameWriter extends HtmlDocletWriter {
      */
     protected void addClassKindListing(ClassDoc[] arr, Content labelContent,
             Content contentTree) {
-        arr = PackageSummaryBuilder.filterOutPrivateClasses(arr);
+        arr = Util.filterOutPrivateClasses(arr, configuration.javafx);
         if(arr.length > 0) {
             Arrays.sort(arr);
             boolean printedHeader = false;
             HtmlTree ul = new HtmlTree(HtmlTag.UL);
-            ul.addAttr(HtmlAttr.TITLE, labelContent.toString());
+            ul.setTitle(labelContent);
             for (int i = 0; i < arr.length; i++) {
                 if (documentedClasses != null &&
                         !documentedClasses.contains(arr[i])) {
@@ -182,10 +182,10 @@ public class PackageFrameWriter extends HtmlDocletWriter {
                     contentTree.addContent(heading);
                     printedHeader = true;
                 }
-                Content link = new RawHtml (getLink(new LinkInfoImpl(
-                        LinkInfoImpl.PACKAGE_FRAME, arr[i],
-                        (arr[i].isInterface() ? italicsText(arr[i].name()) :
-                            arr[i].name()),"classFrame")));
+                Content arr_i_name = new StringContent(arr[i].name());
+                if (arr[i].isInterface()) arr_i_name = HtmlTree.SPAN(HtmlStyle.interfaceName, arr_i_name);
+                Content link = getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.PACKAGE_FRAME, arr[i]).label(arr_i_name).target("classFrame"));
                 Content li = HtmlTree.LI(link);
                 ul.addContent(li);
             }
