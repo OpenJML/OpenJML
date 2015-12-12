@@ -1603,7 +1603,7 @@ public class SMTTranslator extends JmlTreeScanner {
             TypeTag tagr = tree.type.getTag();
             TypeTag tage = tree.expr.type.getTag();
             if (tage == TypeTag.UNKNOWN || tagr == TypeTag.UNKNOWN) { 
-                if (tage <= TypeTag.LONG && tagr == TypeTag.UNKNOWN && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr == TypeTag.UNKNOWN && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
                     // int to \bigint -- OK
                 } else {
                     // ????? FIXME
@@ -1614,17 +1614,17 @@ public class SMTTranslator extends JmlTreeScanner {
                 Object v = ((JCLiteral)tree.expr).getValue();
                 if (tage == tagr) {
                     // OK
-                } else if ((tage <= TypeTag.LONG) == (tagr <= TypeTag.LONG)) {
+                } else if ((tage.ordinal() <= TypeTag.LONG.ordinal()) == (tagr.ordinal() <= TypeTag.LONG.ordinal())) {
                     // Both integral or both floating point
                     // OK
-                } else if (tage <= TypeTag.LONG) {
+                } else if (tage.ordinal() <= TypeTag.LONG.ordinal()) {
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
                     result = makeRealValue(val.doubleValue());
-                } else if (tage > TypeTag.LONG) {
+                } else if (tage.ordinal() > TypeTag.LONG.ordinal()) {
                     // FIXME - cast from double to integral
                 }
             } else {
-                if (tage <= TypeTag.LONG && tagr > TypeTag.LONG) {
+                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr.ordinal() > TypeTag.LONG.ordinal()) {
                     // integral to real
                 } else {
                     
@@ -1640,7 +1640,7 @@ public class SMTTranslator extends JmlTreeScanner {
             log.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
             // unboxing cast from object to primitive
-            TypeTag tag = tree.type.tag;
+            TypeTag tag = tree.type.getTag();
             switch (tag) {
                 case INT:
                 case LONG:
@@ -1649,7 +1649,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 case CHAR:
                 case DOUBLE:
                 case FLOAT:
-                case TypeTag.BOOLEAN:
+                case BOOLEAN:
                     break;
                 default:
                     log.error(tree,"jml.internal","Unknown type tag in translating an unboxing cast: " + tag + " " + JmlPretty.write(tree));

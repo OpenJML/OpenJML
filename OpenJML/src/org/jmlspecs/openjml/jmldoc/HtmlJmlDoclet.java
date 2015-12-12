@@ -20,6 +20,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javadoc.ClassDocImpl;
 
 /** Extends the parent class in order to add in JML functionality.  The parent
@@ -109,7 +110,7 @@ public class HtmlJmlDoclet extends HtmlDoclet {
         }
 
         // Javadoc is somewhat verbose - we'll add this message to it
-        Log.instance(context).noticeWriter.println("Compiling with JML");
+        Log.instance(context).getWriter(WriterKind.NOTICE).println("Compiling with JML");
         JmlCompiler.instance(context).compile(list.toList(),List.<String>nil(),List.<Processor>nil());
     }
     

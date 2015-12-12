@@ -43,6 +43,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitInstanceOf(InstanceOfTree node, P p);
     abstract public R visitUnary(UnaryTree node, P p);
     abstract public R visitVariable(VariableTree node, P p);
+    abstract public R visitLambdaExpression(LambdaExpressionTree node, P p);
 
     public R visitAnnotation(AnnotationTree node, P p)                                  { return shouldNotBeCalled(node); }
     public R visitAssert(AssertTree node, P p)                                          { return shouldNotBeCalled(node); }
@@ -76,6 +77,9 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitTypeParameter(TypeParameterTree node, P p)                            { return shouldNotBeCalled(node); }
     public R visitWhileLoop(WhileLoopTree node, P p)                                    { return shouldNotBeCalled(node); }
     public R visitWildcard(WildcardTree node, P p)                                      { return shouldNotBeCalled(node); }
+    public R visitAnnotatedType(AnnotatedTypeTree node, P p)                            { return shouldNotBeCalled(node); }
+    public R visitMemberReference(MemberReferenceTree node, P p)                        { return shouldNotBeCalled(node); }
+    public R visitIntersectionType(IntersectionTypeTree node, P p)                      { return shouldNotBeCalled(node); }
 
     public R visitOther(Tree node, P p) { return shouldNotBeCalled(node); }
     

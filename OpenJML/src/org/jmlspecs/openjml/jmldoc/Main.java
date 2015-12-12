@@ -54,7 +54,7 @@ public class Main extends org.jmlspecs.openjml.Main {
      */
     //@ requires \nonnullelements(args);
     public static int execute(@NonNull String[] args) {
-        int errorcode = com.sun.tools.javac.main.Main.EXIT_ERROR; // 1
+        int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
         try {
             if (args == null) {
                 Context context = new Context(); // This is a temporary context just for this error message.
@@ -62,7 +62,7 @@ public class Main extends org.jmlspecs.openjml.Main {
                 Log log = Log.instance(context);
                 JavacMessages.instance(context).add(Strings.messagesJML);
                 log.error("jmldoc.main.null.args","org.jmlspecs.openjml.jmldoc.Main");
-                errorcode = com.sun.tools.javac.main.Main.EXIT_CMDERR; // 2
+                errorcode = com.sun.tools.javac.main.Main.Result.CMDERR.exitCode; // 2
             } else {
                 // We have to interpret the -useJavaCompiler option before we start
                 // the compiler (which does the normal option processing).
@@ -99,7 +99,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             JavacMessages.instance(context).add(Strings.messagesJML);
             log.error("jmldoc.toplevel.exception",e);
             e.printStackTrace(System.err);
-            errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
+            errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
         }
         return errorcode;
     }

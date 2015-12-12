@@ -61,7 +61,7 @@ import static com.sun.tools.javac.code.Flags.*;
  */
 public class Start extends ToolOption.Helper {
     /** Context for this invocation. */
-    private final Context context;
+    public Context context; // DRC - made public, not final
 
     private final String defaultDocletClassName;
     private final ClassLoader docletParentClassLoader;

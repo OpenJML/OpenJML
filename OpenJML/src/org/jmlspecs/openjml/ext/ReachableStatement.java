@@ -5,7 +5,6 @@
 package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -14,7 +13,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.StatementExtension;
-import com.sun.tools.javac.parser.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.Context;
@@ -42,19 +41,19 @@ public class ReachableStatement extends StatementExtension {
     
     public JCStatement parse(JmlParser parser) {
         init(parser);
-        JmlTokenKind jt = scanner.jmlToken();
-        int p = scanner.pos();
-        scanner.nextToken();
-        if (scanner.token() == Token.SEMI) {
-            return jmlF.at(p).JmlExpressionStatement(jt,null,jmlF.Literal(TypeTags.BOOLEAN,1));
+        JmlTokenKind jt = parser.jmlTokenKind();
+        int p = scanner.currentPos();
+        parser.nextToken();
+        if (parser.token().kind == TokenKind.SEMI) {
+            return jmlF.at(p).JmlExpressionStatement(jt,null,jmlF.Literal(TypeTag.BOOLEAN,1));
         } else {
             JCExpression opt = null;
             JCExpression e = parser.parseExpression();
             if (e == null) return null;
-            if (scanner.token() == Token.COLON) {
+            if (parser.token().kind == TokenKind.COLON) {
                 opt = parser.parseExpression();
             }
-            if (scanner.token() != Token.SEMI) {
+            if (parser.token().kind != TokenKind.SEMI) {
                 // ERROR
             }
             return jmlF.at(p).JmlExpressionStatement(jt,null,e);

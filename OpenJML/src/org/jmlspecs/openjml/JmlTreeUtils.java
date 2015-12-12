@@ -533,7 +533,7 @@ public class JmlTreeUtils {
     public JCAssignOp makeAssignOp(int pos, JCTree.Tag op, JCExpression lhs, JCExpression rhs) {
         JCAssignOp asn = factory.at(pos).Assignop(op, lhs, rhs);
         asn.setType(lhs.type);
-        asn.operator = findOpSymbol(op.ordinal() - JCTree.Tag.ASGOffset.ordinal(),asn.lhs.type);
+        asn.operator = findOpSymbol(op.noAssignOp(),asn.lhs.type);
         return asn;
     }
 

@@ -46,6 +46,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
@@ -78,7 +79,7 @@ public class JmlTree implements IJmlTree {
      * the pos field is set using other methods on the factory.
      */
     public interface JmlFactory extends JCTree.Factory {
-        JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
+        JmlAnnotation Annotation(JCTree.Tag tag, JCTree type, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
@@ -232,8 +233,8 @@ public class JmlTree implements IJmlTree {
             return t;
         }
         
-        public JmlAnnotation Annotation(JCTree type, List<JCExpression> args) {
-            JmlAnnotation a = new JmlAnnotation(type,args);
+        public JmlAnnotation Annotation(Tag tag, JCTree type, List<JCExpression> args) {
+            JmlAnnotation a = new JmlAnnotation(tag,type,args);
             a.pos = pos;
             return a;
         }
@@ -296,11 +297,12 @@ public class JmlTree implements IJmlTree {
                 Name name,
                 JCExpression restype,
                 List<JCTypeParameter> typarams,
+                JCVariableDecl receiver,
                 List<JCVariableDecl> params,
                 List<JCExpression> thrown,
                 JCBlock body,
                 JCExpression defaultValue) {
-            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,params,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
+            JmlMethodDecl tree = new JmlMethodDecl(mods,name,restype,typarams,receiver,params,thrown,body,defaultValue,null); // DRC Introduced null parameter to deal with new/evolved signature.
             tree.pos = pos;
             tree.sourcefile = Log.instance(context).currentSourceFile();
             return tree;
@@ -315,6 +317,7 @@ public class JmlTree implements IJmlTree {
                     m.name,
                     Type(mtype.getReturnType()),
                     TypeParams(mtype.getTypeArguments()),
+                    null, // FIXME - receiver parameter
                     Params(mtype.getParameterTypes(), m),
                     Types(mtype.getThrownTypes()),
                     body,
@@ -1089,10 +1092,10 @@ public class JmlTree implements IJmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public
-                List<JCTypeParameter> typarams, List<JCVariableDecl> params,
+                List<JCTypeParameter> typarams, JCVariableDecl recvparam, List<JCVariableDecl> params,
                 List<JCExpression> thrown, JCBlock body,
                 JCExpression defaultValue, MethodSymbol sym) {
-            super(mods, name, restype, typarams, params, thrown, body, defaultValue, sym);
+            super(mods, name, restype, typarams, recvparam, params, thrown, body, defaultValue, sym);
             specsDecl = null;
             sourcefile = null;
         }
@@ -3454,8 +3457,8 @@ public class JmlTree implements IJmlTree {
     }
 
     public static class JmlAnnotation extends JCAnnotation {
-        public JmlAnnotation(JCTree annotationType, List<JCExpression> args) {
-            super(annotationType,args);
+        public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
+            super(tag,annotationType,args);
             //if (pos <= 0) Utils.print(null);
         }
         

@@ -184,8 +184,8 @@ abstract public class Arithmetic extends ExpressionExtension {
         Type mathType(JmlAssertionAdder rewriter, Type t) {
             TypeTag tag = t.getTag();
             if (rewriter.jmltypes.isJmlType(t)) return t;
-            if (tag <= TypeTag.LONG) return rewriter.jmltypes.BIGINT;
-            if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.jmltypes.REAL;
+            if (tag.ordinal() <= TypeTag.LONG.ordinal()) return rewriter.jmltypes.BIGINT;
+            if (tag.ordinal() == TypeTag.DOUBLE.ordinal() || tag == TypeTag.FLOAT) return rewriter.jmltypes.REAL;
             return t;
         }
         

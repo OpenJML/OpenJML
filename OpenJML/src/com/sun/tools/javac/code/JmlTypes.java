@@ -155,12 +155,12 @@ public class JmlTypes extends Types {
     
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
-        return t.getTag() >= TypeTag.BYTE && t.getTag() <= TypeTag.DOUBLE;
+        return t.getTag().ordinal() >= TypeTag.BYTE.ordinal() && t.getTag().ordinal() <= TypeTag.DOUBLE.ordinal();
     }
     
     /** True if the Java tag is an integral type (not for JML types). */
     public boolean isIntegral(Type t) {
-        return t.getTag() >= TypeTag.BYTE && t.getTag() <= TypeTag.LONG;
+        return t.getTag().ordinal() >= TypeTag.BYTE.ordinal() && t.getTag().ordinal() <= TypeTag.LONG.ordinal();
     }
     
     /** Overrides Types.isConvertible with functionality for JML primitive types. */
@@ -191,7 +191,7 @@ public class JmlTypes extends Types {
         if (t instanceof JmlType) {
             return repSym((JmlType)t);
         }
-        return reader.enterClass(syms.boxedName[t.tag]);
+        return reader.enterClass(syms.boxedName[t.getTag().ordinal()]);
     }
 
     /** Overrides Types.unboxedType with functionality for JML primitive types. */
@@ -277,19 +277,19 @@ public class JmlTypes extends Types {
         return super.isCastable(t, s, warn);
     }
     
-    /** Overrides Types.lowerBound with functionality for JML primitive types. */
-    @Override
-    public Type lowerBound(Type t) {
-        if (t instanceof JmlType) return t;
-        return super.lowerBound(t);
-    }
-
-    /** Overrides Types.upperBound with functionality for JML primitive types. */
-    @Override
-    public Type upperBound(Type t) {
-        if (t instanceof JmlType) return t;
-        return super.upperBound(t);
-    }
+//    /** Overrides Types.lowerBound with functionality for JML primitive types. */
+//    @Override
+//    public Type lowerBound(Type t) {
+//        if (t instanceof JmlType) return t;
+//        return super.lowerBound(t);
+//    }
+//
+//    /** Overrides Types.upperBound with functionality for JML primitive types. */
+//    @Override
+//    public Type upperBound(Type t) {
+//        if (t instanceof JmlType) return t;
+//        return super.upperBound(t);
+//    }
     
     /** Returns an AST for the type representing the given JML primitive type */
     public JCExpression repType(DiagnosticPosition pos, JmlType t) {
