@@ -85,7 +85,7 @@ public class JavacParser implements Parser {
     private Names names;
 
     /** End position mappings container */
-    private final AbstractEndPosTable endPosTable;
+    protected final AbstractEndPosTable endPosTable; // DRC - changed from private to protected
 
     // Because of javac's limited lookahead, some contexts are ambiguous in
     // the presence of type annotations even though they are not ambiguous
@@ -545,15 +545,15 @@ public class JavacParser implements Parser {
         endPosTable.setErrorEndPos(errPos);
     }
 
-    private void storeEnd(JCTree tree, int endpos) {
+    public void storeEnd(JCTree tree, int endpos) { // DRC - changed from private to public
         endPosTable.storeEnd(tree, endpos);
     }
 
-    private <T extends JCTree> T to(T t) {
+    public <T extends JCTree> T to(T t) { // DRC - changed from private to public
         return endPosTable.to(t);
     }
 
-    private <T extends JCTree> T toP(T t) {
+    public <T extends JCTree> T toP(T t) { // DRC - changed from private to public
         return endPosTable.toP(t);
     }
 
@@ -1029,15 +1029,6 @@ public class JavacParser implements Parser {
                 return new Token[infixPrecedenceLevels + 1];
             return opStackSupply.remove(opStackSupply.size() - 1);
         }
-
-//// FIXME is the following still needed?
-//        protected int[] newPosStack() { // DRC - changed from private to protected
-//            if (posStackSupply.elems == posStackSupply.last)
-//                posStackSupply.append(new int[infixPrecedenceLevels + 1]);
-//            int[] posStack = posStackSupply.elems.head;
-//            posStackSupply.elems = posStackSupply.elems.tail;
-//            return posStack;
-//        }
 
     /** Expression3    = PrefixOp Expression3
      *                 | "(" Expr | TypeNoParams ")" Expression3
@@ -1843,7 +1834,7 @@ public class JavacParser implements Parser {
      * <code>annotations</code> is the list of annotations targeting
      * the expression <code>t</code>.
      */
-    private JCExpression bracketsOpt(JCExpression t,
+    protected JCExpression bracketsOpt(JCExpression t, // DRC - changed from private to protected
             List<JCAnnotation> annotations) {
         List<JCAnnotation> nextLevelAnnotations = typeAnnotationsOpt();
 
@@ -1867,7 +1858,7 @@ public class JavacParser implements Parser {
 
     /** BracketsOpt = [ "[" "]" { [Annotations] "[" "]"} ]
      */
-    private JCExpression bracketsOpt(JCExpression t) {
+    protected JCExpression bracketsOpt(JCExpression t) { // DRC - changed from private to protected
         return bracketsOpt(t, List.<JCAnnotation>nil());
     }
 
@@ -3768,7 +3759,7 @@ public class JavacParser implements Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    protected static int prec(TokenKind token) {  // DRC - changed from package to protected, removed static
+    protected int prec(TokenKind token) {  // DRC - changed from package to protected, removed static
         JCTree.Tag oc = optag(token);
         return (oc != NO_TAG) ? TreeInfo.opPrec(oc) : -1;
     }

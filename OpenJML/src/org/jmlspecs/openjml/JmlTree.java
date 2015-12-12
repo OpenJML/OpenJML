@@ -712,7 +712,7 @@ public class JmlTree implements IJmlTree {
 
     // These numbers used for getTag();
     
-    public static final int JMLFUNCTION = JCTree.Tag.LETEXPR + 100;  // The 100 is just to give some space, just in case LETEXPR stops being the largest tag number
+    public static final int JMLFUNCTION = 1000;  // The 1000 used to be enough to be higher than the JCTree tags, but those are enums now
     public static final int JMLBINARY = JMLFUNCTION + 1;
     public static final int JMLSTATEMENT = JMLBINARY + 1;
     public static final int JMLSTATEMENTSPEC = JMLBINARY + 1;

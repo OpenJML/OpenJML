@@ -10,6 +10,7 @@ import java.util.Map;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
+import com.sun.tools.javac.parser.JavacParser.AbstractEndPosTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 
@@ -28,13 +29,13 @@ public class JmlDebugTreePrinter extends JmlTreeScanner {
     PrintStream out;
     
     /** The end position map */
-    @Nullable Map<JCTree, Integer> endPositions;
+    @Nullable AbstractEndPosTable endPositions;
     
     /** A constructor for the tree
      * @param out where to write the output information
      * @param endPositions the map with the end position information, obtained from a suitable parser
      */
-    public JmlDebugTreePrinter(PrintStream out, @Nullable Map<JCTree, Integer> endPositions) {
+    public JmlDebugTreePrinter(PrintStream out, @Nullable AbstractEndPosTable endPositions) {
         this.out = out;
         this.endPositions = endPositions;
     }

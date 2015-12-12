@@ -307,7 +307,7 @@ public class JmlResolve extends Resolve {
      }
      
      /** This is declared in order to provide public visibility */
-     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Env<AttrContext> env, Type arg) {
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Env<AttrContext> env, Type arg) {
          return super.resolveUnaryOperator(pos,optag,env,arg);
      }
      
@@ -322,10 +322,8 @@ public class JmlResolve extends Resolve {
       */
      public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
              Type site, List<Type> argtypes,
-             List<Type> typeargtypes,
-             boolean allowBoxing,
-             boolean useVarargs) {
-         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes,allowBoxing,useVarargs);
+             List<Type> typeargtypes) {
+         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes);
      }
 
      /** This method is used to set the value of the allowJML flag.  It returns

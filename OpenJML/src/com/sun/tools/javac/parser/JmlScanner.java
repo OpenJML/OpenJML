@@ -255,6 +255,14 @@ public class JmlScanner extends Scanner {
         return (JmlToken)token();
     }
     
+    public String chars() {
+        return jmltokenizer.reader.chars();
+    }
+    
+    public int currentPos() {
+        return jmltokenizer.reader.bp; // FIXME - do we need to add an offset for where the annotation comment starts?
+    }
+    
 //    // This is called whenever the Java (superclass) scanner has scanned a whole
 //    // comment. We override it in order to handle JML comments specially. The
 //    // overridden

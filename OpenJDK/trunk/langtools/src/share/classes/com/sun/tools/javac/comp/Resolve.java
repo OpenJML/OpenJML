@@ -2542,7 +2542,7 @@ public class Resolve {
      *  @param typeargtypes  The types of the constructor invocation's type
      *                   arguments.
      */
-    Symbol resolveConstructor(DiagnosticPosition pos,
+    protected Symbol resolveConstructor(DiagnosticPosition pos, // DRC - switch to protected
                               Env<AttrContext> env,
                               Type site,
                               List<Type> argtypes,
@@ -2550,7 +2550,7 @@ public class Resolve {
         return resolveConstructor(new MethodResolutionContext(), pos, env, site, argtypes, typeargtypes);
     }
 
-    private Symbol resolveConstructor(MethodResolutionContext resolveContext,
+    protected Symbol resolveConstructor(MethodResolutionContext resolveContext, // DRC - switch to protected
                               final DiagnosticPosition pos,
                               Env<AttrContext> env,
                               Type site,

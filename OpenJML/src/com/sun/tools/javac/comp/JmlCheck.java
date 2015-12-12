@@ -88,15 +88,11 @@ public class JmlCheck extends Check {
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
         if (!isInJml) return super.checkCastable(pos,found,req);
-        if (found.getTag() == FORALL) {
-            instantiatePoly(pos, (ForAll) found, req, new NoWarningsAtAll());
-            return req;
-        } else if (types.isCastable(found, req, new NoWarningsAtAll())) {
+        if (types.isCastable(found, req, castWarner(pos, found, req))) {
             return req;
         } else {
-            return typeError(pos,
-                             diags.fragment("inconvertible.types"),
-                             found, req);
+            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            return types.createErrorType(found);
         }
     }
     
@@ -117,7 +113,7 @@ public class JmlCheck extends Check {
     }
     
     @Override
-    public Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) {
+    public Type checkType(DiagnosticPosition pos, Type found, Type req) {
         if (found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 found.toString().equals("org.jmlspecs.utils.IJMLTYPE[]") &&
                 req.toString().equals("\\TYPE[]")) {
@@ -126,7 +122,7 @@ public class JmlCheck extends Check {
             // does it cause problems elsewhere?
             return req;
         }
-        return super.checkType(pos, found, req, errKey);
+        return super.checkType(pos, found, req);
     }
 
 }

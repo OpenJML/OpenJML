@@ -533,7 +533,7 @@ public class JmlTreeUtils {
     public JCAssignOp makeAssignOp(int pos, JCTree.Tag op, JCExpression lhs, JCExpression rhs) {
         JCAssignOp asn = factory.at(pos).Assignop(op, lhs, rhs);
         asn.setType(lhs.type);
-        asn.operator = findOpSymbol(op - JCTree.Tag.ASGOffset,asn.lhs.type);
+        asn.operator = findOpSymbol(op.ordinal() - JCTree.Tag.ASGOffset.ordinal(),asn.lhs.type);
         return asn;
     }
 
@@ -556,8 +556,8 @@ public class JmlTreeUtils {
     /** Returns the 'larger' of the two types as numeric types are compared;
      * not appropriate for Boolean types; floats test larger than long */
     public Type maxType(Type lhs, Type rhs) {
-        Type t = lhs.getTag() >= rhs.getTag() || rhs.getTag() == TypeTag.BOT ? lhs : rhs;
-        if (TypeTag.INT > t.getTag()) t = syms.intType;
+        Type t = lhs.getTag().ordinal() >= rhs.getTag().ordinal() || rhs.getTag() == TypeTag.BOT ? lhs : rhs;
+        if (TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
         return t;
     }
     
@@ -569,9 +569,9 @@ public class JmlTreeUtils {
         if (lhs == types.REAL || rhs == types.REAL) return types.REAL;
         if (lhs == types.BIGINT || rhs == types.BIGINT) return types.BIGINT;
         if (lhs == types.TYPE || rhs == types.TYPE) return types.TYPE;
-        if (TypeTag.INT >= lhsu.getTag() && TypeTag.INT >= rhsu.getTag()) return syms.intType;
-        if (TypeTag.LONG >= lhsu.getTag() && TypeTag.LONG >= rhsu.getTag()) return syms.longType;
-        if (TypeTag.DOUBLE >= lhsu.getTag() && TypeTag.DOUBLE >= rhsu.getTag()) return syms.doubleType;
+        if (TypeTag.INT.ordinal() >= lhsu.getTag().ordinal() && TypeTag.INT.ordinal() >= rhsu.getTag().ordinal()) return syms.intType;
+        if (TypeTag.LONG.ordinal() >= lhsu.getTag().ordinal() && TypeTag.LONG.ordinal() >= rhsu.getTag().ordinal()) return syms.longType;
+        if (TypeTag.DOUBLE.ordinal() >= lhsu.getTag().ordinal() && TypeTag.DOUBLE.ordinal() >= rhsu.getTag().ordinal()) return syms.doubleType;
         throw new JmlInternalError("Unknown combined type for " + lhs + " and " + rhs);
     }
     
@@ -649,7 +649,7 @@ public class JmlTreeUtils {
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
-        if (t.isPrimitive() && TypeTag.INT > t.getTag()) t = syms.intType;
+        if (t.isPrimitive() && TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
         tree.operator = findOpSymbol(JCTree.Tag.EQ, t);
         tree.type = syms.booleanType;
         return tree;
@@ -686,7 +686,7 @@ public class JmlTreeUtils {
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
     public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,JCTree.OR,orSymbol,lhs,rhs);
+        return makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression, simplifying literal true or false */

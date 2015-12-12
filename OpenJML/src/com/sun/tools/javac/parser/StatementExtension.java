@@ -21,6 +21,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /* FIXME - do more to implement extensions */
 
@@ -86,7 +87,7 @@ abstract public class StatementExtension {
      * @param msg the String to write
      */
     public void info(@NonNull String msg) {
-        Log.instance(context).noticeWriter.println(msg);
+        Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
     }
     
     /** Sets the end position of the given tree node to be the end position of

@@ -18,6 +18,8 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
@@ -129,15 +131,15 @@ abstract public class ExpressionExtension {
         // TODO Auto-generated method stub
         this.parser = parser;
         this.scanner = parser.getScanner();
-        JmlTokenKind jt = scanner.jmlToken();
-        int p = scanner.pos();
+        JmlTokenKind jt = scanner.jmlToken().jmlkind;
+        int p = scanner.currentPos();
         scanner.nextToken();
-        if (scanner.token() != Token.LPAREN) {
+        if (scanner.token().kind != TokenKind.LPAREN) {
             return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
         } else if (typeArgs != null && !typeArgs.isEmpty()) {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
         } else {
-            int pp = scanner.pos();
+            int pp = scanner.currentPos();
             List<JCExpression> args = parser.arguments();
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;
@@ -150,7 +152,7 @@ abstract public class ExpressionExtension {
 
     public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
         if (e.args.size() != 1) {
-            parser.jmlerror(e.pos, e.getEndPosition(parser.endPositions()), "jml.one.arg", e.token.internedName());
+            parser.jmlerror(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
         }
     }
 
