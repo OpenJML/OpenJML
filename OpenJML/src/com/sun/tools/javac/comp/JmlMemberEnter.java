@@ -11,8 +11,9 @@ import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
-import static com.sun.tools.javac.code.TypeTags.CLASS;
+import static com.sun.tools.javac.code.TypeTag.CLASS;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,6 +61,7 @@ import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
@@ -160,6 +162,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
         
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         JmlClassDecl prevClass = currentClass;
         currentClass = (JmlClassDecl)tree;
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
@@ -171,7 +174,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             currentClass = prevClass;
             return; 
         }
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("    MEMBER ENTER FINISHING CLASS " + tree.sym.fullname);
         // This is the case of a java source file, with a possibly-empty
         // sequence of specification files.  Besides entering all the Java
         // field and method and initializer(?) members in the usual way, we
@@ -202,7 +205,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean prevInModel = inModelTypeDeclaration;
         try {
             if (jtree.specsDecls == null) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
+                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - NO SPECS " + tree.sym.fullname);
                 checkTypeMatch(jtree,jtree); // Still need to check modifiers
                 return;
             }
@@ -222,7 +225,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             JmlClassDecl specsDecl = jtree.specsDecls;
 
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
+            if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("FINISHING CLASS - JML PHASE " + tree.sym.fullname);
             
             // First we scan through the Java parts of the spec file
             // Various checks happen in the appropriate visitMethods
@@ -276,7 +279,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // We have already entered any model classes
                     // but we need to enter model methods and ghost and model fields
                     if (tr instanceof JmlVariableDecl) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("JML VAR ENTER FOR " + jtree.name + " " + ((JmlVariableDecl)tr).name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("JML VAR ENTER FOR " + jtree.name + " " + ((JmlVariableDecl)tr).name);
                         memberEnter(tr,env);
                         VarSymbol ms = ((JmlVariableDecl)tr).sym;
                         if (ms != null && !utils.isJML(ms.flags())) {
@@ -284,7 +287,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                             duplicates.add(cl);
                         }
                     } else if (tr instanceof JmlMethodDecl) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("JML METH ENTER FOR " + jtree.name + " " + ((JmlMethodDecl)tr).name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("JML METH ENTER FOR " + jtree.name + " " + ((JmlMethodDecl)tr).name);
                         int n = log.nerrors;
                         memberEnter(tr,env);
                         if (n != log.nerrors) {
@@ -534,8 +537,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             resolve.setJML(prevAllowJML);
             log.useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {
-                log.noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
-                log.noticeWriter.println("   SCOPE IS " + tree.sym.members());
+                noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
+                noticeWriter.println("   SCOPE IS " + tree.sym.members());
             }
             modeOfFileBeingChecked = prevMode;
             currentClass = prevClass;
@@ -748,7 +751,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
 
     void finishSpecClass(JmlClassDecl specsDecl, Env<AttrContext> env) {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("FINISHING SPEC CLASS " + specsDecl.sym.fullname);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("FINISHING SPEC CLASS " + specsDecl.sym.fullname);
         // Now go through everything in the spec file.  Some of it
         // will be duplicates of the stuff in the java file.  Some of
         // it will be ghost/model declarations that need to be entered 
@@ -760,7 +763,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.env = env;
         boolean prevAllowJML = resolve.setAllowJML(true);// This allows JML identifiers to be matched when lookup occurs
         try {
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("FINISHING SPEC CLASS - JML PHASE " + specsDecl.sym.fullname);
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("FINISHING SPEC CLASS - JML PHASE " + specsDecl.sym.fullname);
             JmlSpecs.TypeSpecs tsp = specs.get(specsDecl.sym);
             if (tsp == null) {
                 tsp = new JmlSpecs.TypeSpecs();
@@ -786,10 +789,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // We have already entered any model classes
                     // but we need to enter model methods and ghost and model fields
                     if (tr instanceof JmlVariableDecl) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("JML VAR ENTER FOR " + specsDecl.name + " " + ((JmlVariableDecl)tr).name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("JML VAR ENTER FOR " + specsDecl.name + " " + ((JmlVariableDecl)tr).name);
                         memberEnter(tr,env);
                     } else if (tr instanceof JmlMethodDecl) {
-                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("JML METH ENTER FOR " + specsDecl.name + " " + ((JmlMethodDecl)tr).name);
+                        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("JML METH ENTER FOR " + specsDecl.name + " " + ((JmlMethodDecl)tr).name);
                         memberEnter(tr,env);
                     }
                 }
@@ -1031,8 +1034,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             resolve.setAllowJML(prevAllowJML);
             log.useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {
-                log.noticeWriter.println("FINISHING SPEC CLASS - COMPLETE " + specsDecl.sym.fullname);
-                log.noticeWriter.println("   SCOPE IS " + specsDecl.sym.members());
+                PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+                noticeWriter.println("FINISHING SPEC CLASS - COMPLETE " + specsDecl.sym.fullname);
+                noticeWriter.println("   SCOPE IS " + specsDecl.sym.members());
             }
             this.env = prevEnv;
         }
@@ -1863,7 +1867,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Env<AttrContext> env;
         while (!todo.isEmpty()) {
             env = todo.remove(0);
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("DOING BINARY TODO " + 
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("DOING BINARY TODO " + 
                     (env.toplevel.sourcefile));
             
             completeSpecCUForBinary(env); // Might add more to to todo list
@@ -2055,7 +2059,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     env.info.scope.enter(thisSym);
                 }
                 if ((c.flags_field & INTERFACE) == 0) {
-                    if (ct.supertype_field.tag == CLASS) {
+                    if (ct.supertype_field.getTag() == CLASS) {
                         VarSymbol superSym =
                             new VarSymbol(FINAL | HASINIT, names._super,
                                           ct.supertype_field, c);
@@ -2168,7 +2172,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 // skip - these are handled by their individual completion calls
                 
             } else {
-                log.noticeWriter.println("Unhandled declaration in spec class for binary: " + t.getClass());
+                log.getWriter(WriterKind.NOTICE).println("Unhandled declaration in spec class for binary: " + t.getClass());
             }
         }
         matchedSyms.clear();
@@ -2227,7 +2231,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         specs.putSpecs(vd.sym,vd.methodSpecsCombined);
                     }
                 } else {
-                    log.noticeWriter.println("Unhandled declaration in spec class for binary: " + t.getClass());
+                    log.getWriter(WriterKind.NOTICE).println("Unhandled declaration in spec class for binary: " + t.getClass());
                 }
             }
         }
@@ -2383,7 +2387,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 log.warning("jml.internal","Is this really called? in JmlMemberEnter.visitMethodDef");
             }
 
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
             if (removedStatic) {
                 tree.sym.flags_field |= Flags.STATIC;
                 tree.mods.flags |= Flags.STATIC;

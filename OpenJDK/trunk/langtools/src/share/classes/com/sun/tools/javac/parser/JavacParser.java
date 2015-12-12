@@ -907,7 +907,7 @@ public class JavacParser implements Parser {
      */
     JCExpression term2() {
         JCExpression t = term3();
-        if ((mode & EXPR) != 0 && prec(token.kind) >= TreeInfo.orPrec) {
+        if ((mode & EXPR) != 0 && prec(token.ikind) >= TreeInfo.orPrec) {
             mode = EXPR;
             return term2Rest(t, TreeInfo.orPrec);
         } else {
@@ -1123,36 +1123,35 @@ public class JavacParser implements Parser {
                         accept(RPAREN);
                         t = toP(F.at(pos).Parens(t));
                         break;
-                } // FIXME - I think the merge in thie neighborhood is messed up
-                t = termRest(term1Rest(term2Rest(t, TreeInfo.orPrec)));
-                accept(RPAREN);
-                lastmode = mode;
-                mode = EXPR;
-                if ((lastmode & EXPR) == 0) {
-                    JCExpression t1 = term3();
-                    return F.at(pos).TypeCast(t, t1);
-                } else if ((lastmode & TYPE) != 0) {
-                    switch (S.token().kind) {
-                        /*case PLUSPLUS: case SUBSUB: */
-                        case BANG: case TILDE:
-                        case LPAREN: case THIS: case SUPER:
-                        case INTLITERAL: case LONGLITERAL: case FLOATLITERAL:
-                        case DOUBLELITERAL: case CHARLITERAL: case STRINGLITERAL:
-                        case TRUE: case FALSE: case NULL:
-                        case NEW: case IDENTIFIER: case ASSERT: case ENUM:
-                        case BYTE: case SHORT: case CHAR: case INT:
-                        case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
-                            JCExpression t1 = term3();
-                            return F.at(pos).TypeCast(t, t1);
-                        case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
-                            // but does not apply if the next token is a JML operator
-                            JCExpression t2 = potentialCast();
-                            if (t2 != null) return F.at(pos).TypeCast(t, t2);
-                    }
-
                 }
+                // FIXME - Previously there was code added to handle casts on JML functions 
+//                // FIXME - I think the merge in thie neighborhood is messed up
+//                lastmode = mode;
+//                mode = EXPR;
+//                if ((lastmode & EXPR) == 0) {
+//                    JCExpression t1 = term3();
+//                    return F.at(pos).TypeCast(t, t1);
+//                } else if ((lastmode & TYPE) != 0) {
+//                    switch (S.token().kind) {
+//                        /*case PLUSPLUS: case SUBSUB: */
+//                        case BANG: case TILDE:
+//                        case LPAREN: case THIS: case SUPER:
+//                        case INTLITERAL: case LONGLITERAL: case FLOATLITERAL:
+//                        case DOUBLELITERAL: case CHARLITERAL: case STRINGLITERAL:
+//                        case TRUE: case FALSE: case NULL:
+//                        case NEW: case IDENTIFIER: case ASSERT: case ENUM:
+//                        case BYTE: case SHORT: case CHAR: case INT:
+//                        case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
+//                            JCExpression t1 = term3();
+//                            return F.at(pos).TypeCast(t, t1);
+//                        case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
+//                            // but does not apply if the next token is a JML operator
+//                            JCExpression t2 = potentialCast();
+//                            if (t2 != null) return F.at(pos).TypeCast(t, t2);
+//                    }
+//
+//                }
             } else return illegal();
-            t = toP(F.at(pos).Parens(t));
             break;
         case THIS:
             if ((mode & EXPR) != 0) {
@@ -1864,10 +1863,10 @@ public class JavacParser implements Parser {
 
     private JCExpression bracketsOptCont(JCExpression t, int pos,
             List<JCAnnotation> annotations) {
-    	if (S.token().kind != RBRACKET) { // DRCok - next few lines changed to create clearer error messages
+    	if (token.kind != RBRACKET) { // DRCok - next few lines changed to create clearer error messages
             accept(RBRACKET);
-            do { S.nextToken(); } while (S.token().kind != RBRACKET && S.token().kind != SEMI && S.token().kind != CUSTOM && S.token().kind != EOF);
-            if (S.token().kind == RBRACKET) S.nextToken();
+            do { nextToken(); } while (token.kind != RBRACKET && token.kind != SEMI && token.kind != CUSTOM && token.kind != EOF);
+            if (token.kind == RBRACKET) nextToken();
     	} else {
             accept(RBRACKET);
     	}
@@ -3759,8 +3758,8 @@ public class JavacParser implements Parser {
     /** Return precedence of operator represented by token,
      *  -1 if token is not a binary operator. @see TreeInfo.opPrec
      */
-    protected int prec(TokenKind token) {  // DRC - changed from package to protected, removed static
-        JCTree.Tag oc = optag(token);
+    protected int prec(ITokenKind token) {  // DRC - changed from package to protected, removed static, changed to ITokenKind
+        JCTree.Tag oc = optag((TokenKind)token);
         return (oc != NO_TAG) ? TreeInfo.opPrec(oc) : -1;
     }
 

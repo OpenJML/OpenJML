@@ -11,8 +11,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.jmlspecs.openjml.JmlToken;
-import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.JmlTokenKind;
 
 public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer {
 
@@ -20,7 +19,7 @@ public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompl
 	public void sessionStarted() {
 	}
 	
-	public final static EnumSet<JmlToken> keywords = EnumSet.range(JmlToken.ASSUME,JmlToken.NOWARN);
+	public final static EnumSet<JmlTokenKind> keywords = EnumSet.range(JmlTokenKind.ASSUME,JmlTokenKind.NOWARN);
 
 	@Override
 	public List<ICompletionProposal> computeCompletionProposals(
@@ -54,14 +53,14 @@ public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompl
 			// FIXME - want to add code completion for variables as well; what about expressions?
 			if (backslashPos >= 0) {
 				String prefix = doc.get(backslashPos,pos-backslashPos);
-				for (String s: JmlToken.backslashTokens.keySet()){
+				for (String s: JmlTokenKind.backslashTokens.keySet()){
 					if (s.startsWith(prefix)) {
 						proposals.add(new CompletionProposal(s,backslashPos,pos-backslashPos,s.length()));
 					}
 				}
 			} else {
 				String prefix = doc.get(firstSpace+1,pos-firstSpace-1);
-				for (JmlToken t: keywords) {
+				for (JmlTokenKind t: keywords) {
 					String s = t.internedName();
 					if (s.startsWith(prefix)) {
 						proposals.add(new CompletionProposal(s,firstSpace+1,pos-firstSpace-1,s.length()));

@@ -48,7 +48,7 @@ public class Scanner implements Lexer {
 
     /** The token, set by nextToken().
      */
-    private Token token;
+    protected Token token; // DRC - changed from private to protected
 
     /** The previous token, set by nextToken().
      */

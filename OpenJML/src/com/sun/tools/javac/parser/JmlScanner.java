@@ -14,6 +14,8 @@ import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
+import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
@@ -134,7 +136,7 @@ public class JmlScanner extends Scanner {
         protected void init(JmlScanner j) {
             j.noJML = !JmlOption.isOption(context, JmlOption.JML);
             j.keys = Utils.instance(context).commentKeys;
-            j.nowarns = Nowarns.instance(context);
+            j.jmltokenizer.nowarns = Nowarns.instance(context);
         }
 
     }
@@ -145,9 +147,6 @@ public class JmlScanner extends Scanner {
     /** A reference to the tokenizer being used */
     protected JmlTokenizer jmltokenizer;
     
-    /** A temporary reference to the instance of the nowarn collector for the context. */
-    /*@NonNull*/ public Nowarns nowarns;
-
     /**
      * A flag that, when true, causes all JML constructs to be ignored; it is
      * set on construction according to a command-line option.
@@ -179,10 +178,10 @@ public class JmlScanner extends Scanner {
      */
     protected CommentStyle  jmlcommentstyle;
 
-    /** Valid after nextToken() and contains the next token if it is a JML token
-     * and null if the next token is a Java token */
-    //@ nullable
-    protected JmlToken      jmlToken;
+//    /** Valid after nextToken() and contains the next token if it is a JML token
+//     * and null if the next token is a Java token */
+//    //@ nullable
+//    protected JmlToken      jmlToken;
 
     /**
      * Creates a new scanner, but you should use JmlFactory.newScanner() to get
@@ -226,6 +225,7 @@ public class JmlScanner extends Scanner {
      */
     public void setJml(boolean j) {
         jmltokenizer.setJml(j);
+        jml = j;
     }
 
     /**
@@ -252,7 +252,14 @@ public class JmlScanner extends Scanner {
      */
     //@ pure nullable
     public JmlToken jmlToken() {
-        return (JmlToken)token();
+        Token t = token();
+        return t instanceof JmlToken ? (JmlToken)t : DUMMY;
+    }
+    
+    JmlToken DUMMY = new JmlToken(null,TokenKind.ERROR,0,0);
+    
+    public void setToken(Token token) {
+        this.token = token;
     }
     
     public String chars() {

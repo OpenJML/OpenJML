@@ -578,7 +578,7 @@ public class JavaTokenizer {
                         do {
                             reader.scanCommentChar();
                         } while (reader.ch != CR && reader.ch != LF && reader.bp < reader.buflen);
-                        if (reader.bp < reader.buflen) {
+                        if (reader.bp <= reader.buflen) { // DRC - changed to <= from < to accommodate line comments at end of input
                             comments = addComment(comments, processComment(pos, reader.bp, CommentStyle.LINE));
                         }
                         break;

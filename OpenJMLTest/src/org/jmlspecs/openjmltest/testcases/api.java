@@ -692,11 +692,11 @@ public class api extends JmlTestCase {
           // parsedTopLevelModelTypes, starImportScope
           // refinesClause, specsTopLevelModelTypes, specsSequence
           
-          // Javadoc comments
-          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
-          doccomments.put(cldef,"/** The class */");
-          doccomments.put(vdecl,"/** The field */");
-          jcu.docComments = doccomments;
+          // Javadoc comments // FIXME - ressurect doc comments
+//          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
+//          doccomments.put(cldef,"/** The class */");
+//          doccomments.put(vdecl,"/** The field */");
+//          jcu.docComments = doccomments;
           //System.out.println(api.prettyPrint(jcu,false));   //FIXME - doc comments do not print
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
@@ -777,12 +777,12 @@ public class api extends JmlTestCase {
           // parsedTopLevelModelTypes, starImportScope
           // refinesClause, specsTopLevelModelTypes, specsSequence
           
-          // Javadoc comments
-          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
-          doccomments.put(cldef,"/** The class */");
-          doccomments.put(vdecl,"/** The field */");
-          jcu.docComments = doccomments;
-          System.out.println(api.prettyPrint(jcu));   //FIXME - doc comments do not print
+          // Javadoc comments // FIXME - ressurrect doc comments
+//          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
+//          doccomments.put(cldef,"/** The class */");
+//          doccomments.put(vdecl,"/** The field */");
+//          jcu.docComments = doccomments;
+//          System.out.println(api.prettyPrint(jcu));   //FIXME - doc comments do not print
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
           coll.add(jcu);

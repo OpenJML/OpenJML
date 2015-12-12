@@ -1308,7 +1308,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      *  @param value      The literal's value (0/1 for boolean)
      */
     protected JCLiteral makeLit(Type type, Object value) {
-        return make.Literal(type.tag, value).setType(type);
+        return make.Literal(type.getTag(), value).setType(type);
     }
 
     /** Make an attributed node representing an literal of type int

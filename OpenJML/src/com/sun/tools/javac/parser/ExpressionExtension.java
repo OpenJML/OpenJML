@@ -131,10 +131,10 @@ abstract public class ExpressionExtension {
         // TODO Auto-generated method stub
         this.parser = parser;
         this.scanner = parser.getScanner();
-        JmlTokenKind jt = scanner.jmlToken().jmlkind;
+        JmlTokenKind jt = parser.jmlTokenKind();
         int p = scanner.currentPos();
-        scanner.nextToken();
-        if (scanner.token().kind != TokenKind.LPAREN) {
+        parser.nextToken();
+        if (parser.token().kind != TokenKind.LPAREN) {
             return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
         } else if (typeArgs != null && !typeArgs.isEmpty()) {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());

@@ -24,9 +24,11 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.parser.Tokens.ITokenKind;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -761,6 +763,21 @@ public class JmlTree implements IJmlTree {
         System.out.println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
     }
     
+    public abstract class JCTreeX extends JCTree {
+        
+        @Override
+        public Tag getTag() {
+            return null;
+        }
+
+        @Override
+        public Kind getKind() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+    }
+    
     /** This is an interface for any node that contains source file information. */
     public interface JmlSource {
         
@@ -1234,9 +1251,9 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
+        public Tag getTag() {
             // This is used in determining start and end positions
-            return JCTree.OR;
+            return null;
         }
         
         @Override
@@ -1285,8 +1302,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLCONSTRAINTMETHODSIG;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1506,8 +1523,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLGROUPNAME;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1567,8 +1584,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLLBLEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1618,8 +1635,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSECONDITIONAL;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1706,7 +1723,7 @@ public class JmlTree implements IJmlTree {
         }
         
 //        @Override  -- FIXME - do we want this?
-//        public int getTag() {
+//        public Tag getTag() {
 //            return JMLFUNCTION;
 //        }
 //    
@@ -1729,8 +1746,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSECALLABLE;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1773,8 +1790,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSEDECL;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1818,8 +1835,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSEEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1863,8 +1880,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSEGROUP;
+        public Tag getTag() {
+            return null;
         }
 
         @Override
@@ -1909,8 +1926,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSESIGNALS;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1954,8 +1971,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSESIGNALSONLY;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -1998,8 +2015,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLMETHODCLAUSEASSIGNABLE;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2068,8 +2085,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLMETHODSPECS;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2113,7 +2130,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
+        public Tag getTag() {
             return item.getTag();
         }
         
@@ -2144,7 +2161,7 @@ public class JmlTree implements IJmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlPrimitiveTypeTree(int pos, JmlTokenKind token) {
-        	super(TypeTags.NONE);
+        	super(TypeTag.NONE);
             this.pos = pos;
             this.token = token;
         }
@@ -2160,8 +2177,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLPRIMITIVETYPETREE;
+        public Tag getTag() {
+            return null;
         }
     
         @Override
@@ -2225,8 +2242,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLQUANTIFIEDEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2274,8 +2291,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLSINGLETON;
+        public Tag getTag() {
+            return null;
         }
 
         @Override
@@ -2324,8 +2341,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLSETCOMPREHENSION;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2396,8 +2413,8 @@ public class JmlTree implements IJmlTree {
     
     
         @Override
-        public int getTag() {
-            return JMLSPECIFICATIONCASE;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2441,8 +2458,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENT;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2486,8 +2503,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENTDECLS;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2567,16 +2584,17 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENTEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
         public int getStartPosition() {
             return expression != null ? expression.getStartPosition() : this.pos;
         }
+        
         @Override
-        public int getEndPosition(Map<JCTree,Integer> table) {
+        public int getEndPosition(EndPosTable table) {
             return optionalExpression != null ? optionalExpression.getEndPosition(table) : expression != null ? expression.getEndPosition(table) : this.pos;
         }
         
@@ -2627,8 +2645,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENTEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2684,8 +2702,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENTSPEC;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2729,8 +2747,8 @@ public class JmlTree implements IJmlTree {
         }
     
         @Override
-        public int getTag() {
-            return JMLSTATEMENTLOOP;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2782,8 +2800,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLSTOREREFARRAYRANGE;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2824,8 +2842,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLSTOREREFKEYWORD;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2867,8 +2885,8 @@ public class JmlTree implements IJmlTree {
         }
 
         @Override
-        public int getTag() {
-            return JMLSTOREREFLISTEXPR;
+        public Tag getTag() {
+            return null;
         }
 
         @Override
@@ -2941,8 +2959,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSECONSTRAINT;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -2987,8 +3005,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSECONDITIONAL;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3035,8 +3053,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEDECL;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3080,8 +3098,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEEXPR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3129,8 +3147,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEIN;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3174,8 +3192,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEINITIALIZER;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3223,8 +3241,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEMAPS;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3269,8 +3287,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEMONITORSFOR;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3322,8 +3340,8 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getTag() {
-            return JMLTYPECLAUSEREPRESENTS;
+        public Tag getTag() {
+            return null;
         }
         
         @Override
@@ -3368,7 +3386,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getEndPosition(Map<JCTree,Integer> table) {
+        public int getEndPosition(EndPosTable table) {
             return args.get(args.length()-1).getEndPosition(table); // rhs
         }        
     }
@@ -3406,7 +3424,7 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
-        public int getEndPosition(Map<JCTree,Integer> table) {
+        public int getEndPosition(EndPosTable table) {
             return args.get(3).getEndPosition(table); // rhs
         }
     }

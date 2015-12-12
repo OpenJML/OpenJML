@@ -108,12 +108,16 @@ public class Tokens {
     TokenKind lookupKind(String name) {
         return lookupKind(names.fromString(name));
     }
+    
+    public interface ITokenKind { // DRC - added this interface to be able to extend it
+        String name();
+    }
 
     /**
      * This enum defines all tokens used by the javac scanner. A token is
      * optionally associated with a name.
      */
-    public enum TokenKind implements Formattable, Filter<TokenKind> {
+    public enum TokenKind implements Formattable, Filter<TokenKind>, ITokenKind { // DRC - added interface
         EOF(),
         ERROR(),
         IDENTIFIER(Tag.NAMED),
@@ -320,7 +324,8 @@ public class Tokens {
         }
 
         /** The token kind */
-        public final TokenKind kind;
+        public final TokenKind kind; // DRC - changed to interface to allow extension; also corresponding changes to the use of kind
+        public final ITokenKind ikind; // DRC - changed to interface to allow extension; also corresponding changes to the use of kind
 
         /** The start position of this token */
         public final int pos;
@@ -331,7 +336,8 @@ public class Tokens {
         /** Comment reader associated with this token */
         public final List<Comment> comments;
 
-        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) {
+        Token(TokenKind kind, int pos, int endPos, List<Comment> comments) { // DRC - changed to ITokenKind to allow extension
+            this.ikind = kind;
             this.kind = kind;
             this.pos = pos;
             this.endPos = endPos;
@@ -339,13 +345,22 @@ public class Tokens {
             checkKind();
         }
 
+        Token(ITokenKind ikind, int pos, int endPos, List<Comment> comments) { // DRC - changed to ITokenKind to allow extension
+            this.ikind = ikind;
+            this.kind = ikind instanceof TokenKind ? (TokenKind)ikind : TokenKind.CUSTOM;
+            this.pos = pos;
+            this.endPos = endPos;
+            this.comments = comments;
+            checkKind();
+        }
+
         Token[] split(Tokens tokens) {
-            if (kind.name.length() < 2 || kind.tag != Tag.DEFAULT) {
+            if (kind.name().length() < 2 || ((TokenKind)kind).tag != Tag.DEFAULT) {
                 throw new AssertionError("Cant split" + kind);
             }
 
-            TokenKind t1 = tokens.lookupKind(kind.name.substring(0, 1));
-            TokenKind t2 = tokens.lookupKind(kind.name.substring(1));
+            TokenKind t1 = tokens.lookupKind(kind.name().substring(0, 1));
+            TokenKind t2 = tokens.lookupKind(kind.name().substring(1));
 
             if (t1 == null || t2 == null) {
                 throw new AssertionError("Cant split - bad subtokens");
@@ -357,7 +372,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (kind.tag != Tag.DEFAULT) {
+            if (((TokenKind)kind).tag != Tag.DEFAULT) {
                 throw new AssertionError("Bad token kind - expected " + Tag.STRING);
             }
         }
@@ -423,7 +438,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (kind.tag != Tag.NAMED) {
+            if (((TokenKind)kind).tag != Tag.NAMED) {
                 throw new AssertionError("Bad token kind - expected " + Tag.NAMED);
             }
         }
@@ -444,7 +459,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (kind.tag != Tag.STRING) {
+            if (((TokenKind)kind).tag != Tag.STRING) {
                 throw new AssertionError("Bad token kind - expected " + Tag.STRING);
             }
         }
@@ -465,7 +480,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (kind.tag != Tag.NUMERIC) {
+            if (((TokenKind)kind).tag != Tag.NUMERIC) {
                 throw new AssertionError("Bad token kind - expected " + Tag.NUMERIC);
             }
         }
