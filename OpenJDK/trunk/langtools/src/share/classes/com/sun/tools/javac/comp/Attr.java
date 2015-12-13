@@ -3745,17 +3745,17 @@ public class Attr extends JCTree.Visitor {
                    v.name != names._class;
         }
 
-        /** Can the given symbol be the owner of code which forms part
-         *  if class initialization? This is the case if the symbol is
-         *  a type or field, or if the symbol is the synthetic method.
-         *  owning a block.
-         */
-        protected boolean canOwnInitializer(Symbol sym) { // DRCok - changed from private to protected
-            return
-                (sym.kind & (VAR | TYP)) != 0 ||
-                (sym.kind == MTH && (sym.flags() & BLOCK) != 0);
-        }
-
+//        /** Can the given symbol be the owner of code which forms part
+//         *  if class initialization? This is the case if the symbol is
+//         *  a type or field, or if the symbol is the synthetic method.
+//         *  owning a block.
+//         */
+//        protected boolean canOwnInitializer(Symbol sym) { // DRCok - added; changed from private to protected
+//            return
+//                (sym.kind & (VAR | TYP)) != 0 ||
+//                (sym.kind == MTH && (sym.flags() & BLOCK) != 0);
+//        }
+// DRC - remove this commented out code once JmlAttr is working again for Java 8
     Warner noteWarner = new Warner();
 
     /**

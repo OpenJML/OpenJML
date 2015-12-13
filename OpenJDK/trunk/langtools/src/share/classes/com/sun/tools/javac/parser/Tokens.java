@@ -355,12 +355,12 @@ public class Tokens {
         }
 
         Token[] split(Tokens tokens) {
-            if (kind.name().length() < 2 || ((TokenKind)kind).tag != Tag.DEFAULT) {
+            if (kind.name.length() < 2 || kind.tag != Tag.DEFAULT) {
                 throw new AssertionError("Cant split" + kind);
             }
 
-            TokenKind t1 = tokens.lookupKind(kind.name().substring(0, 1));
-            TokenKind t2 = tokens.lookupKind(kind.name().substring(1));
+            TokenKind t1 = tokens.lookupKind(kind.name.substring(0, 1));
+            TokenKind t2 = tokens.lookupKind(kind.name.substring(1));
 
             if (t1 == null || t2 == null) {
                 throw new AssertionError("Cant split - bad subtokens");
@@ -372,7 +372,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (((TokenKind)kind).tag != Tag.DEFAULT) {
+            if (kind.tag != Tag.DEFAULT) {
                 throw new AssertionError("Bad token kind - expected " + Tag.STRING);
             }
         }
@@ -459,7 +459,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (((TokenKind)kind).tag != Tag.STRING) {
+            if (kind.tag != Tag.STRING) {
                 throw new AssertionError("Bad token kind - expected " + Tag.STRING);
             }
         }
@@ -480,7 +480,7 @@ public class Tokens {
         }
 
         protected void checkKind() {
-            if (((TokenKind)kind).tag != Tag.NUMERIC) {
+            if (kind.tag != Tag.NUMERIC) {
                 throw new AssertionError("Bad token kind - expected " + Tag.NUMERIC);
             }
         }

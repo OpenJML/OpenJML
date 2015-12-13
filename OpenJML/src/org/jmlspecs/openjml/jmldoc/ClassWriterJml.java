@@ -35,10 +35,10 @@ public class ClassWriterJml extends ClassWriterImpl {
      * @param classTree the class tree for the given class
      * @throws Exception
      */
-    public ClassWriterJml (ClassDoc classDoc,
+    public ClassWriterJml (ConfigurationImpl config, ClassDoc classDoc,
             ClassDoc prevClass, ClassDoc nextClass, ClassTree classTree)
     throws Exception {
-        super(classDoc,prevClass,nextClass,classTree);
+        super(config,classDoc,prevClass,nextClass,classTree);
     }
     
 

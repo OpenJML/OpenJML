@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
+import com.sun.tools.javac.parser.JavaTokenizer.BasicComment;
 import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.EndPosTable;
@@ -56,7 +57,7 @@ import com.sun.tools.javac.util.Options;
  * 
  * @author David Cok
  */
-public class JmlTokenizer extends JavadocTokenizer {
+public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this be JavaTokenizer?
 
     /** The compilation context with which this instance was created */
     public Context                 context;
@@ -831,6 +832,11 @@ public class JmlTokenizer extends JavadocTokenizer {
             return end;// FIXME
         }
         
+    }
+    
+    public BasicComment<UnicodeReader> makeJavaComment(int pos, int endPos, CommentStyle style) {
+        char[] buf = reader.getRawCharacters(pos, endPos);
+        return new BasicComment<UnicodeReader>(new UnicodeReader(fac, buf, buf.length), style);
     }
 
 

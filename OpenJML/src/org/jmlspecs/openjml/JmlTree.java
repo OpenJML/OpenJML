@@ -79,7 +79,7 @@ public class JmlTree implements IJmlTree {
      * the pos field is set using other methods on the factory.
      */
     public interface JmlFactory extends JCTree.Factory {
-        JmlAnnotation Annotation(JCTree.Tag tag, JCTree type, List<JCExpression> args);
+        JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
@@ -233,8 +233,8 @@ public class JmlTree implements IJmlTree {
             return t;
         }
         
-        public JmlAnnotation Annotation(Tag tag, JCTree type, List<JCExpression> args) {
-            JmlAnnotation a = new JmlAnnotation(tag,type,args);
+        public JmlAnnotation Annotation(JCTree type, List<JCExpression> args) {
+            JmlAnnotation a = new JmlAnnotation(JCTree.Tag.ANNOTATION,type,args);
             a.pos = pos;
             return a;
         }

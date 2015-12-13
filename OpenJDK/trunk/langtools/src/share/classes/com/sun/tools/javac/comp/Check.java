@@ -1326,8 +1326,8 @@ public class Check {
                 // The enclosing type is not a class, so we are
                 // looking at a static member type.  However, the
                 // qualifying expression is parameterized.
-                //log.error(tree.pos(), "cant.select.static.class.from.param.type"); // FIXME - ignore this error
-                tree.selected.type = tree.selected.type.tsym.erasure_field;
+                //log.error(tree.pos(), "cant.select.static.class.from.param.type"); // DRC - FIXME - ignore this error
+                tree.selected.type = tree.selected.type.tsym.erasure_field; // DRC - is extra in Java 8 - is it needed?
                 tree.selected.accept(this); // DRC - added
             } else {
                 // otherwise validate the rest of the expression
@@ -3092,7 +3092,7 @@ public class Check {
 
     public boolean validateAnnotation(JCAnnotation a) { // DRC - made public from private
         boolean isValid = true;
-        if (a.type != null && a.type.isErroneous()) return false; //DRCok - FIXME - added a.type guard, but perhaps it is null because the annotation is not properly 
+        if (a.type != null && a.type.isErroneous()) return false; //DRCok - FIXME - added this check 
 
         // collect an inventory of the annotation elements
         Set<MethodSymbol> members = new LinkedHashSet<MethodSymbol>();

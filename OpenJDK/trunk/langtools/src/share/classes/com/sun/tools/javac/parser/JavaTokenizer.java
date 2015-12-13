@@ -701,6 +701,7 @@ public class JavaTokenizer {
     }
     //where
         List<Comment> addComment(List<Comment> comments, Comment comment) {
+            if (comment == null) return comments; // DRC - added to allow comment processors to 'swallow' a comment
             return comments == null ?
                     List.of(comment) :
                     comments.prepend(comment);

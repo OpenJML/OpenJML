@@ -907,7 +907,7 @@ public class JavacParser implements Parser {
      */
     JCExpression term2() {
         JCExpression t = term3();
-        if ((mode & EXPR) != 0 && prec(token.ikind) >= TreeInfo.orPrec) {
+        if ((mode & EXPR) != 0 && prec(token.ikind) >= TreeInfo.orPrec) {  // DRC - generalized to ikind
             mode = EXPR;
             return term2Rest(t, TreeInfo.orPrec);
         } else {
@@ -1030,7 +1030,8 @@ public class JavacParser implements Parser {
             return opStackSupply.remove(opStackSupply.size() - 1);
         }
 
-    /** Expression3    = PrefixOp Expression3
+    /** 
+     *  Expression3    = PrefixOp Expression3
      *                 | "(" Expr | TypeNoParams ")" Expression3
      *                 | Primary {Selector} {PostfixOp}
      *
@@ -1096,22 +1097,22 @@ public class JavacParser implements Parser {
                 ParensResult pres = analyzeParens();
                 switch (pres) {
                     case CAST:
-                        accept(LPAREN);
-                        mode = TYPE;
-                        int pos1 = pos;
-                        List<JCExpression> targets = List.of(t = term3());
-                        while (token.kind == AMP) {
-                            checkIntersectionTypesInCast();
-                            accept(AMP);
-                            targets = targets.prepend(term3());
-                        }
-                        if (targets.length() > 1) {
-                            t = toP(F.at(pos1).TypeIntersection(targets.reverse()));
-                        }
-                        accept(RPAREN);
-                        mode = EXPR;
-                        JCExpression t1 = term3();
-                        return F.at(pos).TypeCast(t, t1);
+                       accept(LPAREN);
+                       mode = TYPE;
+                       int pos1 = pos;
+                       List<JCExpression> targets = List.of(t = term3());
+                       while (token.kind == AMP) {
+                           checkIntersectionTypesInCast();
+                           accept(AMP);
+                           targets = targets.prepend(term3());
+                       }
+                       if (targets.length() > 1) {
+                           t = toP(F.at(pos1).TypeIntersection(targets.reverse()));
+                       }
+                       accept(RPAREN);
+                       mode = EXPR;
+                       JCExpression t1 = term3();
+                       return F.at(pos).TypeCast(t, t1);
                     case IMPLICIT_LAMBDA:
                     case EXPLICIT_LAMBDA:
                         t = lambdaExpressionOrStatement(true, pres == ParensResult.EXPLICIT_LAMBDA, pos);
@@ -1124,34 +1125,9 @@ public class JavacParser implements Parser {
                         t = toP(F.at(pos).Parens(t));
                         break;
                 }
-                // FIXME - Previously there was code added to handle casts on JML functions 
-//                // FIXME - I think the merge in thie neighborhood is messed up
-//                lastmode = mode;
-//                mode = EXPR;
-//                if ((lastmode & EXPR) == 0) {
-//                    JCExpression t1 = term3();
-//                    return F.at(pos).TypeCast(t, t1);
-//                } else if ((lastmode & TYPE) != 0) {
-//                    switch (S.token().kind) {
-//                        /*case PLUSPLUS: case SUBSUB: */
-//                        case BANG: case TILDE:
-//                        case LPAREN: case THIS: case SUPER:
-//                        case INTLITERAL: case LONGLITERAL: case FLOATLITERAL:
-//                        case DOUBLELITERAL: case CHARLITERAL: case STRINGLITERAL:
-//                        case TRUE: case FALSE: case NULL:
-//                        case NEW: case IDENTIFIER: case ASSERT: case ENUM:
-//                        case BYTE: case SHORT: case CHAR: case INT:
-//                        case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
-//                            JCExpression t1 = term3();
-//                            return F.at(pos).TypeCast(t, t1);
-//                        case CUSTOM: // DRC -added to handle casts on JML functions - no easy way to do this by overriding
-//                            // but does not apply if the next token is a JML operator
-//                            JCExpression t2 = potentialCast();
-//                            if (t2 != null) return F.at(pos).TypeCast(t, t2);
-//                    }
-//
-//                }
-            } else return illegal();
+            } else {
+                return illegal();
+            }
             break;
         case THIS:
             if ((mode & EXPR) != 0) {
@@ -2215,7 +2191,6 @@ public class JavacParser implements Parser {
         while (true) {
             List<JCStatement> stat = blockStatement();
             if (stat.isEmpty()) {
-//            case CUSTOM:  // DRC - added this case - Bad merge where did this come from?
                 return stats.toList();
             } else {
                 if (token.pos <= endPosTable.errorEndPos) {

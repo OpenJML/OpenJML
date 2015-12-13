@@ -15,6 +15,7 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
 import java.util.EnumMap;
@@ -1827,25 +1828,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //      This check applies only to class and instance
 //      variables.  Local variables follow different scope rules,
 //      and are subject to definite assignment checking.
-        if (v.pos > tree.pos &&
+        if ((env.info.enclVar == v || v.pos > tree.pos) &&
                 v.owner.kind == TYP &&
-                canOwnInitializer(env.info.scope.owner) &&
+                enclosingInitEnv(env) != null &&  // FIXME - this line used to be a check for canOwnInitializer, which was only used here and defined in Attr.java
                 v.owner == env.info.scope.owner.enclClass() &&
                 ((v.flags() & STATIC) != 0) == Resolve.isStatic(env) &&
-                (env.tree.getTag() != JCTree.Tag.ASSIGN ||
-                        TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
-
-            if (!onlyWarning || isStaticEnumField(v)) {
-                // DRC - changed the following line to avoid complaints about forward references from invariants
-                if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) log.error(tree.pos(), "illegal.forward.ref");
-            } else if (useBeforeDeclarationWarning) {
-                log.warning(tree.pos(), "forward.ref", v);
+                (!env.tree.hasTag(ASSIGN) ||
+                 TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
+                String suffix = (env.info.enclVar == v) ?
+                                "self.ref" : "forward.ref";
+                if (!onlyWarning || isStaticEnumField(v)) {
+                    // DRC - changed the following line to avoid complaints about forward references from invariants
+                    if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) log.error(tree.pos(), "illegal.forward.ref");
+                } else if (useBeforeDeclarationWarning) {
+                    log.warning(tree.pos(), suffix, v);
+                }
             }
-        }
 
-        v.getConstValue(); // ensure initializer is evaluated
+            v.getConstValue(); // ensure initializer is evaluated
 
-        if (currentClauseType == null) checkEnumInitializer(tree, env, v); // FIXME - under what circumstances should this check be performed for JML clauses
+            checkEnumInitializer(tree, env, v);
     }
 
     
