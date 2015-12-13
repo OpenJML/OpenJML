@@ -72,7 +72,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final Names names;
     private final Enter enter;
     protected final Log log; // DRC - changed from private to protected
-    private final Check chk;
+    protected final Check chk; // DRC - changed from private to protected
     protected final Attr attr; // DRC - changed from private to protected
     private final Symtab syms;
     private final TreeMaker make;
@@ -85,8 +85,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final JCDiagnostic.Factory diags;
     private final Source source;
     private final Target target;
-    private final DeferredLintHandler deferredLintHandler;
-    private final Lint lint;
+    protected final DeferredLintHandler deferredLintHandler; // DRC - changed from private to protected
+    protected final Lint lint; // DRC - changed from private to protected
     private final TypeEnvs typeEnvs;
 
     public static MemberEnter instance(Context context) {
@@ -914,7 +914,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
 
     /** Enter a set of annotations. */
-    private void actualEnterAnnotations(List<JCAnnotation> annotations,
+    protected void actualEnterAnnotations(List<JCAnnotation> annotations, // DRC - changed from private to protected
                           Env<AttrContext> env,
                           Symbol s) {
         Map<TypeSymbol, ListBuffer<Attribute.Compound>> annotated =

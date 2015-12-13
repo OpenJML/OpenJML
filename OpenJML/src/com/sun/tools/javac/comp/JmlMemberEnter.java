@@ -11,6 +11,7 @@ import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.PCK;
 import static com.sun.tools.javac.code.Kinds.TYP;
+import static com.sun.tools.javac.code.Kinds.kindName;
 import static com.sun.tools.javac.code.TypeTag.CLASS;
 
 import java.io.PrintWriter;
@@ -55,6 +56,7 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.FatalError;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -65,6 +67,7 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Position;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /**
  * This class extends MemberEnter to add some JML processing to the process of
@@ -1061,6 +1064,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 names.fromString(org.jmlspecs.utils.Utils.invariantMethodString),
                 vd,
                 List.<JCTypeParameter>nil(),
+                null,
                 List.<JCVariableDecl>nil(),
                 List.<JCExpression>nil(),
                 jmlF.Block(0,List.<JCStatement>nil()), 
@@ -1071,6 +1075,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 names.fromString(org.jmlspecs.utils.Utils.staticinvariantMethodString),
                 vd,
                 List.<JCTypeParameter>nil(),
+                null,
                 List.<JCVariableDecl>nil(),
                 List.<JCExpression>nil(),
                 jmlF.Block(0,List.<JCStatement>nil()), 
@@ -1139,7 +1144,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
     // MUST HAVE log.useSource set to specs file!
     protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods) {
-        if (sym.attributes_field == null) return;
+        // FIXME - check for null in annotations?
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (Compound a  : sym.getAnnotationMirrors()) {
             if (a.type.tsym.owner.equals(p) && utils.findMod(specsmods,a.type.tsym) == null) {
@@ -1337,8 +1342,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             localEnv = methodEnv(tree, env);
 
             // Compute the method type
-            mtemp.type = signature(tree.typarams, tree.params,
-                               tree.restype, tree.thrown,
+            mtemp.type = signature(msym, tree.typarams, tree.params,
+                               tree.restype, tree.recvparam, tree.thrown,
                                localEnv);
 
             // Set m.params
@@ -1359,7 +1364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            if (chk.checkUnique(tree.pos(), m, enclScope)) {
 //                enclScope.enter(m);
 //            }
-            annotateLater(tree.mods.annotations, localEnv, mtemp);
+            annotateLater(tree.mods.annotations, localEnv, mtemp, tree.pos()); // FIXME - is this the right position
             if (tree.defaultValue != null)
                 annotateDefaultValueLater(tree.defaultValue, localEnv, mtemp);
         }
@@ -1859,7 +1864,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (env == null) {
             log.error("jml.internal","Unexpected NULL ENV in JmlMemberEnter.addAnnotations" + sym);
         }
-        annotateLaterConditional(mods.annotations, env, sym);
+        annotateLaterConditional(mods.annotations, env, sym, mods.pos()); // FIXME - is this an OK position?
     }
 
     public void completeBinaryTodo() {
@@ -2011,7 +2016,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 attr.attribAnnotationTypes(tree.mods.annotations, baseEnv);
 //                if (hasDeprecatedAnnotation(tree.mods.annotations))
 //                    c.flags_field |= DEPRECATED;
-                annotateLater(tree.mods.annotations, baseEnv, c); 
+                annotateLater(tree.mods.annotations, baseEnv, c, tree.mods.pos());// FIXME - si this an OK position?
                     // The call above nulls out the attributes field; it is recomputed
                     // when annotate.flush() is called.  But this has the effect of
                     // deleting any annotations that were recovered from the
@@ -2308,39 +2313,87 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * @param localEnv
      * @param s
      */
-    // MAINTENANCE - modified from MemberEnter.annotateLater
+    // MAINTENANCE - modified from MemberEnter.annotateLater  // FIXME - currently the same as in the super class
     void annotateLaterConditional(final List<JCAnnotation> annotations,
             final Env<AttrContext> localEnv,
-            final Symbol s) {
+            final Symbol s,
+            final DiagnosticPosition deferPos) {
         if (annotations.isEmpty()) return;
-        if (s.kind != PCK) s.attributes_field = null; // mark it incomplete for now
-        annotate.later(new Annotate.Annotator() {
+        if (s.kind != PCK) {
+            s.resetAnnotations(); // mark Annotations as incomplete for now
+        }
+        annotate.normal(new Annotate.Worker() {
+            @Override
             public String toString() {
-                return "conditional annotate " + annotations + " onto " + s + " in " + s.owner;
+                return "annotate " + annotations + " onto " + s + " in " + s.owner;
             }
-            public void enterAnnotation() {
-                assert s.kind == PCK || s.attributes_field == null; // FIXME - SF patch # says this assert triggers incorrectly when -ea option is used
+
+            @Override
+            public void run() {
+                Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
+                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
+                DiagnosticPosition prevLintPos =
+                    deferPos != null
+                    ? deferredLintHandler.setPos(deferPos)
+                    : deferredLintHandler.immediate();
+                Lint prevLint = deferPos != null ? null : chk.setLint(lint);
+                try {
+                    if (s.hasAnnotations() &&
+                        annotations.nonEmpty())
+                        log.error(annotations.head.pos,
+                                  "already.annotated",
+                                  kindName(s), s);
+                    actualEnterAnnotations(annotations, localEnv, s);
+                } finally {
+                    if (prevLint != null)
+                        chk.setLint(prevLint);
+                    deferredLintHandler.setPos(prevLintPos);
+                    log.useSource(prev);
+                }
+            }
+        });
+
+        annotate.validate(new Annotate.Worker() { //validate annotations
+            @Override
+            public void run() {
                 JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                 try {
-                    if (s.attributes_field != null &&
-                            s.attributes_field.nonEmpty() &&
-                            annotations.nonEmpty()) {
-//                            log.error(annotations.head.pos,
-//                                      "already.annotated",
-//                                      kindName(s), s);
-                    } else enterAnnotations(annotations, localEnv, s);
+                    chk.validateAnnotations(annotations, s);
                 } finally {
                     log.useSource(prev);
                 }
             }
         });
     }
+
     
-    void annotateLater(final List<JCAnnotation> annotations,
-            final Env<AttrContext> localEnv,
-            final Symbol s) {
-        annotateLaterConditional(annotations,localEnv,s);
-    }
+//    annotate.later(new Annotate.Annotator() {
+//            public String toString() {
+//                return "conditional annotate " + annotations + " onto " + s + " in " + s.owner;
+//            }
+//            public void enterAnnotation() {
+//                assert s.kind == PCK || s.attributes_field == null; // FIXME - SF patch # says this assert triggers incorrectly when -ea option is used
+//                JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
+//                try {
+//                    if (s.attributes_field != null &&
+//                            s.attributes_field.nonEmpty() &&
+//                            annotations.nonEmpty()) {
+////                            log.error(annotations.head.pos,
+////                                      "already.annotated",
+////                                      kindName(s), s);
+//                    } else enterAnnotations(annotations, localEnv, s);
+//                } finally {
+//                    log.useSource(prev);
+//                }
+//            }
+//        });
+//    }
+//    
+//    void annotateLater(final List<JCAnnotation> annotations,
+//            final Env<AttrContext> localEnv,
+//            final Symbol s) {
+//        annotateLaterConditional(annotations,localEnv,s);
+//    }
 
     
     /** This inherited method is overridden to do an automatic import of org.jmlspecs.lang.* */
@@ -2447,7 +2500,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlResolve jresolve = JmlResolve.instance(context);
         boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
         try {
-            Env<AttrContext> env = enter.typeEnvs.get(sym);
+            Env<AttrContext> env = enter.typeEnvs.get(sym.type.tsym); // FIXME - is the argument here correct? or do we just downcast (TypeSymbol)sym
             if (env == null) {
                 log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
                 return;
