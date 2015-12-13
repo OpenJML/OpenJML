@@ -79,7 +79,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final ClassReader reader;
     protected final Todo todo; // DRC - changed from privagte to protected
     protected final Annotate annotate; // DRC - changed from private to protected
-    private final TypeAnnotations typeAnnotations;
+    protected final TypeAnnotations typeAnnotations; // JLS - changed from private
+
     private final Types types;
     private final JCDiagnostic.Factory diags;
     private final Source source;
@@ -87,8 +88,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     private final DeferredLintHandler deferredLintHandler;
     private final Lint lint;
     private final TypeEnvs typeEnvs;
-
-    protected final boolean skipAnnotations; // DRC - changed from private to protected
 
     public static MemberEnter instance(Context context) {
         MemberEnter instance = context.get(memberEnterKey);
@@ -119,7 +118,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         typeEnvs = TypeEnvs.instance(context);
         allowTypeAnnos = source.allowTypeAnnotations();
         allowRepeatedAnnos = source.allowRepeatedAnnotations();
-        skipAnnotations = false; // FIXME - check this - or is the new version not final
     }
 
     /** Switch: support type annotations.
@@ -916,7 +914,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     }
 
     /** Enter a set of annotations. */
-    protected void enterAnnotations(List<JCAnnotation> annotations, // DRC - changed from private to protected
+    private void actualEnterAnnotations(List<JCAnnotation> annotations,
                           Env<AttrContext> env,
                           Symbol s) {
         Map<TypeSymbol, ListBuffer<Attribute.Compound>> annotated =
@@ -1128,17 +1126,20 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
                 // Add default constructor if needed.
                 if ((c.flags() & INTERFACE) == 0 && !binary && // DRC added for now
-                        !TreeInfo.hasConstructors(tree.defs)) {
+                    !TreeInfo.hasConstructors(tree.defs)) {
                     List<Type> argtypes = List.nil();
                     List<Type> typarams = List.nil();
                     List<Type> thrown = List.nil();
                     long ctorFlags = 0;
                     boolean based = false;
+                    boolean addConstructor = true;
+                    JCNewClass nc = null;
                     if (c.name.isEmpty()) {
-                        JCNewClass nc = (JCNewClass)env.next.tree;
+                        nc = (JCNewClass)env.next.tree;
                         if (nc.constructor != null) {
+                            addConstructor = nc.constructor.kind != ERR;
                             Type superConstrType = types.memberType(c.type,
-                                    nc.constructor);
+                                                                    nc.constructor);
                             argtypes = superConstrType.getParameterTypes();
                             typarams = superConstrType.getTypeArguments();
                             ctorFlags = nc.constructor.flags() & VARARGS;
@@ -1146,45 +1147,46 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                                 argtypes = argtypes.prepend(nc.encl.type);
                                 based = true;
                             }
-                        }
-                        if (addConstructor) {
-                            MethodSymbol basedConstructor = nc != null ?
-                                    (MethodSymbol)nc.constructor : null;
-                                    JCTree constrDef = DefaultConstructor(make.at(tree.pos), c,
-                                            basedConstructor,
-                                            typarams, argtypes, thrown,
-                                            ctorFlags, based);
-                                    tree.defs = tree.defs.prepend(constrDef);
+                            thrown = superConstrType.getThrownTypes();
                         }
                     }
+                    if (addConstructor) {
+                        MethodSymbol basedConstructor = nc != null ?
+                                (MethodSymbol)nc.constructor : null;
+                        JCTree constrDef = DefaultConstructor(make.at(tree.pos), c,
+                                                            basedConstructor,
+                                                            typarams, argtypes, thrown,
+                                                            ctorFlags, based);
+                        tree.defs = tree.defs.prepend(constrDef);
+                    }
+                }
 
-                    // enter symbols for 'this' into current scope.
-                    VarSymbol thisSym =
-                            new VarSymbol(FINAL | HASINIT, names._this, c.type, c);
-                    thisSym.pos = Position.FIRSTPOS;
-                    env.info.scope.enter(thisSym);
-                    // if this is a class, enter symbol for 'super' into current scope.
-                    if ((c.flags_field & INTERFACE) == 0 &&
-                            ct.supertype_field.hasTag(CLASS)) {
-                        VarSymbol superSym =
-                                new VarSymbol(FINAL | HASINIT, names._super,
-                                        ct.supertype_field, c);
-                        superSym.pos = Position.FIRSTPOS;
-                        env.info.scope.enter(superSym);
-                    }
+                // enter symbols for 'this' into current scope.
+                VarSymbol thisSym =
+                    new VarSymbol(FINAL | HASINIT, names._this, c.type, c);
+                thisSym.pos = Position.FIRSTPOS;
+                env.info.scope.enter(thisSym);
+                // if this is a class, enter symbol for 'super' into current scope.
+                if ((c.flags_field & INTERFACE) == 0 &&
+                        ct.supertype_field.hasTag(CLASS)) {
+                    VarSymbol superSym =
+                        new VarSymbol(FINAL | HASINIT, names._super,
+                                      ct.supertype_field, c);
+                    superSym.pos = Position.FIRSTPOS;
+                    env.info.scope.enter(superSym);
+                }
 
-                    // check that no package exists with same fully qualified name,
-                    // but admit classes in the unnamed package which have the same
-                    // name as a top-level package.
-                    if (checkClash &&
-                            c.owner.kind == PCK && c.owner != syms.unnamedPackage &&
-                            reader.packageExists(c.fullname)) {
-                        log.error(tree.pos, "clash.with.pkg.of.same.name", Kinds.kindName(sym), c);
-                    }
-                    if (c.owner.kind == PCK && (c.flags_field & PUBLIC) == 0 &&
-                            !env.toplevel.sourcefile.isNameCompatible(c.name.toString(),JavaFileObject.Kind.SOURCE)) {
-                        c.flags_field |= AUXILIARY;
-                    }
+                // check that no package exists with same fully qualified name,
+                // but admit classes in the unnamed package which have the same
+                // name as a top-level package.
+                if (checkClash &&
+                    c.owner.kind == PCK && c.owner != syms.unnamedPackage &&
+                    reader.packageExists(c.fullname)) {
+                    log.error(tree.pos, "clash.with.pkg.of.same.name", Kinds.kindName(sym), c);
+                }
+                if (c.owner.kind == PCK && (c.flags_field & PUBLIC) == 0 &&
+                    !env.toplevel.sourcefile.isNameCompatible(c.name.toString(),JavaFileObject.Kind.SOURCE)) {
+                    c.flags_field |= AUXILIARY;
                 }
             } catch (CompletionFailure ex) {
                 chk.completionError(tree.pos(), ex);
@@ -1373,7 +1375,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             }
         }
     }
-
 
     protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // DRC - changed from private to protected
         Scope baseScope = new Scope(tree.sym);
