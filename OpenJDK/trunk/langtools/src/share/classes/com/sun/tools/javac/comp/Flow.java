@@ -794,7 +794,7 @@ public class Flow {
 
         class FlowPendingExit extends BaseAnalyzer.PendingExit {
 
-           Type thrown;
+            Type thrown;
 
             FlowPendingExit(JCTree tree, Type thrown) {
                 super(tree);
@@ -2565,15 +2565,11 @@ public class Flow {
             }
         }
 
+        @Override
         public void visitIdent(JCIdent tree) {
             if (tree.sym != null && tree.sym.kind == VAR) { // DRC - Guarding this check, but why is the variable unattributed?
                 checkInit(tree.pos(), (VarSymbol)tree.sym);
-                referenced(tree.sym);
             }
-        }
-
-        void referenced(Symbol sym) {
-            unrefdResources.remove(sym);
         }
 
         public void visitAssign(JCAssign tree) {
