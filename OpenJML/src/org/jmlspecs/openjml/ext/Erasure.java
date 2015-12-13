@@ -16,6 +16,7 @@ import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -59,8 +60,9 @@ public class Erasure extends ExpressionExtension {
                 ((JmlMethodInvocation)e).javaType = true;
             }
         }
-        attr.attribArgs(tree.args, localEnv);
-        attr.attribTypes(tree.typeargs, localEnv);
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, localEnv, argtypesBuf);
+        //attr.attribTypes(tree.typeargs, localEnv);
         Type t = syms.errType;
         if (n > 0) {
             Type tt = tree.args.get(0).type;

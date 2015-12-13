@@ -27,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
 
 import org.jmlspecs.openjml.JmlOption;
@@ -130,8 +131,9 @@ abstract public class Arithmetic extends ExpressionExtension {
         
         // Expect one argument of any type, result type is the same type
         // The argument expression may contain JML constructs
-        attr.attribArgs(tree.args, env);
-        attr.attribTypes(tree.typeargs, env);
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, env, argtypesBuf);
+        //attr.attribTypes(tree.typeargs, env);
         int n = tree.args.size();
         if (n != 1) {
             error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
