@@ -1201,9 +1201,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean isInJml = ((JmlCheck)chk).setInJml(true);
         MethodSymbol m = tree.sym;
 
-        Lint lint = env.info.lint.augment(m.attributes_field, m.flags());
+        Lint lint = env.info.lint.augment(m);
         Lint prevLint = chk.setLint(lint);
+        MethodSymbol prevMethod = chk.setMethod(m);
         try {
+            deferredLintHandler.flush(tree.pos());
+            chk.checkDeprecatedAnnotation(tree.pos(), m);
 
             // Create a new environment with local scope
             // for attributing the method.
@@ -5410,8 +5413,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
                 Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
                 Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                List<Compound> atts = that.sym.getAnnotationMirrors();
-                that.sym.attributes_field = atts.append(a);
+                that.sym.appendAttributes(List.<Compound>of(a));
                 JCAnnotation an = factory.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
                 ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
                 an.type = an.annotationType.type;
@@ -5421,8 +5423,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
             if (that.sym.attribute(s) == null) {
                 Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                List<Compound> atts = that.sym.getAnnotationMirrors();
-                that.sym.attributes_field = atts.append(a);
+                that.sym.appendAttributes(List.<Compound>of(a));
             }
         }
 //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
@@ -5488,8 +5489,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     typeargtypes);
             that.methodSymbol = (MethodSymbol)sym;
         } else {
-            Type mpt = newMethTemplate(types, typeargtypes);
-            localEnv.info.varArgs = false;
+            Type mpt = newMethodTemplate(that.methodSymbol.getReturnType(), types, typeargtypes);
+//            localEnv.info.varArgs = false; // FIXME - not sure how to set this
             try {
                 attribExpr(that.expression, localEnv, mpt);
             } catch (ClassCastException e) {

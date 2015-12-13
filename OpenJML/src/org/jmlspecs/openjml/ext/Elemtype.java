@@ -16,6 +16,7 @@ import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -53,8 +54,9 @@ public class Elemtype extends ExpressionExtension {
         
         // Expect one argument of any array type, result type is \TYPE
         // The argument expression may contain JML constructs
-        attr.attribArgs(tree.args, localEnv);
-        attr.attribTypes(tree.typeargs, localEnv);
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, localEnv, argtypesBuf);
+        //attr.attribTypes(tree.typeargs, localEnv);
         int n = tree.args.size();
         if (n != 1) {  // FIXME _ incorrect for BSOLD
             error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
