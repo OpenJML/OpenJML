@@ -1,24 +1,3 @@
-test\rac1a\Bug1.java:9: error: illegal start of expression
-        a[0] = new LinkedList<Boolean>();
-         ^
-test\rac1a\Bug1.java:9: error: ']' expected
-        a[0] = new LinkedList<Boolean>();
-          ^
-test\rac1a\Bug1.java:9: error: ';' expected
-        a[0] = new LinkedList<Boolean>();
-           ^
-test\rac1a\Bug1.java:9: error: illegal start of expression
-        a[0] = new LinkedList<Boolean>();
-             ^
-test\rac1a\Bug1.java:9: error: ';' expected
-        a[0] = new LinkedList<Boolean>();
-              ^
-test\rac1a\Bug1.java:9: error: not a statement
-        a[0] = new LinkedList<Boolean>();
-                             ^
-test\rac1a\Bug1.java:9: error: ';' expected
-        a[0] = new LinkedList<Boolean>();
-                                      ^
 test\rac1a\Bug1.java:11: error: The type or expression near here is invalid (or not implemented): ( token ghost in JmlParser.term3())
         //@ ghost \TYPE t = \elemtype(\typeof(a));
             ^
@@ -28,22 +7,22 @@ test\rac1a\Bug1.java:11: error: '.class' expected
 Internal JML bug - please report.  Build(version info not available)
 java.lang.NullPointerException
 	at com.sun.tools.javac.tree.TreeInfo.isExpressionStatement(TreeInfo.java:301)
-	at com.sun.tools.javac.parser.JavacParser.checkExprStat(JavacParser.java:3749)
-	at com.sun.tools.javac.parser.JavacParser.blockStatement(JavacParser.java:2328)
-	at com.sun.tools.javac.parser.JavacParser.blockStatements(JavacParser.java:2216)
+	at com.sun.tools.javac.parser.JavacParser.checkExprStat(JavacParser.java:3938)
+	at com.sun.tools.javac.parser.JavacParser.blockStatement(JavacParser.java:2517)
+	at com.sun.tools.javac.parser.JavacParser.blockStatements(JavacParser.java:2406)
 	at com.sun.tools.javac.parser.JmlParser.blockStatements(JmlParser.java:455)
-	at com.sun.tools.javac.parser.JavacParser.block(JavacParser.java:2187)
-	at com.sun.tools.javac.parser.JavacParser.block(JavacParser.java:2201)
-	at com.sun.tools.javac.parser.JavacParser.methodDeclaratorRest(JavacParser.java:3466)
-	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceBodyDeclaration(JavacParser.java:3412)
+	at com.sun.tools.javac.parser.JavacParser.block(JavacParser.java:2377)
+	at com.sun.tools.javac.parser.JavacParser.block(JavacParser.java:2391)
+	at com.sun.tools.javac.parser.JavacParser.methodDeclaratorRest(JavacParser.java:3655)
+	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceBodyDeclaration(JavacParser.java:3601)
 	at com.sun.tools.javac.parser.JmlParser.classOrInterfaceBodyDeclaration(JmlParser.java:830)
-	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceBody(JavacParser.java:3316)
+	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceBody(JavacParser.java:3505)
 	at com.sun.tools.javac.parser.JmlParser.classOrInterfaceBody(JmlParser.java:358)
-	at com.sun.tools.javac.parser.JavacParser.classDeclaration(JavacParser.java:3165)
-	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceOrEnumDeclaration(JavacParser.java:3106)
+	at com.sun.tools.javac.parser.JavacParser.classDeclaration(JavacParser.java:3354)
+	at com.sun.tools.javac.parser.JavacParser.classOrInterfaceOrEnumDeclaration(JavacParser.java:3295)
 	at com.sun.tools.javac.parser.JmlParser.classOrInterfaceOrEnumDeclaration(JmlParser.java:294)
-	at com.sun.tools.javac.parser.JavacParser.typeDeclaration(JavacParser.java:3095)
-	at com.sun.tools.javac.parser.JavacParser.parseCompilationUnit(JavacParser.java:3035)
+	at com.sun.tools.javac.parser.JavacParser.typeDeclaration(JavacParser.java:3284)
+	at com.sun.tools.javac.parser.JavacParser.parseCompilationUnit(JavacParser.java:3224)
 	at com.sun.tools.javac.parser.JmlParser.parseCompilationUnit(JmlParser.java:178)
 	at com.sun.tools.javac.main.JavaCompiler.parse(JavaCompiler.java:633)
 	at org.jmlspecs.openjml.JmlCompiler.parse(JmlCompiler.java:122)

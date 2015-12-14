@@ -1196,6 +1196,11 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override 
+        public int getStartPosition() {
+            return pos;
+        }
     }
     
     /** This class is simply a superclass for all AST classes representing 
@@ -1206,6 +1211,10 @@ public class JmlTree implements IJmlTree {
         
         public String toString() {
             return JmlTree.toString(this);
+        }
+        
+        public int getStartPosition() {
+            return pos;
         }
     }
 
@@ -1279,6 +1288,18 @@ public class JmlTree implements IJmlTree {
                 return null;
             }
         }
+        
+        @Override
+        public int getStartPosition() {
+            return lhs.getStartPosition();
+        }
+    
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return rhs.getEndPosition(table);
+        }
+    
+
         
     }
 
@@ -1373,6 +1394,16 @@ public class JmlTree implements IJmlTree {
         @Override
         public String toString() {
             return JmlTree.toString(this);
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return -1;
+        }
+    
+        @Override
+        public int getEndPosition(EndPosTable table) {
+            return -1;
         }
     
     }
@@ -1554,6 +1585,7 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
     }
 
     /** This class represents JML LBL expressions */
@@ -1865,6 +1897,11 @@ public class JmlTree implements IJmlTree {
                 System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
+        }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
         }
     }
     
@@ -3459,7 +3496,6 @@ public class JmlTree implements IJmlTree {
     public static class JmlAnnotation extends JCAnnotation {
         public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
             super(tag,annotationType,args);
-            //if (pos <= 0) Utils.print(null);
         }
         
         /** The origin of the annotation, which may not be the same as the item being annotated;

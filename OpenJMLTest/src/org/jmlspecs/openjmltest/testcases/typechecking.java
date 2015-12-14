@@ -16,7 +16,12 @@ public class typechecking extends TCBase {
 
     /** Test something very simple with no errors*/
     @Test public void testSomeJava() {
-        helpTC(" class A {}");
+        helpTC(" class A { public A(){} }");
+    }
+
+    /** Test something very simple with no errors*/
+    @Test public void testSomeJavaB() {
+        helpTC(" class A {} }");
     }
 
     /** Test scanning something very simple */

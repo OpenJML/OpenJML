@@ -29,6 +29,8 @@ import java.nio.*;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Position.LineMap;
 import com.sun.tools.javac.parser.JavaTokenizer.*;
 
@@ -56,7 +58,7 @@ public class Scanner implements Lexer {
 
     /** Buffer of saved tokens (used during lookahead)
      */
-    private List<Token> savedTokens = new ArrayList<Token>();
+    protected List<Token> savedTokens = new ArrayList<Token>(); // DRC - changed from private to protected
 
     protected JavaTokenizer tokenizer; // DRC - changed from private to protected
 
@@ -114,6 +116,7 @@ public class Scanner implements Lexer {
         } else {
             token = tokenizer.readToken();
         }
+        //System.out.println("TOKEN " + token.ikind);
     }
 
     public Token split() {

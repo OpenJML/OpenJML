@@ -204,6 +204,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
         // position in character buffer; if the buffer held a unicode
         // sequence, bp is at the end of the sequence and ch is the
         // translated character
+//        String comment = new String(reader.buf,pos,endPos);
         saveReaderState(); // This is the state after reading the comment
 
         // Note on scanChar - it is valid to call scanChar if

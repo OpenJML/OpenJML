@@ -341,7 +341,7 @@ public class JmlCompiler extends JavaCompiler {
         // FIXME - not sure env or mode below are still used
         if (speccu != null) {
             env = enter.getTopLevelEnv(speccu);
-            //enter.visitTopLevel(specSequence.get(0));  // Does imports
+            enter.visitTopLevel(speccu);  // Does imports
             csymbol.flags_field |= Flags.UNATTRIBUTED;
         }
         if (speccu != null) {

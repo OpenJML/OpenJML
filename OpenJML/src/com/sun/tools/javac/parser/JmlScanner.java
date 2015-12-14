@@ -21,6 +21,8 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.DiagnosticSource;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.LayoutCharacters;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 
@@ -235,6 +237,7 @@ public class JmlScanner extends Scanner {
      *            the new value of the keyword mode
      */
     public void setJmlKeyword(boolean j) {
+        if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
         jmltokenizer.setJmlKeyword(j);
     }
     

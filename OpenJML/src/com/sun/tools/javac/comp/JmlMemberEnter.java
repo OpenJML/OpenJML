@@ -46,6 +46,8 @@ import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.comp.Resolve.LookupHelper;
+import com.sun.tools.javac.comp.Resolve.MethodCheck;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -1390,9 +1392,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // the parameter types themselves are already arrays if they were declared
         // as varargs parameters.
 
-        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
-                tree.name,paramTypes.toList(),typaramTypes.toList(),
-                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
+ //       Symbol lookupMethod(Env<AttrContext> env, DiagnosticPosition pos, Symbol location, MethodCheck methodCheck, LookupHelper lookupHelper) {
+
+        Symbol s = JmlResolve.instance(context).resolveMethod(tree.pos(), env, tree.name, paramTypes.toList(),typaramTypes.toList());
+            
+//        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
+//                tree.name,paramTypes.toList(),typaramTypes.toList(),
+//                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
         if (s instanceof MethodSymbol) {
             match = (MethodSymbol)s;
             // Require exact type match [findMethod returns best matches ]

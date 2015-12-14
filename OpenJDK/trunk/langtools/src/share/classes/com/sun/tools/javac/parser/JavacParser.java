@@ -575,7 +575,7 @@ public class JavacParser implements Parser {
      * @param tree  The tree node
      */
     public int getEndPos(JCTree tree) {
-        return endPosTable.getEndPos(tree);
+        return tree.getEndPosition(endPosTable); // DRC - changed to accommodate JML nodes
     }
 
 
@@ -1337,82 +1337,297 @@ public class JavacParser implements Parser {
 
     // DRC - this method extracted from term3() in order to be used in derived classes
     public JCExpression primarySuffix(JCExpression t, List<JCExpression> typeArgs) {
-      if (typeArgs != null) return illegal();
-        loop: while (true) {
-            Token tok = S.token();
-            int pos = tok.pos; // FIXME - not sure this is the correct position
-            switch (tok.kind) {
-            case LBRACKET:
-                S.nextToken();
-                if (S.token().kind == RBRACKET) {
-                    S.nextToken();
-                    t = bracketsOpt(t);
-                    t = toP(F.at(pos).TypeArray(t));
-                    t = bracketsSuffix(t);
-                } else {
-                    if ((mode & EXPR) != 0) {
-                        mode = EXPR;
-                        JCExpression t1 = term();
-                        t = to(F.at(pos).Indexed(t, t1));
-                    }
-                    accept(RBRACKET);
+        int pos = token.pos; // FIXME - not sure this is the correct position
+        if (typeArgs != null) return illegal();
+        if ((mode & EXPR) != 0 && token.ikind == IDENTIFIER && peekToken(ARROW)) { // DRC - modified to avoid lookahead past semicolons
+            t = lambdaExpressionOrStatement(false, false, pos);
+        } else {
+            loop: while (true) {
+                pos = token.pos;
+                final List<JCAnnotation> annos = typeAnnotationsOpt();
+
+                // need to report an error later if LBRACKET is for array
+                // index access rather than array creation level
+                if (!annos.isEmpty() && token.kind != LBRACKET && token.kind != ELLIPSIS)
+                    return illegal(annos.head.pos);
+
+                switch (token.kind) {
+                    case LBRACKET:
+                        nextToken();
+                        if (token.kind == RBRACKET) {
+                            nextToken();
+                            t = bracketsOpt(t);
+                            t = toP(F.at(pos).TypeArray(t));
+                            if (annos.nonEmpty()) {
+                                t = toP(F.at(pos).AnnotatedType(annos, t));
+                            }
+                            // .class is only allowed if there were no annotations
+                            JCExpression nt = bracketsSuffix(t);
+                            if (nt != t && (annos.nonEmpty() || TreeInfo.containsTypeAnnotation(t))) {
+                                // t and nt are different if bracketsSuffix parsed a .class.
+                                // The check for nonEmpty covers the case when the whole array is annotated.
+                                // Helper method isAnnotated looks for annos deeply within t.
+                                syntaxError("no.annotations.on.dot.class");
+                            }
+                            t = nt;
+                        } else {
+                            if ((mode & EXPR) != 0) {
+                                mode = EXPR;
+                                JCExpression t1 = term();
+                                if (!annos.isEmpty()) t = illegal(annos.head.pos);
+                                t = to(F.at(pos).Indexed(t, t1));
+                            }
+                            accept(RBRACKET);
+                        }
+                        break loop; // FIXME - coni=tinue loop?
+                    case LPAREN:
+                        if ((mode & EXPR) != 0) {
+                            mode = EXPR;
+                            t = arguments(typeArgs, t);
+                            if (!annos.isEmpty()) t = illegal(annos.head.pos);
+                            typeArgs = null;
+                            // DRC - previously had a continue loop here
+                        }
+                        break loop;
+                    case DOT:
+                        nextToken();
+                        int oldmode = mode;
+                        mode &= ~NOPARAMS;
+                        typeArgs = typeArgumentsOpt(EXPR);
+                        mode = oldmode;
+                        if ((mode & EXPR) != 0) {
+                            switch (token.kind) {
+                                case CLASS:
+                                    if (typeArgs != null) return illegal();
+                                    mode = EXPR;
+                                    t = to(F.at(pos).Select(t, names._class));
+                                    nextToken();
+                                    break loop;
+                                case THIS:
+                                    if (typeArgs != null) return illegal();
+                                    mode = EXPR;
+                                    t = to(F.at(pos).Select(t, names._this));
+                                    nextToken();
+                                    break loop;
+                                case SUPER:
+                                    mode = EXPR;
+                                    t = to(F.at(pos).Select(t, names._super));
+                                    t = superSuffix(typeArgs, t);
+                                    typeArgs = null;
+                                    break loop;
+                                case NEW:
+                                    if (typeArgs != null) return illegal();
+                                    mode = EXPR;
+                                    int pos1 = token.pos;
+                                    nextToken();
+                                    if (token.kind == LT) typeArgs = typeArguments(false);
+                                    t = innerCreator(pos1, typeArgs, t);
+                                    typeArgs = null;
+                                    break loop;
+                            }
+                        }
+
+                        List<JCAnnotation> tyannos = null;
+                        if ((mode & TYPE) != 0 && token.kind == MONKEYS_AT) {
+                            tyannos = typeAnnotationsOpt();
+                        }
+                        // typeArgs saved for next loop iteration.
+                        t = toP(F.at(pos).Select(t, ident()));
+                        if (tyannos != null && tyannos.nonEmpty()) {
+                            t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
+                        }
+                        break;
+                    case ELLIPSIS:
+                        if (this.permitTypeAnnotationsPushBack) {
+                            this.typeAnnotationsPushedBack = annos;
+                        } else if (annos.nonEmpty()) {
+                            // Don't return here -- error recovery attempt
+                            illegal(annos.head.pos);
+                        }
+                        break loop;
+                    case LT:
+                        if ((mode & TYPE) == 0 && isUnboundMemberRef()) {
+                            //this is an unbound method reference whose qualifier
+                            //is a generic type i.e. A<S>::m
+                            int pos1 = token.pos;
+                            accept(LT);
+                            ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
+                            args.append(typeArgument());
+                            while (token.kind == COMMA) {
+                                nextToken();
+                                args.append(typeArgument());
+                            }
+                            accept(GT);
+                            t = toP(F.at(pos1).TypeApply(t, args.toList()));
+                            checkGenerics();
+                            while (token.kind == DOT) {
+                                nextToken();
+                                mode = TYPE;
+                                t = toP(F.at(token.pos).Select(t, ident()));
+                                t = typeArgumentsOpt(t);
+                            }
+                            t = bracketsOpt(t);
+                            if (token.kind != COLCOL) {
+                                //method reference expected here
+                                t = illegal();
+                            }
+                            mode = EXPR;
+                            return term3Rest(t, typeArgs);
+                        }
+                        break loop;
+                    default:
+                        break loop;
                 }
-                continue loop; // DRC - changed - but document why FIXME
-            case LPAREN:
-                if ((mode & EXPR) != 0) {
-                    mode = EXPR;
-                    t = arguments(typeArgs, t);
-                    typeArgs = null;
-                    continue loop; // DRC - changed - but document why FIXME
-                }
-                break loop;
-            case DOT:
-                S.nextToken();
-                int oldmode = mode;
-                mode &= ~NOPARAMS;
-                typeArgs = typeArgumentsOpt(EXPR);
-                mode = oldmode;
-                if ((mode & EXPR) != 0) {
-                    switch (S.token().kind) {
-                    case CLASS:
-                        if (typeArgs != null) return illegal();
-                        mode = EXPR;
-                        t = to(F.at(pos).Select(t, names._class));
-                        S.nextToken();
-                        continue loop; // DRC - changed - but document why FIXME
-                    case THIS:
-                        if (typeArgs != null) return illegal();
-                        mode = EXPR;
-                        t = to(F.at(pos).Select(t, names._this));
-                        S.nextToken();
-                        continue loop; // DRC - changed - but document why FIXME
-                    case SUPER:
-                        mode = EXPR;
-                        t = to(F.at(pos).Select(t, names._super));
-                        t = superSuffix(typeArgs, t);
-                        typeArgs = null;
-                        continue loop; // DRC - changed - but document why FIXME
-                    case NEW:
-                        if (typeArgs != null) return illegal();
-                        mode = EXPR;
-                        int pos1 = S.token().pos; // FIXME - is this the correct position
-                        S.nextToken();
-                        if (S.token().kind == LT) typeArgs = typeArguments(false);  // DRCok - should this be true or false?
-                        t = innerCreator(pos1, typeArgs, t);
-                        typeArgs = null;
-                        continue loop; // DRC - changed - but document why FIXME
-                    }
-                }
-                // typeArgs saved for next loop iteration.
-                t = toP(F.at(pos).Select(t, ident()));
-                break;
-            default:
-                break loop;
             }
         }
         if (typeArgs != null) illegal();
         t = typeArgumentsOpt(t);
         return t;
+    }
+    
+    JCExpression term3Rest(JCExpression t, List<JCExpression> typeArgs) {
+        if (typeArgs != null) illegal();
+        while (true) {
+            int pos1 = token.pos;
+            final List<JCAnnotation> annos = typeAnnotationsOpt();
+
+            if (token.kind == LBRACKET) {
+                nextToken();
+                if ((mode & TYPE) != 0) {
+                    int oldmode = mode;
+                    mode = TYPE;
+                    if (token.kind == RBRACKET) {
+                        nextToken();
+                        t = bracketsOpt(t);
+                        t = toP(F.at(pos1).TypeArray(t));
+                        if (token.kind == COLCOL) {
+                            mode = EXPR;
+                            continue;
+                        }
+                        if (annos.nonEmpty()) {
+                            t = toP(F.at(pos1).AnnotatedType(annos, t));
+                        }
+                        return t;
+                    }
+                    mode = oldmode;
+                }
+                if ((mode & EXPR) != 0) {
+                    mode = EXPR;
+                    JCExpression t1 = term();
+                    t = to(F.at(pos1).Indexed(t, t1));
+                }
+                accept(RBRACKET);
+            } else if (token.kind == DOT) {
+                nextToken();
+                typeArgs = typeArgumentsOpt(EXPR);
+                if (token.kind == SUPER && (mode & EXPR) != 0) {
+                    mode = EXPR;
+                    t = to(F.at(pos1).Select(t, names._super));
+                    nextToken();
+                    t = arguments(typeArgs, t);
+                    typeArgs = null;
+                } else if (token.kind == NEW && (mode & EXPR) != 0) {
+                    if (typeArgs != null) return illegal();
+                    mode = EXPR;
+                    int pos2 = token.pos;
+                    nextToken();
+                    if (token.kind == LT) typeArgs = typeArguments(false);
+                    t = innerCreator(pos2, typeArgs, t);
+                    typeArgs = null;
+                } else {
+                    List<JCAnnotation> tyannos = null;
+                    if ((mode & TYPE) != 0 && token.kind == MONKEYS_AT) {
+                        // is the mode check needed?
+                        tyannos = typeAnnotationsOpt();
+                    }
+                    t = toP(F.at(pos1).Select(t, ident()));
+                    if (tyannos != null && tyannos.nonEmpty()) {
+                        t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
+                    }
+                    t = argumentsOpt(typeArgs, typeArgumentsOpt(t));
+                    typeArgs = null;
+                }
+            } else if ((mode & EXPR) != 0 && token.kind == COLCOL) {
+                mode = EXPR;
+                if (typeArgs != null) return illegal();
+                accept(COLCOL);
+                t = memberReferenceSuffix(pos1, t);
+            } else {
+                if (!annos.isEmpty()) {
+                    if (permitTypeAnnotationsPushBack)
+                        typeAnnotationsPushedBack = annos;
+                    else
+                        return illegal(annos.head.pos);
+                }
+                break;
+            }
+        }
+        while ((token.kind == PLUSPLUS || token.kind == SUBSUB) && (mode & EXPR) != 0) {
+            mode = EXPR;
+            t = to(F.at(token.pos).Unary(
+                  token.kind == PLUSPLUS ? POSTINC : POSTDEC, t));
+            nextToken();
+        }
+        return toP(t);
+    }
+
+    /**
+     * If we see an identifier followed by a '&lt;' it could be an unbound
+     * method reference or a binary expression. To disambiguate, look for a
+     * matching '&gt;' and see if the subsequent terminal is either '.' or '::'.
+     */
+    @SuppressWarnings("fallthrough")
+    boolean isUnboundMemberRef() {
+        int pos = 0, depth = 0;
+        outer: for (Token t = S.token(pos) ; ; t = S.token(++pos)) {
+            switch (t.kind) {
+                case IDENTIFIER: case UNDERSCORE: case QUES: case EXTENDS: case SUPER:
+                case DOT: case RBRACKET: case LBRACKET: case COMMA:
+                case BYTE: case SHORT: case INT: case LONG: case FLOAT:
+                case DOUBLE: case BOOLEAN: case CHAR:
+                case MONKEYS_AT:
+                    break;
+
+                case LPAREN:
+                    // skip annotation values
+                    int nesting = 0;
+                    for (; ; pos++) {
+                        TokenKind tk2 = S.token(pos).kind;
+                        switch (tk2) {
+                            case EOF:
+                                return false;
+                            case LPAREN:
+                                nesting++;
+                                break;
+                            case RPAREN:
+                                nesting--;
+                                if (nesting == 0) {
+                                    continue outer;
+                                }
+                                break;
+                        }
+                    }
+
+                case LT:
+                    depth++; break;
+                case GTGTGT:
+                    depth--;
+                case GTGT:
+                    depth--;
+                case GT:
+                    depth--;
+                    if (depth == 0) {
+                        TokenKind nextKind = S.token(pos + 1).kind;
+                        return
+                            nextKind == TokenKind.DOT ||
+                            nextKind == TokenKind.LBRACKET ||
+                            nextKind == TokenKind.COLCOL;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+        }
     }
     
     /**
@@ -1840,7 +2055,6 @@ public class JavacParser implements Parser {
     private JCExpression bracketsOptCont(JCExpression t, int pos,
             List<JCAnnotation> annotations) {
     	if (token.kind != RBRACKET) { // DRCok - next few lines changed to create clearer error messages
-            accept(RBRACKET);
             do { nextToken(); } while (token.kind != RBRACKET && token.kind != SEMI && token.kind != CUSTOM && token.kind != EOF);
             if (token.kind == RBRACKET) nextToken();
     	} else {

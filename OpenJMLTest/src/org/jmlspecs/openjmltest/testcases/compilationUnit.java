@@ -175,7 +175,7 @@ public class compilationUnit extends ParseBase {
         checkCompilationUnit("/*@ pure */ class A {}",
         JmlCompilationUnit.class, 4,4,22,
         JmlClassDecl.class, 4,12,22,
-        JCModifiers.class, 4,4,11, // FIXME - end
+        JCModifiers.class, 4,4,11, // FIXME - would like this to be 8
         JmlAnnotation.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,
