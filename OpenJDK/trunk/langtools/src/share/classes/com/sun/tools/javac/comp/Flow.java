@@ -231,6 +231,7 @@ public class Flow {
             }
         }
     }
+    
 
     public List<Type> analyzeLambdaThrownTypes(final Env<AttrContext> env,
             JCLambda that, TreeMaker make) {
@@ -312,6 +313,8 @@ public class Flow {
      */
     static abstract class BaseAnalyzer<P extends BaseAnalyzer.PendingExit> extends TreeScanner {
 
+        public void moreClassDef(JCClassDecl tree) {} // DRCok- Added an overridable hook
+        
         enum JumpKind {
             BREAK(JCTree.Tag.BREAK) {
                 @Override
@@ -367,7 +370,7 @@ public class Flow {
         }
 
         /** Resolve all jumps of this statement. */
-        private boolean resolveJump(JCTree tree,
+        protected boolean resolveJump(JCTree tree,            // JLS -- Changed visibility 
                         ListBuffer<P> oldPendingExits,
                         JumpKind jk) {
             boolean resolved = false;
@@ -846,7 +849,6 @@ public class Flow {
             }
         }
 
-    public void moreClassDef(JCClassDecl tree) {} // DRCok- Added an overridable hook
     
  
     /*************************************************************************
@@ -1373,6 +1375,8 @@ public class Flow {
         @Override
         public void visitClassDef(JCClassDecl tree) {
             //skip
+            moreClassDef(tree); // JLS - added hook
+
         }
     }
 
@@ -1761,6 +1765,9 @@ public class Flow {
                     firstadr = firstadrPrev;
                     classDef = classDefPrev;
                 }
+                
+                moreClassDef(tree); // JLS - added this hook
+
             } finally {
                 lint = lintPrev;
             }
@@ -2550,6 +2557,9 @@ public class Flow {
             try {
                 currentTree = tree.sym.isLocal() ? tree : null;
                 super.visitClassDef(tree);
+                
+                moreClassDef(tree); // JLS - added this hook
+
             } finally {
                 currentTree = prevTree;
             }
