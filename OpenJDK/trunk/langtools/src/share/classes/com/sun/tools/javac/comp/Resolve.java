@@ -1763,7 +1763,7 @@ public class Resolve {
         return bestSoFar;
     }
     
-    protected boolean abstractOK(ClassSymbol c) {
+    protected boolean abstractOK(ClassSymbol c) { // DRC Added to allow extension
         return ((c.flags() & (ABSTRACT | INTERFACE | ENUM)) != 0);
     }
 
@@ -2064,20 +2064,32 @@ public class Resolve {
      */
     Symbol findType(Env<AttrContext> env, Name name) {
         Symbol bestSoFar = typeNotFound;
-        Symbol sym = null;
+        Symbol sym;
         boolean staticOnly = false;
         for (Env<AttrContext> env1 = env; env1.outer != null; env1 = env1.outer) {
             if (isStatic(env1)) staticOnly = true;
-            for (Scope.Entry e = env1.info.scope.lookup(name);
-                 e.scope != null;
-                 e = e.next()) {
-                if (e.sym.kind == TYP) {
-                    if (!symbolOK(e)) continue; // DRCok added for OpenJML
-                    if (staticOnly &&
-                        e.sym.type.hasTag(TYPEVAR) &&
-                        e.sym.owner.kind == TYP) return new StaticError(e.sym);
-                    return e.sym;
-                }
+            // First, look for a type variable and the first member type
+            final Symbol tyvar = findTypeVar(env1, name, staticOnly);
+            sym = findImmediateMemberType(env1, env1.enclClass.sym.type,
+                                          name, env1.enclClass.sym);
+
+            // Return the type variable if we have it, and have no
+            // immediate member, OR the type variable is for a method.
+            if (tyvar != typeNotFound) {
+                if (sym == typeNotFound ||
+                    (tyvar.kind == TYP && tyvar.exists() &&
+                     tyvar.owner.kind == MTH))
+                    return tyvar;
+//            for (Scope.Entry e = env1.info.scope.lookup(name);
+//                 e.scope != null;
+//                 e = e.next()) {
+//                if (e.sym.kind == TYP) {
+//                    if (!symbolOK(e)) continue; // DRCok added for OpenJML
+//                    if (staticOnly &&
+//                        e.sym.type.hasTag(TYPEVAR) &&
+//                        e.sym.owner.kind == TYP) return new StaticError(e.sym);
+//                    return e.sym;
+//                }
             }
 
             // If the environment is a class def, finish up,

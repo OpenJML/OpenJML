@@ -155,9 +155,14 @@ public class JmlScanner extends Scanner {
      */
     protected boolean       noJML      = false;
 
-    /** Set to true internally while the scanner is within a JML comment */
-    protected boolean       jml        = false;
+//    /** Set to true internally while the scanner is within a JML comment */
+//    protected boolean       jml        = false;
 
+    /** Set to true internally while the scanner is within a JML comment */
+    protected boolean       jml() {
+        return jmltokenizer.jml;
+    }
+    
     /** The set of keys for identifying optional comments */
     /*@NonNull*/ protected Set<String>     keys;
     
@@ -227,7 +232,6 @@ public class JmlScanner extends Scanner {
      */
     public void setJml(boolean j) {
         jmltokenizer.setJml(j);
-        jml = j;
     }
 
     /**
@@ -239,6 +243,7 @@ public class JmlScanner extends Scanner {
     public void setJmlKeyword(boolean j) {
         if (!savedTokens.isEmpty()) Log.instance(context).getWriter(WriterKind.NOTICE).println("JmlKeyword mode changed while token buffer has lookahead");
         jmltokenizer.setJmlKeyword(j);
+        jmlkeyword = j;
     }
     
     /** The current set of conditional keys used by the scanner.

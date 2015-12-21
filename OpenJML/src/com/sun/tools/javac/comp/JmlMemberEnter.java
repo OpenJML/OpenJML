@@ -2336,7 +2336,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
             @Override
             public void run() {
-                Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
+//                Assert.check(s.kind == PCK || s.annotationsPendingCompletion()); // Removed check - why?
                 JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                 DiagnosticPosition prevLintPos =
                     deferPos != null
@@ -2344,11 +2344,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     : deferredLintHandler.immediate();
                 Lint prevLint = deferPos != null ? null : chk.setLint(lint);
                 try {
-                    if (s.hasAnnotations() &&
-                        annotations.nonEmpty())
-                        log.error(annotations.head.pos,
-                                  "already.annotated",
-                                  kindName(s), s);
+//                    if (s.hasAnnotations() &&
+//                        annotations.nonEmpty())
+//                        log.error(annotations.head.pos,
+//                                  "already.annotated",
+//                                  kindName(s), s);
                     actualEnterAnnotations(annotations, localEnv, s);
                 } finally {
                     if (prevLint != null)

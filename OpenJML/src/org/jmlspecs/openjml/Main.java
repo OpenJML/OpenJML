@@ -930,7 +930,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlCompiler.preRegister(context);
         JmlEnter.preRegister(context);
         JmlResolve.preRegister(context);
-//        JmlFlow.preRegister(context); // FIXME - removing just until JmlFlow compiles
+        JmlFlow.preRegister(context);
         JmlMemberEnter.preRegister(context);
         JmlTypes.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker

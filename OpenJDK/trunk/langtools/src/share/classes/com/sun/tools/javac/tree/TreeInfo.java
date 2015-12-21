@@ -110,6 +110,7 @@ public class TreeInfo {
     }
 
     public static List<JCExpression> args(JCTree t) {
+        if (t.getTag() == null) return null; // DRC - added to accommodate OpenJML
         switch (t.getTag()) {
             case APPLY:
                 return ((JCMethodInvocation)t).args;
@@ -845,6 +846,7 @@ public class TreeInfo {
      */
     public static Symbol symbol(JCTree tree) {
         tree = skipParens(tree);
+        if (tree.getTag() == null) return null; // DRC - added to accommodate extensions
         switch (tree.getTag()) {
         case IDENT:
             return ((JCIdent) tree).sym;

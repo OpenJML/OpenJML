@@ -638,7 +638,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     // DRC extracted from the method below in order to override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         return ((tree.mods.flags & STATIC) != 0 ||
-                (env.info.scope.owner.flags() & INTERFACE) != 0);
+                ((env.info.scope.owner.flags() & INTERFACE) != 0  && env.enclMethod == null));
     }
 
     public void visitVarDef(JCVariableDecl tree) {
@@ -834,7 +834,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         try {
             // To prevent deep recursion, suppress completion of some
             // types.
-            //completionEnabled = false;  // FIXME - turning this off - DRCok - affects tests API3, API3a - investigate
+            completionEnabled = false;  // FIXME - turning this off - DRCok - affects tests API3, API3a - investigate
             return attr.attribType(tree, env);
         } finally {
             completionEnabled = true;

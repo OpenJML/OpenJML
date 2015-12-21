@@ -5516,11 +5516,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void jmlerror(int begin, int end, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(begin,end-1),key,args);
+        log.error(new JmlTokenizer.DiagnosticPositionSE(begin,end-1),key,convertErrorArgs(args));
     }
 
     public void jmlerror(JCTree tree, String key, Object... args) {
-        log.error(new JmlTokenizer.DiagnosticPositionSE(tree.pos,tree.getEndPosition(log.currentSource().getEndPosTable())),key,args);
+        log.error(new JmlTokenizer.DiagnosticPositionSE(tree.pos,tree.getEndPosition(log.currentSource().getEndPosTable())),key,convertErrorArgs(args));
+    }
+    
+    public Object[] convertErrorArgs(Object[] args) {
+        Object[] out = new Object[args.length];
+        for (int i=0; i<args.length; i++) {
+            Object a = args[i];
+            out[i] = a instanceof JCTree ? JmlPretty.write((JCTree)a) : a;
+        }
+        return args;
     }
     
     public static class RACCopy extends JmlTreeCopier {

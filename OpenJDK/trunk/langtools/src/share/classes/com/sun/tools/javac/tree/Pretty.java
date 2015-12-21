@@ -193,7 +193,7 @@ public class Pretty extends JCTree.Visitor {
     public static String toSimpleString(JCTree tree, int maxLength) {
         StringWriter s = new StringWriter();
         try {
-            new Pretty(s, false).printExpr(tree);
+            Pretty.instance(s, false).printExpr(tree);  // DRC - change to use the factory instead of the constructor
         }
         catch (IOException e) {
             // should never happen, because StringWriter is defined

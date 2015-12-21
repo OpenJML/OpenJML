@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.fail;
+
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -1169,6 +1171,7 @@ public class racnew extends RacBase {
 
     @Test
     public void testSpecModelClass() {
+    	fail("Java8 infinite loop - model class");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"/*@ model public static class AA { static public int mm() { return 5; }} */ \n"
                 +"//@ ghost public static int i = 0;\n  "
@@ -1193,6 +1196,7 @@ public class racnew extends RacBase {
     
     @Test
     public void testSpecModelClass2() { 
+    	fail("Java8 infinite loop - model class");
         addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
                 +"/*@ model public static class AB { static public int mm() { return 5; }} */ \n"
                 +"//@ ghost public static int i = 0;\n  "

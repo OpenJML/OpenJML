@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.*;
+
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
@@ -100,6 +102,7 @@ public class bugs extends TCBase {
     
     @Test
     public void testMisc11() {
+    	fail("Java8 infinite loop");
         main.addOptions("-specspath",   testspecpath);
         helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
                 );

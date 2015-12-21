@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.fail;
+
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 
@@ -37,6 +39,7 @@ public class racnewWithSpecs extends RacBase {
 
 
     @Test public void testTypeOf() {
+    	fail("Java8 infinite loop");
         expectedNotes = 2;
         helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +

@@ -92,7 +92,7 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Object;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:3: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.Object",18
+                ,"/TEST.java:3: incompatible types: java.lang.Object cannot be converted to java.lang.Exception",18
                 );
     }
     
@@ -179,7 +179,7 @@ public class methodspecs extends TCBase {
                 +"//@ assignable k, sk, this.k;\n"
                 +"//@ |}\n"
                 +"//@ pure\n"
-                +"int m() { return 0; }\n"
+                +"int m() {  return 0; }\n"
                 +"}"
                 ,"/TEST.java:6: Pure methods may not assign to any fields: k",16
                 ,"/TEST.java:6: Pure methods may not assign to any fields: sk",19

@@ -6,7 +6,7 @@ test\rac1a\Bug1.java:11: error: '.class' expected
                         ^
 Internal JML bug - please report.  Build(version info not available)
 java.lang.NullPointerException
-	at com.sun.tools.javac.tree.TreeInfo.isExpressionStatement(TreeInfo.java:301)
+	at com.sun.tools.javac.tree.TreeInfo.isExpressionStatement(TreeInfo.java:302)
 	at com.sun.tools.javac.parser.JavacParser.checkExprStat(JavacParser.java:3938)
 	at com.sun.tools.javac.parser.JavacParser.blockStatement(JavacParser.java:2517)
 	at com.sun.tools.javac.parser.JavacParser.blockStatements(JavacParser.java:2406)
@@ -37,7 +37,7 @@ java.lang.NullPointerException
 	at com.sun.tools.javac.main.Main.compile(Main.java:390)
 	at org.jmlspecs.openjml.Main.execute(Main.java:377)
 	at org.jmlspecs.openjmltest.RacBase.helpTCF(RacBase.java:300)
-	at org.jmlspecs.openjmltest.testcases.racfiles.test1a(racfiles.java:57)
+	at org.jmlspecs.openjmltest.testcases.racfiles.test1a(racfiles.java:58)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)

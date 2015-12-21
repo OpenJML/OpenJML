@@ -220,7 +220,7 @@ public class JmlParser extends JavacParser {
     protected JCTree importDeclaration() {
         int p = pos();
         boolean modelImport = jmlTokenKind() == JmlTokenKind.MODEL;
-        if (!modelImport && S.jml) {
+        if (!modelImport && S.jml()) {
             jmlerror(p,endPos(),"jml.import.no.model");
             modelImport = true;
         }
@@ -257,7 +257,7 @@ public class JmlParser extends JavacParser {
         boolean prevInJmlDeclaration = inJmlDeclaration;
         JCStatement s;
         try {
-            if (S.jml) {
+            if (S.jml()) {
                 if (mods == null) {
                     mods = jmlF.at(Position.NOPOS).Modifiers(0);
                     storeEnd(mods, Position.NOPOS);
@@ -420,7 +420,7 @@ public class JmlParser extends JavacParser {
             } else {
                 pushBackModifiers = mods;
                 mods = null;
-                if (S.jml) {
+                if (S.jml()) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
                     List<JCTree.JCStatement> dlist = super.blockStatements();
@@ -683,7 +683,7 @@ public class JmlParser extends JavacParser {
                 // then the scanner has already scanned the next symbol,
                 // with setJmlKeyword having been (potentially) false.
                 // So we need to do the following conversion.
-                if (token.kind == IDENTIFIER && S.jml) {
+                if (token.kind == IDENTIFIER && S.jml()) {
                     JmlTokenKind tt = JmlTokenKind.allTokens.get(S.chars());
                     if (tt != null) {
                         S.setToken(new JmlToken(tt, null, pos(), endPos())); // FIXME - but S.token is not set
@@ -780,7 +780,7 @@ public class JmlParser extends JavacParser {
                 nextToken(); // swallows the ENDJMLCOMMENT
                 break loop;
             }
-            if (S.jml) S.setJmlKeyword(true);
+            if (S.jml()) S.setJmlKeyword(true);
             JCModifiers mods = modifiersOpt(); // Gets anything that is in
                                                // pushBackModifiers
             int pos = pos();
@@ -789,7 +789,7 @@ public class JmlParser extends JavacParser {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                 // into super.classOrInterfaceBodyDeclaration
                 mods = null;
-                boolean startsInJml = S.jml;
+                boolean startsInJml = S.jml();
                 if (startsInJml && !inLocalOrAnonClass) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
@@ -1552,7 +1552,7 @@ public class JmlParser extends JavacParser {
             JmlSpecificationCase j = parseModelProgram(mods, code, also);
             j.sourcefile = log.currentSourceFile();
             return j;
-        } else if (jt == null && S.jml && also != null) {
+        } else if (jt == null && S.jml() && also != null) {
             jmlerror(pos(), endPos(), "jml.invalid.keyword.in.spec",
                     S.chars());
             skipThroughSemi();
@@ -1845,16 +1845,17 @@ public class JmlParser extends JavacParser {
      * @return a JmlMethodClauseSignalsOnly AST node
      */
     public JmlMethodClauseSignalsOnly parseSignalsOnly() {
-        JmlTokenKind jt = jmlTokenKind();
-        ITokenKind tk = token.kind;
+        JmlTokenKind clauseType = jmlTokenKind();
         int pos = pos();
         nextToken();
+        JmlTokenKind jt = jmlTokenKind();
+        ITokenKind tk = token.kind;
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
 
         if (jt == BSNOTHING) {
             S.setJmlKeyword(true);
             nextToken();
-            if (tk != SEMI) {
+            if (token.kind != SEMI) {
                 syntaxError(pos(), null, "jml.expected.semi.after.nothing");
                 skipThroughSemi();
             } else {
@@ -1862,7 +1863,7 @@ public class JmlParser extends JavacParser {
             }
         } else if (tk == SEMI) {
             S.setJmlKeyword(true);
-            syntaxError(pos(), null, "jml.use.nothing", jt.internedName());
+            syntaxError(pos(), null, "jml.use.nothing", clauseType.internedName());
             nextToken();
         } else {
             while (true) {
@@ -1893,7 +1894,7 @@ public class JmlParser extends JavacParser {
                 break;
             }
         }
-        return toP(jmlF.at(pos).JmlMethodClauseSignalsOnly(jt, list.toList()));
+        return toP(jmlF.at(pos).JmlMethodClauseSignalsOnly(clauseType, list.toList()));
     }
 
     public JmlMethodClauseDecl parseForallOld() {
@@ -2942,7 +2943,7 @@ public class JmlParser extends JavacParser {
     protected <T extends ListBuffer<? super JCVariableDecl>> T variableDeclaratorsRest(
             int pos, JCModifiers mods, JCExpression type, Name name,
             boolean reqInit, Comment dc, T vdefs) {
-        if (S.jml) reqInit = false; // In type checking we check this more
+        if (S.jml()) reqInit = false; // In type checking we check this more
                                     // thoroughly
         // Here we just allow having no initializer
         return super.variableDeclaratorsRest(pos, mods, type, name, reqInit,

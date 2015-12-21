@@ -745,6 +745,7 @@ public class compiler {
     
     @Test
     public void testModelBug() throws Exception {
+    	fail("Java8 infinite loop");
         helper(new String[]
                           { "-noPurityCheck",  //"-Xlint:unchecked",
                             "test/model1/ModelClassExampleBug.java",
@@ -763,6 +764,7 @@ public class compiler {
 
     @Test
     public void testModelBug2() throws Exception {
+    	fail("Java8 infinite loop");
         helper(new String[]
                           { "-noPurityCheck",  //"-Xlint:unchecked",
                             "test/model2/NonGenericModelClassExampleBug.java",

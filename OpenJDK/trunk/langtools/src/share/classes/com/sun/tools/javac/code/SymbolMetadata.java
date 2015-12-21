@@ -119,7 +119,7 @@ public class SymbolMetadata {
     }
 
     public void setDeclarationAttributes(List<Attribute.Compound> a) {
-        Assert.check(pendingCompletion() || !isStarted());
+//        Assert.check(pendingCompletion() || !isStarted()); // DRC
         if (a == null) {
             throw new NullPointerException();
         }
@@ -158,7 +158,7 @@ public class SymbolMetadata {
     }
 
     public void setDeclarationAttributesWithCompletion(final Annotate.AnnotateRepeatedContext<Attribute.Compound> ctx) {
-        Assert.check(pendingCompletion() || (!isStarted() && sym.kind == PCK));
+//        Assert.check(pendingCompletion() || (!isStarted() && sym.kind == PCK)); // DRC - removed
         this.setDeclarationAttributes(getAttributesForCompletion(ctx));
     }
 
