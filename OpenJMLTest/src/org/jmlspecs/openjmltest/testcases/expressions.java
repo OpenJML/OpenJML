@@ -27,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -684,6 +685,31 @@ public class expressions extends ParseBase {
                 ,JmlMethodInvocation.class, 31,36,40
                 ,JCIdent.class ,37,37,39
                 );
+    }
+    
+    @Test
+    public void testCastResult2() {
+    	helpExpr("((Integer)\\result) == 0"
+                ,JCBinary.class ,0,13,40
+                ,JCParens.class, 0,0,12
+                ,JCTypeCast.class ,1,1,11
+                ,JCIdent.class ,3,3,11
+                ,JmlSingleton.class ,10,10,17 
+                ,JCLiteral.class, 22,22,23 
+    			);
+    }
+
+    @Test
+    public void testCastResult() {
+    	helpExpr("((x)==>\\result) == 0"
+                ,JCBinary.class ,0,17,21
+                ,JCParens.class, 0,0,12
+                ,JmlBinary.class ,1,1,11
+                ,JCParens.class, 2,2,5
+                ,JCIdent.class ,3,3,4
+                ,JmlSingleton.class ,7,7,14 
+                ,JCLiteral.class, 20,20,21 
+    			);
     }
 
 // TODO: other expressions, etc.

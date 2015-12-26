@@ -3537,7 +3537,7 @@ public class Resolve {
         logResolveError(error, tree.pos(), env.enclClass.sym, env.enclClass.type, null, null, null);
     }
     //where
-    private void logResolveError(ResolveError error,
+    protected void logResolveError(ResolveError error, // DRC - changed private to protected
             DiagnosticPosition pos,
             Symbol location,
             Type site,

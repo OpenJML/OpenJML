@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -902,6 +903,7 @@ public class racnew2 extends RacBase {
     
     /** Checks a model class. */
     @Test public void testModelClass() {
+    	Assert.fail(); // FIXME - Java8
         main.addOptions("-keys=DEBUG");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +

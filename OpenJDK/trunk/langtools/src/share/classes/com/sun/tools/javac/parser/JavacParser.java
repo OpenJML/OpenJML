@@ -1630,6 +1630,14 @@ public class JavacParser implements Parser {
         }
     }
     
+    protected ParensResult analyzeParensHelper(Token t) { // DRC - extracted so it can be overridden
+        return ParensResult.PARENS;
+    }
+    
+    protected ParensResult analyzeParensHelper2(int lookahead, Token t) { // DRC - extracted so it can be overridden
+        return ParensResult.PARENS;
+    }
+    
     /**
      * If we see an identifier followed by a '&lt;' it could be an unbound
      * method reference or a binary expression. To disambiguate, look for a
@@ -1691,7 +1699,7 @@ public class JavacParser implements Parser {
                         case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case VOID:
                             return ParensResult.CAST;
                         default:
-                            return ParensResult.PARENS;
+                            return analyzeParensHelper(S.token(lookahead + 1)); // DRC - inserted hook to allow overriding
                     }
                 case UNDERSCORE:
                 case ASSERT:
@@ -1788,7 +1796,7 @@ public class JavacParser implements Parser {
                     break;
                 default:
                     //this includes EOF
-                    return ParensResult.PARENS;
+                    return analyzeParensHelper2(lookahead,S.token(lookahead)); // DRC - added a hook for overriding
             }
         }
     }
@@ -3188,7 +3196,7 @@ public class JavacParser implements Parser {
         boolean seenImport = false;
         boolean seenPackage = false;
         List<JCAnnotation> packageAnnotations = List.nil();
-        if (token.kind == MONKEYS_AT)
+        //if (token.kind == MONKEYS_AT) // DRC - removed
             mods = modifiersOpt();
 
         if (token.kind == PACKAGE) {
@@ -3201,6 +3209,7 @@ public class JavacParser implements Parser {
             nextToken();
             pid = qualident(false);
             accept(SEMI);
+            mods = modifiersOpt(); // DRC - added
         }
         ListBuffer<JCTree> defs = new ListBuffer<JCTree>();
         boolean checkForImports = true;
@@ -3212,9 +3221,10 @@ public class JavacParser implements Parser {
                 if (token.kind == EOF)
                     break;
             }
-            if (checkForImports && mods == null && token.kind == IMPORT) {
+            if (checkForImports /* && mods == null */ && token.kind == IMPORT) { // DRC - modified to catch modifiers on imports
                 seenImport = true;
-                defs.append(importDeclaration());
+                defs.append(importDeclaration(mods));
+                mods = modifiersOpt(); // DRC - added
             } else {
                 Comment docComment = token.comment(CommentStyle.JAVADOC);
                 if (firstTypeDecl && !seenImport && !seenPackage) {
@@ -3247,7 +3257,7 @@ public class JavacParser implements Parser {
 
     /** ImportDeclaration = IMPORT [ STATIC ] Ident { "." Ident } [ "." "*" ] ";"
      */
-    JCTree importDeclaration() {
+    JCTree importDeclaration(JCModifiers mods) {
         int pos = token.pos;
         nextToken();
         boolean importStatic = false;

@@ -21,8 +21,8 @@ public class namelookup extends TCBase {
                 "   //@ requires k;\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:3: incompatible types\n  required: boolean\n  found:    double",17,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",18
+        "/A.java:3: incompatible types: double cannot be converted to boolean",17,
+        "/A.java:2: incompatible types: int cannot be converted to boolean",18
         );
     }
 
@@ -39,12 +39,12 @@ public class namelookup extends TCBase {
                 "        //@ assert \\old(d);\n" + 
                 "   }\n" +
                 "}",
-        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",20,
-        "/A.java:6: incompatible types\n  required: boolean\n  found:    double",20,
-        "/A.java:7: incompatible types\n  required: boolean\n  found:    int",24,
-        "/A.java:8: incompatible types\n  required: boolean\n  found:    double",24,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",23,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    float",43
+        "/A.java:4: incompatible types: int cannot be converted to boolean",20,
+        "/A.java:6: incompatible types: double cannot be converted to boolean",20,
+        "/A.java:7: incompatible types: int cannot be converted to boolean",24,
+        "/A.java:8: incompatible types: double cannot be converted to boolean",24,
+        "/A.java:2: incompatible types: int cannot be converted to boolean",23, // FIXME - should these be errors because the k, d in scope does not exist in the pre-state?
+        "/A.java:2: incompatible types: float cannot be converted to boolean",43
         );
     }
 
@@ -54,7 +54,7 @@ public class namelookup extends TCBase {
                 " public class A { int k; Object o; \n" +
                 "   void m() {\n" +
                 "      //@ ghost Object k;\n" +
-                "      boolean b = k == null;\n" +  // ERROR
+                "      boolean b = k == null;\n" +  // ERROR - k is Java variable with int type
                 "      //@ assert k == 1;\n" +  // Allowed by boxing
                 "      //@ assert k == null;\n" +
                 "      boolean bb = k == o;\n" +  // Allowed by boxing
@@ -173,7 +173,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",18);
     }
 
     @Test
@@ -187,7 +187,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",18);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   method k()\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",19);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",19);
     }
 
     @Test
@@ -215,7 +215,7 @@ public class namelookup extends TCBase {
                 "}"
         ,"/A.java:2: method k() is already defined in class A",21
         //,"/A.java:2: The return types of method A.k() are different in the specification and java files: double vs. int",14
-        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 21
+        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
         );
     }
 
@@ -229,8 +229,8 @@ public class namelookup extends TCBase {
                 "   void m() {\n" +
                 "   }\n" +
                 "}",
-        "/A.java:3: incompatible types\n  required: boolean\n  found:    double", 18,
-        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",18);
+        "/A.java:3: incompatible types: double cannot be converted to boolean", 18,
+        "/A.java:4: incompatible types: int cannot be converted to boolean",18);
     }
 
     @Test
@@ -247,10 +247,10 @@ public class namelookup extends TCBase {
                 "      }\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 20
-        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int", 24
-        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double", 22
-        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 21
+        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 20
+        ,"/A.java:7: incompatible types: int cannot be converted to boolean", 24
+        ,"/A.java:8: incompatible types: double cannot be converted to boolean", 22
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -265,8 +265,8 @@ public class namelookup extends TCBase {
                 "         //@ assume k(0);\n" +
                 "      }\n" +
                 "}"
-        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 22
-        ,"/A.java:3: incompatible types\n  required: boolean\n  found:    double", 21
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 22
+        ,"/A.java:3: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -287,8 +287,8 @@ public class namelookup extends TCBase {
                 "}\n" +
                 " class B { static int i; }  \n" +
                 ""
-        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int",24 
-        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double",22
+        ,"/A.java:7: incompatible types: int cannot be converted to boolean",24 
+        ,"/A.java:8: incompatible types: double cannot be converted to boolean",22
         );
     }
  

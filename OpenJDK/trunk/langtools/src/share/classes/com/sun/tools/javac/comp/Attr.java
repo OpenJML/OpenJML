@@ -4276,7 +4276,7 @@ public class Attr extends JCTree.Visitor {
     }
 
     /** Finish the attribution of a class. */
-    protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // DRCok - chan ged from private to protected
+    protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) { // DRCok - changed from private to protected
         JCClassDecl tree = (JCClassDecl)env.tree;
         Assert.check(c == tree.sym);
 

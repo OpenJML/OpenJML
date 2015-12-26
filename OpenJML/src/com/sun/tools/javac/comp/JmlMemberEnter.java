@@ -4,9 +4,11 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.DEFAULT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.HASINIT;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.Flags.SIGNATURE_POLYMORPHIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.PCK;
@@ -823,6 +825,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		utils.locationString(p));
                     }
                 } else if (t instanceof JmlMethodDecl) {
+                    visitMethodDef((JmlMethodDecl)t);
+//                    attr.attribTypeVariables(((JmlMethodDecl)t).typarams, env); // FIXME - or  baseEnv(jtree,env)
+//                    // Do this here, where we have the symbol.
+//                    for (JCTypeParameter tp : ((JmlMethodDecl)t).typarams)
+//                        typeAnnotate(tp, env, csym, t.pos());
+//                    
+//                    ListBuffer<Type> argbuf = new ListBuffer<Type>();
+//                    for (List<JCVariableDecl> l = ((JmlMethodDecl)t).params; l.nonEmpty(); l = l.tail) {
+//                        memberEnter(l.head, env);
+//                        argbuf.append(l.head.vartype.type);
+//                    }
+
                     MethodSymbol msym = matchAndCombineMethodSpecs(jtree,csym,(JmlMethodDecl)t,env);
                     if (msym != null && (matchpos=matches.put(msym,((JmlMethodDecl)t).pos)) != null) {
                         int p = ((JmlMethodDecl)t).pos;
@@ -1394,8 +1408,17 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
  //       Symbol lookupMethod(Env<AttrContext> env, DiagnosticPosition pos, Symbol location, MethodCheck methodCheck, LookupHelper lookupHelper) {
 
-        Symbol s = JmlResolve.instance(context).resolveMethod(tree.pos(), env, tree.name, paramTypes.toList(),typaramTypes.toList());
-            
+        Symbol s;
+        JmlResolve jmlResolve = JmlResolve.instance(context);
+        boolean prevSilentErrors = jmlResolve.silentErrors;
+        jmlResolve.silentErrors = true;
+        jmlResolve.errorOccurred = false;
+        try {
+            s = jmlResolve.resolveMethod(tree.pos(), env, tree.name, paramTypes.toList(),typaramTypes.toList());
+        } finally {
+            jmlResolve.silentErrors = prevSilentErrors;
+            if (jmlResolve.errorOccurred) s = null;
+        }
 //        Symbol s = JmlResolve.instance(context).findMethod(env,csym.asType(),
 //                tree.name,paramTypes.toList(),typaramTypes.toList(),
 //                /*allowBoxing*/false,/*varargs*/false,/*is an operator*/false);
@@ -2420,48 +2443,102 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlMethodDecl prevMethod = currentMethod;
         currentMethod = (JmlMethodDecl) tree;
         try {
-            // FIXME - I don't think the test on sourcefile is robust
             boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
             boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
             long flags = tree.mods.flags;
             boolean isJMLMethod = utils.isJML(flags);
-
-            // FIXME - explain why we do this
-            boolean removedStatic = false;
-            if (isJMLMethod && 
-                    (flags & Flags.STATIC) != 0) { // FIXME _ and in an interface?
-                removedStatic = true;
-                tree.mods.flags &= ~Flags.STATIC;
-            }
-
-            // Only enter the method if this is a JML method (e.g., a model method) or if we are processing
-            // a Java file. 
-            // FIXME - I suspect everything does the visit...
-
-            if (isJMLMethod || isClassModel || !isSpecFile || tree.sym == null) {
-                // The super call has the effect of attributing all the types and annotations
-                // and creating a MethodSymbol, which is set in tree.sym
-                super.visitMethodDef(tree);
-            } else {
-                log.warning("jml.internal","Is this really called? in JmlMemberEnter.visitMethodDef");
-            }
-
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
-            if (removedStatic) {
-                tree.sym.flags_field |= Flags.STATIC;
-                tree.mods.flags |= Flags.STATIC;
-            }
-
-            // model methods in an interface are not implicitly abstract
-            if (isJMLMethod && (tree.sym.owner.flags_field & INTERFACE) != 0
-                    && (flags&Flags.ABSTRACT) == 0) {
-                tree.sym.flags_field &= ~Flags.ABSTRACT;
-                tree.mods.flags &= ~Flags.ABSTRACT;
-            }
-
+            
+            super.visitMethodDef(tree);
         } finally {
             currentMethod = prevMethod;
         }
+        
+//        JmlMethodDecl prevMethod = currentMethod;
+//        currentMethod = (JmlMethodDecl) tree;
+//        try {
+//            // FIXME - I don't think the test on sourcefile is robust
+//            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+//            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
+//            long flags = tree.mods.flags;
+//            boolean isJMLMethod = utils.isJML(flags);
+//
+//            // FIXME - explain why we do this
+//            boolean removedStatic = false;
+//            if (isJMLMethod && 
+//                    (flags & Flags.STATIC) != 0) { // FIXME _ and in an interface?
+//                removedStatic = true;
+//                tree.mods.flags &= ~Flags.STATIC;
+//            }
+//
+//            // Only enter the method if this is a JML method (e.g., a model method) or if we are processing
+//            // a Java file. 
+//            // FIXME - I suspect everything does the visit...
+//
+////            if (isJMLMethod || isClassModel || tree.sym == null) {
+//                // The super call has the effect of attributing all the types and annotations
+//                // and creating a MethodSymbol, which is set in tree.sym
+////                super.visitMethodDef(tree);
+////            } else {
+////                log.warning("jml.internal","Is this really called? in JmlMemberEnter.visitMethodDef");
+////            }
+//                { // Copied from MemberEnter.visitMethodDef - to avoid re-entering a method while attributing its types
+//                    Scope enclScope = enter.enterScope(env);
+//                    MethodSymbol m = new MethodSymbol(0, tree.name, null, enclScope.owner);
+//                    m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
+//                    tree.sym = m;
+//
+//                    //if this is a default method, add the DEFAULT flag to the enclosing interface
+//                    if ((tree.mods.flags & DEFAULT) != 0) {
+//                        m.enclClass().flags_field |= DEFAULT;
+//                    }
+//
+//                    Env<AttrContext> localEnv = methodEnv(tree, env);
+//
+//                    DiagnosticPosition prevLintPos = deferredLintHandler.setPos(tree.pos());
+//                    try {
+//                        // Compute the method type
+//                        m.type = signature(m, tree.typarams, tree.params,
+//                                           tree.restype, tree.recvparam,
+//                                           tree.thrown,
+//                                           localEnv);
+//                    } finally {
+//                        deferredLintHandler.setPos(prevLintPos);
+//                    }
+//
+//                    if (types.isSignaturePolymorphic(m)) {
+//                        m.flags_field |= SIGNATURE_POLYMORPHIC;
+//                    }
+//
+//                    // Set m.params
+//                    ListBuffer<VarSymbol> params = new ListBuffer<VarSymbol>();
+//                    JCVariableDecl lastParam = null;
+//                    for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
+//                        JCVariableDecl param = lastParam = l.head;
+//                        params.append(Assert.checkNonNull(param.sym));
+//                    }
+//                    m.params = params.toList();
+//
+//                    // mark the method varargs, if necessary
+//                    if (lastParam != null && (lastParam.mods.flags & Flags.VARARGS) != 0)
+//                        m.flags_field |= Flags.VARARGS;
+//                }
+//
+//            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("      ENTERING MEMBER " + tree.sym + " IN " + tree.sym.owner);
+//            if (removedStatic) {
+//                tree.sym.flags_field |= Flags.STATIC;
+//                tree.mods.flags |= Flags.STATIC;
+//            }
+//
+//            // model methods in an interface are not implicitly abstract
+//            if (isJMLMethod && (tree.sym.owner.flags_field & INTERFACE) != 0
+//                    && (flags&Flags.ABSTRACT) == 0) {
+//                tree.sym.flags_field &= ~Flags.ABSTRACT;
+//                tree.mods.flags &= ~Flags.ABSTRACT;
+//            }
+//
+//        } finally {
+//            currentMethod = prevMethod;
+//        }
     }
     
 //    public void visitBlock(JCTree.JCBlock that) {

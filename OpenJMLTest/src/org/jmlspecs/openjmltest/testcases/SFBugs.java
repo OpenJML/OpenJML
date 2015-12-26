@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ public class SFBugs extends EscBase {
     }
     
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
+    	Assert.fail(); // FIXME - Java8 - long running
 		escOnFiles(sourceDirname,outDir,opts);
 	}
 

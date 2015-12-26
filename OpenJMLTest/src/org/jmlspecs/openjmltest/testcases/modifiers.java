@@ -210,7 +210,7 @@ public class modifiers extends TCBase {
     
     @Test public void testCUMods2() {
         helpTCF("t/A.java","/*@ pure */ package t; import org.jmlspecs.annotation.*;  \n public /*@ pure */ @Pure class A{}"
-                ,"/t/A.java:1: class, interface, or enum expected", 13
+                ,"/t/A.java:1: package annotations should be in file package-info.java", 5
                 ,"/t/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",21
                 );
     }

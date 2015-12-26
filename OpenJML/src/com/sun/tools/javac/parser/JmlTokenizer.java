@@ -507,7 +507,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 while (t.kind != TokenKind.SEMI && t.ikind != JmlTokenKind.ENDJMLCOMMENT) {
                     if (t.kind != TokenKind.IDENTIFIER){
                         // Bad statement or missing terminating semicolon
-                        jmlError(pos, reader.bp, "jml.bad.nowarn");
+                        jmlError(t.pos, reader.bp, "jml.bad.nowarn");
                         // expected identifier
                         skipThroughChar(';');
                         return;
@@ -521,7 +521,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 }
             }
             if (jmlTokenKind == JmlTokenKind.ENDJMLCOMMENT) { 
-                log.warning(pos, "jml.nowarn.with.no.semicolon");
+                log.warning(t.pos, "jml.nowarn.with.no.semicolon");
                 // FIXME Here we are swallowing the end of comment - we normally 
                 // expect that token in the stream. However if there is just a 
                 // nowarn, the Java scanner will not expect a standalone ENDJMLCOMMENT

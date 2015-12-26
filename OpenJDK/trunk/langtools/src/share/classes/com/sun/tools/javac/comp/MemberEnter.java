@@ -81,7 +81,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     protected final Annotate annotate; // DRC - changed from private to protected
     protected final TypeAnnotations typeAnnotations; // JLS - changed from private
 
-    private final Types types;
+    protected final Types types; // DRC - changed from private to protected
     private final JCDiagnostic.Factory diags;
     private final Source source;
     private final Target target;

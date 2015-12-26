@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -26,6 +27,7 @@ public class jmltypes extends TCBase {
     
     @Test
     public void testUninitGhost() {
+    	Assert.fail(); // FIXME - Java8 - anomalously long-running
         helpTCF("A.java",
                 "import java.util.Vector; public class A { \n" +
                 " void m() {\n" +

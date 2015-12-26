@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -362,8 +363,8 @@ public class typechecking extends TCBase {
         
     }
     
-    @Ignore // FIXME - Java8
     @Test public void testSetComp() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
                 //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79  // FIXME
                 ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
@@ -391,15 +392,15 @@ public class typechecking extends TCBase {
         );
     }
 
-    @Ignore // FIXME - Java8
     @Test public void testSetCompB3() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  boolean p; \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n void m() {} \n }"
                 ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",94
         );
     }
 
-    @Ignore // FIXME - Java8
     @Test public void testSetCompB2() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
         );
     }
@@ -428,20 +429,22 @@ public class typechecking extends TCBase {
     }
   
     // testing scopes in local initializers
-    @Ignore // FIXME - Java8
     @Test public void testSetCompC() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
                 ,"/A.java:2: incompatible types\n  required: int\n  found:    org.jmlspecs.lang.JMLSetType",71
                 );
     }
 
     @Test public void testSetCompC3() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { boolean p; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n} \n }"
                 ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",117
                 );
     }
 
     @Test public void testSetCompC2() {
+    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
                 );
     }

@@ -906,7 +906,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (JCAnnotation a : m.mods.annotations) a.type = a.annotationType.type;  // It seems we need this, but it seems this should happen while walking the tree - FIXME
             
             JmlSpecs.MethodSpecs mspecs = specs.getSpecs(m.sym);
-            {
+            if (mspecs != null) { // FIXME - is mspecs allowed to be null?
                 currentSecretContext = mspecs.secretDatagroup;
                 currentQueryContext = mspecs.queryDatagroup;
                 if (currentQueryContext != null) currentSecretContext = currentQueryContext;
@@ -5000,8 +5000,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         try {
         // MAINTENANCE ISSUE: code duplicated mostly from the superclass
+            //the Formal Parameter of a for-each loop is not in the scope when
+            //attributing the for-each expression; we mimick this by attributing
+            //the for-each expression first (against original scope).
             Type exprType = types.cvarUpperBound(attribExpr(tree.expr, loopEnv));
-            savedSpecOK = true;
             attribStat(tree.var, loopEnv);
             chk.checkNonVoid(tree.pos(), exprType);
             Type elemtype = types.elemtype(exprType); // perhaps expr is an array?
@@ -5023,16 +5025,39 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
-
-            trForeachLoop(tree,tree.var.sym.type);
-            
-            attribLoopSpecs(tree.loopSpecs,loopEnv);
-            // FIXME - should this be before or after the preceding statement
-            
+            trForeachLoop(tree,tree.var.sym.type); // DRC - added
             attribStat(tree.body, loopEnv);
+            attribLoopSpecs(tree.loopSpecs,loopEnv); // DRC - added
             result = null;
 
+//            Type exprType = types.cvarUpperBound(attribExpr(tree.expr, loopEnv));
+//            savedSpecOK = true;
+//            attribStat(tree.var, loopEnv);
+//            chk.checkNonVoid(tree.pos(), exprType);
+//            Type elemtype = types.elemtype(exprType); // perhaps expr is an array?
+//            if (elemtype == null) {
+//                // or perhaps expr implements Iterable<T>?
+//                Type base = types.asSuper(exprType, syms.iterableType.tsym);
+//                if (base == null) {
+//                    log.error(tree.expr.pos(),
+//                            "foreach.not.applicable.to.type",
+//                            exprType,
+//                            diags.fragment("type.req.array.or.iterable"));
+//                    elemtype = types.createErrorType(exprType);
+//                } else {
+//                    List<Type> iterableParams = base.allparams();
+//                    elemtype = iterableParams.isEmpty()
+//                        ? syms.objectType
+//                        : types.wildUpperBound(iterableParams.head);
+//                }
+//            }
+//            chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
+//            loopEnv.tree = tree; // before, we were not in loop!
+
+            
+
         } finally {
+            loopEnv.info.scope.leave();
             loopStack.remove(0);
             foreachLoopStack.remove(0);
         }

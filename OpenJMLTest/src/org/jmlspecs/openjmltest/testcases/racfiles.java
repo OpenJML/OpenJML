@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -53,6 +54,7 @@ public class racfiles extends RacBase {
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
+    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
         expectedRACExit = 0;
         helpTCF("test/rac1a","test/rac1a","Bug1");
@@ -121,12 +123,14 @@ public class racfiles extends RacBase {
 
     @Test
     public void testbigint() {
+    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
         helpTCF("test/racbigint","test/racbigint","bigint");
     }
 
     @Test
     public void testreal() {
+    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
         helpTCF("test/racreal","test/racreal","real");
     }

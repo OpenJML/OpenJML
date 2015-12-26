@@ -17,6 +17,7 @@ import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.comp.Resolve.ResolveError;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
@@ -335,5 +336,18 @@ public class JmlResolve extends Resolve {
          boolean b = this.allowJML;
          this.allowJML = allowJML;
          return b;
+     }
+     
+     boolean silentErrors = false;
+     boolean errorOccurred = false;
+     
+     protected void logResolveError(ResolveError error, 
+             DiagnosticPosition pos,
+             Symbol location,
+             Type site,
+             Name name,
+             List<Type> argtypes,
+             List<Type> typeargtypes) {
+         if (!silentErrors) super.logResolveError(error,pos,location,site,name,argtypes,typeargtypes);
      }
 }

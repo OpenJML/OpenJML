@@ -106,7 +106,7 @@ public class racsystem extends RacBase {
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:81)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"            
+                ,"\tat tt.TestJava.main(TestJava.java:1)"            
                 );
     }
 
