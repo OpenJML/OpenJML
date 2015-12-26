@@ -416,9 +416,6 @@ public class Main {
                           List<JavaFileObject> fileObjects,
                           Iterable<? extends Processor> processors)
     {
-        context.put(Log.outKey, out);
-        log = Log.instance(context);
-
         if (options == null)
             options = Options.instance(context); // creates a new one
 

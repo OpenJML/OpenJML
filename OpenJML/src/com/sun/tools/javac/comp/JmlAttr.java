@@ -5504,33 +5504,37 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodSig(JmlMethodSig that) {
         Env<AttrContext> localEnv = env.dup(that.expression, env.info.dup());
 
-        List<Type> types = that.argtypes != null ? super.attribAnyTypes(that.argtypes, localEnv) : List.<Type>nil();
+        List<Type> argtypes = that.argtypes != null ? super.attribAnyTypes(that.argtypes, localEnv) : List.<Type>nil();
         List<Type> typeargtypes = List.<Type>nil(); // attribAnyTypes(that.typeargs, localEnv);// FIXME - need to handle template arguments
         
         // FIXME - need a better check that the expression is a constructor
         // This won't even work if the method has the class name as a suffix
-        if (that.expression.toString().endsWith(env.enclClass.name.toString())) {
-            Symbol sym = jmlresolve.resolveConstructor(that,localEnv,
+        Name name;
+        Type classType;
+        if (that.expression instanceof JCIdent) {
+            name = ((JCIdent)that.expression).name;
+            classType = env.enclClass.type;
+        } else {
+            JCFieldAccess fa = (JCFieldAccess)that.expression;
+            name = fa.name;
+            attribExpr(fa.selected,localEnv);
+            classType = fa.selected.type;
+        }
+        if (name.toString().equals(env.enclClass.name.toString())) {
+            Symbol sym = jmlresolve.resolveConstructor(that.pos(),localEnv,
                     env.enclClass.type,
-                    types,
+                    argtypes,
                     typeargtypes);
             that.methodSymbol = (MethodSymbol)sym;
         } else {
-            Type mpt = newMethodTemplate(that.methodSymbol.getReturnType(), types, typeargtypes);
-//            localEnv.info.varArgs = false; // FIXME - not sure how to set this
-            try {
-                attribExpr(that.expression, localEnv, mpt);
-            } catch (ClassCastException e) {
-                // expecting this, because we aren't really passing in a MethodInvocation
-            }
-            Symbol sym = null;
-            if (that.expression instanceof JCIdent) {
-                sym = ((JCIdent)that.expression).sym;
-            } else if (that.expression instanceof JCFieldAccess) {
-                sym = ((JCFieldAccess)that.expression).sym;
-            }
+            Symbol sym = jmlresolve.resolveMethod(that.pos(), localEnv, name, argtypes, typeargtypes);
+            //Symbol sym = jmlresolve.findMethod(localEnv, classType, name, argtypes, typeargtypes,false,false,false);
+
             // If there was an error attributing the JmlMethodSig, then sym
             // will not be a MethodSymbol
+//            if (!(sym instanceof MethodSymbol)) {
+//                jmlerror(that,"internal.error","No method found with the given signature");
+//            }
             that.methodSymbol = sym instanceof MethodSymbol ? (MethodSymbol)sym : null;
         }
     }

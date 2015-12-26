@@ -90,18 +90,16 @@ public class expressions extends ParseBase {
                 p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 p3 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 // FIXME - need better way to obtain positions
-//                if (p3 != null) {
-//                    assertEquals("Start position for token " + k, p1, TreeInfo.getStartPos(t)); // t.getStartPosition());
-//                    //if (t.getPreferredPosition() != (Integer)p2 && t.getPreferredPosition() != (Integer)p2+1)
-//                        assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
-//                    assertEquals("End position for token " + k, p3, p.getEndPos(t));
-//                } else if (p2 != null) {
-//                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
-//                    assertEquals("End position for token " + k, p2, p.getEndPos(t));
-//                } else {
-//                    //if (t.getPreferredPosition() != (Integer)p1 && t.getPreferredPosition() != (Integer)p1+1)
-//                        assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
-//                }
+                if (p3 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
+                    assertEquals("End position for token " + k, p3, p.getEndPos(t));
+                } else if (p2 != null) {
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("End position for token " + k, p2, p.getEndPos(t));
+                } else {
+                    assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
+                }
                 ++k;
             }
             if ( i != list.length) fail("Incorrect number of nodes listed");
@@ -407,29 +405,29 @@ public class expressions extends ParseBase {
     @Test
     public void testResult() {
         helpExpr(" \\result + \\result",
-                JCBinary.class, 9,
-                JmlSingleton.class ,1,
-                JmlSingleton.class ,11);
+                JCBinary.class, 1,9,18,
+                JmlSingleton.class ,1,1,8,
+                JmlSingleton.class ,11,11,18);
     }
 
     /** Test scanning \old expression */
     @Test
     public void testOld() {
         helpExpr(" \\old(a+b)",
-                JmlMethodInvocation.class, 5,
-                JCBinary.class, 7,
-                JCIdent.class ,6,
-                JCIdent.class ,8);
+                JmlMethodInvocation.class, 1,5,10,
+                JCBinary.class, 6,7,9,
+                JCIdent.class ,6,6,7,
+                JCIdent.class ,8,8,9);
     }
 
     /** Test scanning \elemtype expression */
     @Test
     public void testElemtype() {
         helpExpr(" \\elemtype(a+b)",
-                JmlMethodInvocation.class, 10,
-                JCBinary.class, 12,
-                JCIdent.class ,11,
-                JCIdent.class ,13);
+                JmlMethodInvocation.class, 1,10,15,
+                JCBinary.class, 11,12,14,
+                JCIdent.class ,11,11,12,
+                JCIdent.class ,13,13,14);
     }
 
     /** Test scanning \nonnullelements expression */
@@ -690,10 +688,10 @@ public class expressions extends ParseBase {
     @Test
     public void testCastResult2() {
     	helpExpr("((Integer)\\result) == 0"
-                ,JCBinary.class ,0,13,40
-                ,JCParens.class, 0,0,12
-                ,JCTypeCast.class ,1,1,11
-                ,JCIdent.class ,3,3,11
+                ,JCBinary.class ,0,19,23
+                ,JCParens.class, 0,0,18
+                ,JCTypeCast.class ,1,1,17
+                ,JCIdent.class ,2,2,9
                 ,JmlSingleton.class ,10,10,17 
                 ,JCLiteral.class, 22,22,23 
     			);
@@ -702,13 +700,13 @@ public class expressions extends ParseBase {
     @Test
     public void testCastResult() {
     	helpExpr("((x)==>\\result) == 0"
-                ,JCBinary.class ,0,17,21
-                ,JCParens.class, 0,0,12
-                ,JmlBinary.class ,1,1,11
-                ,JCParens.class, 2,2,5
-                ,JCIdent.class ,3,3,4
+                ,JCBinary.class ,0,16,20
+                ,JCParens.class, 0,0,15
+                ,JmlBinary.class ,1,4,14
+                ,JCParens.class, 1,1,4
+                ,JCIdent.class ,2,2,3
                 ,JmlSingleton.class ,7,7,14 
-                ,JCLiteral.class, 20,20,21 
+                ,JCLiteral.class, 19,19,20 
     			);
     }
 

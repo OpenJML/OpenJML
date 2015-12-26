@@ -271,8 +271,7 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            JmlToken token = S.jmlToken();
-            if (token.kind == IMPORT && !isNone(mods)) {
+            if (token.kind == IMPORT) {
                 JCAnnotation a = utils
                         .findMod(
                                 mods,
@@ -1299,6 +1298,7 @@ public class JmlParser extends JavacParser {
             } else {
                 sigs.append(m);
             }
+            toP(m);
             if (token.kind != COMMA) break;
             nextToken();
         }
@@ -1437,8 +1437,8 @@ public class JmlParser extends JavacParser {
             jmlerror(pos(), endPos(), "jml.expected", "an identifier");
             n = names.asterisk; // place holder for an error situation
         } else {
-            n = ident();
-            if (tk != TokenKind.EQ && jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
+            n = ident(); // Advances to next token
+            if (token.kind != TokenKind.EQ && jmlTokenKind() != JmlTokenKind.LEFT_ARROW) {
                 jmlerror(pos(), endPos(), "jml.expected",
                         "an = or <- token");
             } else {
@@ -1765,6 +1765,7 @@ public class JmlParser extends JavacParser {
                         sigs = parseMethodNameList();
                     }
                     S.setJmlKeyword(true);
+                    int endpos = pos();
                     accept(SEMI);
                     JmlMethodClauseCallable ec;
                     if (refkeyword != null) {
@@ -2672,9 +2673,9 @@ public class JmlParser extends JavacParser {
                     ExpressionExtension ne = Extensions.instance(context).find(pos(),
                             jt);
                     if (ne == null) {
-                        jmlerror(pos(), endPos(), "jml.no.such.extension",
+                        jmlerror(p, endPos(), "jml.no.such.extension",
                                 jt.internedName());
-                        return jmlF.at(pos()).Erroneous();
+                        return jmlF.at(p).Erroneous();
                     } else {
                         return ne.parse(this, typeArgs);
                     }

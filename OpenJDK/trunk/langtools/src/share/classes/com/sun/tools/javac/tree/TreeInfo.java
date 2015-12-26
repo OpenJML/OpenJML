@@ -415,7 +415,9 @@ public class TreeInfo {
     public static int getStartPos(JCTree tree) {
         if (tree == null)
             return Position.NOPOS;
-
+        if (tree.getTag() == null) {
+            return tree.getStartPosition(); // DRC - added
+        }
         switch(tree.getTag()) {
             case APPLY:
                 if (((JCMethodInvocation) tree).meth == null) return tree.getStartPosition(); // DRC - added for JML keyword methods

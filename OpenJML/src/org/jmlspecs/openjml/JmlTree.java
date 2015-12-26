@@ -1354,6 +1354,11 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
     }
 
     /** This class wraps a Java do while loop just so it can attach some specs
@@ -3161,6 +3166,11 @@ public class JmlTree implements IJmlTree {
                 return null; //return super.accept(v,d);
             }
         }
+        
+        public int getStartPosition() {
+            return pos;
+        }
+
     }
     
     /** This class represents an "in" type clause in a class specification */

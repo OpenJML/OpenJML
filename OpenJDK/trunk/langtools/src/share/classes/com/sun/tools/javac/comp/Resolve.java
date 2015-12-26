@@ -1617,7 +1617,7 @@ public class Resolve {
         }
     }
 
-    Symbol findMethodInScope(Env<AttrContext> env,
+    protected Symbol findMethodInScope(Env<AttrContext> env, // DRC - changed from default to protected
             Type site,
             Name name,
             List<Type> argtypes,

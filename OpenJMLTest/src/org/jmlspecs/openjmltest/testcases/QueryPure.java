@@ -82,7 +82,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure //@ pure\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: duplicate annotation",11
+                ,"/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",11
         );
     }
 
@@ -92,7 +92,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Query //@ query\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: duplicate annotation",12
+                ,"/A.java:2: org.jmlspecs.annotation.Query is not a repeatable annotation type",12
         );
     }
 
@@ -184,7 +184,7 @@ public class QueryPure extends TCBase {
                 "  @Query //@ query\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
-                ,"/A.java:3: duplicate annotation",14
+                ,"/A.java:3: org.jmlspecs.annotation.Query is not a repeatable annotation type",14
         );
     }
 
@@ -196,7 +196,7 @@ public class QueryPure extends TCBase {
                 "  @Pure //@ pure\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
-                ,"/A.java:3: duplicate annotation",13
+                ,"/A.java:3: org.jmlspecs.annotation.Pure is not a repeatable annotation type",13
         );
     }
 
@@ -514,7 +514,7 @@ public class QueryPure extends TCBase {
                 "  //@ @Secret(\"v\") public invariant true;\n" + // ERROR - not found
                 "} \n"
                 ,"/A.java:11: A secret annotation on an invariant must have exactly one argument",22
-                ,"/A.java:12: incompatible types\n  required: java.lang.String\n  found:    int",15
+                ,"/A.java:12: incompatible types: int cannot be converted to java.lang.String",15
                 ,"/A.java:13: cannot find symbol\n  symbol:   variable org\n  location: class A",15
                 ,"/A.java:14: annotation values must be of the form 'name=value'",15
                 ,"/A.java:14: annotation values must be of the form 'name=value'",23

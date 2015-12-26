@@ -254,6 +254,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.out = out;
         this.diagListener = diagListener;
         context = new Context();
+        log = uninitializedLog();
         JavacFileManager.preRegister(context); // can't create it until Log has been set up
         register(context);
         if (args == null) args = emptyArgs;

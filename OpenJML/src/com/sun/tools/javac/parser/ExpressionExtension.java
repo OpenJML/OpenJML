@@ -41,9 +41,6 @@ abstract public class ExpressionExtension {
     /** The parser in use, set when derived classes are instantiated */
     protected /*@ non_null */ JmlParser parser;
     
-    /** The scanner in use, set when derived classes are instantiated */
-    protected /*@ non_null */ JmlScanner scanner;
-    
     /** The symbol table, set when the context is set */
     protected Symtab syms;
     
@@ -130,16 +127,15 @@ abstract public class ExpressionExtension {
             @Nullable List<JCExpression> typeArgs) {
         // TODO Auto-generated method stub
         this.parser = parser;
-        this.scanner = parser.getScanner();
         JmlTokenKind jt = parser.jmlTokenKind();
-        int p = scanner.currentPos();
+        int p = parser.pos();
         parser.nextToken();
         if (parser.token().kind != TokenKind.LPAREN) {
             return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
         } else if (typeArgs != null && !typeArgs.isEmpty()) {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
         } else {
-            int pp = scanner.currentPos();
+            int pp = parser.pos();
             List<JCExpression> args = parser.arguments();
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;

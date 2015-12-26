@@ -49,14 +49,14 @@ public class access extends TCBase {
     @Test
     public void testSpecConflict1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private boolean b; } "
-                ,"/A.java:1: duplicate annotation",34
+                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflict2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private boolean b; } "
-                ,"/A.java:1: duplicate annotation",37
+                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 
@@ -104,14 +104,14 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictM1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private boolean m(){return true;} } "
-                ,"/A.java:1: duplicate annotation",34
+                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflictM2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private boolean m(){return true;} } "
-                ,"/A.java:1: duplicate annotation",37
+                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 
@@ -159,14 +159,14 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictC1() {
         helpTCF("A.java","public class A { /*@ spec_public spec_public */ static private class C{} } "
-                ,"/A.java:1: duplicate annotation",34
+                ,"/A.java:1: org.jmlspecs.annotation.SpecPublic is not a repeatable annotation type",34
                 );
     }
 
     @Test
     public void testSpecConflictC2() {
         helpTCF("A.java","public class A { /*@ spec_protected spec_protected */ static private class C{} } "
-                ,"/A.java:1: duplicate annotation",37
+                ,"/A.java:1: org.jmlspecs.annotation.SpecProtected is not a repeatable annotation type",37
                 );
     }
 

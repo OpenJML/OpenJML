@@ -446,18 +446,18 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
                 endPos = reader.bp;
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.INFORMAL_COMMENT;
-            } else if (jmlTokenKind == JmlTokenKind.MODEL) {
-                int prevbp = reader.bp; // FIXME _ this is probably not working; check endPos
-                Token tt = super.readToken();
-                //docComment = dc;
-                if (jml && tt.kind == TokenKind.IMPORT) {
-                    jmlTokenKind = JmlTokenKind.MODEL;
-                } else {
-                    // Need to backtrack
-                    setReaderState(prevbp);
-                    tk = TokenKind.CUSTOM;
-                    jmlTokenKind = JmlTokenKind.MODEL;
-                }
+//            } else if (jmlTokenKind == JmlTokenKind.MODEL) {
+//                int prevbp = reader.bp; // FIXME _ this is probably not working; check endPos
+//                Token tt = super.readToken();
+//                //docComment = dc;
+//                if (jml && tt.kind == TokenKind.IMPORT) {
+//                    jmlTokenKind = JmlTokenKind.MODEL;
+//                } else {
+//                    // Need to backtrack
+//                    setReaderState(prevbp);
+//                    tk = TokenKind.CUSTOM;
+//                    jmlTokenKind = JmlTokenKind.MODEL;
+//                }
             } else if (tk == TokenKind.LBRACE && reader.ch == '|') {
                 tk = TokenKind.CUSTOM;
                 jmlTokenKind = JmlTokenKind.SPEC_GROUP_START;

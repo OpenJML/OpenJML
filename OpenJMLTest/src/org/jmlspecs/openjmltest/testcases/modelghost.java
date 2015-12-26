@@ -20,7 +20,6 @@ public class modelghost extends TCBase {
         super.setUp();
     }
     
-    @Ignore // FIXME - Java8
     @Test
     public void testMethod() {
         helpTCF("A.java",
@@ -154,7 +153,6 @@ public class modelghost extends TCBase {
         
     }
 
-    @Ignore // FIXME - Java8
     @Test
     public void testClass() {
         helpTCF("A.java",
@@ -200,7 +198,6 @@ public class modelghost extends TCBase {
                 
     }
     
-    @Ignore // FIXME - Java8
     @Test
     public void testField() {
         helpTCF("A.java",
@@ -267,7 +264,6 @@ public class modelghost extends TCBase {
         );
     }
 
-    @Ignore // FIXME - Java8
     @Test
     public void testInitializer2() {
         addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");

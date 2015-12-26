@@ -17,7 +17,7 @@ public class escaccessible extends EscBase {
         super(options,solver);
     }
     
-    @Test @Ignore
+    @Test
     public void testBasic() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -27,7 +27,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testConstructor() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -36,7 +36,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testConstructor2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -47,7 +47,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleReturn() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -60,7 +60,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleReturn2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -70,7 +70,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleReturn3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -81,7 +81,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleReturn4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -92,7 +92,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleReturn5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -105,7 +105,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleFA() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -117,7 +117,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleFA2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -131,7 +131,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleFA3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -144,7 +144,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleFA4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -158,7 +158,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleAA1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -171,7 +171,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleAA2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -184,7 +184,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleAA3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -199,7 +199,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleCall1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -212,7 +212,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleCall2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -227,7 +227,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleCall3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -240,7 +240,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleCall4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -255,7 +255,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleThisType() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -266,7 +266,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleConditional() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -280,7 +280,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleConditional2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -291,7 +291,7 @@ public class escaccessible extends EscBase {
                 );
     }
 
-    @Test @Ignore
+    @Test
     public void testAccessibleConditional3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

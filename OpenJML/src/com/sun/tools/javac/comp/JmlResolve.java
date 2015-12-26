@@ -4,6 +4,11 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.ABSTRACT;
+import static com.sun.tools.javac.code.Flags.DEFAULT;
+import static com.sun.tools.javac.code.Flags.SYNTHETIC;
+import static com.sun.tools.javac.code.Kinds.MTH;
+
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -17,9 +22,11 @@ import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.comp.Resolve.LookupFilter;
 import com.sun.tools.javac.comp.Resolve.ResolveError;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Filter;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log.WriterKind;
@@ -350,4 +357,44 @@ public class JmlResolve extends Resolve {
              List<Type> typeargtypes) {
          if (!silentErrors) super.logResolveError(error,pos,location,site,name,argtypes,typeargtypes);
      }
+     
+     // Overridden purely to invoke JmlLookupFilter; otherwise a copy of Resolve.findMethodInScope
+     @Override
+     protected Symbol findMethodInScope(Env<AttrContext> env, 
+             Type site,
+             Name name,
+             List<Type> argtypes,
+             List<Type> typeargtypes,
+             Scope sc,
+             Symbol bestSoFar,
+             boolean allowBoxing,
+             boolean useVarargs,
+             boolean operator,
+             boolean abstractok) {
+         for (Symbol s : sc.getElementsByName(name, new JmlLookupFilter(abstractok))) {
+             bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
+                     bestSoFar, allowBoxing, useVarargs, operator);
+         }
+         return bestSoFar;
+     }
+     
+     /** This class extends Resolve.LookupFilter to disallow using variables declared in
+      * JML within Java code
+      */
+     class JmlLookupFilter extends LookupFilter {
+
+         boolean abstractOk;
+
+         JmlLookupFilter(boolean abstractOk) {
+             super(abstractOk);
+         }
+
+         public boolean accepts(Symbol s) {
+             if (!super.accepts(s)) return false;
+             if (utils.isJML(s.flags()) && !allowJML()) return false;
+             return true;
+         }
+     };
+
+
 }

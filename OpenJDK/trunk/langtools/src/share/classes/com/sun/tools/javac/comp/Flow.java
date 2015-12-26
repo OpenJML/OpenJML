@@ -493,6 +493,8 @@ public class Flow {
                         scan(l.head);
                     }
                 }
+                
+                moreClassDef(tree); // DRC added
             } finally {
                 pendingExits = pendingExitsPrev;
                 alive = alivePrev;

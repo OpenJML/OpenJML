@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,7 @@ public class racnonpublic extends RacBase {
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
+        Assert.fail();
         Assume.assumeTrue( new File(OpenJMLNonPublicDemoPath).exists() );
     }
 

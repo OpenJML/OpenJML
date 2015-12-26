@@ -238,7 +238,7 @@ public class api extends JmlTestCase {
         }
     }
     
-    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    @Test
     public void testParseAndPrettyPrint3() {
         start(true);
         try {
@@ -253,7 +253,7 @@ public class api extends JmlTestCase {
         }
     }
     
-    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    @Test
     public void testParseAndPrettyPrint4() {
         start(true);
         try {
@@ -624,7 +624,7 @@ public class api extends JmlTestCase {
             IAPI m = Factory.makeAPI("-v");
             set.add(m.makeJFOfromFilename("test/testNoErrors/A.java"));
             //String s = m.prettyPrint(m.parseFiles(set).get(0),true);
-            check("",output);
+            check(output,"");
             //s = s.replace('\\','/');
             //compareStrings(prettyprint,s);
         } catch (Exception e) {
@@ -642,7 +642,7 @@ public class api extends JmlTestCase {
     // API(), nodeFactory(), context(), node building, prettyPrint(...,false), enterAndCheck(jcu)
     @Test
     public void testAPI3() {
-      String out =
+      String err =
           "/A.java:1: error: incompatible types"+eol+
           "-------------"+eol+
           "^"+eol+
@@ -651,7 +651,7 @@ public class api extends JmlTestCase {
           "/A.java:1: error: duplicate class: org.test.A"+eol+
           "-------------"+eol+
           "^"+eol;
-      String err = "";
+      String out = "";
 
       try {
           start(true);
@@ -803,7 +803,7 @@ public class api extends JmlTestCase {
       }
     }
   
-    // TODOL test enterAndCheck with >1 arguments
+    // TODO test enterAndCheck with >1 arguments
     
     /** Tests running a scanner over an AST */
     // parseString, tree walking  // FIXME - document & test different scan modes
@@ -819,7 +819,7 @@ public class api extends JmlTestCase {
             v.scan(ast);
             check("","");
             assertEquals(1,v.numberClasses);
-            assertEquals(9,v.numberNodes);
+            assertEquals(6,v.numberNodes);
             
         } catch (Exception e) {
             System.out.println(e);
@@ -899,7 +899,7 @@ public class api extends JmlTestCase {
         public int numberNodes = 0;
         
         public void scan(JCTree node) {
-            numberNodes++;
+            if (node != null) numberNodes++;
             super.scan(node);  // Call this to scan child nodes
         }
         
@@ -1318,7 +1318,7 @@ public class api extends JmlTestCase {
         testESC("");
     }
     
-    @Test @Ignore
+    @Test @Ignore // FIXME - boogie not implemented
     public void testESCBoogie() {
         testESC("-boogie");
     }

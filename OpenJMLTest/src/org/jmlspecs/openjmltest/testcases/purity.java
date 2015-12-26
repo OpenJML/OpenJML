@@ -137,7 +137,6 @@ public class purity extends TCBase {
                 );
     }
 
-    @Ignore // FIXME - Java8
     @Test
     public void testCollection() {
         expectedExit = 0;
@@ -145,7 +144,6 @@ public class purity extends TCBase {
                 );
     }
 
-    @Ignore // FIXME - Java8
     @Test
     public void testCollection2() {
         expectedExit = 0;
