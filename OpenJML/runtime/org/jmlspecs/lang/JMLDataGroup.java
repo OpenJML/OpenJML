@@ -41,9 +41,9 @@ public @Pure final class JMLDataGroup implements Cloneable {
         //@ set owner = null;
     } 
 
-    /** The only object of this type.
-     */
-    public static final @NonNull JMLDataGroup IT = new JMLDataGroup();
+//    /** The only object of this type.
+//     */
+//    public static final @NonNull JMLDataGroup IT = new JMLDataGroup();
 
     /** Return this object.
      */

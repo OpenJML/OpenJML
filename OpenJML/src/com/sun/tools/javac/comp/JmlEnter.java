@@ -141,9 +141,6 @@ public class JmlEnter extends Enter {
     @NonNull
     final protected Utils utils;
 
-    /** This is just used to communicate between levels of visit calls */  // FIXME - Actually I think it is no longer used
-    protected ListBuffer<List<JCTree>> currentParentSpecList;
-    
     // FIXME - document
     public java.util.List<Env<AttrContext>> binaryMemberTodo = new LinkedList<Env<AttrContext>>();
 
@@ -218,32 +215,32 @@ public class JmlEnter extends Enter {
             // If there are no specs files we enter this branch
             // This might be because we are just processing an individual spec
             // file for a binary class
-            currentParentSpecList = null;
+//            currentParentSpecList = null;
 
 
         } else {
 
             // FIXME - explain what we are doing here
             
-            ListBuffer<List<JCTree>> prev = currentParentSpecList;
-            currentParentSpecList = new ListBuffer<List<JCTree>>();
+//            ListBuffer<List<JCTree>> prev = currentParentSpecList;
+//            currentParentSpecList = new ListBuffer<List<JCTree>>();
             {
                 JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
                 jcu.packge = jmltree.packge; // FIXME - should we check that the packages are the same? why is this not set when it is parsed?
-                currentParentSpecList.append(jcu.defs);
+//                currentParentSpecList.append(jcu.defs);
                 Env<AttrContext> tlenv = topLevelEnv(jcu);
                 for (JCTree t: jcu.defs) {
                     if (t instanceof JmlClassDecl) ((JmlClassDecl)t).env = tlenv; // FIXME - is this the best place for this?
                 }
             }
             
-            currentParentSpecList = prev;
+//            currentParentSpecList = prev;
             
             // Then add in any top-level model types
             // FIXME - do we really need specsTopLevelModelTypes - same as typeSpecs.modelTypes, no?
             jmltree.specsTopLevelModelTypes = addTopLevelModelTypes(jmltree.packge,jmltree.specsCompilationUnit);
             
-            currentParentSpecList = prev;
+//            currentParentSpecList = prev;
 
         }
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
@@ -543,7 +540,7 @@ public class JmlEnter extends Enter {
      */
     protected void enterModelTypes(ListBuffer<JmlClassDecl> list, Env<AttrContext> env) {
         for (JmlClassDecl classDecl: list) {
-            currentParentSpecList = null;
+ //           currentParentSpecList = null;
             classEnter(classDecl,env);
         }
     }
@@ -562,8 +559,8 @@ public class JmlEnter extends Enter {
         // names, errors will be issued when the system tries to add the second
         // duplicate to the symbol table.  
         {
-            currentParentSpecList = new ListBuffer<List<JCTree>>();
-            currentParentSpecList.append(specCompilationUnit.defs);  // Model types are their own specification
+//            currentParentSpecList = new ListBuffer<List<JCTree>>();
+//            currentParentSpecList.append(specCompilationUnit.defs);  // Model types are their own specification
             specCompilationUnit.packge = packageSymbol;
             Env<AttrContext> tlenv = topLevelEnv(specCompilationUnit);
             env = tlenv;
@@ -576,8 +573,8 @@ public class JmlEnter extends Enter {
 
                     // Model class declarations are their own specification
                     specTypeDeclaration.specsDecls =specTypeDeclaration;
-                    currentParentSpecList = new ListBuffer<List<JCTree>>();
-                    currentParentSpecList.append(List.<JCTree>of(specTypeDeclaration));
+//                    currentParentSpecList = new ListBuffer<List<JCTree>>();
+//                    currentParentSpecList.append(List.<JCTree>of(specTypeDeclaration));
                     
                     classEnter(specTypeDeclaration,tlenv);  // Does nested classes as well
                     // The above associated a new symbol with specTypeDeclaration; sourcefile, toplevel were already done
@@ -963,7 +960,7 @@ public class JmlEnter extends Enter {
     }
 
  
-    /** This overrides the parent class mathod so that we allow file names
+    /** This overrides the parent class method so that we allow file names
      * with spec extensions, not just .java 
      * 
      * @param c the class the file is associated with

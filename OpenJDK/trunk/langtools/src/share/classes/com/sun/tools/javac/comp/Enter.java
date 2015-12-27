@@ -122,7 +122,6 @@ public class Enter extends JCTree.Visitor {
         log = Log.instance(context);
         syms = Symtab.instance(context); // DRC - reorganized order of initialization to avoid some circular initializations - may be able to be removed
         reader = ClassReader.instance(context);
-//        reader.init(syms); // DRC - this is added, but I do not know why; perhaps not needed
         make = TreeMaker.instance(context);
         chk = Check.instance(context);
         memberEnter = MemberEnter.instance(context);

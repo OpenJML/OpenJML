@@ -1,23 +1,70 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.ParameterizedWithNames;
+import org.junit.runners.Parameterized.Parameters;
 
 /** These tests check various improper declarations of model and ghost
  * methods and fields.
  * @author David R. Cok
  *
  */
+@RunWith(ParameterizedWithNames.class)
 public class modelghost extends TCBase {
 
 
-    @Override
-    public void setUp() throws Exception {
-        useSystemSpecs = true;
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
-        super.setUp();
+//    @Override
+//    public void setUp() throws Exception {
+////        useSystemSpecs = false;
+////        noCollectDiagnostics = true;
+////        jmldebug = true;
+//        super.setUp();
+//    }
+    
+    @Parameters
+    static public Collection<Boolean[]> parameters() {
+        Collection<Boolean[]> data = new ArrayList<>(2);
+        data.add(new Boolean[]{false});
+        data.add(new Boolean[]{true});
+        return data;
+    }
+    
+    public modelghost(Boolean b) {
+    	useSystemSpecs = b;
+    }
+
+    
+    @Test
+    public void testClassSimple() {
+    	helpTCF("A.java",
+    			"public class A { /*@ model int m() { return B.n; } */ C mm() { return C.nn; }}\n" +
+    	        "/*@ model class B { public static int n; } */\n" +
+    		    "class C { public static C nn; }"
+    		    );
+    }
+    
+    @Test
+    public void testClassSimple2() {
+    	helpTCF("A.java",
+    			"public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}\n" +
+    	        "/*@ model class B { public static int n; } */\n"
+    		    ,"/A.java:1: cannot find symbol\n  symbol:   class B\n  location: class A",55
+    		    ,"/A.java:1: cannot find symbol\n  symbol:   variable B\n  location: class A",71
+    		    );
+    }
+    
+    @Test
+    public void testClassSimple3() {
+    	helpTCF("A.java",
+    			"public class A { /*@ model B m() { return B.n; } } */ " +
+    	        "/*@ model class B { public static B n; } */\n"
+    		    );
     }
     
     @Test
@@ -142,6 +189,7 @@ public class modelghost extends TCBase {
 
     @Test
     public void testUseJML() {
+    	if (!useSystemSpecs) return; // Irrelevant if useSystemSpecs is false
         helpTCF("A.java",
                 "import org.jmlspecs.lang.JML; public class A { \n" +
                 

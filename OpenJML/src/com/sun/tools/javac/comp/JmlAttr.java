@@ -375,6 +375,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
+        boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
+        super.attribClass(c);
+        if (!isUnattributed) return;
+        
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
         if (classSpecs == null) {
@@ -384,23 +388,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // loadSpecsForBinary should always result in a TypeSpecs for the
                 // class symbol, even if the TypeSpecs is empty
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
-                c.complete(); // At least complete it
                 return;
             } 
             if (classSpecs.decl == null) {
                 // No specs were found for a binary file, so there is nothing to attribute
-                c.complete(); // At least complete it
                 return;
             }
         }
 
-        // The previous operations might have attributed the current class
-        // if there was a cycle. So we test first whether the class is still
-        // UNATTRIBUTED.
-        if ((c.flags() & UNATTRIBUTED) == 0) return;
-        // We let the super class turn it off to avoid recursion
-
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-begin " + c + " " + level);
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
         level++;
         if (c != syms.predefClass) {
             if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"typechecking " + c);
@@ -424,7 +420,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // will cause a Null pointer exception.
                 return; // Skip to the finally section
             }
-            super.attribClass(c);
+//            super.attribClass(c);
             
             // FIXME - do we still need this?
             // Binary files with specs had entries put in the Env map so that the
