@@ -211,37 +211,32 @@ public class JmlEnter extends Enter {
         // Then do all the regular Java registering of packages and types
         super.visitTopLevel(jmltree);
 
-        if (jmltree.specsCompilationUnit == null) {
-            // If there are no specs files we enter this branch
-            // This might be because we are just processing an individual spec
-            // file for a binary class
-//            currentParentSpecList = null;
-
-
-        } else {
+        if (jmltree.specsCompilationUnit != null) {
 
             // FIXME - explain what we are doing here
             
-//            ListBuffer<List<JCTree>> prev = currentParentSpecList;
-//            currentParentSpecList = new ListBuffer<List<JCTree>>();
+            JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
             {
-                JmlCompilationUnit jcu = jmltree.specsCompilationUnit; 
-                jcu.packge = jmltree.packge; // FIXME - should we check that the packages are the same? why is this not set when it is parsed?
-//                currentParentSpecList.append(jcu.defs);
+                jcu.packge = jmltree.packge;
+//                if (jmltree.packge != jcu.packge) {
+//                    JavaFileObject prev = log.useSource(jcu.sourcefile);
+//                    log.error(jcu.getPackageName().pos,"jml.internal","The package in " + jcu.sourcefile.getName() + " is " + jcu.packge.toString() + ", which does not match the .java file: " + jmltree.packge.toString());
+//                    log.error(jmltree.getPackageName().pos,"jml.associated.decl.cf",
+//                            utils.locationString(jcu.getPackageName().pos));
+//                    log.useSource(prev);
+//                    jcu.packge = jmltree.packge; // Fix it to tey to continue
+//                }
+                // Attach the top=level env to each new specs class (FIXME - why do we need this - is it the best place to put the information?)
                 Env<AttrContext> tlenv = topLevelEnv(jcu);
                 for (JCTree t: jcu.defs) {
-                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).env = tlenv; // FIXME - is this the best place for this?
+                    if (t instanceof JmlClassDecl) ((JmlClassDecl)t).env = tlenv;
                 }
             }
-            
-//            currentParentSpecList = prev;
             
             // Then add in any top-level model types
             // FIXME - do we really need specsTopLevelModelTypes - same as typeSpecs.modelTypes, no?
             jmltree.specsTopLevelModelTypes = addTopLevelModelTypes(jmltree.packge,jmltree.specsCompilationUnit);
             
-//            currentParentSpecList = prev;
-
         }
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
@@ -561,6 +556,15 @@ public class JmlEnter extends Enter {
         {
 //            currentParentSpecList = new ListBuffer<List<JCTree>>();
 //            currentParentSpecList.append(specCompilationUnit.defs);  // Model types are their own specification
+            if ((specCompilationUnit.pid == null) && (packageSymbol == null)) {
+                // no action
+            } else if ((specCompilationUnit.pid == null) != (packageSymbol == null)) {
+//                  log.error(specTypeDeclaration.toplevel.pid.pos,"jml.mismatched.package",  // TODO _ test this
+//                  specTypeDeclaration.toplevel.packge,matchingCSymbol.packge());
+            } else if (!specCompilationUnit.pid.toString().equals(packageSymbol.toString())) {
+//              log.error(specTypeDeclaration.toplevel.pid.pos,"jml.mismatched.package",  // TODO _ test this
+//              specTypeDeclaration.toplevel.packge,matchingCSymbol.packge());
+            }
             specCompilationUnit.packge = packageSymbol;
             Env<AttrContext> tlenv = topLevelEnv(specCompilationUnit);
             env = tlenv;
@@ -681,6 +685,8 @@ public class JmlEnter extends Enter {
     public void enterSpecsForBinaryClasses(ClassSymbol csymbol, JmlCompilationUnit speccu) {
     	if (utils.jmlverbose >= Utils.JMLDEBUG)  log.getWriter(WriterKind.NOTICE).println("ENTER TOPLEVEL (BINARY) " + csymbol);
 
+    	csymbol.complete();
+    	
         // First do all the linking of java types to specifications
         // Since we do not have a Java compilation Unit to walk down, we will
         // enter the model classes as well
@@ -691,32 +697,16 @@ public class JmlEnter extends Enter {
             return;
         }
 
-        Env<AttrContext> tlenv = topLevelEnv(speccu);
-        setSymbolAndEnv(speccu.defs,tlenv,csymbol); // FIXME: This only takes care of the primary class and its nested classes
-
-//        ListBuffer<List<JCTree>> specslist = new ListBuffer<List<JCTree>>();
         List<JCTree> specsDecls = speccu.defs;
-            //jcu.accept(this); // add in imports
-            for (JCTree t: speccu.defs) {
-                if (t instanceof JmlClassDecl) {
-                    JmlClassDecl jtree = (JmlClassDecl)t;
-                    if (jtree.name.equals(csymbol.name)) {
-                        jtree.sym = csymbol; // FIXME - what about secondary types
-                        jtree.env = classEnv(jtree,tlenv);
-                    }
-                }
-            }
 
         // Search for secondary types
         HashMap<Name,JmlClassDecl> names = new HashMap<Name,JmlClassDecl>();
-//        for (List<JCTree> tree : specslist) {
-            for (JCTree t: specsDecls) {
-                if (t instanceof JmlClassDecl) {
-                    Name n = ((JmlClassDecl)t).name;
-                    if (names.get(n) == null) names.put(n,(JmlClassDecl)t);
-                }
+        for (JCTree t: specsDecls) {
+            if (t instanceof JmlClassDecl) {
+                Name n = ((JmlClassDecl)t).name;
+                if (names.get(n) == null) names.put(n,(JmlClassDecl)t);
             }
-//        }
+        }
 
         // Do the primary type
         enterSpecsForBinaryClasses(csymbol,specsDecls);
@@ -737,19 +727,32 @@ public class JmlEnter extends Enter {
         }
         
         // Do any top-level model types
-        if (speccu != null) {
+        {
             for (JmlClassDecl modelType: speccu.parsedTopLevelModelTypes) {
                 classEnter(modelType,topLevelEnv(speccu));
             }
         }
 
+        Env<AttrContext> tlenv = topLevelEnv(speccu);
+        setSymbolAndEnv(speccu.defs,tlenv,csymbol); // FIXME: This only takes care of the primary class and its nested classes
+
+        //jcu.accept(this); // add in imports
+        for (JCTree t: speccu.defs) {
+            if (t instanceof JmlClassDecl) {
+                JmlClassDecl jtree = (JmlClassDecl)t;
+                if (jtree.name.equals(csymbol.name)) {
+                    jtree.sym = csymbol; // FIXME - what about secondary types
+                    jtree.env = classEnv(jtree,tlenv);
+                }
+            }
+        }
+
+
         // Create a todo item for each toplevel class that needs processing
-        // but only for those in the first item of the specsSequence
-        // If the specsSequence is empty, there is nothing to do anyway
         
         // FIXME _ we should perhaps use the consolidated specifications 
         // Here we need to avoid using unmatched specs
-        if (speccu != null) {
+//        if (speccu != null) {
             for (JCTree t: speccu.defs) {
                 if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sym != null && ((JmlClassDecl)t).env != null) {
                     binaryMemberTodo.add(((JmlClassDecl)t).env);
@@ -757,7 +760,7 @@ public class JmlEnter extends Enter {
                     binaryEnvs.append(speccu);
                 }
             }
-        }
+//        }
 
     }
     
@@ -829,6 +832,8 @@ public class JmlEnter extends Enter {
         }
 
 }
+    
+    // FIXME - ressurrect these checks and corresponding tests
 
 //    /** Checks that the inheritance relationships in the specification
 //     * declaration match those in the class.  Presumes all types have been

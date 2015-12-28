@@ -9,6 +9,9 @@ import static com.sun.tools.javac.code.Flags.DEFAULT;
 import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Kinds.MTH;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -31,6 +34,7 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Pair;
 
 /**
  * This class extends Resolve in order to implement lookup of JML names. In the
@@ -215,7 +219,6 @@ public class JmlResolve extends Resolve {
      }
 
 
-
      /** This method overrides the superclass method in order to load spec files
       * when a class is loaded.  If the superclass loads a method from source, then
       * the specs are parsed at the same time that the source file is parsed.
@@ -228,29 +231,36 @@ public class JmlResolve extends Resolve {
       */
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("LOADING REQUESTED " + name );
+         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
+         if (name.toString().equals("java.lang.Class")) Utils.print(null);
+         boolean alreadyLoaded = reader.classExists(name);
          Symbol s = super.loadClass(env, name);
+         if (alreadyLoaded) return s;
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
          // (rather than a package) and is a legitimate workflow in this
          // architecture.  Hence no warning or error is given.
          // This happens for example in the resolution of org.jmlspecs.annotation
          if (!s.exists()) {
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING DOES NOT EXIST " + name );
              return s;
          }
-         if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
+         if (!(s instanceof ClassSymbol)) {
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
+             return s; // loadClass can be called for a package
+         }
          JmlSpecs specs = JmlSpecs.instance(context);
          JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
          if (tsp == null) {
-             //if (true || utils.jmldebug) log.getWriter(WriterKind.NOTICE).println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING SPECS " + name );
              // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
              if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
              jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-             //if (true || utils.jmldebug) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
              if (specs.get((ClassSymbol)s) == null) 
                  log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
          } else {
-             //log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
          }
          return s;
      }

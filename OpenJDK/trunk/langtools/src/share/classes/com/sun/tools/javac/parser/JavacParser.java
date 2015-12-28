@@ -1379,14 +1379,14 @@ public class JavacParser implements Parser {
                             }
                             accept(RBRACKET);
                         }
-                        break loop; // FIXME - coni=tinue loop?
+                        continue;
                     case LPAREN:
                         if ((mode & EXPR) != 0) {
                             mode = EXPR;
                             t = arguments(typeArgs, t);
                             if (!annos.isEmpty()) t = illegal(annos.head.pos);
                             typeArgs = null;
-                            // DRC - previously had a continue loop here
+                            continue;
                         }
                         break loop;
                     case DOT:
@@ -1436,7 +1436,7 @@ public class JavacParser implements Parser {
                         if (tyannos != null && tyannos.nonEmpty()) {
                             t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
                         }
-                        break;
+                        continue;
                     case ELLIPSIS:
                         if (this.permitTypeAnnotationsPushBack) {
                             this.typeAnnotationsPushedBack = annos;

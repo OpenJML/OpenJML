@@ -18,14 +18,6 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(ParameterizedWithNames.class)
 public class modelghost extends TCBase {
 
-
-//    @Override
-//    public void setUp() throws Exception {
-////        useSystemSpecs = false;
-////        noCollectDiagnostics = true;
-////        jmldebug = true;
-//        super.setUp();
-//    }
     
     @Parameters
     static public Collection<Boolean[]> parameters() {
@@ -316,6 +308,20 @@ public class modelghost extends TCBase {
     public void testInitializer2() {
         addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
+        );
+    }
+
+    @Test
+    public void testPackage() {
+        addMockFile("$A/A.jml","package p; public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
+        helpTCF("A.java","package p; public class A { int i; { i = 1; } } "
+        );
+    }
+
+    @Test
+    public void testPackage2() {
+        addMockFile("$A/A.jml","package pp; public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
+        helpTCF("A.java","package p; public class A { int i; { i = 1; } } "
         );
     }
 

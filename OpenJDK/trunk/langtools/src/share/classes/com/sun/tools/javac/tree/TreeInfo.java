@@ -255,6 +255,7 @@ public class TreeInfo {
     }
 
     public static boolean isEnumInit(JCTree tree) {
+        if (tree.getTag() == null) return false; // DRC - added
         switch (tree.getTag()) {
             case VARDEF:
                 return (((JCVariableDecl)tree).mods.flags & ENUM) != 0;

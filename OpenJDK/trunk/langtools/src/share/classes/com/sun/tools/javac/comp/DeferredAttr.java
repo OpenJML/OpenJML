@@ -1155,7 +1155,7 @@ public class DeferredAttr extends JCTree.Visitor {
      * Tree scanner used for checking as to whether an argument expression
      * requires speculative attribution
      */
-    final class DeferredChecker extends FilterScanner {
+    class DeferredChecker extends FilterScanner { // DRC - made not final
 
         Env<AttrContext> env;
         ArgumentExpressionKind result;

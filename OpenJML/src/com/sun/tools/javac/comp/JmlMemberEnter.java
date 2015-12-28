@@ -168,12 +168,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
-        
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         JmlClassDecl prevClass = currentClass;
         currentClass = (JmlClassDecl)tree;
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
         modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
+
+        super.finishClass(tree, env);
+        
         if ((JmlCompilationUnit.isForBinary(modeOfFileBeingChecked)) && !JmlAttr.instance(context).isModel(tree.mods)
                 && !(tree.sym.toString().startsWith("$anonymous$"))) { // FIXME - do something more robust than checking the name
             finishSpecClass((JmlClassDecl)tree,env); 
@@ -201,7 +203,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         inSpecFile = jtree.source() == null ? false : jtree.source().getKind() != Kind.SOURCE;  // should always be false (?)
 
-        super.finishClass(tree,env);
+//        super.finishClass(tree,env);
 
         currentClass = prevClass;
 
@@ -825,7 +827,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		utils.locationString(p));
                     }
                 } else if (t instanceof JmlMethodDecl) {
-                    visitMethodDef((JmlMethodDecl)t);
+//                    visitMethodDef((JmlMethodDecl)t);
 //                    attr.attribTypeVariables(((JmlMethodDecl)t).typarams, env); // FIXME - or  baseEnv(jtree,env)
 //                    // Do this here, where we have the symbol.
 //                    for (JCTypeParameter tp : ((JmlMethodDecl)t).typarams)
@@ -2447,6 +2449,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
             long flags = tree.mods.flags;
             boolean isJMLMethod = utils.isJML(flags);
+            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
             
             super.visitMethodDef(tree);
         } finally {

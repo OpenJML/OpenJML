@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.esc.JmlEsc;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
+import com.sun.tools.javac.comp.JmlDeferredAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.comp.JmlFlow;
 import com.sun.tools.javac.comp.JmlMemberEnter;
@@ -937,6 +938,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
+        JmlDeferredAttr.instance(context); // registers when created
         // Extensions are registered after options are processed
     }
     

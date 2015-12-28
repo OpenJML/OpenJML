@@ -864,7 +864,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
                 @Override
                 public void run() {
-                    Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
+ // DRC                   Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
+//                    if (!(s.kind == PCK || s.annotationsPendingCompletion())) return; // DRC
                     JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                     DiagnosticPosition prevLintPos =
                         deferPos != null
@@ -1032,6 +1033,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             DiagnosticPosition prevLintPos = deferredLintHandler.setPos(tree.pos());
             try {
                 // Save class environment for later member enter (2) processing.
+//                reader.loadClass(env.enclClass.sym.flatname); // Checks whether the class is loaded and does not repeat // DRC - added so that binary classes get loaded
                 halfcompleted.append(env);
 
                 // Mark class as not yet attributed.

@@ -14,6 +14,7 @@ public class typechecking extends TCBase {
         useSystemSpecs = true;
         super.setUp();
         main.addOptions("-no-purityCheck");
+        main.addOptions("-jmldebug");
     }
 
     /** Test something very simple with no errors*/

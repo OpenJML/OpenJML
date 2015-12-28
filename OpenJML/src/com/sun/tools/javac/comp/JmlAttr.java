@@ -374,10 +374,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         super.attribClass(c);
         if (!isUnattributed) return;
+        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
@@ -452,10 +452,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             pureEnvironment = prevPureEnvironment;
             log.useSource(prev);
             level--;
-            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (c != syms.predefClass) {
                 if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"typechecked " + c);
             }
+            if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
         }
     }
@@ -1385,6 +1385,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // a tree hierarchy, so we have to set the enclosing method declaration directly.  If we were only
                 // calling deSugarMethodSpecs during AST attribution, then we would not need to set env or adjust
                 // env.enclMethod.
+        if (env == null) env = enclosingMethodEnv;
         
         // DO a defensive check
         if (methodSpecs.decl != decl) {
@@ -3465,7 +3466,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             case BSRESULT:
-                JCTree.JCMethodDecl md = env.enclMethod;
+                JCTree.JCMethodDecl md = enclosingMethodEnv.enclMethod;
                 JCTree res = md.getReturnType();
                 if (res == null || (!res.type.isErroneous() && types.isSameType(res.type,syms.voidType))) {
                     log.error(that.pos+1, "jml.void.result");

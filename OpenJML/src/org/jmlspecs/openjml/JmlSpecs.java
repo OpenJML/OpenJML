@@ -906,6 +906,9 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
+        if (m.toString().equals("close()") && m.enclClass().toString().equals("java.io.InputStream")) {
+            Utils.print(null);
+        }
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).methods.put(m,spec);
     }

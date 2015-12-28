@@ -19,11 +19,14 @@ import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
@@ -130,6 +133,39 @@ public class expressions extends ParseBase {
     
     String noSource(JCDiagnostic dd) {
         return dd.noSource();
+    }
+    
+    @Test
+    public void testBug2() {
+    	helpExpr("equals(\\result.multiply(val).add(remainder(val)))"
+    			,JCMethodInvocation.class, 0,6,49
+    			,JCIdent.class, 0,0,6
+    			,JCMethodInvocation.class, 7,32,48
+    			,JCFieldAccess.class, 7,28,32
+    			,JCMethodInvocation.class, 7,23,28
+    			,JCFieldAccess.class, 7,14,23
+    			,JmlSingleton.class, 7,7,14
+    			,JCIdent.class, 24,24,27
+    			,JCMethodInvocation.class, 33,42,47
+    			,JCIdent.class, 33,33,42
+    			,JCIdent.class, 43,43,46
+         );
+    }
+
+    @Test
+    public void testBug() {
+    	helpExpr("equals(\\result[0].equals(divide(val)))"
+    			,JCMethodInvocation.class, 0,6,38
+    			,JCIdent.class, 0,0,6
+    			,JCMethodInvocation.class, 7,24,37
+    			,JCFieldAccess.class, 7,17,24
+    			,JCArrayAccess.class, 7,14,17
+    			,JmlSingleton.class, 7,7,14
+    			,JCLiteral.class, 15,15,16
+    			,JCMethodInvocation.class, 25,31,36
+    			,JCIdent.class, 25,25,31
+    			,JCIdent.class, 32,32,35
+         );
     }
 
 

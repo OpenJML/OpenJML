@@ -312,9 +312,9 @@ public class JmlCompiler extends JavaCompiler {
      */  // FIXME - what should we use for env for non-public binary classes
     public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
         // Don't load over again
-        
-        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+
         // FIXME - need to figure out what the environment should be
 
         // This nesting level is used to be sure we queue up a whole set of 
@@ -343,8 +343,7 @@ public class JmlCompiler extends JavaCompiler {
             env = enter.getTopLevelEnv(speccu);
             enter.visitTopLevel(speccu);  // Does imports
             csymbol.flags_field |= Flags.UNATTRIBUTED;
-        }
-        if (speccu != null) {
+
             if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
         }
