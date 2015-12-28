@@ -1841,12 +1841,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // Check that the return types are the same
             boolean hasTypeParameters = specMethodDecl.getTypeParameters().size() != 0;  // FIXME - figure out how to do proper type matching 
             if (!hasTypeParameters && specMethodDecl.restype != null) { // not a constructor
-                if (specMethodDecl.restype.type == null) attr.attribType(specMethodDecl.restype, match.enclClass());
-                if (!Types.instance(context).isSameType(match.getReturnType(),specMethodDecl.restype.type)) {
-                    log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
-                            match.enclClass().fullname + "." + match.toString(),
-                            specMethodDecl.restype.type,match.getReturnType());
-                }
+                // FIXME - need a valid env in attr for this to work
+//                if (specMethodDecl.restype.type == null) attr.attribType(specMethodDecl.restype, match.enclClass());
+//                if (!Types.instance(context).isSameType(match.getReturnType(),specMethodDecl.restype.type)) {
+//                    log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
+//                            match.enclClass().fullname + "." + match.toString(),
+//                            specMethodDecl.restype.type,match.getReturnType());
+//                }
             }
 
             // FIXME - from a previous comparison against source
@@ -2676,6 +2677,108 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         t = jmlF.Select(t, names.fromString(c.getSimpleName()));
         JmlTree.JmlAnnotation ann = jmlF.Annotation(t, List.<JCExpression>nil());
         return ann;
+    }
+    
+    public void binaryMemberEnter(ClassSymbol c, JmlCompilationUnit specs, Env<AttrContext> env) {
+        for (JCTree cd: specs.defs) {
+            if (cd instanceof JmlClassDecl && c.name.equals(((JmlClassDecl)cd).name)) {  // Comparing simple names
+                binaryMemberEnter(c, (JmlClassDecl)cd, env);
+            }
+            // FIXME - need to handle any secondary classes and nested classes as well
+        }
+        for (JmlClassDecl cd: specs.parsedTopLevelModelTypes) {
+            binaryMemberEnter(c, cd, env);
+        }
+    }
+    
+    public void binaryMemberEnter(ClassSymbol c, JmlClassDecl specs, Env<AttrContext> env) {
+        JmlAttr attr = JmlAttr.instance(context);
+        for (JCTree t: specs.defs) {
+            if (t instanceof JmlMethodDecl) {
+                JmlMethodDecl md = (JmlMethodDecl)t;
+                boolean isJML = utils.isJML(md.mods);
+                boolean isModel = isJML && utils.findMod(md.mods, JmlTokenKind.MODEL) != null;
+                if (md.sym == null) {
+                    ListBuffer<Type> tyargtypes = new ListBuffer<>();
+                    for (JCTypeParameter param : md.typarams) {
+                        Type tt = attr.attribType(param, env);
+                        tyargtypes.add(tt);
+                    }
+                    ListBuffer<Type> argtypes = new ListBuffer<>();
+                    for (JCVariableDecl param : md.params) {
+                        Type tt = attr.attribType(param.vartype, env);
+                        argtypes.add(tt);
+                    }
+                    // FIXME - don't want an error message - just an indication of whether such a method exists
+                    Scope.Entry e = c.members().lookup(md.name);
+                    while (e.sym != null) {
+                        if (e.sym instanceof Symbol.MethodSymbol) {
+                            // Match argument types
+                            md.sym = (Symbol.MethodSymbol)e.sym;
+                            break;
+                        }
+                    }
+
+                    //md.sym = (MethodSymbol)JmlResolve.instance(context).findFun(env,md.name,argtypes.toList(),tyargtypes.toList(),false,false);
+                    //md.sym = (MethodSymbol)JmlResolve.instance(context).resolveMethod(t.pos(),env,md.name,argtypes.toList(),tyargtypes.toList());
+                }
+                if (md.sym != null) checkMethodMatch(null, md.sym, md, c);
+                // FIXME - use checkMethodMatch?
+                if (isJML && !isModel) {
+                    // Error: Non-model method declared within JML
+                } else if (md.sym != null && !isModel) {
+                    // Java method in spec matches the java declaration. Just add the specs.
+                    JmlSpecs.instance(context).putSpecs(md.sym, md.methodSpecsCombined);
+                } else if (md.sym == null && isModel) {
+                    // Add the model method to the binary class
+                    visitMethodDef(md);
+                    JmlSpecs.instance(context).putSpecs(md.sym, md.methodSpecsCombined);
+                } else if (md.sym != null && isModel) {
+                    // Error: model method matching a Java method 
+                } else { // if (md.sym == null && !isModel) {
+                    // Error: No method in class to match non-model specification method
+                }
+                
+            } else if (t instanceof JmlClassDecl) {
+                // FIXME - need symbol for nested class
+                //binaryMemberEnter(c,(JmlClassDecl)t);
+            } else if (t instanceof JmlVariableDecl) {
+                JmlVariableDecl var = (JmlVariableDecl)t;
+                Name nm = var.name;
+                boolean isJML = utils.isJML(var.mods);
+                boolean isModel = isJML && utils.findMod(var.mods, JmlTokenKind.MODEL) != null;
+                boolean isGhost = isJML && utils.findMod(var.mods, JmlTokenKind.GHOST) != null;
+                Scope.Entry e = c.members().lookup(nm);
+                while (e.sym != null) {
+                    if (e.sym instanceof Symbol.VarSymbol) break; 
+                }
+                if (isJML && !isModel && !isGhost) {
+                    // Error: Non-model non-ghost field declared within JML
+                }
+                if (e.sym == null) {
+                    // There is no match of a Java decl in the specs file to the Java class
+                    // isJML --> OK, but it should be model or ghost
+                    // !isJML --> error - FIXME - do we pretend it is model? need to mark it as model
+                    // FIXME - should we mark it model?
+                    if (!isJML) {
+                        JavaFileObject prev = log.currentSourceFile();
+                        log.useSource(specs.source());
+                        log.error(var.pos,"jml.no.var.match",var.name);
+                        log.useSource(prev);
+                    }
+                    visitVarDef(var); // FIXME - this is being entered in the wrong scope
+                    JmlSpecs.instance(context).putSpecs(var.sym, var.fieldSpecsCombined);
+                } else { // Match
+                    // There is a match in the Java class
+                    // !isJML --> OK
+                    // isJML --> error FIXME
+                    var.sym = (Symbol.VarSymbol)e.sym;
+                    checkFieldMatch(var.sym, var);
+                    JmlSpecs.instance(context).putSpecs(var.sym, var.fieldSpecsCombined);
+                }
+            }
+        }
+        
     }
 
 }

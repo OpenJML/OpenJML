@@ -229,13 +229,22 @@ public class JmlResolve extends Resolve {
       * @param name the qualified name of the class to load
       * @return the unique symbol corresponding to this class
       */
+     Symbol savedSym;
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
          if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
-         if (name.toString().equals("java.lang.Class")) Utils.print(null);
-         boolean alreadyLoaded = reader.classExists(name);
+         if (name.toString().equals("java.io.File")) Utils.print(null);
+         {
+             Symbol stemp = reader.classExists(name);
+             boolean completed = stemp != null && ((ClassSymbol)stemp).members_field != null;
+             if (completed) {
+                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY ALREADY COMPLETED " + name );
+                 return stemp;
+             }
+         }
          Symbol s = super.loadClass(env, name);
-         if (alreadyLoaded) return s;
+         if (name.toString().equals("java.io.File")) savedSym = s;
+         
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
          // (rather than a package) and is a legitimate workflow in this
@@ -249,14 +258,18 @@ public class JmlResolve extends Resolve {
              if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
              return s; // loadClass can be called for a package
          }
+         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADING BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+
          JmlSpecs specs = JmlSpecs.instance(context);
          JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
          if (tsp == null) {
-             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING SPECS " + name );
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   BINARY LOADING SPECS " + name );
              // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
              if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
+
              jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+ 
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY WITH SPECS " + name + " HAS SCOPE WITH SPECS " + ((ClassSymbol)s).members_field);
              if (specs.get((ClassSymbol)s) == null) 
                  log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
          } else {

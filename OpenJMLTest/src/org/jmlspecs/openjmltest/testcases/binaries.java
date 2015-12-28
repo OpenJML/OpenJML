@@ -11,6 +11,7 @@ public class binaries extends TCBase {
         //noCollectDiagnostics = true;
         //jmldebug = true;
         super.setUp();
+        //main.addOptions("-jmldebug");
     }
 
     /** Tests that a system spec file is loaded from mock files - though this has no error reports to be sure it happened*/
@@ -74,10 +75,10 @@ public class binaries extends TCBase {
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
                 "}"
-                ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",42
-                ,"/java/io/A.java:3: incompatible types\n  required: boolean\n  found:    int",69
-                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",25
-                ,"/$A/java/io/File.jml:3: incompatible types\n  required: boolean\n  found:    int",49
+                ,"/java/io/A.java:3: incompatible types: int cannot be converted to boolean",42
+                ,"/java/io/A.java:3: incompatible types: int cannot be converted to boolean",69
+                ,"/$A/java/io/File.jml:3: incompatible types: int cannot be converted to boolean",25
+                ,"/$A/java/io/File.jml:3: incompatible types: int cannot be converted to boolean",49
         );
     }
 
@@ -100,9 +101,9 @@ public class binaries extends TCBase {
                 ,"/$A/java/io/File.jml:3: The field j is a Java field (neither ghost nor model) but does not match any fields in the corresponding Java class.",21
                 ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",36
                 ,"/java/io/A.java:3: cannot find symbol\n  symbol:   variable k\n  location: class java.io.File",53
-                ,"/java/io/A.java:4: incompatible types\n  required: boolean\n  found:    char",22
+                ,"/java/io/A.java:4: incompatible types: char cannot be converted to boolean",22
                 ,"/java/io/A.java:5: cannot find symbol\n  symbol:   variable j\n  location: class java.io.File",29
-                ,"/java/io/A.java:5: incompatible types\n  required: boolean\n  found:    int",52
+                ,"/java/io/A.java:5: incompatible types: int cannot be converted to boolean",52
         );
     }
 

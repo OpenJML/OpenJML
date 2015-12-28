@@ -2629,8 +2629,8 @@ public class ClassReader {
         return c;
     }
     
-    public boolean classExists(Name flatname) { // OpenJML -- added
-        return classes.get(flatname) != null;
+    public ClassSymbol classExists(Name flatname) { // OpenJML -- added
+        return classes.get(flatname);
     }
 
 /************************************************************************

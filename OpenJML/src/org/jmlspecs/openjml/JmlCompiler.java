@@ -338,18 +338,25 @@ public class JmlCompiler extends JavaCompiler {
                 noticeWriter.println("No specs for " + csymbol);
             }
         }
+        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) noticeWriter.println("   LOADING CLASS " + csymbol + " FOUND NO SPECS");
+        else noticeWriter.println("   LOADING CLASS " + csymbol + " PARSED SPECS");
+
         // FIXME - not sure env or mode below are still used
+        ((JmlEnter)enter).recordEmptySpecs(csymbol);
         if (speccu != null) {
             env = enter.getTopLevelEnv(speccu);
-            enter.visitTopLevel(speccu);  // Does imports
+//            enter.visitTopLevel(speccu);  // Does imports
             csymbol.flags_field |= Flags.UNATTRIBUTED;
 
             if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
             else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+
+        //        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
+            
+            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryMemberEnter(csymbol,speccu,env);
+            
         }
-        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) noticeWriter.println("   LOADED CLASS " + csymbol + " FOUND NO SPECS");
-        else noticeWriter.println("   LOADED CLASS " + csymbol + " PARSED SPECS");
-        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
+            
         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
         if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;

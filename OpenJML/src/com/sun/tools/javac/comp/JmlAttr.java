@@ -375,7 +375,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
-        super.attribClass(c);
+        if (typeEnvs.get(c) != null) super.attribClass(c); // No need to attribute the class itself if it was binary
         if (!isUnattributed) return;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
