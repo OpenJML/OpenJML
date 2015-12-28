@@ -2205,7 +2205,10 @@ public class JmlParser extends JavacParser {
     protected JCExpression parseArrayRangeExpr(JCExpression t, boolean strictId) {
         while (token.kind == LBRACKET) {
             nextToken(); // move past the LBRACKET
-            if (!strictId && token.kind == STAR) {
+            if (token.kind == STAR) {
+                if (strictId) {
+                    jmlerror(pos(), endPos(), "jml.no.star.in.strict.mode");
+                }
                 nextToken();
                 if (token.kind == RBRACKET) {
                     nextToken();
@@ -3061,6 +3064,8 @@ public class JmlParser extends JavacParser {
                     return -1;
                 case SUBTYPE_OF: case JSUBTYPE_OF: case LOCK_LT: case LOCK_LE:
                     return TreeInfo.ordPrec;
+                case DOT_DOT: case ENDJMLCOMMENT:
+                    return -1000;
                 default:
                     return 1000;
             }

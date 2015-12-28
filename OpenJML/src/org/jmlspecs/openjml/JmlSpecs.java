@@ -906,11 +906,11 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (m.toString().equals("close()") && m.enclClass().toString().equals("java.io.InputStream")) {
+        if (m.toString().equals("File(java.lang.String)")) {
             Utils.print(null);
         }
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
-        specsmap.get(m.enclClass()).methods.put(m,spec);
+        getSpecs(m.enclClass()).methods.put(m,spec);
     }
     
     /** Adds the specs for a given initialization block to the database, overwriting anything

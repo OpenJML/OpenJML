@@ -297,11 +297,10 @@ public class typeclauses extends TCBase {
                 );
     }
     
-    @Test
+    @Test  // FIXME - why is strict on here? isn't the default false
     public void testRepresents9() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[*] = 0\n}"
-                ,"/A.java:2: illegal start of expression",32
-                ,"/A.java:2: illegal start of expression",33
+                ,"/A.java:2: Strict JML does not allow the [*] syntax",32
                 ,"/A.java:2: The expression is invalid or not terminated by a semicolon",38
                 ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
