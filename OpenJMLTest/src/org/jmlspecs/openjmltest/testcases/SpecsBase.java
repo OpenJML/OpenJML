@@ -188,7 +188,6 @@ public class SpecsBase extends TCBase {
     /** This test tests the file that is named as classname by the constructor */
     @Test
     public void testSpecificationFile() {
-    	fail("Java8 failure");
         foundErrors = false;
         checkClass(classname);
         assertTrue("Errors found",!foundErrors);

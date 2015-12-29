@@ -155,12 +155,14 @@ public class JmlTypes extends Types {
     
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
-        return t.getTag().ordinal() >= TypeTag.BYTE.ordinal() && t.getTag().ordinal() <= TypeTag.DOUBLE.ordinal();
+        int i = t.getTag().ordinal();
+        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t == BIGINT || t == REAL;
     }
     
     /** True if the Java tag is an integral type (not for JML types). */
     public boolean isIntegral(Type t) {
-        return t.getTag().ordinal() >= TypeTag.BYTE.ordinal() && t.getTag().ordinal() <= TypeTag.LONG.ordinal();
+        int i = t.getTag().ordinal();
+        return (i >= TypeTag.BYTE.ordinal() && i <= TypeTag.LONG.ordinal()) || t.getTag() == TypeTag.INT || t == BIGINT;
     }
     
     /** Overrides Types.isConvertible with functionality for JML primitive types. */
@@ -179,12 +181,12 @@ public class JmlTypes extends Types {
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
         if (s instanceof JmlType) {
-            if (s == BIGINT && isIntegral(t)) return true;
-            if (s == REAL && isNumeric(t)) return true;
+            if (s == BIGINT) return isIntegral(t);
+            if (s == REAL) return isNumeric(t);
         }
         return super.isSubtypeUnchecked(t, s, warn);
     }
-        
+            
     /** Overrides Types.boxedClass with functionality for JML primitive types. */
     @Override
     public ClassSymbol boxedClass(Type t) {

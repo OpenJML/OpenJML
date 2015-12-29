@@ -50,5 +50,13 @@ public class JmlType extends Type {
     public TypeTag getTag() {
         return TypeTag.NONE;
     }
+    
+    @Override
+    public boolean hasTag(TypeTag t) {
+        if (t != TypeTag.NONE) return super.hasTag(t);
+        return false;
+    }
+
+
 
 }

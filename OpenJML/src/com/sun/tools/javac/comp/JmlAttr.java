@@ -375,7 +375,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
-        if (typeEnvs.get(c) != null) super.attribClass(c); // No need to attribute the class itself if it was binary
+        Env<AttrContext> eee = typeEnvs.get(c);
+        if (eee != null && JmlCompilationUnit.isForSource(((JmlCompilationUnit)eee.toplevel).mode)) super.attribClass(c); // No need to attribute the class itself if it was binary
         if (!isUnattributed) return;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
@@ -436,7 +437,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //                    new JmlTranslator(context).translate(e.tree);
                 //                }
                 
-                if (e.tree != null) {
+                if (e.tree != null && e.tree instanceof JmlClassDecl) {
                     ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
                     //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
                     //((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);

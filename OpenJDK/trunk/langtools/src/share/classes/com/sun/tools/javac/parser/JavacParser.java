@@ -37,6 +37,9 @@ import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+
+import jdk.internal.dynalink.support.ClassLoaderGetterContextProvider;
+
 import com.sun.tools.javac.util.List;
 
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
@@ -3315,7 +3318,7 @@ public class JavacParser implements Parser {
                     errs = List.<JCTree>of(mods, toP(F.at(pos).Ident(ident())));
                     setErrorEndPos(token.pos);
                 } else {
-                    errs = List.<JCTree>of(mods);
+                    errs = mods.pos == Position.NOPOS ? null : List.<JCTree>of(mods);  // OpenJML - edited to improve position information
                 }
                 return toP(F.Exec(syntaxError(pos, errs, "expected3",
                                               CLASS, INTERFACE, ENUM)));

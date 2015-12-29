@@ -29,7 +29,9 @@ public class typechecking extends TCBase {
 
     /** Test a particular error*/
     @Test public void testSomeJavaBrace() {
-        helpTC(" class A {} }");
+        helpTC(" class A {} }"
+        ,"/TEST.java:1: class, interface, or enum expected",13,12,12,12 // FIXME - end position may not be useful - should be 13?
+        );
     }
 
     /** Test scanning something very simple */
@@ -47,7 +49,6 @@ public class typechecking extends TCBase {
     @Test public void testTypeArgs() {
         helpTC(" class A { int k; boolean b; <T> int mm() {} void m() { int t = this.<Integer>mm(); \n//@ assert <Object>\\old(k);\n}}"
                 ,"/TEST.java:2: illegal start of expression",20
-                ,"/TEST.java:2: Incorrectly formed or terminated assert statement near here",20
                 );
     }
 
@@ -262,6 +263,12 @@ public class typechecking extends TCBase {
         );
     }
     
+    @Test public void testMisc1b() {
+        helpTC(" class A { /*@ ensures \\result     ; */\nboolean m() { \n//@ int t;\n}}"
+                ,"/TEST.java:3: A local declaration within a JML annotation must be ghost", 9 // FIXME - better position
+        );
+    }
+    
     @Test public void testJmlTypes() {
         helpTCF("A.java","public class A {  int i; /*@ ghost \\TYPE t; */ } ");  //OK
     }
@@ -370,10 +377,9 @@ public class typechecking extends TCBase {
     }
     
     @Test public void testSetComp() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
                 //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79  // FIXME
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",55
+                ,"/A.java:2: incompatible types: org.jmlspecs.lang.JMLSetType cannot be converted to boolean",55
 		);
     }
     
@@ -381,7 +387,7 @@ public class typechecking extends TCBase {
     @Test public void testSetCompA() {
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
                 //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78 // FIXME
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    org.jmlspecs.lang.JMLSetType",54
+                ,"/A.java:2: incompatible types: org.jmlspecs.lang.JMLSetType cannot be converted to boolean",54
                 );
     }
 
@@ -397,14 +403,12 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testSetCompB3() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  boolean p; \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n void m() {} \n }"
                 ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",94
         );
     }
 
     @Test public void testSetCompB2() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
         );
     }
@@ -421,34 +425,31 @@ public class typechecking extends TCBase {
   
     @Test public void testQuantifierB3() {
         helpTCF("A.java","public class A {  \n  //@ ghost Object j = m( (\\exists int i; 0 < i && i <10; m(i)) ); \nboolean m(boolean k) { return false; } \n }"
-                ,"/A.java:2: incompatible types: int cannot be converted to boolean",59
+                ,"/A.java:2: incompatible types: int cannot be converted to boolean",61
                 );
     }
   
     // Looking for a name in the outer scope
     @Test public void testQuantifierB4() {
         helpTCF("A.java","public class A { boolean p;  \n  //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \nboolean m(int k) { return false; } \n }"
-                ,"/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",59
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",61
                 );
     }
   
     // testing scopes in local initializers
     @Test public void testSetCompC() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost int k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    org.jmlspecs.lang.JMLSetType",71
+                ,"/A.java:2: incompatible types: org.jmlspecs.lang.JMLSetType cannot be converted to int",71
                 );
     }
 
     @Test public void testSetCompC3() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { boolean p; //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && p<10}; \n} \n }"
                 ,"/A.java:2: bad operand types for binary operator '<'\n  first type:  boolean\n  second type: int",117
                 );
     }
 
     @Test public void testSetCompC2() {
-    	Assert.fail(); // FIXME - Java8
         helpTCF("A.java","public class A {  \n java.util.Collection c;  void m() { //@ ghost Object k = new JMLSetType { Integer i | c.contains(i) && i<10}; \n} \n }"
                 );
     }
@@ -466,7 +467,7 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifierC3() {
         helpTCF("A.java","public class A {  \n  boolean m(int k) { boolean p ; //@ ghost boolean j = ( (\\exists int i; 0 < i && i <10; m(p)) ); \n return false; }\n }",
-                "/A.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",90
+                "/A.java:2: incompatible types: boolean cannot be converted to int",92
                 );
     }
     
@@ -483,7 +484,7 @@ public class typechecking extends TCBase {
     
     @Test public void testQuantifier() {
         helpTCF("A.java","public class A {  \n Object i; //@ ghost Object j; \n /*@pure*/ boolean m(int i) { return false; }\n//@ invariant m( (\\exists int i; 0 < i && i <10; m(i)) ); \n }",
-                "/A.java:4: method m in class A cannot be applied to given types;\n  required: int\n  found: boolean\n  reason: actual argument boolean cannot be converted to int by method invocation conversion",15);
+                "/A.java:4: incompatible types: boolean cannot be converted to int",18);
     }
     
     @Test public void testQuantifier1() {
@@ -831,7 +832,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport2() {
         helpTCF("A.java","/*@ model */ import java.util.List;\n public class A {\n  \n }"
-                ,"/A.java:1: A model import declaration must be completely within a JML comment",5
+                ,"/A.java:1: A model import declaration must be completely within a JML comment",14,13,13,34
         );
     }
     

@@ -16,7 +16,7 @@ public class arith extends TCBase {
         super.setUp();
     }
     
-    /** See the FIXME in BigInteger.spec */
+    /** See the FIXME in BigInteger.jml */
     @Test
     public void testSomeJava() {
         options.put("-specspath",   testspecpath);

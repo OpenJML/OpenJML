@@ -1248,7 +1248,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         {
             // check that types are the same
             //Attr.instance(context).attribType(specField.vartype, javaField.sym.enclClass());
-            Attr.instance(context).attribType(specField.vartype, javaFieldSymbol.enclClass());
+            
+            // FIXME - attribType not working for binary
+            //Attr.instance(context).attribType(specField.vartype, javaFieldSymbol.enclClass());
+            if (specField.vartype.type != null)
             if (!Types.instance(context).isSameType(javaFieldSymbol.type,specField.vartype.type)) {
                 log.error(specField.vartype.pos(),"jml.mismatched.field.types",specField.name,javaFieldSymbol.enclClass().getQualifiedName()+"."+javaFieldSymbol.name,specField.vartype.type,javaFieldSymbol.type);
                 // This seems like a serious error , can we continue - FIXME
@@ -2680,15 +2683,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public void binaryMemberEnter(ClassSymbol c, JmlCompilationUnit specs, Env<AttrContext> env) {
+        modeOfFileBeingChecked = specs.mode;
+        Env<AttrContext> specenv = enter.topLevelEnv(specs);
+        Env<AttrContext> prevenv = env;
+        env = specenv;
         for (JCTree cd: specs.defs) {
-            if (cd instanceof JmlClassDecl && c.name.equals(((JmlClassDecl)cd).name)) {  // Comparing simple names
-                binaryMemberEnter(c, (JmlClassDecl)cd, env);
+            JmlClassDecl jcd;
+            if (cd instanceof JmlClassDecl && c.name.equals((jcd=(JmlClassDecl)cd).name)) {  // Comparing simple names
+                jcd.sym = c;
+                enter.typeEnvs.put(c, specenv);
+                Env<AttrContext> specClassenv = enter.classEnv(jcd,specenv);
+                binaryMemberEnter(c, jcd, specClassenv);
             }
             // FIXME - need to handle any secondary classes and nested classes as well
         }
-        for (JmlClassDecl cd: specs.parsedTopLevelModelTypes) {
-            binaryMemberEnter(c, cd, env);
+        for (JmlClassDecl jcd: specs.parsedTopLevelModelTypes) {
+            Env<AttrContext> specClassenv = enter.classEnv(jcd,specenv);
+            binaryMemberEnter(c, jcd, specClassenv); // FIXME - probably enter these straight, as regular code
         }
+        env = prevenv;
     }
     
     public void binaryMemberEnter(ClassSymbol c, JmlClassDecl specs, Env<AttrContext> env) {
@@ -2696,34 +2709,44 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         for (JCTree t: specs.defs) {
             if (t instanceof JmlMethodDecl) {
                 JmlMethodDecl md = (JmlMethodDecl)t;
+//                Env<AttrContext> localEnv = methodEnv(md, env);
                 boolean isJML = utils.isJML(md.mods);
                 boolean isModel = isJML && utils.findMod(md.mods, JmlTokenKind.MODEL) != null;
                 if (md.sym == null) {
-                    ListBuffer<Type> tyargtypes = new ListBuffer<>();
-                    for (JCTypeParameter param : md.typarams) {
-                        Type tt = attr.attribType(param, env);
-                        tyargtypes.add(tt);
-                    }
-                    ListBuffer<Type> argtypes = new ListBuffer<>();
-                    for (JCVariableDecl param : md.params) {
-                        Type tt = attr.attribType(param.vartype, env);
-                        argtypes.add(tt);
-                    }
+//                    Type mtype = signature(null,md.typarams,md.params,md.getReturnType(),null,md.thrown,localEnv);
+//                    ListBuffer<Type> tyargtypes = new ListBuffer<>();
+//                    for (JCTypeParameter param : md.typarams) {
+//                        Type tt = attr.attribType(param, env);
+//                        tyargtypes.add(tt);
+//                    }
+//                    ListBuffer<Type> argtypes = new ListBuffer<>();
+//                    for (JCVariableDecl param : md.params) {
+//                        Type tt = attr.attribType(param.vartype, env); // FIXME _ this does not work for type parameters, such as in Comparable
+//                        argtypes.add(tt);
+//                    }
                     // FIXME - don't want an error message - just an indication of whether such a method exists
                     Scope.Entry e = c.members().lookup(md.name);
+                    int count = 0;
                     while (e.sym != null) {
                         if (e.sym instanceof Symbol.MethodSymbol) {
+                            Symbol.MethodSymbol msym = (Symbol.MethodSymbol)e.sym;
+                            e = e.next();
+                            if (msym.getParameters().length() != md.params.length()) continue;
                             // Match argument types
-                            md.sym = (Symbol.MethodSymbol)e.sym;
+                            md.sym = msym;
+                            count++;
                             break;
                         }
+                        e = e.next();
                     }
+                    if (count > 1) log.error(md.pos(),"jml.internal","Type comparison not implemented " + c.flatname + "." + md.name);
 
                     //md.sym = (MethodSymbol)JmlResolve.instance(context).findFun(env,md.name,argtypes.toList(),tyargtypes.toList(),false,false);
                     //md.sym = (MethodSymbol)JmlResolve.instance(context).resolveMethod(t.pos(),env,md.name,argtypes.toList(),tyargtypes.toList());
                 }
-                if (md.sym != null) checkMethodMatch(null, md.sym, md, c);
-                // FIXME - use checkMethodMatch?
+                if (md.sym != null) {
+                    checkMethodMatch(null, md.sym, md, c);
+                }
                 if (isJML && !isModel) {
                     // Error: Non-model method declared within JML
                 } else if (md.sym != null && !isModel) {
@@ -2751,6 +2774,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 Scope.Entry e = c.members().lookup(nm);
                 while (e.sym != null) {
                     if (e.sym instanceof Symbol.VarSymbol) break; 
+                    e = e.next();
                 }
                 if (isJML && !isModel && !isGhost) {
                     // Error: Non-model non-ghost field declared within JML

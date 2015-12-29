@@ -103,8 +103,8 @@ public abstract class TCBase extends JmlTestCase {
                 if (p4 != null) {
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                     assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
-                    assertEquals("End for message " + i,((Integer)p3).intValue(),dd.getEndPosition());
-                    assertEquals("Position for message " + i,((Integer)p4).intValue(),dd.getPosition());
+                    assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
+                    assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
                 } else if (p1 != null) {
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 } else {

@@ -226,13 +226,16 @@ public class JmlParser extends JavacParser {
             if (a.annotationType.toString().equals("org.jmlspecs.annotation.Model")) { modelImport = true; }
             else jmlerror(a.pos, "jml.no.mods.on.import");
         }
-        if (!modelImport && S.jml()) {
-            jmlerror(p,endPos(),"jml.import.no.model");
+        boolean importIsInJml = S.jml();
+        if (!modelImport && importIsInJml) {
+            jmlerror(p, endPos(), "jml.import.no.model");
             modelImport = true;
         }
         JCTree t = super.importDeclaration(mods);
         ((JmlImport) t).isModel = modelImport;
-        t.setPos(p);
+        if (modelImport && !importIsInJml) {
+            jmlerror(p, t.getEndPosition(endPosTable), "jml.illformed.model.import");
+        }
         if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
             nextToken();
         }
@@ -271,7 +274,7 @@ public class JmlParser extends JavacParser {
                 if (!inJmlDeclaration) utils.setJML(mods);
                 inJmlDeclaration = true;
             }
-            if (token.kind == IMPORT) {
+            if (token.kind == IMPORT) { // FIXME - I don't think this is used anymore
                 JCAnnotation a = utils
                         .findMod(
                                 mods,
@@ -506,6 +509,9 @@ public class JmlParser extends JavacParser {
 
     @Override
     protected List<JCStatement> blockStatement() {
+        ListBuffer<JmlStatementLoop> prev = collectedLoopStatements;
+        collectedLoopStatements = new ListBuffer<>();
+        try {
         while (true) {
             if (!(token instanceof JmlToken)) {
                 boolean inJml = S.jml();
@@ -546,14 +552,34 @@ public class JmlParser extends JavacParser {
             JCStatement s = parseStatement();
             return List.<JCStatement>of(s);
         }
+        } finally {
+            // FIXME - do we need to check if collectedLoopStatements is empty?
+            collectedLoopStatements = prev;
+        }
     }
-
+    
+    @Override
+    JCBlock block(int pos, long flags) {
+        ListBuffer<JmlStatementLoop> prev = collectedLoopStatements;
+        collectedLoopStatements = new ListBuffer<>();
+        try {
+            return super.block(pos, flags);
+        } finally {
+            if (!collectedLoopStatements.isEmpty()) {
+                jmlerror(collectedLoopStatements.first().pos,
+                        collectedLoopStatements.first().getEndPosition(endPosTable),
+                        "jml.loop.spec.misplaced");
+            }
+            collectedLoopStatements = prev;
+        }
+    }
+    
     /** Overridden to parse JML statements */
     @Override
     public JCStatement parseStatement() {
         JCStatement st;
         String reason = null;
-        if (token.kind == CUSTOM) { // Note that declarations may start
+        while (token.kind == CUSTOM) {
             boolean needSemi = true;
             if (jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT) {
                 int pos = pos();
@@ -750,11 +776,43 @@ public class JmlParser extends JavacParser {
                 nextToken(); // skip the semi
             }
             if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
+            if (st instanceof JmlStatementLoop) {
+                collectedLoopStatements.add((JmlStatementLoop)st);
+                if (token.kind == RBRACE) {
+                    if (!collectedLoopStatements.isEmpty()) {
+                        jmlerror(collectedLoopStatements.first().pos,
+                                collectedLoopStatements.first().getEndPosition(endPosTable),
+                                "jml.loop.spec.misplaced");
+                        collectedLoopStatements = new ListBuffer<>();
+                   }
+                   return st;
+                }
+                continue;
+            }
             return st;
         }
+        if (S.jml() && !inModelProgram && !inJmlDeclaration) {
+            jmlerror(pos(),"jml.expected.decl.or.jml");
+        }
         JCStatement stt = super.parseStatement();
+        if (stt instanceof JmlForLoop) {
+            ((JmlForLoop)stt).loopSpecs = collectedLoopStatements.toList();
+        } else if (stt instanceof JmlEnhancedForLoop) {
+            ((JmlEnhancedForLoop)stt).loopSpecs = collectedLoopStatements.toList();
+        } else if (stt instanceof JmlWhileLoop) {
+            ((JmlWhileLoop)stt).loopSpecs = collectedLoopStatements.toList();
+        } else if (stt instanceof JmlDoWhileLoop) {
+            ((JmlDoWhileLoop)stt).loopSpecs = collectedLoopStatements.toList();
+        } else if (!collectedLoopStatements.isEmpty()) {
+            jmlerror(collectedLoopStatements.first().pos,
+                    collectedLoopStatements.first().getEndPosition(endPosTable),
+                    "jml.loop.spec.misplaced");
+        }
+        collectedLoopStatements = new ListBuffer<>();
         return stt;
     }
+    
+    ListBuffer<JmlStatementLoop> collectedLoopStatements = new ListBuffer<>();
 
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
@@ -3083,7 +3141,9 @@ public class JmlParser extends JavacParser {
     
     // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track
     // Jml tokens
-    protected JCExpression term2Rest(JCExpression t, int minprec) {
+    protected JCExpression term2Rest(JCExpression tt, int minprec) {
+        boolean bad = tt instanceof JCErroneous;
+        JCExpression t = tt;
         JCExpression[] odStack = newOdStack();
         Token[] opStack = newOpStack();
 
@@ -3125,6 +3185,7 @@ public class JmlParser extends JavacParser {
 
         odStackSupply.add(odStack);
         opStackSupply.add(opStack);
+        if (bad) return tt;
         return t;
     }
 

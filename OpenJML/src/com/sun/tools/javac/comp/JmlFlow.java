@@ -856,8 +856,9 @@ public class JmlFlow extends Flow  {
         /** This is overridden in order to handle JML method call-like features (e.g. \typeof) */
         @Override
         public void visitApply(JCMethodInvocation tree) {
-            // nothing to do for this checker
-            super.visitApply(tree);
+            // tree.meth is null for JML keyword calls
+            if (tree.meth != null) super.visitApply(tree);
+            else scan(tree.args);
         }
 
         @Override

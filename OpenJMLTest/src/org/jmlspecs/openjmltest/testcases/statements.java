@@ -100,7 +100,13 @@ public class statements extends TCBase {
     }
 
     @Test public void testLoop2() {
-        helpTCF("A.java"," class A { void m() { \n //@ loop_invariant j;\n  \n}}"
+        helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n  \n}}"
+                ,"/A.java:2: Loop specifications must immediately precede a while or for statement",6
+                );
+    }
+    
+    @Test public void testLoop3() {
+        helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n j=true; \n}}"
                 ,"/A.java:2: Loop specifications must immediately precede a while or for statement",6
                 );
     }
