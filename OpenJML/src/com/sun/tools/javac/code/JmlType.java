@@ -45,6 +45,13 @@ public class JmlType extends Type {
     @Override public boolean isPrimitive() {
         return true;
     }
+    
+    // returns true for these new JML primitive types
+    @Override public boolean isPrimitiveOrVoid() {
+        return true;
+    }
+
+
 
     @Override
     public TypeTag getTag() {

@@ -88,7 +88,7 @@ public class JmlTypes extends Types {
         enterBinop("<=", BIGINT, BIGINT, syms.booleanType);
         enterBinop(">=", BIGINT, BIGINT, syms.booleanType);
         
-        enterUnop("-", BIGINT, BIGINT);
+        enterUnop("---", BIGINT, BIGINT); // unary minus
         enterUnop("++", BIGINT, BIGINT);
         enterUnop("--", BIGINT, BIGINT);
 
@@ -107,7 +107,7 @@ public class JmlTypes extends Types {
         enterBinop("<=", REAL, REAL, syms.booleanType);
         enterBinop(">=", REAL, REAL, syms.booleanType);
 
-        enterUnop("-", REAL, REAL);
+        enterUnop("---", REAL, REAL); // unary minus
         enterUnop("++", REAL, REAL);
         enterUnop("--", REAL, REAL);
 
