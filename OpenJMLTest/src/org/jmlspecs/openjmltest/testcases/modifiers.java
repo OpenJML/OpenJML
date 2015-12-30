@@ -501,7 +501,14 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testLocalClass2() {
+        helpTCF("A.java","public class A{ void m() {\n /*@ model   class C {}*/ } }"
+                ); 
+        
+    }
+    
+    @Test public void testLocalClass2a() {
         helpTCF("A.java","public class A{ void m() {\n /*@ model   class C {};*/ } }"
+        		,"/A.java:2: Expected a declaration or a JML construct inside the JML annotation here", 24
                 ); 
         
     }
@@ -515,7 +522,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testLocalClass4() {
-        helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {}; */ } }"
+        helpTCF("A.java","public class A{ void m() {\n /*@ ghost  class C {} */ } }"
                 ,"/A.java:2: This JML modifier is not allowed for a local type declaration",6
                 ,"/A.java:2: A method or type declaration within a JML annotation must be model",13
                 ); 
@@ -1141,7 +1148,7 @@ public class modifiers extends TCBase {
                 );
     }
     
-    @Test // @Ignore // Eventually a clear error message, but too many cacading messages to check.
+    @Test  @Ignore // Eventually a clear error message, but too many cacading messages to check.
     public void testBadModifiers2() {
         helpTCF("A.java","package tt; \n"
                 +"public class A { \n"

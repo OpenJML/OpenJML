@@ -57,7 +57,7 @@ public class bugs extends TCBase {
     * */
     @Test
     public void testMiscBug5() {  
-        helpTCF("A.java","public class A {  int p(A a) { /*@ set a = null; set a = null; */\n return 0; }}"
+        helpTCF("A.java","public class A {  int p(A a) { \n/*@ set a = null; set a = null; */\n return 0; }}"
                 );
     }
 
@@ -102,7 +102,6 @@ public class bugs extends TCBase {
     
     @Test
     public void testMisc11() {
-    	fail("Java8 infinite loop");
         main.addOptions("-specspath",   testspecpath);
         helpTCF("A.java","public class A { private /*@ spec_public */ java.util.Vector pending; \n //@ public invariant pending.elementCount == 0; \n} "
                 );

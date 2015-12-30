@@ -321,12 +321,13 @@ public class JmlEnter extends Enter {
         }
         
         ClassSymbol cs = reader.classExists(that.name);
-        if (cs == null || cs.members_field == null) {
+        if (cs == null || cs.members_field == null || JmlCompilationUnit.isForSource(jmltree.toplevel.mode)) {
             // Do not redo the visitClassDef for binary loading
             super.visitClassDef(that);
             if (that.sym == null) return; // Bad error in defining the class
         } else {
-            // FIXME - only for binary?
+            that.sym = cs;
+            // For binary and for spec files
             classEnter(that.defs, typeEnvs.get(cs));
         }
         

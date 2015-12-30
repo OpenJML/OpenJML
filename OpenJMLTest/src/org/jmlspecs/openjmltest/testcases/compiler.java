@@ -94,8 +94,8 @@ public class compiler {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
                     assertEquals("The standard out is wrong",expected,actual);
-                } else if (all == 1 && actualOutput.indexOf(expected) == -1) {
-                    fail("Output does not end with: " + expected + eol + "Instead is: " + actual);
+                } else if (all == 1 && (actualOutput.indexOf(expected) == -1 && errOutput.indexOf(expected) == -1)) {
+                    fail("Output does not contain: " + expected + eol + "Instead is: " + actual);
                 }
             }
             assertEquals("The exit code is wrong",exitcode,e);
@@ -384,11 +384,9 @@ public class compiler {
                             "test/testNoSourceTypeError/A.jml"
                           },1,0
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceTypeError/A.jml" + eol +
-                           "test/testNoSourceTypeError/A.jml:4: error: incompatible types" + eol + 
+                           "test/testNoSourceTypeError/A.jml:4: error: Field initializers are not permitted in specification files (A.s)" + eol + 
                            "  Integer s = \"abc\";" + eol + 
                            "              ^" + eol +
-                           "  required: Integer" + eol + 
-                           "  found:    String" + eol +
                            "1 error" + eol +
                            "1 warning" + eol
                            );
@@ -599,7 +597,7 @@ public class compiler {
                             "test/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"test/testSpecErrors/A.jml:4: error: incompatible types" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol + "  required: int" + eol + "  found:    boolean" + eol + "1 error" + eol
+                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol + "1 error" + eol
                           );
     }
     
@@ -745,7 +743,6 @@ public class compiler {
     
     @Test
     public void testModelBug() throws Exception {
-    	fail("Java8 infinite loop");
         helper(new String[]
                           { "-noPurityCheck",  //"-Xlint:unchecked",
                             "test/model1/ModelClassExampleBug.java",
@@ -764,7 +761,6 @@ public class compiler {
 
     @Test
     public void testModelBug2() throws Exception {
-    	fail("Java8 infinite loop");
         helper(new String[]
                           { "-noPurityCheck",  //"-Xlint:unchecked",
                             "test/model2/NonGenericModelClassExampleBug.java",

@@ -173,6 +173,11 @@ public class api extends JmlTestCase {
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
             "}";
+    
+    String prettyprint4 = prettyprint +
+    		"NEXT AST" + eol +
+    		"// Specifications: test/testNoErrors/B.java" + eol +
+    		"// Specification file: test/testNoErrors/B.java" + eol + eol;
         
     String parseAndPrettyPrintFromJavaFileObject() throws Exception {
         java.io.File f = new java.io.File("test/testNoErrors/A.java");
@@ -243,9 +248,10 @@ public class api extends JmlTestCase {
         start(true);
         try {
             String s = parseAndPrettyPrintFromMultipleFiles();
-            check("","");
+            check("","error: error reading test\\testNoErrors\\B.java; test\\testNoErrors\\B.java (The system cannot find the file specified)\r\n"
+            		);
             s = s.replace('\\','/');
-            compareStrings(prettyprint,s);
+            compareStrings(prettyprint4,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -258,9 +264,10 @@ public class api extends JmlTestCase {
         start(true);
         try {
             String s = parseAndPrettyPrintFromFileArray();
-            check("","");
+            check("","error: error reading test\\testNoErrors\\B.java; test\\testNoErrors\\B.java (The system cannot find the file specified)\r\n"
+            		);
             s = s.replace('\\','/');
-            compareStrings(prettyprint,s);
+            compareStrings(prettyprint4,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -494,13 +501,13 @@ public class api extends JmlTestCase {
     }
     
     String parseJMLStatement2() throws Exception {
-        String expr = "/*@ loop_invariant i < 10;*/";
+        String expr = "/*@ assert i < 10;*/";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseStatement(expr,false));
     }
     
     String parseJMLStatement() throws Exception {
-        String expr = "loop_invariant i >= 0;";
+        String expr = "assert i >= 0;";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseStatement(expr,true));
     }
@@ -587,7 +594,7 @@ public class api extends JmlTestCase {
         try {
             String s = parseJMLStatement2();
             check("","");
-            compareStrings("//@ loop_invariant i < 10;",s);
+            compareStrings("/*@ assert i < 10;*/",s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -602,7 +609,7 @@ public class api extends JmlTestCase {
         try {
             String s = parseJMLStatement();
             check("","");
-            compareStrings("//@ loop_invariant i >= 0;",s);
+            compareStrings("/*@ assert i >= 0;*/",s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -642,16 +649,14 @@ public class api extends JmlTestCase {
     // API(), nodeFactory(), context(), node building, prettyPrint(...,false), enterAndCheck(jcu)
     @Test
     public void testAPI3() {
-      String err =
-          "/A.java:1: error: incompatible types"+eol+
+      String out =
+          "/A.java:1: error: incompatible types: boolean cannot be converted to int"+eol+
           "-------------"+eol+
           "^"+eol+
-          "  required: int"+eol+
-          "  found:    boolean"+eol+
           "/A.java:1: error: duplicate class: org.test.A"+eol+
           "-------------"+eol+
           "^"+eol;
-      String out = "";
+      String err = "";
 
       try {
           start(true);

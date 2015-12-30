@@ -166,6 +166,10 @@ public class JmlParser extends JavacParser {
         return jmlF;
     }
     
+    public void rescan() {
+        token = S.rescan();
+    }
+    
     /** Returns true if the -deprecation option is set */
     public boolean isDeprecationSet() {
         return Options.instance(context).isSet("-Xlint:deprecation");
@@ -366,6 +370,7 @@ public class JmlParser extends JavacParser {
             return super.classOrInterfaceBody(className, isInterface);
         } finally {
             S.setJmlKeyword(savedJmlKeyword);
+            rescan();
         }
 
     }
@@ -656,6 +661,7 @@ public class JmlParser extends JavacParser {
                     }
                     st = toP(jmlF.at(pos).JmlHavocStatement(list.toList()));
                     S.setJmlKeyword(true); // This comes a token too late.
+                    rescan();
                     needSemi = false;
                 } else if (jtoken == JmlTokenKind.SET || jtoken == JmlTokenKind.DEBUG) {
                     S.setJmlKeyword(false);
@@ -672,6 +678,7 @@ public class JmlParser extends JavacParser {
                     }
                     st = toP(jmlF.at(pos).JmlStatement(jtoken, (JCExpressionStatement)t));
                     S.setJmlKeyword(true); // This comes a token too late.
+                    rescan();
                     needSemi = false;
 
                 } else if (methodClauseTokens.contains(jtoken)) {
@@ -791,7 +798,7 @@ public class JmlParser extends JavacParser {
             }
             return st;
         }
-        if (S.jml() && !inModelProgram && !inJmlDeclaration) {
+        if (S.jml() && !inModelProgram && !inJmlDeclaration && !inLocalOrAnonClass) { // FIXME - unsure of this test
             jmlerror(pos(),"jml.expected.decl.or.jml");
         }
         JCStatement stt = super.parseStatement();
@@ -1861,6 +1868,7 @@ public class JmlParser extends JavacParser {
         if (res != null) res.sourcefile = log.currentSourceFile();
         S.setJmlKeyword(true); // Just in case, but it is too late, since the
         // token after the semicolon is already read
+        rescan();
         return res;
     }
 

@@ -55,13 +55,15 @@ public class namelookup extends TCBase {
                 "   void m() {\n" +
                 "      //@ ghost Object k;\n" +
                 "      boolean b = k == null;\n" +  // ERROR - k is Java variable with int type
-                "      //@ assert k == 1;\n" +  // Allowed by boxing
-                "      //@ assert k == null;\n" +
-                "      boolean bb = k == o;\n" +  // Allowed by boxing
+                "      //@ assert k == 1;\n" + // ERROR - k is Object
+                "      //@ assert k == null;\n" + // OK
+                "      boolean bb = k == o;\n" + // ERROR - k is int
                 "      boolean bbb = k == null;\n" +  // ERROR
                 "   }\n" +
                 "}",
         "/A.java:4: incomparable types: int and <nulltype>",21,
+        "/A.java:5: incomparable types: java.lang.Object and int",20,
+        "/A.java:7: incomparable types: int and java.lang.Object",22,
         "/A.java:8: incomparable types: int and <nulltype>",23);
     }
 

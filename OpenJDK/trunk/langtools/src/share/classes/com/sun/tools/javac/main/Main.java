@@ -550,6 +550,7 @@ public class Main {
                          classnames.toList(),
                          processors);
 
+            if (log == null) log = Log.instance(context); // OpenJML - added
             if (log.expectDiagKeys != null) {
                 if (log.expectDiagKeys.isEmpty()) {
                     log.printRawLines("all expected diagnostics found");

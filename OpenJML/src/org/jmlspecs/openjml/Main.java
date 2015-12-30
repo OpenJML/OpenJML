@@ -938,14 +938,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
-        JmlDeferredAttr.instance(context); // registers when created
+        JmlDeferredAttr.preRegister(context); // registers when created
         // Extensions are registered after options are processed
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML
      * rather than Javac bugs.
      */
-    // @Override
+    @Override
     protected void bugMessage(Throwable ex) {
         out.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
         ex.printStackTrace(out);

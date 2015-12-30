@@ -54,7 +54,7 @@ public class modelghost extends TCBase {
     @Test
     public void testClassSimple3() {
     	helpTCF("A.java",
-    			"public class A { /*@ model B m() { return B.n; } } */ " +
+    			"public class A { /*@ model B m() { return B.n; }  */ }\n" +
     	        "/*@ model class B { public static B n; } */\n"
     		    );
     }

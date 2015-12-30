@@ -57,7 +57,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(9) int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: incompatible types\n  required: java.lang.String\n  found:    int",10
+                ,"/A.java:4: incompatible types: int cannot be converted to java.lang.String",10
         );
     }
     
@@ -250,7 +250,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(9) int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: incompatible types\n  required: java.lang.String\n  found:    int",11
+                ,"/A.java:4: incompatible types: int cannot be converted to java.lang.String",11
         );
     }
     
@@ -596,7 +596,7 @@ public class QuerySecret extends TCBase {
                 "public class A { \n" + 
                 "  @Secret(9) int m; \n" +
                 "} \n"
-                ,"/A.java:3: incompatible types\n  required: java.lang.String\n  found:    int",11
+                ,"/A.java:3: incompatible types: int cannot be converted to java.lang.String",11
                 ,"/A.java:3: A secret declaration for a field may not have arguments",11
                 //,"/A.java:3: A secret field must be a model field or in a secret datagroup",18
         );

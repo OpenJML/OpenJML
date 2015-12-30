@@ -266,6 +266,15 @@ public class JmlScanner extends Scanner {
     
     JmlToken DUMMY = new JmlToken(null,TokenKind.ERROR,0,0);
     
+    public Token rescan() {
+        if (!jml()) return token;
+        int i = token.pos;
+        jmltokenizer.setReaderState(i);
+        savedTokens.clear();
+        nextToken();
+        return token;
+    }
+    
     public void setToken(Token token) {
         this.token = token;
     }

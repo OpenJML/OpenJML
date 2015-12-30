@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
@@ -124,6 +125,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     protected JmlTokenizer(JmlScanner.JmlFactory fac, char[] input, int inputLength) {
         super(fac, input, inputLength);
         context = fac.context;
+        getKeys();
     }
 
     /**
@@ -136,6 +138,15 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     protected JmlTokenizer(JmlScanner.JmlFactory fac, CharBuffer buffer) {
         super(fac, buffer);
         context = fac.context;
+        getKeys();
+    }
+    
+    protected void getKeys() {
+        String keyoption = JmlOption.value(context, JmlOption.KEYS);
+        keys.clear();
+        for (String k: keyoption.split(",")) {
+            keys.add(k);
+        }
     }
 
     /**
@@ -178,7 +189,7 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     
     public void setReaderState(int bp) {
         reader.bp = bp;
-        reader.ch = reader.buf[bp]; // FIXME - not sure about this
+        reader.ch = reader.buf[bp];
     }
 
     
