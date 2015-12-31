@@ -795,21 +795,23 @@ public class JmlTree implements IJmlTree {
          *  This field may point to 'this' if the compilation unit is its own specs file. */
         public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
         
-        /** This list contains the top-level model types declared in this compilation unit; this
-         * is not necessarily all or even part of the top-level model types that the CUs specifications
-         * specify, since (a) other spec files may contribute top-level model types 
-         * and (b) this CU may not be part of its own spec sequence.
-         */
-        public java.util.List<JmlClassDecl> parsedTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
+//        /** This list contains the top-level model types declared in this compilation unit; this
+//         * is not necessarily all or even part of the top-level model types that the CUs specifications
+//         * specify, since (a) other spec files may contribute top-level model types 
+//         * and (b) this CU may not be part of its own spec sequence.
+//         */
+//        public java.util.List<JmlClassDecl> parsedTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
         
-        /** This list is the set of top-level model types specified by the
-         * CUs specifications.  It is assembled when types are entered in JmlEnter.
-         */
-        public java.util.List<JmlClassDecl> specsTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
+//        /** This list is the set of top-level model types specified by the
+//         * CUs specifications.  It is assembled when types are entered in JmlEnter.
+//         */
+//        public java.util.List<JmlClassDecl> specsTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
 
         // FIXME - review the use of this value
         /** The use to be made of this parse tree - one of the int constants below. */
         public int mode = 0; // init to an unknown value
+        
+        public Env<AttrContext> topLevelEnv;
         
         /** An unspecified value. */
         public static final int UNKNOWN = 0; 

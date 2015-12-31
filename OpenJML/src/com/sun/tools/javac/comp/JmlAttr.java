@@ -376,7 +376,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         Env<AttrContext> eee = typeEnvs.get(c);
-        if (eee != null && JmlCompilationUnit.isForSource(((JmlCompilationUnit)eee.toplevel).mode)) super.attribClass(c); // No need to attribute the class itself if it was binary
+        if (eee != null && JmlCompilationUnit.isForSource(((JmlCompilationUnit)eee.toplevel).mode)) {
+            JavaFileObject prev = log.useSource(eee.toplevel.sourcefile);
+            try {
+                super.attribClass(c); // No need to attribute the class itself if it was binary
+            } finally {
+                log.useSource(prev);
+            }
+        }
         if (!isUnattributed) return;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
@@ -493,7 +500,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         isInJmlDeclaration = utils.isJML(c.flags()); // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
-        JavaFileObject prev = log.useSource(((JmlCompilationUnit)env.toplevel).sourcefile);  // FIXME - no write for multiple source files
+//        JavaFileObject prev = log.useSource(((JmlClassDecl)env.enclClass).toplevel.sourcefile);  // FIXME - no write for multiple source files
         boolean oldRelax = relax;
         try {
             // The JML specs to check are are in the TypeSpecs structure
@@ -507,7 +514,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             isInJmlDeclaration = prevIsInJmlDeclaration;
             enclosingClassEnv = prevClassEnv;
             ((JmlCheck)chk).setInJml(isInJmlDeclaration);
-            log.useSource(prev);
+//            log.useSource(prev);
         }
     }
     
@@ -542,9 +549,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
                 // model types, which are not in clauses
 
-                for (JmlClassDecl mtype: tspecs.modelTypes) {
-                    mtype.accept(this);
-                }
+//                for (JmlClassDecl mtype: tspecs.modelTypes) {
+//                    mtype.accept(this);
+//                }
 
                 //            // Do the specs for JML initialization blocks // FIXME - test the need for this - for initializatino blocks and JML initializations
                 //            for (JCTree.JCBlock m: tspecs.blocks.keySet()) {
@@ -1787,27 +1794,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
     }
     
-    /** This is overridden in order to check the JML modifiers of the variable declaration */
-    @Override
-    public void visitVarDef(JCVariableDecl tree) {
-        attribAnnotationTypes(tree.mods.annotations,env);  // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
-        for (JCAnnotation a: tree.mods.annotations) a.type = a.annotationType.type;
-        super.visitVarDef(tree);
-        // Anonymous classes construct synthetic members (constructors at least)
-        // which are not JML nodes.
-        FieldSpecs fspecs = specs.getSpecs(tree.sym);
-        if (fspecs != null) {
-            boolean prev = jmlresolve.setAllowJML(true);
-            for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
-            jmlresolve.setAllowJML(prev);
-        }
-
-        // Check the mods after the specs, because the modifier checks depend on
-        // the specification clauses being attributed
-        if (tree instanceof JmlVariableDecl) {
-            checkVarMods((JmlVariableDecl)tree);
-        }
-    }
+//    /** This is overridden in order to check the JML modifiers of the variable declaration */
+//    @Override
+//    public void visitVarDef(JCVariableDecl tree) {
+//        attribAnnotationTypes(tree.mods.annotations,env);  // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
+//        for (JCAnnotation a: tree.mods.annotations) a.type = a.annotationType.type;
+//        super.visitVarDef(tree);
+//        // Anonymous classes construct synthetic members (constructors at least)
+//        // which are not JML nodes.
+//        FieldSpecs fspecs = specs.getSpecs(tree.sym);
+//        if (fspecs != null) {
+//            boolean prev = jmlresolve.setAllowJML(true);
+//            for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+//            jmlresolve.setAllowJML(prev);
+//        }
+//
+//        // These are checked later in visitJmlVariableDecl
+////        // Check the mods after the specs, because the modifier checks depend on
+////        // the specification clauses being attributed
+////        if (tree instanceof JmlVariableDecl) {
+////            checkVarMods((JmlVariableDecl)tree);
+////        }
+//    }
     
     // MAINTENANCE ISSUE - copied from super class
     @Override
@@ -1837,7 +1845,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                 "self.ref" : "forward.ref";
                 if (!onlyWarning || isStaticEnumField(v)) {
                     // DRC - changed the following line to avoid complaints about forward references from invariants
-                    if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) log.error(tree.pos(), "illegal.forward.ref");
+                    if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) {
+                        log.error(tree.pos(), "illegal.forward.ref");
+                    }
                 } else if (useBeforeDeclarationWarning) {
                     log.warning(tree.pos(), suffix, v);
                 }
@@ -1998,6 +2008,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                }
 //            }
         }
+        
+        // Check that types match 
+        if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
+            Type specType = attribType(tree.specsDecl.vartype,env);
+            if (specType != null) {
+                if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
+                    JavaFileObject prev = log.useSource(tree.specsDecl.source());
+                    log.error(tree.specsDecl.vartype.pos(),"jml.mismatched.field.types",tree.name,
+                            tree.sym.enclClass().getQualifiedName()+"."+tree.sym.name,
+                            specType,
+                            tree.sym.type);
+                    log.useSource(prev);
+                }
+            }
+        }
+
     }
     
 //    // FIXME - this should be done in MemberEnter, not here
@@ -5422,7 +5448,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         boolean prev = false;
         if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(true);
-        super.visitVarDef(that);
+        visitVarDef(that);
         // Anonymous classes construct synthetic members (constructors at least)
         // which are not JML nodes.
         FieldSpecs fspecs = specs.getSpecs(that.sym);

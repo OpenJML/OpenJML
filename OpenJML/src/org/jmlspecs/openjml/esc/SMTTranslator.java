@@ -918,7 +918,6 @@ public class SMTTranslator extends JmlTreeScanner {
         else if (!t.isPrimitive()) t = t.tsym.erasure(jmltypes);
         
         String s = "T_" + typeString(t);
-        if (s.equals("T_Array")) Utils.print("");
         return F.symbol(s);
     }
     
@@ -946,15 +945,11 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } else {
             List<Type> params = t.getTypeArguments();
-            if (params.size() == 0) {
-                Utils.print("");
-            }
             List<IExpr> args = new LinkedList<IExpr>();
             args.add(javaTypeSymbol(t));
             for (Type tt: params) {
                 args.add(jmlTypeSymbol(tt));
             }
-            if (params.size() == 0) Utils.print("");
             return F.fcn(F.symbol("_JMLT_"+params.size()), args);
         }
     }

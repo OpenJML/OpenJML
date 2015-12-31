@@ -202,7 +202,7 @@ public class Enter extends JCTree.Visitor {
     /** Create a fresh environment for toplevels.
      *  @param tree     The toplevel tree.
      */
-    Env<AttrContext> topLevelEnv(JCCompilationUnit tree) {
+    public Env<AttrContext> topLevelEnv(JCCompilationUnit tree) { // OpenJML _ changed from default to public visibility
         Env<AttrContext> localEnv = new Env<AttrContext>(tree, new AttrContext());
         localEnv.toplevel = tree;
         localEnv.enclClass = predefClassDef;
@@ -266,7 +266,7 @@ public class Enter extends JCTree.Visitor {
 
     /** Visitor method: enter classes of a list of trees, returning a list of types.
      */
-    <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) {
+    public <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) {  // OpenJML - changed from default to public visibility
         ListBuffer<Type> ts = new ListBuffer<Type>();
         for (List<T> l = trees; l.nonEmpty(); l = l.tail) {
             Type t = classEnter(l.head, env);

@@ -824,6 +824,11 @@ public class typechecking extends TCBase {
         );
     }
 
+    @Test public void testOKImport1() {
+        helpTCF("A.java","import java.util.*;\n public class A {\n List n;  \n }"
+        );
+    }
+    
     @Test public void testBadModelImport1() {
         helpTCF("A.java","//@ import java.util.List;\n public class A {\n //@ ghost List k;\n List n;  \n }"
                 ,"/A.java:1: An import statement in a JML comment must have a model modifier",5

@@ -43,7 +43,6 @@ public abstract class TCBase extends JmlTestCase {
         main.addOptions("-classpath",   "../OpenJML/bin-runtime");
         if (!useSystemSpecs) main.addOptions("-no-internalSpecs");
         main.addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
-        //main.addOptions("-jmldebug");
 
         JmlAttr.instance(context);
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing

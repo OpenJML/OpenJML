@@ -906,9 +906,6 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-        if (m.toString().equals("File(java.lang.String)")) {
-            Utils.print(null);
-        }
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
@@ -933,6 +930,9 @@ public class JmlSpecs {
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
+        if (m.toString().equals("ENGLISH")) {
+            Utils.print(null);
+        }
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     
@@ -951,7 +951,6 @@ public class JmlSpecs {
         MethodSpecs s = getSpecs(m);
         if (s == null) return null;
         if (s.cases.deSugared == null) {
-            if (m.name.toString().equals("getMaxPriority")) Utils.print(null);
             attr.deSugarMethodSpecs(s.cases.decl,s);
         }
         return s.cases.deSugared;
@@ -1070,9 +1069,9 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClause> clauses;
 
-        /** All the model types directly declared in this type */
-        @NonNull
-        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();
+//        /** All the model types directly declared in this type */
+//        @NonNull
+//        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();
         
         /** Synthetic methods for model fields (these are also included in the clauses list) */
         /*@ non_null */
@@ -1153,10 +1152,10 @@ public class JmlSpecs {
                 c.accept(p);
                 try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
             }
-            if (modelTypes != null) for (JmlClassDecl c: modelTypes) {
-                c.accept(p);
-                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
-            }
+//            if (modelTypes != null) for (JmlClassDecl c: modelTypes) {
+//                c.accept(p);
+//                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+//            }
             return s.toString();
         }
     }
@@ -1198,7 +1197,6 @@ public class JmlSpecs {
         
         TypeSpecs spec = get(csymbol); // FIXME - why would spec be null?
         if (spec == null || spec.defaultNullity == null) {
-            if (csymbol.toString().equals("B")) Utils.print(null);
             JmlTokenKind t = null;
             if (spec.decl == null) {
                 if (csymbol.getAnnotationMirrors() != null) {
@@ -1232,7 +1230,6 @@ public class JmlSpecs {
 
     // Not complete
     public /*@non_null*/ JCAnnotation defaultNullityAnnotation(/*@ nullable*/ ClassSymbol csymbol) {
-        if (csymbol != null && csymbol.name.toString().endsWith("A")) Utils.print(null);
         if (csymbol == null) {
             // FIXME - this is no longer true
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.

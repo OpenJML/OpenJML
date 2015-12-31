@@ -2617,7 +2617,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     //                                                    convertExpr(rep.ident),
                                     //                                                    convertExpr(rep.expression));
                                     //                                        } else {
-                                    if (varsym.toString().equals("total_seconds") && methodDecl.name.toString().equals("later")) Utils.print(null);
                                     JCExpression prev = currentThisExpr;
                                     currentThisExpr = translatedSelector;
                                     try {
@@ -3163,14 +3162,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             x: for (Symbol sy: csym.members().getElements()) {
                 if (!(sy instanceof VarSymbol)) continue;
                 // Find the field declaration for the given symbol
-                if (sy.name.toString().equals("fii")) Utils.print(null);
                 Env<AttrContext> e = Enter.instance(context).getEnv(csym);
                 if (e != null && e.tree instanceof JmlClassDecl) {
                     JmlClassDecl cdecl = (JmlClassDecl)e.tree;
                     for (JCTree def : cdecl.defs) {
                         if (def instanceof JmlVariableDecl) {
                             if (((JmlVariableDecl)def).sym == sy) {
-                                if (sy.toString().equals("fii")) Utils.print(null);
                                 addNullnessAllocationTypeCondition2((JmlVariableDecl)def, sy, beingConstructed && !utils.isJMLStatic(sy));
                                 continue x;
                             }
@@ -5517,8 +5514,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            if (calleeMethodSym.name.toString().equals("erasure")) Utils.print(null);
-            
             // Collect all the methods overridden by the method being called
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
             
@@ -6476,7 +6471,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         notImplemented(clause,"forall clause in method specs",clause.source());
                                         break;
                                     case ENSURES:
-                                        //if (methodDecl.sym.toString().contains("defaultValues") && that.toString().contains("add")) Utils.print("");
                                         currentStatements = ensuresStats;
                                         LinkedList<ListBuffer<JCStatement>> temp = markBlock();
                                         ListBuffer<JCStatement> check7 = pushBlock();
@@ -8423,9 +8417,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitIdent(JCIdent that) {
-        if (that.toString().equals("E")) {
-            Utils.print("");
-        }
         if (pureCopy) {
             JCIdent id = treeutils.makeIdent(that.pos, that.name, that.sym);
             id.type = that.type; // in case that.sym is null
@@ -8941,9 +8932,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
                     }
                 }
-                if (rac) for (JmlClassDecl t: tyspecs.modelTypes) {
-                    scan(t);
-                }
+//                if (rac) for (JmlClassDecl t: tyspecs.modelTypes) {
+//                    scan(t);
+//                }
             }
             
             List<JCTree> defs = this.classDefs.toList();
@@ -9034,11 +9025,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         n.namedImportScope = that.namedImportScope;
         n.packge = that.packge;
         n.setType(that.type);
-        n.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME: need to convert
+//        n.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME: need to convert
         n.sourcefile = that.sourcefile;
         n.starImportScope = that.starImportScope;
         n.specsCompilationUnit = that.specsCompilationUnit; // FIXME: need to convert
-        n.specsTopLevelModelTypes = convert(that.specsTopLevelModelTypes);
+//        n.specsTopLevelModelTypes = convert(that.specsTopLevelModelTypes);
         result = n;
     }
     

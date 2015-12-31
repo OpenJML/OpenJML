@@ -344,8 +344,6 @@ public class JmlCompiler extends JavaCompiler {
         // FIXME - not sure env or mode below are still used
         ((JmlEnter)enter).recordEmptySpecs(csymbol);
         if (speccu != null) {
-            env = enter.getTopLevelEnv(speccu);
-//            enter.visitTopLevel(speccu);  // Does imports
             csymbol.flags_field |= Flags.UNATTRIBUTED;
 
             if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
@@ -353,12 +351,12 @@ public class JmlCompiler extends JavaCompiler {
 
         //        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
             
-            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryMemberEnter(csymbol,speccu,env);
+            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(csymbol,speccu);
             
         }
             
         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
-        if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
+//        if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
         nestingLevel--;
      }
     
@@ -438,7 +436,6 @@ public class JmlCompiler extends JavaCompiler {
 //        
 //        // Note - we do not want translation for jmldoc (neither ESC nor RAC)
 //
-//        if (env.tree instanceof JmlClassDecl && "Add_ClassStrategy_int".equals(((JmlClassDecl)env.tree).name.toString())) Utils.print("");
 //
 //        if (utils.check || utils.doc) {
 //            // Stop here // FIXME - use stopping policy?

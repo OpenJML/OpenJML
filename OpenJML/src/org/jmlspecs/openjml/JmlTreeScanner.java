@@ -67,7 +67,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         if (scanMode == AST_SPEC_MODE) {
             if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
         }
-        visitClassDef(that);
+        boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
+        if (!isJML || scanMode == AST_JML_MODE) visitClassDef(that);
         if (scanMode == AST_SPEC_MODE) {
             JmlSpecs.TypeSpecs ms = that.typeSpecsCombined;
             if (ms != null) {
@@ -88,8 +89,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.packageAnnotations);
         scan(that.pid); // package id
         scan(that.defs);
-        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
-        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
+//        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
+//        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
     }
 
     public void visitJmlMethodSig(JmlMethodSig that) {

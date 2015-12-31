@@ -1308,9 +1308,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             // This is essential to how counterexample path construction works
             currentBlock.statements.add(that);
         } else if (that.token == JmlTokenKind.ASSUME || that.token == JmlTokenKind.ASSERT) {
-//            if (that.token == JmlToken.ASSERT && that.expression.toString().equals("ASSERT_200")) {
-//                Utils.print("");
-//            }
             JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.token,that.label,convertExpr(that.expression));
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
@@ -1600,9 +1597,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
             scan(that.ident); // FIXME - is this needed since we already set the encodedname
         } else {
-//            if (that.sym.toString().equals("ASSERT_200") || that.sym.toString().equals("ASSERT_202")) {
-//                Utils.print("");
-//            }
             // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);

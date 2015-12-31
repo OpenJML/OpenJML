@@ -1093,7 +1093,8 @@ public class modifiers extends TCBase {
     // TODO - test initializers
     
     @Test public void testBinaryMods() {
-        addMockFile("$A/java/lang/Object.jml","/*@ non_null */ public class Object {\n"
+        addMockFile("$A/java/lang/Object.jml",
+        		"/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +

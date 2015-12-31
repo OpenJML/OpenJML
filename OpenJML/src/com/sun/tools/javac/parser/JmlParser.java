@@ -193,8 +193,12 @@ public class JmlParser extends JavacParser {
                     if (utils.isJML(((JmlClassDecl) t).mods)) {
                         // These are declarations that were declared within
                         // a JML comment - they should have, but might
-                        // erroneously be missing, a model modifier
-                        jmlcu.parsedTopLevelModelTypes.add(jcd);
+                        // erroneously be missing, a model modifier.
+                        // The check for a model modifier is in JmlAttr.checkClassMods
+//                        if (utils.findMod(jcd.mods, JmlTokenKind.MODEL) == null && utils.findMod(jcd.mods, JmlTokenKind.GHOST) == null) {
+//                            log.error(jcd.pos(), "jml.missing.model");
+//                        }
+                        list.append(jcd);
                     } else {
                         list.append(t);
                     }
@@ -928,7 +932,7 @@ public class JmlParser extends JavacParser {
                                 JmlMethodDecl d = (JmlMethodDecl) tr;
                                 utils.setJML(d.mods);
                                 d.sourcefile = log.currentSourceFile();
-                                ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                                ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                                 attach(d, dc);
                             } else if (tr instanceof JmlVariableDecl) {
                                 JmlVariableDecl d = (JmlVariableDecl) tr;
@@ -1086,11 +1090,6 @@ public class JmlParser extends JavacParser {
                 } else if (tree instanceof JmlMethodDecl) {
                     // OK
                 } else if (tree instanceof JmlClassDecl) {
-                    JmlClassDecl jcd = (JmlClassDecl) tree;
-                    typeSpecs.modelTypes.append(jcd);
-                    // model types are their own specs
-                    jcd.specsDecls = jcd;
-                    tree = null; // model types are not in clauses
                     // OK
                 } else {
                     log.error(tree.pos(), "jml.internal.notsobad",

@@ -85,8 +85,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         copy.sourcefile = that.sourcefile;
         copy.specsCompilationUnit = that == that.specsCompilationUnit ? copy : copy(that.specsCompilationUnit);
         copy.mode = that.mode;
-        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
-        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
+//        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
+//        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
         copy.type = that.type;
         return copy;
     }

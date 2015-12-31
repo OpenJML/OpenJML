@@ -233,7 +233,6 @@ public class JmlResolve extends Resolve {
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
          if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
-         if (name.toString().equals("java.io.File")) Utils.print(null);
          {
              Symbol stemp = reader.classExists(name);
              boolean completed = stemp != null && ((ClassSymbol)stemp).members_field != null;
@@ -242,8 +241,8 @@ public class JmlResolve extends Resolve {
                  return stemp;
              }
          }
+         if (name.toString().equals("java.util.Locale")) Utils.print(null);
          Symbol s = super.loadClass(env, name);
-         if (name.toString().equals("java.io.File")) savedSym = s;
          
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
@@ -394,6 +393,7 @@ public class JmlResolve extends Resolve {
              boolean useVarargs,
              boolean operator,
              boolean abstractok) {
+         if (name.toString().equals("erasure")) Utils.print(null);
          for (Symbol s : sc.getElementsByName(name, new JmlLookupFilter(abstractok))) {
              bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
                      bestSoFar, allowBoxing, useVarargs, operator);

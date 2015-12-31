@@ -288,9 +288,9 @@ public class API implements IAPI {
             for (JCTree t: jcu.defs) {
                 if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
             }
-            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
-                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
-            }
+//            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
+//                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
+//            }
         }
 
         ListBuffer<JCCompilationUnit> jlist = new ListBuffer<JCCompilationUnit>();
