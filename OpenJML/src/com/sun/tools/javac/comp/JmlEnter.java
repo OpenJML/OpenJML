@@ -431,20 +431,23 @@ public class JmlEnter extends Enter {
             }
         }
         
-        Name flatname = jmltree.toplevel.pid == null ? that.name : names.fromString(jmltree.toplevel.pid.toString() + "." + that.name.toString());
-        ClassSymbol cs = reader.classExists(flatname);
-        // Do not redo the visitClassDef for binary loading
-        if (cs == null || cs.members_field == null || jmltree.toplevel == null || JmlCompilationUnit.isForSource(jmltree.toplevel.mode)) {
-            super.visitClassDef(that);
-            if (that.sym == null) {
-                log.error("jml.internal", "Unexpected null class symbol after processing class " + that.name);
-                return;
+        // DO this check defensively - but eventually should never be null when nested classes are properly handedl
+        if (jmltree.toplevel != null) {
+            Name flatname = jmltree.toplevel.pid == null ? that.name : names.fromString(jmltree.toplevel.pid.toString() + "." + that.name.toString());
+            ClassSymbol cs = reader.classExists(flatname);
+            // Do not redo the visitClassDef for binary loading
+            if (cs == null || cs.members_field == null || jmltree.toplevel == null || JmlCompilationUnit.isForSource(jmltree.toplevel.mode)) {
+                super.visitClassDef(that);
+                if (that.sym == null) {
+                    log.error("jml.internal", "Unexpected null class symbol after processing class " + that.name);
+                    return;
+                }
+            } else {
+                that.sym = cs;
+                // We are entering a class within specification file for a binary load
+                // So enter any nested classes within the class we have been entering
+                // classEnter(that.defs, typeEnvs.get(cs)); // FIXME - no environment stored
             }
-        } else {
-            that.sym = cs;
-            // We are entering a class within specification file for a binary load
-            // So enter any nested classes within the class we have been entering
-            // classEnter(that.defs, typeEnvs.get(cs)); // FIXME - no environment stored
         }
         
         Env<AttrContext> localEnv = getEnv(that.sym);

@@ -225,7 +225,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         currentClass = prevClass;
 
-        // Now go through everything in the specs sequence, finding the
+        // Now go through everything in the specifications, finding the
         // JML fields and methods.  These need to be entered.
 
         boolean prevAllowJML = resolve.allowJML();
@@ -344,20 +344,27 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             Integer matchpos;
             Map<Symbol,Integer> matches = new HashMap<Symbol,Integer>();
-            for (JCTree t: specsDecl.defs) {
-                if (t instanceof JmlVariableDecl) {
-                    VarSymbol vsym = matchAndCombineFieldSpecs(jtree,jtree.sym,(JmlVariableDecl)t);
-                    if (vsym != null && (matchpos=matches.put(vsym,((JmlVariableDecl)t).pos)) != null) {
-                        int p = ((JmlVariableDecl)t).pos;
-                    	log.error(p,"jml.duplicate.var.match",((JmlVariableDecl)t).name);
+            for (JCTree specsMemberDecl: specsDecl.defs) {
+                if (specsMemberDecl instanceof JmlVariableDecl) {
+                    VarSymbol vsym = matchAndCombineFieldSpecs(jtree,jtree.sym,(JmlVariableDecl)specsMemberDecl);
+                    if (vsym != null && (matchpos=matches.put(vsym,((JmlVariableDecl)specsMemberDecl).pos)) != null) {
+                        int p = ((JmlVariableDecl)specsMemberDecl).pos;
+                    	log.error(p,"jml.duplicate.var.match",((JmlVariableDecl)specsMemberDecl).name);
                         log.error(matchpos,"jml.associated.decl.cf",
                         		utils.locationString(p));
                     }
-                } else if (t instanceof JmlMethodDecl) {
-                    MethodSymbol msym = matchAndCombineMethodSpecs(jtree,jtree.sym,(JmlMethodDecl)t,env);
-                    if (msym != null && (matchpos=matches.put(msym,((JmlMethodDecl)t).pos)) != null) {
-                        int p = ((JmlMethodDecl)t).pos;
-                        log.error(p,"jml.duplicate.method.match",((JmlMethodDecl)t).name);
+                } else if (specsMemberDecl instanceof JmlMethodDecl) {
+                    JmlMethodDecl jmlSpecsMemberDecl = (JmlMethodDecl)specsMemberDecl;
+                    MethodSymbol msym = matchAndCombineMethodSpecs(jtree,jtree.sym,jmlSpecsMemberDecl,env);
+                    if (msym == null) {
+                        jtree.defs = jtree.defs.append(jmlSpecsMemberDecl);
+                        memberEnter(specsMemberDecl,env);
+                        msym = jmlSpecsMemberDecl.sym;
+                        jmlSpecsMemberDecl.specsDecl = jmlSpecsMemberDecl;
+                    }
+                    if (msym != null && (matchpos=matches.put(msym,((JmlMethodDecl)specsMemberDecl).pos)) != null) {
+                        int p = ((JmlMethodDecl)specsMemberDecl).pos;
+                        log.error(p,"jml.duplicate.method.match",((JmlMethodDecl)specsMemberDecl).name);
                         log.error(matchpos,"jml.associated.decl.cf",
                         		utils.locationString(p));
                     }
@@ -1458,10 +1465,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
         
         if (match == null) {
-            if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration) {
+            if (complain && (specMethod.mods.flags & Flags.GENERATEDCONSTR) == 0 && !inModelTypeDeclaration
+                    && utils.findMod(specMethod.mods,JmlTokenKind.MODEL) == null) {
                 log.error(specMethod.pos(),"jml.no.method.match",
                     csym.flatName() + "." + mtemp);
             }
+            Utils.print(null);
         } else {
             // FIXME - do we need to check for model methods, and that they match?
 //            boolean isModel = JmlAttr.instance(context).findMod(specMethod.mods,JmlToken.MODEL) != null;
@@ -2748,15 +2757,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // FIXME - don't want an error message - just an indication of whether such a method exists
                     Scope.Entry e = c.members().lookup(md.name);
                     int count = 0;
-                    while (e.sym != null) {
+                    while (e.sym != null && e.scope != null && e.sym.name != md.name) {
                         if (e.sym instanceof Symbol.MethodSymbol) {
                             Symbol.MethodSymbol msym = (Symbol.MethodSymbol)e.sym;
-                            e = e.next();
-                            if (msym.getParameters().length() != md.params.length()) continue;
-                            // Match argument types
-                            md.sym = msym;
-                            count++;
-                            break;
+                            if (msym.getParameters().length() == md.params.length()) {
+                                // Match argument types
+                                md.sym = msym;
+                                count++;
+                            }
                         }
                         e = e.next();
                     }

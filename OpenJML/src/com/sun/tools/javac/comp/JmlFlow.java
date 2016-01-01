@@ -140,7 +140,12 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlMethodDecl(JmlMethodDecl that) {
-            visitMethodDef(that);
+            JavaFileObject prev = Log.instance(context).useSource(that.sourcefile);
+            try {
+                visitMethodDef(that);
+            } finally {
+                Log.instance(context).useSource(prev);
+            }
         }
 
         @Override
