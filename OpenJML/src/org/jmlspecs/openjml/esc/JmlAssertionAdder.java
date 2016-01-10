@@ -2827,7 +2827,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JmlSpecs.TypeSpecs tspecs = specs.get(csym);
         if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
-        for (JmlTypeClause clause : tspecs.clauses) {
+        for (JmlTypeClause clause : tspecs.decls) {
             try {
                 if (!(clause instanceof JmlTypeClauseDecl)) continue;
                 JmlTypeClauseDecl tdecl = (JmlTypeClauseDecl)clause;
@@ -2961,9 +2961,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addRecInvariants(true,d,fa);
         }
         currentThisExpr = savedThis;
-        for (JCTree dd: specs.get(classDecl.sym).clauses) {
-            if (!(dd instanceof JmlTypeClauseDecl)) continue;
-            JCTree tt = ((JmlTypeClauseDecl)dd).decl;
+        for (JmlTypeClauseDecl dd: specs.get(classDecl.sym).decls) {
+            JCTree tt = dd.decl;
             if (!(tt instanceof JCVariableDecl)) continue;
             JCVariableDecl d = (JCVariableDecl)tt;
             if (d.sym.type.isPrimitive()) continue;
@@ -3342,9 +3341,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addRecInvariants(false,d,fa);
         }
         currentThisExpr = savedThis;
-        for (JCTree dd: specs.get(classDecl.sym).clauses) {
-            if (!(dd instanceof JmlTypeClauseDecl)) continue;
-            JCTree tt = ((JmlTypeClauseDecl)dd).decl;
+        for (JmlTypeClauseDecl dd: specs.get(classDecl.sym).decls) {
+            JCTree tt = dd.decl;
             if (!(tt instanceof JCVariableDecl)) continue;
             JCVariableDecl d = (JCVariableDecl)tt;
             if (d.sym.type.isPrimitive()) continue;
@@ -3720,9 +3718,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
             if (vd.init != null) redo.add(vd);
         }
-        for (JmlTypeClause t: specs.get(classDecl.sym).clauses) {
-            if (!(t instanceof JmlTypeClauseDecl)) continue;
-            JmlTypeClauseDecl vdj = (JmlTypeClauseDecl)t;
+        for (JmlTypeClauseDecl vdj: specs.get(classDecl.sym).decls) {
             if (!(vdj.decl instanceof JCVariableDecl)) continue;
             JCVariableDecl vd = (JCVariableDecl)vdj.decl;
             if (isModel(vd.sym)) continue;
@@ -8914,7 +8910,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (tyspecs != null) {
                 for (JmlTypeClause t: tyspecs.clauses) {
                     switch (t.token){
-                        case JMLDECL:
                         case REPRESENTS:
                             scan(t);
                             break;
@@ -8927,6 +8922,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         case READABLE:
                         case WRITABLE:
                             // skip
+                            break;
+                        default:
+                            log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
+                    }
+                }
+                for (JmlTypeClause t: tyspecs.decls) {
+                    switch (t.token){
+                        case JMLDECL:
+                            scan(t);
                             break;
                         default:
                             log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());

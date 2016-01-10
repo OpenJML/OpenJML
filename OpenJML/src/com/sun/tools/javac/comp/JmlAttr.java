@@ -375,16 +375,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
-        Env<AttrContext> eee = typeEnvs.get(c);
-        if (eee != null && JmlCompilationUnit.isForSource(((JmlCompilationUnit)eee.toplevel).mode)) {
-            JavaFileObject prev = log.useSource(eee.toplevel.sourcefile);
-            try {
-                super.attribClass(c); // No need to attribute the class itself if it was binary
-            } finally {
-                log.useSource(prev);
-            }
-        }
-        if (!isUnattributed) return;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
@@ -398,10 +388,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 return;
             } 
-            if (classSpecs.decl == null) {
-                // No specs were found for a binary file, so there is nothing to attribute
-                return;
-            }
         }
 
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
@@ -422,14 +408,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevPureEnvironment = pureEnvironment;
         pureEnvironment = false;  
         try {
-            if (enter.typeEnvs.get(c) == null) {
-                // This condition is caused by a binary class with no specs
-                // (or perhaps just specs with errors). Proceeding into the super call
-                // will cause a Null pointer exception.
-                return; // Skip to the finally section
+            Env<AttrContext> eee = typeEnvs.get(c);
+            if (eee != null) { // FIXME - is null an error? is null for annotations like SpecPublic, for example, but no attribution is needed either, since there are no spec files.
+                JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
+                try {
+                    super.attribClass(c); // No need to attribute the class itself if it was binary
+                } finally {
+                    log.useSource(prevv);
+                }
             }
-//            super.attribClass(c);
-            
+            if (!isUnattributed) return;
+
             // FIXME - do we still need this?
             // Binary files with specs had entries put in the Env map so that the
             // specs had environments against which to be attributed.  However, the
@@ -444,15 +433,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //                    new JmlTranslator(context).translate(e.tree);
                 //                }
                 
-                if (e.tree != null && e.tree instanceof JmlClassDecl) {
-                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
-                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-                    //((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
-                }
+//                if (e.tree != null && e.tree instanceof JmlClassDecl) {
+//                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
+//                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
+//                    //((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+//                }
 
                 if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
                     // If not a .java file
-                    enter.typeEnvs.remove(c);
+                    enter.typeEnvs.remove(c); // FIXME - after flow checking of model methods and classes for binary classes?
                 }
             }
 
@@ -469,7 +458,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** Attribute all classes whose attribution was deferred (while in the middle of attributing another class) */
-    protected void completeTodo() {
+    public void completeTodo() {
         level++;
         while (!todo.isEmpty()) {
             ClassSymbol sym = todo.remove(0);
@@ -480,7 +469,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** Adds a class symbol to the list of classes to be attributed later */
-    protected void addTodo(ClassSymbol c) {
+    public void addTodo(ClassSymbol c) {
         if (!todo.contains(c)) {
             todo.add(c);
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Queueing for attribution " + result.tsym + " " + todo.size());
@@ -834,11 +823,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
         // FIXME - this should be done in MemberEnter, not here
     protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods) {
+        //if (javaMods == specMods) return true;
         PackageSymbol p = annotationPackageSymbol;
         boolean r = false;
         for (JCAnnotation a: javaMods.getAnnotations()) {
             // if sourcefile is null, the annotation was inserted to make an implicit annotation explicit; we don't complain about those, as the default may be superseded by a different explicit annotation
-            if (((JmlTree.JmlAnnotation)a).sourcefile != null && a.type.tsym.owner.equals(p) && utils.findMod(specMods,a.type.tsym) == null) {
+            TypeSymbol tsym = a.annotationType.type.tsym;
+            if (((JmlTree.JmlAnnotation)a).sourcefile != null && tsym.owner.equals(p) && utils.findMod(specMods,tsym) == null) {
                 JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
                 log.error(a.pos,"jml.missing.annotation",a); 
                 log.useSource(prev);
@@ -923,7 +914,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean isJavaFile = jmethod.sourcefile != null && jmethod.sourcefile.getKind() == JavaFileObject.Kind.SOURCE;
             boolean isJmlDecl = utils.isJML(m.mods);
             relax = isJmlDecl || !isJavaFile;
+            boolean prevAllowJML = jmlresolve.allowJML();
+            if (isJmlDecl) prevAllowJML = jmlresolve.setAllowJML(true);
             super.visitMethodDef(m);
+            if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             relax = prevRelax;
             if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
                 if (m.body == null) {
@@ -1022,7 +1016,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkMethodModifiers(JmlMethodDecl javaMethodTree) {
         JavaFileObject prev = log.currentSourceFile();
         try {
-            JmlSpecs.MethodSpecs mspecs = javaMethodTree.methodSpecsCombined;
+            JmlSpecs.MethodSpecs mspecs = specs.getSpecs(javaMethodTree.sym); //javaMethodTree.methodSpecsCombined;
 
             // FIXME - This is a duplicate - remove and fix tests
             if (javaMethodTree.specsDecl != null && javaMethodTree.specsDecl != javaMethodTree) {
@@ -1040,14 +1034,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
             if (isInJmlDeclaration && model && !synthetic) {
-                log.useSource(javaMethodTree.sourcefile);
-                log.error(javaMethodTree.pos,"jml.no.nested.model.type");
+                utils.error(javaMethodTree.specsDecl.sourcefile,javaMethodTree.specsDecl.pos,"jml.no.nested.model.type");
             } else if (inJML && !model  && !isInJmlDeclaration) {
-                log.useSource(javaMethodTree.sourcefile);
-                log.error(javaMethodTree.pos,"jml.missing.model");
+                log.useSource(javaMethodTree.specsDecl.sourcefile);
+                log.error(javaMethodTree.specsDecl.pos,"jml.missing.model");
             } else if (!inJML && model) {
-                log.useSource(javaMethodTree.sourcefile);
-                log.error(javaMethodTree.pos,"jml.ghost.model.on.java");
+                log.useSource(javaMethodTree.specsDecl.sourcefile);
+                log.error(javaMethodTree.specsDecl.pos,"jml.ghost.model.on.java");
             }
             
             // FIXME - this test is in the wrong place (NPE would happen above) and needs review inany case
@@ -1152,7 +1145,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.setJML(vd.mods);
                     vd.accept(this); // attribute it
                     queryDatagroup = vd.sym;
-                    specs.getSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
+                    specs.getSpecs(enclosingClassEnv.enclClass.sym).decls.append(td);
                 } else {
                     log.error(pos,"jml.no.such.field",datagroup);
                 }
@@ -1823,39 +1816,41 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> env,
             VarSymbol v,
             boolean onlyWarning) {
-//      System.err.println(v + " " + ((v.flags() & STATIC) != 0) + " " +
-//      tree.pos + " " + v.pos + " " +
-//      Resolve.isStatic(env));//DEBUG
 
-//      A forward reference is diagnosed if the declaration position
-//      of the variable is greater than the current tree position
-//      and the tree and variable definition occur in the same class
-//      definition.  Note that writes don't count as references.
-//      This check applies only to class and instance
-//      variables.  Local variables follow different scope rules,
-//      and are subject to definite assignment checking.
+        //      System.err.println(v + " " + ((v.flags() & STATIC) != 0) + " " +
+        //      tree.pos + " " + v.pos + " " +
+        //      Resolve.isStatic(env));//DEBUG
+
+        //      A forward reference is diagnosed if the declaration position
+        //      of the variable is greater than the current tree position
+        //      and the tree and variable definition occur in the same class
+        //      definition.  Note that writes don't count as references.
+        //      This check applies only to class and instance
+        //      variables.  Local variables follow different scope rules,
+        //      and are subject to definite assignment checking.
         if ((env.info.enclVar == v || v.pos > tree.pos) &&
                 v.owner.kind == TYP &&
                 enclosingInitEnv(env) != null &&  // FIXME - this line used to be a check for canOwnInitializer, which was only used here and defined in Attr.java
                 v.owner == env.info.scope.owner.enclClass() &&
                 ((v.flags() & STATIC) != 0) == Resolve.isStatic(env) &&
                 (!env.tree.hasTag(ASSIGN) ||
-                 TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
-                String suffix = (env.info.enclVar == v) ?
-                                "self.ref" : "forward.ref";
-                if (!onlyWarning || isStaticEnumField(v)) {
-                    // DRC - changed the following line to avoid complaints about forward references from invariants
-                    if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) {
-                        log.error(tree.pos(), "illegal.forward.ref");
-                    }
-                } else if (useBeforeDeclarationWarning) {
-                    log.warning(tree.pos(), suffix, v);
+                        TreeInfo.skipParens(((JCAssign) env.tree).lhs) != tree)) {
+            String suffix = (env.info.enclVar == v) ?
+                    "self.ref" : "forward.ref";
+            if (!onlyWarning || isStaticEnumField(v)) {
+                // DRC - changed the following line to avoid complaints about forward references from invariants
+                if (currentClauseType == null || currentClauseType == JmlTokenKind.JMLDECL) {
+                    log.error(tree.pos(), "illegal.forward.ref");
                 }
+            } else if (useBeforeDeclarationWarning) {
+                log.warning(tree.pos(), suffix, v);
             }
+        }
 
-            v.getConstValue(); // ensure initializer is evaluated
+        v.getConstValue(); // ensure initializer is evaluated
 
-            checkEnumInitializer(tree, env, v);
+        checkEnumInitializer(tree, env, v);
+
     }
 
     
@@ -2014,12 +2009,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type specType = attribType(tree.specsDecl.vartype,env);
             if (specType != null) {
                 if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
-                    JavaFileObject prev = log.useSource(tree.specsDecl.source());
-                    log.error(tree.specsDecl.vartype.pos(),"jml.mismatched.field.types",tree.name,
+                    utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
+                            tree.sourcefile, tree.pos(),
+                            "jml.mismatched.field.types",tree.name,
                             tree.sym.enclClass().getQualifiedName()+"."+tree.sym.name,
                             specType,
                             tree.sym.type);
-                    log.useSource(prev);
                 }
             }
         }
@@ -2723,7 +2718,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(t,env,Type.noType);
         }
         if (!postClauses.contains(currentClauseType)) {
-            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), currentClauseType.internedName());
+            log.error(that.pos+1, "jml.misplaced.token", that.token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
         }
         result = check(that, syms.booleanType, VAL, resultInfo);
     }
@@ -3148,7 +3143,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!postClauses.contains(currentClauseType)) {
                     // The +1 is to fool the error reporting mechanism into 
                     // allowing other error reports about the same token
-                    log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType.internedName());
+                    log.error(tree.pos+1, "jml.misplaced.token", token.internedName(), currentClauseType == null ? "jml declaration" : currentClauseType.internedName());
                 }
                 result = check(tree, syms.booleanType, VAL, resultInfo);
                 break;
@@ -4296,6 +4291,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // jmlVisibility. However, visiting the ident can trigger loading
             // and type-checking a whole new class - so we unset this field
             // in the mean time.
+            if (tree.name.equals("B")) Utils.print(null);
             super.visitIdent(tree);
         } finally {
             jmlVisibility = prevVisibility;
@@ -5436,62 +5432,70 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
 
-        // If there is a .jml file containing the specifications, then just use those instead of the annotations in the
-        // .java file. FIXME - really we should always be looking in the specs database, rather than modifying the ast
-        JCModifiers originalMods = that.mods;
-        JCModifiers newMods = originalMods;
-        if (that.specsDecl != null) newMods = that.mods = that.specsDecl.mods;
-        
-    	// FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
-        attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); 
-        for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
-        
-        boolean prev = false;
-        if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(true);
-        visitVarDef(that);
-        // Anonymous classes construct synthetic members (constructors at least)
-        // which are not JML nodes.
-        FieldSpecs fspecs = specs.getSpecs(that.sym);
-        if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
-        
-        if (!that.type.isPrimitive()) {
-            JCAnnotation snullness;
-            JmlTokenKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
-            if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
-                nullness = JmlTokenKind.NONNULL;
-            } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null) {
-                nullness = JmlTokenKind.NULLABLE;
-            } else {
+        JavaFileObject prevSource = null;
+        try {
+            if (that.source() != null) prevSource = log.useSource(that.source());
+
+            // If there is a .jml file containing the specifications, then just use those instead of the annotations in the
+            // .java file. FIXME - really we should always be looking in the specs database, rather than modifying the ast
+            JCModifiers originalMods = that.mods;
+            JCModifiers newMods = originalMods;
+            if (that.specsDecl != null) newMods = that.mods = that.specsDecl.mods;
+
+            // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
+            attribAnnotationTypes(that.mods.annotations,env); annotate.flush(); 
+            for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
+
+            boolean prev = false;
+            if (utils.isJML(that.mods)) {
+                prev = ((JmlResolve)rs).setAllowJML(true);
+            }
+            visitVarDef(that);
+            // Anonymous classes construct synthetic members (constructors at least)
+            // which are not JML nodes.
+            FieldSpecs fspecs = specs.getSpecs(that.sym);
+            if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+
+            if (!that.type.isPrimitive()) {
+                JCAnnotation snullness;
+                JmlTokenKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
+                if ((snullness=utils.findMod(that.mods,nonnullAnnotationSymbol)) != null) { 
+                    nullness = JmlTokenKind.NONNULL;
+                } else if ((snullness=utils.findMod(that.mods,nullableAnnotationSymbol)) != null) {
+                    nullness = JmlTokenKind.NULLABLE;
+                } else {
+                    Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                    that.sym.appendAttributes(List.<Compound>of(a));
+                    JCAnnotation an = factory.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
+                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                    an.type = an.annotationType.type;
+                    that.mods.annotations = that.mods.annotations.append(an);
+                    snullness = an;
+                }
                 Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-                Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                that.sym.appendAttributes(List.<Compound>of(a));
-                JCAnnotation an = factory.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
-                ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
-                an.type = an.annotationType.type;
-                that.mods.annotations = that.mods.annotations.append(an);
-                snullness = an;
+                if (that.sym.attribute(s) == null) {
+                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                    that.sym.appendAttributes(List.<Compound>of(a));
+                }
             }
-            Symbol s = (nullness == JmlTokenKind.NONNULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-            if (that.sym.attribute(s) == null) {
-                Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-                that.sym.appendAttributes(List.<Compound>of(a));
-            }
+            //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
+
+
+            // Check the mods after the specs, because the modifier checks depend on
+            // the specification clauses being attributed
+
+            that.mods = originalMods; 
+            checkVarMods(that);
+            that.mods = newMods;
+            if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
+
+            //        if (that.specsDecl != null) {
+            //            that.mods.annotations = that.specsDecl.mods.annotations;
+            //        }
+        } finally {
+            if (prevSource != null) log.useSource(prevSource);
         }
-//        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
-
-
-        // Check the mods after the specs, because the modifier checks depend on
-        // the specification clauses being attributed
-
-        that.mods = originalMods; 
-        checkVarMods(that);
-        that.mods = newMods;
-        if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
-        
-//        if (that.specsDecl != null) {
-//            that.mods.annotations = that.specsDecl.mods.annotations;
-//        }
-        
     }
     
     // These are here mostly to make them visible to extensions

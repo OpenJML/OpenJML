@@ -126,10 +126,7 @@ public class ClassWriterJml extends ClassWriterImpl {
      */
     public boolean hasSpecsToPrint(TypeSpecs tspecs) {
         if (!tspecs.modifiers.annotations.isEmpty()) return true;
-        for (JmlTree.JmlTypeClause clause: tspecs.clauses) {
-            if (!(clause instanceof JmlTree.JmlTypeClauseDecl)) return true;
-        }
-        return false;
+        return !tspecs.clauses.isEmpty();
     }
     
     /** Set to true once the 'JML Specifications' header has been printed; this

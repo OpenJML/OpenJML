@@ -1243,7 +1243,7 @@ public class DeferredAttr extends JCTree.Visitor {
                     argumentKindAnalyzer);
         }
         //where
-            private boolean isSimpleReceiver(JCTree rec) {
+            protected boolean isSimpleReceiver(JCTree rec) { // OpenJML- private to protected
                 switch (rec.getTag()) {
                     case IDENT:
                         return true;
@@ -1312,7 +1312,7 @@ public class DeferredAttr extends JCTree.Visitor {
 
             Type site;
 
-            if (rec != null) {
+            if (rec != null && rec.getTag() != null) { // OpenJML - added the second guard
                 switch (rec.getTag()) {
                     case APPLY:
                         Symbol recSym = quicklyResolveMethod(env, (JCMethodInvocation) rec);

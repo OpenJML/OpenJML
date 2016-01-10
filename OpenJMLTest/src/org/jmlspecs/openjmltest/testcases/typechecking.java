@@ -1,8 +1,6 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class typechecking extends TCBase {
@@ -19,7 +17,7 @@ public class typechecking extends TCBase {
 
     /** Test something very simple with no errors*/
     @Test public void testSomeJava() {
-        helpTC(" class A { public A(){} }");
+        helpTC("class A { public A(){} }");
     }
 
     /** Test something very simple with no errors*/

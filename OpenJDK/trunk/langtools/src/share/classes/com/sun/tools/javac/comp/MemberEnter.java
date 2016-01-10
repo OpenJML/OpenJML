@@ -834,7 +834,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         try {
             // To prevent deep recursion, suppress completion of some
             // types.
-            completionEnabled = false;  // FIXME - turning this off - OpenJML - affects tests API3, API3a - investigate
+            completionEnabled = false;
             return attr.attribType(tree, env);
         } finally {
             completionEnabled = true;

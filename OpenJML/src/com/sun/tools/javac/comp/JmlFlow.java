@@ -418,23 +418,22 @@ public class JmlFlow extends Flow  {
             // Do nothing if the class has no specs (i.e., is binary)
             JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(tree.sym);
             if (tspecs == null) return;
-            
-            JavaFileObject prev = Log.instance(context).currentSourceFile();
-            try {
-                // Do Flow processing on each JML clause of the class declaration
-                for (JmlTypeClause c : tspecs.clauses) {
-                    if (c instanceof JmlTypeClauseDecl) {
-                        JCTree d = ((JmlTypeClauseDecl)c).decl;
-                        Log.instance(context).useSource(c.source());
-                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
-                            continue;
-                        }
-                        d.accept(this);
-                    }
-                }
-            } finally {
-                Log.instance(context).useSource(prev);
-            }
+
+            // All of these are added to the main AST
+//            JavaFileObject prev = Log.instance(context).currentSourceFile();
+//            try {
+//                // Do Flow processing on each JML clause of the class declaration
+//                for (JmlTypeClauseDecl c : tspecs.decls) {
+//                        JCTree d = c.decl;
+//                        Log.instance(context).useSource(c.source());
+//                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
+//                            continue;
+//                        }
+//                        d.accept(this);
+//                }
+//            } finally {
+//                Log.instance(context).useSource(prev);
+//            }
         }
         
         @Override

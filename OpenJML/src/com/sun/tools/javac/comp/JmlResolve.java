@@ -155,7 +155,7 @@ public class JmlResolve extends Resolve {
      * @param allowJML the new value
      * @return the old value
      */
-    public boolean setJML(boolean allowJML) {
+    public boolean setJML(boolean allowJML) {  // FIXME _ duplicates setAllowJML
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
@@ -241,7 +241,6 @@ public class JmlResolve extends Resolve {
                  return stemp;
              }
          }
-         if (name.toString().equals("java.util.Locale")) Utils.print(null);
          Symbol s = super.loadClass(env, name);
          
          // Here s can be a type or a package or not exist 

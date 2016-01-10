@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
@@ -317,32 +318,35 @@ public class JmlCompiler extends JavaCompiler {
 
         // FIXME - need to figure out what the environment should be
 
-        // This nesting level is used to be sure we queue up a whole set of 
-        // classes, do their 'enter' processing to record any types before we
-        // do their member processing to record all their members.  We need the
-        // types recorded so that we can look up types for the members (e.g. do
-        // method resolution).  This is the same two-phase processing as the
-        // Java handling uses, we just don't use the same todo list.
-        nestingLevel++;
         loadSuperSpecs(env,csymbol);
-        
+        for (Type t: csymbol.getInterfaces()) {
+            loadSpecsForBinary(env, (ClassSymbol)t.tsym);
+        }
+
+        if (true || !csymbol.getTypeParameters().isEmpty()) {
+            ((JmlEnter)enter).recordEmptySpecs(csymbol);
+            return; // FIXME - specs with type parameters not working correctly yet
+        }
+
         // It can happen that the specs are loaded during the loading of the super class 
         // since complete() may be called on the class in order to fetch its superclass
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
         JmlCompilationUnit speccu = null;
-        if (JmlSpecs.instance(context).get(csymbol) != null) {
+        if (tspecs != null) {
             if (tspecs.decl != null) speccu = tspecs.decl.toplevel;
         } else {
             speccu = parseSpecs(csymbol);
             if (verbose && speccu == null) {
                 noticeWriter.println("No specs for " + csymbol);
             }
+            ((JmlEnter)enter).recordEmptySpecs(csymbol);
         }
+        
+            
         if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) noticeWriter.println("   LOADING CLASS " + csymbol + " FOUND NO SPECS");
         else noticeWriter.println("   LOADING CLASS " + csymbol + " PARSED SPECS");
 
         // FIXME - not sure env or mode below are still used
-        ((JmlEnter)enter).recordEmptySpecs(csymbol);
         if (speccu != null) {
             csymbol.flags_field |= Flags.UNATTRIBUTED;
 
@@ -351,14 +355,35 @@ public class JmlCompiler extends JavaCompiler {
 
         //        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
             
-            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(csymbol,speccu);
-            
+            // This nesting level is used to be sure we queue up a whole set of 
+            // classes, do their 'enter' processing to record any types before we
+            // do their member processing to record all their members.  We need the
+            // types recorded so that we can look up types for the members (e.g. do
+            // method resolution).  This is the same two-phase processing as the
+            // Java handling uses, we just don't use the same todo list.
+            if (nestingLevel > 0) {
+                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("QUEUING BINARY ENTER " + csymbol);
+                binaryEnterTodo.add(speccu);
+            } else {
+                nestingLevel++;
+                ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(speccu);
+                nestingLevel--;
+                if (nestingLevel==0) completeBinaryEnterTodo();
+            }
         }
             
-        if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("NEST " + nestingLevel + " " + csymbol);
-//        if (nestingLevel==1) ((JmlMemberEnter)JmlMemberEnter.instance(context)).completeBinaryTodo();
-        nestingLevel--;
      }
+    
+    ListBuffer<JmlCompilationUnit> binaryEnterTodo = new ListBuffer<JmlCompilationUnit>();
+    
+    public void completeBinaryEnterTodo() {
+        while (!binaryEnterTodo.isEmpty()) {
+            JmlCompilationUnit speccu = binaryEnterTodo.remove();
+            nestingLevel++;
+            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(speccu);
+            nestingLevel--;
+        }
+    }
     
     /** Makes sure that the super classes and interfaces of the given symbol
      * are loaded, including specs.
@@ -485,6 +510,7 @@ public class JmlCompiler extends JavaCompiler {
             Env<AttrContext> env = attribute(envs.remove());
             if (env != null) results.append(env);
         }
+        ((JmlAttr)attr).completeTodo();
         return stopIfError(CompileState.ATTR, results);
     }
 

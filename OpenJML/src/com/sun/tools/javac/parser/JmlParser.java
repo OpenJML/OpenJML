@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.JmlTree.IJmlLoop;
+import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -72,6 +75,7 @@ import com.sun.tools.javac.tree.JCTree.JCErroneous;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
@@ -185,20 +189,19 @@ public class JmlParser extends JavacParser {
         if (u instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
             // sort the JML declarations from the Java declarations
-            ListBuffer<JCTree> list = new ListBuffer<JCTree>();
+            ListBuffer<JCTree> list = new ListBuffer<>();
+            ListBuffer<JmlClassDecl> modeltypes = new ListBuffer<>();
             for (JCTree t : u.defs) {
                 if (t instanceof JmlClassDecl) {
                     JmlClassDecl jcd = (JmlClassDecl) t;
                     jcd.toplevel = jmlcu;
-                    if (utils.isJML(((JmlClassDecl) t).mods)) {
+                    JCModifiers mods = ((JmlClassDecl) t).mods;
+                    if (utils.isJML(mods)) {
                         // These are declarations that were declared within
                         // a JML comment - they should have, but might
                         // erroneously be missing, a model modifier.
-                        // The check for a model modifier is in JmlAttr.checkClassMods
-//                        if (utils.findMod(jcd.mods, JmlTokenKind.MODEL) == null && utils.findMod(jcd.mods, JmlTokenKind.GHOST) == null) {
-//                            log.error(jcd.pos(), "jml.missing.model");
-//                        }
-                        list.append(jcd);
+                        // The check for a model modifier is in JmlAttr.checkClassMods and/or in checkForGhostModel above
+                        modeltypes.append(jcd);
                     } else {
                         list.append(t);
                     }
@@ -207,6 +210,7 @@ public class JmlParser extends JavacParser {
                 }
             }
             jmlcu.defs = list.toList();
+            jmlcu.parsedTopLevelModelTypes = modeltypes;
         } else {
             log.error(
                     "jml.internal",
@@ -308,6 +312,7 @@ public class JmlParser extends JavacParser {
                 // JML modifiers. However, the test above replicates tests in
                 // the super method and may become obsolete.
                 s = super.classOrInterfaceOrEnumDeclaration(mods, dc);
+
             } else {
                 int p = pos();
                 jmlerror(pos(),
@@ -349,8 +354,9 @@ public class JmlParser extends JavacParser {
                 cd.defs = cd.defs.append(axiom);
             }
             // Can also be a JCErroneous
-            if (s instanceof JmlClassDecl)
+            if (s instanceof JmlClassDecl) {
                 filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
+            }
             if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
             }
@@ -473,54 +479,41 @@ public class JmlParser extends JavacParser {
 //                }
 //            }
 //        }
-//        // Run through the list to combine any loop statements
-//        ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
-//        ListBuffer<JmlStatementLoop> loops = new ListBuffer<JmlStatementLoop>();
-//        int endPos = -1;
-//        for (JCStatement s : list) {
-//            //while (s instanceof JCTree.JCLabeledStatement) s = ((JCTree.JCLabeledStatement)s).body;
-//            if (s instanceof JmlStatementLoop) {
-//                loops.append((JmlStatementLoop) s);
-//                endPos = getEndPos(s);
-//                continue;
-//            } else if (s instanceof JmlForLoop) {
-//                ((JmlForLoop) s).loopSpecs = loops.toList();
-//                loops = new ListBuffer<JmlStatementLoop>();
-//            } else if (s instanceof JmlEnhancedForLoop) {
-//                ((JmlEnhancedForLoop) s).loopSpecs = loops.toList();
-//                loops = new ListBuffer<JmlStatementLoop>();
-//            } else if (s instanceof JmlWhileLoop) {
-//                ((JmlWhileLoop) s).loopSpecs = loops.toList();
-//                loops = new ListBuffer<JmlStatementLoop>();
-//            } else if (s instanceof JmlDoWhileLoop) {
-//                ((JmlDoWhileLoop) s).loopSpecs = loops.toList();
-//                loops = new ListBuffer<JmlStatementLoop>();
-//            } else {
-//                if (loops.size() != 0) {
-//                    jmlerror(getStartPos(loops.first()), loops.first().pos,
-//                            endPos, "jml.loop.spec.misplaced");
-//                    loops = new ListBuffer<JmlStatementLoop>();
-//                }
-//                if (s instanceof JmlVariableDecl) {
-//                    // Local variables are always their own specifications
-//                    JmlVariableDecl jmldef = (JmlVariableDecl) s;
-//                    jmldef.specsDecl = jmldef;
-//                }
-//            }
-//            newlist.append(s);
-//        }
-//        if (loops.size() != 0) {
-//            jmlerror(getStartPos(loops.first()), loops.first().pos, endPos,
-//                    "jml.loop.spec.misplaced");
-//        }
-//        return newlist.toList();
+
 //    }
+    
+    @Override List<JCStatement> blockStatements() {
+        List<JCStatement> stats = super.blockStatements();
+        ListBuffer<JCStatement> newstats = new ListBuffer<>();
+        ListBuffer<JmlStatementLoop> loopspecs = new ListBuffer<>();
+        for (JCStatement s: stats) {
+            if (s instanceof JmlStatementLoop) {
+                loopspecs.add((JmlStatementLoop)s);
+                continue;
+            }
+            if (!loopspecs.isEmpty()) {
+                if (s instanceof IJmlLoop) {
+                    ((IJmlLoop)s).setLoopSpecs(loopspecs.toList());
+                } else {
+                    jmlerror(loopspecs.first().pos,
+                            loopspecs.last().getEndPosition(endPosTable),
+                            "jml.loop.spec.misplaced");
+                }
+                loopspecs = new ListBuffer<>();
+            }
+            newstats.add(s);
+        }
+        if (!loopspecs.isEmpty()) {
+            jmlerror(loopspecs.first().pos,
+                    loopspecs.last().getEndPosition(endPosTable),
+                    "jml.loop.spec.misplaced");
+            loopspecs = new ListBuffer<>();
+        }
+        return newstats.toList();
+    }
 
     @Override
     protected List<JCStatement> blockStatement() {
-        ListBuffer<JmlStatementLoop> prev = collectedLoopStatements;
-        collectedLoopStatements = new ListBuffer<>();
-        try {
         while (true) {
             if (!(token instanceof JmlToken)) {
                 boolean inJml = S.jml();
@@ -529,6 +522,10 @@ public class JmlParser extends JavacParser {
                     for (JCStatement s: stats) {
                         if (s instanceof JCVariableDecl) {
                             utils.setJML(((JCVariableDecl)s).mods);
+                        } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement) {
+                            // OK
+                        } else {
+                            jmlerror(s.pos, "jml.expected.decl.or.jml");
                         }
                     }
                 }
@@ -561,26 +558,6 @@ public class JmlParser extends JavacParser {
             JCStatement s = parseStatement();
             return List.<JCStatement>of(s);
         }
-        } finally {
-            // FIXME - do we need to check if collectedLoopStatements is empty?
-            collectedLoopStatements = prev;
-        }
-    }
-    
-    @Override
-    JCBlock block(int pos, long flags) {
-        ListBuffer<JmlStatementLoop> prev = collectedLoopStatements;
-        collectedLoopStatements = new ListBuffer<>();
-        try {
-            return super.block(pos, flags);
-        } finally {
-            if (!collectedLoopStatements.isEmpty()) {
-                jmlerror(collectedLoopStatements.first().pos,
-                        collectedLoopStatements.first().getEndPosition(endPosTable),
-                        "jml.loop.spec.misplaced");
-            }
-            collectedLoopStatements = prev;
-        }
     }
     
     /** Overridden to parse JML statements */
@@ -588,7 +565,7 @@ public class JmlParser extends JavacParser {
     public JCStatement parseStatement() {
         JCStatement st;
         String reason = null;
-        while (token.kind == CUSTOM) {
+        if (token.kind == CUSTOM) {
             boolean needSemi = true;
             if (jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT) {
                 int pos = pos();
@@ -787,44 +764,15 @@ public class JmlParser extends JavacParser {
                 nextToken(); // skip the semi
             }
             if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) nextToken();
-            if (st instanceof JmlStatementLoop) {
-                collectedLoopStatements.add((JmlStatementLoop)st);
-                if (token.kind == RBRACE) {
-                    if (!collectedLoopStatements.isEmpty()) {
-                        jmlerror(collectedLoopStatements.first().pos,
-                                collectedLoopStatements.first().getEndPosition(endPosTable),
-                                "jml.loop.spec.misplaced");
-                        collectedLoopStatements = new ListBuffer<>();
-                   }
-                   return st;
-                }
-                continue;
-            }
             return st;
         }
-        if (S.jml() && !inModelProgram && !inJmlDeclaration && !inLocalOrAnonClass) { // FIXME - unsure of this test
-            jmlerror(pos(),"jml.expected.decl.or.jml");
-        }
+//        if (S.jml() && !inModelProgram && !inJmlDeclaration && !inLocalOrAnonClass) { // FIXME - unsure of this test
+//            jmlerror(pos(),"jml.expected.decl.or.jml");
+//        }
         JCStatement stt = super.parseStatement();
-        if (stt instanceof JmlForLoop) {
-            ((JmlForLoop)stt).loopSpecs = collectedLoopStatements.toList();
-        } else if (stt instanceof JmlEnhancedForLoop) {
-            ((JmlEnhancedForLoop)stt).loopSpecs = collectedLoopStatements.toList();
-        } else if (stt instanceof JmlWhileLoop) {
-            ((JmlWhileLoop)stt).loopSpecs = collectedLoopStatements.toList();
-        } else if (stt instanceof JmlDoWhileLoop) {
-            ((JmlDoWhileLoop)stt).loopSpecs = collectedLoopStatements.toList();
-        } else if (!collectedLoopStatements.isEmpty()) {
-            jmlerror(collectedLoopStatements.first().pos,
-                    collectedLoopStatements.first().getEndPosition(endPosTable),
-                    "jml.loop.spec.misplaced");
-        }
-        collectedLoopStatements = new ListBuffer<>();
         return stt;
     }
     
-    ListBuffer<JmlStatementLoop> collectedLoopStatements = new ListBuffer<>();
-
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT
@@ -921,9 +869,11 @@ public class JmlParser extends JavacParser {
                     inJmlDeclaration = prevInJmlDeclaration;
                     if (!inJmlDeclaration) {
                         for (JCTree tr : t) {
+                            JCModifiers tmods = null;
                             JCTree ttr = tr;
                             if (tr instanceof JmlClassDecl) {
                                 JmlClassDecl d = (JmlClassDecl) tr;
+                                tmods = d.mods;
                                 utils.setJML(d.mods);
                                 //d.toplevel.sourcefile = log.currentSourceFile();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
@@ -931,16 +881,23 @@ public class JmlParser extends JavacParser {
                             } else if (tr instanceof JmlMethodDecl) {
                                 JmlMethodDecl d = (JmlMethodDecl) tr;
                                 utils.setJML(d.mods);
+                                tmods = d.mods;
                                 d.sourcefile = log.currentSourceFile();
-                                ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                                ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                                 attach(d, dc);
                             } else if (tr instanceof JmlVariableDecl) {
                                 JmlVariableDecl d = (JmlVariableDecl) tr;
+                                tmods = d.mods;
                                 utils.setJML(d.mods);
                                 d.sourcefile = log.currentSourceFile();
                                 ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                                 attach(d, dc);
+                            } else {
+                                tr = null;
                             }
+//                            if (tr != null && utils.findMod(tmods, JmlTokenKind.MODEL) == null && utils.findMod(tmods, JmlTokenKind.GHOST) == null) {
+//                                jmlerror(tr.pos, "jml.missing.ghost.model");
+//                            }
                             dc = null;
                             list.append(ttr);
                         }
@@ -948,11 +905,24 @@ public class JmlParser extends JavacParser {
                         list.appendList(t);
                     }
                 } else {
+
                     // no longer in JML
                     // FIXME - attach doc comment?
                     List<JCTree> t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
                     list.appendList(t);
+//                    for (JCTree tt: t) {
+//                        JCModifiers tmods = null;
+//                        if (tt instanceof JCVariableDecl) tmods = ((JCVariableDecl)tt).getModifiers();
+//                        else if (tt instanceof JCMethodDecl) tmods = ((JCMethodDecl)tt).getModifiers();
+//                        else if (tt instanceof JCClassDecl) tmods = ((JCClassDecl)tt).getModifiers();
+//                        else continue;
+//                        JmlAnnotation a = utils.findMod(tmods, JmlTokenKind.MODEL);
+//                        if (a == null) a = utils.findMod(tmods, JmlTokenKind.GHOST);
+//                        if (a != null) {
+//                            jmlerror(a.getStartPosition(), a.getEndPosition(endPosTable), "jml.ghost.model.on.java");
+//                        }
+//                    }
                 }
                 break;
             } else if (jt == INVARIANT || jt == INITIALLY || jt == AXIOM) {
@@ -1028,8 +998,9 @@ public class JmlParser extends JavacParser {
                  * in and maps clauses get attached to the just preceding
                  * variable declaration
                  */
-                if (tree instanceof JmlTypeClauseIn)
+                if (tree instanceof JmlTypeClauseIn) {
                     ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
+                }
                 if (mostRecentVarDecl == null) {
                     log.error(tree.pos(), "jml.misplaced.var.spec",
                             ((JmlTypeClause) tree).token.internedName());
@@ -1063,7 +1034,16 @@ public class JmlParser extends JavacParser {
                             && ((JmlTypeClauseDecl) tree).decl instanceof JmlMethodDecl) {
                         JmlMethodDecl mdecl = (JmlMethodDecl) ((JmlTypeClauseDecl) tree).decl;
                         mdecl.cases = mspecs;
-                        typeSpecs.clauses.append((JmlTypeClause) tree);
+                        typeSpecs.decls.append((JmlTypeClauseDecl) tree);
+                    } else if (tree instanceof JmlTypeClauseDecl
+                            && ((JmlTypeClauseDecl) tree).decl instanceof JmlClassDecl) {
+                        log.error(mspecs.pos(), "jml.misplaced.method.spec");
+                        typeSpecs.modelTypes.add((JmlClassDecl)((JmlTypeClauseDecl) tree).decl);
+                    } else if (tree instanceof JmlTypeClauseDecl
+                            && ((JmlTypeClauseDecl) tree).decl instanceof JmlVariableDecl) {
+                        log.error(mspecs.pos(), "jml.misplaced.method.spec");
+                        currentVarDecl = (JmlVariableDecl) ((JmlTypeClauseDecl) tree).decl;
+                        typeSpecs.decls.append((JmlTypeClauseDecl) tree);
                     } else if (tree instanceof JmlTypeClauseInitializer) {
                         JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer) tree;
                         tsp.specs = mspecs;
@@ -1086,18 +1066,22 @@ public class JmlParser extends JavacParser {
                 JmlTypeClauseDecl tcd = (JmlTypeClauseDecl) tree;
                 tree = tcd.decl;
                 if (tree instanceof JmlVariableDecl) {
-                    currentVarDecl = (JmlVariableDecl) tcd.decl;
+                    currentVarDecl = (JmlVariableDecl) tree;
                 } else if (tree instanceof JmlMethodDecl) {
                     // OK
                 } else if (tree instanceof JmlClassDecl) {
                     // OK
+                    typeSpecs.modelTypes.add((JmlClassDecl)tree);
+                    tree = null;
                 } else {
                     log.error(tree.pos(), "jml.internal.notsobad",
                             "An unknown kind of JmlTypeClauseDecl was encountered and not handled: "
                                     + tree.getClass());
                     tree = null;
                 }
-                if (tree != null) typeSpecs.clauses.append(tcd);
+                if (tree != null) typeSpecs.decls.append(tcd);
+                //if (tree != null) newlist.append(tree);
+
             } else if (tree instanceof JmlTypeClause) {
                 if (tree instanceof JmlTypeClauseInitializer)
                     checkInitializer((JmlTypeClauseInitializer) tree,

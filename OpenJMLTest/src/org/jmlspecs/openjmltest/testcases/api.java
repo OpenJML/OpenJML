@@ -52,6 +52,7 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
@@ -1192,8 +1193,8 @@ public class api extends JmlTestCase {
             check("",""); // FIXME - this does not capture errors
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
             int errs = dlist.size();
-            assertEquals(0,errs);
-            //assertEquals("test\\testJavaErrors\\A.java:2: incompatible types\n  required: int\n  found:    boolean",((JCDiagnostic)dlist.get(0)).noSource());
+            assertEquals(1,errs);
+            assertEquals("test/testJavaErrors/A.java:2: incompatible types: boolean cannot be converted to int",((JCDiagnostic)dlist.get(0)).noSource().replace('\\', '/'));
         } catch (Exception e) {
             check("","");
             System.out.println(e);

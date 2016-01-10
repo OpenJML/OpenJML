@@ -115,11 +115,11 @@ public class modelghost extends TCBase {
                 ,"/A.java:15: missing method body, or declare abstract",20
                 ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:16: A method or type declaration within a JML annotation must be model",11
-                ,"/A.java:8: A method or type declaration within a JML annotation must be model",11
                 ,"/A.java:20: A model type may not contain model declarations",13
                 ,"/A.java:21: missing method body, or declare abstract",8
                 ,"/A.java:22: missing method body, or declare abstract",13
                 ,"/A.java:22: A model type may not contain model declarations",13
+                ,"/A.java:8: A method or type declaration within a JML annotation must be model",11
                 ,"/A.java:34: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:35: missing method body, or declare abstract",8
                 ,"/A.java:37: missing method body, or declare abstract",20
@@ -231,7 +231,7 @@ public class modelghost extends TCBase {
                 ,"/A.java:11: A model type may not contain model declarations",19
                 ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",14
                 ,"/A.java:23: A Java declaration (not within a JML annotation) may not be either ghost or model",24
-                ,"/A.java:24: A method or type declaration within a JML annotation must be model",15
+                ,"/A.java:24: A method or type declaration within a JML annotation must be model",15 // FIXME - duplicate
                 ,"/A.java:18: A model type may not contain model declarations",17
 
         );
@@ -285,9 +285,9 @@ public class modelghost extends TCBase {
                 ,"/A.java:12: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:13: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:14: A declaration within a JML annotation must be either ghost or model",11
-                ,"/A.java:7: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:18: A model type may not contain model declarations",15
                 ,"/A.java:19: A model type may not contain ghost declarations",15
+                ,"/A.java:7: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:31: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:32: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:33: A declaration within a JML annotation must be either ghost or model",11
@@ -306,8 +306,16 @@ public class modelghost extends TCBase {
 
     @Test
     public void testInitializer2() {
+        addMockFile("$A/A.jml","public class A { /*@ model  class B { int i;  { i = 2; } } */ }");
+        helpTCF("A.java","public class A { int i; { i = 1; } } "
+        );
+    }
+
+    @Test
+    public void testInitializer2a() {
         addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
+        		,"/A.java:1: class B is public, should be declared in a file named B.java",35
         );
     }
 

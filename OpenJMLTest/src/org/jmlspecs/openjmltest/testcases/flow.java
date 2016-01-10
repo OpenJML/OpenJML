@@ -67,8 +67,9 @@ public class flow extends TCBase {
     @Test
     public void testGhostForwardReference() {
         addMockFile("$A/A.jml","public class A { \n//@ ghost int i = j; ghost int j; \n}");
-        helpTCF("A.java","public class A { }"
-        ,"/$A/A.jml:2: illegal forward reference",19
+        helpTCF("A.java","public class A { int ii = jj; int jj;}"
+                ,"/A.java:1: illegal forward reference",27
+                ,"/$A/A.jml:2: illegal forward reference",19
         );
     }
     

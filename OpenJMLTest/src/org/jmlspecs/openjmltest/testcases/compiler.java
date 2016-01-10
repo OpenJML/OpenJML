@@ -179,9 +179,8 @@ public class compiler {
                           },1,0,
                           "test/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
                           "public class A {" +eol+
-                          "^"+eol+
-                          "1 error" + eol+
-                          "");
+                          "^" + eol +
+                          "1 error" + eol);
     }
 
     /** Test verbose with no specs used */

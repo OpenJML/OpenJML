@@ -2195,7 +2195,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
         ListBuffer<JmlTypeClauseRepresents> represents = new ListBuffer<JmlTypeClauseRepresents>();
         ListBuffer<JCVariableDecl> modelFields = new ListBuffer<JCVariableDecl>();
 
-        for (JmlTypeClause c: typeSpecs.clauses) {
+        for (JmlTypeClause c: typeSpecs.clauses) {  // FIXME - decls?
             boolean isStatic = c.modifiers != null && (c.modifiers.flags & Flags.STATIC) != 0;
             if (c instanceof JmlTypeClauseDecl) {
                 JCTree tt = ((JmlTypeClauseDecl)c).decl;

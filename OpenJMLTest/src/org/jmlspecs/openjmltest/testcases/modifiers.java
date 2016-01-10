@@ -325,14 +325,18 @@ public class modifiers extends TCBase {
 
     @Test public void testMatchField6() { 
         addMockFile("$A/A.jml","public class A { boolean k; }");
-        helpTCF("A.java","public class A{ int k; }",
-                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: boolean vs. int",18);
+        helpTCF("A.java","public class A{ int k; }"
+                ,"/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: boolean vs. int",18
+                ,"/A.java:1: Associated declaration: /$A/A.jml:1: ",21
+                );
     }
     
     @Test public void testMatchField7() {  
         addMockFile("$A/A.jml","public class A { String k; }");
         helpTCF("A.java","public class A{ Object k; }",
-                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.String vs. java.lang.Object",18);
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.String vs. java.lang.Object",18
+                ,"/A.java:1: Associated declaration: /$A/A.jml:1: ",24
+        		);
     }
     
     @Test public void testMatchField8() { 
@@ -343,7 +347,9 @@ public class modifiers extends TCBase {
     @Test public void testMatchField9() { 
         addMockFile("$A/A.jml","public class A { Class<String> k; }");
         helpTCF("A.java","public class A{ Class<Object> k; }",
-                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23); 
+                "/$A/A.jml:1: The field k in the specification matches a Java field A.k but they have different types: java.lang.Class<java.lang.String> vs. java.lang.Class<java.lang.Object>", 23
+                ,"/A.java:1: Associated declaration: /$A/A.jml:1: ",31
+        		); 
     }
     
     @Test public void testMatchMethod() { 
@@ -390,9 +396,10 @@ public class modifiers extends TCBase {
     @Test public void testMatchMethod7() { 
         addMockFile("$A/A.jml","public class A { public void m(int j, Object k); }");
         helpTCF("A.java","public class A{ void m(boolean i) {}  public String m(int i, Object mm) { return null; } }",
+                "/$A/A.jml:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25, 
                 "/$A/A.jml:1: Parameter 0 of method A.m(int,java.lang.Object) has name i in the .java file but j in the specification (they should be the same)",36,
-                "/$A/A.jml:1: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46,
-                "/$A/A.jml:1: The return types of method A.m(int,java.lang.Object) are different in the specification and java files: void vs. java.lang.String",25); 
+                "/$A/A.jml:1: Parameter 1 of method A.m(int,java.lang.Object) has name mm in the .java file but k in the specification (they should be the same)",46
+                );
     }
 
     @Test public void testMatchMethod8() { 
@@ -443,6 +450,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ /*@helper ghost */ public class B {}}"
                 ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
                 ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",27
+        		//,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",27
         );
     }
 
@@ -472,6 +480,7 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ /*@helper ghost */ public interface B {}}"
                 ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",20
                 ,"/A.java:1: This JML modifier is not allowed for a nested type declaration",27
+        		//,"/A.java:1: A Java declaration (not within a JML annotation) may not be either ghost or model",27
         );
     }
     
@@ -507,8 +516,8 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testLocalClass2a() {
-        helpTCF("A.java","public class A{ void m() {\n /*@ model   class C {};*/ } }"
-        		,"/A.java:2: Expected a declaration or a JML construct inside the JML annotation here", 24
+        helpTCF("A.java","public class A{ void m() {\n /*@         class C {};*/ } }"
+        		,"/A.java:2: A method or type declaration within a JML annotation must be model", 14
                 ); 
         
     }
@@ -1094,6 +1103,21 @@ public class modifiers extends TCBase {
     
     @Test public void testBinaryMods() {
         addMockFile("$A/java/lang/Object.jml",
+        		"package java.lang; /*@ non_null */ public class Object {\n"
+                +"//@ spec_public spec_protected\n"
+                +"public boolean equals(Object o);}");
+        helpTCF("A.java","public class A{ A(int i) {} \n" +
+                "  boolean m() { return new Object().equals(null); } }"
+                ,"/$A/java/lang/Object.jml:2: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
+                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",24
+                );
+    }
+    
+    // Checking for missing package declaration
+    @Test public void testBinaryModsB() {
+        addMockFile("$A/java/lang/Object.jml",
         		"/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
@@ -1102,7 +1126,7 @@ public class modifiers extends TCBase {
                 ,"/$A/java/lang/Object.jml:2: A declaration may not be both spec_public and spec_protected",17
                 ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
                 ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
-                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",5
+                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",24
                 );
     }
     

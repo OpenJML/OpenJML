@@ -930,9 +930,6 @@ public class JmlSpecs {
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
-        if (m.toString().equals("ENGLISH")) {
-            Utils.print(null);
-        }
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
     
@@ -1069,9 +1066,11 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClause> clauses;
 
-//        /** All the model types directly declared in this type */
-//        @NonNull
-//        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();
+        public ListBuffer<JmlTree.JmlTypeClauseDecl> decls;
+
+        /** All the model types directly declared in this type */
+        @NonNull
+        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();
         
         /** Synthetic methods for model fields (these are also included in the clauses list) */
         /*@ non_null */
@@ -1116,6 +1115,7 @@ public class JmlSpecs {
             this.decl = null;
             this.modifiers = null;
             this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+            this.decls = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
         }
         
         // TODO - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
@@ -1123,7 +1123,8 @@ public class JmlSpecs {
             this.file = file;
             this.decl = null;
             this.modifiers = mods;
-            this.clauses = clauses != null ? clauses : new ListBuffer<JmlTree.JmlTypeClause>();
+            this.clauses = clauses != null ? clauses : new ListBuffer<>();
+            this.decls = decls != null ? decls : new ListBuffer<>();
         }
         
         // TODO - comment - only partially fills in the class
@@ -1134,6 +1135,9 @@ public class JmlSpecs {
             this.clauses = decl.typeSpecsCombined != null ? decl.typeSpecsCombined.clauses :
                 decl.typeSpecs != null ? decl.typeSpecs.clauses
                     : new ListBuffer<JmlTree.JmlTypeClause>();
+            this.decls = decl.typeSpecsCombined != null ? decl.typeSpecsCombined.decls :
+                decl.typeSpecs != null ? decl.typeSpecs.decls
+                    : new ListBuffer<>();
         }
         
         // Use when there is no spec for the type symbol (but records the fact
@@ -1142,13 +1146,18 @@ public class JmlSpecs {
             this.file = null;
             this.decl = null;
             this.modifiers = null;
-            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+            this.clauses = new ListBuffer<>();
+            this.decls = new ListBuffer<>();
         }
         
         public String toString() {
             StringWriter s = new StringWriter();
             JmlPretty p = new JmlPretty(s, false);
             for (JmlTypeClause c: clauses) {
+                c.accept(p);
+                try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
+            }
+            for (JmlTree.JmlTypeClauseDecl c: decls) {
                 c.accept(p);
                 try { p.println(); } catch (IOException e) {} // it can't throw up, and ignore if it does
             }
@@ -1403,6 +1412,58 @@ public class JmlSpecs {
         return utils.findMod(mspecs.mods,annotationSymbol);
     }
 
+    /** Adds the specs in the second argument to the stored specs for the 
+     * given class symbol. Presumes there is already ata least an empty
+     * stored specs structure.
+     */
+    public void combineSpecs(ClassSymbol sym, JmlClassDecl specTypeDecl) {
+        JmlSpecs.TypeSpecs tspecs = getSpecs(sym);
+
+        // tspecs is to be the combinedSpecs
+        // It already has: 
+        //      csymbol, 
+        //      refiningSpecDecls
+        //      file
+        // Also, if tspecs.decl is non-null, it already has tspecs.decl.typeSpecs == tspecs;
+        // Not set here:
+        //      modelFieldMethods
+        //      checkInvariantDecl, checkStaticInvariantDecl (RAC related)
+
+        if (tspecs.decl != null && specTypeDecl != tspecs.decl ) {
+            log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
+        }
+
+        JmlSpecs.TypeSpecs nspecs = null;
+        if (tspecs.refiningSpecDecls != null) {
+            nspecs = tspecs.refiningSpecDecls.typeSpecs;  // first or last - current usage there is only ever one
+        } else if (specTypeDecl != null) {
+            // This can happen when we are using source files for runtime Utils classes, which probably happens
+            // only in test scenarios
+            nspecs = specTypeDecl.typeSpecs;
+        } else {
+            String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";
+            log.error("jml.internal",msg);
+            throw new JmlInternalError(msg);
+        }
+
+        // FIXME - do not bother copying if there is only one file
+        // tspecs.csymbol is already set, should be same as nspecs.csymbol
+        // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
+        tspecs.file = nspecs.file;
+        tspecs.blocks = nspecs.blocks;
+        tspecs.clauses = nspecs.clauses;
+        tspecs.decls = nspecs.decls;
+        tspecs.fields = nspecs.fields;
+        tspecs.methods = nspecs.methods;
+        tspecs.modifiers = nspecs.modifiers;
+        tspecs.initializerSpec = nspecs.initializerSpec;
+        tspecs.staticInitializerSpec = nspecs.staticInitializerSpec;
+        tspecs.decl = specTypeDecl;
+//        if (specTypeDecl != null) {
+//            specTypeDecl.specsDecls = tspecs.refiningSpecDecls;
+//            specTypeDecl.typeSpecsCombined = tspecs;
+//        }
+    }
     
     /** An ADT to hold the specs for a method or block */
     public static class MethodSpecs {

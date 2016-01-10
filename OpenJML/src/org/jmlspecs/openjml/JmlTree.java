@@ -271,6 +271,7 @@ public class JmlTree implements IJmlTree {
                 List<JCTree> defs) {
             JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
             tree.pos = pos;
+            tree.sourcefile = Log.instance(context).currentSourceFile();
             // In the normal course of things, context is never null, but there is a circular dependency of
             // instantiating tools that can occur in the constructors of the various tools.  In particular
             // TreeMaker -> Symtab -> ClassReader -> Annotate -> Attr -> MemberEnter -> Enter which calls
@@ -795,12 +796,12 @@ public class JmlTree implements IJmlTree {
          *  This field may point to 'this' if the compilation unit is its own specs file. */
         public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
         
-//        /** This list contains the top-level model types declared in this compilation unit; this
-//         * is not necessarily all or even part of the top-level model types that the CUs specifications
-//         * specify, since (a) other spec files may contribute top-level model types 
-//         * and (b) this CU may not be part of its own spec sequence.
-//         */
-//        public java.util.List<JmlClassDecl> parsedTopLevelModelTypes = new java.util.LinkedList<JmlClassDecl>();
+        /** This list contains the top-level model types declared in this compilation unit; this
+         * is not necessarily all or even part of the top-level model types that the CUs specifications
+         * specify, since (a) other spec files may contribute top-level model types 
+         * and (b) this CU may not be part of its own spec sequence.
+         */
+        public ListBuffer<JmlClassDecl> parsedTopLevelModelTypes = new ListBuffer<JmlClassDecl>();
         
 //        /** This list is the set of top-level model types specified by the
 //         * CUs specifications.  It is assembled when types are entered in JmlEnter.
@@ -974,16 +975,9 @@ public class JmlTree implements IJmlTree {
       
     /** This class adds some JML specific information to the JCClassDecl toplevel node. */
     public static class JmlClassDecl extends JCTree.JCClassDecl implements JmlSource {
-        /** This is a list of type declarations from the specs files that refine
-         * the owning class. The list is in reverse order from the specs
-         * sequence. That is, the least-refined file (the tail of the specs
-         * sequence) is the first in this list, if it refines this particular
-         * class, and the most refined file (the beginning of the 'refines'
-         * declaration chain) would be last. A null value is legal and
-         * corresponds to an empty list.
-         * NOTE: JML has been revised to have only one specs file per java file, so this list
-         * will at most have one element (which may be the original class definition from the
-         * .java file itself)
+        /** This is the class declaration that holds the specifications for the
+         * containing class. It may be the same as the containing class, or a different AST
+         * (e.g., from a .jml file), or null if there are no specifications for this class.
          */
         public /*@Nullable*/ JmlClassDecl specsDecls;
 
@@ -1030,11 +1024,16 @@ public class JmlTree implements IJmlTree {
             typeSpecs = null;
         }
         
+        /** The source this class was declared int - may be different than the top-level compilation
+         * unit after model classes are moved around, etc.
+         */
+        public JavaFileObject sourcefile;
+        
         /** The source this class was declared in (model classes may be declared
          * in a source file different than the class that owns the model class)
          */
         @Override
-        public JavaFileObject source() { return toplevel == null ? null : toplevel.sourcefile; }
+        public JavaFileObject source() { return sourcefile; }
 
         @Override
         public void accept(Visitor v) {
@@ -1366,10 +1365,13 @@ public class JmlTree implements IJmlTree {
     /** This class wraps a Java do while loop just so it can attach some specs
      * to it.
      */
-    public static class JmlDoWhileLoop extends JCDoWhileLoop {
+    public static class JmlDoWhileLoop extends JCDoWhileLoop implements IJmlLoop {
     
         public List<JmlStatementLoop> loopSpecs;
-    
+
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             super(loop.body,loop.cond);
@@ -1418,9 +1420,12 @@ public class JmlTree implements IJmlTree {
     /** This class wraps a Java enhanced loop just so it can attach some specs
      * to it.
      */
-    public static class JmlEnhancedForLoop extends JCEnhancedForLoop {
+    public static class JmlEnhancedForLoop extends JCEnhancedForLoop implements IJmlLoop {
 
         public List<JmlStatementLoop> loopSpecs;
+
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs) {
@@ -1463,13 +1468,21 @@ public class JmlTree implements IJmlTree {
         }
 
     }
+    
+    public static interface IJmlLoop {
+        List<JmlStatementLoop> loopSpecs();
+        void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
+    }
 
     /** This class wraps a Java for loop just so it can attach some specs
      * to it.
      */
-    public static class JmlForLoop extends JCForLoop {
+    public static class JmlForLoop extends JCForLoop implements IJmlLoop {
     
         public List<JmlStatementLoop> loopSpecs;
+        
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs) {
@@ -1509,7 +1522,7 @@ public class JmlTree implements IJmlTree {
     /** This class wraps a Java while loop just so it can attach some specs
      * to it.
      */
-    public static class JmlWhileLoop extends JCWhileLoop {
+    public static class JmlWhileLoop extends JCWhileLoop implements IJmlLoop {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlWhileLoop(JCWhileLoop loop, List<JmlStatementLoop> loopSpecs) {
             super(loop.cond,loop.body);
@@ -1518,7 +1531,10 @@ public class JmlTree implements IJmlTree {
             this.loopSpecs = loopSpecs;
         }
         public List<JmlStatementLoop> loopSpecs;
-    
+
+        public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
+        public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
+
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {

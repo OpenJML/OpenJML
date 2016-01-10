@@ -514,7 +514,7 @@ public class Flow {
                 alive = true;
                 scanStat(tree.body);
 
-                if (alive && !tree.sym.type.getReturnType().hasTag(VOID))
+                if (alive && tree.sym.type.getReturnType() != null && !tree.sym.type.getReturnType().hasTag(VOID)) // OpenJML - added middle guard because of a crash with constructors
                     log.error(TreeInfo.diagEndPos(tree.body), "missing.ret.stmt");
 
                 List<PendingExit> exits = pendingExits.toList();

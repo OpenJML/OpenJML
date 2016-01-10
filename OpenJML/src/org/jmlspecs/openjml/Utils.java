@@ -573,19 +573,23 @@ public class Utils {
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by log().currentSource(). */
     public String locationString(int pos) {
-        // USE JCDiagnostic.NO_SOURCE ? FIXME
-        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
-        String msg = diag.noSource().replace("Note: ", "");
-        return msg;
+        return locationString(pos, null);
     }
 
     /** Creates the location prefix including the colon without any message;
-     * 'pos' is the position in the file given by log.currentSource(). */
+     * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
     public String locationString(int pos, /*@ nullable */ JavaFileObject source) {
+        return locationString(new SimpleDiagnosticPosition(pos), source);
+    }
+    
+    /** Creates the location prefix including the colon without any message;
+     * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
+    public String locationString(DiagnosticPosition pos, /*@ nullable */ JavaFileObject source) {
+        // USE JCDiagnostic.NO_SOURCE ? FIXME
         JavaFileObject prev = null;
         if (source != null) prev = log().useSource(source);
         try {
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), pos, "empty", "");
             String msg = diag.noSource().replace("Note: ", "");
             return msg;
         } finally {
@@ -801,6 +805,56 @@ public class Utils {
         }
     }
     
+    public void error(JavaFileObject source, int pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
     
+    public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void errorAndAssociatedDeclaration(JavaFileObject source, int pos, JavaFileObject assoc, int assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            log.error(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void errorAndAssociatedDeclaration(JavaFileObject source, DiagnosticPosition pos, JavaFileObject assoc, DiagnosticPosition assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            log.error(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
+        }
+    }
 
 }

@@ -152,7 +152,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
       // Find model methods to see if we need to do anything at all
       LinkedList<JmlMethodDecl> list = new LinkedList<JmlMethodDecl>();
       TypeSpecs tspecs = JmlSpecs.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).get(currentClassSym);
-      for (JmlTypeClause tc: tspecs.clauses) {
+      for (JmlTypeClause tc: tspecs.decls) {
           if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlMethodDecl) {
               JmlMethodDecl d = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
               //boolean use = JmlAttr.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).findMod(d.mods,JmlToken.MODEL) != null;
@@ -241,7 +241,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         ArrayList<ConstructorDoc> list = new ArrayList<ConstructorDoc>();
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
-        for (JmlTypeClause tc : tspecs.clauses) {
+        for (JmlTypeClause tc : tspecs.decls) {
             // FIXME - control visibility
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
                 JmlMethodDecl mdecl = ((JmlMethodDecl)((JmlTypeClauseDecl)tc).decl);

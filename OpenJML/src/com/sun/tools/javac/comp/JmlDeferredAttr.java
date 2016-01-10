@@ -2,6 +2,7 @@ package com.sun.tools.javac.comp;
 
 import com.sun.tools.javac.comp.DeferredAttr.ArgumentExpressionKind;
 import com.sun.tools.javac.comp.DeferredAttr.DeferredChecker;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.util.Context;
@@ -47,6 +48,9 @@ public class JmlDeferredAttr extends DeferredAttr {
             return;
         }
 
-
+        protected boolean isSimpleReceiver(JCTree rec) {
+            if (rec.getTag() == null) return true;
+            return super.isSimpleReceiver(rec);
+        }
     }
 }

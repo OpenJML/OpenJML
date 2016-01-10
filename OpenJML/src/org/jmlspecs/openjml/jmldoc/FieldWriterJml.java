@@ -154,7 +154,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         // Find ghost fields to see if we need to do anything at all
         LinkedList<JmlVariableDecl> list = new LinkedList<JmlVariableDecl>();
         TypeSpecs tspecs = JmlSpecs.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).get(currentClassSym);
-        for (JmlTypeClause tc: tspecs.clauses) {
+        for (JmlTypeClause tc: tspecs.decls) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlVariableDecl) {
                 JmlVariableDecl d = (JmlVariableDecl)((JmlTypeClauseDecl)tc).decl;
                 boolean use = JmlAttr.instance(org.jmlspecs.openjml.jmldoc.Main.jmlContext).findMod(d.mods,token) != null;
@@ -219,7 +219,7 @@ public class FieldWriterJml extends FieldWriterImpl {
             JmlTypeClauseRepresents tr = (JmlTypeClauseRepresents)t;
             if (!(tr.ident instanceof JCTree.JCIdent)) continue;
             boolean found = false;
-            for (JmlTypeClause tc: tspecs.clauses) {
+            for (JmlTypeClause tc: tspecs.decls) {
                 // FIXME - only model fields
                 // FIXME - only only fields that are in classDoc if it is not null
                 if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JmlVariableDecl) {
@@ -355,7 +355,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(csym);
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         ArrayList<FieldDoc> list = new ArrayList<FieldDoc>();
-        for (JmlTypeClause tc : tspecs.clauses) {
+        for (JmlTypeClause tc : tspecs.decls) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCVariableDecl) {
                 JmlVariableDecl vdecl = ((JmlVariableDecl)((JmlTypeClauseDecl)tc).decl);
                 VarSymbol msym = vdecl.sym;
@@ -387,7 +387,7 @@ public class FieldWriterJml extends FieldWriterImpl {
         ArrayList<FieldDoc> list = new ArrayList<FieldDoc>();
         TypeSpecs tspecs = JmlSpecs.instance(Main.jmlContext).get(currentClassSym);
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
-        for (JmlTypeClause tc : tspecs.clauses) {
+        for (JmlTypeClause tc : tspecs.decls) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCVariableDecl) {
                 JmlVariableDecl vdecl = ((JmlVariableDecl)((JmlTypeClauseDecl)tc).decl);
                 VarSymbol msym = vdecl.sym;

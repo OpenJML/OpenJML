@@ -172,7 +172,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testConstraintMA5() {
         helpTC(" class A { Boolean bb; \n//@ constraint bb for B.m(java.lang.Integer);\n} class B { void m(Integer i) {} }"
-                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25
+                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25  // FIXME - not sure this error is correct
                 ,"/TEST.java:2: The method must be a direct member of the class containing the constraint clause",23
                 );
     }
