@@ -81,8 +81,6 @@ public enum JmlOption implements IOption {
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
     QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
-
-//    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
     RAC_SHOW_SOURCE("-racShowSource",false,true,"RAC: Error messages will include source information",null),
     RAC_CHECK_ASSUMPTIONS("-racCheckAssumptions",false,false,"RAC: Enables runtime checking that assumptions hold",null),
@@ -91,6 +89,10 @@ public enum JmlOption implements IOption {
     RAC_PRECONDITION_ENTRY("-racPreconditionEntry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null),
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
+    
+    // Options Related to Specification Inference
+    INFER_CONTRACTS("-inferContracts", true, "postconditions", "STRONGARM: Infer missing contracts (postcondtions or preconditions)", null),    
+    INFER_CONTRACTS_SYMBOLIC("-inferContracts-sym", false, false, "STRONGARM: Use symbolic execution to infer contracts", null),
     
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),
