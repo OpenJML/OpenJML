@@ -17,6 +17,9 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.strongarm.InferenceType;
+import org.jmlspecs.openjml.strongarm.JmlInfer;
+import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -400,6 +403,10 @@ public class JmlCompiler extends JavaCompiler {
             for (Env<AttrContext> env: envs)
                 esc(env);
             return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
+        } else if (utils.infer) {
+            for (Env<AttrContext> env: envs)
+                infer(env);
+            return ListBuffer.<Pair<Env<AttrContext>, JCClassDecl>>lb();
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
@@ -652,7 +659,25 @@ public class JmlCompiler extends JavaCompiler {
         return;
     }
 
-//    // FIXME - this statement no longer applies - what happens instead?
+    protected void infer(Env<AttrContext> env) {
+        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
+
+        JmlInfer infer;
+
+        if(InferenceType.valueOf(JmlOption.value(context, JmlOption.INFER))==InferenceType.POSTCONDITIONS){
+            infer = JmlInferPostConditions.instance(context);
+        }else{
+            // NOT DONE YET!
+            log.error("jml.internal","Precondition inference is not available yet.");
+            return;
+        }
+
+        infer.check(env.tree);
+    }
+
+    
+    
+    //    // FIXME - this statement no longer applies - what happens instead?
 //    /** This overrides JavaCompiler.compile simply to load java.lang.Object
 //     * explicitly.  The parsing/entering logic will prompt for class or source
 //     * file loading of any class explicitly mentioned in the source files.  But
