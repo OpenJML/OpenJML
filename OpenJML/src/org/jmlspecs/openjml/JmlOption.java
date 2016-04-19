@@ -28,11 +28,15 @@ public enum JmlOption implements IOption {
     DIRS("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null),
     ENDOPTIONS("--",false,null,"Terminates option processing - all remaining arguments are files",null),  // FIXME - fix or remove
     KEYS("-keys",true,"","Identifiers for optional JML comments",null),
-    COMMAND("-command",true,"check","The command to execute (check,esc,rac,compile)",null),
+    COMMAND("-command",true,"check","The command to execute (check,esc,rac,compile,infer)",null),
     CHECK("-check",false,null,"Does a JML syntax check","-command=check"),
     COMPILE("-compile",false,null,"Does a Java-only compile","-command=compile"),
     RAC("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac"),
     ESC("-esc",false,null,"Enables static checking","-command=esc"),
+    
+    // Options Related to Specification Inference
+    INFER("-infer",true,"postconditions","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    
     BOOGIE("-boogie",false,false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     JML("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null),
@@ -89,10 +93,6 @@ public enum JmlOption implements IOption {
     RAC_PRECONDITION_ENTRY("-racPreconditionEntry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null),
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
-    
-    // Options Related to Specification Inference
-    INFER_CONTRACTS("-inferContracts", true, "postconditions", "STRONGARM: Infer missing contracts (postcondtions or preconditions)", null),    
-    INFER_CONTRACTS_SYMBOLIC("-inferContracts-sym", false, false, "STRONGARM: Use symbolic execution to infer contracts", null),
     
     // Obsolete
     NOCHECKSPECSPATHX("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true),

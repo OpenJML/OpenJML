@@ -130,6 +130,10 @@ public class Utils {
     /** Do Jmldoc  */
     public boolean doc = false;
     
+    /** Do Contract Inference **/
+    public boolean infer = false;
+    
+    
     /** Max number of ESC warnings per method (set from an option) */
     public int maxWarnings = 1;
 
