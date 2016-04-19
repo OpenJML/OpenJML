@@ -18,7 +18,7 @@ import com.sun.tools.javac.util.Context.Key;
 public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
 
     protected static final Context.Key<JmlInferPostConditions> key = new Context.Key<JmlInferPostConditions>();
-    private static final String INFER_KIND = "postcondition";
+    private static final String INFER_KIND = InferenceType.POSTCONDITIONS.toString();
     
     public JmlInferPostConditions(Context context) {
         super(context);
