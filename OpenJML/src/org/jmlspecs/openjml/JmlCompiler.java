@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.util.ListBuffer.lb;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -42,6 +43,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -662,8 +664,9 @@ public class JmlCompiler extends JavaCompiler {
     protected void infer(Env<AttrContext> env) {
         if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
 
-        JmlInfer infer;
-
+        JmlInfer infer;        
+        String currentFile = env.toplevel.sourcefile.getName();
+        
         if(InferenceType.valueOf(JmlOption.value(context, JmlOption.INFER))==InferenceType.POSTCONDITIONS){
             infer = JmlInferPostConditions.instance(context);
         }else{
@@ -673,6 +676,10 @@ public class JmlCompiler extends JavaCompiler {
         }
 
         infer.check(env.tree);
+        
+        if(infer.persistContracts && env.tree instanceof JmlClassDecl){
+            infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
+        }
     }
 
     

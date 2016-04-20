@@ -15,6 +15,8 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
@@ -68,13 +70,17 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         
         public Path persistPath;
         
+        public String currentFilename;
+        
+        public JCClassDecl lastClass;
+        
         /** The JmlInfer constructor, which initializes all the tools and other fields. */
         public JmlInfer(Context context) {
             this.context = context;
             this.syms = Symtab.instance(context);
             this.log = Log.instance(context);
             this.utils = Utils.instance(context);
-            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);
+            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
             
             // verbose will print all the chatter
             this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
@@ -101,6 +107,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 
         }
         
+      
         /** this allows subclasses to have their own keys **/
         public abstract Context.Key<T> getKey();
 
@@ -120,33 +127,41 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public void visitClassDef(JCClassDecl node) {
             // inference only works on method bodies (so there is nothing to infer)
             if (node.sym.isInterface()) return;  
-            
+       
             // The super class takes care of visiting all the methods
             utils.progress(1,1,"Infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
             super.visitClassDef(node);
             utils.progress(1,1,"Completed infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
             
-            if(persistContracts){
-                flushContracts(node);
+            lastClass = node;
+        }
+        
+        public Path filenameForSource(String source){
+        
+            // the java source
+            Path java = Paths.get(source);
+            
+            // the jml source
+            Path jml = Paths.get(java.toString().substring(0, java.toString().toLowerCase().lastIndexOf(".java")) + ".jml");
+            
+            
+            if(persistPath!=null){
+                return persistPath.resolve(jml);
+            }else{
+                return jml;
             }
-            
-            
         }
         
-        private Path filenameForClass(JCClassDecl node){
-            return null;
-        }
-        
-        private void flushContracts(JCClassDecl node){
-            utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(node.sym) ); 
+        public void flushContracts(String source, JmlClassDecl node){
+            utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
-            Path writeTo = filenameForClass(node);
+            Path writeTo = filenameForSource(source);
             
             utils.progress(1,1,"Persisting specs to: " + writeTo.toString()); 
 
             
             
-            
+            // flush the specs
             inferredSpecs.clear();
         }
         
