@@ -1,11 +1,17 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
@@ -51,7 +57,16 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** The assertion adder instance used to translate */
         public JmlAssertionAdder assertionAdder;
         
+        /** the contracts will be printed to stdout **/
         public boolean printContracts = false;
+        
+        /** the contracts will be printed to the filesystem **/
+        public boolean persistContracts = false;
+        
+        /** a container to hold the inferred specs -- this will be saved/flushed between visits to classes **/
+        public List<JCMethodDecl> inferredSpecs = new ArrayList<JCMethodDecl>();
+        
+        public Path persistPath;
         
         /** The JmlInfer constructor, which initializes all the tools and other fields. */
         public JmlInfer(Context context) {
@@ -67,6 +82,23 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 
             // print contracts will print the derived contracts
             this.printContracts = JmlOption.isOption(context, JmlOption.SHOW);
+            // we will save contracts
+            this.persistContracts = JmlOption.isOption(context,  JmlOption.INFER_PERSIST);
+            
+            // but to where?
+            if(this.persistContracts){
+                
+                if(JmlOption.isOption(context, JmlOption.INFER_PERSIST_PATH)){  // -infer-persist-path dominates
+                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.INFER_PERSIST));
+                }else if(JmlOption.isOption(context, JmlOption.SPECS)){         // followed by -specspath
+                    persistPath = Paths.get(JmlOption.value(context,  JmlOption.SPECS));                    
+                }else{                                                          // failing those options, we default to wherever the class source is
+                    persistPath = null;
+                }
+            }
+            
+            
+
         }
         
         /** this allows subclasses to have their own keys **/
@@ -88,11 +120,34 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public void visitClassDef(JCClassDecl node) {
             // inference only works on method bodies (so there is nothing to infer)
             if (node.sym.isInterface()) return;  
-
+            
             // The super class takes care of visiting all the methods
             utils.progress(1,1,"Infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
             super.visitClassDef(node);
             utils.progress(1,1,"Completed infering contracts for methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+            
+            if(persistContracts){
+                flushContracts(node);
+            }
+            
+            
+        }
+        
+        private Path filenameForClass(JCClassDecl node){
+            return null;
+        }
+        
+        private void flushContracts(JCClassDecl node){
+            utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(node.sym) ); 
+
+            Path writeTo = filenameForClass(node);
+            
+            utils.progress(1,1,"Persisting specs to: " + writeTo.toString()); 
+
+            
+            
+            
+            inferredSpecs.clear();
         }
         
         /** When we visit a method declaration, we translate and prove the method;

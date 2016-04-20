@@ -38,6 +38,15 @@ public enum JmlOption implements IOption {
     INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
     INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
     
+    //
+    // Inference decides to write specs based on the following conditions
+    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
+    // 2) Else, if -specspath is specified, specs are written to that directory (base)
+    // 3) Otherwise, we write the specs to the same directory were the java class source exists
+    //
+    INFER_PERSIST("-infer-persist", false, null, "STRONGARM: Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
+    
     BOOGIE("-boogie",false,false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     JML("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null),

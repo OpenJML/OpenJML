@@ -90,8 +90,14 @@ public class Strongarm {
         BasicProgram program;
 
         basicBlocker = new BasicBlocker2(context);
-        program = basicBlocker.convertMethodBody(newblock, methodDecl,
-                denestedSpecs, currentClassDecl, infer.assertionAdder);
+        program = basicBlocker.convertMethodBody(
+                newblock, 
+                methodDecl,
+                denestedSpecs, 
+                currentClassDecl, 
+                infer.assertionAdder);
+        
+        
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println(separator);
@@ -107,7 +113,9 @@ public class Strongarm {
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
-        }        
+        }  
+        
+        
 
     }
     
