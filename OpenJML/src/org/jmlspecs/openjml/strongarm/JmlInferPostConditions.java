@@ -43,7 +43,6 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
 
     @Override
     public void inferContract(JmlMethodDecl methodDecl) {        
-        
         try{
             new Strongarm(this).infer(methodDecl); 
 

@@ -35,7 +35,8 @@ public enum JmlOption implements IOption {
     ESC("-esc",false,null,"Enables static checking","-command=esc"),
     
     // Options Related to Specification Inference
-    INFER("-infer",true,"postconditions","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
     
     BOOGIE("-boogie",false,false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),

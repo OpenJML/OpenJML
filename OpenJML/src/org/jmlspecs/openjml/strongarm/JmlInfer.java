@@ -59,6 +59,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             this.syms = Symtab.instance(context);
             this.log = Log.instance(context);
             this.utils = Utils.instance(context);
+            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);
             
             // verbose will print all the chatter
             this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
@@ -144,7 +145,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             boolean canInfer = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
             
             // skip constructors and other types of methods that lack code         
-            if ((methodDecl.sym.owner == syms.objectType.tsym && isConstructor) || canInfer){
+            if ((methodDecl.sym.owner == syms.objectType.tsym && isConstructor) || !canInfer){
                 return true;
             }
             

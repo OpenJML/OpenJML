@@ -103,7 +103,7 @@ public class Strongarm {
         
         JCTree contract = infer(program);
         
-        if (infer.printContracts) {
+        if (printContracts) {
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
