@@ -664,7 +664,8 @@ public class JmlCompiler extends JavaCompiler {
     protected void infer(Env<AttrContext> env) {
         if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
 
-        JmlInfer infer;        
+        JmlInfer infer;
+        
         String currentFile = env.toplevel.sourcefile.getName();
         
         if(InferenceType.valueOf(JmlOption.value(context, JmlOption.INFER))==InferenceType.POSTCONDITIONS){
@@ -675,7 +676,7 @@ public class JmlCompiler extends JavaCompiler {
             return;
         }
 
-        infer.check(env.tree);
+        infer.check(env.tree); 
         
         if(infer.persistContracts && env.tree instanceof JmlClassDecl){
             infer.flushContracts(currentFile, (JmlClassDecl)env.tree);

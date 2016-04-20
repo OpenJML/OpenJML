@@ -917,7 +917,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        // FIXME //@? model?
+                // FIXME //@? model?
         if (that.methodSpecsCombined != null) {
             that.methodSpecsCombined.cases.accept(this);
         }

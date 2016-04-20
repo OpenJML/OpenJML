@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -144,7 +147,6 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             // the jml source
             Path jml = Paths.get(java.toString().substring(0, java.toString().toLowerCase().lastIndexOf(".java")) + ".jml");
             
-            
             if(persistPath!=null){
                 return persistPath.resolve(jml);
             }else{
@@ -153,13 +155,21 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         }
         
         public void flushContracts(String source, JmlClassDecl node){
+            
             utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             Path writeTo = filenameForSource(source);
             
             utils.progress(1,1,"Persisting specs to: " + writeTo.toString()); 
 
-            
+            try {
+                String spec = SpecPretty.write(node,  true);
+                
+                Files.write(writeTo, spec.getBytes());
+                
+            } catch (IOException e1) {
+                log.error("jml.internal","Unable to write path " + writeTo.toString());
+            }
             
             // flush the specs
             inferredSpecs.clear();
@@ -194,7 +204,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 return;
             }
             
-            doMethod(methodDecl);
+            //doMethod(methodDecl);
             return;        
         }
         
