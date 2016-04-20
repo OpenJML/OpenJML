@@ -60,10 +60,12 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             this.log = Log.instance(context);
             this.utils = Utils.instance(context);
             
+            // verbose will print all the chatter
             this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
                 
-            this.printContracts = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
+            // print contracts will print the derived contracts
+            this.printContracts = JmlOption.isOption(context, JmlOption.SHOW);
         }
         
         /** this allows subclasses to have their own keys **/
@@ -177,11 +179,11 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 //            }
             utils.progress(1,1,"Starting " + inferenceType() + " inference of " + utils.qualifiedMethodSig(methodDecl.sym));
             
-            if (printContracts) {
+            if (verbose) {
                 log.noticeWriter.println(Strings.empty);
                 log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
                 log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+                log.noticeWriter.println("STARTING INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
                 log.noticeWriter.println(JmlPretty.write(methodDecl.body));
             }
                         

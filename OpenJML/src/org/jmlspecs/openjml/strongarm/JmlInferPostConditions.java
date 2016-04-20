@@ -42,11 +42,11 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
     }
 
     @Override
-    public void inferContract(JmlMethodDecl methodDecl) {
-        
-        //new Strongarm(methodDecl).infer(); 
+    public void inferContract(JmlMethodDecl methodDecl) {        
         
         try{
+            new Strongarm(this).infer(methodDecl); 
+
             utils.progress(1,1,"Completed inference of " + utils.qualifiedMethodSig(methodDecl.sym)); 
         } catch (Exception e) {
             log.error("jml.internal","Inference aborted with exception: " + e.getMessage());
