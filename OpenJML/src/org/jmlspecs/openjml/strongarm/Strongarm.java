@@ -115,9 +115,6 @@ public class Strongarm {
             log.noticeWriter.println(JmlPretty.write(contract));
         }  
         
-        
-        //methodDecl.methodSpecsCombined
-
     }
     
     public JCTree infer(BasicProgram program){

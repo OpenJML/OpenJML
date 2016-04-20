@@ -208,7 +208,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 return;
             }
             
-            //doMethod(methodDecl);
+            doMethod(methodDecl);
             return;        
         }
         
