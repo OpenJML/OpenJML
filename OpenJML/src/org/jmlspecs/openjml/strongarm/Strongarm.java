@@ -29,12 +29,15 @@ import org.smtlib.IResponse;
 import org.smtlib.ISolver;
 import org.smtlib.SMT;
 
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -219,7 +222,8 @@ public class Strongarm {
             if (verbose) {
                 log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
             }
-            //JCBinary jcBinary;
+
+            precondition = new Prop<JCBinary>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit));
         }
         
         if(startBlock==null){
