@@ -98,12 +98,13 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             if(this.persistContracts){
                 
                 if(JmlOption.isOption(context, JmlOption.INFER_PERSIST_PATH)){  // -infer-persist-path dominates
-                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.INFER_PERSIST));
+                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.INFER_PERSIST_PATH));
                 }else if(JmlOption.isOption(context, JmlOption.SPECS)){         // followed by -specspath
                     persistPath = Paths.get(JmlOption.value(context,  JmlOption.SPECS));                    
                 }else{                                                          // failing those options, we default to wherever the class source is
                     persistPath = null;
                 }
+                
             }
             
             
@@ -159,6 +160,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             Path writeTo = filenameForSource(source);
+            
+            // make the path
+            writeTo.toFile().getParentFile().mkdirs();
             
             utils.progress(1,1,"Persisting specs to: " + writeTo.toString()); 
 
