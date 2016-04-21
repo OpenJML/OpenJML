@@ -10,12 +10,17 @@ import java.util.Set;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
@@ -54,13 +59,18 @@ public class Strongarm {
     final protected JmlInferPostConditions infer;
 
     final protected JmlTreeUtils           treeutils;
-
+    
+    final protected JmlTree.Maker M;
+    
+    
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
         this.context = infer.context;
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
+        this.M = JmlTree.Maker.instance(context);
+
     }
 
     public void infer(JmlMethodDecl methodDecl) {
@@ -124,6 +134,27 @@ public class Strongarm {
         
         JCTree contract = infer(methodDecl, program);
         
+        JmlSpecificationCase specCase = null;
+        
+        //methodDecl.cases.cases.append(methodDecl.cases.cases.get(0));
+        //methodDecl.cases.cases;
+        
+        JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
+                
+        if(methodDecl.cases!=null){
+            
+           
+            JmlMethodClause[] clauses = new JmlMethodClause[methodDecl.cases.cases.head.clauses.size()+1];
+            
+            for(int i=0; i< methodDecl.cases.cases.head.clauses.size(); i++){
+                clauses[i] = methodDecl.cases.cases.head.clauses.get(i);
+            }
+            clauses[clauses.length-1] = newCase;
+            
+            methodDecl.cases.cases.head.clauses = com.sun.tools.javac.util.List.from(clauses);
+            
+        }
+        
         if (printContracts) {
             if(contract!=null){
                 log.noticeWriter.println("--------------------------------------"); 
@@ -134,6 +165,16 @@ public class Strongarm {
                 log.noticeWriter.println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             }
         }  
+        
+        // now, shove it back into the method
+       
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("FINISHED INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(methodDecl));
+        }
         
     }
     /**
@@ -177,7 +218,8 @@ public class Strongarm {
                 
         //TODO - transform into a recognizable proposition
         
-        return null;
+        // Convert this into a JCTree
+        return props.toTree(treeutils);
     }
     public boolean skip(JCStatement stmt){
       
@@ -301,13 +343,15 @@ public class Strongarm {
         
             if(skip(stmt)){ continue; }
             
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;            
             
             p = And.of(p, new Prop<JCExpression>(jmlStmt.expression));            
         }
         
         // handle the if statement
         if(block.followers().size() == 2){
+                        
+            
             return Or.of(
                     sp(p, idx, blocks, block.followers().get(0)), 
                     sp(p, idx, blocks, block.followers().get(1))
