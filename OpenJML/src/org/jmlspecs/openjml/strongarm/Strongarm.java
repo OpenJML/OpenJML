@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,23 +137,10 @@ public class Strongarm {
         
         JmlSpecificationCase specCase = null;
         
-        //methodDecl.cases.cases.append(methodDecl.cases.cases.get(0));
-        //methodDecl.cases.cases;
-        
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
                 
         if(methodDecl.cases!=null){
-            
-           
-            JmlMethodClause[] clauses = new JmlMethodClause[methodDecl.cases.cases.head.clauses.size()+1];
-            
-            for(int i=0; i< methodDecl.cases.cases.head.clauses.size(); i++){
-                clauses[i] = methodDecl.cases.cases.head.clauses.get(i);
-            }
-            clauses[clauses.length-1] = newCase;
-            
-            methodDecl.cases.cases.head.clauses = com.sun.tools.javac.util.List.from(clauses);
-            
+            methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(com.sun.tools.javac.util.List.of(newCase));
         }
         
         if (printContracts) {
@@ -203,20 +191,36 @@ public class Strongarm {
             log.noticeWriter.println(program.toString());
         }
         
-        // we are going to need to jump around the blocks, so build an index
-        Map<String,Integer> blockIndex = new HashMap<String,Integer>();
+        /**
+         * maintain a list of substitutions 
+         */
+        List<JCExpression> subs = new ArrayList<JCExpression>();
 
+        Prop<JCExpression> props = sp(subs, program.blocks());
+        
         if (verbose) {
-            log.noticeWriter.println("Building block index...");
-        }
-
-        for(int idx=0; idx < program.blocks().size(); idx++){
-            blockIndex.put(program.blocks().get(idx).id().toString(), idx);
+            log.noticeWriter.println("Inference finished...");
         }
         
-        Prop<JCExpression> props = sp(blockIndex, program.blocks());
-                
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("FINISHED (STAGE 1) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(methodDecl));
+        }
+        
         //TODO - transform into a recognizable proposition
+        
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("FINISHED (STAGE 2) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(methodDecl));
+        }
+
         
         // Convert this into a JCTree
         return props.toTree(treeutils);
@@ -287,7 +291,7 @@ public class Strongarm {
         return false;
     }
     
-    public Prop<JCExpression> sp(Map<String,Integer> idx, List<BasicBlock> blocks){
+    public Prop<JCExpression> sp(List<JCExpression> subs, List<BasicBlock> blocks){
         // find the precondition in the first block
         boolean verbose        = infer.verbose;
 
@@ -329,9 +333,9 @@ public class Strongarm {
         //
         // begin execution
         //
-        return sp(precondition, idx, blocks, startBlock.followers().get(0));
+        return sp(precondition, subs, blocks, startBlock.followers().get(0));
     }
-    public Prop<JCExpression> sp(Prop<JCExpression> p, Map<String,Integer> idx, List<BasicBlock> blocks, BasicBlock block){
+    public Prop<JCExpression> sp(Prop<JCExpression> p, List<JCExpression> subs, List<BasicBlock> blocks, BasicBlock block){
         boolean verbose        = infer.verbose;
 
         if (verbose) {
@@ -353,11 +357,11 @@ public class Strongarm {
                         
             
             return Or.of(
-                    sp(p, idx, blocks, block.followers().get(0)), 
-                    sp(p, idx, blocks, block.followers().get(1))
+                    sp(p, subs, blocks, block.followers().get(0)), 
+                    sp(p, subs, blocks, block.followers().get(1))
                     );
         }else if(block.followers().size() == 1){
-            return sp(p, idx, blocks, block.followers().get(0));
+            return sp(p, subs, blocks, block.followers().get(0));
         }
 
         return p;
