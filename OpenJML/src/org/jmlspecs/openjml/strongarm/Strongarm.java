@@ -1,41 +1,26 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
-import org.jmlspecs.openjml.esc.SMTTranslator;
-import org.jmlspecs.openjml.esc.MethodProverSMT.SMTListener;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.smtlib.ICommand;
-import org.smtlib.IResponse;
-import org.smtlib.ISolver;
-import org.smtlib.SMT;
 
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -43,8 +28,6 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
@@ -139,9 +122,18 @@ public class Strongarm {
         JmlSpecificationCase specCase = null;
         
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
-                
-        if(methodDecl.cases!=null){
+            
+        if(methodDecl.cases!=null){ // if we already have specification cases, add this
             methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(com.sun.tools.javac.util.List.of(newCase));
+        }else{                      // otherwise create a new one (with a "true" precondition)
+            methodDecl.cases.cases.head.clauses = com.sun.tools.javac.util.List.of(
+                    M.JmlMethodClauseExpr(
+                            JmlToken.REQUIRES,  
+                            treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
+                            ),
+                    
+                            newCase // ensures
+                    );
         }
         
         if (printContracts) {
@@ -154,9 +146,7 @@ public class Strongarm {
                 log.noticeWriter.println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             }
         }  
-        
-        // now, shove it back into the method
-       
+               
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
@@ -209,6 +199,12 @@ public class Strongarm {
         //TODO - transform into a recognizable proposition
         List<JCExpression> subs = new ArrayList<JCExpression>();
 
+        
+        // First, perform the substitutions
+        
+        
+        // Second, remove locals, and apply some techniques to make things more readable.
+        
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
