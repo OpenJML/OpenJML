@@ -42,6 +42,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import com.sun.tools.javac.util.Context;
@@ -190,13 +191,8 @@ public class Strongarm {
                     + utils.qualifiedMethodSig(methodDecl.sym));
             log.noticeWriter.println(program.toString());
         }
-        
-        /**
-         * maintain a list of substitutions 
-         */
-        List<JCExpression> subs = new ArrayList<JCExpression>();
-
-        Prop<JCExpression> props = sp(subs, program.blocks());
+               
+        Prop<JCExpression> props = sp(program.blocks());
         
         if (verbose) {
             log.noticeWriter.println("Inference finished...");
@@ -211,7 +207,8 @@ public class Strongarm {
         }
         
         //TODO - transform into a recognizable proposition
-        
+        List<JCExpression> subs = new ArrayList<JCExpression>();
+
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -222,9 +219,20 @@ public class Strongarm {
         }
 
         
+        
         // Convert this into a JCTree
         return props.toTree(treeutils);
     }
+    
+    public List<JCExpression> extractSubstitutions(BasicProgram program){
+        List<JCExpression> subs = new ArrayList<JCExpression>();
+
+    
+    
+        return subs;
+    }
+    
+    
     public boolean skip(JCStatement stmt){
       
         JmlStatementExpr jmlStmt;
@@ -257,9 +265,26 @@ public class Strongarm {
             }
 
         
-            return false;
+            return false; //JCUnary
         }
         if(isBranchStmt(jmlStmt)){
+            if(jmlStmt.expression instanceof JCBinary && ((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){
+                return true;
+            }
+            
+            if(jmlStmt.expression instanceof JCUnary){
+            
+                JCUnary unaryStmt = (JCUnary)jmlStmt.expression;
+                
+                if(unaryStmt.arg instanceof JCBinary){
+                    if(((JCBinary)unaryStmt.arg).lhs.toString().startsWith("_JML___")){
+                        return true;
+                    }
+                }
+                
+            }
+            
+            
             return false;
         }
         
@@ -291,7 +316,7 @@ public class Strongarm {
         return false;
     }
     
-    public Prop<JCExpression> sp(List<JCExpression> subs, List<BasicBlock> blocks){
+    public Prop<JCExpression> sp(List<BasicBlock> blocks){
         // find the precondition in the first block
         boolean verbose        = infer.verbose;
 
@@ -333,9 +358,9 @@ public class Strongarm {
         //
         // begin execution
         //
-        return sp(precondition, subs, blocks, startBlock.followers().get(0));
+        return sp(precondition, blocks, startBlock.followers().get(0));
     }
-    public Prop<JCExpression> sp(Prop<JCExpression> p, List<JCExpression> subs, List<BasicBlock> blocks, BasicBlock block){
+    public Prop<JCExpression> sp(Prop<JCExpression> p, List<BasicBlock> blocks, BasicBlock block){
         boolean verbose        = infer.verbose;
 
         if (verbose) {
@@ -343,8 +368,7 @@ public class Strongarm {
         }
     
         
-        for(JCStatement stmt : block.statements()){
-        
+        for(JCStatement stmt : block.statements()){        
             if(skip(stmt)){ continue; }
             
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;            
@@ -354,14 +378,14 @@ public class Strongarm {
         
         // handle the if statement
         if(block.followers().size() == 2){
-                        
-            
+
             return Or.of(
-                    sp(p, subs, blocks, block.followers().get(0)), 
-                    sp(p, subs, blocks, block.followers().get(1))
+                    sp(p, blocks, block.followers().get(0)), 
+                    sp(p, blocks, block.followers().get(1))
                     );
+            
         }else if(block.followers().size() == 1){
-            return sp(p, subs, blocks, block.followers().get(0));
+            return  sp(p, blocks, block.followers().get(0));
         }
 
         return p;
