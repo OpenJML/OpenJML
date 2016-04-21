@@ -156,7 +156,8 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         }
         
         public void flushContracts(String source, JmlClassDecl node){
-            
+        
+           
             utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             Path writeTo = filenameForSource(source);
@@ -207,7 +208,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ 
                 return;
             }
-            
+            utils.progress(1,1,"Starting...."); 
             doMethod(methodDecl);
             return;        
         }

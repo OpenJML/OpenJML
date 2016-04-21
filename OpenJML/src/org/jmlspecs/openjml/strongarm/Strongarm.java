@@ -125,9 +125,14 @@ public class Strongarm {
         JCTree contract = infer(methodDecl, program);
         
         if (printContracts) {
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            if(contract!=null){
+                log.noticeWriter.println("--------------------------------------"); 
+                log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                log.noticeWriter.println(JmlPretty.write(contract));
+            }else{
+                log.noticeWriter.println("--------------------------------------"); 
+                log.noticeWriter.println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            }
         }  
         
     }
@@ -168,38 +173,83 @@ public class Strongarm {
             blockIndex.put(program.blocks().get(idx).id().toString(), idx);
         }
         
-        sp(blockIndex, program.blocks());
+        Prop<JCExpression> props = sp(blockIndex, program.blocks());
+                
+        //TODO - transform into a recognizable proposition
         
         return null;
     }
     public boolean skip(JCStatement stmt){
       
+        JmlStatementExpr jmlStmt;
+        
+        if(stmt instanceof JmlStatementExpr){
+            jmlStmt = (JmlStatementExpr)stmt;
+        }else{
+            return true;
+        }
+        
         // we only care about assignments (assumes)
-        if(stmt instanceof JmlStatementExpr && ((JmlStatementExpr)stmt).label == Label.ASSIGNMENT){
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-
+        if(isAssignStmt(jmlStmt)){
+            
             // we only care about assignments
             if(!(jmlStmt.expression instanceof JCBinary && ((JCBinary)jmlStmt.expression).lhs instanceof JCIdent)){
                 return true;
             }
 
             // we don't care about the internal JML stuff (unless it's the result!)
-            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___") && 
-                    !((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___result")){
-                return true;
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___result")){
+                return false;
             }
         
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){ 
+                return true;
+            }
+
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("ASSERT_")){ 
+                return true;
+            }
+
         
+            return false;
+        }
+        if(isBranchStmt(jmlStmt)){
+            return false;
+        }
+        
+        if(isPreconditionStmt(jmlStmt)){
             return false;
         }
             
         return true;
     }
-    public Prop<JCBinary> sp(Map<String,Integer> idx, List<BasicBlock> blocks){
+    
+    private boolean isBranchStmt(JmlStatementExpr stmt){
+        if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isPreconditionStmt(JmlStatementExpr stmt){
+        if(stmt.label == Label.PRECONDITION){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isAssignStmt(JmlStatementExpr stmt){
+        if(stmt.label == Label.ASSIGNMENT){
+            return true;
+        }
+        return false;
+    }
+    
+    public Prop<JCExpression> sp(Map<String,Integer> idx, List<BasicBlock> blocks){
         // find the precondition in the first block
         boolean verbose        = infer.verbose;
 
-        Prop<JCBinary> precondition = null;
+        Prop<JCExpression> precondition = null;
         BasicBlock startBlock = null;
         
         
@@ -212,24 +262,26 @@ public class Strongarm {
                 
                 JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                 
-                if(jmlStmt.label == Label.PRECONDITION){
-                    precondition = new Prop<JCBinary>((JCBinary)jmlStmt.expression);
+                if(isPreconditionStmt(jmlStmt)){
+                    precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression);
                 }
             }    
         }
         
         if(precondition==null){
+            
             if (verbose) {
                 log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
             }
+            precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit));
 
-            precondition = new Prop<JCBinary>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit));
+            // reset the blocks
+            startBlock = blocks.get(0);
         }
         
         if(startBlock==null){
-            if (verbose) {
-                log.error("jml.internal", "Failed to find any starting blocks... Cannot infer contracts"); 
-            }            
+            log.error("jml.internal", "Failed to find any starting blocks... Cannot infer contracts"); 
+            return null; // TODO - do something else here? can we do something else?
         }
 
         //
@@ -237,7 +289,33 @@ public class Strongarm {
         //
         return sp(precondition, idx, blocks, startBlock.followers().get(0));
     }
-    public Prop<JCBinary> sp(Prop<JCBinary> p, Map<String,Integer> idx, List<BasicBlock> blocks, BasicBlock block){
-        return null;
+    public Prop<JCExpression> sp(Prop<JCExpression> p, Map<String,Integer> idx, List<BasicBlock> blocks, BasicBlock block){
+        boolean verbose        = infer.verbose;
+
+        if (verbose) {
+            log.noticeWriter.println("[STRONGARM] Inference at block " + block.id().toString());
+        }
+    
+        
+        for(JCStatement stmt : block.statements()){
+        
+            if(skip(stmt)){ continue; }
+            
+            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+            
+            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression));            
+        }
+        
+        // handle the if statement
+        if(block.followers().size() == 2){
+            return Or.of(
+                    sp(p, idx, blocks, block.followers().get(0)), 
+                    sp(p, idx, blocks, block.followers().get(1))
+                    );
+        }else if(block.followers().size() == 1){
+            return sp(p, idx, blocks, block.followers().get(0));
+        }
+
+        return p;
     }
 }

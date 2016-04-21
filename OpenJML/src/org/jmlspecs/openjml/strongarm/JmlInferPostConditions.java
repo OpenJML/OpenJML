@@ -48,6 +48,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
 
             utils.progress(1,1,"Completed inference of " + utils.qualifiedMethodSig(methodDecl.sym)); 
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("jml.internal","Inference aborted with exception: " + e.getMessage());
             
             utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
