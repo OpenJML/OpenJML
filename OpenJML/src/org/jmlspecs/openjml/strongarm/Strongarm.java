@@ -3,12 +3,15 @@ package org.jmlspecs.openjml.strongarm;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
@@ -47,6 +50,7 @@ public class Strongarm {
     
     final protected JmlTree.Maker M;
     
+    final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
@@ -55,7 +59,6 @@ public class Strongarm {
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
-
     }
 
     public void infer(JmlMethodDecl methodDecl) {
@@ -119,21 +122,34 @@ public class Strongarm {
         
         JCTree contract = infer(methodDecl, program);
         
-        JmlSpecificationCase specCase = null;
-        
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
-            
+                
         if(methodDecl.cases!=null){ // if we already have specification cases, add this
             methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(com.sun.tools.javac.util.List.of(newCase));
         }else{                      // otherwise create a new one (with a "true" precondition)
-            methodDecl.cases.cases.head.clauses = com.sun.tools.javac.util.List.of(
-                    M.JmlMethodClauseExpr(
-                            JmlToken.REQUIRES,  
-                            treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
-                            ),
-                    
-                            newCase // ensures
-                    );
+
+            if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
+                // create the default precondition 
+                JmlMethodClauseExpr defaultPrecondition = M.JmlMethodClauseExpr
+                        (
+                                JmlToken.REQUIRES,  
+                                treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
+                        );
+                
+                JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(defaultPrecondition, newCase));
+    
+                methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+                methodDecl.cases.decl = methodDecl;
+                methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+            }else{
+                if (verbose) {
+                    log.noticeWriter.println(Strings.empty);
+                    log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                    log.noticeWriter.println(Strings.empty);
+                    log.noticeWriter.println("MISSING PRECONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                    log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
+                }
+            }
         }
         
         if (printContracts) {

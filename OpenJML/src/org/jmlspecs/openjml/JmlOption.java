@@ -37,6 +37,7 @@ public enum JmlOption implements IOption {
     // Options Related to Specification Inference
     INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
     INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
+    INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "STRONGARM: If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
     
     //
     // Inference decides to write specs based on the following conditions
