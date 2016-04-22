@@ -286,6 +286,10 @@ public class Strongarm {
         
         for(JCStatement stmt : block.statements()){
             
+            if(stmt.toString().contains("secretField_57_200___9 == secretField_57")){
+            System.out.println("FUCKINGDSA" + stmt.toString());
+            }
+            
             if(stmt instanceof JmlStatementExpr){
                 JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                 
@@ -342,7 +346,11 @@ public class Strongarm {
                 return true;
             }
 
-        
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().contains("_heap__")){ 
+                return true;
+            }
+
+            
             return false; //JCUnary
         }
         if(isBranchStmt(jmlStmt)){
@@ -395,7 +403,7 @@ public class Strongarm {
     }
     
     private boolean isAssignStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.ASSIGNMENT){
+        if(stmt.label == Label.ASSIGNMENT || stmt.label==Label.DSA){
             return true;
         }
         return false;
@@ -496,7 +504,6 @@ public class Strongarm {
     
     public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract){
         boolean verbose        = infer.verbose;
-
         //
         // Perform logical simplification
         //
