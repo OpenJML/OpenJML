@@ -141,33 +141,20 @@ public class Strongarm {
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
-        
-        //
-        // Perform logical simplification
-        //
-        RemoveTautologies.simplify(contract);
-
-        if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(contract));
+        ///
+        /// Perform cleanup
+        ///
+        {
+            cleanupContract(methodDecl, contract);
         }
+        ///
+        ///
+        ///
         
-        //
-        // Remove local variables
-        //
-
         
-        if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(contract));
-        }
-        
+        ///
+        /// Put the contracts back together 
+        ///
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
                 
         if(methodDecl.cases!=null){ // if we already have specification cases, add this
@@ -501,5 +488,48 @@ public class Strongarm {
             }
         }
         return false;
+    }
+    
+    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract){
+        boolean verbose        = infer.verbose;
+
+        //
+        // Perform logical simplification
+        //
+        RemoveTautologies.simplify(contract);
+
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        //
+        // Remove local variables
+        //
+
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        //
+        // Simplify labels
+        //
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER SIMPLIFYING LABELS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
     }
 }
