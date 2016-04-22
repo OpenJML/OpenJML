@@ -64,7 +64,7 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void scan(JCTree node) {
-        //if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
+        if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
         super.scan(node);
     }
     
@@ -93,6 +93,7 @@ public class SubstituteTree extends JmlTreeScanner{
             }
             
         }
+        super.visitUnary(tree);
     }
 
     @Override
@@ -111,7 +112,8 @@ public class SubstituteTree extends JmlTreeScanner{
             }
             
         }
-    }
+        super.visitParens(tree);
+        }
     private boolean isRedundant(JCBinary tree){
         if(currentReplacement instanceof JCBinary)
             return tree == currentReplacement;
@@ -217,18 +219,27 @@ public class SubstituteTree extends JmlTreeScanner{
         return null;
     }
 
-    public static void replace(JCTree replace, JCTree in){
+    public static JCExpression replace(JCTree replace, JCTree in){
 
         instance.currentReplacement = replace;
         
-        if(instance.replace()==null) return;
-        if(instance.replace().toString().startsWith("ASSERT")) return;
+        if(instance.replace()==null) return null;
+        if(instance.replace().toString().startsWith("ASSERT")) return null;
         
         //System.out.println("REP:" + instance.replace().toString());
         
         if(instance.replace()!=null && instance.with()!=null){
-            instance.scan(in);
+        
+            //it's of course possible this is a direct substitution 
+            if(in instanceof JCIdent){
+                if(((JCIdent) in).getName().equals(instance.replace())){
+                    return instance.with();
+                }
+            }else{
+                instance.scan(in);
+            }           
         }
+        return null;
     }
     
 

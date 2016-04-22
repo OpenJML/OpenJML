@@ -20,7 +20,12 @@ public class Prop<T extends JCExpression> {
     public Prop(){}
     
     public void replace(JCTree replacement){
-        SubstituteTree.replace(replacement, p);
+        
+        JCExpression e = SubstituteTree.replace(replacement, p);
+        
+        if(e!=null){
+            p = (T) e;
+        }
     }
     
     public JCExpression toTree(JmlTreeUtils treeutils){

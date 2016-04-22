@@ -25,6 +25,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.esc.Label;
@@ -69,6 +70,7 @@ public class Strongarm {
         {
             new SubstituteTree(context);
             new RemoveTautologies(context);
+            new CleanupVariableNames(context);
         }
     }
     
@@ -243,6 +245,7 @@ public class Strongarm {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("FINISHED (STAGE 1) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(methodDecl));
+            log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
         
         List<JCTree> subs = new ArrayList<JCTree>(); extractSubstitutions(program.blocks().get(0), subs);
@@ -269,6 +272,7 @@ public class Strongarm {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("FINISHED (STAGE 2) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(methodDecl));
+            log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
 
         
@@ -509,7 +513,7 @@ public class Strongarm {
         //
         // Remove local variables
         //
-
+        CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
