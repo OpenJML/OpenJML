@@ -112,10 +112,17 @@ public class SubstituteTree extends JmlTreeScanner{
             
         }
     }
-    
+    private boolean isRedundant(JCBinary tree){
+        if(currentReplacement instanceof JCBinary)
+            return tree == currentReplacement;
+        
+        return false;
+    }
     
     @Override
     public void visitBinary(JCBinary tree) {
+        
+        if(isRedundant(tree)) return;
         
         if(tree.lhs instanceof JCIdent){ 
             JCIdent lhs = (JCIdent)tree.lhs;
@@ -214,7 +221,7 @@ public class SubstituteTree extends JmlTreeScanner{
 
         instance.currentReplacement = replace;
         
-        
+        if(instance.replace()==null) return;
         if(instance.replace().toString().startsWith("ASSERT")) return;
         
         //System.out.println("REP:" + instance.replace().toString());
