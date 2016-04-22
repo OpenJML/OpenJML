@@ -14,6 +14,11 @@ public class Or<T extends JCExpression> extends Prop<T> {
         this.p1 = p1;
         this.p2 = p2;
     }
+    
+    public void replace(JCTree replacement){
+        p1.replace(replacement);
+        p2.replace(replacement);
+    }
   
     public static <E extends JCExpression> Or<E> of(Prop<E> p1, Prop<E> p2){
         return new Or<E>(p1, p2);

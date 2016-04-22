@@ -2,5 +2,5 @@ package demo;
 
 public class B extends A {
     
-    boolean g() { return 0; }
+    boolean g() { return false; }
 }

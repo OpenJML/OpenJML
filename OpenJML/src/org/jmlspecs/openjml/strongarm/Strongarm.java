@@ -1,7 +1,9 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
@@ -16,12 +18,15 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
+import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -59,8 +64,14 @@ public class Strongarm {
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
+        
+        // cache a copy of the replacement util
+        {
+            new SubstituteTree(context);
+            new RemoveTautologies(context);
+        }
     }
-
+    
     public void infer(JmlMethodDecl methodDecl) {
 
         // first, we translate the method to the basic block format
@@ -122,6 +133,16 @@ public class Strongarm {
         
         JCTree contract = infer(methodDecl, program);
         
+        //
+        // Perform logical simplification
+        //
+        RemoveTautologies.simplify(contract);
+
+        //
+        // Remove local variables
+        //
+
+        
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
                 
         if(methodDecl.cases!=null){ // if we already have specification cases, add this
@@ -180,7 +201,7 @@ public class Strongarm {
      */
     public JCTree infer(JmlMethodDecl methodDecl, BasicProgram program){
         boolean printContracts = infer.printContracts;
-        boolean verbose        = infer.verbose;
+        boolean verbose        = infer.verbose; 
 
         
         // basic idea here is to boil it all down to a proposition. 
@@ -212,12 +233,29 @@ public class Strongarm {
             log.noticeWriter.println(JmlPretty.write(methodDecl));
         }
         
-        //TODO - transform into a recognizable proposition
-        List<JCExpression> subs = new ArrayList<JCExpression>();
-
-        
+        List<JCTree> subs = new ArrayList<JCTree>(); extractSubstitutions(program.blocks().get(0), subs);
         // First, perform the substitutions
         
+        // backwards!
+        ListIterator<JCTree> it = subs.listIterator(subs.size());
+        
+        while(it.hasPrevious()){
+            JCTree t = it.previous();
+            SubstituteTree.instance.currentReplacement = t;
+            
+            if(SubstituteTree.instance.replace().toString().startsWith("_JML__tmp")==false) continue;
+            
+            log.noticeWriter.println("--------------------------------------");
+
+            
+            log.noticeWriter.println("wanting to replace: " + t.toString());
+            
+            log.noticeWriter.println("writer sez: " + SubstituteTree.instance.replace().toString());
+            
+            props.replace(t);
+            log.noticeWriter.println("--------------------------------------"); 
+
+        }
         
         // Second, remove locals, and apply some techniques to make things more readable.
         
@@ -236,11 +274,32 @@ public class Strongarm {
         return props.toTree(treeutils);
     }
     
-    public List<JCExpression> extractSubstitutions(BasicProgram program){
-        List<JCExpression> subs = new ArrayList<JCExpression>();
-
-    
-    
+    // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
+    public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
+        
+        for(JCStatement stmt : block.statements()){
+            
+            if(stmt instanceof JmlStatementExpr){
+                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+                
+                if(isAssignStmt(jmlStmt)){
+                    subs.add(jmlStmt.expression);
+                }
+            }else if(isVarDecl(stmt)){
+                JmlVariableDecl decl = (JmlVariableDecl)stmt;
+                subs.add(decl);
+            }
+        }
+        
+        if(block.followers().size()==2){
+            extractSubstitutions(block.followers().get(0), subs);
+            extractSubstitutions(block.followers().get(1), subs);
+            
+            
+        }else if(block.followers().size()==1){
+            extractSubstitutions(block.followers().get(0), subs);
+        }
+        
         return subs;
     }
     
@@ -307,6 +366,13 @@ public class Strongarm {
         return true;
     }
     
+    private boolean isVarDecl(JCStatement stmt){
+        if(stmt instanceof JmlVariableDecl){
+            return true;
+        }
+        return false;
+    }
+    
     private boolean isBranchStmt(JmlStatementExpr stmt){
         if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE){
             return true;
@@ -348,7 +414,7 @@ public class Strongarm {
                 if(isPreconditionStmt(jmlStmt)){
                     precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression);
                 }
-            }    
+            }     
         }
         
         if(precondition==null){
@@ -370,15 +436,23 @@ public class Strongarm {
         //
         // begin execution
         //
+        // normal execution skips the bodyBegin block
+        if(startBlock.followers().get(0).id().getName().toString().contains("bodyBegin")){
+            return sp(precondition, blocks, startBlock.followers().get(0).followers().get(0));            
+        }
+        
         return sp(precondition, blocks, startBlock.followers().get(0));
     }
     public Prop<JCExpression> sp(Prop<JCExpression> p, List<BasicBlock> blocks, BasicBlock block){
         boolean verbose        = infer.verbose;
 
+        if(skipBlock(block)){
+            return p;
+        }
+        
         if (verbose) {
             log.noticeWriter.println("[STRONGARM] Inference at block " + block.id().toString());
-        }
-    
+        }    
         
         for(JCStatement stmt : block.statements()){        
             if(skip(stmt)){ continue; }
@@ -401,5 +475,15 @@ public class Strongarm {
         }
 
         return p;
+    }
+    
+    public boolean skipBlock(BasicBlock block){
+        String[] names = new String[]{"_return_", "tryTarget"};
+        for(String name : names){
+            if(block.id().getName().toString().contains(name)){
+                return true;
+            }
+        }
+        return false;
     }
 }

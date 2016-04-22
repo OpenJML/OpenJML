@@ -19,6 +19,12 @@ public class And<T extends JCExpression> extends Prop<T> {
         return new And<E>(p1, p2);
     }
     
+    public void replace(JCTree replacement){
+        p1.replace(replacement);
+        p2.replace(replacement);
+    }
+  
+    
     public JCExpression toTree(JmlTreeUtils treeutils){
         return treeutils.makeBinary(0, JCTree.AND, p1.toTree(treeutils), p2.toTree(treeutils));
     }
