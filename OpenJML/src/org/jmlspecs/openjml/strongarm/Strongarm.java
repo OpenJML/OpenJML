@@ -133,15 +133,40 @@ public class Strongarm {
         
         JCTree contract = infer(methodDecl, program);
         
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("BEFORE FINAL TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        
         //
         // Perform logical simplification
         //
         RemoveTautologies.simplify(contract);
 
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
         //
         // Remove local variables
         //
 
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
                 
