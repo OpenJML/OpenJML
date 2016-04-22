@@ -241,20 +241,11 @@ public class Strongarm {
         
         while(it.hasPrevious()){
             JCTree t = it.previous();
-            SubstituteTree.instance.currentReplacement = t;
-            
-            if(SubstituteTree.instance.replace().toString().startsWith("_JML__tmp")==false) continue;
-            
-            log.noticeWriter.println("--------------------------------------");
 
-            
+            log.noticeWriter.println("--------------------------------------");
             log.noticeWriter.println("wanting to replace: " + t.toString());
-            
-            log.noticeWriter.println("writer sez: " + SubstituteTree.instance.replace().toString());
-            
             props.replace(t);
             log.noticeWriter.println("--------------------------------------"); 
-
         }
         
         // Second, remove locals, and apply some techniques to make things more readable.
