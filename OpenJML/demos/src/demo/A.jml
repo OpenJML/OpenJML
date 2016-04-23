@@ -3,8 +3,25 @@ public class A {
   
   public A();
     /*@
-      requires true; 
-      ensures true && c_124_124__ == 100 && a_89_142__ == 100 && \result == 0; 
+    public normal_behavior
+      requires a > 99; 
+      {|
+        requires a > 99; 
+        requires (a > b); 
+        ensures \result == 1; 
+      also
+        {|
+          requires a > 99; 
+          requires !(a > b); 
+          requires (a < b); 
+          ensures \result == -1; 
+        also
+          requires a > 99; 
+          requires !(a > b); 
+          requires !(a < b); 
+          requires -1 == 0; 
+        |}
+      |}
    */
 
   public static int cmp(int a, int b);

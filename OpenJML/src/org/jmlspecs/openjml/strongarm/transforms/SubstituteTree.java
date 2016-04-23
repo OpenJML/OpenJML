@@ -60,7 +60,7 @@ public class SubstituteTree extends JmlTreeScanner{
 
     }
 
-    public void cache(Context context){
+    public static void cache(Context context){
         if(instance==null){
             instance = new SubstituteTree(context);
         }

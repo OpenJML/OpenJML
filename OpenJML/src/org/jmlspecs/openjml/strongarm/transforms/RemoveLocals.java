@@ -8,7 +8,7 @@ public class RemoveLocals {
     
     public RemoveLocals(Context context){}
     
-    public void cache(Context context){
+    public static void cache(Context context){
         if(instance==null){
             instance = new RemoveLocals(context);
         }

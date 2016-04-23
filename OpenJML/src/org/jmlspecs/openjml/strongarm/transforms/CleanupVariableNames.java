@@ -54,7 +54,7 @@ public class CleanupVariableNames extends JmlTreeScanner {
 
     }
     
-    public void cache(Context context){
+    public static void cache(Context context){
         if(instance==null){
             instance = new CleanupVariableNames(context);
         }
