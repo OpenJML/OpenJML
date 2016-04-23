@@ -135,65 +135,64 @@ public class Strongarm
         }
         
         //JCTree contract = infer(methodDecl, program);
-        List<JmlMethodClause> contract = infer(methodDecl, program);
+        com.sun.tools.javac.util.List<JmlMethodClause> contract = infer(methodDecl, program);
+        
+                       
+        if(methodDecl.cases!=null){ // if we already have specification cases, add this
+            methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(contract);
+        }else{                      // otherwise create a new one (with a "true" precondition)
+
+//            if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
+//                // create the default precondition 
+//                JmlMethodClauseExpr defaultPrecondition = M.JmlMethodClauseExpr
+//                        (
+//                                JmlToken.REQUIRES,  
+//                                treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
+//                        );
+//                
+//                JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(defaultPrecondition, newCase));
+//    
+//                methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+//                methodDecl.cases.decl = methodDecl;
+//                methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+//            }else{
+//                if (verbose) {
+//                    log.noticeWriter.println(Strings.empty);
+//                    log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+//                    log.noticeWriter.println(Strings.empty);
+//                    log.noticeWriter.println("MISSING PRECONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+//                    log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
+//                }
+//            }
+        }
+        
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("BEFORE FINAL TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
         }
         
         ///
         /// Perform cleanup
         ///
         {
-            cleanupContract(methodDecl, contract);
+            cleanupContract(methodDecl, methodDecl.cases);
         }
         ///
         ///
         ///
         
         
-        ///
-        /// Put the contracts back together 
-        ///
-        JmlMethodClause newCase = M.JmlMethodClauseExpr(JmlToken.ENSURES, (JCExpression)contract);
-                
-        if(methodDecl.cases!=null){ // if we already have specification cases, add this
-            methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(com.sun.tools.javac.util.List.of(newCase));
-        }else{                      // otherwise create a new one (with a "true" precondition)
-
-            if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
-                // create the default precondition 
-                JmlMethodClauseExpr defaultPrecondition = M.JmlMethodClauseExpr
-                        (
-                                JmlToken.REQUIRES,  
-                                treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
-                        );
-                
-                JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(defaultPrecondition, newCase));
-    
-                methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
-                methodDecl.cases.decl = methodDecl;
-                methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
-            }else{
-                if (verbose) {
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("MISSING PRECONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                    log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
-                }
-            }
-        }
+        
         
         if (printContracts) {
             if(contract!=null){
                 log.noticeWriter.println("--------------------------------------"); 
                 log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-                log.noticeWriter.println(JmlPretty.write(contract));
+                log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
             }else{
                 log.noticeWriter.println("--------------------------------------"); 
                 log.noticeWriter.println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
@@ -215,7 +214,7 @@ public class Strongarm
      * @param program
      * @return
      */
-    public List<JmlMethodClause> infer(JmlMethodDecl methodDecl, BasicProgram program){
+    public com.sun.tools.javac.util.List<JmlMethodClause> infer(JmlMethodDecl methodDecl, BasicProgram program){
         boolean printContracts = infer.printContracts;
         boolean verbose        = infer.verbose; 
 
@@ -291,15 +290,13 @@ public class Strongarm
                     );
 
         	
-        	List<JmlMethodClause> clz = props.getClauses(JDKList.of(defaultPrecondition), treeutils, M);
+            com.sun.tools.javac.util.List<JmlMethodClause> clz = props.getClauses(null, treeutils, M);
         	
-        	if(1==1){
-        		System.out.println("OK!?");
-        	}
+            return clz;    
         }
         
         
-        return clz;
+        return null;
         
         // Convert this into a JCTree
         ///return props.toTree(treeutils);

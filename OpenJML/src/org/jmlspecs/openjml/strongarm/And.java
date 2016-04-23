@@ -37,6 +37,9 @@ public class And<T extends JCExpression> extends Prop<T> {
         List<JmlMethodClause> m1 = p1.getClauses(clauses, treeutils, M);
         List<JmlMethodClause> m2 = p2.getClauses(clauses, treeutils, M);
         
+        if(clauses==null){
+            return m1.appendList(m2);
+        }
         return clauses.appendList(m1.appendList(m2));
     }
     

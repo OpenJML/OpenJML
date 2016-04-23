@@ -67,7 +67,9 @@ public class CleanupVariableNames extends JmlTreeScanner {
             tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
         }else{
             // remove the underscores
-            tree.name = tree.getName().subName(0, tree.getName().toString().lastIndexOf('_'));
+            if(tree.getName().toString().contains("_")){
+                tree.name = tree.getName().subName(0, tree.getName().toString().lastIndexOf('_'));
+            }
         }
         idDone.add(tree);
     }

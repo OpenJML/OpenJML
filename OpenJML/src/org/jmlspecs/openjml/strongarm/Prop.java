@@ -35,13 +35,26 @@ public class Prop<T extends JCExpression> {
     
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){
         
-        JmlMethodClauseExpr clause = M.JmlMethodClauseExpr
-                (
-                        JmlToken.REQUIRES,  
-                        p
-                );
+        JmlMethodClauseExpr clause; 
         
-        return clauses.append(clause);
+        //TODO correctly detect this.
+        if(p.toString().contains("_JML___result")){
+            clause = M.JmlMethodClauseExpr
+            (
+                    JmlToken.ENSURES,  
+                    p
+            );
+
+        }else{
+            clause = M.JmlMethodClauseExpr
+            (
+                    JmlToken.REQUIRES,  
+                    p
+            );
+
+        }
+
+        return List.of((JmlMethodClause)clause);
     }
     
     public JCExpression toTree(JmlTreeUtils treeutils){
@@ -49,3 +62,4 @@ public class Prop<T extends JCExpression> {
     }
     
 }
+

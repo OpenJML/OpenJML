@@ -48,7 +48,13 @@ public class Or<T extends JCExpression> extends Prop<T> {
         
         JmlMethodClauseGroup group = M.JmlMethodClauseGroup(List.of(case1, case2));
         
-       return clauses.append(group);
+        if(clauses==null){
+            return List.of((JmlMethodClause)group);
+        }
+        
+        return clauses.append(group);
+        
+        
     }
      
     public JCExpression toTree(JmlTreeUtils treeutils){
