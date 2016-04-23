@@ -26,6 +26,7 @@ import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.esc.Label;
@@ -68,11 +69,14 @@ public class Strongarm
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
         
-        // cache a copy of the replacement util
+        //
+        // Cache copies of the various tree transformation utilities.
+        //
         {
-            new SubstituteTree(context);
-            new RemoveTautologies(context);
-            new CleanupVariableNames(context);
+            SubstituteTree.cache(context);
+            RemoveTautologies.cache(context);
+            CleanupVariableNames.cache(context);
+            RemoveDuplicatePreconditions.cache(context);
         }
     }
     
