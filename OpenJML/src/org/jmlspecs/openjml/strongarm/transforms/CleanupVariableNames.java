@@ -58,7 +58,7 @@ public class CleanupVariableNames extends JmlTreeScanner {
     
     @Override
     public void visitIdent(JCIdent tree){
-        if (tree != null) System.out.println(">>IDENT: " + tree.toString() + " LIO: " + tree.getName().toString().lastIndexOf('_'));
+        //if (tree != null) System.out.println(">>IDENT: " + tree.toString() + " LIO: " + tree.getName().toString().lastIndexOf('_'));
 
         if(idDone.contains(tree)) return;
         

@@ -64,7 +64,7 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void scan(JCTree node) {
-        if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
+        //if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
         super.scan(node);
     }
     
@@ -181,7 +181,7 @@ public class SubstituteTree extends JmlTreeScanner{
                 }
                 
             }else{
-                log.error("jml.internal", "Unexpected node: " + p.getClass() + " found during replacement.");
+                //log.error("jml.internal", "Unexpected node: " + p.getClass() + " found during replacement.");
             }
             
         }else if(p instanceof JCVariableDecl){
@@ -189,7 +189,7 @@ public class SubstituteTree extends JmlTreeScanner{
             return pVarDecl.getName();
         }
         
-        log.error("jml.internal", "LHS Missing in Replacement");
+        //log.error("jml.internal", "LHS Missing in Replacement");
 
         
         return null;

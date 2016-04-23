@@ -40,7 +40,8 @@ import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 
-public class Strongarm {
+public class Strongarm  
+ {
 
     final protected Context                context;
 
@@ -133,7 +134,8 @@ public class Strongarm {
             log.noticeWriter.println(program.toString());
         }
         
-        JCTree contract = infer(methodDecl, program);
+        //JCTree contract = infer(methodDecl, program);
+        List<JmlMethodClause> contract = infer(methodDecl, program);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -213,7 +215,7 @@ public class Strongarm {
      * @param program
      * @return
      */
-    public JCTree infer(JmlMethodDecl methodDecl, BasicProgram program){
+    public List<JmlMethodClause> infer(JmlMethodDecl methodDecl, BasicProgram program){
         boolean printContracts = infer.printContracts;
         boolean verbose        = infer.verbose; 
 
@@ -257,10 +259,15 @@ public class Strongarm {
         while(it.hasPrevious()){
             JCTree t = it.previous();
 
-            log.noticeWriter.println("--------------------------------------");
-            log.noticeWriter.println("wanting to replace: " + t.toString());
+            if(verbose){
+            	log.noticeWriter.println("--------------------------------------");
+            	log.noticeWriter.println("wanting to replace: " + t.toString());
+            }
             props.replace(t);
-            log.noticeWriter.println("--------------------------------------"); 
+            
+            if(verbose){
+            	log.noticeWriter.println("--------------------------------------");
+            }
         }
         
         // Second, remove locals, and apply some techniques to make things more readable.
@@ -275,22 +282,35 @@ public class Strongarm {
             log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
 
+        if(1==1){
+        	
+            JmlMethodClause defaultPrecondition = M.JmlMethodClauseExpr
+                    (
+                            JmlToken.REQUIRES,  
+                            treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
+                    );
+
+        	
+        	List<JmlMethodClause> clz = props.getClauses(JDKList.of(defaultPrecondition), treeutils, M);
+        	
+        	if(1==1){
+        		System.out.println("OK!?");
+        	}
+        }
         
+        
+        return clz;
         
         // Convert this into a JCTree
-        return props.toTree(treeutils);
+        ///return props.toTree(treeutils);
     }
     
     // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
     public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
         
         for(JCStatement stmt : block.statements()){
-            
-            if(stmt.toString().contains("secretField_57_200___9 == secretField_57")){
-            System.out.println("FUCKINGDSA" + stmt.toString());
-            }
-            
-            if(stmt instanceof JmlStatementExpr){
+
+        	if(stmt instanceof JmlStatementExpr){
                 JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                 
                 if(isAssignStmt(jmlStmt)){

@@ -1,0 +1,11 @@
+
+public class A {
+  
+  public A();
+    /*@
+      requires true; 
+      ensures true && c_124_124__ == 100 && a_89_142__ == 100 && \result == 0; 
+   */
+
+  public static int cmp(int a, int b);
+}

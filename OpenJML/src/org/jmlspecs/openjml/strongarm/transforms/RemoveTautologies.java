@@ -52,7 +52,7 @@ public class RemoveTautologies extends JmlTreeScanner{
     
     @Override
     public void scan(JCTree node) {
-        if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
+        //if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
         super.scan(node);
     }
     
