@@ -560,5 +560,22 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
+        
+        //
+        // Remove Duplicate Preconditions
+        //
+
+        RemoveDuplicatePreconditions.simplify(contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        
+        
     }
 }

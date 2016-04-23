@@ -1,20 +1,31 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
+/**
+ * Transformer that removes duplicate preconditions from NESTED specification cases. 
+ *   
+ */
 public class RemoveDuplicatePreconditions extends JmlTreeScanner {
 
     public static RemoveDuplicatePreconditions instance;
@@ -28,21 +39,23 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
     
-    public Set<JCIdent> idDone = new HashSet<JCIdent>();
+    // this is a mapping from the block where the filter was found to the filters...
+    private Map<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>> activeFilters = new HashMap<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>>();
     
     public RemoveDuplicatePreconditions(Context context){
         
-        this.context = context;
-        this.log = Log.instance(context);
-        this.utils = Utils.instance(context);
-        this.treeutils = JmlTreeUtils.instance(context);
-        this.M = JmlTree.Maker.instance(context);
-        this.syms = Symtab.instance(context);
+        this.context    = context;
+        this.log        = Log.instance(context);
+        this.utils      = Utils.instance(context);
+        this.treeutils  = JmlTreeUtils.instance(context);
+        this.M          = JmlTree.Maker.instance(context);
+        this.syms       = Symtab.instance(context);
         
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
 
-        this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
-            || utils.jmlverbose >= Utils.JMLVERBOSE;
+        this.verbose = inferdebug 
+                || JmlOption.isOption(context,"-verbose") // The Java verbose option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
 
     }
 
@@ -51,24 +64,30 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
             instance = new RemoveDuplicatePreconditions(context);
         }
     }
-    
-    
-    @Override
-    public void visitIdent(JCIdent tree){
-        //if (tree != null) System.out.println(">>IDENT: " + tree.toString() + " LIO: " + tree.getName().toString().lastIndexOf('_'));
 
-        if(idDone.contains(tree)) return;
+    private void addFilterAtBlock(JmlSpecificationCase block, JmlMethodClauseExpr filter){
         
-        if(tree.getName().toString().contains("_JML___result")){
-            // transform results
-            tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
-        }else{
-            // remove the underscores
-            if(tree.getName().toString().contains("_")){
-                tree.name = tree.getName().subName(0, tree.getName().toString().lastIndexOf('_'));
+        if(activeFilters.get(block)==null){
+            activeFilters.put(block,  new HashSet<JmlMethodClauseExpr>());
+        }
+        
+        activeFilters.get(block).add(filter);
+    }
+    
+    private void removeFiltersForBlock(JmlSpecificationCase block){
+        activeFilters.remove(block);
+    }
+    
+    private Set<String> getFilterStrings(){
+        Set<String> filters = new HashSet<String>();
+        
+        for(HashSet<JmlMethodClauseExpr> blockExprs : activeFilters.values()){
+            for(JmlMethodClauseExpr expr : blockExprs){
+                filters.add(expr.toString());
             }
         }
-        idDone.add(tree);
+        
+        return filters;
     }
     
     @Override
@@ -77,12 +96,72 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         super.scan(node);
     }
     
-    public void reset(){
-        idDone.clear();
+    public void filterBlock(JmlSpecificationCase block){
+        
+        // we keep repeating this 
+        List<JmlMethodClause> replacedClauses = null;
+        Set<String> filterSet = getFilterStrings();
+        
+        for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
+            
+            
+            if(filterSet.contains(clauses.head.toString())==false){
+                if(replacedClauses == null){
+                    replacedClauses = List.of(clauses.head);
+                }else{
+                    replacedClauses = replacedClauses.append(clauses.head);
+                }
+            }
+            
+        }
+        
+        block.clauses = replacedClauses;
     }
+
+
+    @Override
+    public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+
+        if (verbose) {
+            log.noticeWriter.println("===========<ACTIVE FILTERS>================");
+            for(String s : getFilterStrings()){
+                log.noticeWriter.print(s + " ");
+            }
+            log.noticeWriter.println("\n===========</ACTIVE FILTERS>================");
+        }
+
+        //
+        // filter this block
+        //
+        
+        filterBlock(tree);
+       
+        //
+        // add new filters if we need them
+        //
+        for(List<JmlMethodClause> clauses = tree.clauses; clauses.nonEmpty(); clauses = clauses.tail){
+
+            if(clauses.head instanceof JmlMethodClauseExpr == false){ continue; }
+            
+            JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
+            
+            // we want to filter out all requires clauses. 
+            if(clauseExpr.token == JmlToken.REQUIRES){
+                addFilterAtBlock(tree, clauseExpr);
+            }
+        }
+        
+        super.visitJmlSpecificationCase(tree);
+
+        
+        //
+        // Pop the filters for this block off (if we exit the scope)
+        //
+        removeFiltersForBlock(tree);
+    }
+
     
     public static void simplify(JCTree node){
-        instance.reset();
         instance.scan(node);
     }
 }

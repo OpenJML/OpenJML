@@ -40,12 +40,12 @@ public class CleanupVariableNames extends JmlTreeScanner {
     
     public CleanupVariableNames(Context context){
         
-        this.context = context;
-        this.log = Log.instance(context);
-        this.utils = Utils.instance(context);
-        this.treeutils = JmlTreeUtils.instance(context);
-        this.M = JmlTree.Maker.instance(context);
-        this.syms = Symtab.instance(context);
+        this.context    = context;
+        this.log        = Log.instance(context);
+        this.utils      = Utils.instance(context);
+        this.treeutils  = JmlTreeUtils.instance(context);
+        this.M          = JmlTree.Maker.instance(context);
+        this.syms       = Symtab.instance(context);
         
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
 
