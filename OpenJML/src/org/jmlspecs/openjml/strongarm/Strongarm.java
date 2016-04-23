@@ -519,6 +519,7 @@ public class Strongarm
     
     public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract){
         boolean verbose        = infer.verbose;
+
         //
         // Perform logical simplification
         //
@@ -528,32 +529,34 @@ public class Strongarm
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
-        
+
         //
         // Remove local variables
         //
-        CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
         
         //
         // Simplify labels
         //
+
+        CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER SIMPLIFYING LABELS OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println("AFTER SIMPLIFYING LABELS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
