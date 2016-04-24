@@ -179,6 +179,12 @@ public class MethodProverSMT {
         if (exec == null) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
         return exec;
     }
+    
+    /** Allows other extending classes to implement a different type of proof **/
+    public SMTTranslator getTranslator(Context context){
+        return new SMTTranslator(context);
+    }
+
 
     /** The entry point to initiate proving a method. In the current implementation
      * the methodDecl is a method of the original AST and the original AST must
@@ -251,8 +257,8 @@ public class MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = new SMTTranslator(context);
-
+        SMTTranslator smttrans = getTranslator(context); 
+        
         ISolver solver;
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
