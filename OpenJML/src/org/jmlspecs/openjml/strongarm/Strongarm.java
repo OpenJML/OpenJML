@@ -1,9 +1,11 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
@@ -263,29 +265,13 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(methodDecl));
             log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
-        
-        List<JCTree> subs = new ArrayList<JCTree>(); extractSubstitutions(program.blocks().get(0), subs);
-        // First, perform the substitutions
-        
-        // backwards!
-        ListIterator<JCTree> it = subs.listIterator(subs.size());
-        
-        while(it.hasPrevious()){
-            JCTree t = it.previous();
 
-            if(verbose){
-            	log.noticeWriter.println("--------------------------------------");
-            	log.noticeWriter.println("wanting to replace: " + t.toString());
-            }
-            props.replace(t);
-            
-            if(verbose){
-            	log.noticeWriter.println("--------------------------------------");
-            }
-        }
+        // Apply substitutions
+        Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), program.blocks().get(0));
+
+        props.replace(subs);
         
-        // Second, remove locals, and apply some techniques to make things more readable.
-        
+        //
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -297,12 +283,46 @@ public class Strongarm
         }
 
        return props.getClauses(null, treeutils, M);
-        	
+    }
+    
+    public void addSubstitutionAtBlock(JCTree sub, Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
+        
+        if(mappings.get(block.id())==null){
+            mappings.put(block.id(), new ArrayList<JCTree>());
+        }
+        
+        mappings.get(block.id()).add(sub);
+    }
+    
+    public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
+
+        for(JCStatement stmt : block.statements()){
+
+            if(stmt instanceof JmlStatementExpr){
+                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+                
+                if(isAssignStmt(jmlStmt)){
+                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+                }
+            }else if(isVarDecl(stmt)){
+                JmlVariableDecl decl = (JmlVariableDecl)stmt;
+                addSubstitutionAtBlock(decl, mappings, block);
+            }
+        }
+        
+        if(block.followers().size()==2){
+            getSubstitutionMappings(mappings, block.followers().get(0));
+            getSubstitutionMappings(mappings, block.followers().get(1));
+        }else if(block.followers().size()==1){
+            getSubstitutionMappings(mappings, block.followers().get(0));
+        }
+        
+        return mappings;
     }
     
     // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
     public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
-        
+       
         for(JCStatement stmt : block.statements()){
 
         	if(stmt instanceof JmlStatementExpr){
@@ -442,7 +462,7 @@ public class Strongarm
                 JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                 
                 if(isPreconditionStmt(jmlStmt)){
-                    precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression);
+                    precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock);
                 }
             }     
         }
@@ -452,7 +472,7 @@ public class Strongarm
             if (verbose) {
                 log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
             }
-            precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit));
+            precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null);
 
             // reset the blocks
             startBlock = blocks.get(0);
@@ -489,7 +509,7 @@ public class Strongarm
             
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;            
             
-            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression));            
+            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
         }
         
         // handle the if statement

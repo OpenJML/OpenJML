@@ -229,8 +229,8 @@ public class SubstituteTree extends JmlTreeScanner{
         
         if(instance.replace()==null) return null;
         if(instance.replace().toString().startsWith("ASSERT")) return null;
-        
-        //System.out.println("REP:" + instance.replace().toString());
+
+        System.out.println("Considering Doing a Replacement for EXPR: " + replace.toString());
         
         if(instance.replace()!=null && instance.with()!=null){
         

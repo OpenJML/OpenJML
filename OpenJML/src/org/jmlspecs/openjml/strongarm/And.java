@@ -4,12 +4,17 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+
+import java.util.ArrayList;
+import java.util.Map;
+
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
 public class And<T extends JCExpression> extends Prop<T> {
@@ -26,9 +31,9 @@ public class And<T extends JCExpression> extends Prop<T> {
         return new And<E>(p1, p2);
     }
     
-    public void replace(JCTree replacement){
-        p1.replace(replacement);
-        p2.replace(replacement);
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
+        p1.replace(mappings);
+        p2.replace(mappings);
     }
   
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){

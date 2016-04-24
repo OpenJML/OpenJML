@@ -40,7 +40,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
     public static boolean verbose = false; 
     
     // this is a mapping from the block where the filter was found to the filters...
-    private Map<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>> activeFilters = new HashMap<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>>();
+    protected Map<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>> activeFilters = new HashMap<JmlSpecificationCase,HashSet<JmlMethodClauseExpr>>();
     
     public RemoveDuplicatePreconditions(Context context){
         
@@ -78,7 +78,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         activeFilters.remove(block);
     }
     
-    private Set<String> getFilterStrings(){
+    protected Set<String> getFilterStrings(){
         Set<String> filters = new HashSet<String>();
         
         for(HashSet<JmlMethodClauseExpr> blockExprs : activeFilters.values()){

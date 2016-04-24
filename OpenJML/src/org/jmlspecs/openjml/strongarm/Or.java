@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -8,6 +11,7 @@ import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
 public class Or<T extends JCExpression> extends Prop<T> {
@@ -20,9 +24,9 @@ public class Or<T extends JCExpression> extends Prop<T> {
         this.p2 = p2;
     }
     
-    public void replace(JCTree replacement){
-        p1.replace(replacement);
-        p2.replace(replacement);
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
+        p1.replace(mappings);
+        p2.replace(mappings);
     }
   
     public static <E extends JCExpression> Or<E> of(Prop<E> p1, Prop<E> p2){
