@@ -255,10 +255,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * rewritten value - or at least the value which designates the value of the
      * input JCTree.
      */
-    @NonNull final BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
+    @NonNull public final BiMap<JCTree,JCExpression> bimap = new BiMap<JCTree,JCExpression>();
     
     // FIXME - document - I think this can go away
-    @NonNull final BiMap<JCTree,JCTree> pathmap = new BiMap<JCTree,JCTree>();
+    @NonNull public final BiMap<JCTree,JCTree> pathmap = new BiMap<JCTree,JCTree>();
     
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
@@ -282,7 +282,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 
         a \pre (or an \old without a label) */
-    @NonNull protected VarMap premap;
+    @NonNull public VarMap premap;
     
     /** The variable that keeps track of heap incarnations */
     protected JCIdent heapVar;

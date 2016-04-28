@@ -90,6 +90,18 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         return filters;
     }
     
+    protected Set<JmlMethodClauseExpr> getFilters(){
+        Set<JmlMethodClauseExpr> filters = new HashSet<JmlMethodClauseExpr>();
+        
+        for(HashSet<JmlMethodClauseExpr> blockExprs : activeFilters.values()){
+            for(JmlMethodClauseExpr expr : blockExprs){
+                filters.add(expr);
+            }
+        }
+        
+        return filters;
+    }
+    
     @Override
     public void scan(JCTree node) {
         //if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
@@ -103,9 +115,8 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         Set<String> filterSet = getFilterStrings();
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-            
-            
-            if(filterSet.contains(clauses.head.toString())==false){
+                        
+            if(clauses.head.token != JmlToken.REQUIRES || filterSet.contains(clauses.head.toString())==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{

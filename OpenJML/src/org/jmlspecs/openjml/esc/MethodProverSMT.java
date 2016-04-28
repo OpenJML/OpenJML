@@ -1329,7 +1329,7 @@ public class MethodProverSMT {
         org.smtlib.IPrinter printer;
         com.sun.tools.javac.util.Log log;
         
-        SMTListener(Log log, org.smtlib.IPrinter printer) {
+        public SMTListener(Log log, org.smtlib.IPrinter printer) {
             this.log = log;
             this.printer = printer;
         }

@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.esc.Label;
@@ -79,6 +80,8 @@ public class Strongarm
             RemoveTautologies.cache(context);
             CleanupVariableNames.cache(context);
             RemoveDuplicatePreconditions.cache(context);
+            RemoveDuplicatePreconditionsSMT.cache(context);
+
         }
     }
     
@@ -141,38 +144,36 @@ public class Strongarm
             log.noticeWriter.println(program.toString());
         }
         
-        com.sun.tools.javac.util.List<JmlMethodClause> contract = infer(methodDecl, program);
-        
+        //com.sun.tools.javac.util.List<JmlMethodClause> contract = infer(methodDecl, program);
+        BlockReader reader = infer(methodDecl, program);
+        com.sun.tools.javac.util.List<JmlMethodClause> contract = reader.postcondition.getClauses(null, treeutils, M); 
                        
         boolean didInferSpec = false;
         
-        if(methodDecl.cases!=null){ // if we already have specification cases, add this
-            methodDecl.cases.cases.head.clauses = methodDecl.cases.cases.head.clauses.appendList(contract);
+        if(reader.postcondition!=null){ // if we already have specification cases, add this
+            
+            // replace entire set of contracts on method
+            JmlMethodClause precondition = M.JmlMethodClauseExpr
+                    (
+                            JmlToken.REQUIRES,
+                            reader.precondition.p
+                    );
+            
+            JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(contract));
+
+            methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+            methodDecl.cases.decl = methodDecl;
+            methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+            
             didInferSpec = true;
         }else{                      // otherwise create a new one (with a "true" precondition)
 
-        	if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
-                // create the default precondition 
-                JmlMethodClause defaultPrecondition = M.JmlMethodClauseExpr
-                        (
-                                JmlToken.REQUIRES,  
-                                treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit)
-                        );
-                
-                JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(defaultPrecondition).appendList(contract));
-    
-                methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
-                methodDecl.cases.decl = methodDecl;
-                methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
-                didInferSpec = true;
-            }else{
-                if (verbose) {
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("MISSING PRECONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                    log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
-                }
+            if (verbose) {
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
             }
         }
         
@@ -188,7 +189,7 @@ public class Strongarm
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BEFORE FINAL TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.noticeWriter.println("BEGIN CONTRACT CLEANUP of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
             log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
         }
         
@@ -196,13 +197,11 @@ public class Strongarm
         /// Perform cleanup
         ///
         {
-            cleanupContract(methodDecl, methodDecl.cases);
+            cleanupContract(methodDecl, methodDecl.cases, reader);
         }
         ///
         ///
         ///
-        
-        
         
         
         if (printContracts) {
@@ -231,10 +230,10 @@ public class Strongarm
      * @param program
      * @return
      */
-    public com.sun.tools.javac.util.List<JmlMethodClause> infer(JmlMethodDecl methodDecl, BasicProgram program){
-        boolean printContracts = infer.printContracts;
+    public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program){
         boolean verbose        = infer.verbose; 
 
+        BlockReader reader = new BlockReader(context, program.blocks());
         
         // basic idea here is to boil it all down to a proposition. 
         // we take and solve / simplify that proposition and then translate it back into a 
@@ -251,7 +250,7 @@ public class Strongarm
             log.noticeWriter.println(program.toString());
         }
                
-        Prop<JCExpression> props = sp(program.blocks());
+        Prop<JCExpression> props = reader.sp();
         
         if (verbose) {
             log.noticeWriter.println("Inference finished...");
@@ -266,280 +265,53 @@ public class Strongarm
             log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
 
-        // Apply substitutions
-        Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), program.blocks().get(0));
 
-        props.replace(subs);
+        return reader;
+    }
+    
         
-        //
+
+    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader){
+        boolean verbose        = infer.verbose;
+
+        
+        RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("FINISHED (STAGE 2) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-            log.noticeWriter.println(JmlPretty.write(methodDecl));
-            log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
+            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
         }
 
-       return props.getClauses(null, treeutils, M);
-    }
-    
-    public void addSubstitutionAtBlock(JCTree sub, Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
-        
-        if(mappings.get(block.id())==null){
-            mappings.put(block.id(), new ArrayList<JCTree>());
-        }
-        
-        mappings.get(block.id()).add(sub);
-    }
-    
-    public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
+        if(1==1) return;
 
-        for(JCStatement stmt : block.statements()){
-
-            if(stmt instanceof JmlStatementExpr){
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                if(isAssignStmt(jmlStmt)){
-                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-                }
-            }else if(isVarDecl(stmt)){
-                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-                addSubstitutionAtBlock(decl, mappings, block);
-            }
-        }
         
-        if(block.followers().size()==2){
-            getSubstitutionMappings(mappings, block.followers().get(0));
-            getSubstitutionMappings(mappings, block.followers().get(1));
-        }else if(block.followers().size()==1){
-            getSubstitutionMappings(mappings, block.followers().get(0));
-        }
-        
-        return mappings;
-    }
-    
-    // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
-    public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
-       
-        for(JCStatement stmt : block.statements()){
-
-        	if(stmt instanceof JmlStatementExpr){
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                if(isAssignStmt(jmlStmt)){
-                    subs.add(jmlStmt.expression);
-                }
-            }else if(isVarDecl(stmt)){
-                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-                subs.add(decl);
-            }
-        }
-        
-        if(block.followers().size()==2){
-            extractSubstitutions(block.followers().get(0), subs);
-            extractSubstitutions(block.followers().get(1), subs);
-            
-            
-        }else if(block.followers().size()==1){
-            extractSubstitutions(block.followers().get(0), subs);
-        }
-        
-        return subs;
-    }
-    
-    
-    public boolean skip(JCStatement stmt){
-      
-        JmlStatementExpr jmlStmt;
-        
-        if(stmt instanceof JmlStatementExpr){
-            jmlStmt = (JmlStatementExpr)stmt;
-        }else{
-            return true;
-        }
-        
-        // we only care about assignments (assumes)
-        if(isAssignStmt(jmlStmt)){
-            
-            // we only care about assignments
-            if(!(jmlStmt.expression instanceof JCBinary && ((JCBinary)jmlStmt.expression).lhs instanceof JCIdent)){
-                return true;
-            }
-
-            // we don't care about the internal JML stuff (unless it's the result!)
-            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___result")){
-                return false;
-            }
-        
-            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){ 
-                return true;
-            }
-
-            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("ASSERT_")){ 
-                return true;
-            }
-
-            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().contains("_heap__")){ 
-                return true;
-            }
-
-            
-            return false; //JCUnary
-        }
-        if(isBranchStmt(jmlStmt)){
-            if(jmlStmt.expression instanceof JCBinary && ((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){
-                return true;
-            }
-            
-            if(jmlStmt.expression instanceof JCUnary){
-            
-                JCUnary unaryStmt = (JCUnary)jmlStmt.expression;
-                
-                if(unaryStmt.arg instanceof JCBinary){
-                    if(((JCBinary)unaryStmt.arg).lhs.toString().startsWith("_JML___")){
-                        return true;
-                    }
-                }
-                
-            }
-            
-            
-            return false;
-        }
-        
-        if(isPreconditionStmt(jmlStmt)){
-            return false;
-        }
-            
-        return true;
-    }
-    
-    private boolean isVarDecl(JCStatement stmt){
-        if(stmt instanceof JmlVariableDecl){
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean isBranchStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE){
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean isPreconditionStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.PRECONDITION){
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean isAssignStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.ASSIGNMENT || stmt.label==Label.DSA){
-            return true;
-        }
-        return false;
-    }
-    
-    public Prop<JCExpression> sp(List<BasicBlock> blocks){
-        // find the precondition in the first block
-        boolean verbose        = infer.verbose;
-
-        Prop<JCExpression> precondition = null;
-        BasicBlock startBlock = null;
-        
-        
-        for(int b=0; b < blocks.size() && precondition==null; b++){
-            
-            startBlock = blocks.get(b);
-            
-            for(JCStatement stmt : startBlock.statements()){
-                if(skip(stmt)){ continue; }
-                
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                if(isPreconditionStmt(jmlStmt)){
-                    precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock);
-                }
-            }     
-        }
-        
-        if(precondition==null){
-            
-            if (verbose) {
-                log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
-            }
-            precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null);
-
-            // reset the blocks
-            startBlock = blocks.get(0);
-        }
-        
-        if(startBlock==null){
-            log.error("jml.internal", "Failed to find any starting blocks... Cannot infer contracts"); 
-            return null; // TODO - do something else here? can we do something else?
-        }
-
         //
-        // begin execution
+        // Perform substitutions
         //
-        // normal execution skips the bodyBegin block
-        if(startBlock.followers().get(0).id().getName().toString().contains("bodyBegin")){
-            return sp(precondition, blocks, startBlock.followers().get(0).followers().get(0));            
+        {
+            reader.postcondition.replace(reader.getSubstitutionMappings());
         }
-        
-        return sp(precondition, blocks, startBlock.followers().get(0));
-    }
-    public Prop<JCExpression> sp(Prop<JCExpression> p, List<BasicBlock> blocks, BasicBlock block){
-        boolean verbose        = infer.verbose;
 
-        if(skipBlock(block)){
-            return p;
-        }
         
         if (verbose) {
-            log.noticeWriter.println("[STRONGARM] Inference at block " + block.id().toString());
-        }    
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+
         
-        for(JCStatement stmt : block.statements()){        
-            if(skip(stmt)){ continue; }
-            
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;            
-            
-            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
-        }
+
+        //
+        //
+        // The rest of these transforms require that the substitutions have been done
+        //
+        //
         
-        // handle the if statement
-        if(block.followers().size() == 2){
-
-            return Or.of(
-                    sp(p, blocks, block.followers().get(0)), 
-                    sp(p, blocks, block.followers().get(1))
-                    );
-            
-        }else if(block.followers().size() == 1){
-            return  sp(p, blocks, block.followers().get(0));
-        }
-
-        return p;
-    }
-    
-    public boolean skipBlock(BasicBlock block){
-        String[] names = new String[]{"_return_", "tryTarget"};
-        for(String name : names){
-            if(block.id().getName().toString().contains(name)){
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract){
-        boolean verbose        = infer.verbose;
-
         //
         // Perform logical simplification
         //
