@@ -150,6 +150,14 @@ public class Strongarm
                        
         boolean didInferSpec = false;
         
+        MethodSpecs oldMethodSpecsCombined  = methodDecl.methodSpecsCombined;
+        
+        com.sun.tools.javac.util.List<JmlMethodClause> oldMethodClause = null;
+        
+        if(methodDecl.cases!=null){
+            oldMethodClause = methodDecl.cases.cases.head.clauses;
+        }
+        
         if(reader.postcondition!=null){ // if we already have specification cases, add this
             
             // replace entire set of contracts on method
@@ -203,6 +211,10 @@ public class Strongarm
         ///
         ///
         
+        // restore the old, handwritten precondition (if it existed)
+        if(oldMethodClause!=null){
+            methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(contract);
+        }
         
         if (printContracts) {
             if(contract!=null){
@@ -284,9 +296,6 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
-
-        if(1==1) return;
-
         
         //
         // Perform substitutions
@@ -363,7 +372,7 @@ public class Strongarm
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         

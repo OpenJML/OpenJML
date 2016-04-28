@@ -282,8 +282,6 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             // this is always true (and thus can be pruned iff it's unsat)
             
             
-            int k = 0;
-            
             if(checks==null) return null;
             
             solver.pop(1); // Pop off previous setting of assumeCheck
@@ -300,9 +298,13 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
 
             solverResponse = solver.check_sat();
         
+            utils.progress(1,1, "Seeing of proposition is redundant in current context: " + q.toString());
             
-            utils.progress(1,1, "Redundant Precondition Check " + k + " - " + q.toString() + " : " +
-                    (solverResponse.equals(unsatResponse) ? "REDUNDANT": "OK"));
+            utils.progress(1,1, "!(!context or q) <==> UNSAT for: " + converted.toString());
+            
+            
+            utils.progress(1,1, "Redundant Precondition Check - " + q.toString() + " : " +
+                    (solverResponse.equals(unsatResponse) ? "REDUNDANT": "NOT REDUNDANT"));
             
             
             if (solverResponse.equals(unsatResponse)) {
