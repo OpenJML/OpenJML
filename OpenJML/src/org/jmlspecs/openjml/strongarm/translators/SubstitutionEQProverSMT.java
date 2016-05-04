@@ -127,10 +127,11 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
         this.showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
+        
         log.useSource(methodDecl.sourcefile);
 
-        boolean print = this.verbose;
-        boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
+        boolean print = false; //this.verbose;
+        boolean printPrograms = false; //this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         

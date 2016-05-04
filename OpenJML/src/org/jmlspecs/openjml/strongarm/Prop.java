@@ -57,7 +57,7 @@ public class Prop<T extends JCExpression> {
         
         if(b==null){ return subs; }
         
-        System.out.println("Getting Substitutions from Block: " + b.id().toString());
+        //System.out.println("Getting Substitutions from Block: " + b.id().toString());
 
         if(mappings.get(b.id())!=null){
             subs.addAll(mappings.get(b.id()));

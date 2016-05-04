@@ -78,6 +78,18 @@ public class BlockReader {
         return pc(false);
     }
     
+    private int depth = 0;
+    
+    public String getDepthStr(){
+        StringBuffer buff = new StringBuffer();
+        buff.append("|");
+        buff.append(depth);
+        buff.append("|");
+        for(int i=0; i<depth; i++){
+            buff.append("-");
+        }
+        return buff.toString();
+    }
     public Prop<JCExpression> pc(boolean recompute){
 
         if(precondition != null && recompute==false){
@@ -155,29 +167,42 @@ public class BlockReader {
         }
         
         if (verbose) {
-            log.noticeWriter.println("[STRONGARM] Inference at block " + block.id().toString());
+            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
         }    
         
         for(JCStatement stmt : block.statements()){        
             if(skip(stmt)){ continue; }
             
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;            
+            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+            
+            if(verbose){
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
+            }
             
             p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
         }
         
+        boolean ignoreBranch = ignoreBranch(block);
+        
+        if(ignoreBranch && verbose){
+            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
+        }
+        
         // handle the if statement
-        if(block.followers().size() == 2){
+        if(block.followers().size() == 2 && ignoreBranch==false){
 
-            return Or.of(
+            depth++;
+            Prop<JCExpression> e =  Or.of(
                     sp(p, block.followers().get(0)), 
                     sp(p, block.followers().get(1))
                     );
+            depth--;
+            return e;
             
-        }else if(block.followers().size() == 1){
+        }else if(block.followers().size() > 0){
             return  sp(p, block.followers().get(0));
         }
-
+        
         return p;
     }
     
@@ -191,9 +216,43 @@ public class BlockReader {
         return false;
     }
     
+    public boolean ignoreBranch(BasicBlock block ){
+        
+        if(1==1){
+            return false;
+        }
+        
+        int validPropositions = 0;
+        
+        // we ignore branches on two conditions.
+        // 1) The block is being used to set up a precondition check only
+        // 2) The block contains no valid propositions
+        
+        boolean didDefinePrecondition = false;
+        
+        for(JCStatement stmt : block.statements()){
+            
+            if(!didDefinePrecondition && stmt instanceof JmlStatementExpr && isPreconditionStmt((JmlStatementExpr)stmt)){
+                didDefinePrecondition = true;
+            }
+            // a single var decl means we DON'T skip the then branch.
+            if(!isVarDecl(stmt) && skip(stmt)){ continue; }
+            
+            
+            validPropositions++;
+        }
+        
+        if(didDefinePrecondition){
+            return true;
+        }
+        
+
+        return validPropositions == 0;
+        
+    }
     
     public boolean skip(JCStatement stmt){
-      
+              
         JmlStatementExpr jmlStmt;
         
         if(stmt instanceof JmlStatementExpr){
@@ -251,12 +310,15 @@ public class BlockReader {
             return false;
         }
         
-        if(isPreconditionStmt(jmlStmt)){
+        if(isPreconditionStmt(jmlStmt)){ // && initialPreconditionFound==false){
+            initialPreconditionFound = true;
             return false;
         }
             
         return true;
     }
+    
+    boolean initialPreconditionFound = false;
     
     private boolean isVarDecl(JCStatement stmt){
         if(stmt instanceof JmlVariableDecl){
