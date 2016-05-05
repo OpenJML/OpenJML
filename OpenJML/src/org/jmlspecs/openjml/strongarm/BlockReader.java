@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
@@ -42,6 +43,8 @@ public class BlockReader {
     final protected JmlTree.Maker M;
     
     final protected List<BasicBlock>       blocks;
+    protected List<BasicBlock>       joins = new ArrayList<BasicBlock>();
+    protected List<String>       preconditionAssertions = new ArrayList<String>();
     
     final protected boolean                verbose;
     
@@ -65,8 +68,44 @@ public class BlockReader {
         // verbose will print all the chatter
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
+     
+            init();
+    }
+    
+    // compute some things we will need to do LCA analysis
+    private void init(){
+        
+        // store all the join points in the CFG
+        for(BasicBlock b : blocks){
+            if(b.preceders().size() > 1){
+                joins.add(b);
+            }
+        }
+        // precondition assertions need to be removed so we need to store a mapping of which assertions (and variables) 
+        // are the preconditions 
+        for(BasicBlock b : blocks){
+            for(JCStatement stmt : b.statements()){
+                if(stmt instanceof JmlStatementExpr){
+                    
+                    JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+
+                    if(jmlStmt.token == JmlToken.COMMENT && jmlStmt.toString().contains("Precondition")){
+                        
+                        // precondition?
+                        String[] parts = jmlStmt.toString().split(":");
+                        
+                        if(parts.length == 2){
+                            preconditionAssertions.add(parts[1].trim());
+                            System.out.println("Added: " + parts[1].trim());
+                        }
+                    }
+                }
+                
+            }
+        }
         
     }
+    
     public BasicBlock getStartBlock(){
         
         if(startBlock==null){pc(true);} // compute precondition
@@ -182,7 +221,7 @@ public class BlockReader {
             p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
         }
         
-        boolean ignoreBranch = ignoreBranch(block);
+        boolean ignoreBranch = false; //ignoreBranch(block);
         
         if(ignoreBranch && verbose){
             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
@@ -191,6 +230,73 @@ public class BlockReader {
         // handle the if statement
         if(block.followers().size() == 2 && ignoreBranch==false){
 
+            //
+            // Before we branch, we need to determine if the 
+            // subtree we are looking at will contain any useful propositions. 
+            // We do this by searching in the subtree, stopping at the least common ancestor
+            // of the two (possible) nodes. 
+            // 
+            
+            BasicBlock left  = block.followers().get(0);
+            BasicBlock right = block.followers().get(1);
+            
+            BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
+            
+            if(lca==null){
+                log.error("jml.internal", "Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
+                return null;
+            }
+            
+            if(verbose){
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
+            }
+            
+            int propsInLeftSubtree = propsInSubtree(left, lca);
+            int propsInRightSubtree = propsInSubtree(right, lca);
+
+            if(verbose){
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Props in Subtrees L=%d, R=%d", propsInLeftSubtree, propsInRightSubtree));
+            }
+
+            // 
+            // We gain nothing by keeping this subtree
+            //
+            if(propsInLeftSubtree + propsInRightSubtree == 0){ // skip to LCA
+                
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in either subtree, skipping to LCA=" + lca.id().toString());
+                }
+                
+                return sp(p, lca);
+            }
+            
+            //
+            // In both of these cases we limit nesting by removing an OR operator 
+            //
+            if(propsInLeftSubtree == 0){
+                
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in left subtree, skipping to RIGHT=" + right.id().toString());
+                }
+               
+                return sp(p, right);
+            }
+            
+            if(propsInRightSubtree == 0){
+                
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in right subtree, skipping to LEFT=" + left.id().toString());
+                }
+
+                return sp(p, left);
+            }
+
+            if(verbose){
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Found propositions in both branches, will take OR");
+            }
+
+            // otherwise, this is a valid OR and both branches are included.
+            
             depth++;
             Prop<JCExpression> e =  Or.of(
                     sp(p, block.followers().get(0)), 
@@ -205,6 +311,74 @@ public class BlockReader {
         
         return p;
     }
+    
+    private int propsInSubtree(BasicBlock block, BasicBlock lca){
+
+        if(lca.id()==block.id()){
+            return 0;
+        }
+        
+        int props = 0;
+        
+        if(skipBlock(block)){
+            return 0;
+        }
+        
+        for(JCStatement stmt : block.statements()){        
+            if(skip(stmt)){ continue; }
+            props++;
+        }
+        
+        
+        // handle the if statement
+        if(block.followers().size() == 2){
+            BasicBlock left  = block.followers().get(0);
+            BasicBlock right = block.followers().get(1);
+            
+            return props + propsInSubtree(left, lca) + propsInSubtree(right, lca);  
+            
+        }else if(block.followers().size() > 0){
+            return props + propsInSubtree(block.followers().get(0), lca);
+        }
+        
+        return props;
+    }
+
+    /**
+     * Find the least common ancestor of the two nodes.  
+     * @param left
+     * @param right
+     * @return The LCA or null if nothing is found
+     */
+    private BasicBlock lca(BasicBlock left, BasicBlock right){
+        
+        for(BasicBlock b : joins){
+            if(reachable(b, left) && reachable(b, right)){
+                return b;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Determines if a path is reachable from start to end
+     * @param start
+     * @param end
+     * @return true if yes, otherwise no.
+     */
+    private boolean reachable(BasicBlock start, BasicBlock end){
+        if(start==end){
+            return true;
+        }
+        
+        for(BasicBlock adjacent : start.preceders()){
+            if(reachable(adjacent, end)) return true;
+        }
+        
+        return false;
+    }
+    
     
     public boolean skipBlock(BasicBlock block){
         String[] names = new String[]{"_return_", "tryTarget"};
@@ -294,12 +468,28 @@ public class BlockReader {
                 return true;
             }
             
+            if(jmlStmt.expression instanceof JCIdent && preconditionAssertions.contains(((JCIdent)jmlStmt.expression).name.toString())){
+                return true;
+            }
+            
             if(jmlStmt.expression instanceof JCUnary){
             
                 JCUnary unaryStmt = (JCUnary)jmlStmt.expression;
                 
                 if(unaryStmt.arg instanceof JCBinary){
                     if(((JCBinary)unaryStmt.arg).lhs.toString().startsWith("_JML___")){
+                        return true;
+                    }
+                }
+                
+                if(unaryStmt.arg instanceof JCBinary){
+                    if(preconditionAssertions.contains(((JCBinary)unaryStmt.arg).lhs.toString())){
+                        return true;
+                    }
+                }
+                
+                if(unaryStmt.arg instanceof JCIdent){
+                    if(preconditionAssertions.contains(((JCIdent)unaryStmt.arg).name.toString())){
                         return true;
                     }
                 }
