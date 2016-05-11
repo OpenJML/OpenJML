@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
@@ -13,7 +14,9 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -21,6 +24,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -54,14 +58,16 @@ public class BlockReader {
     public Prop<JCExpression>             postcondition;
     
     private BasicBlock                     startBlock;
+    private final BasicBlocker2 basicBlocker;
     
-    public BlockReader(Context context, List<BasicBlock> blocks) {
+    public BlockReader(Context context, List<BasicBlock> blocks, BasicBlocker2 basicBlocker) {
         this.context = context;
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
         this.blocks = blocks;
+        this.basicBlocker = basicBlocker;
         
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
         
@@ -548,6 +554,47 @@ public class BlockReader {
     }
     
 
+    public Map<JCIdent, ArrayList<JCTree>> getBlockerMappings(){
+        
+        Map<JCIdent, ArrayList<JCTree>> subs = new HashMap<JCIdent, ArrayList<JCTree>>();
+        
+        for(BasicBlock b : blocks){
+            
+            VarMap blockMap  = basicBlocker.blockmaps.get(b);
+        
+            Set<VarSymbol> syms2 = blockMap.keySet();
+            
+            log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
+            log.noticeWriter.println("--------------------------");
+           
+            for(VarSymbol s : syms2){
+                // note we FLIP the ordering here (to do this we create a new equality)
+                if(verbose){
+                    log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
+                }
+                
+                
+                
+                //blockMap.getName(s)
+                //treeutils.makeSy
+                JCIdent replace = treeutils.makeIdent(0, blockMap.getName(s).toString(), s.type);
+                JCIdent with    = treeutils.makeIdent(0, s);
+                
+                JCBinary replacement = treeutils.makeBinary(0, JCTree.EQ, replace, with);
+                
+                if(verbose){
+                    log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
+                }
+                
+                
+                addSubstitutionAtBlock(replacement, subs, b);
+
+            }
+        }
+
+        return subs;
+    }
+    
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(){
         
         Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), blocks.get(0));

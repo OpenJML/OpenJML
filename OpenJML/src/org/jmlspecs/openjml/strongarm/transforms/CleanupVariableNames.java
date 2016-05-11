@@ -70,10 +70,10 @@ public class CleanupVariableNames extends JmlTreeScanner {
             // transform results
             tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
         }else{
-            // remove the underscores
-            if(tree.getName().toString().contains("_")){
+            // remove the underscores -- not needed anymore (we are doing proper substitutions from the block mappings)
+            /*if(tree.getName().toString().contains("_")){
                 tree.name = tree.getName().subName(0, tree.getName().toString().lastIndexOf('_'));
-            }
+            }*/
         }
         idDone.add(tree);
     }

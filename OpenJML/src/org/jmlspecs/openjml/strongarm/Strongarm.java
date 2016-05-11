@@ -148,7 +148,7 @@ public class Strongarm
         }
         
         
-        if (verbose) {
+        if (verbose && false) {
             
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println(separator);
@@ -156,35 +156,35 @@ public class Strongarm
             log.noticeWriter.println("BasicBlock2 PREMAP of "
                     + utils.qualifiedMethodSig(methodDecl.sym));
             
-//            Set<VarSymbol> syms = basicBlocker.premap.keySet();
-//            
-//            for(VarSymbol s : syms){
-//                log.noticeWriter.println(s.toString() + " -> " + basicBlocker.premap.getName(s));
-//            }
-//
-//            
-//            log.noticeWriter.println(Strings.empty);
-//            log.noticeWriter.println(separator);
-//            log.noticeWriter.println(Strings.empty);
-//            log.noticeWriter.println("BasicBlock2 CURRENTMAP of "
-//                    + utils.qualifiedMethodSig(methodDecl.sym));
-//            
-//            
-//            for(BasicBlock b : program.blocks()){
-//                
-//                VarMap blockMap  = basicBlocker.blockmaps.get(b);
-//            
-//                Set<VarSymbol> syms2 = blockMap.keySet();
-//                
-//                log.noticeWriter.println("BLOCK: " + b.id());
-//                log.noticeWriter.println(separator);
-//
-//                
-//                for(VarSymbol s : syms2){
-//                    log.noticeWriter.println(s.toString() + " -> " + blockMap.getName(s));
-//                }
-//            }
-//            
+            Set<VarSymbol> syms = basicBlocker.premap.keySet();
+            
+            for(VarSymbol s : syms){
+                log.noticeWriter.println(s.toString() + " -> " + basicBlocker.premap.getName(s));
+            }
+
+            
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println(separator);
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("BasicBlock2 CURRENTMAP of "
+                    + utils.qualifiedMethodSig(methodDecl.sym));
+            
+            
+            for(BasicBlock b : program.blocks()){
+                
+                VarMap blockMap  = basicBlocker.blockmaps.get(b);
+            
+                Set<VarSymbol> syms2 = blockMap.keySet();
+                
+                log.noticeWriter.println("BLOCK: " + b.id());
+                log.noticeWriter.println(separator);
+
+                
+                for(VarSymbol s : syms2){
+                    log.noticeWriter.println(s.toString() + " -> " + blockMap.getName(s));
+                }
+            }
+            
 
         }
         
@@ -192,7 +192,7 @@ public class Strongarm
         //
         // perform symbolic execution on the method
         //
-        BlockReader reader = infer(methodDecl, program);
+        BlockReader reader = infer(methodDecl, program, basicBlocker);
 
         //
         // for some reason, we failed to infer a postcondition
@@ -303,10 +303,10 @@ public class Strongarm
      * @param program
      * @return
      */
-    public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program){
+    public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program, BasicBlocker2 basicBlocker){
         boolean verbose        = infer.verbose; 
 
-        BlockReader reader = new BlockReader(context, program.blocks());
+        BlockReader reader = new BlockReader(context, program.blocks(), basicBlocker);
         
         // basic idea here is to boil it all down to a proposition. 
         // we take and solve / simplify that proposition and then translate it back into a 
@@ -359,7 +359,7 @@ public class Strongarm
         }
         
         //
-        // Perform substitutions
+        // Perform substitutions on the underlying formula. 
         //
         {
             reader.postcondition.replace(reader.getSubstitutionMappings());
@@ -395,6 +395,29 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
+        
+        //
+        // Perform substitutions on the underlying formula, but now base it on 
+        // the map of program variables generated during transformation to 
+        // basic block format. 
+        //
+        {
+            reader.postcondition.replace(reader.getBlockerMappings());
+            //reader.getBlockerMappings();
+        }
+
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER PERFORMING PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+
+        
+        
+        
         //
         // Remove local variables
         //
@@ -409,10 +432,10 @@ public class Strongarm
         
         
         //
-        // Simplify labels
+        // Simplify labels -- TODO: Remove
         //
 
-        CleanupVariableNames.simplify(contract);
+       CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
