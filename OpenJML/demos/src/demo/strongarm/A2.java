@@ -3,17 +3,19 @@ package demo.strongarm;
 /**
  * 
  * Category: Non-interprocedural, loop-free
- * Features: primatives
+ * Features: locals, primatives, locals in branches
  * 
  * @author jls
  *
  */
-public class A {
+public class A2 {
     
     //@ requires true;
     public int cmp(int a, int b){
-                
-        if(a < b){
+        
+        int c = b++;
+        
+        if(a < b + c){
             return -1;
         }else{
             

@@ -1,0 +1,26 @@
+package demo.strongarm;
+
+public class A {
+  
+  public A();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (a < b); 
+        ensures \result == -1; 
+      also
+        {|
+          requires !(a < b); 
+          requires (a > b); 
+          ensures \result == 1; 
+        also
+          requires !(a < b); 
+          requires !(a > b); 
+          ensures \result == 0; 
+        |}
+      |}
+   */
+
+  public int cmp(int a, int b);
+}

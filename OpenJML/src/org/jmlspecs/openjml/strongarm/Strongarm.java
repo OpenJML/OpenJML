@@ -145,49 +145,7 @@ public class Strongarm
             log.noticeWriter.println("BasicBlock2 FORM of "
                     + utils.qualifiedMethodSig(methodDecl.sym));
             log.noticeWriter.println(program.toString());
-        }
-        
-        
-        if (verbose && false) {
-            
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BasicBlock2 PREMAP of "
-                    + utils.qualifiedMethodSig(methodDecl.sym));
-            
-            Set<VarSymbol> syms = basicBlocker.premap.keySet();
-            
-            for(VarSymbol s : syms){
-                log.noticeWriter.println(s.toString() + " -> " + basicBlocker.premap.getName(s));
-            }
-
-            
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BasicBlock2 CURRENTMAP of "
-                    + utils.qualifiedMethodSig(methodDecl.sym));
-            
-            
-            for(BasicBlock b : program.blocks()){
-                
-                VarMap blockMap  = basicBlocker.blockmaps.get(b);
-            
-                Set<VarSymbol> syms2 = blockMap.keySet();
-                
-                log.noticeWriter.println("BLOCK: " + b.id());
-                log.noticeWriter.println(separator);
-
-                
-                for(VarSymbol s : syms2){
-                    log.noticeWriter.println(s.toString() + " -> " + blockMap.getName(s));
-                }
-            }
-            
-
-        }
-        
+        }        
 
         //
         // perform symbolic execution on the method

@@ -1,0 +1,33 @@
+package demo.strongarm;
+
+public class B {
+  
+  public B();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        ensures a == b ==> \result == true; 
+      also
+        ensures a != b ==> \result == false; 
+      |}
+      requires true || true; 
+      ensures \result == (_JML__tmp4 == 0); 
+   */
+
+  public boolean areEqual(int a, int b);
+    /*@
+    public normal_behavior
+      requires true; 
+      requires Pre_3_0_420___5; 
+      requires ASSERT_71_198_198___7; 
+      requires _JML__tmp11; 
+      requires _JML__tmp12; 
+      requires _JML__tmp11; 
+      requires _JML__tmp12; 
+      requires (_JML__tmp9); 
+      ensures \result == 0; 
+   */
+
+  public int cmp(int a, int b);
+}

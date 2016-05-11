@@ -81,7 +81,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
         
         IProverResult result = prove(method, proverToUse, filters, p);
         
-        if(result.result()==IProverResult.UNSAT){
+        if(result!=null && result.result()==IProverResult.UNSAT){
             return true;
         }
         

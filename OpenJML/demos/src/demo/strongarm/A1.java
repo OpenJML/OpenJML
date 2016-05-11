@@ -1,12 +1,20 @@
-package demo;
+package demo.strongarm;
 
-public class A {
-
+/**
+ * 
+ * Category: Non-interprocedural, loop-free
+ * Features: locals, primatives
+ * 
+ * @author jls
+ *
+ */
+public class A1 {
     
-
-    //@ requires a > Integer.MIN_VALUE;
-    //@ requires b > Integer.MIN_VALUE;
+    //@ requires true;
     public int cmp(int a, int b){
+        
+        int c = 0;
+        
         if(a < b){
             return -1;
         }else{
@@ -19,10 +27,7 @@ public class A {
             
         }
     }
-
-   
     
-    // ensures \result == (\product int i ; 1 <= i && i <= f ; i);
-
+    
 }
 
