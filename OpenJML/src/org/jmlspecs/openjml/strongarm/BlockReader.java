@@ -221,7 +221,7 @@ public class BlockReader {
             p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
         }
         
-        boolean ignoreBranch = false; //ignoreBranch(block);
+        boolean ignoreBranch = ignoreBranch(block);
         
         if(ignoreBranch && verbose){
             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
@@ -392,10 +392,10 @@ public class BlockReader {
     
     public boolean ignoreBranch(BasicBlock block ){
         
-        if(1==1){
-            return false;
-        }
-        
+//        if(1==1){
+//            return false;
+//        }
+//        
         int validPropositions = 0;
         
         // we ignore branches on two conditions.
