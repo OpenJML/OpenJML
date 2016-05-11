@@ -130,8 +130,8 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
         
         log.useSource(methodDecl.sourcefile);
 
-        boolean print = this.verbose;
-        boolean printPrograms = this.verbose || JmlOption.isOption(context, JmlOption.SHOW);
+        boolean printPrograms = JmlOption.isOption(context, JmlOption.SHOW);
+        boolean print = printPrograms;
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         

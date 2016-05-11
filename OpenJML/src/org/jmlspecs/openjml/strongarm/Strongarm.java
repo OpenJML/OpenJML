@@ -188,39 +188,17 @@ public class Strongarm
 
         }
         
-        
-        //com.sun.tools.javac.util.List<JmlMethodClause> contract = infer(methodDecl, program);
+
+        //
+        // perform symbolic execution on the method
+        //
         BlockReader reader = infer(methodDecl, program);
-        com.sun.tools.javac.util.List<JmlMethodClause> contract = reader.postcondition.getClauses(null, treeutils, M); 
-                       
-        boolean didInferSpec = false;
-        
-        MethodSpecs oldMethodSpecsCombined  = methodDecl.methodSpecsCombined;
-        
-        com.sun.tools.javac.util.List<JmlMethodClause> oldMethodClause = null;
-        
-        if(methodDecl.cases!=null){
-            oldMethodClause = methodDecl.cases.cases.head.clauses;
-        }
-        
-        if(reader.postcondition!=null){ // if we already have specification cases, add this
-            
-            // replace entire set of contracts on method
-            JmlMethodClause precondition = M.JmlMethodClauseExpr
-                    (
-                            JmlToken.REQUIRES,
-                            reader.precondition.p
-                    );
-            
-            JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(contract));
 
-            methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
-            methodDecl.cases.decl = methodDecl;
-            methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+        //
+        // for some reason, we failed to infer a postcondition
+        //
+        if(reader.postcondition==null){
             
-            didInferSpec = true;
-        }else{                      // otherwise create a new one (with a "true" precondition)
-
             if (verbose) {
                 log.noticeWriter.println(Strings.empty);
                 log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
@@ -228,17 +206,50 @@ public class Strongarm
                 log.noticeWriter.println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
                 log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
             }
+            
+            
+            return; // no spec 
         }
+
         
-        // clean up the spec format
-        if(didInferSpec){
-        	methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-        	methodDecl.cases.cases.head.token = JmlToken.NORMAL_BEHAVIOR;
-        }else{
-        	return;
+        //
+        // we found a postcondition, so let's start cleaning it up
+        //
+        com.sun.tools.javac.util.List<JmlMethodClause> contract = reader.postcondition.getClauses(null, treeutils, M); 
+        com.sun.tools.javac.util.List<JmlMethodClause> oldMethodClause = null;
+        MethodSpecs oldMethodSpecsCombined  = methodDecl.methodSpecsCombined;
+
+        
+        // save the old (handwritten) specification case we were given
+        if(methodDecl.cases!=null){
+            oldMethodClause = methodDecl.cases.cases.head.clauses;
         }
+
         
-        if (verbose) {
+        //
+        // replace entire set of contracts on method with what we computed during symbolic execution 
+        //
+        JmlMethodClause precondition = M.JmlMethodClauseExpr
+                (
+                        JmlToken.REQUIRES,
+                        reader.precondition.p
+                );
+            
+        
+        //
+        // put it all together as a specification case we can pass to our cleanup pipeline
+        //
+        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(contract));
+
+        methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+        methodDecl.cases.decl = methodDecl;
+        methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+        
+    	methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+    	methodDecl.cases.cases.head.token = JmlToken.NORMAL_BEHAVIOR;
+        
+
+    	if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
@@ -256,10 +267,14 @@ public class Strongarm
         ///
         ///
         
-        // restore the old, handwritten precondition (if it existed)
+        //
+        // restore the old, handwritten specification (if we had one to being with)
+        //
         if(oldMethodClause!=null){
             methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(contract);
         }
+        
+        
         
         if (printContracts) {
             if(contract!=null){
@@ -272,6 +287,7 @@ public class Strongarm
             }
         }  
                
+        
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
@@ -313,7 +329,7 @@ public class Strongarm
             log.noticeWriter.println("Inference finished...");
         }
         
-        if (verbose) {
+        if (verbose && props!=null) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
