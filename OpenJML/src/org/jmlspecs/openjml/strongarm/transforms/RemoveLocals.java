@@ -4,16 +4,24 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 
 public class RemoveLocals extends JmlTreeScanner {
 
@@ -27,6 +35,7 @@ public class RemoveLocals extends JmlTreeScanner {
     final Symtab syms;
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
+    private AttributeMethod attr;
     
     public Set<JCIdent> idDone = new HashSet<JCIdent>();
     
@@ -43,6 +52,8 @@ public class RemoveLocals extends JmlTreeScanner {
 
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
+            
+        AttributeMethod.cache(context);
 
     }
     
@@ -52,36 +63,75 @@ public class RemoveLocals extends JmlTreeScanner {
         }
     }
     
-    @Override
-    public void visitIdent(JCIdent tree){
-        //if (tree != null) System.out.println(">>IDENT: " + tree.toString() + " LIO: " + tree.getName().toString().lastIndexOf('_'));
-
-        if(idDone.contains(tree)) return;
+    public boolean shouldRemove(JmlMethodClause clause){
         
-        if(tree.getName().toString().contains("_JML___result")){
-            // transform results
-            tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
-        }else{
-            // remove the underscores -- not needed anymore (we are doing proper substitutions from the block mappings)
-            /*if(tree.getName().toString().contains("_")){
-                tree.name = tree.getName().subName(0, tree.getName().toString().lastIndexOf('_'));
-            }*/
+        if(clause instanceof JmlMethodClauseExpr){
+            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+            
+            if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){
+                
+                JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
+                
+                if(attr.locals.contains(ident.name)){ 
+                
+                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
+
+                    
+                    return true;
+                }
+            }
         }
-        idDone.add(tree);
+        
+        return false;
     }
     
+    public void filterBlock(JmlSpecificationCase block){
+        
+        List<JmlMethodClause> replacedClauses = null;
+        
+        for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
+                        
+            if(shouldRemove(clauses.head) == false){
+                if(replacedClauses == null){
+                    replacedClauses = List.of(clauses.head);
+                }else{
+                    replacedClauses = replacedClauses.append(clauses.head);
+                }
+            }
+        }
+        
+        block.clauses = replacedClauses;
+    }
+
     @Override
-    public void scan(JCTree node) {
-        //if (node != null) System.out.println("Node: "+ node.toString() + "<CLZ>" + node.getClass());
+    public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+
+        if (verbose) {
+            log.noticeWriter.println("===========<ACTIVE LOCAL FILTERS>================");
+            for(Name n : attr.locals){
+                log.noticeWriter.println("Local Variable: " + n);
+            }
+            log.noticeWriter.println("===========</ACTIVE LOCAL FILTERS>================");
+        }
+
+        //
+        // filter this block
+        //
+        
+        filterBlock(tree);
+       
+        super.visitJmlSpecificationCase(tree);
+    }
+    
+    
+    
+    public void scan(JCTree node, AttributeMethod attr) {        
+        this.attr = attr;        
         super.scan(node);
     }
     
-    public void reset(){
-        idDone.clear();
-    }
     
-    public static void simplify(JCTree node){
-        instance.reset();
-        instance.scan(node);
+    public static void simplify(JmlMethodDecl methodDecl, JCTree contract){
+        instance.scan(contract, AttributeMethod.attribute(methodDecl.body));
     }
 }

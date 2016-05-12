@@ -29,9 +29,11 @@ import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.esc.Label;
@@ -84,6 +86,7 @@ public class Strongarm
             CleanupVariableNames.cache(context);
             RemoveDuplicatePreconditions.cache(context);
             RemoveDuplicatePreconditionsSMT.cache(context);
+            RemoveLocals.cache(context);
 
         }
     }
@@ -361,7 +364,6 @@ public class Strongarm
         //
         {
             reader.postcondition.replace(reader.getBlockerMappings());
-            //reader.getBlockerMappings();
         }
 
         
@@ -379,6 +381,8 @@ public class Strongarm
         //
         // Remove local variables
         //
+        
+        RemoveLocals.simplify(methodDecl, contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
