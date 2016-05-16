@@ -3,21 +3,20 @@ package demo.strongarm;
 /**
  * 
  * Category: Non-interprocedural, loop-free
- * Features: locals, primatives, fields
+ * Features: locals, primatives, fields in branches, fields. 
  * 
  * @author jls
  *
  */
-public class A3 {
+public class A4 {
     
     int THE_FIELD;
     
     //@ requires true;
     public int localTest(int a, int b){
         
-        THE_FIELD = 100;
-
-        if(a > -1){
+        
+        if(THE_FIELD > -1){
             return 0;
         }
         

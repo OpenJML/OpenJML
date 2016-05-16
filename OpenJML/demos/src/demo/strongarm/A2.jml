@@ -8,19 +8,16 @@ public class A2 {
       requires true; 
       {|
         requires b == b + 1; 
-        requires c == b; 
         requires (a < b + 1 + b); 
         ensures \result == -1; 
       also
         {|
           requires b == b + 1; 
-          requires c == b; 
           requires !(a < b + 1 + b); 
           requires (a > b + 1); 
           ensures \result == 1; 
         also
           requires b == b + 1; 
-          requires c == b; 
           requires !(a < b + 1 + b); 
           requires !(a > b + 1); 
           ensures \result == 0; 

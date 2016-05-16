@@ -1,0 +1,20 @@
+package demo.strongarm;
+
+public class A3 {
+  
+  public A3();
+  int THE_FIELD;
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (a > -1); 
+        ensures \result == 0; 
+      also
+        requires !(a > -1); 
+        ensures \result == -1; 
+      |}
+   */
+
+  public int localTest(int a, int b);
+}
