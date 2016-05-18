@@ -80,11 +80,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     
     
-    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs){
+    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
         
-        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs);
+        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract);
         
         dialog.setModal(true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -92,7 +92,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
     }
 
-    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs){
+    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract){
         
         traceData = trace;
         
@@ -134,7 +134,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         highlightRegex("follows", blockForm.toString(), "Blue");
         
         
-        getContract().setText(specs.toString());
+        getContract().setText(oldContract + "\n\n-----------\n\n\n" + specs.toString());
         
         
         

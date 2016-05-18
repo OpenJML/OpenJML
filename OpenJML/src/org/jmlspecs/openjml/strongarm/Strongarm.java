@@ -30,6 +30,7 @@ import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
+import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -220,10 +221,8 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
         }
         
-    	//
-    	// Debugging of inference
-    	//
-    	BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases);
+    	String oldContract = methodDecl.cases.toString();
+    	
     	
     	//ASTViewer.addView("PRE JavaCompiler.desugar", methodDecl, ASTViewer.ViewType.DIALOG);
         ///
@@ -242,7 +241,14 @@ public class Strongarm
         if(oldMethodClause!=null){
             methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(contract);
         }
-        
+
+        //
+        // Debugging of inference
+        //
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract);
+        }
+
         
         
         if (printContracts) {
