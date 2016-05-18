@@ -12,9 +12,17 @@ import javax.swing.JSplitPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.border.TitledBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Document;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.swing.JOptionPane;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.TraceElement;
 
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -23,7 +31,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -33,6 +44,10 @@ import javax.swing.border.EtchedBorder;
 import java.awt.Color;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 
 public class BasicBlockExecutionDebugger extends JDialog {
 
@@ -40,8 +55,8 @@ public class BasicBlockExecutionDebugger extends JDialog {
     private JTextPane basicBlocks;
     private JTextPane ast;
     private JTextArea log;
-    private JScrollPane executionPlan;
     private JComboBox currentLabel;
+    private JList executionPlan;
 
     /**
      * Launch the application.
@@ -61,43 +76,121 @@ public class BasicBlockExecutionDebugger extends JDialog {
         }
     }
     
-    class TraceElement {
-        private List<JCExpression> exprs = new ArrayList<JCExpression>();
-        private BasicBlock block;
-        public TraceElement(BasicBlock block){
-            this.block = block;
-        }
-        
-        public void addExpr(JCExpression expr){
-            exprs.add(expr);
-        }
-        
-        public BasicBlock getBlock(){
-            return this.block;
-        }
-        public List<JCExpression> getExprs(){
-            return this.exprs;
-        }
-    }
     
     public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace){
-        new BasicBlockExecutionDebugger().loadTrace(transformedAST, blockForm, allBlocks, trace);
+        
+        BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
+        
+        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace);
+        
+        dialog.setModal(true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
+        
     }
 
     public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace){
         
-        // TODO - update the AST
+        getAst().setText(transformedAST.toString());
+        getBasicBlocks().setText(blockForm.toString());
+
+        // the execution plan
         
-        // Update the block program.
-        //getBasicBlocks().setText(blockForm.toString());
+        DefaultListModel listModel = new DefaultListModel();
+        
+
+        for(BasicBlock b : allBlocks){
+            currentLabel.addItem(b.id().toString());
+        }
+
+        // walk through the execution plan
+        for(TraceElement e : trace){
+            listModel.addElement(e.getBlock().id().toString());    
+        }
+        
+        
+        // a list of all blocks.
+        getExecutionPlan().setModel(listModel);
+        
+        
+        Style style = getBasicBlocks().addStyle("Red", null);
+        StyleConstants.setForeground(style, Color.RED);
+        StyleConstants.setBold(style, true);
+        
+        Style style2 = getBasicBlocks().addStyle("Blue", null);
+        StyleConstants.setForeground(style2, Color.BLUE);
+        StyleConstants.setBold(style2, true);
+        
+
+        highlightRegex("BL_.*:", blockForm.toString(), "Red");
+        highlightRegex("assert", blockForm.toString(), "Blue");
+        highlightRegex("assume", blockForm.toString(), "Blue");
+        highlightRegex("goto", blockForm.toString(), "Blue");
+        highlightRegex("follows", blockForm.toString(), "Blue");
         
         
         
-         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
-         dialog.setModal(true);
-         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-         dialog.setVisible(true);
         
+    }
+    static Color highlightColor = new Color(255,255,0,150);
+
+    static DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
+
+    private void setSelectedLabel(String l){
+
+        // find the start of the label
+        Pattern pattern = Pattern.compile("BL_.*:");
+        Matcher matcher = pattern.matcher(getBasicBlocks().getText());
+
+        Highlighter hilite = getBasicBlocks().getHighlighter();
+        
+        int start = -1;
+        int end   = -1;
+        
+        Highlighter.Highlight[] hilites = hilite.getHighlights();
+
+        for (int i = 0; i < hilites.length; i++) {
+            if (hilites[i].getPainter() instanceof DefaultHighlighter.DefaultHighlightPainter) {
+                hilite.removeHighlight(hilites[i]);
+            }
+        }
+        
+        while (matcher.find()) {            
+
+            
+            
+            if(start!=-1){
+                end = matcher.start()-1;
+                break;
+            }else{
+                if(matcher.group().equals(l + ":")){
+                    start = matcher.start();
+                }
+            }
+                
+        }
+        try {
+            if(end==-1){
+                end = getBasicBlocks().getText().length();
+            }
+            hilite.addHighlight(start,  end, painter);
+            
+            getBasicBlocks().setCaretPosition(start);
+        } catch (BadLocationException e) {
+            //e.printStackTrace();
+        }
+    }
+    
+    private void highlightRegex(String regex, String text, String color){
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        StyledDocument doc = (StyledDocument) getBasicBlocks().getDocument();
+        
+        while (matcher.find()) {            
+            doc.setCharacterAttributes(matcher.start(), matcher.end()- matcher.start(), getBasicBlocks().getStyle(color), true);
+        }
     }
     
     /**
@@ -111,14 +204,17 @@ public class BasicBlockExecutionDebugger extends JDialog {
         contentPanel.setLayout(new BorderLayout(0, 0));
         
         JSplitPane splitPane = new JSplitPane();
+        splitPane.setBorder(null);
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         contentPanel.add(splitPane, BorderLayout.CENTER);
         
         JPanel panel = new JPanel();
+        panel.setBorder(null);
         splitPane.setLeftComponent(panel);
         panel.setLayout(new BorderLayout(0, 0));
         
         JSplitPane splitPane_1 = new JSplitPane();
+        splitPane_1.setBorder(null);
         panel.add(splitPane_1, BorderLayout.CENTER);
         
         JScrollPane scrollPane = new JScrollPane();
@@ -137,6 +233,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
         splitPane_1.setDividerLocation(200);
         
         currentLabel = new JComboBox();
+        currentLabel.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                setSelectedLabel(currentLabel.getSelectedItem().toString());
+            }
+        });
         panel.add(currentLabel, BorderLayout.NORTH);
         
         log = new JTextArea();
@@ -150,7 +251,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
         JLabel lblExecutionPlan = new JLabel("Execution Plan");
         
-        executionPlan =  new JScrollPane();
+        JScrollPane executionPlanScrollPane =  new JScrollPane();
         GroupLayout gl_panel_1 = new GroupLayout(panel_1);
         gl_panel_1.setHorizontalGroup(
             gl_panel_1.createParallelGroup(Alignment.TRAILING)
@@ -158,10 +259,9 @@ public class BasicBlockExecutionDebugger extends JDialog {
                     .addContainerGap()
                     .addComponent(lblExecutionPlan)
                     .addContainerGap(202, Short.MAX_VALUE))
-                .addGroup(gl_panel_1.createSequentialGroup()
+                .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
                     .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(executionPlan, GroupLayout.PREFERRED_SIZE, 288, GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap())
+                    .addComponent(executionPlanScrollPane, GroupLayout.PREFERRED_SIZE, 294, GroupLayout.PREFERRED_SIZE))
         );
         gl_panel_1.setVerticalGroup(
             gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -169,9 +269,17 @@ public class BasicBlockExecutionDebugger extends JDialog {
                     .addContainerGap()
                     .addComponent(lblExecutionPlan)
                     .addPreferredGap(ComponentPlacement.RELATED)
-                    .addComponent(executionPlan, GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
-                    .addContainerGap())
+                    .addComponent(executionPlanScrollPane, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE))
         );
+        
+        executionPlan = new JList();
+        executionPlan.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                setSelectedLabel(executionPlan.getSelectedValue().toString());
+            }
+        });
+        executionPlanScrollPane.setViewportView(executionPlan);
+        
         panel_1.setLayout(gl_panel_1);
     }
     public JTextPane getBasicBlocks() {
@@ -183,10 +291,10 @@ public class BasicBlockExecutionDebugger extends JDialog {
     public JTextArea getLog() {
         return log;
     }
-    public JScrollPane getExecutionPlan() {
-        return executionPlan;
-    }
     public JComboBox getCurrentLabel() {
         return currentLabel;
+    }
+    public JList getExecutionPlan() {
+        return executionPlan;
     }
 }

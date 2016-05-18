@@ -29,6 +29,7 @@ import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -36,6 +37,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Flags;
@@ -218,6 +220,12 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
         }
         
+    	//
+    	// Debugging of inference
+    	//
+    	BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace());
+    	
+    	//ASTViewer.addView("PRE JavaCompiler.desugar", methodDecl, ASTViewer.ViewType.DIALOG);
         ///
         /// Perform cleanup
         ///

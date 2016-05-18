@@ -11,6 +11,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Lang"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

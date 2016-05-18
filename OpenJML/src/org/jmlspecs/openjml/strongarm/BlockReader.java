@@ -58,6 +58,7 @@ public class BlockReader {
     public Prop<JCExpression>             postcondition;
     
     private BasicBlock                     startBlock;
+    private List<TraceElement> trace = new ArrayList<TraceElement>();
     private final BasicBlocker2 basicBlocker;
     
     public BlockReader(Context context, List<BasicBlock> blocks, BasicBlocker2 basicBlocker) {
@@ -111,7 +112,9 @@ public class BlockReader {
         }
         
     }
-    
+    public List<TraceElement> getTrace(){
+        return trace;
+    } 
     public BasicBlock getStartBlock(){
         
         if(startBlock==null){pc(true);} // compute precondition
@@ -207,6 +210,8 @@ public class BlockReader {
     }
     private Prop<JCExpression> sp(Prop<JCExpression> p, BasicBlock block){
 
+        TraceElement traceElement = new TraceElement(block);
+        
         if(skipBlock(block)){
             return p;
         }
@@ -214,6 +219,8 @@ public class BlockReader {
         if (verbose) {
             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
         }    
+        
+        trace.add(traceElement);
         
         for(JCStatement stmt : block.statements()){        
             if(skip(stmt)){ continue; }
@@ -224,7 +231,9 @@ public class BlockReader {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
             }
             
-            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));            
+            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));
+            
+            traceElement.addExpr(jmlStmt.expression);
         }
         
         boolean ignoreBranch = ignoreBranch(block);

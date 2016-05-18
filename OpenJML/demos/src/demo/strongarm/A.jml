@@ -5,19 +5,22 @@ public class A {
   public A();
     /*@
     public normal_behavior
-      requires true; 
+      requires Pre_1_0_169___5; 
       {|
-        requires (a < b); 
-        ensures \result == -1; 
+        requires Pre_1_0_169___5; 
+        requires (_JML__tmp4); 
+        ensures _JML___result_200_270___7 == -1; 
       also
         {|
-          requires !(a < b); 
-          requires (a > b); 
-          ensures \result == 1; 
+          requires Pre_1_0_169___5; 
+          requires !(_JML__tmp4); 
+          requires (_JML__tmp5); 
+          ensures _JML___result_200_352___10 == 1; 
         also
-          requires !(a < b); 
-          requires !(a > b); 
-          ensures \result == 0; 
+          requires Pre_1_0_169___5; 
+          requires !(_JML__tmp4); 
+          requires !(_JML__tmp5); 
+          ensures _JML___result_200_404___13 == 0; 
         |}
       |}
    */
