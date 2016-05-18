@@ -13,6 +13,7 @@ import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
@@ -29,8 +30,10 @@ public class AttributeMethod extends TreeScanner {
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
     public static AttributeMethod instance;
+    private boolean inMethod = false;
     
     public Set<Name> locals = new HashSet<Name>();
+    public Set<Name> formals = new HashSet<Name>();
     
     public AttributeMethod(Context context){
         
@@ -57,22 +60,48 @@ public class AttributeMethod extends TreeScanner {
     @Override
     public void visitVarDef(JCVariableDecl tree) {
         
-        if(verbose){
-            log.noticeWriter.println("[AttributeMethod] Found local: " + tree.toString());
+        
+        if(!inMethod){
+            if(verbose){
+                log.noticeWriter.println("[AttributeMethod] Found local: " + tree.toString());
+            }
+            // stash the local
+            locals.add(tree.name);
+        } else{
+            if(verbose){
+                log.noticeWriter.println("[AttributeMethod] Found formal: " + tree.toString());
+            }
+            // stash the formal
+            formals.add(tree.name);
+            
         }
-        
-        // stash the local
-        locals.add(tree.name);
-        
         scan(tree.mods);
         scan(tree.vartype);
         scan(tree.init);
+    }
+
+    @Override 
+    public void visitMethodDef(JCMethodDecl tree) {
+        inMethod = true;
+        scan(tree.mods);
+        scan(tree.restype);
+        scan(tree.typarams);
+        scan(tree.params);
+        scan(tree.thrown);
+        scan(tree.defaultValue);
+        inMethod = false;
+        scan(tree.body);        
     }
 
     
         
     @Override
     public void scan(JCTree node) {
+        
+        if(verbose){
+            log.noticeWriter.println("[AttributeMethod] Scan: " + node.toString());
+        }
+
         super.scan(node);
     }
     

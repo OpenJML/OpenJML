@@ -132,6 +132,6 @@ public class RemoveLocals extends JmlTreeScanner {
     
     
     public static void simplify(JmlMethodDecl methodDecl, JCTree contract){
-        instance.scan(contract, AttributeMethod.attribute(methodDecl.body));
+        instance.scan(contract, AttributeMethod.attribute(methodDecl));
     }
 }
