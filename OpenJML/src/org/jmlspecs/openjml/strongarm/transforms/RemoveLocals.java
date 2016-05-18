@@ -17,11 +17,14 @@ import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import javax.lang.model.type.TypeKind;
 
 public class RemoveLocals extends JmlTreeScanner {
 
@@ -62,7 +65,9 @@ public class RemoveLocals extends JmlTreeScanner {
             instance = new RemoveLocals(context);
         }
     }
-    
+    /**
+     * Locals removed if they are a formal and primative OR if they are just local. Fields stay.  
+     */
     public boolean shouldRemove(JmlMethodClause clause){
         
         if(clause instanceof JmlMethodClauseExpr){
@@ -73,11 +78,15 @@ public class RemoveLocals extends JmlTreeScanner {
                 JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
                 
                 if(attr.locals.contains(ident.name)){ 
-                
                     log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
-
-                    
                     return true;
+                }
+                
+               
+                
+                if(attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
+                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
+                    return true;                    
                 }
             }
         }

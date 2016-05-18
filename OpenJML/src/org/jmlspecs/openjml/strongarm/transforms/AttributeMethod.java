@@ -97,11 +97,6 @@ public class AttributeMethod extends TreeScanner {
         
     @Override
     public void scan(JCTree node) {
-        
-        if(verbose){
-            log.noticeWriter.println("[AttributeMethod] Scan: " + node.toString());
-        }
-
         super.scan(node);
     }
     
