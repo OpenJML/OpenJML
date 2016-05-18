@@ -20,6 +20,8 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.JOptionPane;
+
+import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.TraceElement;
@@ -57,6 +59,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
     private JTextArea log;
     private JComboBox currentLabel;
     private JList executionPlan;
+    private List<TraceElement> traceData;
 
     /**
      * Launch the application.
@@ -77,11 +80,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     
     
-    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace){
+    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
         
-        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace);
+        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs);
         
         dialog.setModal(true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -89,7 +92,9 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
     }
 
-    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace){
+    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs){
+        
+        traceData = trace;
         
         getAst().setText(transformedAST.toString());
         getBasicBlocks().setText(blockForm.toString());
@@ -129,12 +134,15 @@ public class BasicBlockExecutionDebugger extends JDialog {
         highlightRegex("follows", blockForm.toString(), "Blue");
         
         
+        getContract().setText(specs.toString());
+        
         
         
     }
     static Color highlightColor = new Color(255,255,0,150);
 
     static DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
+    private JTextArea contract;
 
     private void setSelectedLabel(String l){
 
@@ -193,6 +201,21 @@ public class BasicBlockExecutionDebugger extends JDialog {
         }
     }
     
+    private void updateExecutionResult(){
+        
+        int idx = getExecutionPlan().getSelectedIndex();
+        
+        TraceElement traceElement = traceData.get(idx);
+        
+        StringBuffer buff = new StringBuffer();
+        
+        for(JCExpression e : traceElement.getExprs()){
+            buff.append("Added Expression: " + e.toString() + "\n");
+        }
+        
+        log.setText(buff.toString());
+        
+    }
     /**
      * Create the dialog.
      */
@@ -246,22 +269,24 @@ public class BasicBlockExecutionDebugger extends JDialog {
         splitPane.setDividerLocation(400);
         
         JPanel panel_1 = new JPanel();
-        panel_1.setPreferredSize(new Dimension(300, 10));
+        panel_1.setPreferredSize(new Dimension(400, 10));
         contentPanel.add(panel_1, BorderLayout.EAST);
         
         JLabel lblExecutionPlan = new JLabel("Execution Plan");
         
-        JScrollPane executionPlanScrollPane =  new JScrollPane();
+        JSplitPane splitPane_2 = new JSplitPane();
+        splitPane_2.setBorder(null);
+        splitPane_2.setOrientation(JSplitPane.VERTICAL_SPLIT);
         GroupLayout gl_panel_1 = new GroupLayout(panel_1);
         gl_panel_1.setHorizontalGroup(
-            gl_panel_1.createParallelGroup(Alignment.TRAILING)
+            gl_panel_1.createParallelGroup(Alignment.LEADING)
                 .addGroup(gl_panel_1.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(lblExecutionPlan)
-                    .addContainerGap(202, Short.MAX_VALUE))
-                .addGroup(Alignment.LEADING, gl_panel_1.createSequentialGroup()
-                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(executionPlanScrollPane, GroupLayout.PREFERRED_SIZE, 294, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(gl_panel_1.createParallelGroup(Alignment.LEADING)
+                        .addComponent(splitPane_2, GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
+                        .addGroup(gl_panel_1.createSequentialGroup()
+                            .addComponent(lblExecutionPlan)
+                            .addContainerGap(202, Short.MAX_VALUE))))
         );
         gl_panel_1.setVerticalGroup(
             gl_panel_1.createParallelGroup(Alignment.LEADING)
@@ -269,16 +294,26 @@ public class BasicBlockExecutionDebugger extends JDialog {
                     .addContainerGap()
                     .addComponent(lblExecutionPlan)
                     .addPreferredGap(ComponentPlacement.RELATED)
-                    .addComponent(executionPlanScrollPane, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE))
+                    .addComponent(splitPane_2, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE))
         );
         
+        JScrollPane scrollPane_2 = new JScrollPane();
+        splitPane_2.setLeftComponent(scrollPane_2);
+        
         executionPlan = new JList();
+        scrollPane_2.setViewportView(executionPlan);
+        
+        contract = new JTextArea();
+        contract.setFont(new Font("Courier", Font.PLAIN, 13));
+        splitPane_2.setRightComponent(contract);
         executionPlan.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 setSelectedLabel(executionPlan.getSelectedValue().toString());
+                
+                updateExecutionResult();
             }
         });
-        executionPlanScrollPane.setViewportView(executionPlan);
+        splitPane_2.setDividerLocation(400);
         
         panel_1.setLayout(gl_panel_1);
     }
@@ -296,5 +331,8 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     public JList getExecutionPlan() {
         return executionPlan;
+    }
+    public JTextArea getContract() {
+        return contract;
     }
 }

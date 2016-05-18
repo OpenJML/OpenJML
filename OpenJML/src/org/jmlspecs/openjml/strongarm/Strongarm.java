@@ -223,7 +223,7 @@ public class Strongarm
     	//
     	// Debugging of inference
     	//
-    	BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace());
+    	BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases);
     	
     	//ASTViewer.addView("PRE JavaCompiler.desugar", methodDecl, ASTViewer.ViewType.DIALOG);
         ///
