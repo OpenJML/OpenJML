@@ -15,13 +15,13 @@ public class A3 {
     //@ requires true;
     public int localTest(int a, int b){
         
-        THE_FIELD = 100;
+        THE_FIELD = 999;
 
         if(a > -1){
             return 0;
         }
         
-        THE_FIELD = 100;
+        THE_FIELD = 777;
         return -1;
     }
     
