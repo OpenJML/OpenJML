@@ -221,7 +221,7 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
         }
         
-    	String oldContract = methodDecl.cases.toString();
+    	String oldContract = methodDecl.toString();
     	
     	
     	//ASTViewer.addView("PRE JavaCompiler.desugar", methodDecl, ASTViewer.ViewType.DIALOG);
