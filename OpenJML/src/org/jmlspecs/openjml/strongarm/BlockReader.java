@@ -9,20 +9,16 @@ import java.util.Set;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
-import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
-import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
-import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
-import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
-import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
-import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -230,10 +226,34 @@ public class BlockReader {
             if(verbose){
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
             }
-            
-            p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));
-            
-            traceElement.addExpr(jmlStmt.expression);
+
+            // fields get desugared into something else
+            if(jmlStmt.expression instanceof JmlBBFieldAssignment){
+                
+                JmlBBFieldAssignment fieldAssignment = (JmlBBFieldAssignment)jmlStmt.expression;
+                
+                // assign OLD = RHS
+                JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
+
+                // assign NEW = OLD
+                JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
+
+                
+                JmlStatementExpr e1 = treeutils.makeAssume(null, null, a1);
+                JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
+                
+
+                p = And.of(p, new Prop<JCExpression>(e1.expression, block));                
+                traceElement.addExpr(e1.expression);
+
+                //p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
+                //traceElement.addExpr(e2.expression);
+
+                
+            }else{
+                p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));                
+                traceElement.addExpr(jmlStmt.expression);
+            }
         }
         
         boolean ignoreBranch = ignoreBranch(block);
@@ -452,6 +472,10 @@ public class BlockReader {
         
         // we only care about assignments (assumes)
         if(isAssignStmt(jmlStmt)){
+            
+            if(jmlStmt.expression instanceof JmlBBFieldAssignment){
+                return false;
+            }
             
             // we only care about assignments
             if(!(jmlStmt.expression instanceof JCBinary && ((JCBinary)jmlStmt.expression).lhs instanceof JCIdent)){
