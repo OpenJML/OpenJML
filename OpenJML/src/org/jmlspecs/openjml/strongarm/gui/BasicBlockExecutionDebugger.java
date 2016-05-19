@@ -224,53 +224,13 @@ public class BasicBlockExecutionDebugger extends JDialog {
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(new BorderLayout(0, 0));
         
-        JSplitPane splitPane = new JSplitPane();
-        splitPane.setBorder(null);
-        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        contentPanel.add(splitPane, BorderLayout.CENTER);
-        
-        JPanel panel = new JPanel();
-        panel.setBorder(null);
-        splitPane.setLeftComponent(panel);
-        panel.setLayout(new BorderLayout(0, 0));
-        
-        JSplitPane splitPane_1 = new JSplitPane();
-        splitPane_1.setBorder(null);
-        panel.add(splitPane_1, BorderLayout.CENTER);
-        
-        JScrollPane scrollPane = new JScrollPane();
-        splitPane_1.setLeftComponent(scrollPane);
-        
-        ast = new JTextPane();
-        ast.setFont(new Font("Courier", Font.PLAIN, 13));
-        scrollPane.setViewportView(ast);
-        
-        JScrollPane scrollPane_1 = new JScrollPane();
-        splitPane_1.setRightComponent(scrollPane_1);
-        
-        basicBlocks = new JTextPane();
-        basicBlocks.setFont(new Font("Courier", Font.PLAIN, 13));
-        scrollPane_1.setViewportView(basicBlocks);
-        splitPane_1.setDividerLocation(200);
-        
-        currentLabel = new JComboBox();
-        currentLabel.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                setSelectedLabel(currentLabel.getSelectedItem().toString());
-            }
-        });
-        panel.add(currentLabel, BorderLayout.NORTH);
-        
-        log = new JTextArea();
-        log.setFont(new Font("Courier", Font.PLAIN, 13));
-        splitPane.setRightComponent(log);
-        splitPane.setDividerLocation(400);
+        JSplitPane splitPane_3 = new JSplitPane();
+        splitPane_3.setResizeWeight(1.0);
         
         JPanel panel_1 = new JPanel();
-        panel_1.setPreferredSize(new Dimension(400, 10));
-        contentPanel.add(panel_1, BorderLayout.EAST);
+        splitPane_3.setRightComponent(panel_1);
+        panel_1.setPreferredSize(new Dimension(500, 10));
         
         JLabel lblExecutionPlan = new JLabel("Execution Plan");
         
@@ -316,6 +276,52 @@ public class BasicBlockExecutionDebugger extends JDialog {
         splitPane_2.setDividerLocation(400);
         
         panel_1.setLayout(gl_panel_1);
+        
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setResizeWeight(1.0);
+        splitPane_3.setLeftComponent(splitPane);
+        splitPane.setBorder(null);
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        
+        JPanel panel = new JPanel();
+        panel.setBorder(null);
+        splitPane.setLeftComponent(panel);
+        panel.setLayout(new BorderLayout(0, 0));
+        
+        JSplitPane splitPane_1 = new JSplitPane();
+        splitPane_1.setBorder(null);
+        panel.add(splitPane_1, BorderLayout.CENTER);
+        
+        JScrollPane scrollPane = new JScrollPane();
+        splitPane_1.setLeftComponent(scrollPane);
+        
+        ast = new JTextPane();
+        ast.setFont(new Font("Courier", Font.PLAIN, 13));
+        scrollPane.setViewportView(ast);
+        
+        JScrollPane scrollPane_1 = new JScrollPane();
+        splitPane_1.setRightComponent(scrollPane_1);
+        
+        basicBlocks = new JTextPane();
+        basicBlocks.setFont(new Font("Courier", Font.PLAIN, 13));
+        scrollPane_1.setViewportView(basicBlocks);
+        splitPane_1.setDividerLocation(200);
+        
+        currentLabel = new JComboBox();
+        currentLabel.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                setSelectedLabel(currentLabel.getSelectedItem().toString());
+            }
+        });
+        contentPanel.setLayout(new BorderLayout(0, 0));
+        panel.add(currentLabel, BorderLayout.NORTH);
+        
+        log = new JTextArea();
+        log.setFont(new Font("Courier", Font.PLAIN, 13));
+        splitPane.setRightComponent(log);
+        splitPane.setDividerLocation(400);
+        contentPanel.add(splitPane_3);
+        splitPane_3.setDividerLocation(500);
     }
     public JTextPane getBasicBlocks() {
         return basicBlocks;
