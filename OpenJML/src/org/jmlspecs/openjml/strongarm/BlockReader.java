@@ -233,21 +233,36 @@ public class BlockReader {
                 JmlBBFieldAssignment fieldAssignment = (JmlBBFieldAssignment)jmlStmt.expression;
                 
                 // assign OLD = RHS
-                JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
+                //JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
 
+                JCExpression a1 = treeutils.makeBinary(
+                        0, 
+                        JCTree.EQ, 
+                        fieldAssignment.args.get(0), 
+                        fieldAssignment.args.get(3)
+                        );
+
+                
                 // assign NEW = OLD
-                JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
+                //JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
+
+                JCExpression a2 = treeutils.makeBinary(
+                        0, 
+                        JCTree.EQ, 
+                        fieldAssignment.args.get(0), 
+                        fieldAssignment.args.get(1)
+                        );
 
                 
                 JmlStatementExpr e1 = treeutils.makeAssume(null, null, a1);
-                JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
+                //JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
                 
 
                 p = And.of(p, new Prop<JCExpression>(e1.expression, block));                
                 traceElement.addExpr(e1.expression);
 
-                //p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
-                //traceElement.addExpr(e2.expression);
+//                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
+//                traceElement.addExpr(e2.expression);
 
                 
             }else{
