@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Symtab;
@@ -66,7 +67,7 @@ public class CleanupVariableNames extends JmlTreeScanner {
 
         if(idDone.contains(tree)) return;
         
-        if(tree.getName().toString().contains("_JML___result")){
+        if(tree.getName().toString().contains(Strings.resultVarString)){
             // transform results
             tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
         }else{

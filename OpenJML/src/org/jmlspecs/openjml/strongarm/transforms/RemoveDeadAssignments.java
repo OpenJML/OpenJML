@@ -1,14 +1,16 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.type.TypeKind;
+
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
-import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
@@ -20,16 +22,15 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
-import javax.lang.model.type.TypeKind;
 
-public class RemoveLocals extends JmlTreeScanner {
+public class RemoveDeadAssignments extends JmlTreeScanner {
 
-    public static RemoveLocals instance;
+    public static RemoveDeadAssignments instance;
     
     final protected Log                    log;
     final protected Utils                  utils;
@@ -39,11 +40,11 @@ public class RemoveLocals extends JmlTreeScanner {
     final Symtab syms;
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
-    private AttributeMethod attr;
+    private Set<Name> mappings;
     
     public Set<JCIdent> idDone = new HashSet<JCIdent>();
     
-    public RemoveLocals(Context context){
+    public RemoveDeadAssignments(Context context){
         
         this.context    = context;
         this.log        = Log.instance(context);
@@ -63,47 +64,60 @@ public class RemoveLocals extends JmlTreeScanner {
     
     public static void cache(Context context){
         if(instance==null){
-            instance = new RemoveLocals(context);
+            instance = new RemoveDeadAssignments(context);
         }
     }
     /**
-     * Locals removed if they are a formal and primative OR if they are just local. Fields stay.  
+     * Remove things that don't have a mapping (meaning it is redundant) 
      */
     public boolean shouldRemove(JmlMethodClause clause){
         
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.expression instanceof JCIdent){
-                JCIdent ident = (JCIdent)mExpr.expression;
-                
-                if(ident.name.toString().startsWith(Strings.prePrefix)){ // TODO - this is NOT the right way to do this. 
-                    log.noticeWriter.println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
-                    return true; 
-                }
-                
-            }
-            
             if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){
                 
                 JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
-
-                if(attr.locals.contains(ident.name)){ 
-                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
+                
+                if(mappings.contains(ident.name)==false){ 
+                    log.noticeWriter.println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
                     return true;
-                }
-                
-               
-                
-                if(attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
-                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
-                    return true;                    
                 }
             }
         }
         
         return false;
     }
+    
+    
+    public Name replace(JCTree p){
+        
+        if(p instanceof JCExpression){
+            
+            if(p instanceof JCBinary){
+                JCBinary bProp = (JCBinary)p;
+                if(bProp.lhs instanceof JCIdent){
+                    return ((JCIdent)bProp.lhs).getName();
+                }else{
+                    return null; //((JCLiteral)bProp.lhs).getValue();
+                }
+                
+            }else{
+                //log.error("jml.internal", "Unexpected node: " + p.getClass() + " found during replacement.");
+            }
+            
+        }else if(p instanceof JCVariableDecl){
+            JCVariableDecl pVarDecl = (JCVariableDecl)p;
+            return pVarDecl.getName();
+        }
+        
+        //log.error("jml.internal", "LHS Missing in Replacement");
+
+        
+        return null;
+    }
+
+    
     
     public void filterBlock(JmlSpecificationCase block){
         
@@ -125,33 +139,46 @@ public class RemoveLocals extends JmlTreeScanner {
 
     @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-
-        if (verbose) {
-            log.noticeWriter.println("===========<ACTIVE LOCAL FILTERS>================");
-            for(Name n : attr.locals){
-                log.noticeWriter.println("Local Variable: " + n);
-            }
-            log.noticeWriter.println("===========</ACTIVE LOCAL FILTERS>================");
-        }
-
+//
         //
         // filter this block
         //
+        
         
         filterBlock(tree);
        
         super.visitJmlSpecificationCase(tree);
     }
     
+
+    //TODO -- this needs to be made better - right now it's a bit of a hack.... 
+    public void scan(JCTree node, Map<JCIdent, ArrayList<JCTree>> mappings) {
+        
+        if (verbose) {
+            log.noticeWriter.println("===========<ACTIVE DEAD FILTERS>================");
+        }
+        
+        this.mappings = new HashSet<Name>();
+        
+        for(ArrayList<JCTree> v : mappings.values()){
+            
+            for(JCTree t : v){
+                this.mappings.add(replace(t));
+                if(verbose){
+                    log.noticeWriter.println("Added EXPR: " + replace(t));
+                }
+            }
+        }
     
-    
-    public void scan(JCTree node, AttributeMethod attr) {        
-        this.attr = attr;        
+        if (verbose) {
+            log.noticeWriter.println("===========</ACTIVE DEAD FILTERS>================");
+        }
+        
         super.scan(node);
     }
     
     
-    public static void simplify(JmlMethodDecl methodDecl, JCTree contract){
-        instance.scan(contract, AttributeMethod.attribute(methodDecl));
+    public static void simplify(Map<JCIdent, ArrayList<JCTree>> mappings, JCTree contract){
+        instance.scan(contract, mappings);
     }
 }

@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
@@ -90,6 +91,7 @@ public class Strongarm
             RemoveDuplicatePreconditions.cache(context);
             RemoveDuplicatePreconditionsSMT.cache(context);
             RemoveLocals.cache(context);
+            RemoveDeadAssignments.cache(context);
 
         }
     }
@@ -239,14 +241,14 @@ public class Strongarm
         // restore the old, handwritten specification (if we had one to being with)
         //
         if(oldMethodClause!=null){
-            methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(contract);
+            methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(methodDecl.cases.cases.head.clauses);
         }
 
         //
         // Debugging of inference
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract);
+            //BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract);
         }
 
         
@@ -337,6 +339,10 @@ public class Strongarm
         // Perform substitutions on the underlying formula. 
         //
         {
+            // This is done FIRST LEXICALLY because we don't know
+            // the underlying expressions for the temporary variables.
+            // The substitution we do later then resolves the variables 
+            // in the equations we substitute here. 
             reader.postcondition.replace(reader.getSubstitutionMappings());
         }
 
@@ -370,6 +376,22 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
+       
+        //
+        // Remove dead assignments 
+        //
+        
+       RemoveDeadAssignments.simplify(reader.getBlockerMappings(), contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING DEAD ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+       
+        
         
         //
         // Perform substitutions on the underlying formula, but now base it on 
@@ -405,6 +427,10 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+        
+        
         
         
         //

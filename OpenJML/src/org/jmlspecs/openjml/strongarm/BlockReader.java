@@ -9,6 +9,7 @@ import java.util.Set;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
@@ -179,7 +180,7 @@ public class BlockReader {
     
     public Prop<JCExpression> sp(){
         
-
+        
         Prop<JCExpression> pre = pc();
         BasicBlock         start = getStartBlock();
         
@@ -235,10 +236,12 @@ public class BlockReader {
                 // assign OLD = RHS
                 //JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
 
+                JmlBBFieldAccess access = new JmlBBFieldAccess((JCIdent)fieldAssignment.args.get(0), fieldAssignment.args.get(2));
+                
                 JCExpression a1 = treeutils.makeBinary(
                         0, 
                         JCTree.EQ, 
-                        fieldAssignment.args.get(0), 
+                        access, 
                         fieldAssignment.args.get(3)
                         );
 
