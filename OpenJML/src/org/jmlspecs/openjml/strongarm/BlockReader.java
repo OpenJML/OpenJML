@@ -488,6 +488,10 @@ public class BlockReader {
             return true;
         }
         
+        if(isDSA(jmlStmt)){
+            return true;
+        }
+        
         // we only care about assignments (assumes)
         if(isAssignStmt(jmlStmt)){
             
@@ -574,6 +578,13 @@ public class BlockReader {
         return false;
     }
     
+    private boolean isDSA(JmlStatementExpr stmt){
+        if(stmt.label!=null && stmt.label.info()!=null && stmt.label.info().equals("DSA")){
+            return true;
+        }
+        
+        return false;
+    }
     private boolean isBranchStmt(JmlStatementExpr stmt){
         if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE){
             return true;
