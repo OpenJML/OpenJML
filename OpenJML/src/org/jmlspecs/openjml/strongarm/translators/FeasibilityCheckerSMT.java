@@ -59,33 +59,26 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
         return new SMTTranslator(context);
     }
     
-    public boolean checkImplies(Set<JmlMethodClauseExpr> filters,  JmlMethodClauseExpr p, JmlMethodDecl method){
+    public boolean checkFeasible(Set<JmlMethodClauseExpr> filters /* should be the set of all REQUIRES */ , JmlMethodDecl method){
         
         // get the default prover 
         String proverToUse = jmlesc.pickProver();
         
-        IProverResult result = prove(method, proverToUse, filters, p);
+        IProverResult result = prove(method, proverToUse, filters);
         
         if(result!=null && result.result()==IProverResult.UNSAT){
-            return true;
+            return false;
         }
         
-        return false;
+        return true; // if we don't know (SAT or UNKNOWN) we say it's maybe possible still
         
     }
     
-    /** 
-     * we want to create an implication for use in a smt check. we want  p => q <==> !p or q. 
-     * So that we can check to see if this is generally true, we negate again giving us:
-     * p and !q 
-     **/
-    public JCExpression convertToImplication(Set<JmlMethodClauseExpr> filters, JmlMethodClauseExpr q){
-        //treeutils.makeBinary(0, JCTree.AND, p1.toTree(treeutils), p2.toTree(treeutils));
+    public JCExpression convertToConjunction(Set<JmlMethodClauseExpr> filters){
         
         if(filters == null || filters.size()==0){
             return null;
         }
-        
         
         JCExpression P = null;
         // construct the P 
@@ -97,14 +90,10 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
             }
         }
         
-        // construct the Q
-        JCExpression Q = treeutils.makeNot(0, q.expression);
-        
-        // construct the implication p ^ !q
-        return treeutils.makeBinary(0,  JCTree.AND, P, Q);
+        return P;
     }
     
-    public IProverResult prove(JmlMethodDecl methodDecl, String proverToUse, Set<JmlMethodClauseExpr> filters, JmlMethodClauseExpr q) {
+    public IProverResult prove(JmlMethodDecl methodDecl, String proverToUse, Set<JmlMethodClauseExpr> filters) {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
@@ -238,6 +227,7 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
         IProverResult proofResult = null;
 
         IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
+        
         if (solverResponse.isError()) {
             solver.exit();
             log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
@@ -270,11 +260,12 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
             
             if(checks==null) return null;
             
-            solver.pop(1); // Pop off previous setting of assumeCheck
+            solver.pop(1);  // Pop off previous setting of assumeCheck
             solver.push(1); // Mark the top
 
-            JCExpression converted = convertToImplication(filters, q);
+            JCExpression converted = convertToConjunction(filters);
             
+
             // don't know
             if(converted==null){
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.POSSIBLY_SAT,start);
@@ -284,13 +275,11 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
 
             solverResponse = solver.check_sat();
         
-            utils.progress(1,1, "Seeing of proposition is redundant in current context: " + q.toString());
-            
-            utils.progress(1,1, "!(!context or q) <==> UNSAT for: " + converted.toString());
+            utils.progress(1,1, "Seeing if specification case is SAT: " + converted.toString());
             
             
-            utils.progress(1,1, "Redundant Precondition Check - " + q.toString() + " : " +
-                    (solverResponse.equals(unsatResponse) ? "REDUNDANT": "NOT REDUNDANT"));
+            utils.progress(1,1, "SAT Check - " + converted.toString() + " : " +
+                    (solverResponse.equals(unsatResponse) ? "NOT FEASIBLE": "FEASIBLE"));
             
             
             if (solverResponse.equals(unsatResponse)) {
@@ -309,7 +298,4 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
 
         return proofResult;
     }
-    
-
-
 }
