@@ -12,7 +12,7 @@ public class A11 {
     
     int THE_FIELD;
     
-    // @ requires true;
+    //@ requires true;
     public int localTest(int a, int b){
         
         THE_FIELD = 999;
