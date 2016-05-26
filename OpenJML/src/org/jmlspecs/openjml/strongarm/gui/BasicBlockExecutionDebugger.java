@@ -273,7 +273,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
                 updateExecutionResult();
             }
         });
-        splitPane_2.setDividerLocation(400);
+        splitPane_2.setDividerLocation(200);
         
         panel_1.setLayout(gl_panel_1);
         

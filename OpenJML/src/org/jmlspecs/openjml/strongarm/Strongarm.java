@@ -36,6 +36,7 @@ import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCases;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
@@ -92,6 +93,7 @@ public class Strongarm
             RemoveDuplicatePreconditionsSMT.cache(context);
             RemoveLocals.cache(context);
             RemoveDeadAssignments.cache(context);
+            RemoveImpossibleSpecificationCases.cache(context);
 
         }
     }
@@ -248,7 +250,7 @@ public class Strongarm
         // Debugging of inference
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            //BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract);
+            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract);
         }
 
         
@@ -334,6 +336,17 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+//        RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+//        
+//        if (verbose) {
+//            log.noticeWriter.println(Strings.empty);
+//            log.noticeWriter.println("--------------------------------------"); 
+//            log.noticeWriter.println(Strings.empty);
+//            log.noticeWriter.println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
+//            log.noticeWriter.println(JmlPretty.write(contract));
+//        }
         
         //
         // Perform substitutions on the underlying formula. 
