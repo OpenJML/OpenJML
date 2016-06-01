@@ -73,16 +73,12 @@ public class RemoveImpossibleSpecificationCases extends JmlTreeScanner {
             }
         }
 
-        return !(new FeasibilityCheckerSMT(context).checkFeasible(filters, currentMethod));
+        return new FeasibilityCheckerSMT(context).checkFeasible(filters, currentMethod);
     }
     
     @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         
-//        for (JCTree t: tree.cases) {
-//            scan(t);
-//        }
-
         Set<JmlMethodClauseExpr> props = null;
         
         List<JmlSpecificationCase> replacedCases = null;
@@ -95,7 +91,10 @@ public class RemoveImpossibleSpecificationCases extends JmlTreeScanner {
             // we want to pass this specification case to the 
             // SMT solver to make sure it can be satisfied. 
             
-            //PS this is tricky - think twice before modifying 
+            //PROTIP - this is trickier than it looks - think twice before modifying
+            
+            //TODO - it's possible no cases will be feasible -- make sure 
+            // to add some code to handle this edge case.
             if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
                 if(isFeasible(cases.head.clauses)){
                     if(replacedCases == null){
