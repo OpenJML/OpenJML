@@ -338,15 +338,15 @@ public class Strongarm
         }
         
         
-//        RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
-//        
-//        if (verbose) {
-//            log.noticeWriter.println(Strings.empty);
-//            log.noticeWriter.println("--------------------------------------"); 
-//            log.noticeWriter.println(Strings.empty);
-//            log.noticeWriter.println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
-//            log.noticeWriter.println(JmlPretty.write(contract));
-//        }
+        RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         //
         // Perform substitutions on the underlying formula. 
