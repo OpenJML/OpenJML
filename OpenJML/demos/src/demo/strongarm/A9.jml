@@ -1,0 +1,13 @@
+package demo.strongarm;
+
+public class A9 {
+  
+  public A9();
+    /*@
+    public normal_behavior
+      requires true; 
+      ensures \result == -1; 
+   */
+
+  public int localTest0();
+}

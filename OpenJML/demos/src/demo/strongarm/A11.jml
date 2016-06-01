@@ -1,0 +1,23 @@
+package demo.strongarm;
+
+public class A11 {
+  
+  public A11();
+  int THE_FIELD;
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires THIS.THE_FIELD_175_150___7 == 999; 
+        requires (a > -1); 
+        ensures \result == 0; 
+      also
+        requires THIS.THE_FIELD_175_150___7 == 999; 
+        requires !(a > -1); 
+        requires THIS.THE_FIELD_175_150___13 == 777; 
+        ensures \result == -1; 
+      |}
+   */
+
+  public int localTest(int a, int b);
+}
