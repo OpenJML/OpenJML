@@ -84,11 +84,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     
     
-    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings){
+    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
         
-        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract, mappings);
+        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract, mappings, lexical);
         
         dialog.setModal(true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -96,7 +96,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
     }
 
-    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings){
+    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
         
         traceData = trace;
         
@@ -152,7 +152,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
             };
              
        
-        DefaultTableModel model = new DefaultTableModel(mappings, columns) {
+        DefaultTableModel premapModel = new DefaultTableModel(mappings, columns) {
              
             @Override
             public boolean isCellEditable(int row, int column)
@@ -167,7 +167,36 @@ public class BasicBlockExecutionDebugger extends JDialog {
             }
         };
         
-        getPremap().setModel(model);
+        getPremap().setModel(premapModel);
+        
+        
+        final Class[] columnClass1 = new Class[] {
+                String.class, String.class, String.class
+            };
+        
+        String[] columns1 = new String[] {
+              "Scope",  "Map From == Map To"
+            };
+        
+        
+        
+        DefaultTableModel lexicalModel = new DefaultTableModel(lexical, columns1) {
+            
+            @Override
+            public boolean isCellEditable(int row, int column)
+            {
+                return false;
+            }
+             
+            @Override
+            public Class<?> getColumnClass(int columnIndex)
+            {
+                return columnClass1[columnIndex];
+            }
+        };
+        
+        getLexical().setModel(lexicalModel);
+        
     }
     static Color highlightColor = new Color(255,255,0,150);
 

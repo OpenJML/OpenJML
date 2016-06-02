@@ -250,7 +250,7 @@ public class Strongarm
         // Debugging of inference
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings());
+            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
         }
 
         

@@ -613,17 +613,37 @@ public class BlockReader {
             mappings.put(block.id(), new ArrayList<JCTree>());
         }
         
+        debugLexicalMappings.add(new Object[]{block.id(), sub.toString()});
+        
         mappings.get(block.id()).add(sub);
     }
-    private Object[][] debugMappings;
+    private List<Object[]> debugPremapMappings = new ArrayList<Object[]>();
+    private List<Object[]> debugLexicalMappings = new ArrayList<Object[]>();
     
     public Object[][] getDebugMappings(){
+        Object[][]debugMappings = new Object[debugPremapMappings.size()][3];
+        
+        for(int i=0; i< debugPremapMappings.size(); i++){
+            debugMappings[i] = Arrays.copyOf(debugPremapMappings.get(i), debugPremapMappings.get(i).length);
+        }
+        
         return debugMappings;
     }
 
+    public Object[][] getLexicalMappings(){
+        Object[][]debugMappings = new Object[debugLexicalMappings.size()][2];
+        
+        for(int i=0; i< debugLexicalMappings.size(); i++){
+            debugMappings[i] = Arrays.copyOf(debugLexicalMappings.get(i), debugLexicalMappings.get(i).length);
+        }
+        
+        return debugMappings;
+    }
+
+    
     public Map<JCIdent, ArrayList<JCTree>> getBlockerMappings(){
         
-        List<Object[]> dm = new ArrayList<Object[]>();
+        debugPremapMappings.clear();
         
         Map<JCIdent, ArrayList<JCTree>> subs = new HashMap<JCIdent, ArrayList<JCTree>>();
         
@@ -642,7 +662,7 @@ public class BlockReader {
                     log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
                 }
                 
-                dm.add(new Object[]{b.id(), blockMap.getName(s), s.toString()});
+                debugPremapMappings.add(new Object[]{b.id(), blockMap.getName(s), s.toString()});
                 
                 
                 //blockMap.getName(s)
@@ -662,16 +682,13 @@ public class BlockReader {
             }
         }
 
-        debugMappings = new Object[dm.size()][3];
-        
-        for(int i=0; i< dm.size(); i++){
-            debugMappings[i] = Arrays.copyOf(dm.get(i), dm.get(i).length);
-        }
         
         return subs;
     }
     
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(){
+        
+        debugLexicalMappings.clear();
         
         Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), blocks.get(0));
 
@@ -680,6 +697,7 @@ public class BlockReader {
     
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
 
+        
         for(JCStatement stmt : block.statements()){
 
             if(stmt instanceof JmlStatementExpr){
