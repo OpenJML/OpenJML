@@ -47,6 +47,7 @@ import java.awt.Color;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
@@ -82,11 +83,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     
     
-    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract){
+    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
         
-        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract);
+        dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract, mappings);
         
         dialog.setModal(true);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -94,7 +95,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
     }
 
-    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract){
+    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings){
         
         traceData = trace;
         
@@ -140,6 +141,32 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
         
         
+        
+        final Class[] columnClass = new Class[] {
+                String.class, String.class, String.class
+            };
+        
+        String[] columns = new String[] {
+              "Scope",  "Map From", "Map To"
+            };
+             
+       
+        DefaultTableModel model = new DefaultTableModel(mappings, columns) {
+             
+            @Override
+            public boolean isCellEditable(int row, int column)
+            {
+                return false;
+            }
+             
+            @Override
+            public Class<?> getColumnClass(int columnIndex)
+            {
+                return columnClass[columnIndex];
+            }
+        };
+        
+        getTable().setModel(model);
     }
     static Color highlightColor = new Color(255,255,0,150);
 
@@ -218,6 +245,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
         log.setText(buff.toString());
         
+       
     }
     /**
      * Create the dialog.
@@ -330,6 +358,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         logSplitPane.setRightComponent(scrollPane_3);
         
         table = new JTable();
+        table.setFillsViewportHeight(true);
         scrollPane_3.setViewportView(table);
         logSplitPane.setDividerLocation(300);
         splitPane.setDividerLocation(400);
@@ -353,5 +382,8 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
     public JTextArea getContract() {
         return contract;
+    }
+    public JTable getTable() {
+        return table;
     }
 }

@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -614,9 +615,15 @@ public class BlockReader {
         
         mappings.get(block.id()).add(sub);
     }
+    private Object[][] debugMappings;
     
+    public Object[][] getDebugMappings(){
+        return debugMappings;
+    }
 
     public Map<JCIdent, ArrayList<JCTree>> getBlockerMappings(){
+        
+        List<Object[]> dm = new ArrayList<Object[]>();
         
         Map<JCIdent, ArrayList<JCTree>> subs = new HashMap<JCIdent, ArrayList<JCTree>>();
         
@@ -635,6 +642,7 @@ public class BlockReader {
                     log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
                 }
                 
+                dm.add(new Object[]{b.id(), blockMap.getName(s), s.toString()});
                 
                 
                 //blockMap.getName(s)
@@ -654,6 +662,12 @@ public class BlockReader {
             }
         }
 
+        debugMappings = new Object[dm.size()][3];
+        
+        for(int i=0; i< dm.size(); i++){
+            debugMappings[i] = Arrays.copyOf(dm.get(i), dm.get(i).length);
+        }
+        
         return subs;
     }
     
