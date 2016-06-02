@@ -52,6 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import javax.swing.JTable;
+import javax.swing.JTabbedPane;
 
 public class BasicBlockExecutionDebugger extends JDialog {
 
@@ -166,13 +167,14 @@ public class BasicBlockExecutionDebugger extends JDialog {
             }
         };
         
-        getTable().setModel(model);
+        getPremap().setModel(model);
     }
     static Color highlightColor = new Color(255,255,0,150);
 
     static DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
     private JTextArea contract;
-    private JTable table;
+    private JTable premap;
+    private JTable lexical;
 
     private void setSelectedLabel(String l){
 
@@ -354,12 +356,22 @@ public class BasicBlockExecutionDebugger extends JDialog {
         log = new JTextArea();
         logSplitPane.setLeftComponent(log);
         
-        JScrollPane scrollPane_3 = new JScrollPane();
-        logSplitPane.setRightComponent(scrollPane_3);
+        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+        logSplitPane.setRightComponent(tabbedPane);
         
-        table = new JTable();
-        table.setFillsViewportHeight(true);
-        scrollPane_3.setViewportView(table);
+        JScrollPane scrollPane_4 = new JScrollPane();
+        tabbedPane.addTab("PreMap", null, scrollPane_4, null);
+        
+        premap = new JTable();
+        premap.setFillsViewportHeight(true);
+        scrollPane_4.setViewportView(premap);
+        
+        JScrollPane scrollPane_3 = new JScrollPane();
+        tabbedPane.addTab("Lexical", null, scrollPane_3, null);
+        
+        lexical = new JTable();
+        lexical.setFillsViewportHeight(true);
+        scrollPane_3.setViewportView(lexical);
         logSplitPane.setDividerLocation(300);
         splitPane.setDividerLocation(400);
         contentPanel.add(splitPane_3);
@@ -383,7 +395,10 @@ public class BasicBlockExecutionDebugger extends JDialog {
     public JTextArea getContract() {
         return contract;
     }
-    public JTable getTable() {
-        return table;
+    public JTable getPremap() {
+        return premap;
+    }
+    public JTable getLexical() {
+        return lexical;
     }
 }
