@@ -50,16 +50,18 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import javax.swing.JTable;
 
 public class BasicBlockExecutionDebugger extends JDialog {
 
     private final JPanel contentPanel = new JPanel();
     private JTextPane basicBlocks;
     private JTextPane ast;
-    private JTextArea log;
+    private JSplitPane logSplitPane;
     private JComboBox currentLabel;
     private JList executionPlan;
     private List<TraceElement> traceData;
+    private JTextArea log;
 
     /**
      * Launch the application.
@@ -143,6 +145,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
 
     static DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
     private JTextArea contract;
+    private JTable table;
 
     private void setSelectedLabel(String l){
 
@@ -316,9 +319,19 @@ public class BasicBlockExecutionDebugger extends JDialog {
         contentPanel.setLayout(new BorderLayout(0, 0));
         panel.add(currentLabel, BorderLayout.NORTH);
         
+        logSplitPane = new JSplitPane();
+        logSplitPane.setFont(new Font("Courier", Font.PLAIN, 13));
+        splitPane.setRightComponent(logSplitPane);
+        
         log = new JTextArea();
-        log.setFont(new Font("Courier", Font.PLAIN, 13));
-        splitPane.setRightComponent(log);
+        logSplitPane.setLeftComponent(log);
+        
+        JScrollPane scrollPane_3 = new JScrollPane();
+        logSplitPane.setRightComponent(scrollPane_3);
+        
+        table = new JTable();
+        scrollPane_3.setViewportView(table);
+        logSplitPane.setDividerLocation(300);
         splitPane.setDividerLocation(400);
         contentPanel.add(splitPane_3);
         splitPane_3.setDividerLocation(500);
