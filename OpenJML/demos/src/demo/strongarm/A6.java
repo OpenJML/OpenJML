@@ -20,6 +20,8 @@ public class A6 {
         if(THE_FIELD > -1){
             return 0;
         }
+        
+        return 1;
     }
 }
 

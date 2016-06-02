@@ -8,12 +8,14 @@ package demo.strongarm;
  * @author jls
  *
  */
-public class A5 {
+public class A12 {
     
     int THE_FIELD;
     
     //@ requires true;
-    public int localTest(int a, int b){
+    public int localTest(int a, int b, A12 aa){
+        
+        aa.THE_FIELD = 0;
         
         if(THE_FIELD > -1){
             return 0;

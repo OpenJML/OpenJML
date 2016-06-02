@@ -18,6 +18,7 @@ import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCParens;
@@ -74,7 +75,7 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void visitIdent(JCIdent tree){
-        //if (tree != null) System.out.println(">>IDENT: " + tree.toString());
+        if (tree != null) System.out.println(">>IDENT: " + tree.toString());
 
         
         
@@ -116,6 +117,8 @@ public class SubstituteTree extends JmlTreeScanner{
             }
             
         }
+        
+        //if(tree.expr instanceof )
         super.visitParens(tree);
         }
     private boolean isRedundant(JCBinary tree){
@@ -145,7 +148,7 @@ public class SubstituteTree extends JmlTreeScanner{
                 tree.lhs = with();
                 
                
-            }
+            } 
             
         }
         
@@ -167,8 +170,46 @@ public class SubstituteTree extends JmlTreeScanner{
             
         }
         
+        if(tree.lhs instanceof JCFieldAccess){
+            handleField((JCFieldAccess)tree.lhs);
+        }
+        if(tree.rhs instanceof JCFieldAccess){
+            handleField((JCFieldAccess)tree.rhs);
+        }
+//        if(//tree.)
+        
         // we are always replacing IDENTS with EXPRESSIONS
         super.visitBinary(tree);
+    }
+    
+    private void handleField(JCFieldAccess access){
+        if(access.selected instanceof JCIdent){
+            JCIdent selected = (JCIdent)access.selected;
+            
+            if(replace().toString().equals(selected.getName().toString())){
+
+                if (verbose) {
+                    log.noticeWriter.println("Replacing SELECTED" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                }
+
+                access.selected = with();
+                
+            }
+        }
+        
+        
+        if(access.name.toString().equals(replace().toString())){
+            
+            if (verbose) {
+                log.noticeWriter.println("Replacing TARGET" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+            }
+
+            if(with() instanceof JCIdent){
+                JCIdent with = (JCIdent)with();
+                access.name = with.name;
+            }
+            //access.name = with();
+        }
     }
     
     public Name replace(){

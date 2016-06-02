@@ -6,7 +6,7 @@ public class A10 {
     /*@
     public normal_behavior
       requires true; 
-        requires !(0 > -1); 
+        requires (0 > -1); 
         ensures \result == -1; 
    */
 
