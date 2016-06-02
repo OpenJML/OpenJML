@@ -83,10 +83,16 @@ public class BasicBlockExecutionDebugger extends JDialog {
         }
     }
     
+    private Object[][] allMappings;
+    private Object[][] allLexical;
+    
     
     public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
+        
+        dialog.allMappings = mappings;
+        dialog.allLexical = lexical;
         
         dialog.loadTrace(transformedAST, blockForm, allBlocks, trace, specs, oldContract, mappings, lexical);
         
@@ -97,6 +103,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
     }
 
     public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
+        
         
         traceData = trace;
         
@@ -140,6 +147,8 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
         getContract().setText(oldContract + "\n\n-----------\n\n\n" + specs.toString());
         
+        getPremap().setAutoCreateRowSorter(true);
+        getLexical().setAutoCreateRowSorter(true);
         
         
         
@@ -196,6 +205,8 @@ public class BasicBlockExecutionDebugger extends JDialog {
         };
         
         getLexical().setModel(lexicalModel);
+        
+        
         
     }
     static Color highlightColor = new Color(255,255,0,150);
@@ -276,8 +287,32 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
         log.setText(buff.toString());
         
-       
+        filterTable(traceElement.getBlock().id().toString());
     }
+    
+    private void filterTable(String blockId){
+        filterTable(getPremap(), allMappings, blockId);
+        filterTable(getLexical(), allLexical,  blockId);
+    }
+    
+    private void filterTable(JTable table, Object[][] mappings, String blockId){
+        
+        
+        DefaultTableModel m = (DefaultTableModel) table.getModel();
+        
+        m.getDataVector().removeAllElements();
+        m.fireTableDataChanged(); 
+        
+        // see if it matches
+        for(Object[] row : mappings){
+            if(row[0].toString().equals(blockId)){
+                m.addRow(row);
+            }
+        }
+
+        m.fireTableDataChanged();
+    }
+    
     /**
      * Create the dialog.
      */

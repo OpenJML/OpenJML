@@ -613,7 +613,6 @@ public class BlockReader {
             mappings.put(block.id(), new ArrayList<JCTree>());
         }
         
-        debugLexicalMappings.add(new Object[]{block.id(), sub.toString()});
         
         mappings.get(block.id()).add(sub);
     }
@@ -662,7 +661,7 @@ public class BlockReader {
                     log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
                 }
                 
-                debugPremapMappings.add(new Object[]{b.id(), blockMap.getName(s), s.toString()});
+                debugPremapMappings.add(new Object[]{b.id().toString(), blockMap.getName(s).toString(), s.toString()});
                 
                 
                 //blockMap.getName(s)
@@ -705,10 +704,13 @@ public class BlockReader {
                 
                 if(isAssignStmt(jmlStmt)){
                     addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+
                 }
             }else if(isVarDecl(stmt)){
                 JmlVariableDecl decl = (JmlVariableDecl)stmt;
                 addSubstitutionAtBlock(decl, mappings, block);
+                debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
             }
         }
         

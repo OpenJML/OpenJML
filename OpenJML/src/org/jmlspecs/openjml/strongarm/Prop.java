@@ -41,6 +41,7 @@ public class Prop<T extends JCExpression> {
         ArrayList<JCTree> subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
         
         for(JCTree sub : subs){
+
             if(e!=null){
                 e = SubstituteTree.replace(sub, e);
             }else{

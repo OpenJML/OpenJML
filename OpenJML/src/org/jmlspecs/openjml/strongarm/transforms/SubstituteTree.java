@@ -110,7 +110,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(expr.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing PARENS" + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.noticeWriter.println("Replacing PARENS " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 tree.expr = with();
             }
