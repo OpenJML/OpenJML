@@ -22,7 +22,7 @@ import com.sun.tools.javac.util.Options;
 // FIXME - best practice would use a resources file for all the help
 // information; javac loads its resources on demand
 public enum JmlOption implements IOption {
-    
+        
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,null,"Process all files, recursively, within this directory",null),
     DIRS("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null),

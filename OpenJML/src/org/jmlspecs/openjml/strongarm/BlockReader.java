@@ -147,13 +147,17 @@ public class BlockReader {
             startBlock = blocks.get(b);
             
             for(JCStatement stmt : startBlock.statements()){
-                if(skip(stmt)){ continue; }
                 
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+                //if(skip(stmt)){ continue; }
                 
-                if(isPreconditionStmt(jmlStmt)){
-                    precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock);
+                if(stmt instanceof JmlStatementExpr){
+                    JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+                    
+                    if(isPreconditionStmt(jmlStmt)){
+                        precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock);
+                    }
                 }
+                
             }     
         }
         
@@ -220,8 +224,26 @@ public class BlockReader {
         
         trace.add(traceElement);
         
-        for(JCStatement stmt : block.statements()){        
-            if(skip(stmt)){ continue; }
+        for(JCStatement stmt : block.statements()){
+            
+            if (verbose) {
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
+            }    
+
+            
+            if(skip(stmt)){
+
+                if (verbose) {
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: SKIP");
+                }    
+
+                continue; 
+            }
+
+            if (verbose) {
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
+            }    
+
             
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
             
