@@ -212,9 +212,9 @@ public class BasicBlockExecutionDebugger extends JDialog {
     static Color highlightColor = new Color(255,255,0,150);
 
     static DefaultHighlighter.DefaultHighlightPainter painter = new DefaultHighlighter.DefaultHighlightPainter(highlightColor);
-    private JTextArea contract;
     private JTable premap;
     private JTable lexical;
+    private JTextArea contract;
 
     private void setSelectedLabel(String l){
 
@@ -360,9 +360,12 @@ public class BasicBlockExecutionDebugger extends JDialog {
         executionPlan = new JList();
         scrollPane_2.setViewportView(executionPlan);
         
+        JScrollPane scrollPane_5 = new JScrollPane();
+        splitPane_2.setRightComponent(scrollPane_5);
+        
         contract = new JTextArea();
         contract.setFont(new Font("Courier", Font.PLAIN, 13));
-        splitPane_2.setRightComponent(contract);
+        scrollPane_5.setViewportView(contract);
         executionPlan.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 setSelectedLabel(executionPlan.getSelectedValue().toString());
@@ -375,7 +378,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
         panel_1.setLayout(gl_panel_1);
         
         JSplitPane splitPane = new JSplitPane();
-        splitPane.setResizeWeight(1.0);
+        splitPane.setResizeWeight(1.0); 
         splitPane_3.setLeftComponent(splitPane);
         splitPane.setBorder(null);
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
@@ -456,13 +459,13 @@ public class BasicBlockExecutionDebugger extends JDialog {
     public JList getExecutionPlan() {
         return executionPlan;
     }
-    public JTextArea getContract() {
-        return contract;
-    }
     public JTable getPremap() {
         return premap;
     }
     public JTable getLexical() {
         return lexical;
+    }
+    public JTextArea getContract() {
+        return contract;
     }
 }
