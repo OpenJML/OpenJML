@@ -67,6 +67,11 @@ public class CleanupVariableNames extends JmlTreeScanner {
 
         if(idDone.contains(tree)) return;
         
+        if(tree.getName().toString().equals("THIS")){
+            // transform results
+            tree.name = treeutils.makeIdent(0, "this", syms.objectType).name;
+        }
+        
         if(tree.getName().toString().contains(Strings.resultVarString)){
             // transform results
             tree.name = treeutils.makeIdent(0, "\\result", syms.intType).name;
