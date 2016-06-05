@@ -184,38 +184,41 @@ public class SubstituteTree extends JmlTreeScanner{
     
     private void handleField(JCFieldAccess access){
         
-        if(access.selected instanceof JCFieldAccess){
-            handleField((JCFieldAccess)access.selected);
-        }else{
-        
-            if(access.selected instanceof JCIdent){
-                JCIdent selected = (JCIdent)access.selected;
-                
-                if(replace().toString().equals(selected.getName().toString())){
     
-                    if (verbose) {
-                        log.noticeWriter.println("Replacing SELECTED" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
-                    }
-    
-                    access.selected = with();
-                    
-                }
-            }
+        if(access.selected instanceof JCIdent){
+            JCIdent selected = (JCIdent)access.selected;
             
-            
-            if(access.name.toString().equals(replace().toString())){
-                
+            if(replace().toString().equals(selected.getName().toString())){
+
                 if (verbose) {
-                    log.noticeWriter.println("Replacing TARGET" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                    log.noticeWriter.println("Replacing SELECTED" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
                 }
-    
-                if(with() instanceof JCIdent){
-                    JCIdent with = (JCIdent)with();
-                    access.name = with.name;
-                }
-                //access.name = with();
+
+                access.selected = with();
+                
             }
         }
+        
+        
+        if(access.name.toString().equals(replace().toString())){
+            
+            if (verbose) {
+                log.noticeWriter.println("Replacing TARGET" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+            }
+
+            if(with() instanceof JCIdent){
+                JCIdent with = (JCIdent)with();
+                access.name = with.name;
+            }
+            //access.name = with();
+        }
+    
+        
+        if(access.selected instanceof JCFieldAccess){
+            handleField((JCFieldAccess)access.selected);
+        }
+        
+        
     }
     
     public Name replace(){
