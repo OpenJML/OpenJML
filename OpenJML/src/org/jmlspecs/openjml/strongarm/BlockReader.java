@@ -168,7 +168,7 @@ public class BlockReader {
                     log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
                 }
                 precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null);
-    
+                
                 // reset the blocks
                 startBlock = blocks.get(0);
             }else{                
@@ -290,6 +290,21 @@ public class BlockReader {
 //                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
 //                traceElement.addExpr(e2.expression);
 
+                // add NEW == OLD
+                VarMap blockMap  = basicBlocker.blockmaps.get(block);
+                
+                // add mapping for NEW -> OLD 
+                //blockMap.putSAVersion(null, , 0);
+                //blockMap.putSAVersion(vsym, version)
+                if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
+                    JCIdent o = (JCIdent)fieldAssignment.args.get(0);
+                    JCIdent n = (JCIdent)fieldAssignment.args.get(1);
+
+                    VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
+                    
+                    blockMap.putSAVersion(v, o.name,1);
+                }
+                
                 
             }else{
                 p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));                
