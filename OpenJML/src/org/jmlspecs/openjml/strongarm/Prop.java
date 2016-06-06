@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
@@ -22,11 +23,20 @@ public class Prop<T extends JCExpression> {
 
     public T p;
     public BasicBlock def;
+    public Label label;
     
     public Prop(T p, BasicBlock def){
         this.p = p;
         this.def = def;
     }
+    
+    public Prop(T p, BasicBlock def, Label label){
+        this.p = p;
+        this.def = def;
+        this.label = label;
+    }
+    
+    
     
     public Prop(){}
     
@@ -85,7 +95,7 @@ public class Prop<T extends JCExpression> {
         JmlMethodClauseExpr clause; 
         
         //TODO correctly detect this.
-        if(p.toString().contains("_JML___result")){
+        if(p.toString().contains("_JML___result") || !isBranchStmt()){
             clause = M.JmlMethodClauseExpr
             (
                     JmlToken.ENSURES,  
@@ -108,5 +118,13 @@ public class Prop<T extends JCExpression> {
         return p;
     }
     
+    
+    public boolean isBranchStmt(){
+        if(label == Label.BRANCHT || label == Label.BRANCHE || label == Label.BRANCHC || label == Label.CASECONDITION){
+            return true;
+        }
+
+        return false;
+    }
 }
 

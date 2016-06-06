@@ -307,7 +307,8 @@ public class BlockReader {
                 
                 
             }else{
-                p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block));                
+                p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block, jmlStmt.label));                
+                    
                 traceElement.addExpr(jmlStmt.expression);
             }
         }
@@ -624,7 +625,7 @@ public class BlockReader {
         return false;
     }
     private boolean isBranchStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE){
+        if(stmt.label == Label.BRANCHT || stmt.label == Label.BRANCHE || stmt.label == Label.BRANCHC || stmt.label == Label.CASECONDITION){
             return true;
         }
         return false;
