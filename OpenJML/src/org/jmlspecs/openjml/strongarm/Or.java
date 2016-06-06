@@ -1,8 +1,10 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
 
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -47,6 +49,11 @@ public class Or<T extends JCExpression> extends Prop<T> {
         List<JmlMethodClause> lhs = p1.getClauses(clauses,  treeutils,  M);
         List<JmlMethodClause> rhs = p2.getClauses(clauses,  treeutils,  M);
 
+        // sort each of the cases
+        
+        lhs = JDKListUtils.sort(lhs, new ContractComparator());
+        rhs = JDKListUtils.sort(rhs, new ContractComparator());
+        
         JmlSpecificationCase case1 = M.JmlSpecificationCase(null, false, null, null, lhs);
         JmlSpecificationCase case2 = M.JmlSpecificationCase(null, false, null, null, rhs);
         
@@ -65,5 +72,27 @@ public class Or<T extends JCExpression> extends Prop<T> {
         return treeutils.makeBinary(0, JCTree.OR, p1.toTree(treeutils), p2.toTree(treeutils));
     }
     
+    class ContractComparator implements Comparator<JmlMethodClause> {
+
+        // ordering is requires, ensures, modifies (otherwise lexical)
+        @Override
+        public int compare(JmlMethodClause o1, JmlMethodClause o2) {
+            
+            if(o1.token == o2.token){
+                return 0;
+            }
+            
+            if(o1.token == JmlToken.REQUIRES && o2.token == JmlToken.ENSURES){
+                return -1;
+            }
+            
+            if(o2.token == JmlToken.REQUIRES && o1.token == JmlToken.ENSURES){
+                return 1;
+            }
+            
+            return o1.token.toString().compareTo(o2.token.toString());
+        }
+        
+    }
     
 }
