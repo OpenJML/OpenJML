@@ -694,10 +694,10 @@ public class BlockReader {
            
             for(VarSymbol s : syms2){
                 // note we FLIP the ordering here (to do this we create a new equality)
-                if(verbose){
-                    log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
-                }
-                
+//                if(verbose){
+//                    log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
+//                }
+//                
                 debugPremapMappings.add(new Object[]{b.id().toString(), blockMap.getName(s).toString(), s.toString()});
                 
                 
@@ -708,10 +708,10 @@ public class BlockReader {
                 
                 JCBinary replacement = treeutils.makeBinary(0, JCTree.EQ, replace, with);
                 
-                if(verbose){
-                    log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
-                }
-                
+//                if(verbose){
+//                    log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
+//                }
+//                
                 
                 addSubstitutionAtBlock(replacement, subs, b);
 

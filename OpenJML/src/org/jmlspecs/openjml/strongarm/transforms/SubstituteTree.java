@@ -75,7 +75,7 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void visitIdent(JCIdent tree){
-        if (tree != null) System.out.println(">>IDENT: " + tree.toString());
+        //if (tree != null) System.out.println(">>IDENT: " + tree.toString());
 
         
         
@@ -91,7 +91,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(arg.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing ARG" + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.noticeWriter.println("Replacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 
                 tree.arg = with();
@@ -111,7 +111,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(expr.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing PARENS " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.noticeWriter.println("Replacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 tree.expr = with();
             }
@@ -142,7 +142,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(lhs.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing LHS" + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.noticeWriter.println("Replacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 
                 tree.lhs = with();
@@ -161,7 +161,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(rhs.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing RHS" + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.noticeWriter.println("Replacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
 
                 tree.rhs = with();
@@ -191,7 +191,7 @@ public class SubstituteTree extends JmlTreeScanner{
             if(replace().toString().equals(selected.getName().toString())){
 
                 if (verbose) {
-                    log.noticeWriter.println("Replacing SELECTED" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                    log.noticeWriter.println("Replacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
                 }
 
                 access.selected = with();
@@ -203,7 +203,7 @@ public class SubstituteTree extends JmlTreeScanner{
         if(access.name.toString().equals(replace().toString())){
             
             if (verbose) {
-                log.noticeWriter.println("Replacing TARGET" + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                log.noticeWriter.println("Replacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
             }
 
             if(with() instanceof JCIdent){
