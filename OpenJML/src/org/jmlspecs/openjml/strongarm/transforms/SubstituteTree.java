@@ -75,11 +75,21 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void visitIdent(JCIdent tree){
-        //if (tree != null) System.out.println(">>IDENT: " + tree.toString());
-
+        //if (tree != null) 
+//            if(tree.toString().contains("ar_80")){            
+//                System.out.println(">>IDENT: " + tree.toString());
+//            }
+//        
         
+        if(tree==null) return;
         
-        
+        if(replace().toString().equals(tree.getName().toString()) && with() instanceof JCIdent){
+            JCIdent with = (JCIdent)with();
+            tree.name = with.name;
+        }
+            
+            
+            
     }
     //JCParens
     

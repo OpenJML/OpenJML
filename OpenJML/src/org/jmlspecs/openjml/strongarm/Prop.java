@@ -52,10 +52,9 @@ public class Prop<T extends JCExpression> {
         
         for(JCTree sub : subs){
 
-            /*if(sub.toString().startsWith("demo.strongarm.A13 _JML__tmp6")){
+           /* if(sub.toString().startsWith("ar_80")){
                 System.out.println("Found failing prop...");
             }
-            
             if(sub.toString().startsWith("tricky_228")){
                 System.out.println("Found failing prop...");
             }
