@@ -34,6 +34,7 @@ import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurati
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCases;
@@ -93,6 +94,8 @@ public class Strongarm
             RemoveDuplicatePreconditionsSMT.cache(context);
             RemoveLocals.cache(context);
             RemoveDeadAssignments.cache(context);
+            RemoveDuplicateAssignments.cache(context);
+
             RemoveImpossibleSpecificationCases.cache(context);
 
         }
@@ -474,6 +477,24 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+        //
+        // Remove duplicate assignments 
+        //
+        
+       RemoveDuplicateAssignments.simplify(reader.getBlockerMappings(), contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING DUPLICATE ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+       
+        
+        
         
         
         
