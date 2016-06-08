@@ -40,10 +40,7 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
     final Symtab syms;
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
-    private Set<Name> mappings;
-    
-    public Set<JCIdent> idDone = new HashSet<JCIdent>();
-    
+        
     public RemoveDuplicateAssignments(Context context){
         
         this.context    = context;
@@ -58,8 +55,6 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
             
-        AttributeMethod.cache(context);
-
     }
     
     public static void cache(Context context){
@@ -143,42 +138,18 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
         //
         // filter this block
         //
-        
-        
-        filterBlock(tree);
+        //filterBlock(tree);
        
         super.visitJmlSpecificationCase(tree);
     }
     
 
-    //TODO -- this needs to be made better - right now it's a bit of a hack.... 
-    public void scan(JCTree node, Map<JCIdent, ArrayList<JCTree>> mappings) {
-        
-        if (verbose) {
-            log.noticeWriter.println("===========<ACTIVE DEAD FILTERS>================");
-        }
-        
-        this.mappings = new HashSet<Name>();
-        
-        for(ArrayList<JCTree> v : mappings.values()){
-            
-            for(JCTree t : v){
-                this.mappings.add(replace(t));
-                if(verbose){
-                    log.noticeWriter.println("Added EXPR: " + replace(t));
-                }
-            }
-        }
-    
-        if (verbose) {
-            log.noticeWriter.println("===========</ACTIVE DEAD FILTERS>================");
-        }
-        
+    public void scan(JCTree node) {              
         super.scan(node);
     }
     
     
-    public static void simplify(Map<JCIdent, ArrayList<JCTree>> mappings, JCTree contract){
-        instance.scan(contract, mappings);
+    public static void simplify(JCTree contract){
+        instance.scan(contract);
     }
 }

@@ -483,7 +483,7 @@ public class Strongarm
         // Remove duplicate assignments 
         //
         
-       RemoveDuplicateAssignments.simplify(reader.getBlockerMappings(), contract);
+       RemoveDuplicateAssignments.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
