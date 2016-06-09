@@ -14,10 +14,13 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
 import com.sun.tools.javac.code.Symtab;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -62,65 +65,49 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
             instance = new RemoveDuplicateAssignments(context);
         }
     }
-    /**
-     * Remove things that don't have a mapping (meaning it is redundant) 
-     */
-    public boolean shouldRemove(JmlMethodClause clause){
+    /* Type t = lhs.type;
+        if (t.isPrimitive() && TypeTags.INT > t.tag) t = syms.intType;
+        tree.operator = findOpSymbol(JCTree.EQ, t);*/
+    public boolean shouldRemove(JmlMethodClause clause, List<JmlMethodClause> clauses){
         
-        if(clause instanceof JmlMethodClauseExpr){
-            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+        if(clause instanceof JmlMethodClauseExpr == false) return false;
+        
+        JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+        
+        // see if it's an assignment statement. 
+        if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).operator.toString().startsWith("==")){
+
+            String ident = ((JCBinary)mExpr.expression).lhs.toString();
             
-            if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){
+            for(; clauses.nonEmpty(); clauses = clauses.tail){
                 
-                JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
-                
-                if(mappings.contains(ident.name)==false){ 
-                    log.noticeWriter.println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
-                    return true;
+                if(clauses.head instanceof JmlMethodClauseExpr){
+                    JmlMethodClauseExpr mExpr2 = (JmlMethodClauseExpr)clauses.head;
+                    
+                    if(mExpr2.expression instanceof JCBinary && ((JCBinary)mExpr2.expression).operator.toString().startsWith("==")){
+                        
+                        String ident2 = ((JCBinary)mExpr2.expression).lhs.toString();
+                        
+                        if(ident.equals(ident2)){
+                            log.noticeWriter.println("[RemoveDuplicateAssignments] Will remove clause since it will be reassigned: " + clause.toString());
+                            return true;
+                        }
+                    }                    
                 }
+                            
             }
         }
         
         return false;
     }
-    
-    
-    public Name replace(JCTree p){
-        
-        if(p instanceof JCExpression){
-            
-            if(p instanceof JCBinary){
-                JCBinary bProp = (JCBinary)p;
-                if(bProp.lhs instanceof JCIdent){
-                    return ((JCIdent)bProp.lhs).getName();
-                }else{
-                    return null; //((JCLiteral)bProp.lhs).getValue();
-                }
-                
-            }else{
-                //log.error("jml.internal", "Unexpected node: " + p.getClass() + " found during replacement.");
-            }
-            
-        }else if(p instanceof JCVariableDecl){
-            JCVariableDecl pVarDecl = (JCVariableDecl)p;
-            return pVarDecl.getName();
-        }
-        
-        //log.error("jml.internal", "LHS Missing in Replacement");
-
-        
-        return null;
-    }
-
-    
-    
+      
     public void filterBlock(JmlSpecificationCase block){
         
         List<JmlMethodClause> replacedClauses = null;
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
-            if(shouldRemove(clauses.head) == false){
+            if(shouldRemove(clauses.head, clauses.tail) == false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
@@ -131,14 +118,10 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
         
         block.clauses = replacedClauses;
     }
-
+    
     @Override
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-//
-        //
-        // filter this block
-        //
-        //filterBlock(tree);
+        filterBlock(tree);
        
         super.visitJmlSpecificationCase(tree);
     }
