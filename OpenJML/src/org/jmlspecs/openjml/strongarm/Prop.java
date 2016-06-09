@@ -6,6 +6,7 @@ import java.util.Map;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -93,14 +94,29 @@ public class Prop<T extends JCExpression> {
         
         JmlMethodClauseExpr clause; 
         
-        //TODO correctly detect this.
-        if(p.toString().contains("_JML___result") || !isBranchStmt()){
+        //TODO 
+        if(p.toString().contains(Strings.resultVarString) || !isBranchStmt()){
             clause = M.JmlMethodClauseExpr
             (
                     JmlToken.ENSURES,  
                     p
             );
 
+            // did we modify something? if so, let's add that badboy right here.
+            if(label==null && p instanceof JCBinary){
+                
+                JCBinary jmlBinary = (JCBinary)p;
+                
+                // it's some kind of assignment
+                if(jmlBinary.operator.toString().startsWith("==")){
+                    return List.of(
+                            clause,
+                            M.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE, List.of(jmlBinary.lhs))
+                            );
+                }
+                
+            }
+            
         }else{
             clause = M.JmlMethodClauseExpr
             (

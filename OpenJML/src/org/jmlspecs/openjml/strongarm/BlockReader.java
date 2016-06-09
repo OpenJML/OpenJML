@@ -284,7 +284,7 @@ public class BlockReader {
                 //JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
                 
 
-                p = And.of(p, new Prop<JCExpression>(e1.expression, block));                
+                p = And.of(p, new Prop<JCExpression>(e1.expression, block, e1.label));                
                 traceElement.addExpr(e1.expression);
 
 //                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                

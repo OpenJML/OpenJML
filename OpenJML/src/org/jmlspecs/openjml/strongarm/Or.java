@@ -90,7 +90,7 @@ public class Or<T extends JCExpression> extends Prop<T> {
                 return 1;
             }
             
-            return o1.token.toString().compareTo(o2.token.toString());
+            return o2.token.toString().compareTo(o1.token.toString());
         }
         
     }
