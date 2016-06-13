@@ -3,6 +3,9 @@ package org.jmlspecs.openjml.strongarm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
+
 import com.sun.tools.javac.util.List;
 
 public class JDKListUtils {
@@ -27,6 +30,21 @@ public class JDKListUtils {
         }
         
         return newList;
+    }
+    
+    
+    
+    public static <T> boolean contains(List<T> theClauses, T clause, Comparator<T> c){
+        
+        
+        for(List<T> clauses = theClauses; clauses.nonEmpty(); clauses = clauses.tail){
+        
+            if(c.compare(clauses.head, clause)==0){
+                return true;
+            }
+        }
+      
+        return false;
     }
 
 }
