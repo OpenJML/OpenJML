@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
@@ -100,14 +102,28 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
         
         return false;
     }
+    
+    public boolean appearsTwice(JmlMethodClause clause, List<JmlMethodClause> clauses){
+        return JDKListUtils.contains(clauses, clause, new ClauseEquals());
+    }
       
+    
+    class ClauseEquals implements Comparator<JmlMethodClause>{
+
+        @Override
+        public int compare(JmlMethodClause o1, JmlMethodClause o2) {
+            return o1.toString().compareTo(o2.toString());
+        }
+        
+    }
+    
     public void filterBlock(JmlSpecificationCase block){
         
         List<JmlMethodClause> replacedClauses = null;
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
-            if(shouldRemove(clauses.head, clauses.tail) == false){
+            if(shouldRemove(clauses.head, clauses.tail) == false && appearsTwice(clauses.head, clauses.tail) == false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
