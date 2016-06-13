@@ -87,7 +87,7 @@ public class BasicBlockExecutionDebugger extends JDialog {
     private Object[][] allLexical;
     
     
-    public static void trace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
+    public static void trace(JCBlock transformedAST, String blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
         
         BasicBlockExecutionDebugger dialog = new BasicBlockExecutionDebugger();
         
@@ -102,13 +102,13 @@ public class BasicBlockExecutionDebugger extends JDialog {
         
     }
 
-    public void loadTrace(JCBlock transformedAST, BasicProgram blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
+    public void loadTrace(JCBlock transformedAST, String blockForm, List<BasicBlock> allBlocks, List<TraceElement> trace, JmlMethodSpecs specs, String oldContract, Object[][] mappings, Object[][] lexical){
         
         
         traceData = trace;
         
         getAst().setText(transformedAST.toString());
-        getBasicBlocks().setText(blockForm.toString());
+        getBasicBlocks().setText(blockForm);
 
         // the execution plan
         
@@ -138,11 +138,11 @@ public class BasicBlockExecutionDebugger extends JDialog {
         StyleConstants.setBold(style2, true);
         
 
-        highlightRegex("BL_.*:", blockForm.toString(), "Red");
-        highlightRegex("assert", blockForm.toString(), "Blue");
-        highlightRegex("assume", blockForm.toString(), "Blue");
-        highlightRegex("goto", blockForm.toString(), "Blue");
-        highlightRegex("follows", blockForm.toString(), "Blue");
+        highlightRegex("BL_.*:", blockForm, "Red");
+        highlightRegex("assert", blockForm, "Blue");
+        highlightRegex("assume", blockForm, "Blue");
+        highlightRegex("goto", blockForm, "Blue");
+        highlightRegex("follows", blockForm, "Blue");
         
         
         getContract().setText(oldContract + "\n\n-----------\n\n\n" + specs.toString());

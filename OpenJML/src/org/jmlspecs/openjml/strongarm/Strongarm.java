@@ -160,6 +160,8 @@ public class Strongarm
             log.noticeWriter.println(program.toString());
         }        
 
+        String savedProgram = program.toString(); // need to freeze a pre-substitution state.
+        
         //
         // perform symbolic execution on the method
         //
@@ -250,10 +252,10 @@ public class Strongarm
         }
 
         //
-        // Debugging of inference
+        // Debugging of inference (Before Delivering PC)
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            BasicBlockExecutionDebugger.trace(newblock, program, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
+            BasicBlockExecutionDebugger.trace(newblock, savedProgram, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
         }
 
         
@@ -434,7 +436,7 @@ public class Strongarm
         // Remove local variables
         //
         
-        RemoveLocals.simplify(methodDecl, contract);
+        //RemoveLocals.simplify(methodDecl, contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -447,13 +449,14 @@ public class Strongarm
         
         
         
-        
+       
+
         
         //
         // Simplify labels -- TODO: Remove
         //
 
-       CleanupVariableNames.simplify(contract);
+       //CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -468,7 +471,7 @@ public class Strongarm
         // Remove Duplicate Preconditions
         //
 
-        RemoveDuplicatePreconditions.simplify(contract);
+        //RemoveDuplicatePreconditions.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -483,7 +486,7 @@ public class Strongarm
         // Remove duplicate assignments 
         //
         
-       RemoveDuplicateAssignments.simplify(contract);
+       //RemoveDuplicateAssignments.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
