@@ -10,6 +10,9 @@ import java.util.Set;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
+
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -226,6 +229,10 @@ public class BlockReader {
         
         for(JCStatement stmt : block.statements()){
             
+            if(stmt.toString().contains("missing")){
+                System.out.println("");
+            }
+            
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
             }    
@@ -306,7 +313,48 @@ public class BlockReader {
                 }
                 
                 
-            }else{
+            } else if(jmlStmt.expression instanceof JmlBBArrayAssignment){
+              
+                JmlBBArrayAssignment arrayAssignment = (JmlBBArrayAssignment)jmlStmt.expression;
+                
+                JmlBBArrayAccess arrayAccess = new JmlBBArrayAccess(
+                        (JCIdent)arrayAssignment.args.get(0),
+                        arrayAssignment.args.get(2),                        
+                        arrayAssignment.args.get(3) 
+                        );
+                
+                arrayAccess.type = arrayAssignment.args.get(0).type;
+                
+                JCExpression expr = treeutils.makeBinary(
+                        0, 
+                        JCTree.EQ, 
+                        arrayAccess, 
+                        arrayAssignment.args.get(4)
+                        );
+                
+                
+                JmlStatementExpr stmtExpr = treeutils.makeAssume(null, null, expr);
+
+                p = And.of(p, new Prop<JCExpression>(stmtExpr.expression, block, stmtExpr.label));                
+                traceElement.addExpr(stmtExpr.expression);
+
+
+                // add NEW == OLD
+                VarMap blockMap  = basicBlocker.blockmaps.get(block);
+                
+                // add mapping for NEW -> OLD 
+//                if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
+//                    JCIdent o = (JCIdent)fieldAssignment.args.get(0);
+//                    JCIdent n = (JCIdent)fieldAssignment.args.get(1);
+//
+//                    VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
+//                    
+//                    blockMap.putSAVersion(v, o.name,1);
+//                }
+//                
+
+                
+            } else{
                 p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block, jmlStmt.label));                
                     
                 traceElement.addExpr(jmlStmt.expression);
@@ -535,6 +583,10 @@ public class BlockReader {
         if(isAssignStmt(jmlStmt)){
             
             if(jmlStmt.expression instanceof JmlBBFieldAssignment){
+                return false;
+            }
+            
+            if(jmlStmt.expression instanceof JmlBBArrayAssignment){
                 return false;
             }
             
