@@ -436,7 +436,7 @@ public class Strongarm
         // Remove local variables
         //
         
-        //RemoveLocals.simplify(methodDecl, contract);
+       RemoveLocals.simplify(methodDecl, contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -456,7 +456,7 @@ public class Strongarm
         // Simplify labels -- TODO: Remove
         //
 
-       //CleanupVariableNames.simplify(contract);
+       CleanupVariableNames.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -471,7 +471,7 @@ public class Strongarm
         // Remove Duplicate Preconditions
         //
 
-        //RemoveDuplicatePreconditions.simplify(contract);
+        RemoveDuplicatePreconditions.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -486,7 +486,7 @@ public class Strongarm
         // Remove duplicate assignments 
         //
         
-       //RemoveDuplicateAssignments.simplify(contract);
+       RemoveDuplicateAssignments.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
