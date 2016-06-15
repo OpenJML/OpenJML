@@ -9,6 +9,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
@@ -109,6 +110,12 @@ public class Prop<T extends JCExpression> {
                 
                 // it's some kind of assignment
                 if(jmlBinary.operator.toString().startsWith("==")){
+                    
+                    
+                    if(jmlBinary.lhs instanceof JmlBBArrayAccess){
+                        // TODO -- add * permission
+                    }
+                    
                     return List.of(
                             clause,
                             M.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE, List.of(jmlBinary.lhs))
