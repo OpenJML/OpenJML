@@ -41,6 +41,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCa
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -168,22 +169,12 @@ public class Strongarm
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
         //
-        // for some reason, we failed to infer a postcondition
+        // 
         //
-        if(reader.postcondition==null){
-            
-            if (verbose) {
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
-            }
-            
-            
-            return; // no spec 
+        if(reader==null){
+            return; // no spec;
         }
-
+        
         
         //
         // we found a postcondition, so let's start cleaning it up
@@ -290,7 +281,30 @@ public class Strongarm
     public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program, BasicBlocker2 basicBlocker){
         boolean verbose        = infer.verbose; 
 
+        //
+        // First, check if there is an existing postcondition 
+        //
+       if(TreeContains.analyze(context, methodDecl.cases).atLeastOneEnsuresClause()){
+            
+            
+            
+            if (verbose) {
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println(separator);
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("[STRONGARM] Skipping inference for  "
+                        + utils.qualifiedMethodSig(methodDecl.sym) + " because postconditions are already present.");
+            }
+            
+            return null;
+        }
+        
+        
         BlockReader reader = new BlockReader(context, program.blocks(), basicBlocker);
+        
+       
+
+
         
         // basic idea here is to boil it all down to a proposition. 
         // we take and solve / simplify that proposition and then translate it back into a 
@@ -313,6 +327,25 @@ public class Strongarm
             log.noticeWriter.println("Inference finished...");
         }
         
+        
+        //
+        // for some reason, we failed to infer a postcondition
+        //
+        if(reader.postcondition==null){
+            
+            if (verbose) {
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
+            }
+            
+            
+            return null; // no spec 
+        }
+        
+        
         if (verbose && props!=null) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
@@ -322,6 +355,9 @@ public class Strongarm
             log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
 
+        
+        
+        
 
         return reader;
     }
