@@ -246,14 +246,23 @@ public class BlockReader {
 
                 continue; 
             }
+            
+            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+
+            
+            if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
+                
+                if (verbose) {
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: IGNORE PRE/POSTCONDITION ASSERTIONS/ASSUMES");
+                }
+                
+                continue;
+            }
 
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
             }    
 
-            
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-            
             if(verbose){
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
             }
@@ -652,10 +661,16 @@ public class BlockReader {
             return false;
         }
         
-        if(isPreconditionStmt(jmlStmt)){ // && initialPreconditionFound==false){
+        if(isPreconditionStmt(jmlStmt)){ 
             initialPreconditionFound = true;
             return false;
         }
+        
+        if(isPostconditionStmt(jmlStmt)){ 
+            return false;
+        }
+        
+        
             
         return true;
     }
@@ -685,6 +700,13 @@ public class BlockReader {
     
     private boolean isPreconditionStmt(JmlStatementExpr stmt){
         if(stmt.label == Label.PRECONDITION){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isPostconditionStmt(JmlStatementExpr stmt){
+        if(stmt.label == Label.POSTCONDITION){
             return true;
         }
         return false;
@@ -796,12 +818,15 @@ public class BlockReader {
                     addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
                     debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
 
+                }else if(isPostconditionStmt(jmlStmt)){
+                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
                 }
             }else if(isVarDecl(stmt)){
                 JmlVariableDecl decl = (JmlVariableDecl)stmt;
                 addSubstitutionAtBlock(decl, mappings, block);
                 debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
-            }
+            } 
         }
         
         if(block.followers().size()==2){
