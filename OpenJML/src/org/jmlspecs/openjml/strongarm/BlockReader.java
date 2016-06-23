@@ -23,6 +23,9 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.tree.And;
+import org.jmlspecs.openjml.strongarm.tree.Or;
+import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
@@ -392,8 +395,22 @@ public class BlockReader {
             BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
             
             if(lca==null){
-                log.error("jml.internal", "Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
-                return null;
+                
+                //TODO - need to investigate what conditions LCA can't be 
+                //       found.
+                
+                depth++;
+                Prop<JCExpression> e =  Or.of(
+                        sp(p, block.followers().get(0)), 
+                        sp(p, block.followers().get(1))
+                        );
+                depth--;
+                
+                
+                log.noticeWriter.println("[STRONGARM] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
+
+                return e;
+
             }
             
             if(verbose){

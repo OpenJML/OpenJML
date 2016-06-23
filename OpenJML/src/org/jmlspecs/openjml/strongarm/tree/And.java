@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.strongarm;
+package org.jmlspecs.openjml.strongarm.tree;
 
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;

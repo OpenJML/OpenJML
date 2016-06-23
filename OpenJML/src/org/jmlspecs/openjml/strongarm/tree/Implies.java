@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.strongarm;
+package org.jmlspecs.openjml.strongarm.tree;
 
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 

@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.strongarm;
+package org.jmlspecs.openjml.strongarm.tree;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -10,6 +10,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
