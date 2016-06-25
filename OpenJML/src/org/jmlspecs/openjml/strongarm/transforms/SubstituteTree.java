@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.IJmlVisitor;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -16,6 +17,7 @@ import com.sun.source.tree.ExpressionStatementTree;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -138,6 +140,25 @@ public class SubstituteTree extends JmlTreeScanner{
         return false;
     }
     
+    @Override 
+    public void visitIndexed(JCArrayAccess tree){
+        
+        if(tree.toString().equals(with().toString())==false){
+        
+            if(tree instanceof JmlBBArrayAccess){
+                JmlBBArrayAccess access = (JmlBBArrayAccess)tree;
+                
+                if(access.indexed instanceof JCFieldAccess){
+                    handleField((JCFieldAccess)access.indexed);
+                }
+            }
+            
+        }
+        
+        
+        super.visitIndexed(tree);
+    }
+    
     @Override
     public void visitBinary(JCBinary tree) {
         
@@ -193,6 +214,7 @@ public class SubstituteTree extends JmlTreeScanner{
     }
     
     private void handleField(JCFieldAccess access){
+        
         
     
         if(access.selected instanceof JCIdent){
