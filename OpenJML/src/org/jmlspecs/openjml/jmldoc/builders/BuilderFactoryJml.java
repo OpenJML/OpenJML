@@ -14,7 +14,7 @@ import com.sun.tools.doclets.internal.toolkit.util.ClassTree;
 
 /**
  * The factory for constructing builders.
- *
+ * @David R. Cok
  * @author Arjun Mitra Reddy Donthala
  */
 public class BuilderFactoryJml extends BuilderFactory {
