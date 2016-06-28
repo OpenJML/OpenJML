@@ -224,7 +224,7 @@ public class HtmlDocletWriter extends HtmlDocWriter {
         }
     }
 
-    protected void printTags(Doc doc) {
+    public void printTags(Doc doc) {
         if(configuration.nocomment){
             return;
         }

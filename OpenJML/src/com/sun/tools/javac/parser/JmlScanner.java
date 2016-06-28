@@ -330,6 +330,7 @@ public class JmlScanner extends DocCommentScanner {
             sp = 0; // See the use of sp in Scanner - if sp is not reset, then the
                     // next identifier is appended to the key
             Name key = name();
+            if (keys != null)
             if (keys.contains(key)) {
                 if (isplus) foundplus = true;
                 else {

@@ -47,7 +47,7 @@ public class HtmlJmlDoclet extends HtmlDoclet {
                 error("doclet.No_Public_Classes_To_Document");
             return;
         }
-        //doJmlParsing(root);
+       // doJmlParsing(root);
         super.startGeneration(root);
     }
 
@@ -85,7 +85,8 @@ public class HtmlJmlDoclet extends HtmlDoclet {
         ClassReader.instance(context); // Instantiates the class reader, which needs to happen before the Symbol table
         ListBuffer<JavaFileObject> list = new ListBuffer<JavaFileObject>();
         Set<JavaFileObject> set = new HashSet<JavaFileObject>();
-
+        
+        
         String[] packageNames = configuration.classDocCatalog.packageNames();
         for (int packageNameIndex = 0; packageNameIndex < packageNames.length;
                 packageNameIndex++) {
@@ -97,6 +98,7 @@ public class HtmlJmlDoclet extends HtmlDoclet {
                 }
             }
         }
+        
 
         PackageDoc[] packages = root.specifiedPackages();
         for (int i = 0; i < packages.length; i++) {

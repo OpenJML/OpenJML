@@ -51,27 +51,27 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
          * The index of the current field that is being documented at this point
          * in time.
          */
-        private int currentMethodIndex;
+        protected int currentMethodIndex;
 
         /**
          * The class whose constructors are being documented.
          */
-        private ClassDoc classDoc;
+        protected ClassDoc classDoc;
 
         /**
          * The visible constructors for the given class.
          */
-        private VisibleMemberMap visibleMemberMap;
+        protected VisibleMemberMap visibleMemberMap;
 
         /**
          * The writer to output the constructor documentation.
          */
-        private ConstructorWriter writer;
+        protected ConstructorWriter writer;
 
         /**
          * The constructors being documented.
          */
-        private List<ProgramElementDoc> constructors;
+        protected List<ProgramElementDoc> constructors;
 
         /**
          * Construct a new ConstructorBuilder.
@@ -79,7 +79,7 @@ public class ConstructorBuilder extends AbstractMemberBuilder {
          * @param configuration the current configuration of the
          *                      doclet.
          */
-        private ConstructorBuilder(Configuration configuration) {
+        protected ConstructorBuilder(Configuration configuration) {
                 super(configuration);
         }
 

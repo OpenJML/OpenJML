@@ -143,7 +143,13 @@ public abstract class AbstractBuilder {
             configuration.root.printError("DEBUG: " + this.getClass().getName()
                 + "." + methodName);
         }
+        try {
         Method method = this.getClass().getMethod(methodName, paramClasses);
         method.invoke(this, params);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+      
     }
 }

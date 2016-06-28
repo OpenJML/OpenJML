@@ -1,5 +1,7 @@
-package org.jmlspecs.openjml.jmldoc;
+package org.jmlspecs.openjml.jmldoc.writers;
 
+
+import org.jmlspecs.openjml.jmldoc.ConfigurationJml;
 
 import com.sun.javadoc.AnnotationTypeDoc;
 import com.sun.javadoc.ClassDoc;

@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.jmldoc;
+package org.jmlspecs.openjml.jmldoc.writers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +13,8 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.jmldoc.Main;
+import org.jmlspecs.openjml.jmldoc.Utils;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ConstructorDoc;
@@ -41,6 +43,7 @@ import com.sun.tools.javadoc.DocEnv;
  * constructors.
  * 
  * @author David R. Cok
+ * @author Arjun Mitra Reddy Donthala
  */
 public class ConstructorWriterJml extends ConstructorWriterImpl {
 
@@ -60,14 +63,6 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         currentClassSym = Utils.findNewClassSymbol(classdoc);
     }
 
-    /** Overrides the super class method in order to write out any specs after the tags.
-     * @param method the constructor begin documented
-     */
-    public void writeTags(@NonNull ConstructorDoc method) {
-        super.writeTags(method);
-        writeJmlSpecs(method);
-    }
-    
     /** Writes out the JML specifications for the constructor.
      * 
      * @param method the Doc element of the constructor being documented
@@ -121,31 +116,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         return true;
     }
     
-    /** Overrides the parent method in order to write out details about
-     * JML model constructors after the footer for the Java constructors
-     * is written.
-     * @param classDoc the class whose constructors are being documented
-     */
-    public void writeFooter(@NonNull ClassDoc classDoc) {
-        super.writeFooter(classDoc);
-        writeJmlModelConstructors(classDoc);
-    }
-    
     public void writeJmlModelConstructors(@NonNull ClassDoc classDoc) {
-     // Hard coding this
-//        <ConstructorDetails>
-//        <Header/>
-//        <ConstructorDoc>
-//            <ConstructorHeader/>
-//            <Signature/>
-//            <DeprecationInfo/>
-//            <ConstructorComments/>
-//            <TagInfo/>
-//            <ConstructorFooter/>
-//        </ConstructorDoc>
-//        <Footer/>
-//    </ConstructorDetails>
-//      
       DocEnv denv = ((ClassDocImpl)classDoc).docenv();
       // Find model methods to see if we need to do anything at all
       LinkedList<JmlMethodDecl> list = new LinkedList<JmlMethodDecl>();
@@ -181,23 +152,14 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
           writeComments(md);
           
           // tag info
-          // FIXME super.writeTags(md);
+          writeTags(md);
+          
           writeJmlSpecs(md);
           
           // Method footer
           writeConstructorFooter();
       }
       
-      
-      //Footer
-      super.writeFooter(classDoc);
-      
-        
-    }
-
-    public void writeMemberSummaryFooter(ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlConstructorSummary(classDoc);
     }
 
     // There are no inherited constructors
@@ -268,7 +230,7 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
             writeMemberSummary(classDoc, member, firstSentenceTags,
                 i == 0, i == list.size() - 1);
         }
-        super.writeMemberSummaryFooter(classDoc);
+        writeMemberSummaryFooter(classDoc);
     }
     
     public void writeJmlConstructorSummaryHeader(ClassDoc classDoc) {
@@ -276,6 +238,8 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
         Utils.writeHeader(writer,this,classDoc,"JML Model Constructor Summary",1);
     }
 
+    
+    
     /** This is overridden in order to include annotation information in the
      * method summary entry.  Immediately after this, the modifiers are written.
      * @param member the (method) Doc element whose annotation is to be printed
@@ -293,9 +257,10 @@ public class ConstructorWriterJml extends ConstructorWriterImpl {
      * @param includeAnnotations boolean switch now being ignored
      */
     @Override
-    protected void writeParameters(ExecutableMemberDoc member,
-            boolean includeAnnotations) {
+    protected void writeParameters(ExecutableMemberDoc member, boolean includeAnnotations) {
         super.writeParameters(member,true);
     }
+    
+    
 
 }

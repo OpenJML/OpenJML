@@ -98,7 +98,7 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
         return builder;
     }
 
-    private void init(Object writer) throws Exception {
+    protected void init(Object writer) throws Exception {
         visibleMemberMaps =
             new VisibleMemberMap[VisibleMemberMap.NUM_MEMBER_TYPES];
         for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {

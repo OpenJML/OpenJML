@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.jmldoc;
+package org.jmlspecs.openjml.jmldoc.writers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +11,8 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.jmldoc.Main;
+import org.jmlspecs.openjml.jmldoc.Utils;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ExecutableMemberDoc;
@@ -41,6 +43,7 @@ import com.sun.tools.javadoc.MethodDocImpl;
  * methods.
  * 
  * @author David R. Cok
+ * @author Arjun Mitra Reddy Donthala
  */
 public class MethodWriterJml extends MethodWriterImpl {
 
@@ -58,18 +61,6 @@ public class MethodWriterJml extends MethodWriterImpl {
     public MethodWriterJml(@NonNull SubWriterHolderWriter writer, @NonNull ClassDoc classDoc) {
         super(writer, classDoc);
         currentClassSym = Utils.findNewClassSymbol(classdoc);
-    }
-    
-    /**
-     * Write the javadoc tags (e.g. param and return tags) for the given method
-     * and then write any JML specifications.
-     *
-     * @param method the method being documented.
-     */
-    @Override
-    public void writeTags(@NonNull MethodDoc method) {
-        super.writeTags(method);
-        writeJmlSpecs(method);
     }
     
     /** Write the JML specifications for the given method.
@@ -94,19 +85,12 @@ public class MethodWriterJml extends MethodWriterImpl {
                     //e = ee.scope.lookup(newMethodName);
                 }
             }
+            boolean hasParent = false;
             MethodSymbol newMethodSym = (MethodSymbol)e.sym;
             JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getSpecs(newMethodSym);
             if (mspecs != null) {
                 writer.br(); // Need this if there is tag info, otherwise not // FIXME
                 String s = Utils.jmlAnnotations(newMethodSym);
-                if (Utils.hasSpecs(mspecs) || s.length()!=0) {
-                    strong("JML Method Specifications: "); 
-                    writer.print(s);
-                    writer.preNoNewLine();
-                    writer.print(JmlPretty.write(mspecs.cases,false));
-                    writer.preEnd();
-                }
-                
                 for (ClassSymbol c: Utils.getSupers(currentClassSym)) {
                     MethodSymbol m = findSameContext(newMethodSym,c);
                     if (m != null) {
@@ -118,9 +102,23 @@ public class MethodWriterJml extends MethodWriterImpl {
                             writer.preNoNewLine();
                             writer.print(JmlPretty.write(mspecs.cases,false));
                             writer.preEnd();
+                            hasParent = true;
                         }
                     }
                 }
+                
+                if (Utils.hasSpecs(mspecs) || s.length()!=0) {
+                    if (hasParent) strong("Also ");
+                    writer.pre();
+                    writer.preEnd();
+                    strong("JML Method Specifications: "); 
+                    writer.print(s);
+                    writer.preNoNewLine();
+                    writer.print(JmlPretty.write(mspecs.cases,false));
+                    writer.preEnd();
+                }
+                
+                
             }
         }
     }
@@ -180,16 +178,6 @@ loop:   while (e != null && e.sym != null) {
         return null;
     }
     
-    /** Overrides the parent class method in order to follow writing the
-     * footer with writing out the detail information on all the JML model 
-     * methods.
-     * @param classDoc the class whose model methods are to be documented
-     */
-    public void writeFooter(@NonNull ClassDoc classDoc) {
-        super.writeFooter(classDoc);
-        writeJmlModelMethods(classDoc);
-    }
-    
     /** Write out HTML documentation on JML model methods.
      * 
      * @param classDoc the class whose model methods are to be documented
@@ -241,38 +229,16 @@ loop:   while (e != null && e.sym != null) {
           writeComments(classDoc,md);
           
           // tag info
-          writeTags(md); // includes writeJmlSpecs(md);
-
+          writeTags(md); 
+          
+          writeJmlSpecs(md);
+          
           // Method footer
           writeMethodFooter();
       }
-      
-      
-      //Footer
-      super.writeFooter(classDoc);
-      
         
     }
 
-    /** Overridden to follow the member summary footer with the summary of
-     * JML model methods.
-     * @param classDoc the class that owns the methods and model methods
-     */
-    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlMethodSummary(classDoc);
-    }
-
-    /** Overridden to follow the summary footer for inherited methods
-     * with the summary of inherited
-     * JML model methods.
-     * @param classDoc the class whose inherited methods are being documented
-     */
-    public void writeInheritedMemberSummaryFooter(ClassDoc classDoc) {
-        writeJmlInheritedMemberSummaryFooter(classDoc);
-        super.writeInheritedMemberSummaryFooter(classDoc);
-    }
-    
     /** Writes out information about the inherited model methods for the given
      * class.
      * @param classDoc the class whose inherited model methods are begin listed
@@ -284,6 +250,7 @@ loop:   while (e != null && e.sym != null) {
         DocEnv denv = ((ClassDocImpl)classDoc).docenv();
         
         // collect the methods to be documented
+        if (tspecs != null) {
         for (JmlTypeClause tc : tspecs.clauses) {
             if (tc instanceof JmlTypeClauseDecl && ((JmlTypeClauseDecl)tc).decl instanceof JCTree.JCMethodDecl) {
                 JmlMethodDecl mdecl = (JmlMethodDecl)((JmlTypeClauseDecl)tc).decl;
@@ -294,6 +261,7 @@ loop:   while (e != null && e.sym != null) {
                 MethodDoc modelMethod = new MethodDocImpl(((ClassDocImpl)classDoc).docenv(),msym,mdecl.docComment,mdecl,null);
                 list.add(modelMethod);
             }
+        }
         }
         
         // If there are any, emit documentation
@@ -347,7 +315,7 @@ loop:   while (e != null && e.sym != null) {
             writeMemberSummary(classDoc, member, firstSentenceTags,
                 i == 0, i == list.size() - 1);
         }
-        super.writeMemberSummaryFooter(classDoc);
+        writeMemberSummaryFooter(classDoc);
     }
     
     /** Writes the beginning of the HTML for a (model) method summary.
@@ -358,7 +326,7 @@ loop:   while (e != null && e.sym != null) {
         Utils.writeHeader(writer,this,classDoc,"JML Model Method Summary",2);
     }
     
-    /** This is overridden in order to include annotation information in the
+   /** This is overridden in order to include annotation information in the
      * method summary entry.  Immediately after this, the modifiers are written.
      * @param member the (method) Doc element whose annotation is to be printed
      */
@@ -375,8 +343,7 @@ loop:   while (e != null && e.sym != null) {
      * @param includeAnnotations boolean switch now being ignored
      */
     @Override
-    protected void writeParameters(ExecutableMemberDoc member,
-            boolean includeAnnotations) {
+    protected void writeParameters(ExecutableMemberDoc member, boolean includeAnnotations) {
         super.writeParameters(member,true);
     }
 }

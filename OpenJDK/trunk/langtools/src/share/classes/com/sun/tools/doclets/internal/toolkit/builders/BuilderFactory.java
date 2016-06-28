@@ -98,6 +98,10 @@ public class BuilderFactory {
     public AbstractBuilder getClassBuilder(ClassDoc classDoc,
         ClassDoc prevClass, ClassDoc nextClass, ClassTree classTree)
             throws Exception {
+        System.out.println("********************************************************************************************************************");
+        System.out.println(ClassBuilder.getInstance(configuration, classDoc,
+                writerFactory.getClassWriter(classDoc, prevClass, nextClass,
+                        classTree)));
         return ClassBuilder.getInstance(configuration, classDoc,
             writerFactory.getClassWriter(classDoc, prevClass, nextClass,
                 classTree));

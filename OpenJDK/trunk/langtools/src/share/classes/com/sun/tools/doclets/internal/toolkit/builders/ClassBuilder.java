@@ -51,22 +51,22 @@ public class ClassBuilder extends AbstractBuilder {
     /**
      * The class being documented.
      */
-    private ClassDoc classDoc;
+    protected ClassDoc classDoc;
 
     /**
      * The doclet specific writer.
      */
-    private ClassWriter writer;
+    protected ClassWriter writer;
 
     /**
      * Keep track of whether or not this classdoc is an interface.
      */
-    private boolean isInterface = false;
+    protected boolean isInterface = false;
 
     /**
      * Keep track of whether or not this classdoc is an enum.
      */
-    private boolean isEnum = false;
+    protected boolean isEnum = false;
 
     /**
      * Construct a new ClassBuilder.
@@ -74,7 +74,7 @@ public class ClassBuilder extends AbstractBuilder {
      * @param configuration the current configuration of the
      *                      doclet.
      */
-    private ClassBuilder(Configuration configuration) {
+    protected ClassBuilder(Configuration configuration) {
         super(configuration);
     }
 

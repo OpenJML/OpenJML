@@ -1,4 +1,4 @@
-package org.jmlspecs.openjml.jmldoc;
+package org.jmlspecs.openjml.jmldoc.writers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,9 @@ import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
+import org.jmlspecs.openjml.jmldoc.ClassDocJml;
+import org.jmlspecs.openjml.jmldoc.Main;
+import org.jmlspecs.openjml.jmldoc.Utils;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ProgramElementDoc;
@@ -27,6 +30,7 @@ import com.sun.tools.javadoc.DocEnv;
  * supplied by JML.
  * 
  * @author David R. Cok
+ * @author Arjun Mitra Reddy Donthala
  */
 public class NestedClassWriterJml extends NestedClassWriterImpl {
 
@@ -51,26 +55,6 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
 //        currentClassDoc = classdoc;
         currentClassSym = Utils.findNewClassSymbol(classdoc);
         currentDocEnv = ((ClassDocImpl)classdoc).docenv();
-    }
-    
-    /** This is overridden to tack onto the end of the nested class information
-     * any information about nested JML classes.
-     * @param classDoc the classDoc whose nested members are being described
-     */
-    public void writeMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        super.writeMemberSummaryFooter(classDoc);
-        writeJmlNestedClassSummary(classDoc);
-    }
-
-    /** This is overridden to tack onto the end of the inherited 
-     * nested class information
-     * any information about inherited nested JML classes.
-     * @param classDoc the classDoc whose nested members are being described
-     */
-    @Override
-    public void writeInheritedMemberSummaryFooter(@NonNull ClassDoc classDoc) {
-        writeJmlInheritedNestedClassSummaryFooter(classDoc);
-        super.writeInheritedMemberSummaryFooter(classDoc);
     }
     
     /** This is used in place of DocEnv.shouldDocument because model methods are
@@ -151,7 +135,7 @@ public class NestedClassWriterJml extends NestedClassWriterImpl {
             writeMemberSummary(classDoc, member, firstSentenceTags,
                 i == 0, i == list.size() - 1);
         }
-        super.writeMemberSummaryFooter(classDoc);
+        writeMemberSummaryFooter(classDoc);
     }
     
     /** This writes out the header for the block of information about

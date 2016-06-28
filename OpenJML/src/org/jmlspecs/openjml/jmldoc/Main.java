@@ -103,6 +103,7 @@ public class Main extends org.jmlspecs.openjml.Main {
             e.printStackTrace(System.err);
             errorcode = com.sun.tools.javac.main.Main.EXIT_SYSERR; // 3
         }
+        System.out.println("Finished Generating Documentation");
         return errorcode;
     }
     
