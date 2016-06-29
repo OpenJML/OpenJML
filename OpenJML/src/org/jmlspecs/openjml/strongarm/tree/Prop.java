@@ -71,7 +71,7 @@ public class Prop<T extends JCExpression> {
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
-        if(p.toString().contains("_JML__tmp9")){
+        if(p.toString().contains("_JML__tmp8")){
             System.out.println("Found failing prop...");
         }
         
@@ -79,19 +79,26 @@ public class Prop<T extends JCExpression> {
         
         for(JCTree sub : subs){
 
-           if(sub.toString().contains("_JML__tmp9")){
+           if(sub.toString().contains("_JML__tmp8")){
                 System.out.println("Found failing prop...");
             }
            /* if(sub.toString().startsWith("tricky_228")){
                 System.out.println("Found failing prop...");
             }
             */
-            
+           
+           JCExpression tmpE;
+           
             if(e!=null){
-                e = SubstituteTree.replace(sub, e);
+                tmpE = SubstituteTree.replace(sub, e);
             }else{
-                e = SubstituteTree.replace(sub,  p);
+                tmpE = SubstituteTree.replace(sub,  p);
             }
+            
+            if(tmpE!=null){
+                e = tmpE;
+            }
+            
         }
         
         if(e!=null){

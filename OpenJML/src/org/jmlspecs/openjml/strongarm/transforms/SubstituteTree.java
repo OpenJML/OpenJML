@@ -320,7 +320,12 @@ public class SubstituteTree extends JmlTreeScanner{
         
             //it's of course possible this is a direct substitution 
             if(in instanceof JCIdent){
-                if(((JCIdent) in).getName().equals(instance.replace())){
+                if(((JCIdent) in).getName().equals(instance.replace())){    
+                    
+                    if(instance.with().toString().equals("true")){
+                        ((JCIdent) in).name = instance.treeutils.makeIdent(0, instance.with().toString(), in.type).name;
+                    }
+                   
                     return instance.with();
                 }
             }else{
