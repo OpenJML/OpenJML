@@ -42,22 +42,47 @@ public class Prop<T extends JCExpression> {
     
     public Prop(){}
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
+    public void replace(ArrayList<JCTree> subs){
         
         JCExpression e = null;
         
-        
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
+        
+        for(JCTree sub : subs){
+
+            if(e!=null){
+                e = SubstituteTree.replace(sub, e);
+            }else{
+                e = SubstituteTree.replace(sub,  p);
+            }
+        }
+        
+        if(e!=null){
+            p = (T) e;
+        }
+    }
+    
+    
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
+        
+        JCExpression e = null;
+                
+        System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        // build a list of substitutions by following the mapping backwards.
+        
+        if(p.toString().contains("_JML__tmp9")){
+            System.out.println("Found failing prop...");
+        }
         
         ArrayList<JCTree> subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
         
         for(JCTree sub : subs){
 
-           /* if(sub.toString().startsWith("ar_80")){
+           if(sub.toString().contains("_JML__tmp9")){
                 System.out.println("Found failing prop...");
             }
-            if(sub.toString().startsWith("tricky_228")){
+           /* if(sub.toString().startsWith("tricky_228")){
                 System.out.println("Found failing prop...");
             }
             */

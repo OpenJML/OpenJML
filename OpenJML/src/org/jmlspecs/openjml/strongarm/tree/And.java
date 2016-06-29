@@ -31,6 +31,11 @@ public class And<T extends JCExpression> extends Prop<T> {
         return new And<E>(p1, p2);
     }
     
+    public void replace(ArrayList<JCTree> mappings){
+        p1.replace(mappings);
+        p2.replace(mappings);        
+    }
+    
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
         p1.replace(mappings);
         p2.replace(mappings);
