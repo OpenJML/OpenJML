@@ -78,6 +78,11 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             }
         }
         
+        // filter any junk here 
+        if(clause instanceof JmlMethodClauseExpr && (clause.toString().contains(Strings.allocName) || clause.toString().contains(Strings.isAllocName))){
+            return true;
+        }
+        
         return false;
     }
     
