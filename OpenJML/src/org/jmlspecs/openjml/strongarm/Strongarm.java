@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
+import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
@@ -98,8 +99,9 @@ public class Strongarm
             RemoveLocals.cache(context);
             RemoveDeadAssignments.cache(context);
             RemoveDuplicateAssignments.cache(context);
-
             RemoveImpossibleSpecificationCases.cache(context);
+            CleanupPrestateAssignable.cache(context);
+
 
         }
     }
@@ -551,6 +553,22 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
+        
+        
+        
+        //
+        // Clean up assignables
+        //
+        
+        CleanupPrestateAssignable.simplify(contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER CLEANING PRESTATE ASSIGNABLES " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         
         
