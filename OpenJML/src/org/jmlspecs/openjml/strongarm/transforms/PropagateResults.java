@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -37,7 +38,7 @@ public class PropagateResults extends JmlTreeScanner {
     final Symtab syms;
     public static boolean inferdebug = false; 
     public static boolean verbose = false; 
-    public ArrayList<JCTree> subs;
+    public ArrayList<JCTree> subs = new ArrayList<JCTree>();
     
     public Set<JCIdent> idDone = new HashSet<JCIdent>();
     
@@ -66,17 +67,24 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.expression instanceof JCIdent){
-                JCIdent ident = (JCIdent)mExpr.expression;
+            if(mExpr.token == JmlToken.ENSURES && mExpr.expression instanceof JCBinary ){
+                JCBinary expr = (JCBinary)mExpr.expression;
                 
-                if(ident.name.toString().startsWith(Strings.prePrefix)){ // TODO - this is NOT the right way to do this. 
-                    log.noticeWriter.println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
-                    return true; 
+                if(expr.lhs.toString().equals("\\result") 
+                        && (expr.rhs.toString().startsWith(Strings.newObjectVarString)
+                        || expr.rhs.toString().startsWith(Strings.newArrayVarString))
+                        ){
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[PropagateResults] Will remove the clause " + clause.toString());
+                    }
+                    
+                    // add this expression!
+                    return true;
+                    
                 }
                 
             }
-            
-           
         }
         
         return false;
@@ -94,6 +102,11 @@ public class PropagateResults extends JmlTreeScanner {
                 }else{
                     replacedClauses = replacedClauses.append(clauses.head);
                 }
+            }else{
+               
+                JCBinary expr = (JCBinary)((JmlMethodClauseExpr)clauses.head).expression;
+                // remove the clause and add it to the list.
+                subs.add(treeutils.makeBinary(0, JCTree.EQ, expr.rhs, expr.lhs));
             }
         }
         
@@ -110,7 +123,7 @@ public class PropagateResults extends JmlTreeScanner {
     
     
     public ArrayList<JCTree> getMappings(){
-        return null;
+        return subs;
     }
     
     public void scan(JCTree node) {        
