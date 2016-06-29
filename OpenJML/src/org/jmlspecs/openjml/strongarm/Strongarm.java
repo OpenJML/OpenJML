@@ -33,6 +33,7 @@ import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
+import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -534,6 +535,21 @@ public class Strongarm
         }
        
         
+        
+        //
+        // Fix up results... 
+        //
+       {
+           reader.postcondition.replace(PropagateResults.simplify(context, contract));
+       }
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER FIXING RESULTS " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         
         
