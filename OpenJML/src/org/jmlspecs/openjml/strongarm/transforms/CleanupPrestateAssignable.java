@@ -76,6 +76,15 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result.")){
                     return true;
             }
+            
+            if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newArrayVarString)){
+                return true;
+            }
+            
+            if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newObjectVarString)){
+                return true;
+            }
+
         }
         
         // filter any junk here 
