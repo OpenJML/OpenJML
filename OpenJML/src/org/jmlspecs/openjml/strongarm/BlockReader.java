@@ -233,7 +233,7 @@ public class BlockReader {
         
         for(JCStatement stmt : block.statements()){
             
-            if(stmt.toString().contains("missing")){
+            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
                 System.out.println("");
             }
             
@@ -602,6 +602,10 @@ public class BlockReader {
             return true;
         }
         
+        if(isAdmissableImplicitAssumption(jmlStmt)){
+            return false;
+        }
+        
         if(isDSA(jmlStmt)){
             return true;
         }
@@ -694,6 +698,13 @@ public class BlockReader {
     }
     
     boolean initialPreconditionFound = false;
+    
+    private boolean isAdmissableImplicitAssumption(JmlStatementExpr expr){
+        if(expr.token==JmlToken.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
+            return true;
+        }
+        return false;
+    }
     
     private boolean isVarDecl(JCStatement stmt){
         if(stmt instanceof JmlVariableDecl){

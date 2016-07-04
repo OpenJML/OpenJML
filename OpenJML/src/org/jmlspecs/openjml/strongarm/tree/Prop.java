@@ -50,6 +50,11 @@ public class Prop<T extends JCExpression> {
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
+        if(p.toString().contains("_JML___NEWARRAY_317")){
+            System.out.println("Found failing prop...");
+        }
+        
+        
         for(JCTree sub : subs){
 
             if(e!=null){
@@ -72,7 +77,7 @@ public class Prop<T extends JCExpression> {
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
-        if(p.toString().contains("THIS.q_95[THIS.top_180_36___11]")){
+        if(p.toString().contains("_JML___NEWARRAY_317")){
             System.out.println("Found failing prop...");
         }
         
@@ -80,7 +85,7 @@ public class Prop<T extends JCExpression> {
                 
         for(JCTree sub : subs){
 
-           if(sub.toString().contains("top_180_36___11")){
+           if(sub.toString().contains("_JML___NEWARRAY_317")){
                 System.out.println("Found failing prop...");
             }
            /* if(sub.toString().startsWith("tricky_228")){

@@ -24,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCParens;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
@@ -266,6 +267,19 @@ public class SubstituteTree extends JmlTreeScanner{
         
     }
     
+    public JCIdent handleTypeCast(JCTypeCast tree){
+        
+        if(tree.expr instanceof JCIdent){
+            return (JCIdent)tree.expr;
+        }
+        
+        if(tree.expr instanceof JCTypeCast){
+            return handleTypeCast((JCTypeCast)tree.expr);
+        }
+        
+        return null;
+    }
+    
     public Name replace(){
         JCTree p = currentReplacement;
         
@@ -275,6 +289,8 @@ public class SubstituteTree extends JmlTreeScanner{
                 JCBinary bProp = (JCBinary)p;
                 if(bProp.lhs instanceof JCIdent){
                     return ((JCIdent)bProp.lhs).getName();
+                }else if(bProp.lhs instanceof JCTypeCast){
+                    return handleTypeCast((JCTypeCast)bProp.lhs).getName();
                 }else{
                     return null; //((JCLiteral)bProp.lhs).getValue();
                 }

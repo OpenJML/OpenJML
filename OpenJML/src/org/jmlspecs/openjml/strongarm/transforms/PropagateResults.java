@@ -84,6 +84,21 @@ public class PropagateResults extends JmlTreeScanner {
                     
                 }
                 
+                
+                
+                if(expr.rhs.toString().contains(Strings.newObjectVarString)
+                   || expr.rhs.toString().contains(Strings.newArrayVarString)
+                  ){
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[PropagateResults] Will remove the clause " + clause.toString());
+                    }
+                    
+                    // add this expression!
+                    return true;
+                    
+                }
+                
             }
         }
         
@@ -106,7 +121,14 @@ public class PropagateResults extends JmlTreeScanner {
                
                 JCBinary expr = (JCBinary)((JmlMethodClauseExpr)clauses.head).expression;
                 // remove the clause and add it to the list.
-                subs.add(treeutils.makeBinary(0, JCTree.EQ, expr.rhs, expr.lhs));
+                
+                JCBinary newSub = treeutils.makeBinary(0, JCTree.EQ, expr.rhs, expr.lhs);
+                
+                if(verbose){
+                    log.noticeWriter.println("[PropagateResults] Adding the substitution " + newSub.toString());
+                }
+                
+                subs.add(newSub);
             }
         }
         
