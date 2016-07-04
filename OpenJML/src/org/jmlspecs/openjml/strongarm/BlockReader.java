@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -820,6 +821,11 @@ public class BlockReader {
         
         Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), blocks.get(0));
 
+        // reverse
+        for(JCIdent k : subs.keySet()){
+            Collections.reverse(subs.get(k));
+        }
+        
         return subs;        
     }
     

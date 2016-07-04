@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.tree;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 import org.jmlspecs.openjml.JmlToken;
@@ -71,15 +72,15 @@ public class Prop<T extends JCExpression> {
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
-        if(p.toString().contains("_JML__tmp8")){
+        if(p.toString().contains("THIS.q_95[THIS.top_180_36___11]")){
             System.out.println("Found failing prop...");
         }
         
         ArrayList<JCTree> subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
-        
+                
         for(JCTree sub : subs){
 
-           if(sub.toString().contains("_JML__tmp8")){
+           if(sub.toString().contains("top_180_36___11")){
                 System.out.println("Found failing prop...");
             }
            /* if(sub.toString().startsWith("tricky_228")){

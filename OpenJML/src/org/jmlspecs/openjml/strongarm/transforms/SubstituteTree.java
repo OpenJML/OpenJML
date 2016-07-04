@@ -152,8 +152,17 @@ public class SubstituteTree extends JmlTreeScanner{
                     handleField((JCFieldAccess)access.indexed);
                 }
                 
-                if(access.indexed instanceof JCIdent){
+                if(access.index instanceof JCFieldAccess){
+                    handleField((JCFieldAccess)access.index);
+                }
+                
+                
+                if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
                     access.indexed = with();
+                }
+                
+                if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
+                    access.index = with();
                 }
             }
             
