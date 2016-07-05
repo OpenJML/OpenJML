@@ -42,6 +42,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT
 import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCases;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
@@ -101,6 +102,8 @@ public class Strongarm
             RemoveDuplicateAssignments.cache(context);
             RemoveImpossibleSpecificationCases.cache(context);
             CleanupPrestateAssignable.cache(context);
+            RemoveUselessPostconditions.cache(context);
+
 
 
         }
@@ -567,6 +570,25 @@ public class Strongarm
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("AFTER CLEANING PRESTATE ASSIGNABLES " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        //
+        // Everything past this point should be to make things pretty
+        //        
+
+        
+        //
+        // Clean up clauses lacking useful postconditions
+        //
+        
+        RemoveUselessPostconditions.simplify(contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
