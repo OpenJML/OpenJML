@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
+import org.jmlspecs.openjml.strongarm.transforms.Purifier;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -49,9 +50,12 @@ import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -60,6 +64,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Pair;
 
 public class Strongarm  
  {
@@ -103,7 +108,7 @@ public class Strongarm
             RemoveImpossibleSpecificationCases.cache(context);
             CleanupPrestateAssignable.cache(context);
             RemoveUselessPostconditions.cache(context);
-
+            Purifier.cache(context);
 
 
         }
@@ -353,6 +358,12 @@ public class Strongarm
         }
         
         
+        
+        //this.treeutils.
+        
+        
+        
+        
         if (verbose && props!=null) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
@@ -589,6 +600,21 @@ public class Strongarm
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+        
+        
+        //
+        // PURITY
+        //
+        
+        Purifier.simplify(contract, methodDecl);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER ADDING PURITY " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
