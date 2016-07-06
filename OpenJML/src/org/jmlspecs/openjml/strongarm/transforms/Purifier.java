@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.strongarm.translators.FeasibilityCheckerSMT;
@@ -66,33 +67,26 @@ public class Purifier extends JmlTreeScanner {
         }
     }
     
-    protected void countAssignable(List<JmlMethodClause> clauses){
-        
-        
-        for(JmlMethodClause c : clauses){
-            
-            if(c.token==JmlToken.ASSIGNABLE){
-                assignables++;
-            }
-        }        
-    }
+   
     
     public boolean isPure(){
-        return assignables > 0;
+        return assignables == 0;
     }
     
+    
+    
+   
     @Override
-    public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
+    public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree){
+        if(tree.token==JmlToken.ASSIGNABLE){
+            assignables++;
+        }
         
-        for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail ){
-            if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
-                countAssignable(cases.head.clauses);
-            }else{
-                scan(cases.head.clauses.head);
-            }
-            
-       }
+        super.visitJmlMethodClauseStoreRef(tree);
     }
+    
+    
+
     
     public static void simplify(JCTree node){
         instance.scan(node);
@@ -113,6 +107,7 @@ public class Purifier extends JmlTreeScanner {
     
     public static void simplify(JCTree node, JmlMethodDecl method){
         instance.currentMethod = method;
+        instance.assignables = 0;
         Purifier.simplify(node);
     }
     
