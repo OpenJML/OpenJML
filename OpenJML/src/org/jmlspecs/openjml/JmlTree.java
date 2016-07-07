@@ -1110,7 +1110,6 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
-
     }
     
     /** This class adds some JML specific information to the JCVariableDecl node. */
