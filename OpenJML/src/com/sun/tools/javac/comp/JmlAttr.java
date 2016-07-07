@@ -1103,16 +1103,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     };
     
-    /** Checks to see if two JavaFileObjects point to the same location */
-    private boolean ifSourcesEqual(JavaFileObject jfo1, JavaFileObject jfo2) {
-        try {
-            File file1 = new File(jfo1.getName());
-            File file2 = new File(jfo2.getName());
-            return file1.getCanonicalPath().equals(file2.getCanonicalPath());
-        } catch (IOException e) {}
-        return jfo1 == jfo2;
-    }
-    
     /** Does the various checks of method/constructor modifiers */
     public void checkMethodModifiers(JmlMethodDecl javaMethodTree) {
         JavaFileObject prev = log.currentSourceFile();
@@ -1120,7 +1110,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlSpecs.MethodSpecs mspecs = javaMethodTree.methodSpecsCombined;
 
             // FIXME - This is a duplicate - remove and fix tests
-            if (javaMethodTree.specsDecl != null && !ifSourcesEqual(javaMethodTree.source(), javaMethodTree.specsDecl.source())) {
+            if (javaMethodTree.specsDecl != null && javaMethodTree != javaMethodTree.specsDecl) {
                 for (JCAnnotation a: javaMethodTree.mods.annotations) {
                     JCAnnotation aa = utils.findMod(javaMethodTree.specsDecl.mods, a.type.tsym);
                     if (aa == null) {
