@@ -1,7 +1,10 @@
 package org.jmlspecs.openjmltest;
 import java.net.URI;
 
+import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
+
+import org.jmlspecs.openjml.Utils;
 
 /** This class makes a mock JavaFileObject.  It holds a String as its content
  * and is given a pseudo-filename to use, but does not represent an actual file in 
@@ -101,11 +104,8 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     
     /** Returns true if the receiver and argument represent the same file */
     public boolean equals(Object o) {
-        if (!(o instanceof TestJavaFileObject)) return false;
-        String s = uri.normalize().getPath();
-        String ss = ((TestJavaFileObject)o).uri.normalize().getPath();
-        // FIXME - this is a hack for the tests (the files are not real) - fix it
-        return s.equals(ss) || s.endsWith(ss) || ss.endsWith(s);
+        if (!(o instanceof JavaFileObject)) return false;
+        return Utils.ifSourcesEqual(this, (JavaFileObject)o);
     }
     
     /** A definition of hashCode, since we have a definition of equals */

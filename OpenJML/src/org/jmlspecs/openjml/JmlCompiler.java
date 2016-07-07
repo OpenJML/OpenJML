@@ -95,17 +95,6 @@ public class JmlCompiler extends JavaCompiler {
      */
     public boolean inSequence = false;
     
-    
-    /** Checks to see if two JavaFileObjects point to the same location */
-    private boolean ifSourcesEqual(JavaFileObject jfo1, JavaFileObject jfo2) {
-        try {
-            File file1 = new File(jfo1.getName());
-            File file2 = new File(jfo2.getName());
-            return file1.getCanonicalPath().equals(file2.getCanonicalPath());
-        } catch (IOException e) {}
-        return jfo1.equals(jfo2);
-    }
-    
     /** This method is overridden in order to parse specification files along 
      * with parsing a Java file.  Note that it is called directly from 
      * JavaCompiler.complete and JavaCompiler.parse to do the actual parsing.
@@ -141,7 +130,7 @@ public class JmlCompiler extends JavaCompiler {
             if (fileobject.getKind() == JavaFileObject.Kind.SOURCE) { // A .java file
                 jmlcu.mode = JmlCompilationUnit.JAVA_SOURCE_PARTIAL;
                 JavaFileObject specsFile = findSpecs(jmlcu,true);
-                if (specsFile != null && ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
+                if (specsFile != null && Utils.ifSourcesEqual(specsFile, jmlcu.getSourceFile())) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("The java file is its own specs for " + specsFile);
                     jmlcu.specsCompilationUnit = jmlcu;
                 } else {
