@@ -1109,17 +1109,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             JmlSpecs.MethodSpecs mspecs = javaMethodTree.methodSpecsCombined;
 
-            // FIXME - This is a duplicate - remove and fix tests
-            if (javaMethodTree.specsDecl != null && javaMethodTree != javaMethodTree.specsDecl) {
-                for (JCAnnotation a: javaMethodTree.mods.annotations) {
-                    JCAnnotation aa = utils.findMod(javaMethodTree.specsDecl.mods, a.type.tsym);
-                    if (aa == null) {
-                        log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-                        log.warning(a.pos(), "jml.java.annotation.superseded", "method result", javaMethodTree.name.toString(), a.toString());
-                    }
-                }
-            }
-
             JCModifiers mods = mspecs.mods;
             boolean inJML = utils.isJML(mods);
             boolean model = isModel(mods);
