@@ -339,8 +339,8 @@ public class JmlSpecs {
 //        		java.net.URL ppp = specs.getEntry("");
 //        		System.out.println(ppp);
 //        }
-        
-        String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
+        String sy = System.getProperty(Strings.eclipseSpecsProjectLocation);
+       // String sy = Options.instance(context).get(Strings.eclipseSpecsProjectLocation);
 //        if (sy == null) {
 //            Bundle specs = Platform.getBundle("org.jmlspecs.Specs");
 //            if (specs != null) {
@@ -371,7 +371,7 @@ public class JmlSpecs {
             log.error("jml.internal.specs.dir.not.defined");
         }
         return false;
-    }
+    } 
     
     /** Returns the current list of specification directories in use.
      * @return The current list of specification directories, in order.
@@ -1006,10 +1006,13 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getSpecs(VarSymbol m) {
+        if (m != null) {
         ClassSymbol c = m.enclClass();
         if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
         TypeSpecs t = getSpecs(c);
         return t == null ? null : t.fields.get(m);
+        }
+        return null;
     }
     
     /** Retrieves the specs for a given initializer block

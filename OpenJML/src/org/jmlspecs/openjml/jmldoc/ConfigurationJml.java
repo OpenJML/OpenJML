@@ -1,13 +1,20 @@
 package org.jmlspecs.openjml.jmldoc;
 
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.sun.tools.doclets.formats.html.ConfigurationImpl;
 import com.sun.tools.doclets.internal.toolkit.WriterFactory;
+import com.sun.tools.doclets.internal.toolkit.builders.BuilderFactory;
 
 import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.openjml.jmldoc.builders.BuilderFactoryJml;
+import org.jmlspecs.openjml.jmldoc.writers.WriterFactoryJml;
 
 /**
  * This class extends the ConfigurationImpl class that is part of the javadoc
@@ -29,17 +36,16 @@ public class ConfigurationJml extends ConfigurationImpl {
         return (ConfigurationJml)instance;
     }
 
-// Use something like this if we adopt a design that needs a modified xml layout
-// description
-//    public ConfigurationJml() {
-//        //builderXMLPath = "org/jmlspecs/openjml/jmldoc/resources/doclet.xml";
-//    }
-//
-//    public InputStream getBuilderXML() throws FileNotFoundException {
-//        return builderXMLPath == null ?
-//            ConfigurationJml.class.getResourceAsStream("resources/doclet.xml") :
-//            new FileInputStream(new File(builderXMLPath));
-//    }
+
+    public ConfigurationJml() {
+        builderXMLPath = "src/org/jmlspecs/openjml/jmldoc/resources/doclet.xml";
+    }
+
+    public InputStream getBuilderXML() throws FileNotFoundException {
+        return builderXMLPath == null ?
+            ConfigurationJml.class.getResourceAsStream("src/org/jmlspecs/openjml/jmldoc/resources/doclet.xml") :
+            new FileInputStream(new File(builderXMLPath));
+    }
 
 
     /** This method overrides the parent class to return a JML-specific writer
@@ -49,6 +55,11 @@ public class ConfigurationJml extends ConfigurationImpl {
     @NonNull @Override
     public WriterFactory getWriterFactory() {
         return new WriterFactoryJml(this);
+    }
+    
+    @NonNull @Override
+    public BuilderFactory getBuilderFactory() {
+        return new BuilderFactoryJml(this);
     }
 
     /**

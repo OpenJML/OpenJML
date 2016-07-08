@@ -1065,7 +1065,7 @@ public class Check {
 
         @Override
         public void visitTypeApply(JCTypeApply tree) {
-            if (tree.type.tag == CLASS) {
+            if (tree.type != null && tree.type.tag == CLASS) {
                 List<JCExpression> args = tree.arguments;
                 List<Type> forms = tree.type.tsym.type.getTypeArguments();
 
@@ -1166,7 +1166,7 @@ public class Check {
         }
 
         void checkRaw(JCTree tree, Env<AttrContext> env) {
-            if (lint.isEnabled(LintCategory.RAW) &&
+            if (lint != null && lint.isEnabled(LintCategory.RAW) &&
                 tree.type.tag == CLASS &&
                 !TreeInfo.isDiamond(tree) &&
                 !env.enclClass.name.isEmpty() &&  //anonymous or intersection
@@ -2468,7 +2468,7 @@ public class Check {
 
     void checkDeprecatedAnnotation(DiagnosticPosition pos, Symbol s) {
         if (allowAnnotations &&
-            lint.isEnabled(LintCategory.DEP_ANN) &&
+            lint != null && lint.isEnabled(LintCategory.DEP_ANN) &&
             (s.flags() & DEPRECATED) != 0 &&
             !syms.deprecatedType.isErroneous() &&
             s.attribute(syms.deprecatedType.tsym) == null) {
