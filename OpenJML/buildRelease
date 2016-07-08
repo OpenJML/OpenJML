@@ -36,12 +36,12 @@ fi
 
 TEMPJAR=tempjars
 
-VERSION=`date +%Y%m%d`
-VERSION=`git rev-parse --abbrev-ref HEAD`
+DATE=`date +%Y%m%d`
+BRANCH=`git rev-parse --abbrev-ref HEAD`
 
 
-NAME=openjml-${VERSION}.tar.gz
-NAMEZ=openjml-${VERSION}.zip
+NAME=openjml-${BRANCH}-${DATE}.tar.gz
+NAMEZ=openjml-${BRANCH}-${DATE}.zip
 
 	echo Building ${NAME} in `pwd`
 
