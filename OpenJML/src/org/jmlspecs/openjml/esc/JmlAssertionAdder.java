@@ -5375,7 +5375,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         /*@ nullable */ 
         JCVariableDecl exceptionDeclCall = 
-                translatingJML ? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, methodDecl.sym, that.pos);
+                translatingJML && esc ? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, methodDecl.sym, that.pos);
         
         
         try {
