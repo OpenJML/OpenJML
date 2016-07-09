@@ -5375,7 +5375,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         /*@ nullable */ 
         JCVariableDecl exceptionDeclCall = 
-                translatingJML && esc? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, methodDecl.sym, that.pos);
+                translatingJML ? null : treeutils.makeVarDef(syms.exceptionType, exceptionNameCall, methodDecl.sym, that.pos);
         
         
         try {
@@ -6502,16 +6502,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         if (!checkBlock(temp)) Utils.print("BLOCKS DO NOT MATCH");
                                         break;
                                     case SIGNALS:
-                                        // FIXME - review this
+                                        // For signals (T exc) cond;
+                                        // this produces
+                                        //     if (exv instanceof T) { assume cond; }
                                         currentStatements = exsuresStats;
                                         ListBuffer<JCStatement> check8 = pushBlock();
                                         try {
                                             addStat(comment(clause));
 
                                             JCExpression ex = ((JmlMethodClauseSignals)clause).expression;
+                                            if (ex instanceof JmlSingleton) ex = treeutils.trueLit;
                                             JCVariableDecl vdo = ((JmlMethodClauseSignals)clause).vardef;
                                             Type vdtype = syms.exceptionType;
-                                            if (vdo != null && !treeutils.isFalseLit(ex)) {
+                                            if (vdo != null && !treeutils.isFalseLit(ex) && exceptionDeclCall != null) {
                                                 JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionDeclCall.sym);
                                                 JCExpression tc = M.at(vdo).TypeCast(vdo.type, exceptionId);
                                                 JCVariableDecl vd = treeutils.makeVarDef(vdo.type,vdo.name,vdo.sym.owner, esc ? exceptionId : tc);
@@ -6523,13 +6526,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             prevSource = log.useSource(clauseSource);
                                             JCExpression e = convertJML(ex, condition, false);
                                             log.useSource(prevSource);
+                                            addAssume(that,Label.SIGNALS,e,clause,clauseSource);
+
                                             ex = treeutils.trueLit;
-                                            if (vdo != null && !treeutils.isFalseLit(e)) {
+                                            if (vdo != null && !treeutils.isFalseLit(e) && exceptionDeclCall != null ) {
                                                 ex = M.at(clause).TypeTest(treeutils.makeIdent(clause.pos, exceptionDeclCall.sym),
                                                         treeutils.makeType(clause.pos, vdtype)).setType(syms.booleanType);
                                                 paramActuals.remove(vdo.sym);
                                             }
-                                            addAssume(that,Label.SIGNALS,e,clause,clauseSource);
                                             JCStatement st = M.at(clause).If(ex,popBlock(0,that,check8),null);
 
                                             addStat( wrapRuntimeException(clause, M.at(clause).Block(0,List.<JCStatement>of(st)), 
