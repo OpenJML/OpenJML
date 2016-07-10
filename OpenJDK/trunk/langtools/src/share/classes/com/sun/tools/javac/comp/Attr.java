@@ -852,7 +852,9 @@ public class Attr extends JCTree.Visitor {
         }
 
         VarSymbol v = tree.sym;
-        Lint lint = env.info.lint.augment(v.attributes_field, v.flags());
+        Lint lint = null;
+        if (v != null)
+        lint = env.info.lint.augment(v.attributes_field, v.flags());
         Lint prevLint = chk.setLint(lint);
 
         // Check that the variable's declared type is well-formed.
@@ -880,7 +882,7 @@ public class Attr extends JCTree.Visitor {
                     attribExpr(tree.init, initEnv, v.type);
                 }
             }
-            result = tree.type = v.type;
+            result = tree.type = (v != null) ? v.type : null;
             chk.validateAnnotations(tree.mods.annotations, v);
         }
         finally {

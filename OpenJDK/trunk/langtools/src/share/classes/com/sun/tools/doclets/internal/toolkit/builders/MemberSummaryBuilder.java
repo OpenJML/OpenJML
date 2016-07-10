@@ -52,17 +52,17 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
     /**
      * The visible members for the given class.
      */
-    private VisibleMemberMap[] visibleMemberMaps;
+    protected VisibleMemberMap[] visibleMemberMaps;
 
     /**
      * The member summary writers for the given class.
      */
-    private MemberSummaryWriter[] memberSummaryWriters;
+    protected MemberSummaryWriter[] memberSummaryWriters;
 
     /**
      * The type being documented.
      */
-    private ClassDoc classDoc;
+    protected ClassDoc classDoc;
 
     protected MemberSummaryBuilder(Configuration configuration) { //Cok - from private to protected
         super(configuration);
@@ -100,7 +100,7 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
         return builder;
     }
 
-    private void init(Object writer) throws Exception {
+    protected void init(Object writer) throws Exception {
         visibleMemberMaps =
                 new VisibleMemberMap[VisibleMemberMap.NUM_MEMBER_TYPES];
         for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {

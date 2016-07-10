@@ -47,29 +47,29 @@ public class MethodBuilder extends AbstractMemberBuilder {
      * The index of the current field that is being documented at this point
      * in time.
      */
-    private int currentMethodIndex;
+    protected int currentMethodIndex;
 
     /**
      * The class whose methods are being documented.
      */
-    private ClassDoc classDoc;
+    protected ClassDoc classDoc;
 
     /**
      * The visible methods for the given class.
      */
-    private VisibleMemberMap visibleMemberMap;
+    protected VisibleMemberMap visibleMemberMap;
 
     /**
      * The writer to output the method documentation.
      */
-    private MethodWriter writer;
+    protected MethodWriter writer;
 
     /**
      * The methods being documented.
      */
-    private List<ProgramElementDoc> methods;
+    protected List<ProgramElementDoc> methods;
 
-    private MethodBuilder(Configuration configuration) {
+    protected MethodBuilder(Configuration configuration) {
         super(configuration);
     }
 
