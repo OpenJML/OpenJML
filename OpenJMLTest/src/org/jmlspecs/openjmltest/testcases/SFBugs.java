@@ -94,6 +94,21 @@ public class SFBugs extends EscBase {
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5","-show","-method=Sqrt.sqrt","-subexpressions");
     }
     
+    @Test public void gitbug257() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "-esc", "-progress", "-logic=AUFNIRA");
+    }
+    
+    @Test public void gitbug260() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug260","test/gitbug260", "-cp", "test/gitbug260", "-esc", "-progress","-show");
+    }
+    
+    @Test public void gitbug431() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "-esc", "-progress");
+    }
+    
     @Test public void gitbug450() {
     	expectedExit = 0;
         helpTCF("test/gitbug450","test/gitbug450", "-cp", "test/gitbug450", "-esc", "-progress");
