@@ -250,10 +250,16 @@ public class Strongarm
         //
         // restore the old, handwritten specification (if we had one to being with)
         //
-        if(oldMethodClause!=null){
-            methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(methodDecl.cases.cases.head.clauses);
+        try {
+            if(oldMethodClause!=null){
+                methodDecl.cases.cases.head.clauses = oldMethodClause.appendList(methodDecl.cases.cases.head.clauses);
+            }
+        }catch(Exception e){
+            if(oldMethodClause!=null){
+                methodDecl.cases.cases.head.clauses = oldMethodClause;
+            }
+            
         }
-
         //
         // Debugging of inference (Before Delivering PC)
         //

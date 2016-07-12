@@ -253,7 +253,8 @@ public class BlockReader {
             
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
 
-            
+           // if(isPreconditionStmt(jmlStmt)){
+                
             if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
                 
                 if (verbose) {
@@ -856,6 +857,22 @@ public class BlockReader {
                     addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
                     debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
                 }
+                
+                if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+                    if(jmlStmt.toString().contains(Strings.newArrayVarString)){
+
+                        JCBinary binExpr = (JCBinary)jmlStmt.expression;
+                       
+                        if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
+                            
+                            JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
+                        
+                            addSubstitutionAtBlock(expr, mappings, block);
+                            debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
+                        }
+                    }
+                }
+                
             }else if(isVarDecl(stmt)){
                 JmlVariableDecl decl = (JmlVariableDecl)stmt;
                 addSubstitutionAtBlock(decl, mappings, block);

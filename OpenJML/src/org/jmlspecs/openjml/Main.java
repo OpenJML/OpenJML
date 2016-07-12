@@ -29,6 +29,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.strongarm.InferenceManager;
 
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.comp.JmlAttr;
@@ -290,7 +291,12 @@ public class Main extends com.sun.tools.javac.main.Main {
             newargs[2] = "org.jmlspecs.openjml.Main";
             method.invoke(null, new Object[] { newargs });
         } else {
-            System.exit(execute(args));
+            
+            if(args[0].equals("-noexit")){
+                InferenceManager.getInstance().exit = execute(args);
+            }else{            
+                System.exit(execute(args));
+            }
         }
     }
     

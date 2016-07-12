@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -15,11 +14,14 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
@@ -27,8 +29,10 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 /**
@@ -53,6 +57,11 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** The OpenJML utilities object */
         @NonNull Utils utils;
         
+        final protected JmlTreeUtils           treeutils;
+        
+        final protected JmlTree.Maker M;
+
+        
         /** true if compiler options are set to a verbose mode */
         boolean verbose;
         
@@ -69,7 +78,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public boolean persistContracts = false;
         
         /** a container to hold the inferred specs -- this will be saved/flushed between visits to classes **/
-        public List<JCMethodDecl> inferredSpecs = new ArrayList<JCMethodDecl>();
+        public ArrayList<JCMethodDecl> inferredSpecs = new ArrayList<JCMethodDecl>();
         
         public Path persistPath;
         
@@ -83,7 +92,11 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             this.syms = Symtab.instance(context);
             this.log = Log.instance(context);
             this.utils = Utils.instance(context);
-            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
+            this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);      
+            
+            this.treeutils = JmlTreeUtils.instance(context);
+            this.M = JmlTree.Maker.instance(context);
+            
             
             // verbose will print all the chatter
             this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
@@ -158,26 +171,97 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public void flushContracts(String source, JmlClassDecl node){
         
            
-            utils.progress(1,1,"Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
+            com.sun.tools.javac.util.List JDKList;
+
+            
+            utils.progress(1,1,"[STRONGARM] Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             Path writeTo = filenameForSource(source);
             
             // make the path
             writeTo.toFile().getParentFile().mkdirs();
             
-            utils.progress(1,1,"Persisting specs to: " + writeTo.toString()); 
+            utils.progress(1,1,"[STRONGARM] Persisting specs to: " + writeTo.toString()); 
 
             try {
+                
+//                List<JCTree> defs = null;
+//
+//                JCIdent im = M.Ident("org.jmlspecs.annotation.*");
+//                
+//                boolean addedImports = false;
+//                
+//                for(List<JCTree> stmts = node.toplevel.defs ; stmts.nonEmpty(); stmts = stmts.tail){
+//                    
+//                    if(stmts.head.toString().contains("org.jmlspecs.annotation")){
+//                        addedImports = true;
+//                    }
+//                    
+//                    if(stmts.head instanceof JmlClassDecl && addedImports == false){
+//                        if(defs == null){
+//                            defs = List.of((JCTree)M.JmlImport(im, false, false));
+//                        }else{
+//                            defs = defs.append(M.JmlImport(im, false, false));
+//                        }
+//                    }
+//             
+//                    if(defs == null){
+//                        defs = List.of(stmts.head);
+//                    }else{
+//                        defs = defs.append(stmts.head);
+//                    }
+//                
+//                }
+//                
+//                node.toplevel.defs = defs;
+//                
                 String spec = SpecPretty.write(node,  true);
                 
                 Files.write(writeTo, spec.getBytes());
-                
+                                
             } catch (IOException e1) {
                 log.error("jml.internal","Unable to write path " + writeTo.toString());
             }
             
             // flush the specs
             inferredSpecs.clear();
+        }
+        
+        private String addImports(String spec){
+            
+            StringBuffer buffer = new StringBuffer();
+            
+            boolean pastPackage = false;
+            
+            String[] parts = spec.split(System.getProperty("line.separator"));
+            
+            int idx = 0;
+            
+            for(;idx < parts.length; idx++){
+                
+                String s = parts[idx];
+                
+                if(s.trim().startsWith("package")){
+                    buffer.append(s).append(System.getProperty("line.separator"));
+                    buffer.append("import org.jmlspecs.annotation.*;").append(System.getProperty("line.separator"));
+                    break;
+                }
+                
+                if(s.trim().startsWith("import") && pastPackage == false){
+                    pastPackage = true;
+                    buffer.append("import org.jmlspecs.annotation.*;").append(System.getProperty("line.separator"));
+                    buffer.append(s).append(System.getProperty("line.separator"));
+                }
+                
+
+            }
+            
+            for(idx = idx+1; idx < parts.length; idx++){                
+                String s = parts[idx];
+                buffer.append(s).append(System.getProperty("line.separator"));
+            }
+            
+            return buffer.toString();
         }
         
         /** When we visit a method declaration, we translate and prove the method;
