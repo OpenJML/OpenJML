@@ -21,13 +21,12 @@ public class Fix {
     public final String[] debugArgs = new String[]{"-noexit", "-infer", "-infer-persist", "-progress", "-verbose"};
     public final String[] args;
     
+    private static final String persistLine = "[STRONGARM] Persisting specs to:";
     
-    
-    final protected Log                    log;
-    final protected Context                context;
+    final protected SimpleLog              log;
     public final boolean                   debug; 
     private int                            iteration;
-    
+    public int maxSpecs;
     public Fix(boolean debug, String[] additionalArgs){
         
         // remove internal args not recognized by openjml
@@ -39,10 +38,9 @@ public class Fix {
         args = Arrays.copyOf(debugArgs, debugArgs.length + additionalArgs.length);
         System.arraycopy(additionalArgs, 0, args, debugArgs.length, additionalArgs.length);
 
-        this.debug = true;
+        this.debug = debug;
         
-        this.context    = new Context();
-        this.log        = Log.instance(context);
+        this.log        = new SimpleLog(SimpleLog.Level.INFO);
         
     }
     
@@ -88,7 +86,7 @@ public class Fix {
         
        InferenceManager.getInstance().newRound();
 
-       System.out.println("[STRONGARM] Fixing iteration: " + InferenceManager.getInstance().round);
+       log.info("Fixing iteration: %d ", InferenceManager.getInstance().round);
 
         
        String classpath = System.getProperty("java.class.path");
@@ -114,39 +112,89 @@ public class Fix {
        
        List<String> jml = new ArrayList<String>();
        
+       StringBuffer output = new StringBuffer();
+       
        while ( ( line = reader.readLine()) != null) {
            if(debug)
                System.out.println(line);
+       
+           output.append(line);
            
-           if(line.contains("[STRONGARM] Persisting specs to:")){
+           if(line.contains(persistLine)){
                String[] splits = line.split(":");
                jml.add(splits[1].trim());
            }
         }
        
-       process.waitFor();
+       int exit = process.waitFor();
 
-       for(String j : jml){
-           InferenceManager.getInstance().logInference(j);           
-           System.out.println("[STRONGARM] Indexing Specification " + j);
+       if(exit!=0){
+           log.error(output.toString());
        }
        
-       System.out.println("[STRONGARM] DONE.");
+       
+       for(String j : jml){
+           InferenceManager.getInstance().logInference(j);           
+           log.info("[IDX SPEC] %s", j);
+       }
+       
+       printSummary();
+    }
+    
+    private void printSummary(){
+        log.info("Summary");
+        log.info("=======================");
+        
+        List<History> thisRound = InferenceManager.getInstance().filesChanged();
+        
+        if(thisRound.size() > maxSpecs){
+            maxSpecs = thisRound.size();
+        }
+        
+        if(InferenceManager.getInstance().round == 1){
+            log.info("Δ + %d Specifications", thisRound.size());
+        }else{
+        
+            List<History> lastRound = InferenceManager.getInstance().filesChanged(InferenceManager.getInstance().round-1);
+
+            if(lastRound.size() > thisRound.size()){
+                log.info("Δ  - %d Specifications From Last Round. This Round %d Specs Changed.", lastRound.size() - thisRound.size(), thisRound.size());    
+                
+            }else if(lastRound.size() < thisRound.size()){
+                log.info("Δ  + %d Specifications From Last Round. This Round %d Specs Changed.", thisRound.size() - lastRound.size(), thisRound.size());    
+                
+            }else{
+                log.info("Δ  +/- 0 Specifications From Last Round (no change). This Round %d Specs Changed.", thisRound.size());    
+            }
+
+            
+           
+            
+        }
+
+        List<History> changed = InferenceManager.getInstance().filesChanged();
+
+        for(History h : changed){
+            log.info("[CHANGED SPEC] %s (%s)", h.file, h.checksum);
+        }
+        
+        log.info("=======================");
+
+        
+        
 
     }
     
     public boolean hasChanges(){
         List<History> changed = InferenceManager.getInstance().filesChanged();
         
-        for(History h : changed){
-            System.out.println("[STRONGARM] Iteration " + InferenceManager.getInstance().round +" Changed File: " + h.file + " Checksum: " + h.checksum);
-        }
                 
         return changed.size() > 0;
     }
     
     public static void main(String args[]) throws Exception {
         
+        long ts1 = System.currentTimeMillis();
         
         Fix f = new Fix(containsArg(strongarmDebug, args), args);
         
@@ -155,5 +203,14 @@ public class Fix {
         while(f.hasChanges()){
             f.fix();
         }
+        
+        long ts2 = System.currentTimeMillis();
+        
+        f.log.info("DONE");
+        f.log.info("Completed %d Rounds in %d Seconds. %d Specifications Infererred.", 
+                InferenceManager.getInstance().round,
+                (ts2 - ts1) / 1000L,
+                f.maxSpecs
+                );
     }
 }

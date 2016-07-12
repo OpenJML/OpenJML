@@ -14,11 +14,11 @@ public class SimpleLog {
         this.level = level;
     }
 
-    public void write(String msg, String...args){
+    public void write(String msg, Object...args){
         System.out.println("[STRONGARM] " + String.format(msg, args));
     }
     
-    public void error(String msg, String... args){
+    public void error(String msg, Object... args){
         
         if(this.level.ordinal() <= Level.ERROR.ordinal() == false)
             return;
@@ -27,7 +27,7 @@ public class SimpleLog {
         
     }
     
-    public void info(String msg, String... args){
+    public void info(String msg, Object... args){
         if(this.level.ordinal() <= Level.INFO.ordinal() == false)
             return;
 
@@ -36,7 +36,7 @@ public class SimpleLog {
         
     }
     
-    public void debug(String msg, String... args){
+    public void debug(String msg, Object... args){
         if(this.level.ordinal() <= Level.DEBUG.ordinal() == false)
             return;
         

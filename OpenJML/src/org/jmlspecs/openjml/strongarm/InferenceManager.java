@@ -72,13 +72,13 @@ public class InferenceManager {
         return true;
     }
 
-    public List<History> filesChanged(){
-       
+
+    public List<History> filesChanged(int whichRound){
         // easy case -- everything changed
-        if(this.round==1){
+        if(whichRound==1){
             List<History> files = new ArrayList<History>();
             
-            for(History h : history.get(this.round)){
+            for(History h : history.get(whichRound)){
                 files.add(h);
             }
             
@@ -86,14 +86,14 @@ public class InferenceManager {
         }
         
         // sanity check 
-        if(sanityCheck(history.get(this.round), history.get(this.round-1))==false){
+        if(sanityCheck(history.get(whichRound), history.get(whichRound-1))==false){
             System.out.println("Sanity Check Failed!");
         }
 
         List<History> changed = new ArrayList<History>();
         
-        List<History> h1 = history.get(this.round-1);
-        List<History> h2 = history.get(this.round);
+        List<History> h1 = history.get(whichRound-1);
+        List<History> h2 = history.get(whichRound);
         
         
         for(History h : h1){
@@ -102,6 +102,11 @@ public class InferenceManager {
             }
         }
         return changed;        
+        
+    }
+    
+    public List<History> filesChanged(){
+        return filesChanged(this.round);
     }
     
     public void logInference(String file) {
