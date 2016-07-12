@@ -315,8 +315,8 @@ public class racnew extends RacBase {
                 "}"
                 ,"Exception in thread \"main\" org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:14: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
-                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:97)"
-                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)"
+                ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:99)"
+                ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)"
                 ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
