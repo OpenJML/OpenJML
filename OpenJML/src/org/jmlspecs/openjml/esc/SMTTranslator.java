@@ -968,6 +968,10 @@ public class SMTTranslator extends JmlTreeScanner {
         } else {
             if (javaTypeSymbols.add(t.tsym.toString())) {
                 javaTypes.add(t);
+                // We must record the bounds, but with caution since it can cause infinite recursion, in cases such as class Test<K extends Comparable<K>, O>
+                if (t.tag == TypeTags.TYPEVAR && !(t instanceof Type.WildcardType)) {
+                    addType( ((Type.TypeVar)t).getUpperBound() );
+                }
             }
             if (t.tsym.type.isParameterized()) { // true if is or should be parameterized
                 if (t.getTypeArguments().size() != 0) {
@@ -983,9 +987,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
                 javaParameterizedTypes.put(tt.toString(),tt);  // FIXME - only when fully a constant?
             }
-        }
-        if (t.tag == TypeTags.TYPEVAR && !(t instanceof Type.WildcardType)) {
-            addType( ((Type.TypeVar)t).getUpperBound() );
         }
     }
     

@@ -898,7 +898,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
-        //main.addOptions("-show","-method=B");
+       // main.addOptions("-show","-method=m2");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

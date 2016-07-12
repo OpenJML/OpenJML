@@ -2670,11 +2670,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
     }
 
-
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeCondition(DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
-        boolean nnull = true;
         JCExpression id;
         if (sym.owner instanceof MethodSymbol) {
             // Local variable
@@ -2683,25 +2681,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // Field
             id = treeutils.makeSelect(p, currentThisExpr, sym);
         }
+        return addNullnessAllocationTypeConditionId(id, pos, sym, isNonNull, instanceBeingConstructed);
+    }
+
+    /** Returns true iff the declaration is explicitly or implicitly non_null */
+    protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+        int p = pos.getPreferredPosition();
+        boolean nnull = true;
         if (!sym.type.isPrimitive()) {
             // e2 : id.isAlloc
             JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
-            // e3: id == null || ( \typeof(id) <: \type(d.type) && id instanceof \erasure('d.type')))
-            JCExpression e3;
-            if (sym.type.isPrimitive() || (sym.type.tag == TypeTags.ARRAY && ((Type.ArrayType)sym.type).getComponentType().isPrimitive() )) {
-                e3 = treeutils.makeDynamicTypeEquality(pos,
-                        convertCopy(id), 
-                        sym.type);
-            } else {
-                e3 = null;
-                for (Type t: parents(sym.type)) {
-                    JCExpression ee3 = treeutils.makeDynamicTypeInEquality(pos,
-                        convertCopy(id), 
-                        t);
-                    e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
-                }
-            }
-            
+
             Symbol owner = sym.owner;
             if (owner instanceof MethodSymbol) owner = owner.owner;
             boolean nn = isNonNull && !instanceBeingConstructed;
@@ -2711,15 +2701,60 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(pos,Label.NULL_CHECK,treeutils.makeNotNull(p, convertCopy(id)));
                 // assume id.isAlloc
                 addAssume(pos,Label.IMPLICIT_ASSUME,e2);
-                // assume type information
-                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
-                addTraceableComment(s);
             } else {
                 JCExpression e1 = treeutils.makeEqObject(p,id, treeutils.makeNullLiteral(p));
                 // assume id == null || id.isAlloc
                 addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeOr(p, e1, e2));
-                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3);
+            }
+
+            // assume type information
+            // e3: id == null || ( \typeof(id) <: \type(d.type) && id instanceof \erasure('d.type')))
+            JCExpression e3;
+            if (sym.type.isPrimitive()) {
+                e3 = treeutils.makeDynamicTypeEquality(pos,
+                        convertCopy(id), 
+                        sym.type);
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
                 addTraceableComment(s);
+            } else if (sym.type.tag == TypeTags.ARRAY ) {
+                Type compType = ((Type.ArrayType)sym.type).getComponentType();
+                if (compType.isPrimitive()) {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(id), 
+                            sym.type);
+                } else {
+                    e3 = treeutils.makeDynamicTypeInEquality(pos,
+                            convertCopy(id), 
+                            sym.type);
+                }
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+                
+                // FIXME - this should be in a recursive loop. Does it need nullness and allocation checks?
+                JCExpression typeofId = treeutils.makeTypeof(id);
+                if (compType.isPrimitive()) {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(typeofId), 
+                            compType);
+                } else {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(typeofId), 
+                            compType);
+                }
+            } else {
+                e3 = null;
+                for (Type t: parents(sym.type.tsym.type)) {
+                    JCExpression ee3 = treeutils.makeDynamicTypeInEquality(pos,
+                        convertCopy(id), 
+                        t);
+                    e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
+                }
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+            }
+            
+
+            {
             }
         } else {
             int tag = sym.type.tag;
