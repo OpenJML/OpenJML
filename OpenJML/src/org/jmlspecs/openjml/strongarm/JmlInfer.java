@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
@@ -185,36 +186,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 
             try {
                 
-//                List<JCTree> defs = null;
-//
-//                JCIdent im = M.Ident("org.jmlspecs.annotation.*");
-//                
-//                boolean addedImports = false;
-//                
-//                for(List<JCTree> stmts = node.toplevel.defs ; stmts.nonEmpty(); stmts = stmts.tail){
-//                    
-//                    if(stmts.head.toString().contains("org.jmlspecs.annotation")){
-//                        addedImports = true;
-//                    }
-//                    
-//                    if(stmts.head instanceof JmlClassDecl && addedImports == false){
-//                        if(defs == null){
-//                            defs = List.of((JCTree)M.JmlImport(im, false, false));
-//                        }else{
-//                            defs = defs.append(M.JmlImport(im, false, false));
-//                        }
-//                    }
-//             
-//                    if(defs == null){
-//                        defs = List.of(stmts.head);
-//                    }else{
-//                        defs = defs.append(stmts.head);
-//                    }
-//                
+//                if(importsAdded(node)==false){
+//                    addImports(node);
 //                }
-//                
-//                node.toplevel.defs = defs;
-//                
                 String spec = SpecPretty.write(node,  true);
                 
                 Files.write(writeTo, spec.getBytes());
@@ -227,42 +201,48 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             inferredSpecs.clear();
         }
         
-        private String addImports(String spec){
+        private boolean importsAdded(JmlClassDecl node){
             
-            StringBuffer buffer = new StringBuffer();
-            
-            boolean pastPackage = false;
-            
-            String[] parts = spec.split(System.getProperty("line.separator"));
-            
-            int idx = 0;
-            
-            for(;idx < parts.length; idx++){
+            for(List<JCTree> stmts = node.toplevel.defs ; stmts.nonEmpty(); stmts = stmts.tail){
                 
-                String s = parts[idx];
-                
-                if(s.trim().startsWith("package")){
-                    buffer.append(s).append(System.getProperty("line.separator"));
-                    buffer.append("import org.jmlspecs.annotation.*;").append(System.getProperty("line.separator"));
-                    break;
+                if(stmts.head instanceof JmlImport && ((JmlImport)stmts.head).qualid.toString().contains("org.jmlspecs.annotation.*")){
+                    return true;
                 }
-                
-                if(s.trim().startsWith("import") && pastPackage == false){
-                    pastPackage = true;
-                    buffer.append("import org.jmlspecs.annotation.*;").append(System.getProperty("line.separator"));
-                    buffer.append(s).append(System.getProperty("line.separator"));
-                }
-                
+            }
 
-            }
-            
-            for(idx = idx+1; idx < parts.length; idx++){                
-                String s = parts[idx];
-                buffer.append(s).append(System.getProperty("line.separator"));
-            }
-            
-            return buffer.toString();
+            return false;
         }
+
+        private void addImports(JmlClassDecl node){
+            
+            List<JCTree> defs = null;
+
+            JCIdent im = M.Ident("org.jmlspecs.annotation.*");
+
+            
+            for(List<JCTree> stmts = node.toplevel.defs ; stmts.nonEmpty(); stmts = stmts.tail){
+                                
+                if(stmts.head instanceof JmlClassDecl){
+                    if(defs == null){
+                        defs = List.of((JCTree)M.JmlImport(im, false, false));
+                    }else{
+                        defs = defs.append(M.JmlImport(im, false, false));
+                    }
+                }
+         
+                if(defs == null){
+                    defs = List.of(stmts.head);
+                }else{
+                    defs = defs.append(stmts.head);
+                }
+            
+            }
+            
+            node.toplevel.defs = defs;
+            
+            
+        }
+
         
         /** When we visit a method declaration, we translate and prove the method;
          * we do not walk into the method any further from this call, only through
