@@ -4,13 +4,18 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import javax.lang.model.element.ElementKind;
+
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 
 public class SpecPretty extends JmlPretty {
@@ -41,6 +46,25 @@ public class SpecPretty extends JmlPretty {
         
         return sw.toString();
     }
+    
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
+        
+        if(that instanceof JmlVariableDecl){
+            
+            JmlVariableDecl vd = (JmlVariableDecl)that;
+        
+            // ignore fields.
+            if (vd.sym.getKind() == ElementKind.FIELD){
+                return;
+            }
+        }
+          
+        
+        super.visitVarDef(that);
+        
+    }
+
 
   
 }

@@ -38,7 +38,7 @@ public class Fix {
         args = Arrays.copyOf(debugArgs, debugArgs.length + additionalArgs.length);
         System.arraycopy(additionalArgs, 0, args, debugArgs.length, additionalArgs.length);
 
-        this.debug = debug;
+        this.debug      = debug;
         
         this.log        = new SimpleLog(SimpleLog.Level.INFO);
         
@@ -158,13 +158,13 @@ public class Fix {
             List<History> lastRound = InferenceManager.getInstance().filesChanged(InferenceManager.getInstance().round-1);
 
             if(lastRound.size() > thisRound.size()){
-                log.info("Δ  - %d Specifications From Last Round. This Round %d Specs Changed.", lastRound.size() - thisRound.size(), thisRound.size());    
+                log.info("Δ  -%d Specifications From Last Round. This Round %d Specs Changed.", lastRound.size() - thisRound.size(), thisRound.size());    
                 
             }else if(lastRound.size() < thisRound.size()){
-                log.info("Δ  + %d Specifications From Last Round. This Round %d Specs Changed.", thisRound.size() - lastRound.size(), thisRound.size());    
+                log.info("Δ  +%d Specifications From Last Round. This Round %d Specs Changed.", thisRound.size() - lastRound.size(), thisRound.size());    
                 
             }else{
-                log.info("Δ  +/- 0 Specifications From Last Round (no change). This Round %d Specs Changed.", thisRound.size());    
+                log.info("Δ  +/-0 Specifications From Last Round (no change). This Round %d Specs Changed.", thisRound.size());    
             }
 
             
@@ -207,9 +207,9 @@ public class Fix {
         long ts2 = System.currentTimeMillis();
         
         f.log.info("DONE");
-        f.log.info("Completed %d Rounds in %d Seconds. %d Specifications Infererred.", 
+        f.log.info("Completed %d Rounds in %.2f Seconds. %d Specifications Infererred.", 
                 InferenceManager.getInstance().round,
-                (ts2 - ts1) / 1000L,
+                (double)(ts2 - ts1) / (double)1000L,
                 f.maxSpecs
                 );
     }

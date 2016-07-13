@@ -151,6 +151,7 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(newblock));
         }
         
+        
         BasicBlocker2 basicBlocker;
 
         BasicProgram program;
@@ -162,7 +163,6 @@ public class Strongarm
                 denestedSpecs, 
                 currentClassDecl, 
                 infer.assertionAdder);
-        
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
