@@ -187,8 +187,6 @@ public class Fix {
     
     public boolean hasChanges(){
         List<History> changed = InferenceManager.getInstance().filesChanged();
-        
-                
         return changed.size() > 0;
     }
     

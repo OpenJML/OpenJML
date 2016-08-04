@@ -339,7 +339,7 @@ public class SubstituteTree extends JmlTreeScanner{
         instance.currentReplacement = replace;
         
         if(instance.replace()==null) return null;
-        if(instance.replace().toString().startsWith("ASSERT")) return null;
+        //if(instance.replace().toString().startsWith("ASSERT")) return null;
         
         if(instance.replace()!=null && instance.with()!=null){
         
@@ -349,8 +349,15 @@ public class SubstituteTree extends JmlTreeScanner{
                     
                     if(instance.with().toString().equals("true")){
                         ((JCIdent) in).name = instance.treeutils.makeIdent(0, instance.with().toString(), in.type).name;
+                    }else{
+                        
+//                        if(instance.with() instanceof JCIdent == false){
+//                            in =                             
+//                        }
+                        
                     }
-                   
+                    
+                    
                     return instance.with();
                 }
             }else{

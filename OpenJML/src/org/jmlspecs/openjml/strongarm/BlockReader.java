@@ -240,6 +240,10 @@ public class BlockReader {
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
             }    
+            
+            if(stmt.toString().contains("while...")){
+                System.out.println("");               
+            }
 
             
             if(skip(stmt)){
@@ -607,6 +611,10 @@ public class BlockReader {
             return false;
         }
         
+        if(isLoopInvariant(jmlStmt)){
+            return false;
+        }
+        
         if(isDSA(jmlStmt)){
             return true;
         }
@@ -706,6 +714,14 @@ public class BlockReader {
         }
         return false;
     }
+    
+    private boolean isLoopInvariant(JmlStatementExpr expr){
+        if(expr.token==JmlToken.ASSERT && expr.label == Label.LOOP_INVARIANT){
+            return true;
+        }
+        return false;
+    }
+    
     
     private boolean isVarDecl(JCStatement stmt){
         if(stmt instanceof JmlVariableDecl){

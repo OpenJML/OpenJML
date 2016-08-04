@@ -241,7 +241,7 @@ public class Strongarm
         /// Perform cleanup
         ///
         {
-            cleanupContract(methodDecl, methodDecl.cases, reader);
+            cleanupContract(methodDecl, methodDecl.cases, reader, precondition);
         }
         ///
         ///
@@ -388,7 +388,7 @@ public class Strongarm
     
         
 
-    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader){
+    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition){
         boolean verbose        = infer.verbose;
 
         
@@ -432,7 +432,31 @@ public class Strongarm
             log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+        com.sun.tools.javac.util.List<JmlMethodClause> newContract = reader.postcondition.getClauses(null, treeutils, M);
+        
+        
+        JmlSpecificationCase cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract));
 
+        methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+        methodDecl.cases.decl = methodDecl;
+        methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+        
+        methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+        methodDecl.cases.cases.head.token = JmlToken.NORMAL_BEHAVIOR;
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS II" + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(cases));
+        }
+
+        
+        // SWAP
+        contract = cases;
         
 
         //
