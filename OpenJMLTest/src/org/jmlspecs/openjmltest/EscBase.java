@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 import javax.tools.JavaFileObject;
 
@@ -33,10 +34,11 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
+    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
+            "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
@@ -46,6 +48,7 @@ public abstract class EscBase extends JmlTestCase {
     static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
     		null,
             "z3_4_3", 
+            "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
