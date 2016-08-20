@@ -5,6 +5,11 @@
 package com.sun.tools.javac.comp;
 
 
+import static com.sun.tools.javac.code.Flags.FINAL;
+import static com.sun.tools.javac.code.Flags.HASINIT;
+import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.TypeTag.CLASS;
+
 import java.util.Collection;
 
 import javax.tools.JavaFileObject;
@@ -20,6 +25,7 @@ import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
@@ -32,6 +38,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Position;
 
 /** 
  * This class extends Enter, which has the job of creating symbols for all the
@@ -194,7 +201,9 @@ public class JmlEnter extends Enter {
         }
 
         jmltree.topLevelEnv = null;
-        if (jmltree.specsCompilationUnit != null && jmltree != jmltree.specsCompilationUnit) {
+        if (jmltree.specsCompilationUnit == null) {
+            specTopEnv = null;
+        } else {
             JmlCompilationUnit specscu = jmltree.specsCompilationUnit;
             for (JCTree t: specscu.defs) {
                 if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;
@@ -216,8 +225,6 @@ public class JmlEnter extends Enter {
             specscu.packge.complete(); // Find all classes in package.
             specTopEnv = topLevelEnv(specscu);
             specscu.topLevelEnv = specTopEnv;
-        } else {
-            specTopEnv = null;
         }
 
         // Note that this permanently adds model classes to the Java compilation unit
@@ -244,7 +251,7 @@ public class JmlEnter extends Enter {
         // Then do all the regular Java registering of packages and types
         super.visitTopLevel(jmltree);
 
-        if (jmltree.specsCompilationUnit != null) {
+        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
 
             // Checking that the specs and the java source declare the same package 
             JmlCompilationUnit specscu = jmltree.specsCompilationUnit; 
@@ -255,7 +262,6 @@ public class JmlEnter extends Enter {
                 error(jmltree.getSourceFile(), jmltree.getPackageName().pos,"jml.associated.decl.cf",s);
             }
             specscu.packge = jmltree.packge;
-            
         }
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
@@ -392,7 +398,7 @@ public class JmlEnter extends Enter {
         
         JmlClassDecl jmltree = (JmlClassDecl)that;
         
-        // Propagate the reverence to the CompilationUnit to nested classes
+        // Propagate the reference to the CompilationUnit to nested classes
         for (JCTree t: that.defs) {
             if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree.toplevel;
         }
@@ -439,6 +445,9 @@ public class JmlEnter extends Enter {
                     log.error("jml.internal", "Unexpected null class symbol after processing class " + that.name);
                     return;
                 }
+                
+
+// FIXME _ do need to check the explicit supertype and interfaces and throws type names
             } else {
                 that.sym = cs;
                 Env<AttrContext> localEnv = classEnv(that, env);

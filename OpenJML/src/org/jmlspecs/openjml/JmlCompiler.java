@@ -323,7 +323,11 @@ public class JmlCompiler extends JavaCompiler {
             loadSpecsForBinary(env, (ClassSymbol)t.tsym);
         }
 
-        if (true || !csymbol.getTypeParameters().isEmpty()) {
+//        if (!csymbol.flatName().toString().equals("java.lang.Object")) {
+//            ((JmlEnter)enter).recordEmptySpecs(csymbol);
+//            return; // FIXME - specs with type parameters not working correctly yet
+//        }
+        if (!csymbol.getTypeParameters().isEmpty()) {
             ((JmlEnter)enter).recordEmptySpecs(csymbol);
             return; // FIXME - specs with type parameters not working correctly yet
         }
@@ -381,6 +385,7 @@ public class JmlCompiler extends JavaCompiler {
             JmlCompilationUnit speccu = binaryEnterTodo.remove();
             nestingLevel++;
             ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(speccu);
+            ((JmlEnter)enter).binaryEnvs.add(speccu);
             nestingLevel--;
         }
     }

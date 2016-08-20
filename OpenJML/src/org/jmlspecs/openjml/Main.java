@@ -317,7 +317,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (args != null) {
             for (String a: args) {
                 if (jmldocOption.equals(a)) {
-                    return org.jmlspecs.openjml.jmldoc.Main.execute(args);
+                    return 4; // FIXME  - org.jmlspecs.openjml.jmldoc.Main.execute(args);
                 }
             }
         }

@@ -241,7 +241,17 @@ public class JmlResolve extends Resolve {
                  return stemp;
              }
          }
+         
+
          Symbol s = super.loadClass(env, name);
+         if (s instanceof ClassSymbol) {
+             Type ts = ((ClassSymbol)s).getSuperclass();
+             if (ts != null && ts != Type.noType) loadClass(env,((ClassSymbol)s).getSuperclass().tsym.flatName());
+             for (Type t: ((ClassSymbol)s).getInterfaces()) {
+                 loadClass(env, t.tsym.flatName());
+             }
+         }
+
          
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists

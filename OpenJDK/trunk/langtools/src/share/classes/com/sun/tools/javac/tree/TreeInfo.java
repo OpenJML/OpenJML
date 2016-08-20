@@ -524,6 +524,7 @@ public class TreeInfo {
         if (mapPos != Position.NOPOS)
             return mapPos;
 
+        if (tree.getTag() == null) return Position.NOPOS; // FIXME: DO better at setting positions
         switch(tree.getTag()) {
             case BITOR_ASG: case BITXOR_ASG: case BITAND_ASG:
             case SL_ASG: case SR_ASG: case USR_ASG:

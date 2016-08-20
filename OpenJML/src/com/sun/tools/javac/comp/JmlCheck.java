@@ -114,7 +114,7 @@ public class JmlCheck extends Check {
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req) {
-        if (found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
+        if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 found.toString().equals("org.jmlspecs.utils.IJMLTYPE[]") &&
                 req.toString().equals("\\TYPE[]")) {
             // FIXME - can we do the above without converting to String

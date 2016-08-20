@@ -79,6 +79,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCSkip;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Assert;
@@ -522,9 +523,9 @@ public class JmlParser extends JavacParser {
                     for (JCStatement s: stats) {
                         if (s instanceof JCVariableDecl) {
                             utils.setJML(((JCVariableDecl)s).mods);
-                        } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement) {
+                        } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
                             // OK
-                        } else {
+                        } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
                             jmlerror(s.pos, "jml.expected.decl.or.jml");
                         }
                     }
@@ -1080,7 +1081,10 @@ public class JmlParser extends JavacParser {
                     tree = null;
                 }
                 if (tree != null) typeSpecs.decls.append(tcd);
-                //if (tree != null) newlist.append(tree);
+                
+                // All the declarations need to be kept in the class declaration, 
+                // in the order in which they are declared
+                if (tree != null) newlist.append(tree);
 
             } else if (tree instanceof JmlTypeClause) {
                 if (tree instanceof JmlTypeClauseInitializer)

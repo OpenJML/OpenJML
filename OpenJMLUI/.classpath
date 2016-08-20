@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry excluding="org/jmlspecs/unfinished/**" kind="src" path="src-runtime"/>
-	<classpathentry kind="src" path="src-openjml"/>
+	<classpathentry excluding="org/jmlspecs/openjml/jmldoc/**" kind="src" path="src-openjml"/>
 	<classpathentry kind="src" path="src-openjdk"/>
 	<classpathentry kind="src" path="src-annotation"/>
 	<classpathentry exported="true" kind="lib" path="bin" sourcepath="bin"/>

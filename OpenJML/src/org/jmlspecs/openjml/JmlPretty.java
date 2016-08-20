@@ -604,6 +604,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     public void visitJmlGroupName(JmlGroupName that) {
         try { 
+        	// FIXME - this was changed - is it right?
             if (that.selection != null) {
                 that.selection.accept(this); 
                 print(".");

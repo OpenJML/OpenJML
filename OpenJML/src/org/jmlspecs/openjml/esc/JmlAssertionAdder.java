@@ -7976,20 +7976,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Java primitive to Java primitive - must be a numeric cast
                 if (origType.getTag().ordinal() > that.type.getTag().ordinal()) switch (origType.getTag()) {
                     case LONG:
-                        emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
-                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
-                        emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
-                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
-                                arg);
-                        break;
                     case INT:
                     case SHORT:
                     case CHAR:
                     case BYTE:
                         emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
-                                treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)maxValue(that.pos,that.type.getTag()))));
+                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
                         emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
-                                treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)minValue(that.pos,that.type.getTag()))),
+                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
                                 arg);
                         break;
                     default:

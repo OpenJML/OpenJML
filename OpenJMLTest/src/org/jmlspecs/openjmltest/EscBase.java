@@ -33,7 +33,7 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(1800000); // 30 minutes per test
+    @Rule public Timeout timeout = Timeout.seconds(1800); // 30 minutes per test
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 

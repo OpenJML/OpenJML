@@ -616,7 +616,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         for (JCTree specsMemberDecl: specsDecl.defs) {
             if (specsMemberDecl instanceof JmlVariableDecl) {
                 JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
-                    boolean ok = matchAndSetFieldSpecs(jtree,jtree.sym, specsVarDecl, matches, jtree == specsDecl);
+                    boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
                     if (ok) newlist.add(specsVarDecl);
             } else if (specsMemberDecl instanceof JmlMethodDecl) {
                 JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
@@ -2880,6 +2880,26 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         c.flags_field |= UNATTRIBUTED;
         attr.addTodo(c);
         Env<AttrContext> classenv = enter.getEnv(specs.sym);
+        
+        {
+            ClassSymbol cs = c;
+            ClassType ct = (ClassType)c.type;
+            // enter symbols for 'this' into current scope.
+            VarSymbol thisSym =
+                    new VarSymbol(FINAL | HASINIT, names._this, cs.type, cs);
+            thisSym.pos = Position.FIRSTPOS;
+            env.info.scope.enter(thisSym);
+            // if this is a class, enter symbol for 'super' into current scope.
+            if ((cs.flags_field & INTERFACE) == 0 &&
+                    ct.supertype_field.hasTag(CLASS)) {
+                VarSymbol superSym =
+                        new VarSymbol(FINAL | HASINIT, names._super,
+                                ct.supertype_field, cs);
+                superSym.pos = Position.FIRSTPOS;
+                env.info.scope.enter(superSym);
+            }
+        }
+
         for (JCTree t: specs.defs) {
             env = prevenv;
             if (t instanceof JmlMethodDecl) {
@@ -2908,6 +2928,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     }
                     if (md.restype != null) {
                         attr.attribType(md.restype, env);
+                    }
+                    if (md.thrown != null) {
+                        for (JCExpression th: md.thrown) attr.attribType(th, env);
                     }
                     // FIXME - don't want an error message - just an indication of whether such a method exists
                     Scope.Entry e = c.members().lookup(md.name);

@@ -226,7 +226,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#jmldoc(String[])
      */
     public int jmldoc(@NonNull String... args) {
-        return org.jmlspecs.openjml.jmldoc.Main.execute(args);
+        return 4; // FIXME - org.jmlspecs.openjml.jmldoc.Main.execute(args);
     }
     
     @Override
