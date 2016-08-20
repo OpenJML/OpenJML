@@ -38,12 +38,12 @@ TEMPJAR=tempjars
 
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
-
+VERSION=${DATE}
 
 NAME=openjml-${BRANCH}-${DATE}.tar.gz
 NAMEZ=openjml-${BRANCH}-${DATE}.zip
 
-	echo Building ${NAME} in `pwd`
+	echo Building ${NAME}, version ${VERSION} in `pwd`
 
 ##### Build jmlruntime.jar
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
