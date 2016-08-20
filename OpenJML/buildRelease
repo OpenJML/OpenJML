@@ -38,7 +38,8 @@ TEMPJAR=tempjars
 
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
-VERSION=${DATE}
+##BRANCH=`git branch | grep '*' | sed 's/* //'`
+if [ '${BRANCH}' -eq 'master' ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
 NAME=openjml-${BRANCH}-${DATE}.tar.gz
 NAMEZ=openjml-${BRANCH}-${DATE}.zip
