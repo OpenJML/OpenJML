@@ -461,10 +461,8 @@ public abstract class JmlTestCase {
             if (diffs == null) break;
         }
         if (diffs != null) {
-            try {
-                BufferedWriter b = new BufferedWriter(new FileWriter(actualLocation));
+            try (BufferedWriter b = new BufferedWriter(new FileWriter(actualLocation));) {
                 b.write(output);
-                b.close();
             } catch (IOException e) {
                 fail("Failure writing output");
             }

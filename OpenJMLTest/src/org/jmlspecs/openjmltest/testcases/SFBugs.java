@@ -121,12 +121,17 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug458() {
     	expectedExit = 0;
-        helpTCF("test/gitbug458","test/gitbug458", "-cp", "test/gitbug458", "-esc", "-verbose","-exclude=alloc.Allocator.alloc","-show","-method=alloc.AllocatorTest.testAllocLarge","-counterexample");
+        helpTCF("test/gitbug458","test/gitbug458", "-cp", "test/gitbug458", "-esc");
     }
     
     @Test public void gitbug458a() {
     	expectedExit = 0;
-        helpTCF("test/gitbug458a","test/gitbug458a", "-cp", "test/gitbug458a", "-esc", "-verbose","-exclude=alloc.Allocator.alloc","-show","-method=alloc.AllocatorTest.testAllocLarge","-counterexample");
+        helpTCF("test/gitbug458a","test/gitbug458a", "-cp", "test/gitbug458a", "-esc");
+    }
+    
+    @Test public void gitbug458b() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug458b","test/gitbug458b", "-cp", "test/gitbug458b", "-esc");
     }
     
     

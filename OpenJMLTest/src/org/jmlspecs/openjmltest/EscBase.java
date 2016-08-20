@@ -36,24 +36,17 @@ public abstract class EscBase extends JmlTestCase {
     @Rule public TestName testname = new TestName();
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
     
-    static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
+    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
+    		null,
             "z3_4_3", 
-            "z3_4_4", 
+ //           "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 
             });
         
-    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
-    		null,
-            "z3_4_3", 
-            "z3_4_4", 
- //           "cvc4",
-            //"yices2",
- //             "yices", 
- //            "simplify" 
-            });
+    static public java.util.List<String> solvers = solversWithNull.subList(1, solversWithNull.size());
         
     static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
             new String[]{"-minQuant"}, 

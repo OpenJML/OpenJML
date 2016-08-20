@@ -80,12 +80,6 @@ public class MethodProverSMT {
 
     // OPTIONS SET WHEN prover() IS CALLED
     
-    /** true if counterexample information is desired - set when prove() is called */
-    protected boolean showCounterexample;
-    
-    /** true if counterexample trace information is desired - set when prove() is called */
-    protected boolean showTrace;
-    
     /** true if subexpression trace information is desired 
      *  - set when prove() is called */
     protected boolean showSubexpressions;
@@ -194,8 +188,8 @@ public class MethodProverSMT {
         this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
-        this.showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
-        this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
+        boolean showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
+        boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
         log.useSource(methodDecl.sourcefile);
 
@@ -484,8 +478,25 @@ public class MethodProverSMT {
 
                     if (print) log.noticeWriter.println("Some assertion is not valid");
 
+                    Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
+                    BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
+                    tracer = tracerFactory.makeTracer(context,smt,solver,cemap,jmap);
+
+                    // Report JML-labeled values and the path to the failed invariant
+                    {
+                        tracer.appendln(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym));
+                        if (utils.jmlverbose  >= Utils.JMLVERBOSE) tracer.appendln("Constants");
+                        populateConstantMap(smt, solver, cemap, smttrans);
+                    }
+                    path = new ArrayList<IProverResult.Span>();
+                    JCExpression pathCondition = reportInvalidAssertion(
+                            program,smt,solver,methodDecl,cemap,jmap,
+                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
+                    
+                    if (showTrace) log.noticeWriter.println(tracer.text());
+
                     // FIXME - decide how to show counterexamples when there is no tracing
-                    if (showCounterexample && false) {
+                    if (showCounterexample) {
                         log.noticeWriter.println("\nCOUNTEREXAMPLE");
                         for (VarSymbol v: basicBlocker.premap.keySet()) {
                             Name n = basicBlocker.premap.getName(v);
@@ -501,22 +512,6 @@ public class MethodProverSMT {
                         log.noticeWriter.println(Strings.empty);
                     }
                     
-                    Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
-                    BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
-                    tracer = tracerFactory.makeTracer(context,smt,solver,cemap,jmap);
-                    // Report JML-labeled values and the path to the failed invariant
-                    {
-                        tracer.appendln(JmlTree.eol + "TRACE of " + utils.qualifiedMethodSig(methodDecl.sym));
-                        if (utils.jmlverbose  >= Utils.JMLVERBOSE) tracer.appendln("Constants");
-                        populateConstantMap(smt, solver, cemap, smttrans);
-                    }
-                    path = new ArrayList<IProverResult.Span>();
-                    JCExpression pathCondition = reportInvalidAssertion(
-                            program,smt,solver,methodDecl,cemap,jmap,
-                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap);
-                    
-                    if (showTrace) log.noticeWriter.println(tracer.text());
-
                     if (pathCondition != null) {
                         Counterexample ce = new Counterexample(tracer.text(),cemap,path);
                         pr.add(ce); // TODO - make more abstract

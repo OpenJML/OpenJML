@@ -1037,6 +1037,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
+    	main.addOptions("-show","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

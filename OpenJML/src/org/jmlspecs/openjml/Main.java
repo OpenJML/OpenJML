@@ -693,7 +693,13 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (file.isFile()) {
                     String ss = file.toString();
-                    if (utils.hasValidSuffix(ss)) files.add(ss);
+                    if (utils.hasValidSuffix(ss)) {
+//                        if (ss.endsWith(".jml") ) {
+//                            
+//                        } else {
+                            files.add(ss);
+//                        }
+                    }
                 }
             }
         } else {

@@ -750,6 +750,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     Map<TypeSymbol,Type> typevarMapping;
     
+    protected boolean assumingPostConditions;
+    
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
         int prevAssumeCheckCount = assumeCheckCount;
@@ -773,6 +775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean isModel = isModel(pmethodDecl.sym);
         currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym,false);
         if (!isModel) addAxioms(-1,null);
+        assumingPostConditions = true;
 
         typevarMapping = typemapping(pclassDecl.type, null, null);
         
@@ -2973,9 +2976,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCFieldAccess fa = treeutils.makeSelect(pos, convertCopy(currentThisExpr), isAllocSym);
                 addAssume(methodDecl,Label.IMPLICIT_ASSUME,fa);
 
-                fa = treeutils.makeSelect(pos, convertCopy(currentThisExpr), allocSym);
-                JCExpression comp = treeutils.makeBinary(pos,JCTree.EQ,treeutils.inteqSymbol,fa,treeutils.makeIntLiteral(pos, 0));
-                addAssume(methodDecl,Label.IMPLICIT_ASSUME,comp);
             }
 
         }
@@ -3227,6 +3227,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
+        assumingPostConditions = false;
         
         JCMethodDecl methodDecl = this.methodDecl;
         boolean isConstructor = methodDecl.sym.isConstructor();
@@ -3708,7 +3709,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         paramActuals = null;
         clearInvariants();
         currentStatements = savedCurrentStatements;
-        
+        assumingPostConditions = true;
+
     }
     
     protected void addInstanceInitialization() {
@@ -5740,7 +5742,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 stype.type = jmltypes.TYPE;
                 addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeEqObject(that.pos, typeof, stype));
                 
-                if (resultExpr != null && !resultExpr.type.isPrimitive()) newAllocation1(that,resultExpr); // FIXME - should have an JCIdent?
+                if (resultExpr != null && !resultExpr.type.isPrimitive()) {
+                    newAllocation1(that,resultExpr); // FIXME - should have an JCIdent?
+                    JCFieldAccess fa = treeutils.makeSelect(that.pos, resultExpr, allocSym);
+                    JCBinary e = treeutils.makeEquality(that.pos, fa, treeutils.makeIntLiteral(that.pos, allocCounter++));
+                    addAssume(that,Label.IMPLICIT_ASSUME,e);
+                }
             }
             
             // FIXME - comment?
@@ -6780,11 +6787,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     protected void newAllocation2(DiagnosticPosition pos, JCIdent resultId) {
         int p = pos.getPreferredPosition();
-        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), allocSym);
-        JCExpressionStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeIntLiteral(p, ++allocCounter));
-        addStat( st );
-        fa = treeutils.makeSelect(p, convertCopy(resultId), isAllocSym);
-        st = treeutils.makeAssignStat(p, fa, treeutils.makeBooleanLiteral(p,true));
+//        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), allocSym);
+//        JCExpressionStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeIntLiteral(p, ++allocCounter));
+//        addStat( st );
+//        JCExpression e = treeutils.makeEquality(p,  fa,  treeutils.makeIntLiteral(p, ++allocCounter) );
+//        addAssume(pos,Label.IMPLICIT_ASSUME,e);
+        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), isAllocSym);
+        JCStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeBooleanLiteral(p,true));
         addStat( st );
 
     }
@@ -6909,6 +6918,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected void addArrayElementAssumptions(DiagnosticPosition p, JCIdent array, ListBuffer<JCExpression> dims, ListBuffer<JCExpression> elems) {
         JCExpression size = null;
+        int pos = p.getPreferredPosition();
         if (dims != null && dims.length() > 0) { 
             size = dims.first();
         } else if (elems != null) {
@@ -6916,9 +6926,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else {
             // ERROR
         }
+        addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
         if (elems != null) {
             Type ctype = ((Type.ArrayType)array.type).getComponentType();
-            addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
             newAllocation(array,array);
             if (size != null) {
                 addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
@@ -6938,23 +6948,67 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         } else {
             if (dims.first() instanceof JCLiteral) {
-                JCExpression e = createNullInitializedArray(array.type, dims.toList());
-                JCBinary b = treeutils.makeEquality(e.pos,array,e);
-                addAssume(array,Label.IMPLICIT_ASSUME,b);
+//                JCExpression e = createNullInitializedArray(array.type, dims.toList());
+//                JCBinary b = treeutils.makeEquality(e.pos,array,e);
+//                addAssume(array,Label.IMPLICIT_ASSUME,b);
             } else {
-                addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
                 newAllocation(array,array);
                 if (size != null) {
                     addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
                 }
                 // FIXME - needs lots more implementation - quantified expressions
             }
+
+//            addAssume(array,Label.NULL_CHECK,treeutils.makeNeqObject(array.pos, array, treeutils.nullLit));
+//            newAllocation(array,array);
+//            if (size != null) {
+//                addAssume(array,Label.IMPLICIT_ASSUME,treeutils.makeEquality(array.pos,treeutils.makeLength(array,convertCopy(array)),convert(size)));
+//            }
         }
         JCExpression e3 = treeutils.makeDynamicTypeEquality(p,
                     array, 
                     array.type);
 
         addAssume(p,Label.IMPLICIT_ASSUME,e3);
+
+        if (true) {
+            JCFieldAccess fa = treeutils.makeSelect(pos, convertCopy(array), allocSym);
+            JCExpression e = treeutils.makeEquality(pos,  fa,  treeutils.makeIntLiteral(pos, ++allocCounter) );
+            addAssume(p,Label.IMPLICIT_ASSUME,e);
+
+            if (dims.first() instanceof JCLiteral) {
+                e = createNullInitializedArray(array.type, dims.toList());
+                JCBinary b = treeutils.makeEquality(e.pos,array,e);
+                addAssume(array,Label.IMPLICIT_ASSUME,b);
+            } else {
+                int i = 0;
+                ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
+                JCExpression range = null;
+                JCExpression expr = convertCopy(array);
+                Type ct = array.type;
+                for (JCExpression ex: dims) {
+                    JCVariableDecl vd = treeutils.makeIntVarDef(names.fromString("i"+ i), null, null);
+                    decls.add(vd);
+                    JCExpression ee = treeutils.makeBinary(pos, JCBinary.LE, treeutils.intleSymbol,  treeutils.makeIntLiteral(pos,  0), treeutils.makeIdent(pos, vd.sym));
+                    JCExpression eee = treeutils.makeBinary(pos, JCBinary.LT, treeutils.intltSymbol,  treeutils.makeIdent(pos, vd.sym), convertCopy(ex));
+                    ee = treeutils.makeAnd(pos, ee, eee);
+                    range = range == null ? ee : treeutils.makeAnd(pos, range, ee);
+                   // expr = M.at(p).Indexed(expr, treeutils.makeIdent(pos, vd.sym));
+                    JmlBBArrayAccess aa = new JmlBBArrayAccess(null,expr, treeutils.makeIdent(pos, vd.sym)); // FIXME - switch to factory
+                    aa.setPos(p.getPreferredPosition());
+                    ct = ((Type.ArrayType)ct).getComponentType();
+                    aa.setType(ct);
+                    expr = aa;
+                    i++;
+                }
+                if (decls.size() > 0) {
+                    JCExpression q = M.at(p).JmlQuantifiedExpr(JmlToken.BSFORALL, decls.toList(), range, treeutils.makeEquality(pos,  expr,  treeutils.makeZeroEquivalentLit(pos, ct)));
+                    q.setType(treeutils.falseLit.type);
+                    addAssume(array, Label.IMPLICIT_ASSUME, q);
+                }
+            }
+
+        }
     }
     
     protected JCExpression createNullInitializedArray(Type type, List<JCExpression> dims) {
@@ -10475,16 +10529,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             {
                 if (rac) throw new JmlNotImplementedException(that,that.token.internedName());// FIXME
                 else {
-                    JCExpression e = convertJML(that.args.get(0));
-                    if (localVariables.isEmpty()) e = newTemp(e); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
+                    int p = that.pos;
+                    JCExpression arg = convertJML(that.args.get(0));
+                    if (localVariables.isEmpty()) arg = newTemp(arg); // We make a temp variable so that the (converted) argument is not captured by the \old, except in a quantified expression
                     // FIXME _ I don't think this works properly if no temp is allocated
-                    JCFieldAccess fa = isAllocated(that,e);
+                    JCFieldAccess fa = isAllocated(that,arg);
                     JCExpression n = treeutils.makeOld(that.pos,fa,preLabel);
                     JCExpression prev = treeutils.makeNot(that.pos, n);
-                    fa = isAllocated(that,convertCopy(e));
-                    result = eresult = treeutils.makeAnd(that.pos, prev, fa);
-                    e = treeutils.makeNeqObject(that.pos, e, treeutils.nullLit);
-                    result = eresult = treeutils.makeAnd(that.pos, e, eresult);
+                    fa = isAllocated(that,convertCopy(arg));
+                    JCExpression ee = treeutils.makeAnd(that.pos, prev, fa);
+                    JCExpression e = treeutils.makeNeqObject(that.pos, arg, treeutils.nullLit);
+                    ee = treeutils.makeAnd(that.pos, e, ee);
+                    
+                    fa = treeutils.makeSelect(p, convertCopy(arg), allocSym);
+                    if (assumingPostConditions) {
+                        e = treeutils.makeEquality(p,  fa,  treeutils.makeIntLiteral(p, ++allocCounter) );
+                    } else {
+                        e = treeutils.makeBinary(p, JCTree.GT, treeutils.intgtSymbol, fa,  treeutils.makeIntLiteral(p, 0) );
+                    }
+                    result = eresult = treeutils.makeAnd(that.pos, ee, e);
+      
                     }
                 break;
             }
