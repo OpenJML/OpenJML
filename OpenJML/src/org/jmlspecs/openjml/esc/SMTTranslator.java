@@ -964,7 +964,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if (javaTypeSymbols.add(t.tsym.toString())) {
                 javaTypes.add(t);
                 // We must record the bounds, but with caution since it can cause infinite recursion, in cases such as class Test<K extends Comparable<K>, O>
-                if (t.tag == TypeTags.TYPEVAR && !(t instanceof Type.WildcardType)) {
+                if (t.getTag()  == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
                     addType( ((Type.TypeVar)t).getUpperBound() );
                 }
             }
@@ -983,9 +983,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 javaParameterizedTypes.put(tt.toString(),tt);  // FIXME - only when fully a constant?
             }
         }
-        if (t.getTag() == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
-            addType( ((Type.TypeVar)t).getUpperBound() );
-        }
+//        if (t.getTag() == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
+//            addType( ((Type.TypeVar)t).getUpperBound() );
+//        }
     }
     
     /** Converts a BasicBlock into SMTLIB, adding commands into the

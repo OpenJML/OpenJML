@@ -65,6 +65,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMaps;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseMonitorsFor;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 
 import com.sun.tools.javac.code.*;

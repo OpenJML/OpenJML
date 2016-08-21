@@ -10,7 +10,6 @@ import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
-import static com.sun.tools.javac.code.Flags.asFlagSet;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;

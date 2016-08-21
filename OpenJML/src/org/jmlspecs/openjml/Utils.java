@@ -806,6 +806,20 @@ public class Utils {
         }
     }
     
+    /**
+     * Checks to see if two JavaFileObjects point to the same location.
+     * In some cases, it's a bad idea to use JavaFileObject.equals, because copying a JavaFileObject can change the path name, even if they point to the same canonical path.
+     * This function exists for where JavaFileObject.equals may fail.
+     */
+    public static boolean ifSourcesEqual(JavaFileObject jfo1, JavaFileObject jfo2) {
+        try {
+            File file1 = new File(jfo1.getName());
+            File file2 = new File(jfo2.getName());
+            return file1.getCanonicalPath().equals(file2.getCanonicalPath());
+        } catch (IOException e) {}
+        return jfo1.equals(jfo2);
+    }
+
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = log.useSource(source);

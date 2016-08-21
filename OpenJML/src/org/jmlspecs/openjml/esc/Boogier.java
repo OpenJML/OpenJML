@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
+import org.jmlspecs.openjml.esc.BoogieProgram;
 import org.jmlspecs.openjml.esc.BoogieProgram.BoogieBlock;
 
 import com.sun.tools.javac.code.Flags;
