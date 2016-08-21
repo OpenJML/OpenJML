@@ -68,7 +68,7 @@ public class Dependencies {
     
     /** Record that item a needs to be recompiled if b changes */
     public void dependsOn(@NonNull JavaFileObject a, @NonNull JavaFileObject b) {
-        if (a.equals(b)) return;
+        if (Utils.ifSourcesEqual(a, b)) return;
         Set<JavaFileObject> t = dependsOnMap.get(b);
         if (t == null) dependsOnMap.put(b, t = new HashSet<JavaFileObject>());
         t.add(a);

@@ -1,0 +1,8 @@
+Proving methods in ArrList
+Starting proof of ArrList.ArrList(int) with prover !!!!
+test\gitbug450b\ArrList.java:11: warning: Validity is unknown - no model available method ArrList.<init> -  (possible timeout): (error "line 2028 column 18: model is not available")
+    public ArrList(int a) {
+           ^
+Completed proof of ArrList.ArrList(int) with prover !!!! - UNKNOWN
+Completed proving methods in ArrList
+1 warning

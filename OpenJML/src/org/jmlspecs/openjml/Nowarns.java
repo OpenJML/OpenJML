@@ -106,7 +106,7 @@ public class Nowarns {
             } else if (i.source == null) {
                 return true;
             } else {
-                if (file.equals(i.source.getFile()) && i.source.getLineNumber(pos) == i.line) return true; 
+                if (Utils.ifSourcesEqual(file, i.source.getFile()) && i.source.getLineNumber(pos) == i.line) return true; 
             }
         }
         return false;

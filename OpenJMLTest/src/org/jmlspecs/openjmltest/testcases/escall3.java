@@ -898,6 +898,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
+<<<<<<< HEAD
         //main.addOptions("-show","-method=B");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1038,6 +1039,148 @@ public class escall3 extends EscBase {
     
     @Test public void testMethodWithConstructorNameOK() {
     	main.addOptions("-verbose","-trace","-ce");
+=======
+       // main.addOptions("-show","-method=m2");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int[] a) {\n"
+                +"      //@ assume a != null && a.length > 1;\n"
+                +"      a[0] = 9;\n"
+                +"  }\n"
+                
+                +"  public void m2(Integer[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m3(Integer[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(Integer);\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m4bad(Integer[] a, Object i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                );
+    }
+
+    @Test public void testArrayType1Bug() { // TODO: CVC4 takes 147 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m1(int[] a) {\n"
+                +"      //@ assume a != null && a.length > 1;\n"
+                +"      a[0] = 9;\n"
+                +"  }\n"
+                
+                +"  public void m2bad(String[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m3(String[] a, String i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(String);\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  public void m4bad(String[] a, Object i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+                
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
+                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                );
+    }
+    
+    @Test public void testArrayType2() { // TODO: CVC4 takes 186 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m3a(Integer[] a, Integer i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  public void m5bad(A[] a, B i) {\n" // FAILS because 'a' might have a dynamic type that does not hold a B
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  public void m5(A[] a, B i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      //@ assume \\type(B) <: \\elemtype(\\typeof(a));\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
+                );
+    }
+    
+    @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void m3a(String[] a, String i) {\n"
+                +"      //@ assume a != null && a.length > 1 && i != null;\n"
+                +"      Object[] o = a;\n"
+                +"      o[0] = i;\n"
+                +"  }\n"
+
+                +"  static class A {}\n"
+                +"  static class B extends A {}\n"
+                
+                +"}"
+                );
+    }
+    
+    
+    @Test public void testMethodWithConstructorNameFixed() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public byte[] b;\n"
+                +"  //@ public invariant b != null && b.length == 20;\n"
+                
+                +"  public TestJava(int i) {\n"
+                +"      b = new byte[20];\n"
+                +"  }\n"
+                
+                
+                +"}"
+                );
+    }
+    
+    @Test public void testMethodWithConstructorNameOK() {
+    	main.addOptions("-show","-progress");
+>>>>>>> refs/heads/master
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

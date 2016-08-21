@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jmlspecs.annotation.NonNull;
+import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.lang.Real;
 import org.jmlspecs.utils.JmlAssertionError.Precondition;
 
@@ -139,7 +141,7 @@ public class Utils {
      * @return the object which is the last argument
      */
     //@ ensures \result == v;
-    public static <T> T nonNullCheck(String message, T v) {
+    @Nullable public static <T> T nonNullCheck(@Nullable String message, @Nullable T v) {
         if (v == null) assertionFailure(message);
         return v;
     }
@@ -404,7 +406,7 @@ public class Utils {
     
 
     // TODO - document - this and following
-    public static  IJMLTYPE makeTYPE(Class<?> base, IJMLTYPE... args) {
+    public static @NonNull IJMLTYPE makeTYPE(@NonNull Class<?> base, @NonNull IJMLTYPE... args) {
         return JmlTypeRac.make(base,args);
     }
     
@@ -418,17 +420,17 @@ public class Utils {
     
     public static final IJMLTYPE[] emptyArgs = {};
     
-    public static  IJMLTYPE makeTYPE0(Class<?> base) {
+    public static @NonNull IJMLTYPE makeTYPE0(@NonNull Class<?> base) {
         if (base == null) return null;
         return JmlTypeRac.make(base,emptyArgs);
     }
     
-    public static  IJMLTYPE makeTYPE1(Class<?> base, IJMLTYPE a0) {
+    public static @NonNull IJMLTYPE makeTYPE1(@NonNull Class<?> base, @NonNull IJMLTYPE a0) {
         if (base == null) return null;
         return JmlTypeRac.make(base,new IJMLTYPE[]{a0});
     }
     
-    public static  IJMLTYPE makeTYPE2(Class<?> base, IJMLTYPE a0, IJMLTYPE a1) {
+    public static @NonNull IJMLTYPE makeTYPE2(@NonNull Class<?> base, @NonNull IJMLTYPE a0, @NonNull IJMLTYPE a1) {
         if (base == null) return null;
         return JmlTypeRac.make(base,new IJMLTYPE[]{a0,a1});
     }

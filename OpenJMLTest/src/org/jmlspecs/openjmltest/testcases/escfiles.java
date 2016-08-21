@@ -369,6 +369,11 @@ public class escfiles extends EscBase {
     public void testEscDiverges2() {
         helpTF("escDiverges2","-nonnullByDefault","-logic=AUFNIRA");
     }
+    
+    @Test
+    public void testEscDeterministic() {
+        helpTF("escDeterministic","-logic=AUFLIA","-counterexample","-trace");
+	}
 
     @Test
     public void testEscInvariants() {

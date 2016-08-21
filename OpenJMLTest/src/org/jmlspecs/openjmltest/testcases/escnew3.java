@@ -684,6 +684,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs() {
+    	main.addOptions("-show","-method=n0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default */ public class TestJava { \n"
                 +"  //@ ensures \\result == ints.length;\n"

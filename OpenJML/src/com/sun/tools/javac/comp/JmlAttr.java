@@ -41,7 +41,6 @@ import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
@@ -59,6 +58,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlModelProgramStatement;
 import org.jmlspecs.openjml.JmlTree.JmlPrimitiveTypeTree;
@@ -386,8 +386,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // loadSpecsForBinary should always result in a TypeSpecs for the
                 // class symbol, even if the TypeSpecs is empty
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
+                c.complete(); // At least complete it
                 return;
             } 
+            if (classSpecs.decl == null) {
+                // No specs were found for a binary file, so there is nothing to attribute
+                c.complete(); // At least complete it
+                return;
+            }
         }
 
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
@@ -1018,29 +1024,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             JmlSpecs.MethodSpecs mspecs = specs.getSpecs(javaMethodTree.sym); //javaMethodTree.methodSpecsCombined;
 
-            // FIXME - This is a duplicate - remove and fix tests
-            if (javaMethodTree.specsDecl != null && javaMethodTree.specsDecl != javaMethodTree) {
-                for (JCAnnotation a: javaMethodTree.mods.annotations) {
-                    JCAnnotation aa = utils.findMod(javaMethodTree.specsDecl.mods, a.type.tsym);
-                    if (aa == null) {
-                        log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-                        log.warning(a.pos(), "jml.java.annotation.superseded", "method result", javaMethodTree.name.toString(), a.toString());
-                    }
-                }
-            }
-
             JCModifiers mods = mspecs.mods;
             boolean inJML = utils.isJML(mods);
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
             if (isInJmlDeclaration && model && !synthetic) {
-                utils.error(javaMethodTree.specsDecl.sourcefile,javaMethodTree.specsDecl.pos,"jml.no.nested.model.type");
+                log.useSource(javaMethodTree.sourcefile);
+                log.error(javaMethodTree.pos,"jml.no.nested.model.type");
             } else if (inJML && !model  && !isInJmlDeclaration) {
-                log.useSource(javaMethodTree.specsDecl.sourcefile);
-                log.error(javaMethodTree.specsDecl.pos,"jml.missing.model");
+                log.useSource(javaMethodTree.sourcefile);
+                log.error(javaMethodTree.pos,"jml.missing.model");
             } else if (!inJML && model) {
-                log.useSource(javaMethodTree.specsDecl.sourcefile);
-                log.error(javaMethodTree.specsDecl.pos,"jml.ghost.model.on.java");
+                log.useSource(javaMethodTree.sourcefile);
+                log.error(javaMethodTree.pos,"jml.ghost.model.on.java");
             }
             
             // FIXME - this test is in the wrong place (NPE would happen above) and needs review inany case
@@ -1145,7 +1141,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.setJML(vd.mods);
                     vd.accept(this); // attribute it
                     queryDatagroup = vd.sym;
-                    specs.getSpecs(enclosingClassEnv.enclClass.sym).decls.append(td);
+                    specs.getSpecs(enclosingClassEnv.enclClass.sym).clauses.append(td);
                 } else {
                     log.error(pos,"jml.no.such.field",datagroup);
                 }
@@ -4291,7 +4287,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // jmlVisibility. However, visiting the ident can trigger loading
             // and type-checking a whole new class - so we unset this field
             // in the mean time.
-            if (tree.name.equals("B")) Utils.print(null);
             super.visitIdent(tree);
         } finally {
             jmlVisibility = prevVisibility;

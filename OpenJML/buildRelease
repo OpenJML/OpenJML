@@ -36,14 +36,15 @@ fi
 
 TEMPJAR=tempjars
 
-##svn up
-##REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
-##VERSION=`date +%Y%m%d`-REV${REVISION}
-VERSION=`date +%Y%m%d`
-NAME=openjml-${VERSION}.tar.gz
-NAMEZ=openjml-${VERSION}.zip
+DATE=`date +%Y%m%d`
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+##BRANCH=`git branch | grep '*' | sed 's/* //'`
+if [ '${BRANCH}' -eq 'master' ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
-	echo Building ${NAME} in `pwd`
+NAME=openjml-${BRANCH}-${DATE}.tar.gz
+NAMEZ=openjml-${BRANCH}-${DATE}.zip
+
+	echo Building ${NAME}, version ${VERSION} in `pwd`
 
 ##### Build jmlruntime.jar
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
@@ -122,9 +123,6 @@ NAMEZ=openjml-${VERSION}.zip
 	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
-	
-##### Build the web pages, even though we are not including them here
-    (cd ../OpenJML-UpdateSite/web/src; . create > log)
-    
+	    
 ##### End	
 	echo Release complete
