@@ -23,6 +23,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
+import org.jmlspecs.openjml.esc.BasicBlockerParent;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.tree.And;
 import org.jmlspecs.openjml.strongarm.tree.Or;
@@ -190,6 +191,8 @@ public class BlockReader {
 
     }
     
+    private int loopDepth;
+    
     public Prop<JCExpression> sp(){
         
         
@@ -213,7 +216,10 @@ public class BlockReader {
             return sp(pre, startBlock.followers().get(0).followers().get(0));            
         }
         
+        loopDepth = 0; // kinda kludgey
+        
         postcondition = sp(precondition, startBlock.followers().get(0));
+        
         
         return postcondition;
     }
@@ -229,22 +235,23 @@ public class BlockReader {
             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
         }    
         
+        if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
+            loopDepth++;
+        }else if(block.id().toString().contains(BasicBlockerParent.LOOPAFTER) || block.id().toString().contains(Constants.BL_LOOP_END)){ // deactivate 
+            loopDepth--;
+        }
+        
         trace.add(traceElement);
         
         for(JCStatement stmt : block.statements()){
             
-            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
-                System.out.println("");
-            }
+//            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
+//                System.out.println("");
+//            }
             
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
             }    
-            
-            if(stmt.toString().contains("while...")){
-                System.out.println("");               
-            }
-
             
             if(skip(stmt)){
 
@@ -380,6 +387,37 @@ public class BlockReader {
         }
         
         boolean ignoreBranch = ignoreBranch(block);
+
+        //
+        // this next bit handles turning off certain branches when processing loops.
+        //
+        {            
+            if(loopDepth > 0 && block.followers().size() > 1){
+         
+                
+                // ignore if we are in LoopBody
+                if(block.id().toString().contains(Constants.BL_LOOP_BODY)){
+                    ignoreBranch = true;
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                    }
+
+                }
+            }
+            
+        }
+        {
+            for(BasicBlock b : block.followers()){
+                    if(b.id().toString().contains(Constants.BL_LOOP_END)){
+                        ignoreBranch = true;
+                        
+                        if(verbose){
+                            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                        }
+                    }
+                }
+        }
         
         if(ignoreBranch && verbose){
             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
@@ -400,7 +438,7 @@ public class BlockReader {
             
             BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
             
-            if(lca==null){
+            if(lca==null || true){
                 
                 //TODO - need to investigate what conditions LCA can't be 
                 //       found.
@@ -716,7 +754,7 @@ public class BlockReader {
     }
     
     private boolean isLoopInvariant(JmlStatementExpr expr){
-        if(expr.token==JmlToken.ASSERT && expr.label == Label.LOOP_INVARIANT){
+        if(expr.token==JmlToken.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
             return true;
         }
         return false;
@@ -872,6 +910,12 @@ public class BlockReader {
                 }else if(isPostconditionStmt(jmlStmt)){
                     addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
                     debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
+                }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
+                    
+                    JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
+                    //TODO -- might have to add filtering for only equalities 
+                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
                 }
                 
                 if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
@@ -907,33 +951,81 @@ public class BlockReader {
     }
     
     // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
-    public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
-       
-        for(JCStatement stmt : block.statements()){
-
-            if(stmt instanceof JmlStatementExpr){
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                if(isAssignStmt(jmlStmt)){
-                    subs.add(jmlStmt.expression);
-                }
-            }else if(isVarDecl(stmt)){
-                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-                subs.add(decl);
-            }
-        }
-        
-        if(block.followers().size()==2){
-            extractSubstitutions(block.followers().get(0), subs);
-            extractSubstitutions(block.followers().get(1), subs);
-            
-            
-        }else if(block.followers().size()==1){
-            extractSubstitutions(block.followers().get(0), subs);
-        }
-        
-        return subs;
-    }
+    //TODO -- this needs to be moved to be a part of the symbolic execution. 
+//    public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
+//              
+//        if (verbose) {
+//            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Substitution Inference at block " + block.id().toString());
+//        }    
+//        
+//        if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
+//            loopDepth++;
+//        }else if(block.id().toString().contains(BasicBlockerParent.LOOPAFTER) || block.id().toString().contains(Constants.BL_LOOP_END)){ // deactivate 
+//            loopDepth--;
+//        }
+//        
+//        for(JCStatement stmt : block.statements()){
+//
+//            if(stmt instanceof JmlStatementExpr){
+//                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+//                
+//                if(isAssignStmt(jmlStmt)){
+//                    subs.add(jmlStmt.expression);
+//                }
+//            }else if(isVarDecl(stmt)){
+//                JmlVariableDecl decl = (JmlVariableDecl)stmt;
+//                subs.add(decl);
+//            }
+//        }
+//        
+//        boolean ignoreBranch = ignoreBranch(block);
+//
+//        //
+//        // this next bit handles turning off certain branches when processing loops.
+//        //
+//        {            
+//            if(loopDepth > 0 && block.followers().size() > 1){
+//         
+//                
+//                // ignore if we are in LoopBody
+//                if(block.id().toString().contains(Constants.BL_LOOP_BODY)){
+//                    ignoreBranch = true;
+//                    
+//                    if(verbose){
+//                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+//                    }
+//
+//                }
+//            }
+//            
+//        }
+//        {
+//            for(BasicBlock b : block.followers()){
+//                    if(b.id().toString().contains(Constants.BL_LOOP_END)){
+//                        ignoreBranch = true;
+//                        
+//                        if(verbose){
+//                            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+//                        }
+//                    }
+//                }
+//        }
+//        
+//        if(ignoreBranch && verbose){
+//            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
+//        }
+//        
+//        if(block.followers().size()==2 && ignoreBranch==false){
+//            extractSubstitutions(block.followers().get(0), subs);
+//            extractSubstitutions(block.followers().get(1), subs);
+//            
+//            
+//        }else if(block.followers().size()==1){
+//            extractSubstitutions(block.followers().get(0), subs);
+//        }
+//        
+//        return subs;
+//    }
 
 
 }

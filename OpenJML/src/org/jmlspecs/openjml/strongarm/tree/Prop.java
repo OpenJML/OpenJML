@@ -38,9 +38,7 @@ public class Prop<T extends JCExpression> {
         this.def = def;
         this.label = label;
     }
-    
-    
-    
+
     public Prop(){}
     
     public void replace(ArrayList<JCTree> subs){
@@ -72,44 +70,70 @@ public class Prop<T extends JCExpression> {
     
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
         
-        JCExpression e = null;
                 
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
-        if(p.toString().contains("ASSERT_52_207_207___24")){
+        if(p.toString().contains("_JML___result_98_477___41")){
             System.out.println("Found failing prop...");
         }
         
         ArrayList<JCTree> subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
-                
-        for(JCTree sub : subs){
-
-           if(sub.toString().contains("ASSERT_52_207_207___24")){
-                System.out.println("Found failing prop...");
-            }
-           /* if(sub.toString().startsWith("tricky_228")){
-                System.out.println("Found failing prop...");
-            }
-            */
-           
-           JCExpression tmpE;
-           
-            if(e!=null){
-                tmpE = SubstituteTree.replace(sub, e);
-            }else{
-                tmpE = SubstituteTree.replace(sub,  p);
-            }
-            
-            if(tmpE!=null){
-                e = tmpE;
-            }
-            
-        }
         
-        if(e!=null){
-            p = (T) e;
-        }
+        //
+        Collections.reverse(subs);
+        
+        // baby fixpoint
+        String before;
+        int iteration = 1;
+                
+        do {
+            System.out.println("Internal Fixpoint #" + iteration);
+
+            before = p.toString();
+            
+            doReplacement(subs);
+            
+            
+            iteration++;
+            
+        }while(before.equals(p.toString())==false);
+        
+    }
+    
+    private void doReplacement(ArrayList<JCTree> subs){
+        
+        JCExpression e = null;
+
+        for(JCTree sub : subs){
+             
+            if(sub.toString().contains("ASSERT_52_207_207___24")){
+                 System.out.println("Found failing prop...");
+             }
+            /* if(sub.toString().startsWith("tricky_228")){
+                 System.out.println("Found failing prop...");
+             }
+             */
+            System.out.println("Trying: " + sub.toString());
+            
+            JCExpression tmpE;
+            
+             if(e!=null){
+                 tmpE = SubstituteTree.replace(sub, e);
+             }else{
+                 tmpE = SubstituteTree.replace(sub,  p);
+             }
+             
+             if(tmpE!=null){
+                 e = tmpE;
+             }
+             
+         }
+         
+         if(e!=null){
+             p = (T) e;
+         }
+        
     }
     
     public ArrayList<JCTree> getSubstitutionTree(BasicBlock b, ArrayList<JCTree> subs, Map<JCIdent, ArrayList<JCTree>> mappings){
