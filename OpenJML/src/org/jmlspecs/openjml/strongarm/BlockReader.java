@@ -248,6 +248,48 @@ public class BlockReader {
 //            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
 //                System.out.println("");
 //            }
+
+
+            {
+                if(stmt instanceof JmlStatementExpr){
+                    JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+                
+                    if(isAssignStmt(jmlStmt)){
+                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+      
+                    }else if(isPostconditionStmt(jmlStmt)){
+                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
+                    }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
+                        
+                        JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
+                        //TODO -- might have to add filtering for only equalities 
+                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+                    }
+                    
+                    if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+                        if(jmlStmt.toString().contains(Strings.newArrayVarString)){
+      
+                            JCBinary binExpr = (JCBinary)jmlStmt.expression;
+                           
+                            if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
+                                
+                                JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
+                            
+                                addSubstitutionAtBlock(expr, _mappings, block);
+                                debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
+                            }
+                        }
+                    }
+                    
+                }else if(isVarDecl(stmt)){
+                    JmlVariableDecl decl = (JmlVariableDecl)stmt;
+                    addSubstitutionAtBlock(decl, _mappings, block);
+                    debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
+                } 
+              }
             
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
@@ -262,6 +304,7 @@ public class BlockReader {
                 continue; 
             }
             
+
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
 
            // if(isPreconditionStmt(jmlStmt)){
@@ -384,6 +427,11 @@ public class BlockReader {
                     
                 traceElement.addExpr(jmlStmt.expression);
             }
+            //
+            // processing of symbolic execution substititions. 
+            //
+            
+            
         }
         
         boolean ignoreBranch = ignoreBranch(block);
@@ -880,10 +928,10 @@ public class BlockReader {
         
         return subs;
     }
-    
+    //TODO: not safe to call this more than once.
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(){
         
-        debugLexicalMappings.clear();
+        //debugLexicalMappings.clear();
         
         Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), blocks.get(0));
 
@@ -895,59 +943,62 @@ public class BlockReader {
         return subs;        
     }
     
+    Map<JCIdent, ArrayList<JCTree>> _mappings = new HashMap<JCIdent, ArrayList<JCTree>>();
+    
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
+        return _mappings;
 
         
-        for(JCStatement stmt : block.statements()){
-
-            if(stmt instanceof JmlStatementExpr){
-                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                if(isAssignStmt(jmlStmt)){
-                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-
-                }else if(isPostconditionStmt(jmlStmt)){
-                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
-                }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
-                    
-                    JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
-                    //TODO -- might have to add filtering for only equalities 
-                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-                }
-                
-                if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
-                    if(jmlStmt.toString().contains(Strings.newArrayVarString)){
-
-                        JCBinary binExpr = (JCBinary)jmlStmt.expression;
-                       
-                        if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
-                            
-                            JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
-                        
-                            addSubstitutionAtBlock(expr, mappings, block);
-                            debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
-                        }
-                    }
-                }
-                
-            }else if(isVarDecl(stmt)){
-                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-                addSubstitutionAtBlock(decl, mappings, block);
-                debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
-            } 
-        }
-        
-        if(block.followers().size()==2){
-            getSubstitutionMappings(mappings, block.followers().get(0));
-            getSubstitutionMappings(mappings, block.followers().get(1));
-        }else if(block.followers().size()==1){
-            getSubstitutionMappings(mappings, block.followers().get(0));
-        }
-        
-        return mappings;
+//        for(JCStatement stmt : block.statements()){
+//
+//            if(stmt instanceof JmlStatementExpr){
+//                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+//                
+//                if(isAssignStmt(jmlStmt)){
+//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+//
+//                }else if(isPostconditionStmt(jmlStmt)){
+//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
+//                }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
+//                    
+//                    JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
+//                    //TODO -- might have to add filtering for only equalities 
+//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
+//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+//                }
+//                
+//                if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+//                    if(jmlStmt.toString().contains(Strings.newArrayVarString)){
+//
+//                        JCBinary binExpr = (JCBinary)jmlStmt.expression;
+//                       
+//                        if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
+//                            
+//                            JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
+//                        
+//                            addSubstitutionAtBlock(expr, mappings, block);
+//                            debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
+//                        }
+//                    }
+//                }
+//                
+//            }else if(isVarDecl(stmt)){
+//                JmlVariableDecl decl = (JmlVariableDecl)stmt;
+//                addSubstitutionAtBlock(decl, mappings, block);
+//                debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
+//            } 
+//        }
+//        
+//        if(block.followers().size()==2){
+//            getSubstitutionMappings(mappings, block.followers().get(0));
+//            getSubstitutionMappings(mappings, block.followers().get(1));
+//        }else if(block.followers().size()==1){
+//            getSubstitutionMappings(mappings, block.followers().get(0));
+//        }
+//        
+//        return mappings;
     }
     
     // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
