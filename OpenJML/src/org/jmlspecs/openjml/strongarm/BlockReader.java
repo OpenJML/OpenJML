@@ -66,7 +66,9 @@ public class BlockReader {
     private BasicBlock                     startBlock;
     private List<TraceElement> trace = new ArrayList<TraceElement>();
     private final BasicBlocker2 basicBlocker;
-    
+    private Map<JCIdent, ArrayList<JCTree>> _mappings;
+    private boolean _mappingsDone;
+
     public BlockReader(Context context, List<BasicBlock> blocks, BasicBlocker2 basicBlocker) {
         this.context = context;
         this.log = Log.instance(context);
@@ -216,7 +218,7 @@ public class BlockReader {
             return sp(pre, startBlock.followers().get(0).followers().get(0));            
         }
         
-        loopDepth = 0; // kinda kludgey
+        initSp();
         
         postcondition = sp(precondition, startBlock.followers().get(0));
         
@@ -250,46 +252,12 @@ public class BlockReader {
 //            }
 
 
+            //
+            // Used to pick up lexical mappings.
+            //
             {
-                if(stmt instanceof JmlStatementExpr){
-                    JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-                
-                    if(isAssignStmt(jmlStmt)){
-                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
-                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-      
-                    }else if(isPostconditionStmt(jmlStmt)){
-                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
-                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
-                    }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
-                        
-                        JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
-                        //TODO -- might have to add filtering for only equalities 
-                        addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
-                        debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-                    }
-                    
-                    if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
-                        if(jmlStmt.toString().contains(Strings.newArrayVarString)){
-      
-                            JCBinary binExpr = (JCBinary)jmlStmt.expression;
-                           
-                            if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
-                                
-                                JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
-                            
-                                addSubstitutionAtBlock(expr, _mappings, block);
-                                debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
-                            }
-                        }
-                    }
-                    
-                }else if(isVarDecl(stmt)){
-                    JmlVariableDecl decl = (JmlVariableDecl)stmt;
-                    addSubstitutionAtBlock(decl, _mappings, block);
-                    debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
-                } 
-              }
+                pickupLexicalMappings(stmt, block);
+            }
             
             if (verbose) {
                 log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
@@ -570,6 +538,48 @@ public class BlockReader {
         return p;
     }
     
+    private void pickupLexicalMappings(JCStatement stmt, BasicBlock block){
+
+        if(stmt instanceof JmlStatementExpr){
+            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
+        
+            if(isAssignStmt(jmlStmt)){
+                addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+
+            }else if(isPostconditionStmt(jmlStmt)){
+                addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
+            }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
+                
+                JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
+                //TODO -- might have to add filtering for only equalities 
+                addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
+                debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
+            }
+            
+            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+                if(jmlStmt.toString().contains(Strings.newArrayVarString)){
+
+                    JCBinary binExpr = (JCBinary)jmlStmt.expression;
+                   
+                    if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
+                        
+                        JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
+                    
+                        addSubstitutionAtBlock(expr, _mappings, block);
+                        debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
+                    }
+                }
+            }
+            
+        }else if(isVarDecl(stmt)){
+            JmlVariableDecl decl = (JmlVariableDecl)stmt;
+            addSubstitutionAtBlock(decl, _mappings, block);
+            debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
+        } 
+      
+    }
     private int propsInSubtree(BasicBlock block, BasicBlock lca){
 
         if(lca.id()==block.id()){
@@ -931,152 +941,30 @@ public class BlockReader {
     //TODO: not safe to call this more than once.
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(){
         
-        //debugLexicalMappings.clear();
+        if(_mappingsDone){
+            return _mappings;
+        }       
         
-        Map<JCIdent, ArrayList<JCTree>> subs = getSubstitutionMappings(new HashMap<JCIdent, ArrayList<JCTree>>(), blocks.get(0));
+        Map<JCIdent, ArrayList<JCTree>> subs = _mappings;
 
-        // reverse
+        // reverse internally
         for(JCIdent k : subs.keySet()){
             Collections.reverse(subs.get(k));
         }
         
+        _mappingsDone = true;
+        
         return subs;        
     }
     
-    Map<JCIdent, ArrayList<JCTree>> _mappings = new HashMap<JCIdent, ArrayList<JCTree>>();
     
-    public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
-        return _mappings;
+    private void initSp(){
+        debugLexicalMappings.clear();
 
+        _mappings = new HashMap<JCIdent, ArrayList<JCTree>>();
+        loopDepth = 0;
+        _mappingsDone = false;
         
-//        for(JCStatement stmt : block.statements()){
-//
-//            if(stmt instanceof JmlStatementExpr){
-//                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-//                
-//                if(isAssignStmt(jmlStmt)){
-//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-//
-//                }else if(isPostconditionStmt(jmlStmt)){
-//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
-//                }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
-//                    
-//                    JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
-//                    //TODO -- might have to add filtering for only equalities 
-//                    addSubstitutionAtBlock(jmlStmt.expression, mappings, block);
-//                    debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
-//                }
-//                
-//                if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
-//                    if(jmlStmt.toString().contains(Strings.newArrayVarString)){
-//
-//                        JCBinary binExpr = (JCBinary)jmlStmt.expression;
-//                       
-//                        if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
-//                            
-//                            JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
-//                        
-//                            addSubstitutionAtBlock(expr, mappings, block);
-//                            debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
-//                        }
-//                    }
-//                }
-//                
-//            }else if(isVarDecl(stmt)){
-//                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-//                addSubstitutionAtBlock(decl, mappings, block);
-//                debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
-//            } 
-//        }
-//        
-//        if(block.followers().size()==2){
-//            getSubstitutionMappings(mappings, block.followers().get(0));
-//            getSubstitutionMappings(mappings, block.followers().get(1));
-//        }else if(block.followers().size()==1){
-//            getSubstitutionMappings(mappings, block.followers().get(0));
-//        }
-//        
-//        return mappings;
     }
-    
-    // types will be of either or a JCExpression thing or a JCVariableDecl thing -- either can be used for stitutions...
-    //TODO -- this needs to be moved to be a part of the symbolic execution. 
-//    public List<JCTree> extractSubstitutions(BasicBlock block, List<JCTree> subs){
-//              
-//        if (verbose) {
-//            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Substitution Inference at block " + block.id().toString());
-//        }    
-//        
-//        if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
-//            loopDepth++;
-//        }else if(block.id().toString().contains(BasicBlockerParent.LOOPAFTER) || block.id().toString().contains(Constants.BL_LOOP_END)){ // deactivate 
-//            loopDepth--;
-//        }
-//        
-//        for(JCStatement stmt : block.statements()){
-//
-//            if(stmt instanceof JmlStatementExpr){
-//                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-//                
-//                if(isAssignStmt(jmlStmt)){
-//                    subs.add(jmlStmt.expression);
-//                }
-//            }else if(isVarDecl(stmt)){
-//                JmlVariableDecl decl = (JmlVariableDecl)stmt;
-//                subs.add(decl);
-//            }
-//        }
-//        
-//        boolean ignoreBranch = ignoreBranch(block);
-//
-//        //
-//        // this next bit handles turning off certain branches when processing loops.
-//        //
-//        {            
-//            if(loopDepth > 0 && block.followers().size() > 1){
-//         
-//                
-//                // ignore if we are in LoopBody
-//                if(block.id().toString().contains(Constants.BL_LOOP_BODY)){
-//                    ignoreBranch = true;
-//                    
-//                    if(verbose){
-//                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
-//                    }
-//
-//                }
-//            }
-//            
-//        }
-//        {
-//            for(BasicBlock b : block.followers()){
-//                    if(b.id().toString().contains(Constants.BL_LOOP_END)){
-//                        ignoreBranch = true;
-//                        
-//                        if(verbose){
-//                            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
-//                        }
-//                    }
-//                }
-//        }
-//        
-//        if(ignoreBranch && verbose){
-//            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
-//        }
-//        
-//        if(block.followers().size()==2 && ignoreBranch==false){
-//            extractSubstitutions(block.followers().get(0), subs);
-//            extractSubstitutions(block.followers().get(1), subs);
-//            
-//            
-//        }else if(block.followers().size()==1){
-//            extractSubstitutions(block.followers().get(0), subs);
-//        }
-//        
-//        return subs;
-//    }
-
-
 }
+    
