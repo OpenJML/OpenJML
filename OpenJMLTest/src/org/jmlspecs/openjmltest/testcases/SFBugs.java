@@ -144,5 +144,34 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "-esc");
     }
     
+    @Test public void gitbug462() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug462","test/gitbug462", "-cp", "test/gitbug462", "-esc");
+    }
     
+    @Test public void gitbug456() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug456","test/gitbug456", "-cp", "test/gitbug456", "-esc", "-exclude", "bytebuf.ByteBuf.*");
+    }
+    
+    @Test public void gitbug455() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug455","test/gitbug455", "-cp", "test/gitbug455", "-esc");
+    }
+    
+    @Ignore // Cannot reproduce the issue until the error's reporter gets back to us
+    @Test public void gitbug446() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
+    }
+    
+    @Test public void gitbug445() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
+    }
+    
+    @Test public void gitbug463() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463");
+    }
 }
