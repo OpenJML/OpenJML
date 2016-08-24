@@ -44,6 +44,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCa
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
+import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitutions;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
@@ -102,6 +103,7 @@ public class Strongarm
             CleanupVariableNames.cache(context);
             RemoveDuplicatePreconditions.cache(context);
             RemoveDuplicatePreconditionsSMT.cache(context);
+            SimplicyViaInternalSubstitutions.cache(context);
             RemoveLocals.cache(context);
             RemoveDeadAssignments.cache(context);
             RemoveDuplicateAssignments.cache(context);
@@ -513,6 +515,19 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
+        //
+        // This is a very specific optimization that comes into play when we 
+        // try to extract a little more information out of loops. 
+        //
+//        SimplicyViaInternalSubstitutions.simplify(methodDecl, contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER DOING BACKWARDS PROPAGATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         
         
