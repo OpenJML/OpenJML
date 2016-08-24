@@ -82,6 +82,11 @@ public class RemoveLocals extends JmlTreeScanner {
                     return true; 
                 }
                 
+                if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this. 
+                    log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
+                    return true; 
+                }
+                
             }
             
             if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){
