@@ -772,6 +772,18 @@ public class JmlParser extends EndPosParser {
                                                // pushBackModifiers
             int pos = S.pos();
             JmlToken jt = S.jmlToken();
+            check: if (S.jml && jt == null && !inJmlDeclaration && !inLocalOrAnonClass) {
+                String tokenString = S.stringVal();
+                if (!tokenString.isEmpty()) {
+                    if (mods.annotations != null) for (JCAnnotation a: mods.annotations) {
+                        if (a.annotationType.toString().endsWith("Model")) break check;
+                        if (a.annotationType.toString().endsWith("Ghost")) break check;
+                    }
+                    log.error(pos,  "jml.bad.keyword", tokenString);
+                    skipThroughSemi();
+                    break loop;
+                }
+            }
             if (jt == null || isJmlTypeToken(jt)) {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                 // into super.classOrInterfaceBodyDeclaration
