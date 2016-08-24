@@ -82,10 +82,7 @@ public class RemoveLocals extends JmlTreeScanner {
                     return true; 
                 }
                 
-                if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this. 
-                    log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
-                    return true; 
-                }
+                
                 
             }
             
@@ -98,6 +95,10 @@ public class RemoveLocals extends JmlTreeScanner {
                     return true;
                 }
                 
+                if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this. 
+                    log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
+                    return true; 
+                }
                
                 
                 if(attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
