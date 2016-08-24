@@ -33,21 +33,18 @@ import com.sun.tools.javac.util.Name;
 
 public class SubstituteTree extends JmlTreeScanner{
 
-    public JCTree currentReplacement;
-    public static SubstituteTree instance;
+    public JCTree                          currentReplacement;
+    public static SubstituteTree           instance;
     
     final protected Log                    log;
     final protected Utils                  utils;
     final protected JmlTreeUtils           treeutils;
     final protected JmlTree.Maker          M;
     final protected Context                context;
-    final Symtab syms;
-    public static boolean inferdebug = false; 
-    public static boolean verbose = false; 
-    
-
-
-    
+    final Symtab                           syms;
+    public static boolean                  inferdebug; 
+    public static boolean                  verbose; 
+        
     public SubstituteTree(Context context){
         this.context    = context;
         this.log        = Log.instance(context);
@@ -55,13 +52,10 @@ public class SubstituteTree extends JmlTreeScanner{
         this.treeutils  = JmlTreeUtils.instance(context);
         this.M          = JmlTree.Maker.instance(context);
         this.syms       = Symtab.instance(context);
-        
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
-
-
+        
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
-
     }
 
     public static void cache(Context context){
@@ -69,6 +63,7 @@ public class SubstituteTree extends JmlTreeScanner{
             instance = new SubstituteTree(context);
         }
     }
+    
     
     @Override
     public void scan(JCTree node) {
@@ -78,24 +73,14 @@ public class SubstituteTree extends JmlTreeScanner{
     
     @Override
     public void visitIdent(JCIdent tree){
-        //if (tree != null) 
-//            if(tree.toString().contains("ar_80")){            
-//                System.out.println(">>IDENT: " + tree.toString());
-//            }
-//        
-        
         if(tree==null) return;
         
         if(replace().toString().equals(tree.getName().toString()) && with() instanceof JCIdent){
             JCIdent with = (JCIdent)with();
             tree.name = with.name;
         }
-            
-            
-            
     }
-    //JCParens
-    
+
     @Override
     public void visitUnary(JCUnary tree){
         if(tree.arg instanceof JCIdent){
@@ -105,18 +90,15 @@ public class SubstituteTree extends JmlTreeScanner{
 
                 if (verbose) {
                     log.noticeWriter.println("Replacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
-                }
-                
+                }                
                 tree.arg = with();
-            }
-            
+            }            
         }
         super.visitUnary(tree);
     }
 
     @Override
     public void visitParens(JCParens tree){
-        
         
         if(tree.expr instanceof JCIdent){
             JCIdent expr = (JCIdent)tree.expr;
@@ -130,10 +112,9 @@ public class SubstituteTree extends JmlTreeScanner{
             }
             
         }
-        
-        //if(tree.expr instanceof )
         super.visitParens(tree);
-        }
+    }
+    
     private boolean isRedundant(JCBinary tree){
         if(currentReplacement instanceof JCBinary)
             return tree == currentReplacement;
@@ -157,7 +138,6 @@ public class SubstituteTree extends JmlTreeScanner{
                     handleField((JCFieldAccess)access.index);
                 }
                 
-                
                 if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
                     access.indexed = with();
                 }
@@ -168,8 +148,6 @@ public class SubstituteTree extends JmlTreeScanner{
             }
             
         }
-        
-        
         super.visitIndexed(tree);
     }
     
@@ -180,10 +158,7 @@ public class SubstituteTree extends JmlTreeScanner{
         
         if(tree.lhs instanceof JCIdent){ 
             JCIdent lhs = (JCIdent)tree.lhs;
-            
-            //log.noticeWriter.println("ReplacingLHS " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
 
-            
             if(replace().toString().equals(lhs.getName().toString())){
 
                 if (verbose) {
@@ -191,18 +166,12 @@ public class SubstituteTree extends JmlTreeScanner{
                 }
                 
                 tree.lhs = with();
-                
-               
             } 
-            
         }
         
         if(tree.rhs instanceof JCIdent){ 
             JCIdent rhs = (JCIdent)tree.rhs;
-            
-            //log.noticeWriter.println("ReplacingRHS " + replace().toString() + " -> " + with().toString() + "in: " + tree.toString());
 
-            
             if(replace().toString().equals(rhs.getName().toString())){
 
                 if (verbose) {
@@ -210,9 +179,7 @@ public class SubstituteTree extends JmlTreeScanner{
                 }
 
                 tree.rhs = with();
-                
             }
-            
         }
         
         if(tree.lhs instanceof JCFieldAccess){
@@ -221,16 +188,12 @@ public class SubstituteTree extends JmlTreeScanner{
         if(tree.rhs instanceof JCFieldAccess){
             handleField((JCFieldAccess)tree.rhs);
         }
-//        if(//tree.)
-        
-        // we are always replacing IDENTS with EXPRESSIONS
+
         super.visitBinary(tree);
     }
     
     private void handleField(JCFieldAccess access){
-        
-        
-    
+
         if(access.selected instanceof JCIdent){
             JCIdent selected = (JCIdent)access.selected;
             
@@ -241,10 +204,8 @@ public class SubstituteTree extends JmlTreeScanner{
                 }
 
                 access.selected = with();
-                
             }
         }
-        
         
         if(access.name.toString().equals(replace().toString())){
             
@@ -256,15 +217,11 @@ public class SubstituteTree extends JmlTreeScanner{
                 JCIdent with = (JCIdent)with();
                 access.name = with.name;
             }
-            //access.name = with();
         }
-    
         
         if(access.selected instanceof JCFieldAccess){
             handleField((JCFieldAccess)access.selected);
         }
-        
-        
     }
     
     public JCIdent handleTypeCast(JCTypeCast tree){
@@ -280,6 +237,7 @@ public class SubstituteTree extends JmlTreeScanner{
         return null;
     }
     
+        
     public Name replace(){
         JCTree p = currentReplacement;
         
@@ -303,16 +261,11 @@ public class SubstituteTree extends JmlTreeScanner{
             JCVariableDecl pVarDecl = (JCVariableDecl)p;
             return pVarDecl.getName();
         }
-        
-        //log.error("jml.internal", "LHS Missing in Replacement");
-
-        
         return null;
     }
     
     public JCExpression with(){
         JCTree p = currentReplacement;
-
         
         if(p instanceof JCExpression){
             
@@ -329,7 +282,6 @@ public class SubstituteTree extends JmlTreeScanner{
         }
         
         log.error("jml.internal", "RHS Missing in Replacement");
-
         
         return null;
     }
@@ -366,6 +318,4 @@ public class SubstituteTree extends JmlTreeScanner{
         }
         return null;
     }
-    
-
 }
