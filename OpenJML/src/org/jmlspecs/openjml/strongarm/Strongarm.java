@@ -515,20 +515,6 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
-        //
-        // This is a very specific optimization that comes into play when we 
-        // try to extract a little more information out of loops. 
-        //
-//        SimplicyViaInternalSubstitutions.simplify(methodDecl, contract);
-        
-        if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER DOING BACKWARDS PROPAGATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-            log.noticeWriter.println(JmlPretty.write(contract));
-        }
-        
         
         
         //
@@ -545,6 +531,20 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
         
+        
+        //
+        // This is a very specific optimization that comes into play when we 
+        // try to extract a little more information out of loops. 
+        //
+        SimplicyViaInternalSubstitutions.simplify(methodDecl, contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER DOING BACKWARDS PROPAGATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
         
         
         
