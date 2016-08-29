@@ -149,6 +149,11 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug462","test/gitbug462", "-cp", "test/gitbug462", "-esc");
     }
     
+    @Test public void gitbug462a() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug462a","test/gitbug462a", "-cp", "test/gitbug462a", "-esc");
+    }
+    
     @Test public void gitbug456() {
     	expectedExit = 0;
         helpTCF("test/gitbug456","test/gitbug456", "-cp", "test/gitbug456", "-esc", "-exclude", "bytebuf.ByteBuf.*");
@@ -173,5 +178,10 @@ public class SFBugs extends EscBase {
     @Test public void gitbug463() {
     	expectedExit = 0;
         helpTCF("test/gitbug463","test/gitbug463", "-cp", "test/gitbug463");
+    }
+    
+    @Test public void gitbug444() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444");
     }
 }
