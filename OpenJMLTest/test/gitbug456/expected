@@ -16,5 +16,5 @@ Completed proof of bufclient.ByteBufClient.ByteBufClient() with prover !!!! - no
 Starting proof of bufclient.ByteBufClient.getOne(bytebuf.ByteBuf) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
-Completed proof of bufclient.ByteBufClient.getOne(bytebuf.ByteBuf) with prover !!!! - mo warnings
+Completed proof of bufclient.ByteBufClient.getOne(bytebuf.ByteBuf) with prover !!!! - no warnings
 Completed proving methods in bufclient.ByteBufClient
