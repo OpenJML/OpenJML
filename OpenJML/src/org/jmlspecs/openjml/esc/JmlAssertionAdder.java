@@ -12050,7 +12050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * with the argument type last.
      */
     public java.util.List<Type> parents(Type ct) {
-        
+        if (ct.toString().endsWith("Bottom")) Utils.print(null);
         java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct;
         while (cc != null && cc.tag != TypeTags.NONE) {
@@ -12064,19 +12064,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             else cc = null;
         }
         
+        java.util.List<Type> interfacesToDo = new LinkedList<Type>();
         java.util.List<Type> interfaces = new LinkedList<Type>();
         for (Type cty: classes) {
             if (!(cty instanceof Type.ClassType)) continue;
             Type.ClassType cct = (Type.ClassType)cty;
             List<Type> ifs = cct.interfaces_field;
             if (ifs == null) ifs = ((Type.ClassType)cct.tsym.type).interfaces_field;
-            if (ifs != null) {
-                x: for (Type ifc : ifs) {
-                    for (Type t: interfaces) {
-                        if (types.isSameType(t, ifc)) continue x;
-                    }
-                    interfaces.add(ifc);
-                }
+            if (ifs != null) interfacesToDo.addAll(ifs);
+        }
+        x: while (!interfacesToDo.isEmpty()) {
+            Type ifc = interfacesToDo.remove(0);
+            for (Type t: interfaces) {
+                if (types.isSameType(t, ifc)) continue x;
+            }
+            interfaces.add(0,ifc);
+            List<Type> ints = ((Type.ClassType)ifc.tsym.type).interfaces_field;
+            if (ints != null) for (Type fin: ints) {
+                interfacesToDo.add(fin);
             }
         }
         Type obj = classes.remove(0);
