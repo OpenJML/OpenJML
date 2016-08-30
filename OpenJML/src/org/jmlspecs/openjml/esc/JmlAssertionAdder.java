@@ -5148,7 +5148,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (true || !convertingAssignable) obj = newTemp(obj);
         // FIXME - don't bother with the following if obj is 'this'
         JCExpression allocNow = M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType);
-        JCExpression allocOld = treeutils.makeOld(pos,M.at(pos).Select(convertCopy(obj), isAllocSym).setType(syms.booleanType));
+        JCExpression allocOld = treeutils.makeOld(pos.getPreferredPosition(),M.at(pos).Select(convertCopy(obj), isAllocSym).setType(syms.booleanType), M.at(pos.getPreferredPosition()).Ident(defaultOldLabel));
         return treeutils.makeAnd(pos.getPreferredPosition(),allocNow,treeutils.makeNot(pos.getPreferredPosition(), allocOld));
     }
 
@@ -5745,7 +5745,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (resultExpr != null && !resultExpr.type.isPrimitive()) {
                     newAllocation1(that,resultExpr); // FIXME - should have an JCIdent?
                     JCFieldAccess fa = treeutils.makeSelect(that.pos, resultExpr, allocSym);
-                    JCBinary e = treeutils.makeEquality(that.pos, fa, treeutils.makeIntLiteral(that.pos, allocCounter++));
+                    JCBinary e = treeutils.makeEquality(that.pos, fa, treeutils.makeIntLiteral(that.pos, ++allocCounter));
                     addAssume(that,Label.IMPLICIT_ASSUME,e);
                 }
             }
@@ -5925,8 +5925,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (esc && (!specs.isPure(calleeMethodSym) || newclass != null) && resultId != null && !resultType.isPrimitive()) {
                         JCTree cs = that;
                         JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
-                        JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
-                        addStat(havoc);  // havoc *.isAllocSym
+//                        JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
+//                        addStat(havoc);  // havoc *.isAllocSym
                         {
                             JCVariableDecl d = newTempDecl(cs, syms.objectType);
                             JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
@@ -5934,8 +5934,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     oldenv);
                             id = treeutils.makeIdent(cs.pos, d.sym);
                             JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
-                            JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
-                            addAssume(cs,Label.IMPLICIT_ASSUME,f);
+//                            JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
+//                            addAssume(cs,Label.IMPLICIT_ASSUME,f);
+                            addAssume(cs,Label.IMPLICIT_ASSUME,treeutils.makeNot(cs.pos, enew));
                         }
                         newAllocation2(that,resultId);
                     }
@@ -12049,7 +12050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * with the argument type last.
      */
     public java.util.List<Type> parents(Type ct) {
-        
+        if (ct.toString().endsWith("Bottom")) Utils.print(null);
         java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct;
         while (cc != null && cc.tag != TypeTags.NONE) {
@@ -12063,19 +12064,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             else cc = null;
         }
         
+        java.util.List<Type> interfacesToDo = new LinkedList<Type>();
         java.util.List<Type> interfaces = new LinkedList<Type>();
         for (Type cty: classes) {
             if (!(cty instanceof Type.ClassType)) continue;
             Type.ClassType cct = (Type.ClassType)cty;
             List<Type> ifs = cct.interfaces_field;
             if (ifs == null) ifs = ((Type.ClassType)cct.tsym.type).interfaces_field;
-            if (ifs != null) {
-                x: for (Type ifc : ifs) {
-                    for (Type t: interfaces) {
-                        if (types.isSameType(t, ifc)) continue x;
-                    }
-                    interfaces.add(ifc);
-                }
+            if (ifs != null) interfacesToDo.addAll(ifs);
+        }
+        x: while (!interfacesToDo.isEmpty()) {
+            Type ifc = interfacesToDo.remove(0);
+            for (Type t: interfaces) {
+                if (types.isSameType(t, ifc)) continue x;
+            }
+            interfaces.add(0,ifc);
+            List<Type> ints = ((Type.ClassType)ifc.tsym.type).interfaces_field;
+            if (ints != null) for (Type fin: ints) {
+                interfacesToDo.add(fin);
             }
         }
         Type obj = classes.remove(0);
