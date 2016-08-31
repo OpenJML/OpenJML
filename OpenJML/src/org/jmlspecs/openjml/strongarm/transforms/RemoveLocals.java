@@ -85,6 +85,11 @@ public class RemoveLocals extends JmlTreeScanner {
                 
                 
             }
+            //TODO: Add recursive expression handling. 
+            
+//            if(mExpr.expression instanceof JmlMethodClauseExpr){
+//                return shouldRemove(mExpr.expression);
+//            }
             
             if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){
                 
