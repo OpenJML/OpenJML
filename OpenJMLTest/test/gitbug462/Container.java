@@ -1,37 +1,15 @@
 public class Container {
-    /*@ private normal_behavior
-      @   assignable \nothing;
-      @*/
-    private /*@ helper @*/ Container() {}
+    public static /*@ non_null @*/ Object c = new Object();
 
     /*@ public normal_behavior
-      @   assignable \nothing;
+      @   assignable c;
       @*/
-    public static /*@ pure @*/ Container allocate() {
-        Container c = new Container();
-        return c;
+    public static void allocate() {
+        c = new Object();
     }
-    
-    public static class ContainerUser {
-        public static /*@ non_null @*/ Container c;
 
-        /*@ private normal_behavior
-          @   assignable \nothing;
-          @*/
-        private /*@ helper @*/ ContainerUser() {}
-
-        /*@ public normal_behavior
-          @   assignable c;
-          @*/
-        public static ContainerUser allocate() {
-            ContainerUser user = new ContainerUser();
-            c = Container.allocate();
-            return user;
-        }
-
-        public void test() {
-            ContainerUser user = allocate();
-            //@ assert user.c instanceof Container;
-        }
+    public static void test() {
+        allocate();
+        //@ assert c instanceof Object;
     }
 }
