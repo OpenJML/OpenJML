@@ -1994,11 +1994,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     }
     
-//    /** Returns true if the given symbol has a Pure annotation */
-//    public boolean isPure(Symbol symbol) {
-//        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
-//
-//    }
+    /** Returns true if the given symbol has a Pure annotation */
+    public boolean isPure(Symbol symbol) {
+        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
+
+    }
     
     /** Returns true if the given symbol has a Model annotation */
     public boolean isModel(Symbol symbol) {
@@ -6226,6 +6226,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                     paramActuals = mapParamActuals.get(mpsym);
 
+                    boolean isPure = isPure(mpsym);
                     // FIXME - we should set condition
                     // Be sure to do assignable (havoc) clauses before the invariant and postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
@@ -6254,6 +6255,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         notImplemented(clause,"forall clause in method specs",clause.source());
                                         break;
                                     case ASSIGNABLE:
+                                        // Don't translate assignable if we are in a pure method or constructor
+                                        if (!translatingJML) {
                                         useDefault = false;
                                         addStat(comment(clause));
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
@@ -6305,6 +6308,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         }
                                         JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
                                         addStat(havoc);
+                                        }
                                         break;
                                     default:
                                         // skip everything else
@@ -6314,7 +6318,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
                             }
                         }
-                        if (useDefault) {
+                        if (useDefault && !translatingJML) {
                             if (newclass == null) {
                                 // default for non- constructor call is \everything
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlToken.BSEVERYTHING)));

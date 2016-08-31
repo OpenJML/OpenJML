@@ -946,6 +946,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
+            if (pureEnvironment) {
+                Symbol sym = tree.constructor;
+                MethodSymbol msym = null;
+                if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
+                boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
+                if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+                    log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+                }
+            }
         } finally {
             implementationAllowed = prev;
         }
