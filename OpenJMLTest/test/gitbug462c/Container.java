@@ -13,7 +13,7 @@ public class Container {
     }
     
     public static class ContainerUser {
-        public static /*@ non_null @*/ Container c;
+        public /*@ non_null @*/ Container c;
 
         /*@ private normal_behavior
           @   assignable \nothing;
@@ -21,17 +21,12 @@ public class Container {
         private /*@ helper @*/ ContainerUser() {}
 
         /*@ public normal_behavior
-          @   assignable c;
+          @   assignable \nothing;
           @*/
         public static ContainerUser allocate() {
             ContainerUser user = new ContainerUser();
-            c = Container.allocate();
+            user.c = Container.allocate();
             return user;
-        }
-
-        public void test() {
-            ContainerUser user = allocate();
-            //@ assert user.c instanceof Container;
         }
     }
 }
