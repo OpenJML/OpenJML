@@ -149,9 +149,29 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug462","test/gitbug462", "-cp", "test/gitbug462", "-esc");
     }
     
+    @Test public void gitbug462a() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug462a","test/gitbug462a", "-cp", "test/gitbug462a", "-esc");
+    }
+    
+    @Test public void gitbug462b() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc");
+    }
+    
+    @Test public void gitbug462c() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug462c","test/gitbug462c", "-cp", "test/gitbug462c", "-esc");
+    }
+    
     @Test public void gitbug456() {
     	expectedExit = 0;
         helpTCF("test/gitbug456","test/gitbug456", "-cp", "test/gitbug456", "-esc", "-exclude", "bytebuf.ByteBuf.*");
+    }
+    
+    @Test public void gitbug456a() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug456a","test/gitbug456a", "-cp", "test/gitbug456a", "-esc", "-exclude", "bytebuf.ByteBuf.*");
     }
     
     @Test public void gitbug455() {
@@ -180,8 +200,19 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug463a","test/gitbug463a", "-cp", "test/gitbug463a");
     }
     
+    @Test public void gitbug444() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444");
+    }
+    
+    @Test public void gitbug444a() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug444a","test/gitbug444a", "-cp", "test/gitbug444a");
+    }
+
     @Test public void gitbug466() {
     	expectedExit = 0;
         helpTCF("test/gitbug466","test/gitbug466", "-cp", "test/gitbug466","-method=Test.run");
+
     }
 }
