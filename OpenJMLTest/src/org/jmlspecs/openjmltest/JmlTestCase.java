@@ -484,7 +484,7 @@ public abstract class JmlTestCase {
     public String compareText(String expectedFile, String actual) {
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         BufferedReader exp = null;
-        String[] lines = actual.split(term);
+        String[] lines = actual.split(term,-1); // -1 so we do not discard empty lines
         String diff = "";
         try {
             exp = new BufferedReader(new FileReader(expectedFile));
@@ -495,7 +495,7 @@ public abstract class JmlTestCase {
                 line++;
                 String sexp = exp.readLine();
                 if (sexp == null) {
-                    if (line > lines.length) return diff.isEmpty() ? null : diff;
+                    if (line == lines.length) return diff.isEmpty() ? null : diff;
 
                     else {
                         diff += ("More actual input than expected" + eol);
