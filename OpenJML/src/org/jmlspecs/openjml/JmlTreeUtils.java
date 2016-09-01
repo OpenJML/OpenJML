@@ -1112,6 +1112,13 @@ public class JmlTreeUtils {
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
+        
+        return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));
+    }
+    
+    /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
+    public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        int p = pos.getPreferredPosition();
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlToken.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
@@ -1131,7 +1138,7 @@ public class JmlTreeUtils {
                 expr = makeAnd(p,expr,e);
             }
         }
-        return makeOr(p,nn,expr);
+        return expr;
     }
     
     /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
