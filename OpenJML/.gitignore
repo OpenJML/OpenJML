@@ -5,3 +5,6 @@
 /openjml.properties
 /log
 /benchmarks/
+*.zip
+*.tar.gz
+hs_err*.log

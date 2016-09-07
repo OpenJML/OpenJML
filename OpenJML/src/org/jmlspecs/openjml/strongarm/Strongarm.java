@@ -391,6 +391,7 @@ public class Strongarm
         
 
     public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition){
+        
         boolean verbose        = infer.verbose;
 
         
