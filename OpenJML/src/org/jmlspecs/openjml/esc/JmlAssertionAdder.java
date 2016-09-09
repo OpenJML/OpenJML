@@ -5939,23 +5939,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // FIXME - should this really be before the preconditions computations - it does have to be before the assignable computations.
                     if (esc && resultId != null && !resultType.isPrimitive()) {
                         JCTree cs = that;
-                        JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
-                        JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
-                        addStat(havoc);  // havoc *.isAllocSym
+//                        JCFieldAccess x = (JCFieldAccess)M.at(cs.pos).Select(null,isAllocSym);
+//                        JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(x));
+//                        addStat(havoc);  // havoc *.isAllocSym
                         {
-                            JCVariableDecl d = newTempDecl(cs, syms.objectType);
-                            JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
-                            JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
-                                    oldenv);
-                            id = treeutils.makeIdent(cs.pos, d.sym);
-                            JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
-                            JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
-                            addAssume(cs,Label.IMPLICIT_ASSUME,f);
-                            addAssume(cs,Label.IMPLICIT_ASSUME,treeutils.makeNot(cs.pos, enew));
+//                            JCVariableDecl d = newTempDecl(cs, syms.objectType);
+//                            JCIdent id = treeutils.makeIdent(cs.pos, d.sym);
+//                            JCExpression eold = treeutils.makeOld(cs.pos, treeutils.makeSelect(cs.pos, id, isAllocSym), 
+//                                    oldenv);
+//                            id = treeutils.makeIdent(cs.pos, d.sym);
+//                            JCExpression enew = treeutils.makeSelect(cs.pos, id, isAllocSym);
+//                            JCExpression f = M.at(cs).JmlQuantifiedExpr(JmlToken.BSFORALL, List.<JCVariableDecl>of(d), eold, enew);
+//                            addAssume(cs,Label.IMPLICIT_ASSUME,f);
+//                            addAssume(cs,Label.IMPLICIT_ASSUME,treeutils.makeNot(cs.pos, treeutils.makeSelect(cs.pos, resultId, isAllocSym)));
                         }
-                        if (!specs.isPure(calleeMethodSym) || newclass != null) {
-                            newAllocation2(that,resultId);
-                        }
+//                        if (!specs.isPure(calleeMethodSym) || newclass != null) {
+//                            newAllocation2(that,resultId);
+//                        }
                     }
 
                     // For each specification case, we accumulate the precondition
@@ -10562,7 +10562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     fa = isAllocated(that,convertCopy(arg));
                     JCExpression ee = treeutils.makeAnd(that.pos, prev, fa);
                     JCExpression e = treeutils.makeNeqObject(that.pos, arg, treeutils.nullLit);
-                    ee = treeutils.makeAnd(that.pos, e, ee);
+                    ee = e; //treeutils.makeAnd(that.pos, e, ee);
                     
                     fa = treeutils.makeSelect(p, convertCopy(arg), allocSym);
                     if (assumingPostConditions) {
