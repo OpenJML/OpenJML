@@ -59,3 +59,6 @@ public class Container {
         }
     }
 } 
+// The original buggy example surfaced two problems:
+// 1) assignment to user.c was not allowed, even though user was a fresh object
+// 2) user.c could not be shown to have type Container, even though it is declared to be that type

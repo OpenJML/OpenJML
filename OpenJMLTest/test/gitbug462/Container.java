@@ -13,3 +13,6 @@ public class Container {
         //@ assert c instanceof Object;
     }
 }
+
+// Note: the allocate call has no postconditions, which normally would mean that c could be anything
+// after the call. However c is delcared non_null and has type Object, so the assertion should be provable.

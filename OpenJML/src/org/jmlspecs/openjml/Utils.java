@@ -761,6 +761,11 @@ public class Utils {
         return true;
     }
     
+    /** This is a predicate that can be used in a debugging condition */
+    public static void stop() {
+        return;
+    }
+    
     public static class DoubleMap<T1,T2,TR> {
         Map<T1, Map<T2,TR>> map = new HashMap<T1, Map<T2,TR>>();
         
