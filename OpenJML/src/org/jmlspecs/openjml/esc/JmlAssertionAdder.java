@@ -2086,7 +2086,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression e;
                         if (receiver == null) e = M.at(pos).Ident(v);
                         else e = M.at(pos).Select(receiver, v);
-                        e = treeutils.makeNotNull(pos.getStartPosition(),e); // FIXME - position not right
+                        JCExpression e1 = treeutils.makeNotNull(pos.getStartPosition(),e); // FIXME - position not right
+                        JCExpression e2 = treeutils.makeNonNullDynamicTypeInEquality(pos, e, e.type);
+                        e = treeutils.makeAnd(pos.getStartPosition(), e1, e2); // FIXME - position not right
                         if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
                                 e,
                                 null,null); // FIXME - no associated position?
