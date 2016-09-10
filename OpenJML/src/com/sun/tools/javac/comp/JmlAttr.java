@@ -2843,7 +2843,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 else 
                     jmlVisibility = enclosingClassEnv.enclClass.mods.flags & Flags.AccessFlags; // FIXME - should this be the visibilty of the initializer block?
             } else {
-                jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                jmlVisibility = tree.modifiers == null ? 0 : (tree.modifiers.flags & Flags.AccessFlags);
             }
             
             if (tree.clauses == null) {
