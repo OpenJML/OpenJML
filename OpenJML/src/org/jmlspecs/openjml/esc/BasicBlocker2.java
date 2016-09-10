@@ -862,6 +862,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         }
+        // Note - this is the map at the start of processing a block
 //        log.noticeWriter.println("MAP FOR BLOCK " + block.id + JmlTree.eol + newMap.toString());
         blockmaps.put(block,newMap);
         return newMap;

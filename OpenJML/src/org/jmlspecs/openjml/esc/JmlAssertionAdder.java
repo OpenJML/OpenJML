@@ -5919,8 +5919,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // This initial logic must match that below for postconditions
 
 
-                    if (calleeMethodSym.toString().equals("get(int)")) Utils.stop();
-
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
                     if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
 

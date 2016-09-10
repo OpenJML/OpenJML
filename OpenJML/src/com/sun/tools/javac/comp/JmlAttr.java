@@ -1487,7 +1487,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
             JCAnnotation pure;
-            desugaringPure = (pure = findMod(decl.mods,JmlToken.PURE)) != null;
+            desugaringPure = (pure = findMod(msp.mods,JmlToken.PURE)) != null;
             if (!desugaringPure) {
                 if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlToken.PURE)) != null;
             }
