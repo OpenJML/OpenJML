@@ -2214,24 +2214,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                         staticStats.add(comment(pos,(assume? "Assume" : "Assert") + " invariants for " + csym,null));
                         // Do the non_null fields
-                        // FIXME - not sure that we should exclue rac
-                        if (false) for (Symbol s : csym.getEnclosedElements()) {
+                        // FIXME - not sure that we should exclude rac, but it causes an NPE
+                        if (assume && !rac) for (Symbol s : csym.getEnclosedElements()) {
                             if (s instanceof VarSymbol) {
                                 if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
                                 if (!s.isStatic() && contextIsStatic) continue;
                                 if (!assume && isConstructor) continue;
                                 VarSymbol v = (VarSymbol)s;
-                                if (specs.isNonNull(v)) {
-                                    JCExpression e;
-                                    if (receiver == null) e = M.at(pos).Ident(v);
-                                    else e = M.at(pos).Select(receiver, v);
-                                    e = treeutils.makeNotNull(pos.getStartPosition(),e); // FIXME - position not right
-                                    if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
-                                            e,
-                                            null,null); // FIXME - no associated position?
-                                    else  addAssert(pos,Label.POSSIBLY_NULL_VALUE,
-                                            e,
-                                            null,null); // FIXME - no associated position?
+                                Type vartype = v.type;
+                                JCExpression field;
+                                if (receiver == null) field = treeutils.makeIdent(pos,v);
+                                else field = M.at(pos).Select(receiver, v);
+                                if (!vartype.isPrimitive()) {
+                                    JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
+                                    if (specs.isNonNull(v)) {
+                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
+                                                e,
+                                                null,null); // FIXME - no associated position?
+                                        else  addAssert(pos,Label.POSSIBLY_NULL_VALUE,
+                                                e,
+                                                null,null); // FIXME - no associated position?
+                                    }
+                                    if (assume) {
+                                        addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(pos, field, vartype), 
+                                                null, null); // FIXME - associated position should be the declaration
+                                    }
+                                    
+                                } else {
+                                    // FIXME - range constraints?
                                 }
                             }
                         }
@@ -6450,7 +6460,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nn = treeutils.makeEqObject(that.pos, resultId, treeutils.nullLit);
                         nn = treeutils.makeOr(that.pos, nn, isAllocated(that,resultId));
                         addAssume(that,Label.IMPLICIT_ASSUME,nn);
-                        // FIXME - assumption on type? move the above where that is stated?
+                        
+                        nn = treeutils.makeDynamicTypeInEquality(that, resultId, retType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, nn);
                     }
                     
                     currentStatements.add(comment(that, "Assuming invariants for the return value by the caller after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));

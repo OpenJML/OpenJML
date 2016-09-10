@@ -9,7 +9,7 @@ public class Container {
 
     /*@ public normal_behavior
       @   assignable \nothing;
-      @   ensures \result.a == 127;
+      @   ensures \result.a == 127; 
       @*/
     public static /*@ pure @*/ Container allocate() {
         Container c = new Container();
@@ -55,7 +55,7 @@ public class Container {
             //@ assert user instanceof ContainerUser; // passes
             //@ assert cont instanceof Container;     // passes
             //@ assert user.c.a == 127;               // passes
-            //@ assert user.c instanceof Container;   // fails
+            //@ assert user.c instanceof Container;   // fails - fixed
         }
     }
 } 
