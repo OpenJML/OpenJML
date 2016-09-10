@@ -2083,8 +2083,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             TypeSymbol csym = ctype.tsym;
             for (Symbol s : csym.getEnclosedElements()) {
                 if (s instanceof VarSymbol) {
+                    if (s.toString().contains("localState") && receiver == null) Utils.stop();
+                    boolean stat = utils.isJMLStatic(s);
                     if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
-                    if (!s.isStatic() && contextIsStatic) continue;
+                    if (!stat && contextIsStatic) continue;
                     if (!assume && isConstructor) continue;
                     VarSymbol v = (VarSymbol)s;
                     JCExpression e;
@@ -6489,7 +6491,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym) && !specs.isPure(calleeMethodSym)) {
                     currentStatements.add(comment(that, "Assuming caller invariants upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                     addInvariants(that,savedEnclosingClass.type,
-                            savedEnclosingMethod == null || savedEnclosingMethod.isStatic() || savedEnclosingMethod.isConstructor() ? null : savedThisExpr,
+                            savedEnclosingMethod == null || savedEnclosingMethod.isStatic()  ? null : savedThisExpr,
                             currentStatements,
                             true,savedEnclosingMethod != null && savedEnclosingMethod.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,true,Label.INVARIANT_REENTER_CALLER, "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
 

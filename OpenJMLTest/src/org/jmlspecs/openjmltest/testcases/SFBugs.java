@@ -115,9 +115,9 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug450","test/gitbug450", "-cp", "test/gitbug450", "-esc", "-progress");
     }
     
-    @Test public void gitbug450b() {
+    @Test public void gitbug450c() {
     	expectedExit = 0;
-        helpTCF("test/gitbug450b","test/gitbug450b", "-cp", "test/gitbug450b", "-esc", "-progress");
+        helpTCF("test/gitbug450c","test/gitbug450c", "-cp", "test/gitbug450c", "-esc", "-progress");
     }
     
     @Test public void gitbug454() {
@@ -157,7 +157,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug462b() {
     	expectedExit = 0;
-        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc");
+        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc"); // , "-show", "-method=Container.ContainerUser.allocate","-subexpressions");
     }
     
     @Test public void gitbug462c() {
@@ -187,7 +187,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug445() {
-    	expectedExit = 0;
+    	expectedExit = 1;
         helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
     }
     
