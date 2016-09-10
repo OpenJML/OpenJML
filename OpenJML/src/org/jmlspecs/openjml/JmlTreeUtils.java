@@ -602,6 +602,13 @@ public class JmlTreeUtils {
      * @param expr the argument expression
      * @return the new node
      */
+    public JCExpression makeUnary(DiagnosticPosition pos, int optag, JCExpression expr) {
+        JCUnary e = factory.at(pos).Unary(optag,expr);
+        e.operator = findOpSymbol(optag,expr.type);
+        e.type = e.operator.type.getReturnType();
+        copyEndPosition(e,expr);
+        return e;
+    }
     public JCExpression makeUnary(int pos, int optag, JCExpression expr) {
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = findOpSymbol(optag,expr.type);
@@ -630,6 +637,9 @@ public class JmlTreeUtils {
      *  @param pos    The position at which to put the new AST.
      *  @param arg    The operator's argument.
      */
+    public JCExpression makeNot(DiagnosticPosition pos, JCExpression arg) {
+        return makeUnary(pos,JCTree.NOT,arg);
+    }
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.NOT,arg);
     }
@@ -701,6 +711,12 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
+    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null) {
+            System.out.println("BAD AND");
+        }
+        return makeBinary(pos,JCTree.AND,andSymbol,lhs,rhs);
+    }
     public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
         if (lhs == null) {
             System.out.println("BAD AND");

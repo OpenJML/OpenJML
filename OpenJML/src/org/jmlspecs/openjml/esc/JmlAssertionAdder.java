@@ -5055,6 +5055,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression sc;
         {
             sc = convertAssignable(scannedItem,targetThisId == null ? null : (VarSymbol)targetThisId.sym);
+            if (sc instanceof JCFieldAccess && !((JCFieldAccess)sc).sym.isStatic()) {
+                JCExpression obj = ((JCFieldAccess)sc).getExpression();
+                JCExpression fresh = isFreshlyAllocated(scannedItem,obj);
+                JCExpression notfresh = treeutils.makeNot(scannedItem, fresh);
+                if (treeutils.isFalseLit(fresh)) { 
+                    // no change to precondition
+                } else if (!treeutils.isTrueLit(fresh)) {
+                    precondition = treeutils.makeAnd(scannedItem, precondition, notfresh);
+                } else {
+                    return; // Definitely fresh - so no checks to be done
+                }
+           
+            }
         }
         for (JmlSpecificationCase c : mspecs.cases) {
             JCExpression condition = checkAccess(token,callPosition, scannedItem, sc, c, baseThisId.sym,targetThisId == null ? null : targetThisId.sym);
@@ -5169,7 +5182,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         obj = convertJML(obj);  // FIXME - in some cases at least this is a second conversion
         if (true || !convertingAssignable) obj = newTemp(obj);
         
-        if (defaultOldLabel != null) {
+        if (false && defaultOldLabel != null) {
             // FIXME - don't bother with the following if obj is 'this'
             JCExpression allocNow = M.at(pos).Select(obj, isAllocSym).setType(syms.booleanType);
             JCExpression allocOld = treeutils.makeOld(pos.getPreferredPosition(),M.at(pos).Select(convertCopy(obj), isAllocSym).setType(syms.booleanType), M.at(pos.getPreferredPosition()).Ident(defaultOldLabel));

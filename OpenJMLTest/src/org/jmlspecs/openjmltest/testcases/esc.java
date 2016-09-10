@@ -717,7 +717,7 @@ public class esc extends EscBase {
     @Test
     public void testFresh() { 
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); 
-//        main.addOptions("-method=m6","-show");
+        //main.addOptions("-method=m1","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"abstract public class TestJava { \n"
                 
