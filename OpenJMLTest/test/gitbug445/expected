@@ -1,0 +1,46 @@
+test\gitbug445\Pair.java:17: error: cannot find symbol
+      @     ensures res != null && res instanceof ArrayList<S> 
+                    ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+test\gitbug445\Pair.java:17: error: cannot find symbol
+      @     ensures res != null && res instanceof ArrayList<S> 
+                                   ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+test\gitbug445\Pair.java:17: error: illegal generic type for instanceof
+      @     ensures res != null && res instanceof ArrayList<S> 
+                                                           ^
+test\gitbug445\Pair.java:18: error: cannot find symbol
+      @          && res.size() == 2;
+                    ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+test\gitbug445\Pair.java:19: error: cannot find symbol
+      @   res.add(0,p.run(first));
+          ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+test\gitbug445\Pair.java:20: error: cannot find symbol
+      @   res.add(1,p.run(second));
+          ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+test\gitbug445\Pair.java:21: error: cannot find symbol
+      @   return res;
+                 ^
+  symbol:   variable res
+  location: class Pair<T>
+  where T is a type-variable:
+    T extends Object declared in class Pair
+7 errors
