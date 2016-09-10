@@ -870,6 +870,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e = treeutils.makeNeqObject(methodDecl.pos,currentThisExpr,treeutils.nullLit);
                 addAssume(methodDecl,Label.IMPLICIT_ASSUME,e);
                 addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
+
+                JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
+                fa = treeutils.makeBinary(methodDecl,JCTree.EQ, fa, treeutils.makeIntLiteral(methodDecl,0));
+                addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
+
             }
             
             boolean callingSuper = false;
@@ -2698,7 +2703,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean nnull = true;
         if (!sym.type.isPrimitive()) {
             // e2 : id.isAlloc
-            JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
+            //JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
+            JCExpression e2 = treeutils.makeBinary(p, JCTree.LE, 
+                    treeutils.makeSelect(p, convertCopy(id), allocSym), 
+                    treeutils.makeIntLiteral(p, 0));
 
             Symbol owner = sym.owner;
             if (owner instanceof MethodSymbol) owner = owner.owner;
@@ -2939,6 +2947,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             preparams.put(d.sym,dd);
             if (esc) dd.sym.owner = null; // FIXME - can get these straight from the labelmaps - do we need this?
             addStat(dd);
+            // Declare allocation time of formals if they are not null
+            if (esc && !d.type.isPrimitive()) {
+                JCIdent id = treeutils.makeIdent(d.pos, d.sym);
+                JCExpression nn = treeutils.makeEqNull(d.pos,id);
+                JCExpression fa = M.at(d.pos).Select(id, allocSym);
+                fa = treeutils.makeBinary(d,JCTree.LE, fa, treeutils.makeIntLiteral(d,0));
+                fa = treeutils.makeOr(d.pos, nn, fa);
+                addStat(treeutils.makeAssume(d, Label.IMPLICIT_ASSUME, fa ));
+            }
         }
         
         // Collect all classes that are mentioned in the method
@@ -5889,6 +5906,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // This initial logic must match that below for postconditions
 
 
+                    if (calleeMethodSym.toString().equals("get(int)")) Utils.stop();
+
                     JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
                     if (calleeSpecs == null) continue; // FIXME - not sure about this - should get a default?
 
@@ -5934,8 +5953,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     }
                     
-                    if (calleeMethodSym.toString().equals("allocate()")) Utils.stop();
-
                     // FIXME - should this really be before the preconditions computations - it does have to be before the assignable computations.
                     if (esc && resultId != null && !resultType.isPrimitive()) {
                         JCTree cs = that;
@@ -6100,8 +6117,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                    }
 
                                 } else {
+                                    if (isPure(calleeMethodSym)) {
+                                        checkAgainstCallerSpecs(JmlToken.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlToken.BSNOTHING),pre, savedThisId, newThisId, cs.source());
+                                    } else {
                                     // the default is \\everything
-                                    checkAgainstCallerSpecs(JmlToken.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlToken.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
+                                        checkAgainstCallerSpecs(JmlToken.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlToken.BSEVERYTHING),pre, savedThisId, newThisId, cs.source());
+                                    }
                                 }
                             }
                             if (!anyCallableClauses) {
