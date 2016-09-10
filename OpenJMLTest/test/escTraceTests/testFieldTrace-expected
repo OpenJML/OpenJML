@@ -61,6 +61,8 @@ TRACE of tt.TestJava.m1(int)
 			VALUE: -2147483648 <= i_95	 === ???
 			VALUE: -2147483648 <= i_95 && i_95 <= 2147483647	 === ???
  	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
  	//Assume invariants for tt.TestJava
  	//Assume Preconditions
  	//try...
