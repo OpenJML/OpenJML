@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +69,7 @@ public class BlockReader {
     private final BasicBlocker2 basicBlocker;
     private Map<JCIdent, ArrayList<JCTree>> _mappings;
     private boolean _mappingsDone;
+    private Set<BasicBlock> exitBlocks;
 
     public BlockReader(Context context, List<BasicBlock> blocks, BasicBlocker2 basicBlocker) {
         this.context = context;
@@ -230,6 +232,7 @@ public class BlockReader {
         TraceElement traceElement = new TraceElement(block);
         
         if(skipBlock(block)){
+            getExitBlocks().add(block);
             return p;
         }
         
@@ -270,12 +273,9 @@ public class BlockReader {
                 }    
 
                 continue; 
-            }
-            
+            }            
 
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
-
-           // if(isPreconditionStmt(jmlStmt)){
                 
             if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
                 
@@ -534,6 +534,9 @@ public class BlockReader {
         }else if(block.followers().size() > 0){
             return  sp(p, block.followers().get(0));
         }
+        
+        
+        getExitBlocks().add(block);
         
         return p;
     }
@@ -901,43 +904,54 @@ public class BlockReader {
         Map<JCIdent, ArrayList<JCTree>> subs = new HashMap<JCIdent, ArrayList<JCTree>>();
         
         for(BasicBlock b : blocks){
-            
-            VarMap blockMap  = basicBlocker.blockmaps.get(b);
-        
-            Set<VarSymbol> syms2 = blockMap.keySet();
-            
-            log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
-            log.noticeWriter.println("--------------------------");
-           
-            for(VarSymbol s : syms2){
-                // note we FLIP the ordering here (to do this we create a new equality)
-//                if(verbose){
-//                    log.noticeWriter.println(blockMap.getName(s) + " --[maps to]--> " + s.toString() );
-//                }
-//                
-                debugPremapMappings.add(new Object[]{b.id().toString(), blockMap.getName(s).toString(), s.toString()});
-                
-                
-                //blockMap.getName(s)
-                //treeutils.makeSy
-                JCIdent replace = treeutils.makeIdent(0, blockMap.getName(s).toString(), s.type);
-                JCIdent with    = treeutils.makeIdent(0, s);
-                
-                JCBinary replacement = treeutils.makeBinary(0, JCTree.EQ, replace, with);
-                
-//                if(verbose){
-//                    log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
-//                }
-//                
-                
-                addSubstitutionAtBlock(replacement, subs, b);
-
-            }
+            subs.putAll(getBlockerMappings(b));
         }
+        
+        return subs;
+    }
+
+    
+    public Map<JCIdent, ArrayList<JCTree>> getBlockerMappings(BasicBlock b){
+        
+        Map<JCIdent, ArrayList<JCTree>> subs = new HashMap<JCIdent, ArrayList<JCTree>>();
+        
+            
+        VarMap blockMap  = basicBlocker.blockmaps.get(b);
+    
+        Set<VarSymbol> syms2 = blockMap.keySet();
+        
+        log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
+        log.noticeWriter.println("--------------------------");
+       
+        for(VarSymbol s : syms2){
+
+            debugPremapMappings.add(new Object[]{b.id().toString(), blockMap.getName(s).toString(), s.toString()});
+            
+            
+            //blockMap.getName(s)
+            //treeutils.makeSy
+            JCIdent replace = treeutils.makeIdent(0, blockMap.getName(s).toString(), s.type);
+            JCIdent with    = treeutils.makeIdent(0, s);
+            
+            JCBinary replacement = treeutils.makeBinary(0, JCTree.EQ, replace, with);
+            
+            if(verbose){
+                log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
+            }
+            
+            
+            addSubstitutionAtBlock(replacement, subs, b);
+
+        }
+    
 
         
         return subs;
     }
+
+    
+    
+    
     //TODO: not safe to call this more than once.
     public Map<JCIdent, ArrayList<JCTree>> getSubstitutionMappings(){
         
@@ -964,7 +978,43 @@ public class BlockReader {
         _mappings = new HashMap<JCIdent, ArrayList<JCTree>>();
         loopDepth = 0;
         _mappingsDone = false;
+        setExitBlocks(new HashSet<BasicBlock>());
         
+    }
+
+    public Set<BasicBlock> getExitBlocks() {
+        return exitBlocks;
+    }
+
+    private void setExitBlocks(Set<BasicBlock> exitBlocks) {
+        this.exitBlocks = exitBlocks;
+    }
+
+    public ArrayList<JCTree> getSubstitutionTree(){
+
+        ArrayList<JCTree> subs = new ArrayList<JCTree>();
+        
+        // get the exit blocks.
+        
+        return null; //return getSubstitutionTree(b, subs, getSubstitutionMappings());
+        
+    }
+    
+    public ArrayList<JCTree> getSubstitutionTree(BasicBlock b, ArrayList<JCTree> subs, Map<JCIdent, ArrayList<JCTree>> mappings){
+        
+        if(b==null){ return subs; }
+        
+        //System.out.println("Getting Substitutions from Block: " + b.id().toString());
+
+        if(mappings.get(b.id())!=null){
+            subs.addAll(mappings.get(b.id()));
+        }
+
+        for(BasicBlock before : b.preceders()){
+            getSubstitutionTree(before, subs, mappings);
+        }
+        
+        return subs;
     }
 }
     

@@ -68,7 +68,7 @@ public class Prop<T extends JCExpression> {
     }
     
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
                 
         System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
@@ -78,10 +78,21 @@ public class Prop<T extends JCExpression> {
             System.out.println("Found failing prop...");
         }
         
-        ArrayList<JCTree> subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
+        ArrayList<JCTree> subs = new ArrayList<JCTree>(); //getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
+        
+        if(!limitDepth){
+           subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
+        }else{
+          
+            if(mappings.get(def.id())!=null){
+              subs.addAll(mappings.get(def.id()));
+            }
+
+        }
         
         //
         Collections.reverse(subs);
+        //
         
         // baby fixpoint
         String before;
@@ -97,7 +108,7 @@ public class Prop<T extends JCExpression> {
             
             iteration++;
             
-        }while(before.equals(p.toString())==false);
+        }while(before.equals(p.toString())==false && limitDepth==false);
         
     }
     
@@ -114,7 +125,7 @@ public class Prop<T extends JCExpression> {
                  System.out.println("Found failing prop...");
              }
              */
-            System.out.println("Trying: " + sub.toString());
+            //System.out.println("Trying: " + sub.toString());
             
             JCExpression tmpE;
             

@@ -424,9 +424,19 @@ public class Strongarm
             // the underlying expressions for the temporary variables.
             // The substitution we do later then resolves the variables 
             // in the equations we substitute here. 
-            reader.postcondition.replace(reader.getSubstitutionMappings());
+            reader.postcondition.replace(reader.getSubstitutionMappings(), false);
         }
 
+        
+        {
+            // alternate approach -- here we iterate over the ENTIRE contract
+            
+//            for(BasicBlock exitBlock : reader.getExitBlocks()){
+//                log.noticeWriter.println("[STRONGARM] found exit block: "+ exitBlock.id().toString());
+//
+//            }
+//            
+        }
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -434,7 +444,7 @@ public class Strongarm
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
-        }
+        }   
         
         
         com.sun.tools.javac.util.List<JmlMethodClause> newContract = reader.postcondition.getClauses(null, treeutils, M);
@@ -503,10 +513,13 @@ public class Strongarm
         // the map of program variables generated during transformation to 
         // basic block format. 
         //
+        long ts1 = System.currentTimeMillis();
         {
-            reader.postcondition.replace(reader.getBlockerMappings());
+            reader.postcondition.replace(reader.getBlockerMappings(), true);
         }
-
+        long ts2 = System.currentTimeMillis();
+        
+        System.out.println("RUNTIME: " + (ts2 - ts1));
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);

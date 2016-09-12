@@ -36,9 +36,9 @@ public class And<T extends JCExpression> extends Prop<T> {
         p2.replace(mappings);        
     }
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
-        p1.replace(mappings);
-        p2.replace(mappings);
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+        p1.replace(mappings, limitDepth);
+        p2.replace(mappings, limitDepth);
     }
   
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){

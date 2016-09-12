@@ -27,9 +27,9 @@ public class Or<T extends JCExpression> extends Prop<T> {
         this.p2 = p2;
     }
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings){
-        p1.replace(mappings);
-        p2.replace(mappings);
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+        p1.replace(mappings, limitDepth);
+        p2.replace(mappings, limitDepth);
     }
     
     public void replace(ArrayList<JCTree> mappings){
