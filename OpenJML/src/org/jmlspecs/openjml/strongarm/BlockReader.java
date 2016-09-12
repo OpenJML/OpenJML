@@ -628,7 +628,7 @@ public class BlockReader {
     private BasicBlock lca(BasicBlock left, BasicBlock right){
         
         for(BasicBlock b : joins){
-            System.out.println(String.format("Testing Reachable %s -> %s and %s -> %s", b.id(), left.id(), b.id(), right.id()));
+            //System.out.println(String.format("Testing Reachable %s -> %s and %s -> %s", b.id(), left.id(), b.id(), right.id()));
             if(reachable(b, left) && reachable(b, right)){
                 return b;
             }
@@ -637,8 +637,15 @@ public class BlockReader {
         return null;
     }
     
-    HashMap<BasicBlock, HashMap<BasicBlock, Boolean>> _reachableCache = new HashMap<BasicBlock, HashMap<BasicBlock, Boolean>>();
+    private HashMap<BasicBlock, HashMap<BasicBlock, Boolean>> _reachableCache = new HashMap<BasicBlock, HashMap<BasicBlock, Boolean>>();
     
+    
+    /**
+     * Memoized version of LCA reachable function. 
+     * @param start
+     * @param end
+     * @return
+     */
     private Boolean _reachable(BasicBlock start, BasicBlock end){
         
         //if(1==1){ return null;}
@@ -648,7 +655,12 @@ public class BlockReader {
         
         return _reachableCache.get(start).get(end);
     }
-    
+    /**
+     * Helper for memoizing LCA search. 
+     * @param start
+     * @param end
+     * @param isReachable
+     */
     private void _setReachable(BasicBlock start, BasicBlock end, boolean isReachable){
         
         if(_reachableCache.get(start)==null){
