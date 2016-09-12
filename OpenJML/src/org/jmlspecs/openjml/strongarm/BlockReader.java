@@ -787,6 +787,12 @@ public class BlockReader {
                 return false;
             }
         
+            
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith(Strings.conditionalResult)){
+                return true;
+            }
+        
+            
             if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){ 
                 return true;
             }
