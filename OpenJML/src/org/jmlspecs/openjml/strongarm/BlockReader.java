@@ -452,9 +452,13 @@ public class BlockReader {
             BasicBlock left  = block.followers().get(0);
             BasicBlock right = block.followers().get(1);
             
+            log.noticeWriter.println("[STRONGARM] Finding LCA...");
+
             BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
             
-            if(lca==null || true){
+            log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
+
+            if(lca==null){
                 
                 //TODO - need to investigate what conditions LCA can't be 
                 //       found.
@@ -624,12 +628,34 @@ public class BlockReader {
     private BasicBlock lca(BasicBlock left, BasicBlock right){
         
         for(BasicBlock b : joins){
+            System.out.println(String.format("Testing Reachable %s -> %s and %s -> %s", b.id(), left.id(), b.id(), right.id()));
             if(reachable(b, left) && reachable(b, right)){
                 return b;
             }
         }
         
         return null;
+    }
+    
+    HashMap<BasicBlock, HashMap<BasicBlock, Boolean>> _reachableCache = new HashMap<BasicBlock, HashMap<BasicBlock, Boolean>>();
+    
+    private Boolean _reachable(BasicBlock start, BasicBlock end){
+        
+        //if(1==1){ return null;}
+        if(_reachableCache.get(start)==null){
+            return null;
+        }
+        
+        return _reachableCache.get(start).get(end);
+    }
+    
+    private void _setReachable(BasicBlock start, BasicBlock end, boolean isReachable){
+        
+        if(_reachableCache.get(start)==null){
+            _reachableCache.put(start, new HashMap<BasicBlock, Boolean>());
+        }
+        
+        _reachableCache.get(start).put(end, isReachable);
     }
     
     /**
@@ -639,14 +665,24 @@ public class BlockReader {
      * @return true if yes, otherwise no.
      */
     private boolean reachable(BasicBlock start, BasicBlock end){
+        
+        if(_reachable(start, end)!=null){
+            return _reachable(start, end);
+        }
+        
         if(start==end){
+            _setReachable(start, end, true);
             return true;
         }
         
         for(BasicBlock adjacent : start.preceders()){
-            if(reachable(adjacent, end)) return true;
+            if(reachable(adjacent, end)){
+                _setReachable(start, end, true);
+                return true;
+            }
         }
         
+        _setReachable(start, end, false);
         return false;
     }
     
