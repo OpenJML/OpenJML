@@ -17,7 +17,8 @@ public class typechecking extends TCBase {
 
     /** Test something very simple with no errors*/
     @Test public void testSomeJava() {
-        helpTC("class A { public A(){} }");
+    	main.addOptions("-verbose");
+        helpTC("import org.jmlspecs.lang.JMLDataGroup; class A { public A(){} }");
     }
 
     /** Test something very simple with no errors*/
@@ -811,8 +812,8 @@ public class typechecking extends TCBase {
     // This should fail for the ghost declaration but not for the Java declaration
     @Test public void testModelImport2() {
         helpTCF("A.java","import java.awt.*; //@ model import java.util.*;\n public class A {\n //@ ghost List k;\n List n;  \n }"
-                ,"/A.java:4: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",2
                 ,"/A.java:3: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",12
+                ,"/A.java:4: reference to List is ambiguous\n  both interface java.util.List in java.util and class java.awt.List in java.awt match",2
         );
     }
 

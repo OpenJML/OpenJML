@@ -322,102 +322,102 @@ public class JmlCompiler extends JavaCompiler {
      *      may be null for a PUBLIC top-level class  
      * @param csymbol the class whose specs are wanted
      */  // FIXME - what should we use for env for non-public binary classes
+    // FIXME - move this to JmlResolve
     public void loadSpecsForBinary(Env<AttrContext> env, ClassSymbol csymbol) {
-        // Don't load over again
+        // The binary Java class itself is already loaded - it is needed to produce the classSymbol itself
+        
+        // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
-        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-
+        
         // FIXME - need to figure out what the environment should be
 
-        loadSuperSpecs(env,csymbol);
-        for (Type t: csymbol.getInterfaces()) {
-            loadSpecsForBinary(env, (ClassSymbol)t.tsym);
-        }
+        if (!binaryEnterTodo.contains(csymbol)) {
+            nestingLevel++;
+            try {
 
-//        if (!csymbol.flatName().toString().equals("java.lang.Object")) {
-//            ((JmlEnter)enter).recordEmptySpecs(csymbol);
-//            return; // FIXME - specs with type parameters not working correctly yet
-//        }
-        if (!csymbol.getTypeParameters().isEmpty()) {
-            ((JmlEnter)enter).recordEmptySpecs(csymbol);
-            return; // FIXME - specs with type parameters not working correctly yet
-        }
+                if (csymbol.getSuperclass() != Type.noType) loadSpecsForBinary(env, (ClassSymbol)csymbol.getSuperclass().tsym);
+                for (Type t: csymbol.getInterfaces()) {
+                    loadSpecsForBinary(env, (ClassSymbol)t.tsym);
+                }
 
-        // It can happen that the specs are loaded during the loading of the super class 
-        // since complete() may be called on the class in order to fetch its superclass
-        JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
-        JmlCompilationUnit speccu = null;
-        if (tspecs != null) {
-            if (tspecs.decl != null) speccu = tspecs.decl.toplevel;
-        } else {
-            speccu = parseSpecs(csymbol);
-            if (verbose && speccu == null) {
-                noticeWriter.println("No specs for " + csymbol);
-            }
-            ((JmlEnter)enter).recordEmptySpecs(csymbol);
-        }
-        
-            
-        if (utils.jmlverbose >= Utils.JMLDEBUG) if (speccu == null) noticeWriter.println("   LOADING CLASS " + csymbol + " FOUND NO SPECS");
-        else noticeWriter.println("   LOADING CLASS " + csymbol + " PARSED SPECS");
+                if (true || !csymbol.getTypeParameters().isEmpty()) {
+                    ((JmlEnter)enter).recordEmptySpecs(csymbol);
+                    return; // FIXME - specs with type parameters not working correctly yet
+                }
 
-        // FIXME - not sure env or mode below are still used
-        if (speccu != null) {
-            csymbol.flags_field |= Flags.UNATTRIBUTED;
+                // It can happen that the specs are loaded during the loading of the super class 
+                // since complete() may be called on the class in order to fetch its superclass
+                JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(csymbol);
+                if (tspecs == null) {
+                    // Note: classes and interfaces may be entered in this queue multiple times. The check for specs at the beginning of this method
+                    // does not prevent unloaded classes from begin added to the queue more than once, because the specs are not loaded until completeBinaryEnterTodo
+                    if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("QUEUING BINARY ENTER " + csymbol);
+                    binaryEnterTodo.prepend(csymbol);
+                }
 
-            if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
-            else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
-
-        //        ((JmlEnter)enter).enterSpecsForBinaryClasses(csymbol,speccu);
-            
-            // This nesting level is used to be sure we queue up a whole set of 
-            // classes, do their 'enter' processing to record any types before we
-            // do their member processing to record all their members.  We need the
-            // types recorded so that we can look up types for the members (e.g. do
-            // method resolution).  This is the same two-phase processing as the
-            // Java handling uses, we just don't use the same todo list.
-            if (nestingLevel > 0) {
-                if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("QUEUING BINARY ENTER " + csymbol);
-                binaryEnterTodo.add(speccu);
-            } else {
-                nestingLevel++;
-                ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(speccu);
-                nestingLevel--;
-                if (nestingLevel==0) completeBinaryEnterTodo();
+            } finally {
+                nestingLevel --;
             }
         }
+
+        // This nesting level is used to be sure we queue up a whole set of 
+        // classes, do their 'enter' processing to record any types before we
+        // do their member processing to record all their members.  We need the
+        // types recorded so that we can look up types for the members (e.g. do
+        // method resolution).  This is the same two-phase processing as the
+        // Java handling uses, we just don't use the same todo list.
+        if (nestingLevel==0) completeBinaryEnterTodo();
             
      }
     
-    ListBuffer<JmlCompilationUnit> binaryEnterTodo = new ListBuffer<JmlCompilationUnit>();
+    ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
     
     public void completeBinaryEnterTodo() {
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+        JmlMemberEnter memberEnter = ((JmlMemberEnter)JmlMemberEnter.instance(context));
         while (!binaryEnterTodo.isEmpty()) {
-            JmlCompilationUnit speccu = binaryEnterTodo.remove();
-            nestingLevel++;
-            ((JmlMemberEnter)JmlMemberEnter.instance(context)).binaryEnter(speccu);
-            ((JmlEnter)enter).binaryEnvs.add(speccu);
-            nestingLevel--;
+            ClassSymbol csymbol = binaryEnterTodo.remove();
+
+            JmlCompilationUnit speccu = parseSpecs(csymbol);
+            
+            if (speccu == null) {
+                if (verbose) noticeWriter.println("No specs for " + csymbol);
+                ((JmlEnter)enter).recordEmptySpecs(csymbol);
+            } else {
+                csymbol.flags_field |= Flags.UNATTRIBUTED;
+
+                if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
+                else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
+
+                nestingLevel++;
+                try {
+                    memberEnter.binaryEnter(speccu);
+                    ((JmlEnter)enter).binaryEnvs.add(speccu);
+                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
+                } finally {
+                    nestingLevel--;
+                }
+            }
         }
     }
     
-    /** Makes sure that the super classes and interfaces of the given symbol
-     * are loaded, including specs.
-     * @param csymbol the class whose super types are wanted
-     */
-    public void loadSuperSpecs(Env<AttrContext> env, ClassSymbol csymbol) {
-        // We have a ClassSymbol, but the super classes and interfaces
-        // are not necessarily loaded, completed or have their
-        // specs read
-        Resolve resolve = JmlResolve.instance(context);
-        Type t = csymbol.getSuperclass();
-        if (t != null && t.tsym != null) {
-            resolve.loadClass(env,((ClassSymbol)t.tsym).flatname);
-        }
-        for (Type tt: csymbol.getInterfaces()) {
-            resolve.loadClass(env,((ClassSymbol)tt.tsym).flatname);
-        }
-    }
+//    /** Makes sure that the super classes and interfaces of the given symbol
+//     * are loaded, including specs.
+//     * @param csymbol the class whose super types are wanted
+//     */
+//    public void loadSuperSpecs(Env<AttrContext> env, ClassSymbol csymbol) {
+//        // We have a ClassSymbol, but the super classes and interfaces
+//        // are not necessarily loaded, completed or have their
+//        // specs read
+//        Resolve resolve = JmlResolve.instance(context);
+//        Type t = csymbol.getSuperclass();
+//        if (t != null && t.tsym != null) {
+//            resolve.loadClass(env,((ClassSymbol)t.tsym).flatname);
+//        }
+//        for (Type tt: csymbol.getInterfaces()) {
+//            resolve.loadClass(env,((ClassSymbol)tt.tsym).flatname);
+//        }
+//    }
     
     /** Overridden in order to put out some information about stopping */
     @Override

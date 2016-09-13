@@ -1522,7 +1522,7 @@ public abstract class Symbol extends AnnoConstruct implements Element {
                 case PUBLIC:
                     return !this.owner.isInterface() ||
                             clazz == owner ||
-                            (flags_field & STATIC) == 0;
+                            true; // (flags_field & STATIC) == 0; // DRC - allow public static declarations in interfaces to be seen // Note that the PUBLIC case in the super class is just true
                 default:
                     return super.isInheritedIn(clazz, types);
             }

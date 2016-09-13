@@ -25,6 +25,7 @@
 
 package com.sun.tools.javac.comp;
 
+import com.sun.javafx.scene.control.skin.Utils;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
 import com.sun.tools.javac.api.Formattable.LocalizedString;
 import com.sun.tools.javac.code.*;
@@ -1855,6 +1856,9 @@ public class Resolve {
     Symbol findFun(Env<AttrContext> env, Name name,
                    List<Type> argtypes, List<Type> typeargtypes,
                    boolean allowBoxing, boolean useVarargs) {
+//        if (name.toString().equals("equal")) {
+//            System.out.println();
+//        }
         Symbol bestSoFar = methodNotFound;
         Symbol sym;
         Env<AttrContext> env1 = env;

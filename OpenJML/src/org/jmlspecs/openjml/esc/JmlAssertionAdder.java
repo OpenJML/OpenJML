@@ -2828,7 +2828,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } catch (JmlNotImplementedException e) {
                 notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
             } catch (Exception e) {
-                Utils.print(""); // What to do
+                Utils.stop(); // FIXME - what to do - 
             }
         }
     }

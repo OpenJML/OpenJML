@@ -768,6 +768,11 @@ public class Utils {
         return true;
     }
     
+    /** This is solely used to easily insert conditional breakpoints for debugging. */
+    public static void stop() {
+        return;
+    }
+    
     public static class DoubleMap<T1,T2,TR> {
         Map<T1, Map<T2,TR>> map = new HashMap<T1, Map<T2,TR>>();
         

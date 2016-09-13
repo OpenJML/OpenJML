@@ -2262,6 +2262,12 @@ public class JmlTree implements IJmlTree {
                 return null; // return super.accept(v,d);
             }
         }
+        
+        @Override
+        public int getStartPosition() {
+            return pos;
+        }
+
     }
 
     /** This class represents JML quantified expressions */

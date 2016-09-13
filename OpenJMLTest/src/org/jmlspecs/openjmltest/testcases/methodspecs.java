@@ -34,18 +34,10 @@ public class methodspecs extends TCBase {
                 +"//@ s ignals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:4: ';' expected",18
-                ,"/TEST.java:4: <identifier> expected",28
-                ,"/TEST.java:2: Method specifications must immediately precede a method or initializer declaration",5
-                ,"/TEST.java:4: A declaration within a JML annotation must be either ghost or model",28
-
-                //,"/TEST.java:4: This is not a valid keyword in a method specification: s",5
+                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
                 );
     }
 
-    // TODO: We'd like to handle this and the above better - the r looks like a type and the
-    // equires like a variable, so this is parsed as a declaration in JML.  It
-    // does not check until later that there is no ghost or model.
     /** Tests bad keyword */
     @Test
     public void testBadKeyword3() {
@@ -54,9 +46,31 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: ';' expected",14
-                ,"/TEST.java:2: cannot find symbol\n  symbol:   class r\n  location: class A",5
-                ,"/TEST.java:2: A declaration within a JML annotation must be either ghost or model",7
+                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: r",5
+                );
+    }
+    
+    /** Tests bad keyword */
+    @Test
+    public void testBadKeyword3a() {
+        helpTC(" class A { \n"
+                +"//@ true equires true;\n"
+                +"//@ signals_only Exception;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: true",5
+                );
+    }
+    
+    /** Tests bad keyword */
+    @Test
+    public void testBadKeyword3b() {
+        helpTC(" class A { \n"
+                +"//@ class equires true;\n"
+                +"//@ signals_only Exception;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",5
                 );
     }
     

@@ -837,8 +837,12 @@ public class MethodProverSMT {
 
                     JavaFileObject prev = null;
                     int pos = assertStat.pos;
-                    if (pos == Position.NOPOS || pos == decl.pos) pos = terminationPos;
-                    if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                    if (pos == Position.NOPOS || pos == decl.pos) {
+                        pos = terminationPos;
+                        prev = log.useSource(((JmlMethodDecl)decl).sourcefile);
+                    } else {
+                        if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                    }
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos); 

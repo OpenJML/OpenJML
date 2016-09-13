@@ -524,6 +524,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         try {
             // Import-on-demand java.lang.
             importAll(tree.pos, reader.enterPackage(names.java_lang), env);
+            importAll(tree.pos, reader.enterPackage(names.fromString("org.jmlspecs.lang")), env); // DRC - added
 
             // Process all import clauses.
             memberEnter(tree.defs, env);
@@ -873,11 +874,11 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                         : deferredLintHandler.immediate();
                     Lint prevLint = deferPos != null ? null : chk.setLint(lint);
                     try {
-                        if (s.hasAnnotations() &&
-                            annotations.nonEmpty())
-                            log.error(annotations.head.pos,
-                                      "already.annotated",
-                                      kindName(s), s);
+//                        if (s.hasAnnotations() &&   // OpenJML - allow redoing
+//                            annotations.nonEmpty())
+//                            log.error(annotations.head.pos,
+//                                      "already.annotated",
+//                                      kindName(s), s);
                         actualEnterAnnotations(annotations, localEnv, s);
                     } finally {
                         if (prevLint != null)

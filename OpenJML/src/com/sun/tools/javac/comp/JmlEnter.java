@@ -211,14 +211,14 @@ public class JmlEnter extends Enter {
             // This if-else statement copied from Enter
             if (specscu.pid != null) {
                 specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
-                if (specscu.packageAnnotations.nonEmpty()
-                        || pkginfoOpt == PkgInfo.ALWAYS
-                        || specscu.docComments != null) {
-                    if (specscu.packageAnnotations.nonEmpty()){
-                        log.error(specscu.packageAnnotations.head.pos(),
-                                  "pkg.annotations.sb.in.package-info.java");
-                    }
-                }
+//                if (specscu.packageAnnotations.nonEmpty()
+//                        || pkginfoOpt == PkgInfo.ALWAYS
+//                        || specscu.docComments != null) {
+//                    if (specscu.packageAnnotations.nonEmpty()){
+//                        log.error(specscu.packageAnnotations.head.pos(),
+//                                  "pkg.annotations.sb.in.package-info.java");
+//                    }
+//                }
             } else {
                 specscu.packge = syms.unnamedPackage;
             }

@@ -497,6 +497,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        JavaFileObject prev = log.useSource(((JmlClassDecl)env.enclClass).toplevel.sourcefile);  // FIXME - no write for multiple source files
         boolean oldRelax = relax;
         try {
+            // If the class is binary only, then we have not yet attributed the super/extending/implementing classes in the source AST for the specifications
+            
+            JmlClassDecl cd = (JmlClassDecl)env.tree;
+            {
+                JCExpression e = cd.extending;
+                if (e != null && e.type == null) attribType(e,env);
+            }
+            if (cd != null) for (JCExpression e: cd.implementing) {
+                if (e.type == null) attribType(e,env);
+            }
+            
+            
             // The JML specs to check are are in the TypeSpecs structure
 
             relax = true;  // Turns off some bogus lack of overriding warnings
@@ -4277,6 +4289,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
+//        if (tree.name.toString().equals("equal")) org.jmlspecs.openjml.Utils.stop();
         long prevVisibility = jmlVisibility;
         JmlTokenKind prevClauseType = currentClauseType;
         try {
@@ -5444,6 +5457,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.isJML(that.mods)) {
                 prev = ((JmlResolve)rs).setAllowJML(true);
             }
+            if (that.vartype.type == null) attribType(that.vartype,env);
+            if (that.name.toString().equals("objectState")) Utils.stop();
             visitVarDef(that);
             // Anonymous classes construct synthetic members (constructors at least)
             // which are not JML nodes.

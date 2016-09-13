@@ -857,6 +857,18 @@ public class JmlParser extends JavacParser {
                                                // pushBackModifiers
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
+            check: if (S.jml() && jt == null && !inJmlDeclaration && !inLocalOrAnonClass) {
+                String tokenString = S.chars();
+                if (!tokenString.isEmpty()) {
+                    if (mods.annotations != null) for (JCAnnotation a: mods.annotations) {
+                        if (a.annotationType.toString().endsWith("Model")) break check;
+                        if (a.annotationType.toString().endsWith("Ghost")) break check;
+                    }
+                    log.error(pos,  "jml.bad.keyword", tokenString);
+                    skipThroughSemi();
+                    break loop;
+                }
+            }
             if (jt == null || isJmlTypeToken(jt)) {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                 // into super.classOrInterfaceBodyDeclaration
@@ -1035,16 +1047,17 @@ public class JmlParser extends JavacParser {
                             && ((JmlTypeClauseDecl) tree).decl instanceof JmlMethodDecl) {
                         JmlMethodDecl mdecl = (JmlMethodDecl) ((JmlTypeClauseDecl) tree).decl;
                         mdecl.cases = mspecs;
-                        typeSpecs.decls.append((JmlTypeClauseDecl) tree);
+                        newlist.append(mdecl);
                     } else if (tree instanceof JmlTypeClauseDecl
                             && ((JmlTypeClauseDecl) tree).decl instanceof JmlClassDecl) {
                         log.error(mspecs.pos(), "jml.misplaced.method.spec");
-                        typeSpecs.modelTypes.add((JmlClassDecl)((JmlTypeClauseDecl) tree).decl);
+                        typeSpecs.modelTypes.add((JmlClassDecl)((JmlTypeClauseDecl) tree).decl);  // FIXME - add to typeSpecs or to newlist
                     } else if (tree instanceof JmlTypeClauseDecl
                             && ((JmlTypeClauseDecl) tree).decl instanceof JmlVariableDecl) {
                         log.error(mspecs.pos(), "jml.misplaced.method.spec");
                         currentVarDecl = (JmlVariableDecl) ((JmlTypeClauseDecl) tree).decl;
-                        typeSpecs.decls.append((JmlTypeClauseDecl) tree);
+                        //typeSpecs.decls.append((JmlTypeClauseDecl) tree);  // FIXME - add to typeSpecs or to newlist ?
+                        newlist.append(currentVarDecl);
                     } else if (tree instanceof JmlTypeClauseInitializer) {
                         JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer) tree;
                         tsp.specs = mspecs;
@@ -1069,6 +1082,7 @@ public class JmlParser extends JavacParser {
                 if (tree instanceof JmlVariableDecl) {
                     currentVarDecl = (JmlVariableDecl) tree;
                 } else if (tree instanceof JmlMethodDecl) {
+                    if ( ((JmlMethodDecl)tree).name.toString().equals("initialCharSequence")) Utils.stop();
                     // OK
                 } else if (tree instanceof JmlClassDecl) {
                     // OK

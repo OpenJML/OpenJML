@@ -668,7 +668,7 @@ public class JavaCompiler {
         JavaFileObject prev = log.useSource(filename);
         try {
             JCTree.JCCompilationUnit t = parse(filename, readSource(filename));
-            if (t.endPositions != null)
+            if (log.getSource(filename).getEndPosTable() == null)
                 log.setEndPosTable(filename, t.endPositions);
             return t;
         } finally {

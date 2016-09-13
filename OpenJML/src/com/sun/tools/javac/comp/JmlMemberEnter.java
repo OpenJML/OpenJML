@@ -167,7 +167,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public void memberEnter(JCTree tree, Env<AttrContext> env) {
         super.memberEnter(tree, env);
-        if (tree instanceof JmlCompilationUnit) {
+        if (tree instanceof JmlCompilationUnit) {  // FIXME - this is also called with tree being a JmlClassDecl - then nothing is done; also part of the below is done already??
             JmlCompilationUnit javacu = (JmlCompilationUnit)tree;
             JmlCompilationUnit specscu = javacu.specsCompilationUnit;
             // Normally, a Java CU has attached a specs CU, even if it is the same as itself.
@@ -301,25 +301,35 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     if (tr instanceof JmlVariableDecl) {
                         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("JML VAR ENTER FOR " + jtree.name + " " + ((JmlVariableDecl)tr).name);
                         int n = log.nerrors;
-                        memberEnter(tr,env);
                         JmlVariableDecl vtr = (JmlVariableDecl)tr;
-                        if (n == log.nerrors) {
-                            jtree.defs = jtree.defs.append(tr);
-                            vtr.specsDecl = vtr;
+                        if (vtr.sym == null) {
+                            noticeWriter.println("Expected " + jtree.name + " " + vtr.name + " to be entered already");
+                            memberEnter(tr,env); // don't reenter - should already be entered
+                            if (n == log.nerrors) {
+                                jtree.defs = jtree.defs.append(tr);
+                                vtr.specsDecl = vtr;
+                            } else {
+                                checkForGhostModel(vtr.mods, vtr.source(), vtr.pos());
+                            }
                         } else {
-                            checkForGhostModel(vtr.mods, vtr.source(), vtr.pos());
+                            //checkForGhostModel(vtr.mods, vtr.source(), vtr.pos());
                         }
                     } else if (tr instanceof JmlMethodDecl) {
                         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("JML METH ENTER FOR " + jtree.name + " " + ((JmlMethodDecl)tr).name);
                         int n = log.nerrors;
-                        memberEnter(tr,env);
                         JmlMethodDecl mtr = (JmlMethodDecl)tr;
-                        if (n == log.nerrors) {
-                            jtree.defs = jtree.defs.append(tr);
-                            mtr.specsDecl = mtr;
-                            
+                        if (mtr.sym == null) { // This should not happen
+                            noticeWriter.println("Expected " + jtree.name + " " + mtr.name + " to be entered already");
+                            memberEnter(tr,env);
+                            if (n == log.nerrors) {
+                                jtree.defs = jtree.defs.append(tr);
+                                mtr.specsDecl = mtr;
+
+                            } else {
+                                checkForGhostModel(mtr.mods, mtr.source(), mtr.pos());
+                            }
                         } else {
-                            checkForGhostModel(mtr.mods, mtr.source(), mtr.pos());
+                            //checkForGhostModel(mtr.mods, mtr.source(), mtr.pos());
                         }
                     }
                 }
@@ -706,7 +716,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         // The matches map holds any previous matches found - all to specification declarations
         JCTree prevMatch = matchesSoFar.get(matchSym);
-        if (prevMatch != null) {
+        if (prevMatch != null && prevMatch != specsVarDecl) {
             // DO extra checking since we are discarding this declaration
             if (!utils.isJML(specsVarDecl.mods)) {
                 JmlAnnotation a = ((JmlAttr)attr).findMod(specsVarDecl.mods,JmlTokenKind.GHOST);
@@ -828,6 +838,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             specsMethodDecl.sym = matchSym;
         }
 
+        if (matchSym.toString().equals("m()")) Utils.stop();
+        
         // If we have actual source, then find the source declaration
         JmlMethodDecl javaMatch = null;
         if (javaDecl != null) {
@@ -856,7 +868,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 
             } else {
                 javaMatch = null;
-                log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
+//                log.error("jml.internal", "Unexpected duplicate Java method declaration, without a matching symbol: " + matchSym);
             }
         }
 
@@ -2844,7 +2856,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             for (JCTree d: specs.defs) {
                 if (!(d instanceof JmlClassDecl)) continue;
                 JmlClassDecl cd = (JmlClassDecl)d;
-                super.memberEnter(cd.env.toplevel, cd.env.enclosing(TOPLEVEL));
+                super.memberEnter(cd.env.toplevel, cd.env.enclosing(TOPLEVEL));  // Does not do members for binary classes
                 memberEnter(cd,cd.env);
                 Env<AttrContext> eeee = enter.typeEnvs.get(cd.sym);
                 if (eeee == null) {
@@ -2873,7 +2885,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     }
     
     public void binaryMemberEnter(ClassSymbol c, JmlClassDecl specs, Env<AttrContext> env) {
-        Env<AttrContext> prevenv = env;
+        Env<AttrContext> prevenv = this.env;
         JavaFileObject prev = log.useSource(specs.source());
         try {
         JmlAttr attr = JmlAttr.instance(context);
@@ -2899,19 +2911,30 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 env.info.scope.enter(superSym);
             }
         }
+        
+        if (!specs.typarams.isEmpty() ||  !((ClassType)c.type).typarams_field.isEmpty() || c.toString().equals("java.util.Properties")) {
+            // FIXME - not doing classes or methods with type argument for now
+                enter.recordEmptySpecs(c);
+        } else 
 
         for (JCTree t: specs.defs) {
-            env = prevenv;
+            //env = prevenv;
             if (t instanceof JmlMethodDecl) {
                 JmlMethodDecl md = (JmlMethodDecl)t;
+                if (!md.typarams.isEmpty()) {
+                    enter.recordEmptySpecs(c);  // FIXME _ not handling methods with type parameters
+                    break;
+                }
 //                Env<AttrContext> localEnv = methodEnv(md, classenv);
 //                env = classenv;
                 boolean isJML = utils.isJML(md.mods);
                 boolean isModel = isJML && utils.findMod(md.mods, JmlTokenKind.MODEL) != null;
+//                if (isModel && md.name.toString().equals("initialCharSequence")) Utils.stop();
                 if (md.sym == null) {
                     env = enter.typeEnvs.get(c);
                    // if (c.flatName().toString().equals("java.lang.CharSequence")) Utils.print(null);
                     boolean hasTypeArgs = !md.typarams.isEmpty();
+                    
                     ClassType ctype = (ClassType)c.type;
                     hasTypeArgs = hasTypeArgs || !ctype.typarams_field.isEmpty();
                     //Type mtype = signature(null,md.typarams,md.params,md.getReturnType(),null,md.thrown,env);
@@ -2979,7 +3002,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 } else if (md.sym == null && isModel) {
                     // Add the model method to the binary class
         // FIXME - need to sort out the env
-//                    visitMethodDef(md);
+                    this.env = env;
+                    visitMethodDef(md);
 //                    JmlSpecs.instance(context).putSpecs(md.sym, md.methodSpecsCombined);
                 } else if (md.sym != null && isModel) {
                     // Error: model method matching a Java method 
@@ -3015,7 +3039,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * @param csymbol the class whose specs we need
      * @param specsdefs the list of specs declarations from the parent class or compilation unit
      */
-    protected void enterSpecsForBinaryClasses(ClassSymbol csymbol, List<JCTree> specsdefs) {
+    // FIXME - rename so as not to be confused with the 'enter' processing of OpenJDK
+    public void enterSpecsForBinaryClasses(ClassSymbol csymbol, List<JCTree> specsdefs) {
         if (specs.get(csymbol) != null) return; // Already completed
         
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering (binary) " + csymbol);
