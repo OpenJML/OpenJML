@@ -869,6 +869,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
+            if (pureEnvironment) {
+                Symbol sym = tree.constructor;
+                MethodSymbol msym = null;
+                if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
+                boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
+                if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+                    log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+                }
+            }
         } finally {
             implementationAllowed = prev;
         }
@@ -1398,7 +1407,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // DO a defensive check
         if (methodSpecs.decl != decl) {
             // FIXME this fails
-        	//log.error("jml.internal","UNEXPECTED MISMATCH when desugaring specs " + decl.sym + " " + methodSpecs.decl.sym);
+            //log.error("jml.internal","UNEXPECTED MISMATCH when desugaring specs " + decl.sym + " " + methodSpecs.decl.sym);
         }
         
         
@@ -1408,7 +1417,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
             JCAnnotation pure;
-            desugaringPure = (pure = findMod(decl.mods,JmlTokenKind.PURE)) != null;
+            desugaringPure = (pure = findMod(msp.mods,JmlTokenKind.PURE)) != null;
             if (!desugaringPure) {
                 if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlTokenKind.PURE)) != null;
             }
@@ -1613,15 +1622,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (cases.isEmpty()) {
             if (parent != null) {
                 addDefaultSignalsOnly(prefix,parent,decl);
-            	newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(mods,parent.code,parent.token,parent.also,prefix.toList()));
+                newlist.append(((JmlTree.Maker)make).at(parent.pos).JmlSpecificationCase(mods,parent.code,parent.token,parent.also,prefix.toList()));
             }
             else {
                 // ERROR - not allowed to have an empty collection of specification cases
-            	// at the top level
+                // at the top level
                 log.error("jml.internal","Unexpected empty set of specification cases at the top-level in JmlAttr");
             }
         } else if (cases.size() == 1) {
-        	// common case that just avoids copying the prefix
+            // common case that just avoids copying the prefix
             JmlSpecificationCase c = cases.get(0);
             handleCase(parent, decl, newlist, c, prefix, mods);
         } else {
@@ -1659,28 +1668,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return copy;
     }
     
-	protected void handleCase(JmlSpecificationCase parent, JmlMethodDecl decl,
-			ListBuffer<JmlSpecificationCase> newlist, JmlSpecificationCase cse,
-			ListBuffer<JmlMethodClause> pr, JCModifiers mods) {
-		if (cse.token == JmlTokenKind.MODEL_PROGRAM) {
-		    newlist.append(cse);  // FIXME - check that model programs are only at the outer level
-		    return;
-		}
-		if (parent == null) {
-		    JmlTree.Maker jmlF = (JmlTree.Maker)make;
-		    JmlTokenKind t = cse.token;
-		    if (t == JmlTokenKind.NORMAL_BEHAVIOR || t == JmlTokenKind.NORMAL_EXAMPLE) {
-		        JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS,null,falseLit);
-		        cl.sourcefile = cse.sourcefile;
-		        pr.append(cl);
-		    } else if (t == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || t == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
-		        JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,falseLit);
-		        cl.sourcefile = cse.sourcefile;
-		        pr.append(cl);
-		    }
-		}
-		newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl,mods));
-	}
+    protected void handleCase(JmlSpecificationCase parent, JmlMethodDecl decl,
+            ListBuffer<JmlSpecificationCase> newlist, JmlSpecificationCase cse,
+            ListBuffer<JmlMethodClause> pr, JCModifiers mods) {
+        if (cse.token == JmlTokenKind.MODEL_PROGRAM) {
+            newlist.append(cse);  // FIXME - check that model programs are only at the outer level
+            return;
+        }
+        if (parent == null) {
+            JmlTree.Maker jmlF = (JmlTree.Maker)make;
+            JmlTokenKind t = cse.token;
+            if (t == JmlTokenKind.NORMAL_BEHAVIOR || t == JmlTokenKind.NORMAL_EXAMPLE) {
+                JmlMethodClauseSignals cl = jmlF.at(cse.pos).JmlMethodClauseSignals(JmlTokenKind.SIGNALS,null,falseLit);
+                cl.sourcefile = cse.sourcefile;
+                pr.append(cl);
+            } else if (t == JmlTokenKind.EXCEPTIONAL_BEHAVIOR || t == JmlTokenKind.EXCEPTIONAL_EXAMPLE) {
+                JmlMethodClauseExpr cl = jmlF.at(cse.pos).JmlMethodClauseExpr(JmlTokenKind.ENSURES,falseLit);
+                cl.sourcefile = cse.sourcefile;
+                pr.append(cl);
+            }
+        }
+        newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl,mods));
+    }
     
     public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl, JCModifiers mods) {
         for (JmlMethodClause m: clauses) {
@@ -2783,7 +2792,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 else 
                     jmlVisibility = enclosingClassEnv.enclClass.mods.flags & Flags.AccessFlags; // FIXME - should this be the visibilty of the initializer block?
             } else {
-                jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
+                jmlVisibility = tree.modifiers == null ? 0 : (tree.modifiers.flags & Flags.AccessFlags);
             }
             
             if (tree.clauses == null) {

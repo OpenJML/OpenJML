@@ -352,6 +352,11 @@ public class JmlTreeUtils {
     
     /** Makes an attributed AST that is a copy of a given literal AST,
      * but with the new position. */
+    public JCLiteral makeDuplicateLiteral(DiagnosticPosition pos, JCLiteral lit) {
+        // Note that lit.typetag can be different from lit.type.tag - e.g for null values
+        return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
+    }
+    
     public JCLiteral makeDuplicateLiteral(int pos, JCLiteral lit) {
         // Note that lit.typetag can be different from lit.type.tag - e.g for null values
         return factory.at(pos).Literal(lit.typetag, lit.value).setType(lit.type.constType(lit.value));
@@ -362,13 +367,28 @@ public class JmlTreeUtils {
         return factory.at(pos).Literal(TypeTag.INT, value).setType(syms.intType.constType(value));
     }
 
+    /** Make an attributed tree representing an integer literal. */
+    public JCLiteral makeIntLiteral(DiagnosticPosition pos, int value) {
+        return factory.at(pos).Literal(TypeTag.INT, value).setType(syms.intType.constType(value));
+    }
+
     /** Make an attributed tree representing an long literal. */
     public JCLiteral makeLongLiteral(int pos, long value) {
         return factory.at(pos).Literal(TypeTag.LONG, value).setType(syms.longType.constType(value));
     }
 
+    /** Make an attributed tree representing an long literal. */
+    public JCLiteral makeLongLiteral(DiagnosticPosition pos, long value) {
+        return factory.at(pos).Literal(TypeTag.LONG, value).setType(syms.longType.constType(value));
+    }
+
     /** Make an attributed tree representing a null literal. */
     public JCLiteral makeNullLiteral(int pos) {
+        return makeDuplicateLiteral(pos,nullLit);
+    }
+
+    /** Make an attributed tree representing a null literal. */
+    public JCLiteral makeNullLiteral(DiagnosticPosition pos) {
         return makeDuplicateLiteral(pos,nullLit);
     }
 
@@ -581,6 +601,13 @@ public class JmlTreeUtils {
      * @param expr the argument expression
      * @return the new node
      */
+    public JCExpression makeUnary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression expr) {
+        JCUnary e = factory.at(pos).Unary(optag,expr);
+        e.operator = findOpSymbol(optag,expr.type);
+        e.type = e.operator.type.getReturnType();
+        copyEndPosition(e,expr);
+        return e;
+    }
     public JCExpression makeUnary(int pos, JCTree.Tag optag, JCExpression expr) {
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = findOpSymbol(optag,expr.type);
@@ -609,6 +636,9 @@ public class JmlTreeUtils {
      *  @param pos    The position at which to put the new AST.
      *  @param arg    The operator's argument.
      */
+    public JCExpression makeNot(DiagnosticPosition pos, JCExpression arg) {
+        return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
@@ -620,6 +650,13 @@ public class JmlTreeUtils {
      *  @param lhs      The operator's left argument.
      *  @param rhs      The operator's right argument.
      */
+    public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
+        JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
+        tree.operator = opSymbol;
+        tree.type = tree.operator.type.getReturnType();
+        //copyEndPosition(tree,rhs);
+        return tree;
+    }
     public JCBinary makeBinary(int pos, JCTree.Tag optag, Symbol opSymbol, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(optag, lhs, rhs);
         tree.operator = opSymbol;
@@ -635,6 +672,9 @@ public class JmlTreeUtils {
      * @param rhs the right-hand expression
      * @return the new node
      */
+    public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+        return makeBinary(pos,optag,findOpSymbol(optag,maxType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+    }
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
         return makeBinary(pos,optag,findOpSymbol(optag,maxType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
@@ -670,6 +710,12 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
+    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null) {
+            System.out.println("BAD AND");
+        }
+        return makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+    }
     public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs) {
         if (lhs == null) {
             System.out.println("BAD AND");
@@ -1113,6 +1159,14 @@ public class JmlTreeUtils {
     public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
         int p = pos.getPreferredPosition();
         JCExpression nn = makeEqObject(p,id,nullLit);
+        
+        return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));
+    }
+    
+    /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
+    public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
+        int p = pos.getPreferredPosition();
+        if (type.getKind().isPrimitive()) return trueLit;
         JCExpression lhs = makeTypeof(id); // FIXME - copy?
         JmlMethodInvocation rhs = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,type));
         rhs.type = JmlTypes.instance(context).TYPE;
@@ -1132,7 +1186,7 @@ public class JmlTreeUtils {
                 expr = makeAnd(p,expr,e);
             }
         }
-        return makeOr(p,nn,expr);
+        return expr;
     }
     
     /** Creates an AST for an invocation of a (static) method in org.jmlspecs.utils.Utils,
