@@ -106,7 +106,7 @@ public class RemoveLocals extends JmlTreeScanner {
                 }
                
                 
-                if(attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
+                if(clause.token!= JmlToken.REQUIRES && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
                     log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
                     return true;                    
                 }

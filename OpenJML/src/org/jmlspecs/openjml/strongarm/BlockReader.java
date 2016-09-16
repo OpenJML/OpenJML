@@ -739,8 +739,13 @@ public class BlockReader {
             return true;
         }
         
-
-        return validPropositions == 0;
+        if(block.followers().size() > 1 && validPropositions==0){
+            // just in case, check the else target to see if it has useful information
+            return ignoreBranch(block.followers().get(1));
+        }else{
+            return validPropositions == 0;            
+        }
+        
         
     }
     

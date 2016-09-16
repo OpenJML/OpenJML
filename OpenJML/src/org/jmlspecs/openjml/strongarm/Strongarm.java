@@ -515,7 +515,7 @@ public class Strongarm
         //
         long ts1 = System.currentTimeMillis();
         {
-            reader.postcondition.replace(reader.getBlockerMappings(), true);
+            reader.postcondition.replace(reader.getBlockerMappings(), false);
         }
         long ts2 = System.currentTimeMillis();
         
