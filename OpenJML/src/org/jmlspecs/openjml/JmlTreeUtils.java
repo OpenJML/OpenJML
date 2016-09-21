@@ -474,12 +474,6 @@ public class JmlTreeUtils {
      */ 
     public JCIdent makeIdent(int pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
-//        String s = id.name.toString();
-//        if (s.contains("contents") && !s.equals("contents")) Utils.stop();
-//        if (s.contains(".")) {
-//            s = s.replaceAll("\\.","_");
-//            id.name = names.fromString(s);
-//        }
         id.pos = pos;
         // id.type is set in Ident
         return id;
@@ -491,12 +485,6 @@ public class JmlTreeUtils {
      */ 
     public JCIdent makeIdent(DiagnosticPosition pos, Symbol sym) {
         JCIdent id = factory.Ident(sym);
-//        String s = id.name.toString();
-//        if (s.contains("contents") && !s.equals("contents")) Utils.stop();
-//        if (s.contains(".")) {
-//            s = s.replaceAll("\\.","_");
-//            id.name = names.fromString(s);
-//        }
         id.pos = pos.getPreferredPosition();
         // id.type is set in Ident
         return id;
@@ -510,12 +498,6 @@ public class JmlTreeUtils {
         JCIdent id = sym != null ? factory.Ident(sym) : factory.Ident(name);
         id.name = name;
         id.pos = pos;
-//        String s = id.name.toString();
-//        if (s.contains("contents") && !s.equals("contents")) Utils.stop();
-//        if (s.contains(".")) {
-//            s = s.replaceAll("\\.","_");
-//            id.name = names.fromString(s);
-//        }
         // id.type is set in Ident, if sym is not null
         return id;
     }
@@ -525,7 +507,6 @@ public class JmlTreeUtils {
      * @return the AST
      */ 
     public JCIdent makeIdent(int pos, String name, Type type) {
-//        if (name.contains("contents")) Utils.stop();
         VarSymbol sym = makeVarSymbol(0,names.fromString(name),type,pos);
         return makeIdent(pos,sym);
     }

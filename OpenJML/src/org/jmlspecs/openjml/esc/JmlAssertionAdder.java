@@ -2083,7 +2083,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             TypeSymbol csym = ctype.tsym;
             for (Symbol s : csym.getEnclosedElements()) {
                 if (s instanceof VarSymbol) {
-                    if (s.toString().contains("localState") && receiver == null) Utils.stop();
                     boolean stat = utils.isJMLStatic(s);
                     if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
                     if (!stat && contextIsStatic) continue;
@@ -2718,7 +2717,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
             JCExpression e2 = treeutils.makeBinary(p, JCTree.LE, 
                     treeutils.makeSelect(p, convertCopy(id), allocSym), 
-                    treeutils.makeIntLiteral(p, 0));
+                    treeutils.makeIntLiteral(p, sym.owner.isConstructor()? -1 : 0));
 
             Symbol owner = sym.owner;
             if (owner instanceof MethodSymbol) owner = owner.owner;
@@ -2964,7 +2963,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCIdent id = treeutils.makeIdent(d.pos, d.sym);
                 JCExpression nn = treeutils.makeEqNull(d.pos,id);
                 JCExpression fa = M.at(d.pos).Select(id, allocSym);
-                fa = treeutils.makeBinary(d,JCTree.LE, fa, treeutils.makeIntLiteral(d,0));
+                fa = treeutils.makeBinary(d,JCTree.LE, fa, treeutils.makeIntLiteral(d, methodDecl.sym.isConstructor() ? -1: 0));
                 fa = treeutils.makeOr(d.pos, nn, fa);
                 addStat(treeutils.makeAssume(d, Label.IMPLICIT_ASSUME, fa ));
             }
@@ -12118,8 +12117,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * with the argument type last.
      */
     public java.util.List<Type> parents(Type ct) {
-        if (ct.toString().endsWith("Bottom")) Utils.print(null);
-        java.util.List<Type> classes = new LinkedList<Type>();
+
+    	java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct;
         while (cc != null && cc.tag != TypeTags.NONE) {
             classes.add(0,cc);
