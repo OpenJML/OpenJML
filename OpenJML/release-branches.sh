@@ -28,6 +28,8 @@ cd ../OpenJML/OpenJML
 
 ant -f build-bash.xml release
 
+( ../../OpenJML-UpdateSite/web/toSF )
+
 ## Starting in .../OpenJML/OpenJML
 ## Should be in the release branch
 
