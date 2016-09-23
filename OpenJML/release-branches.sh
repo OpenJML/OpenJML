@@ -35,30 +35,35 @@ git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
 git checkout master
+git push
 
 cd ../../Specs
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
 git checkout master
+git push
 
 cd ../JMLAnnotations
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
 git checkout master
+git push
 
 cd ../JmlOpenJMLDemo
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
 git checkout master
+git push
 
 cd ../OpenJML-UpdateSite
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
 git checkout master
+git push
 
 cd ../OpenJML/OpenJML
 
