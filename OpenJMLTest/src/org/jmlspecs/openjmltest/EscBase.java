@@ -40,7 +40,7 @@ public abstract class EscBase extends JmlTestCase {
     		null,
             "z3_4_3", 
  //           "z3_4_3_2", 
- //           "z3_4_4", 
+            "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 

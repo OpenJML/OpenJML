@@ -2084,6 +2084,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             for (Symbol s : csym.getEnclosedElements()) {
                 if (s instanceof VarSymbol) {
                     boolean stat = utils.isJMLStatic(s);
+                    if (s.type.isPrimitive()) continue;
                     if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
                     if (!stat && contextIsStatic) continue;
                     if (!assume && isConstructor) continue;
