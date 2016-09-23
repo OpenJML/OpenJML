@@ -214,6 +214,10 @@ public class SFBugs extends EscBase {
     @Test public void gitbug466() {
     	expectedExit = 0;
         helpTCF("test/gitbug466","test/gitbug466", "-cp", "test/gitbug466","-method=Test.run");
+    }
 
+    @Test public void gitbug470() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug470","test/gitbug470", "-cp", "test/gitbug470","-code-math=java");
     }
 }

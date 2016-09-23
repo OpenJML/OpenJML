@@ -634,11 +634,20 @@ public class Utils {
      * Java visibility.
      */
     public boolean visible(Symbol base, Symbol parent, long flags) {
-        if (base == parent) return true; // Everything is visible in its own class
+        if (isNestedIn(base,parent)) return true; // Everything is visible in its own class
         if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
+    }
+    
+    /** Returns true if 'inner' is equal to or nested in 'outer' */
+    public boolean isNestedIn(Symbol inner, Symbol outer) {
+        while (inner instanceof ClassSymbol) {
+            if (inner == outer) return true;
+            inner = inner.owner;
+        }
+        return false;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
