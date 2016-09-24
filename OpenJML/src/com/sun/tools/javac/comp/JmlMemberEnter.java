@@ -314,6 +314,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         } else {
                             //checkForGhostModel(vtr.mods, vtr.source(), vtr.pos());
                         }
+//                        if (vtr.sym == null) {
+//                            memberEnter(tr,env);
+//                            if (n == log.nerrors) {
+//                                jtree.defs = jtree.defs.append(tr);
+//                                vtr.specsDecl = vtr;
+//                                checkForGhostModel(vtr.mods, vtr.source(), vtr.pos());
+//                            } else {
+//                                // duplicate error issued
+//                            }
+//                        }
                     } else if (tr instanceof JmlMethodDecl) {
                         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("JML METH ENTER FOR " + jtree.name + " " + ((JmlMethodDecl)tr).name);
                         int n = log.nerrors;

@@ -438,11 +438,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //                    new JmlTranslator(context).translate(e.tree);
                 //                }
                 
-//                if (e.tree != null && e.tree instanceof JmlClassDecl) {
-//                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
+                if (e.tree != null && e.tree instanceof JmlClassDecl) {
+                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
 //                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-//                    //((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
-//                }
+                    ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+                }
 
                 if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
                     // If not a .java file
@@ -1895,25 +1895,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public void checkVarMods(JmlVariableDecl tree) {
-        boolean inJML = utils.isJML(tree.mods);
-        boolean ghost = isGhost(tree.mods);
-        
         JCModifiers mods = tree.mods;
-        if (tree.sym.owner.kind == Kinds.TYP) {  // Field declarations
-            if (tree.specsDecl != null) {
-                JCModifiers jmlmods = tree.specsDecl.mods;
-                attribAnnotationTypes(jmlmods.annotations,env);
-                for (JCAnnotation a: tree.mods.annotations) {
-                    JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-                    if (aa == null) {
-                        log.warning(a.pos(), "jml.java.annotation.superseded", "field", tree.name.toString(), a.toString());
-                    }
+        if (tree.specsDecl != null) {
+            JCModifiers jmlmods = tree.specsDecl.mods;
+            attribAnnotationTypes(jmlmods.annotations,env);
+            for (JCAnnotation a: tree.mods.annotations) {
+                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
+                if (aa == null) {
+                    log.warning(a.pos(), "jml.java.annotation.superseded", "field", tree.name.toString(), a.toString());
                 }
-                mods = tree.specsDecl.mods;
-                log.useSource(tree.specsDecl.source());
             }
-            boolean model = isModel(mods);
-            boolean modelOrGhost = model || ghost;
+            mods = tree.specsDecl.mods;
+            log.useSource(tree.specsDecl.source());
+        }
+        boolean inJML = utils.isJML(mods);
+        boolean ghost = isGhost(mods);
+        boolean model = isModel(mods);
+        boolean modelOrGhost = model || ghost;
+        if (tree.sym.owner.kind == Kinds.TYP) {  // Field declarations
             if (ghost) {
                 allAllowed(mods.annotations, allowedGhostFieldModifiers, "ghost field declaration");
             } else if (model) {
