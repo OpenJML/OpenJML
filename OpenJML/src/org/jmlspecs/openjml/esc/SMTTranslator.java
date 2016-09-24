@@ -207,6 +207,8 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort jmlTypeSort;
     final protected IExpr.ISymbol thisSym;
     final protected IExpr.ISymbol nullSym;
+    final protected IExpr.ISymbol nullArrayRefRefSym;
+    final protected IExpr.ISymbol nullArrayRefIntSym;
 
     final protected IExpr.ISymbol lengthSym;
 
@@ -215,6 +217,8 @@ public class SMTTranslator extends JmlTreeScanner {
     // may be simply used in place.
     // Strings that are defined by SMTLIB are used explicitly in place.
     public static final String NULL = "NULL";
+    public static final String NULL_ARRAY_REF_REF = "NULL_ARR";
+    public static final String NULL_ARRAY_REF_INT = "NULL_ARI";
     public static final String this_ = Strings.thisName; // Must be the same as the id used in JmlAssertionAdder
     public static final String REF = "REF"; // SMT sort for Java references
     public static final String JAVATYPESORT = REF; // "JavaTypeSort";
@@ -290,6 +294,8 @@ public class SMTTranslator extends JmlTreeScanner {
         // Names used in mapping Java/JML to SMT
         refSort = F.createSortExpression(F.symbol(REF));
         nullSym = F.symbol(NULL);
+        nullArrayRefRefSym = F.symbol(NULL_ARRAY_REF_REF);
+        nullArrayRefIntSym = F.symbol(NULL_ARRAY_REF_INT);
         thisSym = F.symbol(this_);
         javaTypeSort = F.createSortExpression(F.symbol(JAVATYPESORT));
         jmlTypeSort = F.createSortExpression(F.symbol(JMLTYPESORT));
@@ -1046,7 +1052,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 JmlVariableDecl decl = (JmlVariableDecl)stat;
                 // convert to a declaration or definition
                 IExpr init = decl.init == null ? null : convertExpr(decl.init);
-                
+                if (decl.name.toString().contains("availableBytes")) Utils.stop();
                 ISymbol sym = F.symbol(decl.name.toString());
                 ICommand c = init == null ?
                         new C_declare_fun(
@@ -1513,10 +1519,18 @@ public class SMTTranslator extends JmlTreeScanner {
         args.add(rhs);
         switch (op) {
             case JCTree.EQ:
-                result = F.fcn(eqSym, args);
-                break;
             case JCTree.NE:
-                result = F.fcn(distinctSym, args);
+                ISymbol ops = op == JCTree.EQ ? eqSym : distinctSym;
+                result = null;
+//                if (rhs == nullSym) {
+//                    if (tree.lhs.type instanceof ArrayType) {
+//                        ArrayType at = (ArrayType)tree.lhs.type;
+//                        if (!at.elemtype.isPrimitive()) {
+//                            result = F.fcn(ops,  lhs, nullArrayRefRefSym);
+//                        }
+//                    }
+//                }
+                if (result == null) result = F.fcn(ops, args);
                 break;
             case JCTree.AND:
                 result = F.fcn(F.symbol("and"), args);

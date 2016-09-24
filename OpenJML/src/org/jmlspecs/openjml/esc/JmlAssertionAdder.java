@@ -4252,7 +4252,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
                 block.stats = block.stats.prepend(treeutils.makeAssignStat(catcher.pos, termid, treeutils.zero));
 
-                blockp.stats.append(block);
+                blockp.stats = blockp.stats.append(block);
 
                 JCVariableDecl odecl = catcher.getParameter();  
                 JmlVariableDecl decl = M.at(odecl).VarDef(odecl.sym,  null); // Catcher declarations have no initializer
@@ -11661,7 +11661,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (pureCopy) { 
             JCStatement stat = M.at(that).VarDef(that.sym,convertExpr(that.init));
             if (inClassDecl()) classDefs.add(stat);
-            else addStat(stat);
+//            else addStat(stat);
             result = stat;
             return;
         }
