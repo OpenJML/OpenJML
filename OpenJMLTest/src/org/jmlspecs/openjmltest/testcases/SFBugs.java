@@ -40,6 +40,14 @@ public class SFBugs extends EscBase {
 		escOnFiles(sourceDirname,outDir,opts);
 	}
 
+	public void helpTCG(String ... opts) {
+		String dir = "test/" + getMethodName(1);
+		List<String> a = new LinkedList<>();
+		a.add(0,"-cp"); a.add(1,dir);
+		a.addAll(Arrays.asList(opts));
+		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+	}
+
 
 
     @Test public void test() {
@@ -218,7 +226,7 @@ public class SFBugs extends EscBase {
 
     @Test public void gitbug467() {
     	expectedExit = 0;
-        helpTCF("test/gitbug467","test/gitbug467", "-cp", "test/gitbug467");
+        helpTCG();
     }
 
     @Test public void gitbug470() {
@@ -228,6 +236,16 @@ public class SFBugs extends EscBase {
 
     @Test public void gitbug471() {
     	expectedExit = 0;
-        helpTCF("test/gitbug471","test/gitbug471", "-cp", "test/gitbug471");
+        helpTCG();
+    }
+
+    @Test public void gitbug469() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug999() {
+    	expectedExit = 0;
+        helpTCG();
     }
 }

@@ -4219,6 +4219,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (that.catchers != null) {
             ListBuffer<JCCatch> ncatchers = new ListBuffer<JCCatch>();
             for (JCCatch catcher: that.catchers) {
+                
+                {
+                    pushBlock();
+                    JCVariableDecl v = catcher.getParameter();
+                    // FIXME - it is an open question which invariants to check here - in principle all invariants must hold - but which might not? - need the pack/unpack capability
+                    JCIdent id = treeutils.makeIdent(v.pos, v.sym);
+                    addStat(comment(v, "Assume invariants of the exception parameter " + v.sym ,null));
+                    addInvariants(v,v.type,id,currentStatements,
+                            false,false,false,false,false,true,Label.INVARIANT_EXIT_CALLER, "(Parameter: " + v + ")");
+                }
+                JCBlock blockp = popBlock(0L, catcher);
+                
                 JCBlock block = convertBlock(catcher.getBlock());
                 //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
                 block.stats = block.stats.prepend(comment(catcher.getParameter(),"catch (" + catcher.param +") ...",null));
@@ -4240,9 +4252,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCIdent termid = treeutils.makeIdent(catcher.pos,terminationSym);
                 block.stats = block.stats.prepend(treeutils.makeAssignStat(catcher.pos, termid, treeutils.zero));
 
+                blockp.stats.append(block);
+
                 JCVariableDecl odecl = catcher.getParameter();  
                 JmlVariableDecl decl = M.at(odecl).VarDef(odecl.sym,  null); // Catcher declarations have no initializer
-                JCCatch ncatcher = M.at(catcher).Catch(decl,block);
+                JCCatch ncatcher = M.at(catcher).Catch(decl,blockp);
                 ncatcher.setType(catcher.type);
                 ncatchers.add(ncatcher);
             }
@@ -5019,7 +5033,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym != null && !(sym instanceof VarSymbol)) return;
         recursiveCall = true;
         boolean noSpecCases = true;
-        for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
+        JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodDecl.sym);
+        if (mspecs == null) {
+            // FIXME - specs for static initializer blocks can be here
+            return;
+        }
+        for (JmlSpecificationCase c: mspecs.cases) {
             noSpecCases = false;
             JCExpression check = checkAccess(token,assignPosition, lhs, lhs, c,baseThisSym,targetThisSym); // FIXME - not sure about the lhs,lhs
             if (!treeutils.isTrueLit(check)) {
@@ -8122,7 +8141,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         JCTypeCast castexpr = M.at(that).TypeCast(clazz,arg);
-        castexpr.setType(that.type); // may be superfluous
+        castexpr.setType(that.type);
         treeutils.copyEndPosition(castexpr,that);
         JCExpression newexpr = castexpr;
         
@@ -8131,7 +8150,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         
-        // Check that expression is null
+        // Check if expression is null
         JCExpression eqnull = treeutils.makeEqObject(that.pos,arg,treeutils.makeNullLiteral(that.pos));
 
         JCExpression emax = null, emin = null;
@@ -8160,6 +8179,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)minValue(that.pos,that.type.tag))),
                                 arg);
                         break;
+                    case TypeTags.UNKNOWN:
+                        // \bigint or \real, so no limits are needed
+                        emax = emin = treeutils.trueLit;
+                        break;
                     default:
                         log.error(that, "jml.internal", "Unimplemented case combination");
                     case TypeTags.FLOAT: // FIXME - ignore for now
@@ -8170,8 +8193,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (origType.tag > that.type.tag) {
                     // reducing precision - make assertions about range of input value
-                    addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
-                    addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
+                    if (emax != treeutils.trueLit) addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
+                    if (emin != treeutils.trueLit) addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
                 } else {
                     // increasing precision - make assumptions about range of output value
                     increasePrecision = true;

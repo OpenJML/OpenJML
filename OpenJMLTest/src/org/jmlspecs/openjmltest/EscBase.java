@@ -38,9 +38,9 @@ public abstract class EscBase extends JmlTestCase {
     
     static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
     		null,
-            "z3_4_3", 
- //           "z3_4_3_2", 
-            "z3_4_4", 
+  //          "z3_4_3", 
+           "z3_4_3_2", 
+  //          "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
@@ -62,6 +62,10 @@ public abstract class EscBase extends JmlTestCase {
     
     static public Collection<String[]> solversOnly() {
         return makeParameters(solvers);
+    }
+    
+    public String getMethodName(int i) {
+    	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
     
     public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
