@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="/SMT/src"/>
-	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry excluding="org/jmlspecs/unfinished/**" kind="src" path="src-runtime"/>
-	<classpathentry excluding="org/jmlspecs/openjml/jmldoc/**" kind="src" path="src-openjml"/>
-	<classpathentry kind="src" path="src-openjdk"/>
 	<classpathentry kind="src" path="src-annotation"/>
-	<classpathentry exported="true" kind="lib" path="bin" sourcepath="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
+	<classpathentry kind="src" path="src-openjdk"/>
+	<classpathentry kind="src" path="src-openjml"/>
+	<classpathentry kind="src" path="src-runtime"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

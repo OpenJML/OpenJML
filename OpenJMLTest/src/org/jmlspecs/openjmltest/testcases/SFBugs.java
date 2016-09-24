@@ -42,6 +42,14 @@ public class SFBugs extends EscBase {
 		escOnFiles(sourceDirname,outDir,opts);
 	}
 
+	public void helpTCG(String ... opts) {
+		String dir = "test/" + getMethodName(1);
+		List<String> a = new LinkedList<>();
+		a.add(0,"-cp"); a.add(1,dir);
+		a.addAll(Arrays.asList(opts));
+		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+	}
+
 
 
     @Test public void test() {
@@ -95,7 +103,11 @@ public class SFBugs extends EscBase {
     	expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5","-show","-method=Sqrt.sqrt","-subexpressions");
     }
+<<<<<<< HEAD
        
+=======
+    
+>>>>>>> refs/remotes/origin/master
     @Ignore // Can be very long running
     @Test public void gitbug257() {
     	expectedExit = 0;
@@ -159,7 +171,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug462b() {
     	expectedExit = 0;
-        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc");
+        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc"); // , "-show", "-method=Container.ContainerUser.allocate","-subexpressions");
     }
     
     @Test public void gitbug462c() {
@@ -189,7 +201,7 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug445() {
-    	expectedExit = 0;
+    	expectedExit = 1;
         helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
     }
     
@@ -216,7 +228,31 @@ public class SFBugs extends EscBase {
     @Test public void gitbug466() {
     	expectedExit = 0;
         helpTCF("test/gitbug466","test/gitbug466", "-cp", "test/gitbug466","-method=Test.run");
+    }
 
+    @Test public void gitbug467() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug470() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug470/ACD.java","test/gitbug470", "-cp", "test/gitbug470","-code-math=java");
+    }
+
+    @Test public void gitbug471() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug469() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug999() {
+    	expectedExit = 0;
+        helpTCG();
     }
 }
 

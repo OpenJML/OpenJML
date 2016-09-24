@@ -223,6 +223,11 @@ public class escfiles extends EscBase {
     }
 
     @Test
+    public void testException() {
+        helpTF("escException");
+    }
+
+    @Test
     public void testAdd() {
         expectedExit = 1;
         helpTF("escAdd");
@@ -428,6 +433,11 @@ public class escfiles extends EscBase {
     @Test
     public void testEscConstructor6() {
         helpTF("escConstructor6");
+    }
+
+    @Test
+    public void testEscShortCircuit() {
+        helpTF("escShortCircuit");
     }
 
     @Test // FIXME - still has problems with imports in JML files and with checks on field initializers

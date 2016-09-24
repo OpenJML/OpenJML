@@ -11,6 +11,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+<<<<<<< HEAD
 import org.jmlspecs.openjml.JmlTokenKind;
 
 public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer {
@@ -61,6 +62,59 @@ public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompl
 			} else {
 				String prefix = doc.get(firstSpace+1,pos-firstSpace-1);
 				for (JmlTokenKind t: keywords) {
+=======
+import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.Strings;
+
+public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer {
+
+	@Override
+	public void sessionStarted() {
+	}
+	
+	public final static EnumSet<JmlToken> keywords = EnumSet.range(JmlToken.ASSUME,JmlToken.NOWARN);
+
+	@Override
+	public List<ICompletionProposal> computeCompletionProposals(
+			ContentAssistInvocationContext context, IProgressMonitor monitor) {
+		// TODO Auto-generated method stub
+		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
+		int pos = context.getInvocationOffset();
+		IDocument doc = context.getDocument();
+		
+		// Keyword proposals
+		int backslashPos = -1;
+		int firstSpace = -1;
+		int p = pos - 1;
+		kw: try {
+			while (p >= 0) {
+				char c = doc.getChar(p);
+				if (c == ' ' || c == '\t') {
+					if (firstSpace < 0) firstSpace = p;
+				} else if (c == ';' || c == '@') {
+					if (firstSpace < 0) firstSpace = p;
+					break;
+				} else if (c == '\\') {
+					backslashPos = p;
+					break;
+				} else {
+					if (firstSpace >= 0) break kw; // Not in a position for keywords
+				}
+				--p;
+			}
+			// FIXME - want to allow code completion for modifiers that are not necessarily first
+			// FIXME - want to add code completion for variables as well; what about expressions?
+			if (backslashPos >= 0) {
+				String prefix = doc.get(backslashPos,pos-backslashPos);
+				for (String s: JmlToken.backslashTokens.keySet()){
+					if (s.startsWith(prefix)) {
+						proposals.add(new CompletionProposal(s,backslashPos,pos-backslashPos,s.length()));
+					}
+				}
+			} else {
+				String prefix = doc.get(firstSpace+1,pos-firstSpace-1);
+				for (JmlToken t: keywords) {
+>>>>>>> refs/remotes/origin/master
 					String s = t.internedName();
 					if (s.startsWith(prefix)) {
 						proposals.add(new CompletionProposal(s,firstSpace+1,pos-firstSpace-1,s.length()));
