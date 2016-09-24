@@ -103,11 +103,6 @@ public class SFBugs extends EscBase {
     	expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5","-show","-method=Sqrt.sqrt","-subexpressions");
     }
-<<<<<<< HEAD
-       
-=======
-    
->>>>>>> refs/remotes/origin/master
     @Ignore // Can be very long running
     @Test public void gitbug257() {
     	expectedExit = 0;
