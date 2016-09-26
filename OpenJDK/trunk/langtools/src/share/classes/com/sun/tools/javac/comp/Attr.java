@@ -1014,7 +1014,7 @@ public class Attr extends JCTree.Visitor {
 
     public void visitVarDef(JCVariableDecl tree) {
         // Local variables have not been entered yet, so we need to do it now:
-        if (tree.name.toString().equals("defaults")) {
+        if (tree.name.toString().equals("bb")) {
             System.out.println();
         }
         if (env.info.scope.owner.kind == MTH) {

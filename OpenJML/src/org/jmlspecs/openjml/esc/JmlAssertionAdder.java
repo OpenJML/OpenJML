@@ -8080,6 +8080,66 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
     
+    public int comparePrecision(TypeTag a, TypeTag b) {
+        switch (a) {
+            case INT:
+                switch (b) {
+                    case INT:
+                        return 0;
+                    case BYTE:
+                    case CHAR:
+                    case SHORT:
+                        return 1;
+                    case FLOAT:
+                    case DOUBLE:
+                    case LONG:
+                        return -1;
+                }
+                break;
+            case BYTE:
+                switch (b) {
+                    case BYTE:
+                        return 0;
+                    case INT:
+                    case CHAR:
+                    case SHORT:
+                    case FLOAT:
+                    case DOUBLE:
+                    case LONG:
+                        return -1;
+                }
+                break;
+            case SHORT:
+                switch (b) {
+                    case SHORT:
+                        return 0;
+                    case BYTE:
+                    case CHAR:
+                        return 1;
+                    case INT:
+                    case FLOAT:
+                    case DOUBLE:
+                    case LONG:
+                        return -1;
+                }
+                break;
+            case LONG:
+                switch (b) {
+                    case LONG:
+                        return 0;
+                    case BYTE:
+                    case CHAR:
+                    case INT:
+                    case SHORT:
+                        return 1;
+                    case FLOAT:
+                    case DOUBLE:
+                        return -1;
+                }
+                break;
+        }
+        return 0;
+    }
 
     @Override
     public void visitTypeCast(JCTypeCast that) {
@@ -8120,41 +8180,61 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression eqnull = treeutils.makeEqObject(that.pos,arg,treeutils.makeNullLiteral(that.pos));
 
         JCExpression emax = null, emin = null;
-        boolean increasePrecision = false;
+        int changePrecision = comparePrecision(origType.getTag(), that.type.getTag());
         if (types.isSameType(clazz.type,origType)) {
             // redundant - remove the cast in both rac and esc
             newexpr = arg;
         } else if (clazz.type.isPrimitive()) {
             if (origType.isPrimitive()) {
                 // Java primitive to Java primitive - must be a numeric cast
-                if (origType.getTag().ordinal() > that.type.getTag().ordinal()) switch (origType.getTag()) {
-                    case LONG:
-                    case INT:
-                    case SHORT:
-                    case CHAR:
-                    case BYTE:
-                        emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
-                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
-                        emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
-                                treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
-                                arg);
-                        break;
-                    default:
-                        log.error(that, "jml.internal", "Unimplemented case combination");
-                    case FLOAT: // FIXME - ignore for now
-                    case DOUBLE:
-                        emax = emin = treeutils.trueLit;
-                        // Must be numeric to numeric - do numeric range checks
-                        // FIXME - implement
-                }
-                if (origType.getTag().ordinal() > that.type.getTag().ordinal()) {
+                if (changePrecision == 1) {
+                    switch (origType.getTag()) {
+                        case LONG:
+                        case INT:
+                        case SHORT:
+                        case CHAR:
+                        case BYTE:
+                            emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
+                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag())))); // FIXME - here and below, INT but we need LONGr
+                            emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
+                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
+                                    arg);
+                            break;
+                        default:
+                            log.error(that, "jml.internal", "Unimplemented case combination");
+                        case FLOAT: // FIXME - ignore for now
+                        case DOUBLE:
+                            emax = emin = treeutils.trueLit;
+                            // Must be numeric to numeric - do numeric range checks
+                            // FIXME - implement
+                    }
                     // reducing precision - make assertions about range of input value
                     addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
                     addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
-                } else {
+                } else if (changePrecision == -1) {
+                    switch (origType.getTag()) {
+                        case LONG:
+                        case INT:
+                        case SHORT:
+                        case CHAR:
+                        case BYTE:
+                            emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, newexpr, 
+                                    treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)maxValue(that.pos,origType.getTag())))); // FIXME - here and below, INT but we need LONGr
+                            emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
+                                    treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)minValue(that.pos,origType.getTag()))),
+                                    newexpr);
+                            break;
+                        default:
+                            log.error(that, "jml.internal", "Unimplemented case combination");
+                        case FLOAT: // FIXME - ignore for now
+                        case DOUBLE:
+                            emax = emin = treeutils.trueLit;
+                            // Must be numeric to numeric - do numeric range checks
+                            // FIXME - implement
+                    }
                     // increasing precision - make assumptions about range of output value
-                    increasePrecision = true;
-                    // FIXME
+                    addAssume(that, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssume(that, Label.ARITHMETIC_CAST_RANGE, emin);
                 }
 
             } else if (jmltypes.isSameType(origType,jmltypes.BIGINT)) {

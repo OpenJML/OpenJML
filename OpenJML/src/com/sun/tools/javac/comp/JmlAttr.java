@@ -441,7 +441,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (e.tree != null && e.tree instanceof JmlClassDecl) {
                     ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
 //                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
-                    ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
+                    if (!((JmlClassDecl)e.tree).sym.isInterface()) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
                 }
 
                 if (e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) {
@@ -523,6 +523,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            log.useSource(prev);
         }
     }
+    
+    // FIXME - do not need this is we can avoid having invariants in the class body
+    @Override
+    public Type attribStat(JCTree tree, Env<AttrContext> env) {
+        if (tree instanceof JmlTypeClause && relax) return null;
+        return super.attribStat(tree,env);
+    }
+
     
     /** Attributes the specs (in the TypeSpecs structure) for the given class
      * 
@@ -742,7 +750,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(Symbol owner, JmlClassDecl javaDecl, JCModifiers specsModifiers) {
-        
+        //System.out.println("Checking " + javaDecl.name + " in " + owner);
         checkTypeMatch(javaDecl.sym,javaDecl);
 
         boolean inJML = utils.isJML(specsModifiers);
@@ -913,7 +921,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         // but what about FINISHING SPEC CLASS
                 
                 // FIXME: this also causes the Java file's specs to be used when the specs AST has been set to null
-                jmethod.methodSpecsCombined = new JmlSpecs.MethodSpecs(jmethod.mods,jmethod.cases); // BUG recovery?  FIXME - i think this happens with default constructors
+                jmethod.methodSpecsCombined = new JmlSpecs.MethodSpecs(jmethod); // BUG recovery?  FIXME - i think this happens with default constructors
                 specs.putSpecs(m.sym,jmethod.methodSpecsCombined);
             }
 
@@ -1048,12 +1056,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean inJML = utils.isJML(mods);
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
+            boolean anon = javaMethodTree.sym.owner.isAnonymous();
             if (isInJmlDeclaration && model && !synthetic) {
                 log.useSource(javaMethodTree.sourcefile);
                 log.error(javaMethodTree.pos,"jml.no.nested.model.type");
             } else if (inJML && !model  && !isInJmlDeclaration) {
-                log.useSource(javaMethodTree.sourcefile);
-                log.error(javaMethodTree.pos,"jml.missing.model");
+                if (!anon) {
+                    log.useSource(javaMethodTree.sourcefile);
+                    log.error(javaMethodTree.pos,"jml.missing.model");
+                }
             } else if (!inJML && model) {
                 log.useSource(javaMethodTree.sourcefile);
                 log.error(javaMethodTree.pos,"jml.ghost.model.on.java");
@@ -5467,7 +5478,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             if (that.vartype.type == null) attribType(that.vartype,env);
             if (that.name.toString().equals("objectState")) Utils.stop();
+            ((JmlMemberEnter)memberEnter).dojml = true;
             visitVarDef(that);
+            ((JmlMemberEnter)memberEnter).dojml = false;
             // Anonymous classes construct synthetic members (constructors at least)
             // which are not JML nodes.
             FieldSpecs fspecs = specs.getSpecs(that.sym);

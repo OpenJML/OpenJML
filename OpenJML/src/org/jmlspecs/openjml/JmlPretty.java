@@ -62,6 +62,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -983,14 +984,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     @Override
     public void visitLiteral(JCLiteral that) {
-        if (that.value instanceof Type) {
-            try {
+        try {
+            if (that.value instanceof Type) {
                 print(that.value.toString());
-            } catch (IOException e) {
-                perr(that,e);
+            } else if (that.value instanceof Long) {
+                print(that.value.toString() + "L");
+            } else {
+                super.visitLiteral(that);
             }
-        } else {
-            super.visitLiteral(that);
+        } catch (IOException e) {
+            perr(that,e);
         }
     }
 

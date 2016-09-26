@@ -284,14 +284,14 @@ public class API implements IAPI {
         Context context = context();
         JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
         JmlTree.Maker maker = JmlTree.Maker.instance(context);
-        for (JCCompilationUnit jcu: list) {
-            for (JCTree t: jcu.defs) {
-                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
-            }
-//            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
-//                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
+//        for (JCCompilationUnit jcu: list) {
+//            for (JCTree t: jcu.defs) {
+//                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
 //            }
-        }
+////            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
+////                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
+////            }
+//        }
 
         ListBuffer<JCCompilationUnit> jlist = new ListBuffer<JCCompilationUnit>();
         jlist.addAll(list);

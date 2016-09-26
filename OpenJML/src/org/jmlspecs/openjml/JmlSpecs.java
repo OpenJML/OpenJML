@@ -35,6 +35,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.osgi.framework.Bundle;
@@ -1413,11 +1414,15 @@ public class JmlSpecs {
     }
 
     /** Adds the specs in the second argument to the stored specs for the 
-     * given class symbol. Presumes there is already ata least an empty
+     * given class symbol. Presumes there is already at least an empty
      * stored specs structure.
      */
     public void combineSpecs(ClassSymbol sym, JmlClassDecl specTypeDecl) {
         JmlSpecs.TypeSpecs tspecs = getSpecs(sym);
+        if (tspecs == null) {
+            tspecs = new TypeSpecs();
+            putSpecs(sym, tspecs);
+        }
 
         // tspecs is to be the combinedSpecs
         // It already has: 
@@ -1433,36 +1438,51 @@ public class JmlSpecs {
             log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
         }
 
-        JmlSpecs.TypeSpecs nspecs = null;
-        if (tspecs.refiningSpecDecls != null) {
-            nspecs = tspecs.refiningSpecDecls.typeSpecs;  // first or last - current usage there is only ever one
-        } else if (specTypeDecl != null) {
-            // This can happen when we are using source files for runtime Utils classes, which probably happens
-            // only in test scenarios
-            nspecs = specTypeDecl.typeSpecs;
-        } else {
-            String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";
-            log.error("jml.internal",msg);
-            throw new JmlInternalError(msg);
-        }
+//        JmlSpecs.TypeSpecs nspecs = null;
+//        if (tspecs.refiningSpecDecls != null) {
+//            nspecs = tspecs.refiningSpecDecls.typeSpecs;  // first or last - current usage there is only ever one
+//        } else if (specTypeDecl != null) {
+//            // This can happen when we are using source files for runtime Utils classes, which probably happens
+//            // only in test scenarios
+//            nspecs = specTypeDecl.typeSpecs;
+//        } else {
+//            String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";
+//            log.error("jml.internal",msg);
+//            throw new JmlInternalError(msg);
+//        }
 
         // FIXME - do not bother copying if there is only one file
         // tspecs.csymbol is already set, should be same as nspecs.csymbol
         // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
-        tspecs.file = nspecs.file;
-        tspecs.blocks = nspecs.blocks;
-        tspecs.clauses = nspecs.clauses;
-        tspecs.decls = nspecs.decls;
-        tspecs.fields = nspecs.fields;
-        tspecs.methods = nspecs.methods;
-        tspecs.modifiers = nspecs.modifiers;
-        tspecs.initializerSpec = nspecs.initializerSpec;
-        tspecs.staticInitializerSpec = nspecs.staticInitializerSpec;
-        tspecs.decl = specTypeDecl;
-//        if (specTypeDecl != null) {
-//            specTypeDecl.specsDecls = tspecs.refiningSpecDecls;
-//            specTypeDecl.typeSpecsCombined = tspecs;
-//        }
+        tspecs.file = specTypeDecl.sourcefile;
+        tspecs.modifiers = specTypeDecl.mods;
+        ListBuffer<JCTree> newlist = new ListBuffer<JCTree>();
+        for (JCTree t: specTypeDecl.defs) {
+            JCTree tt = t;
+            if (t instanceof JCTree.JCBlock) {
+                JCTree.JCBlock b = (JCTree.JCBlock)t;
+                tspecs.blocks.put(b, null); // FIXME - method spec?
+            } else if (t instanceof JmlTypeClauseInitializer) {
+                JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
+                if (!utils.isJMLStatic(init.modifiers, sym))
+                    tspecs.initializerSpec = init;
+                else
+                    tspecs.staticInitializerSpec = init;
+            } else if (t instanceof JmlMethodDecl) {
+                JmlMethodDecl md = (JmlMethodDecl)t;
+                tspecs.methods.put(md.sym, md.methodSpecsCombined );
+            } else if (t instanceof JmlVariableDecl) {
+                JmlVariableDecl md = (JmlVariableDecl)t;
+                tspecs.fields.put(md.sym, md.fieldSpecsCombined );
+            } else if (t instanceof JmlTypeClauseDecl) {
+                tspecs.decls.add((JmlTypeClauseDecl)t);
+            } else if (t instanceof JmlTypeClause) {
+                tspecs.clauses.add((JmlTypeClause)t);
+                tt = null;
+            }
+            if (tt != null) newlist.add(tt);
+        }
+        specTypeDecl.defs = newlist.toList();
     }
     
     /** An ADT to hold the specs for a method or block */
@@ -1472,6 +1492,12 @@ public class JmlSpecs {
         public VarSymbol queryDatagroup;
         public VarSymbol secretDatagroup;
         public JmlMethodSpecs cases;
+        
+        public MethodSpecs(JmlMethodDecl m) { 
+            this.mods = m.mods;
+            cases = m.cases != null ? m.cases : new JmlMethodSpecs(); 
+            cases.decl = m;
+        }
         
         public MethodSpecs(JCTree.JCModifiers mods, JmlMethodSpecs m) { 
             this.mods = mods;

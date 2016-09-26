@@ -189,29 +189,13 @@ public class JmlParser extends JavacParser {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
         if (u instanceof JmlCompilationUnit) {
             JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
-            // sort the JML declarations from the Java declarations
-            ListBuffer<JCTree> list = new ListBuffer<>();
-            ListBuffer<JmlClassDecl> modeltypes = new ListBuffer<>();
+            // Set the toplevel field for all classes declared in the compilation unit
             for (JCTree t : u.defs) {
                 if (t instanceof JmlClassDecl) {
                     JmlClassDecl jcd = (JmlClassDecl) t;
                     jcd.toplevel = jmlcu;
-                    JCModifiers mods = ((JmlClassDecl) t).mods;
-                    if (utils.isJML(mods)) {
-                        // These are declarations that were declared within
-                        // a JML comment - they should have, but might
-                        // erroneously be missing, a model modifier.
-                        // The check for a model modifier is in JmlAttr.checkClassMods and/or in checkForGhostModel above
-                        modeltypes.append(jcd);
-                    } else {
-                        list.append(t);
-                    }
-                } else {
-                    list.append(t);
                 }
             }
-            jmlcu.defs = list.toList();
-            jmlcu.parsedTopLevelModelTypes = modeltypes;
         } else {
             log.error(
                     "jml.internal",
@@ -355,9 +339,9 @@ public class JmlParser extends JavacParser {
                 cd.defs = cd.defs.append(axiom);
             }
             // Can also be a JCErroneous
-            if (s instanceof JmlClassDecl) {
-                filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
-            }
+//            if (s instanceof JmlClassDecl) {
+//                filterTypeBodyDeclarations((JmlClassDecl) s, context, jmlF);
+//            }
             if (jmlTokenKind() == JmlTokenKind.ENDJMLCOMMENT) {
                 nextToken();
             }
@@ -836,6 +820,9 @@ public class JmlParser extends JavacParser {
      * declarations even though they may be within a JML comment.
      */
     protected boolean inJmlDeclaration = false;
+    protected JmlMethodSpecs currentMethodSpecs = null;
+    protected JmlVariableDecl currentVariableDecl = null;
+    
 
     /**
      * Overridden in order to parse JML declarations and clauses within the body
@@ -847,6 +834,9 @@ public class JmlParser extends JavacParser {
 
         ListBuffer<JCTree> list = new ListBuffer<JCTree>();
         loop: while (true) {
+            JmlVariableDecl mostRecentVarDecl = currentVariableDecl;
+            currentVariableDecl = null;
+            
             Comment dc = token.comment(CommentStyle.JAVADOC);
             if (jmlTokenKind() == ENDJMLCOMMENT) {
                 nextToken(); // swallows the ENDJMLCOMMENT
@@ -857,85 +847,103 @@ public class JmlParser extends JavacParser {
                                                // pushBackModifiers
             int pos = pos();
             JmlTokenKind jt = jmlTokenKind();
-            check: if (S.jml() && jt == null && !inJmlDeclaration && !inLocalOrAnonClass) {
-                String tokenString = S.chars();
-                if (!tokenString.isEmpty()) {
-                    if (mods.annotations != null) for (JCAnnotation a: mods.annotations) {
-                        if (a.annotationType.toString().endsWith("Model")) break check;
-                        if (a.annotationType.toString().endsWith("Ghost")) break check;
-                    }
-                    log.error(pos,  "jml.bad.keyword", tokenString);
-                    skipThroughSemi();
-                    break loop;
-                }
-            }
+//            check: if (S.jml() && jt == null && !inJmlDeclaration && !inLocalOrAnonClass) {
+//                String tokenString = S.chars();
+//                if (!tokenString.isEmpty()) {
+//                    if (mods.annotations != null) for (JCAnnotation a: mods.annotations) {
+//                        if (a.annotationType.toString().endsWith("Model")) break check;
+//                        if (a.annotationType.toString().endsWith("Ghost")) break check;
+//                    }
+//                    log.error(pos,  "jml.bad.keyword", tokenString);
+//                    skipThroughSemi();
+//                    break loop;
+//                }
+//            }
             if (jt == null || isJmlTypeToken(jt)) {
                 pushBackModifiers = mods; // This is used to pass the modifiers
                 // into super.classOrInterfaceBodyDeclaration
                 mods = null;
                 boolean startsInJml = S.jml();
+                List<JCTree>  t;
                 if (startsInJml && !inLocalOrAnonClass) {
                     boolean prevInJmlDeclaration = inJmlDeclaration;
                     inJmlDeclaration = true;
-                    List<JCTree> t = super.classOrInterfaceBodyDeclaration(
+                    t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
                     inJmlDeclaration = prevInJmlDeclaration;
-                    if (!inJmlDeclaration) {
-                        for (JCTree tr : t) {
-                            JCModifiers tmods = null;
-                            JCTree ttr = tr;
-                            if (tr instanceof JmlClassDecl) {
-                                JmlClassDecl d = (JmlClassDecl) tr;
-                                tmods = d.mods;
-                                utils.setJML(d.mods);
-                                //d.toplevel.sourcefile = log.currentSourceFile();
-                                ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
-                                attach(d, dc);
-                            } else if (tr instanceof JmlMethodDecl) {
-                                JmlMethodDecl d = (JmlMethodDecl) tr;
-                                utils.setJML(d.mods);
-                                tmods = d.mods;
-                                d.sourcefile = log.currentSourceFile();
-                                ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
-                                attach(d, dc);
-                            } else if (tr instanceof JmlVariableDecl) {
-                                JmlVariableDecl d = (JmlVariableDecl) tr;
-                                tmods = d.mods;
-                                utils.setJML(d.mods);
-                                d.sourcefile = log.currentSourceFile();
-                                ttr = toP(jmlF.at(pos).JmlTypeClauseDecl(d));
-                                attach(d, dc);
-                            } else {
-                                tr = null;
-                            }
-//                            if (tr != null && utils.findMod(tmods, JmlTokenKind.MODEL) == null && utils.findMod(tmods, JmlTokenKind.GHOST) == null) {
-//                                jmlerror(tr.pos, "jml.missing.ghost.model");
-//                            }
-                            dc = null;
-                            list.append(ttr);
-                        }
-                    } else {
-                        list.appendList(t);
-                    }
                 } else {
 
                     // no longer in JML
                     // FIXME - attach doc comment?
-                    List<JCTree> t = super.classOrInterfaceBodyDeclaration(
+                    t = super.classOrInterfaceBodyDeclaration(
                             className, isInterface);
+                }
+                if (!inJmlDeclaration) {
+                    for (JCTree tr : t) {
+                        JCModifiers tmods = null;
+                        JCTree ttr = tr;
+                        if (tr instanceof JmlClassDecl) {
+                            JmlClassDecl d = (JmlClassDecl) tr;
+                            tmods = d.mods;
+                            if (startsInJml) utils.setJML(d.mods);
+                            //d.toplevel.sourcefile = log.currentSourceFile();
+                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            attach(d, dc);
+                        } else if (tr instanceof JmlMethodDecl) {
+                            JmlMethodDecl d = (JmlMethodDecl) tr;
+                            if (startsInJml) utils.setJML(d.mods);
+                            tmods = d.mods;
+                            d.sourcefile = log.currentSourceFile();
+                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            attach(d, dc);
+                            d.cases = currentMethodSpecs;
+                            if (currentMethodSpecs != null) {
+                                currentMethodSpecs.decl = d;
+                                currentMethodSpecs = null;
+                            }
+
+                        } else if (tr instanceof JmlVariableDecl) {
+                            JmlVariableDecl d = (JmlVariableDecl) tr;
+                            tmods = d.mods;
+                            if (startsInJml) utils.setJML(d.mods);
+                            d.sourcefile = log.currentSourceFile();
+                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            attach(d, dc);
+                            currentVariableDecl = d;
+
+                        } else {
+                            tr = null;
+                        }
+                        //                            if (tr != null && utils.findMod(tmods, JmlTokenKind.MODEL) == null && utils.findMod(tmods, JmlTokenKind.GHOST) == null) {
+                        //                                jmlerror(tr.pos, "jml.missing.ghost.model");
+                        //                            }
+                        dc = null;
+                        list.append(ttr);
+                    }
+                } else if (t.head instanceof JmlTypeClauseIn
+                        || t.head instanceof JmlTypeClauseMaps) {
+                    JCTree tree = t.head;
+                    if (tree instanceof JmlTypeClauseIn) {
+                        ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
+                    }
+                    if (mostRecentVarDecl == null) {
+                        log.error(tree.pos(), "jml.misplaced.var.spec",
+                                ((JmlTypeClause) tree).token.internedName());
+                    } else {
+                        if (mostRecentVarDecl.fieldSpecs == null) {
+                            mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+                                    mostRecentVarDecl.mods);
+                        }
+                        mostRecentVarDecl.fieldSpecs.list
+                        .append((JmlTypeClause) tree);
+                        currentVariableDecl = mostRecentVarDecl;
+                    }
+
+                } else if (t.head instanceof JmlMethodSpecs) {
+                    currentMethodSpecs = (JmlMethodSpecs)t.head;
+
+                } else {
                     list.appendList(t);
-//                    for (JCTree tt: t) {
-//                        JCModifiers tmods = null;
-//                        if (tt instanceof JCVariableDecl) tmods = ((JCVariableDecl)tt).getModifiers();
-//                        else if (tt instanceof JCMethodDecl) tmods = ((JCMethodDecl)tt).getModifiers();
-//                        else if (tt instanceof JCClassDecl) tmods = ((JCClassDecl)tt).getModifiers();
-//                        else continue;
-//                        JmlAnnotation a = utils.findMod(tmods, JmlTokenKind.MODEL);
-//                        if (a == null) a = utils.findMod(tmods, JmlTokenKind.GHOST);
-//                        if (a != null) {
-//                            jmlerror(a.getStartPosition(), a.getEndPosition(endPosTable), "jml.ghost.model.on.java");
-//                        }
-//                    }
                 }
                 break;
             } else if (jt == INVARIANT || jt == INITIALLY || jt == AXIOM) {
@@ -947,15 +955,38 @@ public class JmlParser extends JavacParser {
             } else if (methodClauseTokens.contains(jt)
                     || specCaseTokens.contains(jt) 
                     || jt == SPEC_GROUP_START) {
-                list.append(parseMethodSpecs(mods));
+                currentMethodSpecs = parseMethodSpecs(mods);
+                //list.append(parseMethodSpecs(mods));
                 // FIXME - attach doc comment?
                 // getMethodSpecs may have already parsed some modifiers.
                 // They will be in pushBackModifiers
             } else if (jt == IN) {
-                list.append(parseIn(pos, mods));
+                JmlTypeClauseIn inClause = parseIn(pos, mods);
+                inClause.parentVar = mostRecentVarDecl;
+                if (mostRecentVarDecl == null) {
+                    log.error(inClause.pos(), "jml.misplaced.var.spec",
+                            inClause.token.internedName());
+                } else {
+                    if (mostRecentVarDecl.fieldSpecs == null) {
+                        mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+                                mostRecentVarDecl.mods);
+                    }
+                    mostRecentVarDecl.fieldSpecs.list.append(inClause);
+                    currentVariableDecl = mostRecentVarDecl;
+                }
             } else if (jt == MAPS) {
-                JmlTypeClauseMaps st = parseMaps(pos, mods, list);
-                if (st != null) list.append(st);
+                JmlTypeClauseMaps mapsClause = parseMaps(pos, mods, list);
+                if (mostRecentVarDecl == null) {
+                    log.error(mapsClause.pos(), "jml.misplaced.var.spec",
+                            mapsClause.token.internedName());
+                } else {
+                    if (mostRecentVarDecl.fieldSpecs == null) {
+                        mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+                                mostRecentVarDecl.mods);
+                    }
+                    mostRecentVarDecl.fieldSpecs.list.append(mapsClause);
+                    currentVariableDecl = mostRecentVarDecl;
+                }
             } else if (jt == READABLE || jt == WRITABLE) {
                 list.append(parseReadableWritable(mods, jt));
             } else if (jt == MONITORS_FOR) {
@@ -976,148 +1007,150 @@ public class JmlParser extends JavacParser {
 
     /**
      * This method runs through a list of declarations in a class body, finding
-     * the JML declarations and associating them with the correct Java
-     * declarations, issuing errors if they are in the wrong place.
+     * the method and field annotations and associating them with the correct
+     * declarations, issuing errors if they are in the wrong place. It also sorts 
+     * out the Java declarations and the specifications.
      * 
      */
-    // This is static because it is called outside the parser as well
-    static public void filterTypeBodyDeclarations(JmlClassDecl decl,
-            Context context, JmlTree.Maker jmlF) {
-        Log log = Log.instance(context);
-        List<JCTree> list = decl.defs;
-        JmlSpecs.TypeSpecs typeSpecs = new JmlSpecs.TypeSpecs(decl);
-        ListBuffer<JCTree> newlist = new ListBuffer<>();
-        Iterator<JCTree> iter = list.iterator();
-        JmlVariableDecl currentVarDecl = null;
-        JmlVariableDecl mostRecentVarDecl = null;
-
-        while (iter.hasNext()) {
-            JCTree tree = iter.next();
-            mostRecentVarDecl = currentVarDecl;
-            currentVarDecl = null;
-            if (tree instanceof JmlVariableDecl) {
-                newlist.append(tree);
-                currentVarDecl = (JmlVariableDecl) tree;
-                JCModifiers mods = currentVarDecl.mods;
-                if (currentVarDecl.fieldSpecs == null) {
-                    currentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(mods);
-                } else {
-                    currentVarDecl.fieldSpecs.mods.annotations.appendList(mods.annotations);
-                }
-                
-            } else if (tree instanceof JmlTypeClauseIn
-                    || tree instanceof JmlTypeClauseMaps) {
-                /**
-                 * in and maps clauses get attached to the just preceding
-                 * variable declaration
-                 */
-                if (tree instanceof JmlTypeClauseIn) {
-                    ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
-                }
-                if (mostRecentVarDecl == null) {
-                    log.error(tree.pos(), "jml.misplaced.var.spec",
-                            ((JmlTypeClause) tree).token.internedName());
-                } else {
-                    if (mostRecentVarDecl.fieldSpecs == null) {
-                        mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                mostRecentVarDecl.mods);
-                    }
-                    mostRecentVarDecl.fieldSpecs.list
-                            .append((JmlTypeClause) tree);
-                    currentVarDecl = mostRecentVarDecl;
-                }
-            } else if (tree instanceof JmlMethodSpecs) {
-                // Method specifications come before the declaration they
-                // specify.
-                // They can apply to (a) a method declaration, (b) a ghost or
-                // model declaration
-                // (c) a JML initializer clause, or (d) a Java initializer
-                // block.
-                // All consecutive method spec clauses are grouped together into
-                // one JmlMethodSpecs
-                JmlMethodSpecs mspecs = (JmlMethodSpecs) tree;
-                if (iter.hasNext()) {
-                    tree = iter.next();
-                    if (tree instanceof JmlMethodDecl) {
-                        JmlMethodDecl mdecl = (JmlMethodDecl) tree;
-                        mdecl.cases = mspecs;
-                        mspecs.decl = mdecl;
-                        newlist.append(mdecl);
-                    } else if (tree instanceof JmlTypeClauseDecl
-                            && ((JmlTypeClauseDecl) tree).decl instanceof JmlMethodDecl) {
-                        JmlMethodDecl mdecl = (JmlMethodDecl) ((JmlTypeClauseDecl) tree).decl;
-                        mdecl.cases = mspecs;
-                        newlist.append(mdecl);
-                    } else if (tree instanceof JmlTypeClauseDecl
-                            && ((JmlTypeClauseDecl) tree).decl instanceof JmlClassDecl) {
-                        log.error(mspecs.pos(), "jml.misplaced.method.spec");
-                        typeSpecs.modelTypes.add((JmlClassDecl)((JmlTypeClauseDecl) tree).decl);  // FIXME - add to typeSpecs or to newlist
-                    } else if (tree instanceof JmlTypeClauseDecl
-                            && ((JmlTypeClauseDecl) tree).decl instanceof JmlVariableDecl) {
-                        log.error(mspecs.pos(), "jml.misplaced.method.spec");
-                        currentVarDecl = (JmlVariableDecl) ((JmlTypeClauseDecl) tree).decl;
-                        //typeSpecs.decls.append((JmlTypeClauseDecl) tree);  // FIXME - add to typeSpecs or to newlist ?
-                        newlist.append(currentVarDecl);
-                    } else if (tree instanceof JmlTypeClauseInitializer) {
-                        JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer) tree;
-                        tsp.specs = mspecs;
-                        checkInitializer(tsp, typeSpecs, context, jmlF);
-                    } else if (tree instanceof JCTree.JCBlock) {
-                        typeSpecs.blocks
-                                .put((JCTree.JCBlock) tree,
-                                        new JmlSpecs.MethodSpecs(
-                                                JmlTree.Maker.instance(context)
-                                                        .Modifiers(0), mspecs));
-                        newlist.append(tree);
-                    } else {
-                        log.error(mspecs.pos(), "jml.misplaced.method.spec");
-                    }
-                } else {
-                    log.error(mspecs.pos(), "jml.misplaced.method.spec");
-                }
-            } else if (tree instanceof JmlTypeClauseDecl) {
-                // A ghost or model declaration within a class
-                JmlTypeClauseDecl tcd = (JmlTypeClauseDecl) tree;
-                tree = tcd.decl;
-                if (tree instanceof JmlVariableDecl) {
-                    currentVarDecl = (JmlVariableDecl) tree;
-                } else if (tree instanceof JmlMethodDecl) {
-                    if ( ((JmlMethodDecl)tree).name.toString().equals("initialCharSequence")) Utils.stop();
-                    // OK
-                } else if (tree instanceof JmlClassDecl) {
-                    // OK
-                    typeSpecs.modelTypes.add((JmlClassDecl)tree);
-                    tree = null;
-                } else {
-                    log.error(tree.pos(), "jml.internal.notsobad",
-                            "An unknown kind of JmlTypeClauseDecl was encountered and not handled: "
-                                    + tree.getClass());
-                    tree = null;
-                }
-                if (tree != null) typeSpecs.decls.append(tcd);
-                
-                // All the declarations need to be kept in the class declaration, 
-                // in the order in which they are declared
-                if (tree != null) newlist.append(tree);
-
-            } else if (tree instanceof JmlTypeClause) {
-                if (tree instanceof JmlTypeClauseInitializer)
-                    checkInitializer((JmlTypeClauseInitializer) tree,
-                            typeSpecs, context, jmlF);
-                else
-                    typeSpecs.clauses.append((JmlTypeClause) tree);
-            } else {
-                // presume that everything left is a valid Java declaration
-                newlist.append(tree);
-            }
-        }
-        typeSpecs.modifiers = decl.mods;
-        typeSpecs.file = decl.source();
-        typeSpecs.decl = decl;
-        decl.defs = newlist.toList();
-        decl.typeSpecs = typeSpecs; // The type specs from just this compilation
-                                    // unit
-    }
+//    // This is static because it is called outside the parser as well
+//    static public void filterTypeBodyDeclarations(JmlClassDecl decl,
+//            Context context, JmlTree.Maker jmlF) {
+//        Log log = Log.instance(context);
+//        
+//        // decl.defs contains all of the declarations in the decl class,
+//        // including method and field annotations as individual declarations.
+//        // In the end we want two things:
+//        // a) All method and field specs associated with the appropriate method
+//        // or field declaration, and not in the decl.defs list
+//        // b) The decl.defs list should just have Java declarations and the
+//        // decl.typespecs list should have all the class, method, field and initializer
+//        // declarations that were in decl.defs, in the same order.
+//        List<JCTree> list = decl.defs;
+//        JmlSpecs.TypeSpecs typeSpecs = new JmlSpecs.TypeSpecs(decl);
+//        ListBuffer<JCTree> javalist = new ListBuffer<>();
+//        JmlVariableDecl currentVarDecl = null;
+//        JmlVariableDecl mostRecentVarDecl = null;
+//        JmlMethodSpecs currentMethodSpecs = null;
+//        
+//        Iterator<JCTree> iter = list.iterator();
+//        while (iter.hasNext()) {
+//            JCTree tree = iter.next();
+//            mostRecentVarDecl = currentVarDecl;
+//            currentVarDecl = null;
+//            if (tree instanceof JmlVariableDecl) {
+//                // A Java field declaration
+//                currentVarDecl = (JmlVariableDecl) tree;
+//                JCModifiers mods = currentVarDecl.mods;
+//                if (currentVarDecl.fieldSpecs == null) {
+//                    currentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(mods);
+//                } else {
+//                    currentVarDecl.fieldSpecs.mods.annotations.appendList(mods.annotations);
+//                }
+//                javalist.append(tree);
+//                
+//            } else if (tree instanceof JmlTypeClauseIn
+//                    || tree instanceof JmlTypeClauseMaps) {
+//                /**
+//                 * in and maps clauses get attached to the just preceding
+//                 * variable declaration
+//                 */
+//                if (tree instanceof JmlTypeClauseIn) {
+//                    ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
+//                }
+//                if (mostRecentVarDecl == null) {
+//                    log.error(tree.pos(), "jml.misplaced.var.spec",
+//                            ((JmlTypeClause) tree).token.internedName());
+//                } else {
+//                    if (mostRecentVarDecl.fieldSpecs == null) {
+//                        mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
+//                                mostRecentVarDecl.mods);
+//                    }
+//                    mostRecentVarDecl.fieldSpecs.list
+//                            .append((JmlTypeClause) tree);
+//                    currentVarDecl = mostRecentVarDecl;
+//                }
+//            } else if (tree instanceof JmlMethodDecl) {
+//                JmlMethodDecl mdecl = (JmlMethodDecl) tree;
+//                mdecl.cases = currentMethodSpecs;
+//                currentMethodSpecs.decl = mdecl;
+//                javalist.append(mdecl);
+//                currentMethodSpecs = null;
+//            } else if (tree instanceof JmlMethodSpecs) {
+//                // Method specifications come before the declaration they
+//                // specify.
+//                // They can apply to (a) a method declaration, (b) a ghost or
+//                // model method declaration
+//                // (c) a JML initializer clause, or (d) a Java initializer
+//                // block.
+//                // All consecutive method spec clauses are grouped together into
+//                // one JmlMethodSpecs
+//                currentMethodSpecs = (JmlMethodSpecs) tree;
+//                continue;
+//
+//            } else if (tree instanceof JmlTypeClauseDecl) {
+//                // A ghost or model declaration within a class
+//                JmlTypeClauseDecl tcd = (JmlTypeClauseDecl) tree;
+//                tree = tcd.decl;
+//                if (tree instanceof JmlVariableDecl) {
+//                    if (currentMethodSpecs != null) log.error(currentMethodSpecs.pos(), "jml.misplaced.method.spec");
+//                    currentVarDecl = (JmlVariableDecl) tree;
+//                } else if (tree instanceof JmlMethodDecl) {
+//                    if ( ((JmlMethodDecl)tree).name.toString().equals("initialCharSequence")) Utils.stop();
+//                    JmlMethodDecl mdecl = (JmlMethodDecl) ((JmlTypeClauseDecl) tree).decl;
+//                    mdecl.cases = currentMethodSpecs;
+//                } else if (tree instanceof JmlClassDecl) {
+//                    // OK
+//                    if (currentMethodSpecs != null) log.error(currentMethodSpecs.pos(), "jml.misplaced.method.spec");
+//                    typeSpecs.modelTypes.add((JmlClassDecl)tree);
+//                    tree = null;
+//                } else {
+//                    if (currentMethodSpecs != null) log.error(currentMethodSpecs.pos(), "jml.misplaced.method.spec");
+//                    log.error(tree.pos(), "jml.internal.notsobad",
+//                            "An unknown kind of JmlTypeClauseDecl was encountered and not handled: "
+//                                    + tree.getClass());
+//                    tree = null;
+//                }
+//                currentMethodSpecs = null;
+//                if (tree != null) typeSpecs.decls.append(tcd);
+//                
+//                // All the declarations need to be kept in the class declaration, 
+//                // in the order in which they are declared
+//                if (tree != null) javalist.append(tree);
+//
+//            } else if (tree instanceof JmlTypeClause) {
+//                if (tree instanceof JmlTypeClauseInitializer) {
+//                    JmlTypeClauseInitializer tsp = (JmlTypeClauseInitializer) tree;
+//                    tsp.specs = currentMethodSpecs;
+//                    currentMethodSpecs = null;
+//                    checkInitializer(tsp, typeSpecs, context, jmlF);
+//                } else {
+//                    // FIXME - what is this?
+//                    typeSpecs.clauses.append((JmlTypeClause) tree);
+//                }
+//            } else if (tree instanceof JCTree.JCBlock) {
+//                typeSpecs.blocks
+//                        .put((JCTree.JCBlock) tree,
+//                                new JmlSpecs.MethodSpecs(
+//                                        JmlTree.Maker.instance(context)
+//                                                .Modifiers(0), currentMethodSpecs));
+//                currentMethodSpecs = null;
+//                javalist.append(tree);
+//            } else {
+//                // presume that everything left is a valid Java declaration
+//                javalist.append(tree);
+//            }
+//            if (currentMethodSpecs != null) {
+//                log.error(currentMethodSpecs.pos(), "jml.misplaced.method.spec");
+//                currentMethodSpecs = null;
+//            }
+//        }
+//        typeSpecs.modifiers = decl.mods;
+//        typeSpecs.file = decl.source();
+//        typeSpecs.decl = decl;
+//        decl.defs = javalist.toList();
+//        decl.typeSpecs = typeSpecs; // The type specs from just this compilation
+//                                    // unit
+//    }
 
     /**
      * Checks for just one instance and one static initializer JML
@@ -2942,10 +2975,10 @@ public class JmlParser extends JavacParser {
             try {
                 inLocalOrAnonClass = true;
                 JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
-                if (anon.def != null) {
-                    filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
-                            jmlF);
-                }
+//                if (anon.def != null) {
+//                    filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
+//                            jmlF);
+//                }
                 return anon;
             } finally {
                 inLocalOrAnonClass = prev;

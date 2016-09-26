@@ -2998,6 +2998,10 @@ public class JmlTree implements IJmlTree {
         public String toString() {
             return JmlTree.toString(this);
         }
+        
+        public int getStartPosition() {
+            return pos;
+        }
     }
     
     /** This class represents 'represents' type clauses  in a class specification */
