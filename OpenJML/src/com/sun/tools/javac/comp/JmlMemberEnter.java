@@ -57,6 +57,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -3366,8 +3367,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             combinedTypeSpecs.decl = null;
             combinedTypeSpecs.file = classToMatch.sourcefile;
         } else {
-            specs.combineSpecs(classToMatch,matchedSpecClass);
-            matchedSpecClass.typeSpecsCombined = combinedTypeSpecs; // FIXME - is this already the case
+            matchedSpecClass.typeSpecsCombined = specs.combineSpecs(classToMatch,null,matchedSpecClass);
         }
         combinedTypeSpecs.refiningSpecDecls = matchedSpecClass;
 
@@ -3388,5 +3388,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         return matchedSpecClass;
     }
 
+    @Override
+    protected void importHelper(JCCompilationUnit tree) {
+        // Import-on-demand java.lang.
+        importAll(tree.pos, reader.enterPackage(names.java_lang), env);
+        importAll(tree.pos, reader.enterPackage(names.fromString("org.jmlspecs.lang")), env);
+
+        // Process all import clauses.
+        memberEnter(tree.defs, env);
+    }
 
 }

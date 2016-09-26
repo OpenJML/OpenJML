@@ -880,11 +880,9 @@ public class JmlParser extends JavacParser {
                 }
                 if (!inJmlDeclaration) {
                     for (JCTree tr : t) {
-                        JCModifiers tmods = null;
                         JCTree ttr = tr;
                         if (tr instanceof JmlClassDecl) {
                             JmlClassDecl d = (JmlClassDecl) tr;
-                            tmods = d.mods;
                             if (startsInJml) utils.setJML(d.mods);
                             //d.toplevel.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
@@ -892,7 +890,6 @@ public class JmlParser extends JavacParser {
                         } else if (tr instanceof JmlMethodDecl) {
                             JmlMethodDecl d = (JmlMethodDecl) tr;
                             if (startsInJml) utils.setJML(d.mods);
-                            tmods = d.mods;
                             d.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
@@ -904,7 +901,6 @@ public class JmlParser extends JavacParser {
 
                         } else if (tr instanceof JmlVariableDecl) {
                             JmlVariableDecl d = (JmlVariableDecl) tr;
-                            tmods = d.mods;
                             if (startsInJml) utils.setJML(d.mods);
                             d.sourcefile = log.currentSourceFile();
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
@@ -993,7 +989,10 @@ public class JmlParser extends JavacParser {
                 list.append(parseMonitorsFor(mods));
             } else if (jt == INITIALIZER || jt == STATIC_INITIALIZER) {
                 //@ FIXME - modifiers?
-                list.append(to(jmlF.at(pos()).JmlTypeClauseInitializer(jt,mods)));
+                JmlTypeClauseInitializer initializer = jmlF.at(pos()).JmlTypeClauseInitializer(jt,mods);
+                initializer.specs = currentMethodSpecs;
+                currentMethodSpecs = null;
+                list.append(to(initializer));
                 nextToken();
             } else {
                 jmlerror(pos(), endPos(),
@@ -1152,44 +1151,6 @@ public class JmlParser extends JavacParser {
 //                                    // unit
 //    }
 
-    /**
-     * Checks for just one instance and one static initializer JML
-     * specification, initializing the initializerSpec and staticInitializerSpec
-     * fields of tspecs
-     * 
-     * @param tsp
-     *            a initializer spec declaration from a class declaration
-     * @param tspecs
-     *            the typeSpecs structure for that class declaration
-     */
-    // @ modifies tspecs.initializerSpec, tspecs.staticInitializerSpec,
-    // log.errorOutput;
-    static public void checkInitializer(JmlTypeClauseInitializer tsp,
-            JmlSpecs.TypeSpecs tspecs, Context context, JmlTree.Maker jmlF) {
-        Log log = Log.instance(context);
-        if (tsp.token == JmlTokenKind.INITIALIZER) { // not static
-            if (tspecs.initializerSpec != null) {
-                log.error(tsp.pos(), "jml.one.initializer.spec.only");
-            } else {
-                tspecs.clauses.append(tsp);
-                tspecs.initializerSpec = tsp;
-                if (tsp.specs == null)
-                    tsp.specs = jmlF.JmlMethodSpecs(List
-                            .<JmlTree.JmlSpecificationCase> nil());
-            }
-        } else { // static initializer
-            if (tspecs.staticInitializerSpec != null) {
-                log.error(tsp.pos(), "jml.one.initializer.spec.only");
-            } else {
-                tspecs.clauses.append(tsp);
-                tspecs.staticInitializerSpec = tsp;
-                if (tsp.specs == null)
-                    tsp.specs = jmlF.JmlMethodSpecs(List
-                            .<JmlTree.JmlSpecificationCase> nil());
-            }
-        }
-
-    }
 
     /** Parses a maps clause */
     public JmlTypeClauseMaps parseMaps(int pos, JCModifiers mods,

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.tools.javac.parser.Tokens.ITokenKind;
+import com.sun.tools.javac.tree.JCTree;
 
 /**
  * This class defines the scanner tokens that represent JML syntax.
@@ -223,7 +224,7 @@ public enum JmlTokenKind implements ITokenKind {
     /** The annotation class associated with this token (for modifiers only), if any */
     //@ nullable
     public Class<?> annotationType = null;
-
+    
     /** A human readable form of the token, and how it appears in text
      * @return the canonical, printable form of the token (not the internal toString() form)
      */

@@ -522,16 +522,20 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         Lint prevLint = chk.setLint(lint);
 
         try {
-            // Import-on-demand java.lang.
-            importAll(tree.pos, reader.enterPackage(names.java_lang), env);
-            importAll(tree.pos, reader.enterPackage(names.fromString("org.jmlspecs.lang")), env); // DRC - added
-
-            // Process all import clauses.
-            memberEnter(tree.defs, env);
+            importHelper(tree);
         } finally {
             chk.setLint(prevLint);
             deferredLintHandler.setPos(prevLintPos);
         }
+    }
+    
+    // DRC - extracted from visitTopLevel to enable derived classes to change the imports
+    protected void importHelper(JCCompilationUnit tree) {
+        // Import-on-demand java.lang.
+        importAll(tree.pos, reader.enterPackage(names.java_lang), env);
+
+        // Process all import clauses.
+        memberEnter(tree.defs, env);
     }
 
     // process the non-static imports and the static imports of types.

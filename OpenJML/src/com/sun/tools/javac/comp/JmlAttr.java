@@ -582,7 +582,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (tspecs.refiningSpecDecls != null && tspecs.refiningSpecDecls.source() != null) log.useSource(tspecs.refiningSpecDecls.source()); // FIXME - this comparison is a bit mixed up
                     checkClassMods(c.owner,tspecs.decl,tspecs.modifiers);
                 } else {
-                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c);
+//                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c); // FIXME - testJML2
                 }
 
 

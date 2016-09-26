@@ -455,9 +455,7 @@ public class JmlEnter extends Enter {
                 combinedTypeSpecs.decl = null;
                 combinedTypeSpecs.file = that.sym.sourcefile;
             } else {
-                specs.combineSpecs(that.sym,principalDecl);  // This line is absolutely needed - stores specs into the specs database
-                principalDecl.typeSpecsCombined = combinedTypeSpecs; // FIXME - is this already the case
-                combinedTypeSpecs.decl = principalDecl;
+                principalDecl.typeSpecsCombined = specs.combineSpecs(that.sym,principalDecl,principalDecl.specsDecls);  // This line is absolutely needed - stores specs into the specs database
             }
         }
 

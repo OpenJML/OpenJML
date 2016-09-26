@@ -1048,7 +1048,7 @@ public class JmlSpecs {
         //@ nullable   // may be null if there are no specs
         public JavaFileObject file;
 
-        /** The JmlClassDecl from the specification */ // FIXME - this is probably better used as the decl of the Java file, if any
+        /** The JmlClassDecl for the specification */ // FIXME - this is probably better used as the decl of the Java file, if any
         //@ nullable   // may be null if there are no specs
         public JmlClassDecl decl; // FIXME - with a spec sequence the specs from more than one
 
@@ -1205,10 +1205,10 @@ public class JmlSpecs {
             }
         }
         
-        TypeSpecs spec = get(csymbol); // FIXME - why would spec be null?
+        TypeSpecs spec = get(csymbol); // spec is null if the TypeSpecs are in the process of being initialized
         if (spec == null || spec.defaultNullity == null) {
             JmlTokenKind t = null;
-            if (spec.decl == null) {
+            if (spec.refiningSpecDecls == null) {
                 if (csymbol.getAnnotationMirrors() != null) {
                     if (csymbol.attribute(attr.nullablebydefaultAnnotationSymbol) != null) {
                         t = JmlTokenKind.NULLABLE;
@@ -1217,7 +1217,7 @@ public class JmlSpecs {
                     }
                 } 
             } else {
-                JCModifiers mods = spec.decl.mods;
+                JCModifiers mods = spec.refiningSpecDecls.mods;
                 if (spec.decl.specsDecls != null) mods = spec.decl.specsDecls.mods;
                 if (utils.findMod(mods, attr.nullablebydefaultAnnotationSymbol) != null) {
                     t = JmlTokenKind.NULLABLE;
@@ -1417,12 +1417,19 @@ public class JmlSpecs {
      * given class symbol. Presumes there is already at least an empty
      * stored specs structure.
      */
-    public void combineSpecs(ClassSymbol sym, JmlClassDecl specTypeDecl) {
-        JmlSpecs.TypeSpecs tspecs = getSpecs(sym);
-        if (tspecs == null) {
-            tspecs = new TypeSpecs();
-            putSpecs(sym, tspecs);
+    public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl principalDecl, /*@ nullable */  JmlClassDecl specTypeDecl) {
+        JmlSpecs.TypeSpecs tspecs = new TypeSpecs();
+        putSpecs(sym, tspecs);
+        tspecs.csymbol = sym;
+        tspecs.decl = specTypeDecl;
+        tspecs.refiningSpecDecls = specTypeDecl;
+        if (specTypeDecl != null) {
+            tspecs.modifiers = specTypeDecl.mods;
+            tspecs.file = specTypeDecl.sourcefile; // sourcefile for the modifiers
+        } else {
+            tspecs.modifiers = null;
         }
+        tspecs.defaultNullity = defaultNullity(sym);
 
         // tspecs is to be the combinedSpecs
         // It already has: 
@@ -1438,51 +1445,50 @@ public class JmlSpecs {
             log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
         }
 
-//        JmlSpecs.TypeSpecs nspecs = null;
-//        if (tspecs.refiningSpecDecls != null) {
-//            nspecs = tspecs.refiningSpecDecls.typeSpecs;  // first or last - current usage there is only ever one
-//        } else if (specTypeDecl != null) {
-//            // This can happen when we are using source files for runtime Utils classes, which probably happens
-//            // only in test scenarios
-//            nspecs = specTypeDecl.typeSpecs;
-//        } else {
-//            String msg = "Unexpected control branch taken in JmlEnter.combineSpecs";
-//            log.error("jml.internal",msg);
-//            throw new JmlInternalError(msg);
-//        }
 
         // FIXME - do not bother copying if there is only one file
-        // tspecs.csymbol is already set, should be same as nspecs.csymbol
         // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
-        tspecs.file = specTypeDecl.sourcefile;
-        tspecs.modifiers = specTypeDecl.mods;
         ListBuffer<JCTree> newlist = new ListBuffer<JCTree>();
-        for (JCTree t: specTypeDecl.defs) {
-            JCTree tt = t;
-            if (t instanceof JCTree.JCBlock) {
-                JCTree.JCBlock b = (JCTree.JCBlock)t;
-                tspecs.blocks.put(b, null); // FIXME - method spec?
-            } else if (t instanceof JmlTypeClauseInitializer) {
-                JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
-                if (!utils.isJMLStatic(init.modifiers, sym))
-                    tspecs.initializerSpec = init;
-                else
-                    tspecs.staticInitializerSpec = init;
-            } else if (t instanceof JmlMethodDecl) {
-                JmlMethodDecl md = (JmlMethodDecl)t;
-                tspecs.methods.put(md.sym, md.methodSpecsCombined );
-            } else if (t instanceof JmlVariableDecl) {
-                JmlVariableDecl md = (JmlVariableDecl)t;
-                tspecs.fields.put(md.sym, md.fieldSpecsCombined );
-            } else if (t instanceof JmlTypeClauseDecl) {
-                tspecs.decls.add((JmlTypeClauseDecl)t);
-            } else if (t instanceof JmlTypeClause) {
-                tspecs.clauses.add((JmlTypeClause)t);
-                tt = null;
+        if (specTypeDecl != null) {
+            for (JCTree t: specTypeDecl.defs) {
+                JCTree tt = t;
+                if (t instanceof JCTree.JCBlock) {
+                    JCTree.JCBlock b = (JCTree.JCBlock)t;
+                    tspecs.blocks.put(b, null); // FIXME - method spec?
+                } else if (t instanceof JmlTypeClauseInitializer) {
+                    JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
+                    tt = null;
+                    //if (!utils.isJMLStatic(init.modifiers, sym)) {
+                    if (init.token == JmlTokenKind.INITIALIZER) {
+                        if (tspecs.initializerSpec != null) {
+                            log.error(init, "jml.one.initializer.spec.only");
+                        } else {
+                            tspecs.initializerSpec = init;
+                        }
+                    } else {
+                        if (tspecs.staticInitializerSpec != null) {
+                            log.error(init, "jml.one.initializer.spec.only");
+                        } else {
+                            tspecs.staticInitializerSpec = init;
+                        }
+                    }
+                } else if (t instanceof JmlMethodDecl) {
+                    JmlMethodDecl md = (JmlMethodDecl)t;
+                    tspecs.methods.put(md.sym, md.methodSpecsCombined );
+                } else if (t instanceof JmlVariableDecl) {
+                    JmlVariableDecl md = (JmlVariableDecl)t;
+                    tspecs.fields.put(md.sym, md.fieldSpecsCombined );
+                } else if (t instanceof JmlTypeClauseDecl) {
+                    tspecs.decls.add((JmlTypeClauseDecl)t);
+                } else if (t instanceof JmlTypeClause) {
+                    tspecs.clauses.add((JmlTypeClause)t);
+                    tt = null;
+                }
+                if (tt != null) newlist.add(tt);
             }
-            if (tt != null) newlist.add(tt);
+            specTypeDecl.defs = newlist.toList();
         }
-        specTypeDecl.defs = newlist.toList();
+        return tspecs;
     }
     
     /** An ADT to hold the specs for a method or block */
