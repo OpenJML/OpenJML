@@ -1,0 +1,22 @@
+
+public class A15 {
+  
+  public A15();
+  
+    /*@
+      requires true; 
+      ensures this.FIELD == 3; 
+      ensures \result == a + b; 
+      assignable this.FIELD; 
+   */
+
+  public int add(int a, int b);
+    /*@
+    public normal_behavior
+      requires true; 
+      ensures \result == a + b; 
+   */
+
+  @Pure 
+  public int localTest(int a, int b);
+}

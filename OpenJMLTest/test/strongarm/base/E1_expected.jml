@@ -1,0 +1,66 @@
+package demo.strongarm;
+
+public class E1 {
+  
+  public E1();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        {|
+          {|
+            requires a < 0; 
+            requires b < 0; 
+            requires (a + b < 0); 
+            ensures \result == a - b; 
+          also
+            requires a < 0; 
+            requires b < 0; 
+            requires !(a + b < 0); 
+            ensures \result == a + b; 
+          |}
+        also
+          {|
+            requires a < 0; 
+            requires !(b < 0); 
+            requires (a + b < 0); 
+            ensures \result == a - b; 
+          also
+            requires a < 0; 
+            requires !(b < 0); 
+            requires !(a + b < 0); 
+            ensures \result == a + b; 
+          |}
+        |}
+      also
+        {|
+          {|
+            requires !(a < 0); 
+            requires b < 0; 
+            requires (a + b < 0); 
+            ensures \result == a - b; 
+          also
+            requires !(a < 0); 
+            requires b < 0; 
+            requires !(a + b < 0); 
+            ensures \result == a + b; 
+          |}
+        also
+          {|
+            requires !(a < 0); 
+            requires !(b < 0); 
+            requires (a + b < 0); 
+            ensures \result == a - b; 
+          also
+            requires !(a < 0); 
+            requires !(b < 0); 
+            requires !(a + b < 0); 
+            ensures \result == a + b; 
+          |}
+        |}
+      |}
+   */
+
+  @Pure 
+  public static int m0(int a, int b);
+}

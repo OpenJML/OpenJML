@@ -1,0 +1,19 @@
+
+public class D {
+  
+  public D();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (a < 10); 
+        ensures \result == a; 
+      also
+        requires !(a < 10); 
+        ensures \result == a; 
+      |}
+   */
+
+  @Pure 
+  public static int pathing(int a);
+}
