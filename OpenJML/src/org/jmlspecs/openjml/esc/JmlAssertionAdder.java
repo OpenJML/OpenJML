@@ -12140,7 +12140,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * the order is that interfaces come before classes and super classes/interfaces come before derived ones,
      * with the argument type last.
      */
-    public java.util.List<Type> parents(Type ct, boolean includeEnclosing) {
+    public java.util.List<Type> parents(Type ct, boolean includeEnclosing) { // FIXME - not implemented for includeEnclosing = true // FIXME - unify this with the methods in Utils.
 
     	java.util.List<Type> classes = new LinkedList<Type>();
         Type cc = ct;
@@ -12150,9 +12150,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 Type.ClassType cct = (Type.ClassType)cc;
                 cc = cct.supertype_field;
                 if (cc == null) cc = ((Type.ClassType)cct.tsym.type).supertype_field;
+            } else if (cc instanceof Type.ArrayType) { 
+                cc = syms.objectType;
+            } else if (cc instanceof Type.TypeVar) {
+                cc = ((Type.TypeVar)cc).bound;
+            } else {
+                cc = null;
             }
-            else if (cc instanceof Type.TypeVar) cc = ((Type.TypeVar)cc).bound;
-            else cc = null;
         }
         
         java.util.List<Type> interfacesToDo = new LinkedList<Type>();
