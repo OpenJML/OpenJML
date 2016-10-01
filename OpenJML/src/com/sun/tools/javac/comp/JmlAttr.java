@@ -5477,7 +5477,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 prev = ((JmlResolve)rs).setAllowJML(true);
             }
             if (that.vartype.type == null) attribType(that.vartype,env);
-            if (that.name.toString().equals("objectState")) Utils.stop();
+//            if (that.name.toString().equals("objectState")) Utils.stop();
             ((JmlMemberEnter)memberEnter).dojml = true;
             visitVarDef(that);
             ((JmlMemberEnter)memberEnter).dojml = false;

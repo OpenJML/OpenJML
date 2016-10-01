@@ -5,6 +5,8 @@
 package com.sun.tools.javac.comp;
 
 
+import java.util.Collection;
+
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
@@ -231,7 +233,64 @@ public class JmlEnter extends Enter {
         }
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + jmltree.sourcefile.getName());
     }
-    
+
+    public void visitTopLevelBinary(JCCompilationUnit tree) {
+        if (!(tree instanceof JmlCompilationUnit)) {
+            log.warning("jml.internal.notsobad","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
+            super.visitTopLevel(tree);
+            return;
+        }
+        JmlCompilationUnit specscu = (JmlCompilationUnit)tree;
+
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + specscu.sourcefile.getName());
+
+        // Fill in the toplevel field for each class definition
+        for (JCTree t: specscu.defs) {
+            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;  // FIXME - this is already done, at lesat for parsed files?
+        }
+        
+        // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
+
+        if (specscu.pid != null) {
+            specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
+//            if (specscu.packageAnnotations.nonEmpty()
+//                    || pkginfoOpt == PkgInfo.ALWAYS
+//                    || specscu.docComments != null) {
+//                if (specscu.packageAnnotations.nonEmpty()){
+//                    log.error(specscu.packageAnnotations.head.pos(),
+//                              "pkg.annotations.sb.in.package-info.java");
+//                }
+//            }
+        } else {
+            specscu.packge = syms.unnamedPackage;
+        }
+        specscu.packge.complete(); // Find all classes in package.
+        specTopEnv = topLevelEnv(specscu);
+        specscu.topLevelEnv = specTopEnv;
+
+        // Checking that the specs and the java source declare the same package  -- FIXME
+//        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
+//
+//            if (specscu.packge != specscu.packge) {
+////            if (((jmltree.pid == null) != (specscu.pid == null)) || 
+////                    (jmltree.pid != null && specscu.pid != null && !jmltree.pid.toString().equals(specscu.pid.toString()))) {
+//                utils.error(specscu.sourcefile,specscu.getPackageName().pos,"jml.internal","The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString() + ", which does not match the .java file: " + jmltree.packge.toString()));
+//                String s = utils.locationString(specscu.getPackageName().pos, specscu.sourcefile);
+//                utils.error(jmltree.getSourceFile(), jmltree.getPackageName().pos,"jml.associated.decl.cf",s);
+//            }
+////            specscu.packge = jmltree.packge;
+//        }
+
+        // Match specifications to the corresponding Java class
+        {
+            String owner = (specscu.packge == syms.unnamedPackage?"":(specscu.packge.flatName()+"."));
+            matchClassesForBinary(owner, specscu.defs, null, null);
+        }
+
+
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"  completed entering " + specscu.sourcefile.getName());
+    }
+
     /** This routine matches class declarations in the specifications ('specsDefs' list) with Java declarations ('defs' list).
      * Note that these may be top-level declarations in corresponding files; they may also be lists of nested declaration
      * from corresponding nested locations. The composite list of declarations (to replace 'defs') is returned. Any duplicate
@@ -297,50 +356,52 @@ public class JmlEnter extends Enter {
         return newdefs.toList();
     }
 
-//    public void matchClassesForBinary(List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
-//        for (JCTree t: specsDefs) {  // Iterate over the classes in the specification
-//            if (!(t instanceof JmlClassDecl)) continue;
-//            
-//            JmlClassDecl specsClass = (JmlClassDecl)t;
-//            // The declaration 'specsClass' is in a specification file.
-//            // We need to find the Java declaration that it matches
-//            // There must be one, and there should only be one declaration in the specsDefs list
-//            // that matches a particular java declaration.
-//            // A Java declaration need not have a match
-//            Name name = specsClass.name;
-//            JmlClassDecl matched = null;
-//            for (JCTree tt: defs) { // Iterate over the Java classes 
-//                if (!(tt instanceof JmlClassDecl)) continue;
-//                JmlClassDecl def = (JmlClassDecl)tt;
-//                if (name.equals(def.name)) {
-//                    matched = specsClass;
-//                    if (def.specsDecls == null) {
-//                        def.specsDecls = specsClass; // Attach the specification to the matching Java AST
-//                    } else {
-//                        JavaFileObject prev = log.useSource(specsClass.source());
-//                        log.error(matched.pos,"jml.duplicate.jml.class.decl",matched.name);
-//                        log.error(def.specsDecls.pos,"jml.associated.decl.cf",
-//                                utils.locationString(matched.pos));
-//                        log.useSource(prev);
-//                    }
-//                }
-//            }
-//            if (matched == null) {
-//                if (!utils.isJML(specsClass.mods)) {
-//                    JavaFileObject prevv = log.useSource(specsClass.source());
-//                    log.error(specsClass.pos,
-//                            "jml.orphan.jml.class.decl",
-//                            specsClass.name,javasource);
-//                    log.useSource(prevv);
-//                }
-//                
-//                // This specification file is not matched, so it is like a
-//                // model class declaration. Pretend it is one.
-//                
-//                unmatchedTypesList.add(specsClass);
+    public void matchClassesForBinary(String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
+        for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification
+            if (!(specDecl instanceof JmlClassDecl)) continue;
+            JmlClassDecl specsClass = (JmlClassDecl)specDecl;
+            // The declaration 'specsClass' is in a specification file.
+            // We need to find the Java declaration that it matches
+            // There must be one, and there should only be one declaration in the specsDefs list
+            // that matches a particular java declaration.
+            // A Java declaration need not have a match
+
+            ClassSymbol c = reader.enterClass( names.fromString( owner + specsClass.name.toString()));
+
+            if (c != null) {
+                specsClass.sym = c;
+                specs.combineSpecs(c,null,specsClass);
+                if (utils.isJML(specsClass.mods)) {
+                    // A model class (in the specs) matches a java class - error
+                    // FIXME _ fix this error message
+                    utils.error(specsClass.source(), specsClass.pos,
+                            "jml.duplicate.model",
+                            specsClass.name,javasource);
+                    String s = utils.locationString(specsClass.pos, specsClass.source());
+                    utils.error(specsClass.source(), specsClass.pos,"jml.associated.decl.cf",s);
+                }
+//            } else {  // Duplicate
+//                utils.error(specsClass.source(), specsClass.pos,"jml.duplicate.jml.class.decl",specsClass.name);
+//                utils.error(javaDecl.specsDecls.source(), javaDecl.specsDecls.pos,"jml.associated.decl.cf",
+//                        utils.locationString(specsClass.pos, specsClass.source()));
 //            }
 //        }
-//    }
+            }
+            if (c == null) {
+                if (!utils.isJML(specsClass.mods)) {
+                    // FIXME - fix error
+                    utils.error(specsClass.source(), specsClass.pos,
+                            "jml.orphan.jml.class.decl",
+                            specsClass.name,javasource);
+                }
+                
+                // This specification file is not matched, so it is like a
+                // model class declaration. Pretend it is one.
+                
+                // FIXME - enter the class
+            }
+        }
+    }
 
     // Overridden to use the specTopEnv when appropriate
     @Override

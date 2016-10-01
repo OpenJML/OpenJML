@@ -340,7 +340,7 @@ public class JmlCompiler extends JavaCompiler {
                     loadSpecsForBinary(env, (ClassSymbol)t.tsym);
                 }
 
-                if (true || !csymbol.getTypeParameters().isEmpty()) {
+                if (!csymbol.getTypeParameters().isEmpty()) {
                     ((JmlEnter)enter).recordEmptySpecs(csymbol);
                     return; // FIXME - specs with type parameters not working correctly yet
                 }
