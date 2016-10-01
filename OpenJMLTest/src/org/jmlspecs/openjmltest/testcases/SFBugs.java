@@ -58,43 +58,35 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void sfpatch25() {
-    	expectedExit = 0;
         helpTCF("test/sfpatch25/A.java","test/sfpatch25", "-cp", "test/sfpatch25", "-esc","-quiet");
     }
     
     @Test public void sfbug407() {
-    	expectedExit = 0;
         helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "-esc", "-progress");
     }
     
     @Test public void sfbug398() {
-    	expectedExit = 0;
         helpTCF("test/sfbug398","test/sfbug398", "-cp", "test/sfbug398", "-esc", "-progress");
     }
     
     @Test public void sfbug399() {
-    	expectedExit = 0;
         helpTCF("test/sfbug399","test/sfbug399", "-cp", "test/sfbug399", "-esc","-progress");
     }
     
     @Ignore // very long running
     @Test public void sfbug404() {
-    	expectedExit = 0;
         helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "-esc","-progress","-logic=AUFNIRA");
     }
     
     @Test public void sfbug408() {
-    	expectedExit = 0;
         helpTCF("test/sfbug408","test/sfbug408", "-cp", "test/sfbug408", "-esc","-progress");
     }
     
     @Test public void sfbug409() {
-    	expectedExit = 0;
         helpTCF("test/sfbug409","test/sfbug409", "-cp", "test/sfbug409", "-esc","-progress");
     }
     
     @Test public void sfbug410() {
-    	expectedExit = 0;
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "-esc","-progress");
     }
     
@@ -241,6 +233,21 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug469() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug476() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug477() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug478() {
     	expectedExit = 0;
         helpTCG();
     }

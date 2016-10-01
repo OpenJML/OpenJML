@@ -2850,7 +2850,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             (caseMod == Flags.PROTECTED && methodMod == 0)) {
                         DiagnosticPosition p = c.modifiers.pos();
                         if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
-                        log.warning(p,"jml.no.point.to.more.visibility");
+                        if (!enclosingMethodEnv.enclMethod.name.toString().equals("clone"))
+                            log.warning(p,"jml.no.point.to.more.visibility");
                     }
                 }
             }

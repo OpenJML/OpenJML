@@ -524,16 +524,21 @@ public class Utils {
     }
 
     // Includes self
-    public java.util.List<ClassSymbol> parents(TypeSymbol ct) {
+    public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
         ArrayList<ClassSymbol> interfaces = new ArrayList<ClassSymbol>(20);
         if (!(ct instanceof ClassSymbol)) return interfaces;
         ClassSymbol c = (ClassSymbol)ct; // FIXME - what if we want the parents of a type variable?
         List<ClassSymbol> classes = new LinkedList<ClassSymbol>();
         Set<ClassSymbol> interfaceSet = new HashSet<ClassSymbol>();
         ClassSymbol cc = c;
-        while (cc != null) {
+        List<ClassSymbol> todo = new LinkedList<ClassSymbol>();
+        todo.add(c);
+        while (!todo.isEmpty()) {
+            cc = todo.remove(0);
+            if (cc == null) continue;
+            if (cc.owner instanceof ClassSymbol) todo.add((ClassSymbol)cc.owner); // FIXME - can this be an interface?
+            todo.add((ClassSymbol)cc.getSuperclass().tsym);
             classes.add(0,cc);
-            cc = (ClassSymbol)cc.getSuperclass().tsym;
         }
         for (ClassSymbol ccc: classes) {
             List<Type> ifs = ccc.getInterfaces();
@@ -559,7 +564,7 @@ public class Utils {
     // Includes self // FIXME - review for order
     public java.util.List<MethodSymbol> parents(MethodSymbol m) {
         List<MethodSymbol> methods = new LinkedList<MethodSymbol>();
-        for (ClassSymbol c: parents((ClassSymbol)m.owner)) {
+        for (ClassSymbol c: parents((ClassSymbol)m.owner, false)) {
             for (Symbol mem: c.getEnclosedElements()) {
                 if (mem instanceof MethodSymbol &&
                         mem.name.equals(m.name) &&
@@ -696,7 +701,7 @@ public class Utils {
     
     public List<Symbol.VarSymbol> listJmlVisibleFields(TypeSymbol base, long baseVisibility, boolean forStatic) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
-        for (TypeSymbol csym: parents(base)) {
+        for (TypeSymbol csym: parents(base, true)) {
             for (Symbol s: csym.members().getElements()) {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;

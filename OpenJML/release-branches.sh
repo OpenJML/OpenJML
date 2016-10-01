@@ -65,5 +65,8 @@ git push --set-upstream origin "$REL"
 git checkout master
 git push
 
+echo Push to plugin site
+web/toSF
+
 cd ../OpenJML/OpenJML
 
