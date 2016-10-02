@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
@@ -168,6 +169,8 @@ public class BlockReader {
             return precondition;
         }
         
+        Stack<BasicBlock> path = new Stack<BasicBlock>();
+        
         for(int b=0; b < blocks.size() && precondition==null; b++){
             
             startBlock = blocks.get(b);
@@ -180,7 +183,8 @@ public class BlockReader {
                     JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                     
                     if(isPreconditionStmt(jmlStmt)){
-                        precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock);
+                        path.push(startBlock);
+                        precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock).fix(path);
                     }
                 }
                 
@@ -193,10 +197,12 @@ public class BlockReader {
                 if (verbose) {
                     log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
                 }
-                precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null);
-                
                 // reset the blocks
                 startBlock = blocks.get(0);
+
+                path.push(startBlock);
+                precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null).fix(path);
+                
             }else{                
                 if (verbose) {
                     log.noticeWriter.println("Couldn't locate the precondition (and -infer-default-preconditions wasn't set)");
@@ -210,6 +216,7 @@ public class BlockReader {
     }
     
     private int loopDepth;
+    private Stack<BasicBlock> path;
     
     public Prop<JCExpression> sp(){
         
@@ -243,239 +250,304 @@ public class BlockReader {
     }
     private Prop<JCExpression> sp(Prop<JCExpression> p, BasicBlock block){
 
-        TraceElement traceElement = new TraceElement(block);
-        
-        if(skipBlock(block)){
-            getExitBlocks().add(block);
-            return p;
-        }
-        
-        if (verbose) {
-            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
-        }    
-        
-        if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
-            loopDepth++;
-        }else if(block.id().toString().contains(BasicBlockerParent.LOOPAFTER) || block.id().toString().contains(Constants.BL_LOOP_END)){ // deactivate 
-            loopDepth--;
-        }
-        
-        trace.add(traceElement);
-        
-        for(JCStatement stmt : block.statements()){
+        try {
+            TraceElement traceElement = new TraceElement(block);
             
-//            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
-//                System.out.println("");
-//            }
-
-
-            //
-            // Used to pick up lexical mappings.
-            //
-            {
-                pickupLexicalMappings(stmt, block);
+            path.push(block);
+            
+            if(skipBlock(block)){
+                getExitBlocks().add(block);
+                return p;
             }
             
             if (verbose) {
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
             }    
             
-            if(skip(stmt)){
-
+            if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
+                loopDepth++;
+            }else if(block.id().toString().contains(BasicBlockerParent.LOOPAFTER) || block.id().toString().contains(Constants.BL_LOOP_END)){ // deactivate 
+                loopDepth--;
+            }
+            
+            trace.add(traceElement);
+            
+            for(JCStatement stmt : block.statements()){
+                
+    //            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
+    //                System.out.println("");
+    //            }
+    
+    
+                //
+                // Used to pick up lexical mappings.
+                //
+                {
+                    pickupLexicalMappings(stmt, block);
+                }
+                
                 if (verbose) {
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: SKIP");
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
                 }    
-
-                continue; 
-            }            
-
-            JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                 
-            if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
-                
-                if (verbose) {
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: IGNORE PRE/POSTCONDITION ASSERTIONS/ASSUMES");
-                }
-                
-                continue;
-            }
-
-            if (verbose) {
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
-            }    
-
-            if(verbose){
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
-            }
-
-            // fields get desugared into something else
-            if(jmlStmt.expression instanceof JmlBBFieldAssignment){
-                
-                JmlBBFieldAssignment fieldAssignment = (JmlBBFieldAssignment)jmlStmt.expression;
-                
-                // assign OLD = RHS
-                //JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
-
-                JmlBBFieldAccess access = new JmlBBFieldAccess((JCIdent)fieldAssignment.args.get(0), fieldAssignment.args.get(2));
-                
-                JCExpression a1 = treeutils.makeBinary(
-                        0, 
-                        JCTree.EQ, 
-                        access, 
-                        fieldAssignment.args.get(3)
-                        );
-
-                
-                // assign NEW = OLD
-                //JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
-
-                JCExpression a2 = treeutils.makeBinary(
-                        0, 
-                        JCTree.EQ, 
-                        fieldAssignment.args.get(0), 
-                        fieldAssignment.args.get(1)
-                        );
-
-                
-                JmlStatementExpr e1 = treeutils.makeAssume(null, null, a1);
-                //JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
-                
-
-                p = And.of(p, new Prop<JCExpression>(e1.expression, block, e1.label));                
-                traceElement.addExpr(e1.expression);
-
-//                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
-//                traceElement.addExpr(e2.expression);
-
-                // add NEW == OLD
-                VarMap blockMap  = basicBlocker.blockmaps.get(block);
-                
-                // add mapping for NEW -> OLD 
-                //blockMap.putSAVersion(null, , 0);
-                //blockMap.putSAVersion(vsym, version)
-                if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
-                    JCIdent o = (JCIdent)fieldAssignment.args.get(0);
-                    JCIdent n = (JCIdent)fieldAssignment.args.get(1);
-
-                    VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
+                if(skip(stmt)){
+    
+                    if (verbose) {
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: SKIP");
+                    }    
+    
+                    continue; 
+                }            
+    
+                JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                     
-                    blockMap.putSAVersion(v, o.name,1);
-                }
-                
-                
-            } else if(jmlStmt.expression instanceof JmlBBArrayAssignment){
-              
-                JmlBBArrayAssignment arrayAssignment = (JmlBBArrayAssignment)jmlStmt.expression;
-                
-                JmlBBArrayAccess arrayAccess = new JmlBBArrayAccess(
-                        (JCIdent)arrayAssignment.args.get(0),
-                        arrayAssignment.args.get(2),                        
-                        arrayAssignment.args.get(3) 
-                        );
-                
-                arrayAccess.type = arrayAssignment.args.get(0).type;
-                
-                JCExpression expr = treeutils.makeBinary(
-                        0, 
-                        JCTree.EQ, 
-                        arrayAccess, 
-                        arrayAssignment.args.get(4)
-                        );
-                
-                
-                JmlStatementExpr stmtExpr = treeutils.makeAssume(null, null, expr);
-
-                p = And.of(p, new Prop<JCExpression>(stmtExpr.expression, block, stmtExpr.label));                
-                traceElement.addExpr(stmtExpr.expression);
-
-
-                // add NEW == OLD
-                VarMap blockMap  = basicBlocker.blockmaps.get(block);
-                
-                // add mapping for NEW -> OLD 
-//                if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
-//                    JCIdent o = (JCIdent)fieldAssignment.args.get(0);
-//                    JCIdent n = (JCIdent)fieldAssignment.args.get(1);
-//
-//                    VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
-//                    
-//                    blockMap.putSAVersion(v, o.name,1);
-//                }
-//                
-
-                
-            } else{
-                p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block, jmlStmt.label));                
+                if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
                     
-                traceElement.addExpr(jmlStmt.expression);
-            }
-            //
-            // processing of symbolic execution substititions. 
-            //
-            
-            
-        }
-        
-        boolean ignoreBranch = ignoreBranch(block);
-
-        //
-        // this next bit handles turning off certain branches when processing loops.
-        //
-        {            
-            if(loopDepth > 0 && block.followers().size() > 1){
-         
-                
-                // ignore if we are in LoopBody
-                if(block.id().toString().contains(Constants.BL_LOOP_BODY)){
-                    ignoreBranch = true;
-                    
-                    if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                    if (verbose) {
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: IGNORE PRE/POSTCONDITION ASSERTIONS/ASSUMES");
                     }
-
+                    
+                    continue;
                 }
+    
+                if (verbose) {
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
+                }    
+    
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
+                }
+    
+                // fields get desugared into something else
+                if(jmlStmt.expression instanceof JmlBBFieldAssignment){
+                    
+                    JmlBBFieldAssignment fieldAssignment = (JmlBBFieldAssignment)jmlStmt.expression;
+                    
+                    // assign OLD = RHS
+                    //JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
+    
+                    JmlBBFieldAccess access = new JmlBBFieldAccess((JCIdent)fieldAssignment.args.get(0), fieldAssignment.args.get(2));
+                    
+                    JCExpression a1 = treeutils.makeBinary(
+                            0, 
+                            JCTree.EQ, 
+                            access, 
+                            fieldAssignment.args.get(3)
+                            );
+    
+                    
+                    // assign NEW = OLD
+                    //JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
+    
+                    JCExpression a2 = treeutils.makeBinary(
+                            0, 
+                            JCTree.EQ, 
+                            fieldAssignment.args.get(0), 
+                            fieldAssignment.args.get(1)
+                            );
+    
+                    
+                    JmlStatementExpr e1 = treeutils.makeAssume(null, null, a1);
+                    //JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
+                    
+    
+                    p = And.of(p, new Prop<JCExpression>(e1.expression, block, e1.label).fix(path));                
+                    traceElement.addExpr(e1.expression);
+    
+    //                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
+    //                traceElement.addExpr(e2.expression);
+    
+                    // add NEW == OLD
+                    VarMap blockMap  = basicBlocker.blockmaps.get(block);
+                    
+                    // add mapping for NEW -> OLD 
+                    //blockMap.putSAVersion(null, , 0);
+                    //blockMap.putSAVersion(vsym, version)
+                    if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
+                        JCIdent o = (JCIdent)fieldAssignment.args.get(0);
+                        JCIdent n = (JCIdent)fieldAssignment.args.get(1);
+    
+                        VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
+                        
+                        blockMap.putSAVersion(v, o.name,1);
+                    }
+                    
+                    
+                } else if(jmlStmt.expression instanceof JmlBBArrayAssignment){
+                  
+                    JmlBBArrayAssignment arrayAssignment = (JmlBBArrayAssignment)jmlStmt.expression;
+                    
+                    JmlBBArrayAccess arrayAccess = new JmlBBArrayAccess(
+                            (JCIdent)arrayAssignment.args.get(0),
+                            arrayAssignment.args.get(2),                        
+                            arrayAssignment.args.get(3) 
+                            );
+                    
+                    arrayAccess.type = arrayAssignment.args.get(0).type;
+                    
+                    JCExpression expr = treeutils.makeBinary(
+                            0, 
+                            JCTree.EQ, 
+                            arrayAccess, 
+                            arrayAssignment.args.get(4)
+                            );
+                    
+                    
+                    JmlStatementExpr stmtExpr = treeutils.makeAssume(null, null, expr);
+    
+                    p = And.of(p, new Prop<JCExpression>(stmtExpr.expression, block, stmtExpr.label).fix(path));                
+                    traceElement.addExpr(stmtExpr.expression);
+    
+    
+                    // add NEW == OLD
+                    VarMap blockMap  = basicBlocker.blockmaps.get(block);
+                    
+                    // add mapping for NEW -> OLD 
+    //                if(fieldAssignment.args.get(0) instanceof JCIdent && fieldAssignment.args.get(1) instanceof JCIdent){
+    //                    JCIdent o = (JCIdent)fieldAssignment.args.get(0);
+    //                    JCIdent n = (JCIdent)fieldAssignment.args.get(1);
+    //
+    //                    VarSymbol v = treeutils.makeVarSymbol(0, n.name, n.type, n.pos);
+    //                    
+    //                    blockMap.putSAVersion(v, o.name,1);
+    //                }
+    //                
+    
+                    
+                } else{
+                    p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block, jmlStmt.label).fix(path));                
+                        
+                    traceElement.addExpr(jmlStmt.expression);
+                }
+                //
+                // processing of symbolic execution substititions. 
+                //
+                
+                
             }
             
-        }
-        {
-            for(BasicBlock b : block.followers()){
-                    if(b.id().toString().contains(Constants.BL_LOOP_END)){
+            boolean ignoreBranch = ignoreBranch(block);
+    
+            //
+            // this next bit handles turning off certain branches when processing loops.
+            //
+            {            
+                if(loopDepth > 0 && block.followers().size() > 1){
+             
+                    
+                    // ignore if we are in LoopBody
+                    if(block.id().toString().contains(Constants.BL_LOOP_BODY)){
                         ignoreBranch = true;
                         
                         if(verbose){
                             log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
                         }
+    
                     }
                 }
-        }
-        
-        if(ignoreBranch && verbose){
-            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
-        }
-        
-        // handle the if statement
-        if(block.followers().size() == 2 && ignoreBranch==false){
-
-            //
-            // Before we branch, we need to determine if the 
-            // subtree we are looking at will contain any useful propositions. 
-            // We do this by searching in the subtree, stopping at the least common ancestor
-            // of the two (possible) nodes. 
-            // 
-            
-            BasicBlock left  = block.followers().get(0);
-            BasicBlock right = block.followers().get(1);
-            
-            log.noticeWriter.println("[STRONGARM] Finding LCA...");
-
-            BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
-            
-            log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
-
-            if(lca==null){
                 
-                //TODO - need to investigate what conditions LCA can't be 
-                //       found.
+            }
+            {
+                for(BasicBlock b : block.followers()){
+                        if(b.id().toString().contains(Constants.BL_LOOP_END)){
+                            ignoreBranch = true;
+                            
+                            if(verbose){
+                                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                            }
+                        }
+                    }
+            }
+            
+            if(ignoreBranch && verbose){
+                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
+            }
+            
+            // handle the if statement
+            if(block.followers().size() == 2 && ignoreBranch==false){
+    
+                //
+                // Before we branch, we need to determine if the 
+                // subtree we are looking at will contain any useful propositions. 
+                // We do this by searching in the subtree, stopping at the least common ancestor
+                // of the two (possible) nodes. 
+                // 
+                
+                BasicBlock left  = block.followers().get(0);
+                BasicBlock right = block.followers().get(1);
+                
+                log.noticeWriter.println("[STRONGARM] Finding LCA...");
+    
+                BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
+                
+                log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
+    
+                if(lca==null){
+                    
+                    //TODO - need to investigate what conditions LCA can't be 
+                    //       found.
+                    
+                    depth++;
+                    Prop<JCExpression> e =  Or.of(
+                            sp(p, block.followers().get(0)), 
+                            sp(p, block.followers().get(1))
+                            );
+                    depth--;
+                    
+                    
+                    log.noticeWriter.println("[STRONGARM] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
+    
+                    return e;
+    
+                }
+                
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
+                }
+                
+                int propsInLeftSubtree = propsInSubtree(left, lca);
+                int propsInRightSubtree = propsInSubtree(right, lca);
+    
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Props in Subtrees L=%d, R=%d", propsInLeftSubtree, propsInRightSubtree));
+                }
+    
+                // 
+                // We gain nothing by keeping this subtree
+                //
+                if(propsInLeftSubtree + propsInRightSubtree == 0){ // skip to LCA
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in either subtree, skipping to LCA=" + lca.id().toString());
+                    }
+                    return sp(p, lca);
+                }
+                
+                //
+                // In both of these cases we limit nesting by removing an OR operator 
+                //
+                if(propsInLeftSubtree == 0){
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in left subtree, skipping to RIGHT=" + right.id().toString());
+                    }
+                   
+                    return sp(p, right);
+                }
+                
+                if(propsInRightSubtree == 0){
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in right subtree, skipping to LEFT=" + left.id().toString());
+                    }
+                    return sp(p, left);
+                }
+    
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Found propositions in both branches, will take OR");
+                }
+    
+                // otherwise, this is a valid OR and both branches are included.
                 
                 depth++;
                 Prop<JCExpression> e =  Or.of(
@@ -483,80 +555,19 @@ public class BlockReader {
                         sp(p, block.followers().get(1))
                         );
                 depth--;
-                
-                
-                log.noticeWriter.println("[STRONGARM] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
-
                 return e;
-
-            }
-            
-            if(verbose){
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
-            }
-            
-            int propsInLeftSubtree = propsInSubtree(left, lca);
-            int propsInRightSubtree = propsInSubtree(right, lca);
-
-            if(verbose){
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Props in Subtrees L=%d, R=%d", propsInLeftSubtree, propsInRightSubtree));
-            }
-
-            // 
-            // We gain nothing by keeping this subtree
-            //
-            if(propsInLeftSubtree + propsInRightSubtree == 0){ // skip to LCA
                 
-                if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in either subtree, skipping to LCA=" + lca.id().toString());
-                }
-                
-                return sp(p, lca);
+            }else if(block.followers().size() > 0){
+                return  sp(p, block.followers().get(0));
             }
             
-            //
-            // In both of these cases we limit nesting by removing an OR operator 
-            //
-            if(propsInLeftSubtree == 0){
-                
-                if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in left subtree, skipping to RIGHT=" + right.id().toString());
-                }
-               
-                return sp(p, right);
-            }
             
-            if(propsInRightSubtree == 0){
-                
-                if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in right subtree, skipping to LEFT=" + left.id().toString());
-                }
-
-                return sp(p, left);
-            }
-
-            if(verbose){
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Found propositions in both branches, will take OR");
-            }
-
-            // otherwise, this is a valid OR and both branches are included.
+            getExitBlocks().add(block);
             
-            depth++;
-            Prop<JCExpression> e =  Or.of(
-                    sp(p, block.followers().get(0)), 
-                    sp(p, block.followers().get(1))
-                    );
-            depth--;
-            return e;
-            
-        }else if(block.followers().size() > 0){
-            return  sp(p, block.followers().get(0));
+            return p;
+        }finally{
+            path.pop();
         }
-        
-        
-        getExitBlocks().add(block);
-        
-        return p;
     }
     
     private void pickupLexicalMappings(JCStatement stmt, BasicBlock block){
@@ -1052,7 +1063,7 @@ public class BlockReader {
         loopDepth = 0;
         _mappingsDone = false;
         setExitBlocks(new HashSet<BasicBlock>());
-        
+        path = new Stack<BasicBlock>();
     }
 
     public Set<BasicBlock> getExitBlocks() {
