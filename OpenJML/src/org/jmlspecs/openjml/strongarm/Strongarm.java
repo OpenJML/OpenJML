@@ -266,6 +266,7 @@ public class Strongarm
         // Debugging of inference (Before Delivering PC)
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            reader.showCFG();
             BasicBlockExecutionDebugger.trace(newblock, savedProgram, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
         }
 

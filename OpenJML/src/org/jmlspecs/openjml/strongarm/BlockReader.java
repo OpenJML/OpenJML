@@ -1,5 +1,8 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,6 +73,12 @@ public class BlockReader {
     private Map<JCIdent, ArrayList<JCTree>> _mappings;
     private boolean _mappingsDone;
     private Set<BasicBlock> exitBlocks;
+    
+    public HashMap<String,String> digraph = new HashMap<String,String>();
+    
+
+    public HashMap<BasicBlock,String> preProgramState = new HashMap<BasicBlock,String>();
+    
 
     public BlockReader(Context context, List<BasicBlock> blocks, BasicBlocker2 basicBlocker) {
         this.context = context;
@@ -91,6 +100,11 @@ public class BlockReader {
     
     // compute some things we will need to do LCA analysis
     private void init(){
+        
+        // store all pre program text
+        for(BasicBlock b : blocks){
+            preProgramState.put(b,  b.toString());
+        }
         
         // store all the join points in the CFG
         for(BasicBlock b : blocks){
@@ -1074,6 +1088,99 @@ public class BlockReader {
         }
         
         return subs;
+    }
+    
+    // this is a little hacky, but it gets the job done. 
+    public void showCFG(){
+       
+        StringBuffer buff = new StringBuffer();
+        
+        buff.append("digraph BST {\n");
+       
+        
+        
+        HashMap<BasicBlock, HashMap<BasicBlock, Integer>> order = new HashMap<BasicBlock, HashMap<BasicBlock, Integer>>();
+
+        for(int i = 1; i< getTrace().size(); i++){
+
+            BasicBlock dstVertex = getTrace().get(i).getBlock();
+            
+            // go UP until this block is in the followers 
+            for(int j=i-1; j >=0 ; j--){
+                BasicBlock srcVertex = getTrace().get(j).getBlock();
+                
+                if(srcVertex.followers().contains(dstVertex)){
+                    
+                    if(order.get(srcVertex)==null){
+                        order.put(srcVertex, new HashMap<BasicBlock, Integer>());
+                    }
+                    
+                    order.get(srcVertex).put(dstVertex, i);
+                    break;
+                }
+            }
+            
+        }
+        
+        ArrayList<BasicBlock> traceBlockCache = new ArrayList<BasicBlock>();
+        
+        for(TraceElement t : getTrace()){
+            traceBlockCache.add(t.getBlock());
+        }
+        
+        // vertexes
+        for(BasicBlock b : blocks){
+            
+            String label = (traceBlockCache.contains(b)==false) ? b.id().toString() : preProgramState.get(b).replaceAll("\n", "\\\\l");
+            
+            buff.append(String.format("%s [label=\"%s\", fontsize=\"9\", fontname=\"courier\"];\n", b.id().toString(), label));
+        }
+                
+        // edges
+        for(int i=0; i < blocks.size(); i++){
+            BasicBlock b = blocks.get(i);
+            for(BasicBlock f : b.followers()){
+                
+                String ta = "";
+                
+//                if(order.get(b)!=null && order.get(b).get(f)!=null){
+//                    ta = order.get(b).get(f).toString();
+//                }
+                                
+                buff.append(String.format("%s -> %s [label=\"%s\", fontsize=\"9\", fontname=\"courier\", fontcolor=\"red\"];\n", b.id().toString(), f.id().toString(), ta));
+            }
+        }
+        
+       
+        
+        buff.append("\n}");
+        
+        System.out.println(buff.toString());
+        
+        try {
+            File f = File.createTempFile("sample", ".dot");
+            File t = File.createTempFile("sample", ".pdf");
+            
+            PrintWriter out = new PrintWriter(f);
+
+            out.write(buff.toString());
+            out.close();
+            
+            Runtime r = Runtime.getRuntime();
+            
+            
+            System.out.println(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath()));
+            r.exec(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath())).waitFor();
+            r.exec(String.format("/usr/bin/open %s", t.getAbsolutePath()));
+           
+            
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        
+        
     }
 }
     

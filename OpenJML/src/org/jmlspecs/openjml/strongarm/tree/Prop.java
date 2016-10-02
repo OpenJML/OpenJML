@@ -71,7 +71,9 @@ public class Prop<T extends JCExpression> {
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
                 
-        System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        System.out.println("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        
+        
         // build a list of substitutions by following the mapping backwards.
         
         if(p.toString().contains("_JML___result_98_477___41")){
@@ -99,11 +101,13 @@ public class Prop<T extends JCExpression> {
         int iteration = 1;
                 
         do {
-            System.out.println("Internal Fixpoint #" + iteration);
+            System.out.println("\tInternal Fixpoint #" + iteration);
 
             before = p.toString();
-            
+
+            System.out.println("\t\tBefore: " + before);
             doReplacement(subs);
+            System.out.println("\t\tAfter: " + p.toString());
             
             
             iteration++;
