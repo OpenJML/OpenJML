@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.strongarm.tree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -27,6 +28,7 @@ public class Prop<T extends JCExpression> {
     public T p;
     public BasicBlock def;
     public Label label;
+    public ArrayList<BasicBlock> path;
     
     public Prop(T p, BasicBlock def){
         this.p = p;
@@ -39,6 +41,14 @@ public class Prop<T extends JCExpression> {
         this.label = label;
     }
 
+    public Prop<T> fix(Stack<BasicBlock> p){
+        path = new ArrayList<BasicBlock>();
+        
+        path.addAll(p);
+        
+        return this;
+    }
+    
     public Prop(){}
     
     public void replace(ArrayList<JCTree> subs){
@@ -73,6 +83,12 @@ public class Prop<T extends JCExpression> {
                 
         System.out.println("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         
+        // print path
+        System.out.print("[PATH]");        
+        for(BasicBlock b : path){
+            System.out.print(b.id().toString() + ">>");
+        }
+        System.out.println("");
         
         // build a list of substitutions by following the mapping backwards.
         
@@ -162,7 +178,10 @@ public class Prop<T extends JCExpression> {
         }
 
         for(BasicBlock before : b.preceders()){
-            getSubstitutionTree(before, subs, mappings);
+            // don't add substitutions that aren't in the path.
+            if(path.contains(before)){
+                getSubstitutionTree(before, subs, mappings);
+            }
         }
         
         return subs;

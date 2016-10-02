@@ -7,6 +7,7 @@ import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
@@ -40,7 +41,9 @@ public class And<T extends JCExpression> extends Prop<T> {
         p1.replace(mappings, limitDepth);
         p2.replace(mappings, limitDepth);
     }
+ 
   
+    
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){
 
         
