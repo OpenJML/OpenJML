@@ -124,5 +124,14 @@ public class JmlCheck extends Check {
         }
         return super.checkType(pos, found, req);
     }
+    
+    boolean noDuplicateWarn = false;
+    void duplicateError(DiagnosticPosition pos, Symbol sym) {
+        if (!noDuplicateWarn) super.duplicateError(pos, sym);
+    }
+    
+    void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
+        if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
+    }
 
 }

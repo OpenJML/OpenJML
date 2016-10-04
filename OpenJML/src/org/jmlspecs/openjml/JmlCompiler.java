@@ -328,6 +328,8 @@ public class JmlCompiler extends JavaCompiler {
         
         // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
+ //       if (csymbol.toString().equals("java.lang.Long")) Utils.stop();
+ //       if (csymbol.toString().equals("java.lang.Character")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
 

@@ -178,13 +178,15 @@ public class JmlEnter extends Enter {
 
         // Fill in the toplevel field for each class definition
         for (JCTree t: tree.defs) {
-            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = jmltree;  // FIXME - this is already done, at lesat for parsed files?
+            if (t instanceof JmlClassDecl) {
+                ((JmlClassDecl)t).toplevel = jmltree;  // FIXME - this is already done, at lesat for parsed files?
+            }
         }
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
         // Match specifications to the corresponding Java class
-        if (jmltree.specsCompilationUnit != null) {
+        if (jmltree.specsCompilationUnit != null && jmltree.mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
             tree.defs = matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, tree.sourcefile.toString());
         }
 
@@ -284,7 +286,7 @@ public class JmlEnter extends Enter {
         // Match specifications to the corresponding Java class
         {
             String owner = (specscu.packge == syms.unnamedPackage?"":(specscu.packge.flatName()+"."));
-            matchClassesForBinary(owner, specscu.defs, null, null);
+            matchClassesForBinary(specTopEnv, owner, specscu.defs, null, null);
         }
 
 
@@ -356,7 +358,7 @@ public class JmlEnter extends Enter {
         return newdefs.toList();
     }
 
-    public void matchClassesForBinary(String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
+    public void matchClassesForBinary(Env<AttrContext> ownerenv, String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
         for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification
             if (!(specDecl instanceof JmlClassDecl)) continue;
             JmlClassDecl specsClass = (JmlClassDecl)specDecl;
@@ -369,8 +371,6 @@ public class JmlEnter extends Enter {
             ClassSymbol c = reader.enterClass( names.fromString( owner + specsClass.name.toString()));
 
             if (c != null) {
-                specsClass.sym = c;
-                specs.combineSpecs(c,null,specsClass);
                 if (utils.isJML(specsClass.mods)) {
                     // A model class (in the specs) matches a java class - error
                     // FIXME _ fix this error message
@@ -379,6 +379,10 @@ public class JmlEnter extends Enter {
                             specsClass.name,javasource);
                     String s = utils.locationString(specsClass.pos, specsClass.source());
                     utils.error(specsClass.source(), specsClass.pos,"jml.associated.decl.cf",s);
+                } else {
+                    specsClass.sym = c;
+                    specsClass.env = classEnv(specsClass, ownerenv);
+                    specs.combineSpecs(c,null,specsClass);
                 }
 //            } else {  // Duplicate
 //                utils.error(specsClass.source(), specsClass.pos,"jml.duplicate.jml.class.decl",specsClass.name);

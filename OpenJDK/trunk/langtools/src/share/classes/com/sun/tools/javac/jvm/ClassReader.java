@@ -2487,6 +2487,9 @@ public class ClassReader {
      *  source file.
      */
     private void fillIn(ClassSymbol c) {
+        if (c.toString().endsWith("NonNull")) {
+            System.out.println();
+        }
         if (completionFailureName == c.fullname) {
             throw new CompletionFailure(c, "user-selected completion failure by class name");
         }

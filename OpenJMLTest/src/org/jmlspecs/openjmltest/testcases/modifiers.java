@@ -308,7 +308,7 @@ public class modifiers extends TCBase {
     @Test public void testMatchField3a() {
         addMockFile("$A/A.jml","public class A { /*@ int k; */}");
         helpTCF("A.java","public class A{}",
-                "/$A/A.jml:1: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int", 22); 
+                "/$A/A.jml:1: A declaration within a JML annotation must be either ghost or model", 26); 
     }
     
     @Test public void testMatchField4() {
