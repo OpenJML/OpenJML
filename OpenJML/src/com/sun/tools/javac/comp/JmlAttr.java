@@ -4330,7 +4330,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // and type-checking a whole new class - so we unset this field
             // in the mean time.
             super.visitIdent(tree);
+            Type save = result;
             if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,(ClassSymbol)tree.sym);
+            result = save;
         } finally {
             jmlVisibility = prevVisibility;
             currentClauseType = prevClauseType;

@@ -1131,7 +1131,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
             // Then for specs fields and methods
             
-            for (JmlTypeClauseDecl tcd: specsDecl.typeSpecs.decls) {
+            for (JmlTypeClauseDecl tcd: tsp.decls) {
                     if (tcd.decl instanceof JmlVariableDecl) {
                         JmlVariableDecl v = (JmlVariableDecl)tcd.decl;
                         v.fieldSpecsCombined = specs.getSpecs(v.sym);
