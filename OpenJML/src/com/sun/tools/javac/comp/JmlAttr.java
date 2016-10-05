@@ -4330,9 +4330,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // and type-checking a whole new class - so we unset this field
             // in the mean time.
             super.visitIdent(tree);
-            Type save = result;
-            if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,(ClassSymbol)tree.sym);
-            result = save;
         } finally {
             jmlVisibility = prevVisibility;
             currentClauseType = prevClauseType;
@@ -4665,7 +4662,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.sym instanceof VarSymbol && tree.sym.enclClass() != null) {
             checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
         } // FIXME - what else could it be, besides an error?
-        if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)tree.sym);
+//        if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(env,(ClassSymbol)tree.sym);
         result = saved;
     }
     

@@ -2807,13 +2807,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         ((JmlCheck)chk).noDuplicateWarn = true;
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             // Not a duplicate - OK if the declaration is JML
-            if (!utils.isJML(m.flags_field)) {
+            if (!utils.isJML(m.flags())) {
                 // FIXME
             }
             enclScope.enter(m);
         } else {
             // A duplicate - OK if the declaration is not JML
-            if (utils.isJML(m.flags_field)) {
+            if (utils.isJML(m.flags())) {
                 // FIXME
             }
         }

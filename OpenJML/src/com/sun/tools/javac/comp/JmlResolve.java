@@ -233,64 +233,102 @@ public class JmlResolve extends Resolve {
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
          if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
-         {
-             Symbol stemp = reader.classExists(name);
-             boolean completed = stemp != null && ((ClassSymbol)stemp).members_field != null;
-             if (completed) {
-                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY ALREADY COMPLETED " + name );
-                 return stemp;
-             }
-         }
-         
-
          Symbol s = super.loadClass(env, name);
-         
-         boolean completion = JmlMemberEnter.instance(context).completionEnabled;
-         JmlMemberEnter.instance(context).completionEnabled= true;
-         try  { 
-//             if (s instanceof ClassSymbol) {
-//                 Type ts = ((ClassSymbol)s).getSuperclass();
-//                 if (ts != null && ts != Type.noType) loadClass(env,((ClassSymbol)s).getSuperclass().tsym.flatName());
-//                 for (Type t: ((ClassSymbol)s).getInterfaces()) {
-//                     loadClass(env, t.tsym.flatName());
-//                 }
-//             }
+         // Here s can be a type or a package or not exist 
+         // s may not exist because it is being tested whether such a type exists
+         // (rather than a package) and is a legitimate workflow in this
+         // architecture.  Hence no warning or error is given.
+         // This happens for example in the resolution of org.jmlspecs.annotation
+         if (!s.exists()) {
+             return s;
+         }
+         if (!(s instanceof ClassSymbol)) {
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
+             return s; // loadClass can be called for a package
+         }
 
-
-             // Here s can be a type or a package or not exist 
-             // s may not exist because it is being tested whether such a type exists
-             // (rather than a package) and is a legitimate workflow in this
-             // architecture.  Hence no warning or error is given.
-             // This happens for example in the resolution of org.jmlspecs.annotation
-             if (!s.exists()) {
-                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING DOES NOT EXIST " + name );
-                 return s;
-             }
-             if (!(s instanceof ClassSymbol)) {
-                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
-                 return s; // loadClass can be called for a package
-             }
-             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADING BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+         JmlMemberEnter memberEnter = (JmlMemberEnter)JmlMemberEnter.instance(context);
+         boolean completion = memberEnter.completionEnabled;
+         memberEnter.completionEnabled= true;
+         try {
 
              JmlSpecs specs = JmlSpecs.instance(context);
              JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
              if (tsp == null) {
-                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   BINARY LOADING SPECS " + name );
+                 //             if (s.toString().equals("java.lang.String")) Utils.stop();
+                 //if (true || utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
                  // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
                  if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
-
                  jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-
-//                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY WITH SPECS " + name + " HAS SCOPE WITH SPECS " + ((ClassSymbol)s).members_field);
-//                 if (specs.get((ClassSymbol)s) == null) 
-//                     log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
+                 //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+                 //             if (specs.get((ClassSymbol)s) == null) 
+                 //                 log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
              } else {
-                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+                 //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
              }
              return s;
          } finally {
-             JmlMemberEnter.instance(context).completionEnabled = completion;
+             memberEnter.completionEnabled = completion;
          }
+
+//         ClassSymbol s;
+//         boolean completion = JmlMemberEnter.instance(context).completionEnabled;
+//         try {
+//             s = reader.classExists(name);
+//             boolean completed = s != null && s.members_field != null;
+//             if (completed) {
+//                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY ALREADY COMPLETED " + name );
+//             } else {
+//                 Symbol ss = super.loadClass(env, name);
+//                 if (ss == null || ss instanceof Resolve.ResolveError) return null;
+//                 s = (ClassSymbol)ss;
+//                 
+//                 completion = JmlMemberEnter.instance(context).completionEnabled;
+//                 JmlMemberEnter.instance(context).completionEnabled= true;
+////                     if (s instanceof ClassSymbol) {
+////                         Type ts = ((ClassSymbol)s).getSuperclass();
+////                         if (ts != null && ts != Type.noType) loadClass(env,((ClassSymbol)s).getSuperclass().tsym.flatName());
+////                         for (Type t: ((ClassSymbol)s).getInterfaces()) {
+////                             loadClass(env, t.tsym.flatName());
+////                         }
+////                     }
+//
+//
+//                     // Here s can be a type or a package or not exist 
+//                     // s may not exist because it is being tested whether such a type exists
+//                     // (rather than a package) and is a legitimate workflow in this
+//                     // architecture.  Hence no warning or error is given.
+//                     // This happens for example in the resolution of org.jmlspecs.annotation
+//                     if (!s.exists()) {
+//                         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING DOES NOT EXIST " + name );
+//                         return s;
+//                     }
+//                     if (!(s instanceof ClassSymbol)) {
+//                         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
+//                         return s; // loadClass can be called for a package
+//                     }
+//                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADING BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+//             }
+//         
+//             JmlSpecs specs = JmlSpecs.instance(context);
+//             JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
+//             if (tsp == null) {
+//                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   BINARY LOADING SPECS " + name );
+//                 // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
+//                 if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
+//
+//                 jmlcompiler.loadSpecsForBinary(null,(ClassSymbol)s);
+//
+////                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED BINARY WITH SPECS " + name + " HAS SCOPE WITH SPECS " + ((ClassSymbol)s).members_field);
+////                 if (specs.get((ClassSymbol)s) == null) 
+////                     log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
+//             } else {
+//                 if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+//             }
+//             return s;
+//         } finally {
+//             JmlMemberEnter.instance(context).completionEnabled = completion;
+//         }
      }
      
      /** A cache of the symbol for the spec_public annotation class, created on
@@ -331,7 +369,7 @@ public class JmlResolve extends Resolve {
 //             (sym.attribute(specPublicSym) != null || attr.findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
          boolean isSpecPublic = utils.findMod(mods,specPublicSym)!=null;
          if (isSpecPublic) {
-             long saved = sym.flags_field;
+             long saved = sym.flags();
              sym.flags_field |= Flags.PUBLIC;
              boolean b = super.isAccessible(env,site,sym);
              sym.flags_field = saved;
