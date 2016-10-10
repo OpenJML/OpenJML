@@ -18,14 +18,14 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
-public class And<T extends JCExpression> extends Prop<T> {
+public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
 
     public Prop<T> p1;
     public Prop<T> p2;
     
     public And(Prop<T> p1, Prop<T> p2){
-        this.p1 = p1;
-        this.p2 = p2;
+        this.p1 = (Prop<T>)p1.clone();
+        this.p2 = (Prop<T>)p2.clone();
     }
   
     public static <E extends JCExpression> And<E> of(Prop<E> p1, Prop<E> p2){
@@ -42,7 +42,13 @@ public class And<T extends JCExpression> extends Prop<T> {
         p2.replace(mappings, limitDepth);
     }
  
-  
+    @Override
+    public Object clone(){
+        
+        And<T> cloned = new And((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        
+        return cloned;
+    }
     
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){
 

@@ -86,6 +86,8 @@ public class Strongarm
     
     final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
+    public static JmlTree.Maker MM;
+    
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
         this.context = infer.context;
@@ -93,7 +95,7 @@ public class Strongarm
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
-        
+        MM = this.M;
         //
         // Cache copies of the various tree transformation utilities.
         //
@@ -426,6 +428,8 @@ public class Strongarm
             // The substitution we do later then resolves the variables 
             // in the equations we substitute here. 
             reader.postcondition.replace(reader.getSubstitutionMappings(), false);
+            reader.postcondition.replace(reader.getSubstitutionMappings(), false);
+            
         }
 
         
@@ -482,7 +486,7 @@ public class Strongarm
         //
         // Perform logical simplification
         //
-        RemoveTautologies.simplify(contract);
+        //RemoveTautologies.simplify(contract);
 
         if (verbose) {
             log.noticeWriter.println(Strings.empty);

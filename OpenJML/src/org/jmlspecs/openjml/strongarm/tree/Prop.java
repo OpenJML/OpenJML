@@ -1,5 +1,7 @@
 package org.jmlspecs.openjml.strongarm.tree;
 
+
+import sun.misc.Unsafe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -14,6 +16,8 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.JmlTreeCopier;
+import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -23,7 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.List;
 
-public class Prop<T extends JCExpression> {
+public class Prop<T extends JCExpression> implements Cloneable {
 
     public T p;
     public BasicBlock def;
@@ -36,7 +40,7 @@ public class Prop<T extends JCExpression> {
     }
     
     public Prop(T p, BasicBlock def, Label label){
-        this.p = p;
+        this.p = JmlTreeCopier.copy(Strongarm.MM, (T)p.clone());
         this.def = def;
         this.label = label;
     }
@@ -82,7 +86,7 @@ public class Prop<T extends JCExpression> {
         
                 
         System.out.println("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
-        
+        System.out.println("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path
         System.out.print("[PATH]");        
         for(BasicBlock b : path){
@@ -91,6 +95,10 @@ public class Prop<T extends JCExpression> {
         System.out.println("");
         
         // build a list of substitutions by following the mapping backwards.
+        
+        if(def.id().toString().equals("BL_423_else_19")){
+            System.out.println("");
+        }
         
         if(p.toString().contains("_JML___result_400_467___9 == c_425_451___8")){
             System.out.println("Found failing prop...");
@@ -146,7 +154,7 @@ public class Prop<T extends JCExpression> {
                  System.out.println("Found failing prop...");
              }
              
-            System.out.println("\t\t[ACTIVE SUB]" + sub.toString());
+            //System.out.println("\t\t[ACTIVE SUB]" + sub.toString());
             
             JCExpression tmpE;
             
@@ -244,6 +252,19 @@ public class Prop<T extends JCExpression> {
         }
 
         return false;
+    }
+    
+    
+    @Override 
+    public Object clone(){
+        
+        // this method automatically does a deep copy. 
+        Prop<T> clonedProp = new Prop<T>(p, def, label);
+        
+        clonedProp.path = path;
+        
+        return clonedProp;
+        
     }
 }
 

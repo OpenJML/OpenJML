@@ -17,14 +17,14 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
-public class Or<T extends JCExpression> extends Prop<T> {
+public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
 
     public Prop<T> p1;
     public Prop<T> p2;
     
     public Or(Prop<T> p1, Prop<T> p2){
-        this.p1 = p1;
-        this.p2 = p2;
+        this.p1 = (Prop<T>) p1.clone();
+        this.p2 = (Prop<T>) p2.clone();
     }
     
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
@@ -36,7 +36,16 @@ public class Or<T extends JCExpression> extends Prop<T> {
         p1.replace(mappings);
         p2.replace(mappings);        
     }
-  
+
+    @Override
+    public Object clone(){
+        
+        Or<T> cloned = new Or((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        
+        return cloned;
+    }
+    
+    
     public static <E extends JCExpression> Or<E> of(Prop<E> p1, Prop<E> p2){
         return new Or<E>(p1, p2);
     }

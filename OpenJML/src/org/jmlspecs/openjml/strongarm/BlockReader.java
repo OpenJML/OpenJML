@@ -351,7 +351,7 @@ public class BlockReader {
                     //JmlStatementExpr e2 = treeutils.makeAssume(null, null, a2);
                     
     
-                    p = And.of(p, new Prop<JCExpression>((JCExpression) e1.expression.clone(), block, e1.label).fix(path));                
+                    p = And.of(p, new Prop<JCExpression>(e1.expression, block, e1.label).fix(path));                
                     traceElement.addExpr(e1.expression);
     
     //                p = And.of(p, new Prop<JCExpression>(e2.expression, block));                
@@ -398,7 +398,7 @@ public class BlockReader {
                     
                    
                     
-                    p = And.of(p, new Prop<JCExpression>((JCExpression) stmtExpr.expression.clone(), block, stmtExpr.label).fix(path));
+                    p = And.of(p, new Prop<JCExpression>(stmtExpr.expression, block, stmtExpr.label).fix(path));
                     
                     traceElement.addExpr(stmtExpr.expression);
     
@@ -420,7 +420,7 @@ public class BlockReader {
                     
                 } else{
                     
-                    p = And.of(p, new Prop<JCExpression>((JCExpression) jmlStmt.expression.clone(), block, jmlStmt.label).fix(path));                
+                    p = And.of(p, new Prop<JCExpression>(jmlStmt.expression, block, jmlStmt.label).fix(path));                
                         
                     traceElement.addExpr(jmlStmt.expression);
                 }
