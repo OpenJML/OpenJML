@@ -92,7 +92,7 @@ public class Prop<T extends JCExpression> {
         
         // build a list of substitutions by following the mapping backwards.
         
-        if(p.toString().contains("_JML___result_98_477___41")){
+        if(p.toString().contains("_JML___result_400_467___9 == c_425_451___8")){
             System.out.println("Found failing prop...");
         }
         
@@ -111,6 +111,10 @@ public class Prop<T extends JCExpression> {
         //
         Collections.reverse(subs);
         //
+        
+        for(JCTree ss : subs){
+            System.out.println("\t[SUB TABLE] " + ss.toString());
+        }
         
         // baby fixpoint
         String before;
@@ -138,14 +142,11 @@ public class Prop<T extends JCExpression> {
 
         for(JCTree sub : subs){
              
-            if(sub.toString().contains("ASSERT_52_207_207___24")){
+            if(sub.toString().startsWith("c_425_425___7 == 1")){
                  System.out.println("Found failing prop...");
              }
-            /* if(sub.toString().startsWith("tricky_228")){
-                 System.out.println("Found failing prop...");
-             }
-             */
-            //System.out.println("Trying: " + sub.toString());
+             
+            System.out.println("\t\t[ACTIVE SUB]" + sub.toString());
             
             JCExpression tmpE;
             

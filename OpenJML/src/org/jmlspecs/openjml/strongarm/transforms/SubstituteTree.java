@@ -76,6 +76,10 @@ public class SubstituteTree extends JmlTreeScanner{
         if(tree==null) return;
         
         if(replace().toString().equals(tree.getName().toString()) && with() instanceof JCIdent){
+            
+            log.noticeWriter.println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
+
+            
             JCIdent with = (JCIdent)with();
             tree.name = with.name;
         }
@@ -139,10 +143,16 @@ public class SubstituteTree extends JmlTreeScanner{
                 }
                 
                 if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
+                    
+                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+
                     access.indexed = with();
                 }
                 
                 if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
+                    
+                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+
                     access.index = with();
                 }
             }
@@ -156,7 +166,7 @@ public class SubstituteTree extends JmlTreeScanner{
         
         if(isRedundant(tree)) return;
         
-        if(tree.lhs instanceof JCIdent){ 
+        if(tree.lhs instanceof JCIdent && tree.operator.toString().startsWith("==")==false){ 
             JCIdent lhs = (JCIdent)tree.lhs;
 
             if(replace().toString().equals(lhs.getName().toString())){
@@ -189,7 +199,11 @@ public class SubstituteTree extends JmlTreeScanner{
             handleField((JCFieldAccess)tree.rhs);
         }
 
-        super.visitBinary(tree);
+        if(tree.operator.toString().startsWith("==")){
+            scan(tree.rhs);            
+        }else{
+            super.visitBinary(tree);
+        }
     }
     
     private void handleField(JCFieldAccess access){
