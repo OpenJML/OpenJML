@@ -511,6 +511,18 @@ public class Strongarm
         }
 
         
+        PruneUselessClauses.simplify(contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+
+        
+        
        
         //
         // Remove dead assignments 

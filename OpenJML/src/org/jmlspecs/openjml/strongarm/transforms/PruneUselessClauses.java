@@ -52,10 +52,9 @@ public class PruneUselessClauses extends JmlTreeScanner{
         this.syms       = Symtab.instance(context);
 
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
-
+        
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
-
     }
     
     public static void cache(Context context){
@@ -64,122 +63,32 @@ public class PruneUselessClauses extends JmlTreeScanner{
         }
     }
     
-    
-protected boolean isFeasible(List<JmlMethodClause> clauses){
-        
-        for(JmlMethodClause c : clauses){
-            if(c instanceof JmlMethodClauseExpr){
-                JmlMethodClauseExpr expr = (JmlMethodClauseExpr)c;
-                if(expr.expression.toString().equals("true") || expr.expression.toString().equals("(true)")){
-                    return false;
-                }
-            }
-        }
-        
-        return true;
-
-    }
-    
     @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         
-        Set<JmlMethodClauseExpr> props = null;
-        
         List<JmlSpecificationCase> replacedCases = null;
         
-        List<JmlMethodClause> replacedClauses = null;
-        
-        bail: for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail ){
+        for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail)
+        {
+            int props = PropsInSubtree.count(cases.head);
             
-            // if the head of the list is a JmlMethodClauseExpr
-            // the entire list consists of the specification case. 
-            // we want to pass this specification case to the 
-            // SMT solver to make sure it can be satisfied. 
-            
-            //PROTIP - this is trickier than it looks - think twice before modifying
-            
-            //TODO - it's possible no cases will be feasible -- make sure 
-            // to add some code to handle this edge case.
-            if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
-                
-                for(JmlMethodClause c : cases.head.clauses){
-                    
-                    if(c instanceof JmlMethodClauseExpr){
-                        JmlMethodClauseExpr expr = (JmlMethodClauseExpr)c;
-                        if(expr.expression.toString().equals("true") || expr.expression.toString().equals("(true)")){
-                           continue;
-                        }
-                    }
-                    
-                    if(replacedClauses == null){
-                        replacedClauses = List.of(c);
-                    }else{
-                        replacedClauses = replacedClauses.append(c);
-                    }
-
+            if(props > 0){
+                if(replacedCases == null){
+                    replacedCases = List.of(cases.head);
+                }else{
+                    replacedCases = replacedCases.append(cases.head);
                 }
-            
-                cases.head.clauses = replacedClauses;
-            }else{
-                scan(cases.head.clauses.head);
             }
         }
-                
-//            }else{
-//                scan(cases.head.clauses.head);
-//                
-//                if(replacedCases == null){
-//                    replacedCases = List.of(cases.head);
-//                }else{
-//                    replacedCases = replacedCases.append(cases.head);
-//                }
-//            }
-//            
-//       }
-       //tree.cases = replacedCases;
-    }
-    /**
-     * Here we translate down to SMT conditions to check if 
-     * the preconditions in parent blocks imply the conditions 
-     * in lower blocks.
-     * 
-     * We need to do this sort of thing in the case that simple 
-     * rewriting isn't enough to dispatch duplicate precondtions. 
-     */
-    public void filterBlock(JmlSpecificationCase block){
-        
-        // we keep repeating this 
-       /* List<JmlMethodClause> replacedClauses = null;
-        Set<JmlMethodClauseExpr> filterSet = getFilters();
-        
-        for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-            
-            // Only include the preconditions not implied by previous preconditions
-            // note that this is a path sensitive analysis -- the entire context of the current method's smt translation 
-            // will be taken into account. For example, while a > 0 => a == 3 mahy not be generally true, it may be true
-            // for the given method. A human would see this and not write it in the preconditions, thus we aim to 
-            // filter this sort of thing out. 
-            if(!(clauses.head instanceof JmlMethodClauseExpr) || clauses.head.token != JmlToken.REQUIRES || new SubstitutionEQProverSMT(context).checkImplies(filterSet, (JmlMethodClauseExpr)clauses.head, currentMethod)==false){
-                if(replacedClauses == null){
-                    replacedClauses = List.of(clauses.head);
-                }else{
-                    replacedClauses = replacedClauses.append(clauses.head);
-                }
-                
-                if (verbose) {
-                    log.noticeWriter.println("Kept EXPR: " + clauses.head);
-                }
-                
-            }else{
-                if (verbose) {
-                    log.noticeWriter.println("Filtering EXPR: " + clauses.head);
-                }
-            }            
+ 
+        if(replacedCases == null){
+            replacedCases = List.nil();
         }
         
-        block.clauses = replacedClauses;*/
+        tree.cases = replacedCases;
+        
+        super.visitJmlMethodClauseGroup(tree);        
     }
-    
      
     public static void simplify(JCTree node){
         instance.scan(node);
