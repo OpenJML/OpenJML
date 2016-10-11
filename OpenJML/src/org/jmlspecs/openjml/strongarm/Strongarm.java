@@ -489,7 +489,7 @@ public class Strongarm
         //
         // Perform logical simplification
         //
-        //RemoveTautologies.simplify(contract);
+        RemoveTautologies.simplify(contract);
 
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
@@ -498,7 +498,6 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
-
         
         RemoveContradictions.simplify(contract);
 
@@ -510,6 +509,10 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
+        //
+        // These last two tend to tear up contracts a bit so we do an intermediate cleanup here
+        // to simplify the next few 
+        //
         
         PruneUselessClauses.simplify(contract);
         
@@ -695,6 +698,7 @@ public class Strongarm
         }
         
         
+       // we do this one last time to clean up 
        PruneUselessClauses.simplify(contract);
         
         if (verbose) {
@@ -705,8 +709,6 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
-        
-        
         //
         // PURITY
         //
