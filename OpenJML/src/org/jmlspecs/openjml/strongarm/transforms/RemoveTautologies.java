@@ -70,7 +70,7 @@ protected boolean isFeasible(List<JmlMethodClause> clauses){
         for(JmlMethodClause c : clauses){
             if(c instanceof JmlMethodClauseExpr){
                 JmlMethodClauseExpr expr = (JmlMethodClauseExpr)c;
-                if(expr.expression.toString().equals("!true")){
+                if(expr.expression.toString().equals("true") || expr.expression.toString().equals("(true)")){
                     return false;
                 }
             }
@@ -87,6 +87,7 @@ protected boolean isFeasible(List<JmlMethodClause> clauses){
         
         List<JmlSpecificationCase> replacedCases = null;
         
+        List<JmlMethodClause> replacedClauses = null;
         
         bail: for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail ){
             
@@ -100,25 +101,42 @@ protected boolean isFeasible(List<JmlMethodClause> clauses){
             //TODO - it's possible no cases will be feasible -- make sure 
             // to add some code to handle this edge case.
             if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
-                if(isFeasible(cases.head.clauses)){
-                    if(replacedCases == null){
-                        replacedCases = List.of(cases.head);
-                    }else{
-                        replacedCases = replacedCases.append(cases.head);
+                
+                for(JmlMethodClause c : cases.head.clauses){
+                    
+                    if(c instanceof JmlMethodClauseExpr){
+                        JmlMethodClauseExpr expr = (JmlMethodClauseExpr)c;
+                        if(expr.expression.toString().equals("true") || expr.expression.toString().equals("(true)")){
+                           continue;
+                        }
                     }
+                    
+                    if(replacedClauses == null){
+                        replacedClauses = List.of(c);
+                    }else{
+                        replacedClauses = replacedClauses.append(c);
+                    }
+
                 }
+            
+                cases.head.clauses = replacedClauses;
             }else{
                 scan(cases.head.clauses.head);
-                
-                if(replacedCases == null){
-                    replacedCases = List.of(cases.head);
-                }else{
-                    replacedCases = replacedCases.append(cases.head);
-                }
             }
-            
-       }
-       tree.cases = replacedCases;
+        }
+                
+//            }else{
+//                scan(cases.head.clauses.head);
+//                
+//                if(replacedCases == null){
+//                    replacedCases = List.of(cases.head);
+//                }else{
+//                    replacedCases = replacedCases.append(cases.head);
+//                }
+//            }
+//            
+//       }
+       //tree.cases = replacedCases;
     }
     /**
      * Here we translate down to SMT conditions to check if 

@@ -35,7 +35,9 @@ import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
+import org.jmlspecs.openjml.strongarm.transforms.PruneUselessClauses;
 import org.jmlspecs.openjml.strongarm.transforms.Purifier;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveContradictions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDeadAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
@@ -102,6 +104,7 @@ public class Strongarm
         {
             SubstituteTree.cache(context);
             RemoveTautologies.cache(context);
+            RemoveContradictions.cache(context);            
             CleanupVariableNames.cache(context);
             RemoveDuplicatePreconditions.cache(context);
             RemoveDuplicatePreconditionsSMT.cache(context);
@@ -113,6 +116,7 @@ public class Strongarm
             CleanupPrestateAssignable.cache(context);
             RemoveUselessPostconditions.cache(context);
             Purifier.cache(context);
+            PruneUselessClauses.cache(context);
 
 
         }
@@ -428,7 +432,6 @@ public class Strongarm
             // The substitution we do later then resolves the variables 
             // in the equations we substitute here. 
             reader.postcondition.replace(reader.getSubstitutionMappings(), false);
-            reader.postcondition.replace(reader.getSubstitutionMappings(), false);
             
         }
 
@@ -496,6 +499,18 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(contract));
         }
 
+        
+        RemoveContradictions.simplify(contract);
+
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER REMOVING CONTRADICTIONS OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+
+        
        
         //
         // Remove dead assignments 
@@ -666,6 +681,18 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSig(methodDecl.sym)); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+       PruneUselessClauses.simplify(contract);
+        
+        if (verbose) {
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("--------------------------------------"); 
+            log.noticeWriter.println(Strings.empty);
+            log.noticeWriter.println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.noticeWriter.println(JmlPretty.write(contract));
+        }
+
         
         
         //
