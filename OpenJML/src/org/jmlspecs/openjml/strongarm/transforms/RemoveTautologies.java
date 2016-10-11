@@ -64,22 +64,6 @@ public class RemoveTautologies extends JmlTreeScanner{
         }
     }
     
-    
-protected boolean isFeasible(List<JmlMethodClause> clauses){
-        
-        for(JmlMethodClause c : clauses){
-            if(c instanceof JmlMethodClauseExpr){
-                JmlMethodClauseExpr expr = (JmlMethodClauseExpr)c;
-                if(expr.expression.toString().equals("true") || expr.expression.toString().equals("(true)")){
-                    return false;
-                }
-            }
-        }
-        
-        return true;
-
-    }
-    
     @Override
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup tree) {
         
@@ -89,17 +73,8 @@ protected boolean isFeasible(List<JmlMethodClause> clauses){
         
         List<JmlMethodClause> replacedClauses = null;
         
-        bail: for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail ){
+        for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail ){
             
-            // if the head of the list is a JmlMethodClauseExpr
-            // the entire list consists of the specification case. 
-            // we want to pass this specification case to the 
-            // SMT solver to make sure it can be satisfied. 
-            
-            //PROTIP - this is trickier than it looks - think twice before modifying
-            
-            //TODO - it's possible no cases will be feasible -- make sure 
-            // to add some code to handle this edge case.
             if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
                 
                 for(JmlMethodClause c : cases.head.clauses){
@@ -116,27 +91,19 @@ protected boolean isFeasible(List<JmlMethodClause> clauses){
                     }else{
                         replacedClauses = replacedClauses.append(c);
                     }
-
                 }
-            
-                cases.head.clauses = replacedClauses;
-            }else{
-                scan(cases.head.clauses.head);
+                
+                if(replacedClauses!=null){
+                    cases.head.clauses = replacedClauses;
+                }                
             }
+        
+            
+            replacedClauses = null;
+        
         }
                 
-//            }else{
-//                scan(cases.head.clauses.head);
-//                
-//                if(replacedCases == null){
-//                    replacedCases = List.of(cases.head);
-//                }else{
-//                    replacedCases = replacedCases.append(cases.head);
-//                }
-//            }
-//            
-//       }
-       //tree.cases = replacedCases;
+        super.visitJmlMethodClauseGroup(tree);
     }
     /**
      * Here we translate down to SMT conditions to check if 
