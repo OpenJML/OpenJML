@@ -138,22 +138,27 @@ public class StrongarmBase extends EscBase {
 		String diffs = compareFiles(expectedCompile, actCompile);
 		
 		if (diffs != null) {
-		    new File(actCompile).delete();
-
+		    
 		    System.out.println(diffs);
 		    fail("Files differ: " + diffs);
 		}
+		
+		new File(actCompile).delete();
+
 	    }
 
 	    if (new File(expectedSpec).exists()) {
 
 		String diffs = compareFiles(expectedSpec, actSpec);
-		new File(actSpec).delete();
-
+		
 		if (diffs != null) {
+
 		    System.out.println(diffs);
 		    fail("Files differ: " + diffs);
 		}
+		
+		new File(actSpec).delete();
+
 	    }
 
 	} catch (Exception e) {
