@@ -136,9 +136,10 @@ public class StrongarmBase extends EscBase {
 	    // if we care about the compile output, do the comparison
 	    if (new File(expectedCompile).exists()) {
 		String diffs = compareFiles(expectedCompile, actCompile);
-		new File(actCompile).delete();
-
+		
 		if (diffs != null) {
+		    new File(actCompile).delete();
+
 		    System.out.println(diffs);
 		    fail("Files differ: " + diffs);
 		}
