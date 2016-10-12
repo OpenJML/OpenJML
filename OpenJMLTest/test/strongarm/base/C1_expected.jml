@@ -1,0 +1,17 @@
+
+public class C1 {
+  
+  public C1();
+    /*@
+    public normal_behavior
+      requires ar != null; 
+      ensures sum_94_94___7 == 0; 
+      ensures i_254_254___8 == 0; 
+      ensures -1 < sum_94_423___17 && sum_94_423___17 <= ar.length; 
+      ensures !(sum_94_423___17 < ar.length); 
+   */
+
+  @Pure 
+  public static int sum(@NonNull 
+  int[] ar);
+}
