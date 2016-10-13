@@ -4,18 +4,21 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Warner;
 
@@ -133,5 +136,20 @@ public class JmlCheck extends Check {
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
         if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
     }
+    
+    Symbol findClassName(DiagnosticPosition pos, Name name, Scope s) {
+        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
+            if (e.sym.kind == TYP && e.sym.name != names.error) {
+                return e.sym;
+            }
+        }
+        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
+            if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
+                return sym;
+            }
+        }
+        return null;
+    }
+
 
 }

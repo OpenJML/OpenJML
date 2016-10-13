@@ -1613,6 +1613,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         
+        if (label == Label.UNDEFINED_PRECONDITION) Utils.stop();
         if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
@@ -2830,9 +2831,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         done.clear();
     }
     
+    boolean addingAxioms = false;
+    
     /** Add all axioms from this specific class */
     protected void addClassAxioms(ClassSymbol csym) {
         if (!addAxioms(heapCount,csym)) return;
+        boolean prevAddingAxioms = addingAxioms;
+        addingAxioms = true;
+        try {
         JmlSpecs.TypeSpecs tspecs = specs.get(csym);
         if (tspecs == null) return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
         for (JmlTypeClause clause : tspecs.clauses) {
@@ -2854,6 +2860,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } catch (Exception e) {
                 Utils.stop(); // FIXME - what to do - 
             }
+        }
+        } finally {
+            addingAxioms = prevAddingAxioms;
         }
     }
 
@@ -5648,7 +5657,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (assumingPureMethod) {
                                     addAssume(that,Label.UNDEFINED_PRECONDITION,e,
                                             clause,clause.source());
-                                } else {
+                                } else if (!addingAxioms) {  // FIXME - these asserts end up in the wrong spot for axioms, but what guards do we need?
                                     addAssert(that,Label.UNDEFINED_PRECONDITION,e,
                                         clause,clause.source());
                                 }

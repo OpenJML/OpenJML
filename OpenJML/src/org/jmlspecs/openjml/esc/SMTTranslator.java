@@ -537,24 +537,23 @@ public class SMTTranslator extends JmlTreeScanner {
                     addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
                 } 
             } else {
-// Commenting out DMZ fix because it breaks tests                
-//                // currently we add the symbols even if the type is parameterized,
-//                // because it's not clear what to do differently with parameterized types;
-//                // the code below is copied directly from the if branch
-//                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
-//                tcommands.add(new C_declare_fun(
-//                        tjsym,
-//                        emptyList,
-//                        jmlTypeSort));
-//                jmltypesymbols.add(tjsym);
-//                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
-//                tcommands.add(new C_assert(F.fcn(
-//                        eqSym, 
-//                        F.fcn(F.symbol("erasure"),tjsym),
-//                        tisym)));
-//                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
-//                    addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
-//                } 
+                // currently we add the symbols even if the type is parameterized,
+                // because it's not clear what to do differently with parameterized types;
+                // the code below is copied directly from the if branch
+                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
+                tcommands.add(new C_declare_fun(
+                        tjsym,
+                        emptyList,
+                        jmlTypeSort));
+                jmltypesymbols.add(tjsym);
+                tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
+                tcommands.add(new C_assert(F.fcn(
+                        eqSym, 
+                        F.fcn(F.symbol("erasure"),tjsym),
+                        tisym)));
+                if ((ti.tsym.flags() & Flags.FINAL) != 0) {
+                    addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
+                } 
             }
         }
         for (Type ti: javaTypes) {
@@ -977,6 +976,11 @@ public class SMTTranslator extends JmlTreeScanner {
                         addType(ti);
                     }
                     if (ok) javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t));  // FIXME - only when fully a constant and fully parameterized?
+                } else {
+                    if (javaTypeSymbols.add(t.tsym.toString())) {
+                        javaTypes.add(t);
+                    }
+                    javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t)); // FIXME - should we make an implicit argument?
                 }
             } else if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));

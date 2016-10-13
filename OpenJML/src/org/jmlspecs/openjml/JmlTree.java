@@ -72,6 +72,14 @@ public class JmlTree implements IJmlTree {
         node.accept(p);
         return sw.toString();
     }
+    
+    static boolean isJML(long flags) {
+        return (flags & Utils.JMLBIT) != 0;
+    }
+    
+    public static interface IInJML {
+        boolean isJML();
+    }
 
 
     /** This interface extends the node factory for Java parse tree nodes by adding factory
@@ -974,7 +982,7 @@ public class JmlTree implements IJmlTree {
     
       
     /** This class adds some JML specific information to the JCClassDecl toplevel node. */
-    public static class JmlClassDecl extends JCTree.JCClassDecl implements JmlSource {
+    public static class JmlClassDecl extends JCTree.JCClassDecl implements JmlSource, IInJML {
         /** This is the class declaration that holds the specifications for the
          * containing class. It may be the same as the containing class, or a different AST
          * (e.g., from a .jml file), or null if there are no specifications for this class.
@@ -1060,6 +1068,11 @@ public class JmlTree implements IJmlTree {
             return JmlTree.toString(this);
         }
         
+        @Override
+        public boolean isJML() {
+            return JmlTree.isJML(mods.flags);
+        }
+        
         public boolean isTypeChecked() {
             ClassSymbol c = sym;
             if (c == null) return false;
@@ -1068,7 +1081,7 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class adds some JML specific information to the JCMethodDecl node. */
-    public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource {
+    public static class JmlMethodDecl extends JCTree.JCMethodDecl implements JmlSource, IInJML {
 
         /** The file containing this declaration */
         public JavaFileObject sourcefile;
@@ -1106,6 +1119,11 @@ public class JmlTree implements IJmlTree {
          */
         @Override
         public JavaFileObject source() { return sourcefile; }
+        
+        @Override
+        public boolean isJML() {
+            return JmlTree.isJML(mods.flags);
+        }
 
         @Override
         public void accept(Visitor v) {
@@ -1134,7 +1152,7 @@ public class JmlTree implements IJmlTree {
     }
     
     /** This class adds some JML specific information to the JCVariableDecl node. */
-    public static class JmlVariableDecl extends JCTree.JCVariableDecl implements JmlSource {
+    public static class JmlVariableDecl extends JCTree.JCVariableDecl implements JmlSource, IInJML {
         // FIXME - need some documentation of these fields
         public JmlVariableDecl specsDecl;
         public JmlSpecs.FieldSpecs fieldSpecs;
@@ -1184,6 +1202,11 @@ public class JmlTree implements IJmlTree {
         @Override
         public String toString() {
             return JmlTree.toString(this);
+        }
+        
+        @Override
+        public boolean isJML() {
+            return JmlTree.isJML(mods.flags);
         }
 
     }
@@ -2980,7 +3003,7 @@ public class JmlTree implements IJmlTree {
     }
 
     /** This class represents type clauses (e.g. invariant, constraint,...) in a class specification */
-    abstract public static class JmlTypeClause extends JCTree implements JmlSource {
+    abstract public static class JmlTypeClause extends JCTree implements JmlSource, IInJML {
         
         /** The token identifying the kind of clause this represents */
         public JmlTokenKind token;
@@ -2993,6 +3016,10 @@ public class JmlTree implements IJmlTree {
 
         /** Returns the source file for the clause */
         public JavaFileObject source() { return source; }
+        
+        public boolean isJML() {
+            return true;
+        }
         
         /** This implements toString() for all the type clause nodes */
         public String toString() {

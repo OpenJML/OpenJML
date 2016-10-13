@@ -328,7 +328,8 @@ public class JmlCompiler extends JavaCompiler {
         
         // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
- //       if (csymbol.toString().equals("java.lang.Long")) Utils.stop();
+ //       if (csymbol.toString().equals("java.lang.Object")) Utils.stop();
+ //       if (csymbol.toString().equals("java.io.File")) Utils.stop();
  //       if (csymbol.toString().equals("java.lang.Character")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
@@ -339,7 +340,7 @@ public class JmlCompiler extends JavaCompiler {
 
                 if (csymbol.getSuperclass() != Type.noType) loadSpecsForBinary(env, (ClassSymbol)csymbol.getSuperclass().tsym);
                 for (Type t: csymbol.getInterfaces()) {
-                    loadSpecsForBinary(env, (ClassSymbol)t.tsym);
+                    loadSpecsForBinary(env, (ClassSymbol)t.tsym);  // FIXME - env is not necessarily the tree for the classSymbol
                 }
 
                 if (!csymbol.getTypeParameters().isEmpty()) {
@@ -394,8 +395,8 @@ public class JmlCompiler extends JavaCompiler {
                 nestingLevel++;
                 try {
                     memberEnter.binaryEnter(speccu);
-                    ((JmlEnter)enter).binaryEnvs.add(speccu);
-                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
+//                    ((JmlEnter)enter).binaryEnvs.add(speccu);
+//                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
                 } finally {
                     nestingLevel--;
                 }

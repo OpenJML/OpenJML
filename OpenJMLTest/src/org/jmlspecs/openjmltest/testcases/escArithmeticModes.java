@@ -36,6 +36,7 @@ public class escArithmeticModes extends EscBase {
     
     @Test
     public void testNeg() {
+    	main.addOptions("-method=m","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int m(int i) {\n"

@@ -890,7 +890,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
-                boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
+                boolean isPure = msym == null || isPureMethod(msym) || isPureClass(msym.enclClass());
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
@@ -2015,7 +2015,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.sym.owner.kind == Kinds.TYP) {
             // Check all datagroups that the field is in
             JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
-            for (JmlTypeClause tc: fspecs.list) {
+            if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
                 if (tc.token == JmlTokenKind.IN) {
                     JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
                     for (JmlGroupName g: tcin.list) {
@@ -2069,7 +2069,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
         Type result = super.attribType(tree,env);
-        if (result.getTag() != TypeTag.VOID &&
+        if (result.getTag() != TypeTag.VOID && result.isErroneous() && 
                 result.tsym instanceof ClassSymbol &&
                 !result.isPrimitive()) {
             addTodo((ClassSymbol)result.tsym);
@@ -4633,6 +4633,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            int i = 0;
 //        }
         if (tree.name != null) {
+            if (tree.toString().equals("pending.elementCount")) Utils.stop();
             super.visitSelect(tree);
 //            if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,(ClassSymbol)tree.sym);
             // The super call does not always call check... (which assigns the
@@ -5405,6 +5406,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // Typically, classes are attributed by calls to attribClass and
         // then to attibClassBody and attribClassBodySpecs, but local
         // classes do end up here.
+        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
 
         if (that.specsDecls == null) {
             // A local class is its own specification , so we fill in the

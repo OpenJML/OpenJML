@@ -209,9 +209,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
         modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
         boolean prevAllowJML = resolve.allowJML();
-        if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
+        if (jtree.isJML()) resolve.setAllowJML(true);
 
+        if (tree.sym.toString().equals("java.util.Vector")) Utils.stop();
+        //if ((JmlCheck)chk).findClassName(tree, tree.name, env);
+        if (jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) dojml = true;
         super.finishClass(tree, env);
+        if (jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) dojml = false;
 
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
         
@@ -733,6 +737,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Find any specsVarDecl counterpart in the javaDecl
         // For fields it is sufficient to match by name
         Name id = specsVarDecl.name;
+        if (id.toString().equals("elementCount")) Utils.stop();
         VarSymbol matchSym = null;
         if (!sameTree) {
             Scope.Entry entry = csym.members().lookup(id);
@@ -1020,7 +1025,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             tsp.modifiers = specsDecl.mods;
             tsp.file = specsDecl.source();
             
-            JmlClassDecl jtree = null; // This is a binary class - no java class declaration
+            JmlClassDecl jtree = null; // If null this is a binary class - no java class declaration
+            if (specsDecl.specsDecls == specsDecl) jtree = specsDecl;
             ClassSymbol csym = specsDecl.sym; // just a symbol
 
             prevSource = log.useSource(specsDecl.source());
@@ -1057,7 +1063,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // FIXME - what about blocks
 
             
-            matchStuff(jtree, csym, env, specsDecl);
+            List<JCTree> added = matchStuff(jtree, csym, env, specsDecl);
+            boolean prev = dojml;
+            dojml = true;
+            memberEnter(added, env);
+            dojml = prev;
             // First for Java fields and methods
             
 //            Integer matchpos;
@@ -2666,8 +2676,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
             if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
             if (isJMLMethod) resolve.setAllowJML(true);
-            //super.visitMethodDef(tree);
-            visitMethodDefBinary(tree);
+            if (!isSpecFile) super.visitMethodDef(tree);
+            if (isSpecFile) visitMethodDefBinary(tree);
         } finally {
             if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;
@@ -2760,7 +2770,27 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            currentMethod = prevMethod;
 //        }
     }
+
     
+    public void visitMethodDef(JmlMethodDecl tree, ClassSymbol owner) {
+        JmlMethodDecl prevMethod = currentMethod;
+        currentMethod = (JmlMethodDecl) tree;
+        boolean prevAllowJml = resolve.allowJML();
+        long flags = tree.mods.flags;
+        boolean isJMLMethod = utils.isJML(flags);
+        try {
+            boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
+//            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
+            if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
+            if (isJMLMethod) resolve.setAllowJML(true);
+            //super.visitMethodDef(tree);
+            visitMethodDefBinary(tree);
+        } finally {
+            if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
+            currentMethod = prevMethod;
+        }
+        
+    }
     // This is a duplicate of super.vistMethodDef -- with some stuff elided for handling specs of binarys
     public void visitMethodDefBinary(JCMethodDecl tree) {
         Scope enclScope = enter.enterScope(env);
@@ -2806,11 +2836,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         localEnv.info.scope.leave();
         ((JmlCheck)chk).noDuplicateWarn = true;
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            // Not a duplicate - OK if the declaration is JML
+            // Not a duplicate - OK if the declaration is JML - if not, then ignore it
             if (!utils.isJML(m.flags())) {
-                // FIXME
+                // This is an error, but it is reported later
+                //utils.error(((JmlMethodDecl)tree).sourcefile, tree, "jml.no.method.match", enclScope.owner.flatName() + "." + m);
+            } else {
+                enclScope.enter(m);
             }
-            enclScope.enter(m);
         } else {
             // A duplicate - OK if the declaration is not JML
             if (utils.isJML(m.flags())) {
@@ -2867,7 +2899,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     @Override
     public void complete(Symbol sym) throws CompletionFailure {
-        if (sym.toString().contains("Double")) Utils.stop();
+        if (sym.flatName().toString().contains("java.io.File")) Utils.stop();
         
         JmlResolve jresolve = JmlResolve.instance(context);
         boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
@@ -2877,7 +2909,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 log.error("jml.internal","JmlMemberEnter.complete called with a null env, presumably from a binary class, which should not be the argument of this complete call: " + sym);
                 return;
             }
-            super.complete(sym);
+            super.complete(sym); // FIXME - not sure this should be called for binary classes
+            // If this is a specification file then remove any automatically generated constructor
+            if (env.tree instanceof JmlClassDecl) {
+                JmlClassDecl jmltree = (JmlClassDecl)env.tree;
+                if (jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) {
+                    if (jmltree.defs.head instanceof JmlMethodDecl) {
+                        JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
+                        if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
+                            jmltree.defs = jmltree.defs.tail;
+                        }
+                    }
+                }
+            }
             // If this is an interface, enter symbol for this into
             // current scope.
             ClassSymbol c = (ClassSymbol)sym;
@@ -2931,7 +2975,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
         boolean prev = resolve.allowJML();
         if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
+        
+        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+        ((JmlCheck)chk).noDuplicateWarn = true;
         super.visitVarDef(tree);
+        ((JmlCheck)chk).noDuplicateWarn = prevChk;
+
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
@@ -2999,7 +3048,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 enter.classEnter(cd,env);
             }
             Env<AttrContext> specClassenv = jcd.env;
-            binaryMemberEnter(jcd.sym, jcd, specClassenv);
+ //           binaryMemberEnter(jcd.sym, jcd, specClassenv);
             // FIXME - need to handle any secondary classes and nested classes as well
         }
         env = prevEnv;
@@ -3024,6 +3073,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             env.info.scope.enter(thisSym);
             // if this is a class, enter symbol for 'super' into current scope.
             if ((cs.flags_field & INTERFACE) == 0 &&
+                    ct.supertype_field != null &&
                     ct.supertype_field.hasTag(CLASS)) {
                 VarSymbol superSym =
                         new VarSymbol(FINAL | HASINIT, names._super,
@@ -3052,7 +3102,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 boolean isModel = isJML && utils.findMod(md.mods, JmlTokenKind.MODEL) != null;
                 if (md.sym == null) {
                     this.env = classenv;
-                    visitMethodDef(md);
+                    visitMethodDef((JmlMethodDecl)md,c);
 //                    boolean hasTypeArgs = !md.typarams.isEmpty();
 //                    
 //                    ClassType ctype = (ClassType)c.type;

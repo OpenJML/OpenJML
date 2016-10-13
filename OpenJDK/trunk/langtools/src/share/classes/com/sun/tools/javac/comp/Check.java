@@ -67,16 +67,16 @@ public class Check {
     protected static final Context.Key<Check> checkKey =
         new Context.Key<Check>();
 
-    protected Context context; // DRC- added
-    private final Names names;
+    protected Context context; // OPENJML - added
+    protected final Names names; // OPENJML - changed from private to protected
     private final Log log;
     private final Resolve rs;
     private final Symtab syms;
     private final Enter enter;
     private final DeferredAttr deferredAttr;
     private final Infer infer;
-    protected final Types types;  // DRC - changed from private to protected
-    protected final JCDiagnostic.Factory diags;  // DRC - changed from private to protected
+    protected final Types types;  // OPENJML - changed from private to protected
+    protected final JCDiagnostic.Factory diags;  // OPENJML - changed from private to protected
     private boolean warnOnSyntheticConflicts;
     private boolean suppressAbortOnBadClassFile;
     private boolean enableSunApiLintControl;
