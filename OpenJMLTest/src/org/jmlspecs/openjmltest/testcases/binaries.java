@@ -56,8 +56,9 @@ public class binaries extends TCBase {
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:3: The specification of the method java.io.File.exists() must not have a body",23
+                // FIXME - different order in Java7 and Java8
                 ,"/$A/java/io/File.jml:3: The return types of method java.io.File.exists() are different in the specification and java files: void vs. boolean",9
+                ,"/$A/java/io/File.jml:3: The specification of the method java.io.File.exists() must not have a body",23
         );
     }
     

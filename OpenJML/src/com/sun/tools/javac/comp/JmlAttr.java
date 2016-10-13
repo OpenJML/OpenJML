@@ -959,7 +959,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             relax = isJmlDecl || !isJavaFile;
             boolean prevAllowJML = jmlresolve.allowJML();
             if (isJmlDecl) prevAllowJML = jmlresolve.setAllowJML(true);
+//            boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+//            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
+//            ((JmlCheck)chk).noDuplicateWarn = prevChk;
             if (isJmlDecl) jmlresolve.setAllowJML(prevAllowJML);
             relax = prevRelax;
             if (jmethod.methodSpecsCombined != null) { // FIXME - should we get the specs to check from JmlSpecs?
@@ -3316,6 +3319,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (msym != null) {
                 boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
+                    if (!msym.owner.type.isParameterized()) // FIXME - just until we read generic specs
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
                 if (isPure && currentClauseType == JmlTokenKind.INVARIANT

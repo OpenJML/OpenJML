@@ -214,7 +214,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (tree.sym.toString().equals("java.util.Vector")) Utils.stop();
         //if ((JmlCheck)chk).findClassName(tree, tree.name, env);
         if (jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) dojml = true;
+//        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+//        ((JmlCheck)chk).noDuplicateWarn = true;  // FIXME - this also hides warnings about duplicate decls within a method body - e.g. let5 and let6 tests
         super.finishClass(tree, env);
+//        ((JmlCheck)chk).noDuplicateWarn = prevChk;
         if (jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) dojml = false;
 
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
@@ -836,10 +839,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * */
     protected boolean matchAndSetMethodSpecs(@Nullable JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
 
+        if (specsMethodDecl.name.toString().equals("identityHashCode")) Utils.stop();
         // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
-        MethodSymbol matchSym = sameTree ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
+        MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
         
         // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
         
@@ -856,14 +860,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
             JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.GHOST);
             if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,JmlTokenKind.MODEL);
+            boolean classIsModel = ((JmlAttr)attr).isModel(javaDecl.getModifiers()); // FIXME - should really be recursive
             if (!utils.isJML(specsMethodDecl.mods)) {
+                // Method is not (directly) in a JML declaration. So it should not have ghost or model annotations
                 // We are going to discard this declaration because of the error, so we do extra checking
                 if (a != null) {
                     utils.error(specsMethodDecl.sourcefile, a.pos(),"jml.ghost.model.on.java",specsMethodDecl.name);
                 }
                 // Non-matching java declaration - an error
-                utils.error(specsMethodDecl.sourcefile, specsMethodDecl.pos(),"jml.no.method.match",
-                        csym.flatName() + "." + specsMethodDecl.sym);
+                if (!classIsModel) {
+                    utils.error(specsMethodDecl.sourcefile, specsMethodDecl.pos(),"jml.no.method.match",
+                            csym.flatName() + "." + specsMethodDecl.sym);
+                }
                 return false;
             } else {
                 // Non-matching ghost or model declaration; this is OK - there is no symbol yet
@@ -2899,7 +2907,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     @Override
     public void complete(Symbol sym) throws CompletionFailure {
-        if (sym.flatName().toString().contains("java.io.File")) Utils.stop();
+        if (sym.flatName().toString().contains("java.lang.System")) Utils.stop();
         
         JmlResolve jresolve = JmlResolve.instance(context);
         boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
@@ -2977,7 +2985,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (utils.isJML(tree.mods)) resolve.setAllowJML(true);
         
         boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-        ((JmlCheck)chk).noDuplicateWarn = true;
+        ((JmlCheck)chk).noDuplicateWarn = true;  // FIXME - this also hides warnings about duplicate decls within a method body - e.g. let5 and let6 tests
         super.visitVarDef(tree);
         ((JmlCheck)chk).noDuplicateWarn = prevChk;
 
