@@ -202,7 +202,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         for(BasicBlock before : b.preceders()){
             // don't add substitutions that aren't in the path.
-            if(path.contains(before)){
+            if(path.contains(before) || before.id().toString().contains("bodyBegin") || before.id().toString().contains("Start")){
                 getSubstitutionTree(before, subs, mappings);
             }
         }

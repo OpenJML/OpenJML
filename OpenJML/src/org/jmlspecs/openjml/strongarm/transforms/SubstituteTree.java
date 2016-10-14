@@ -258,15 +258,16 @@ public class SubstituteTree extends JmlTreeScanner{
         
     public Name replace(){
         JCTree p = currentReplacement;
+        Name n = null;
         
         if(p instanceof JCExpression){
             
             if(p instanceof JCBinary){
                 JCBinary bProp = (JCBinary)p;
                 if(bProp.lhs instanceof JCIdent){
-                    return ((JCIdent)bProp.lhs).getName();
+                    n = ((JCIdent)bProp.lhs).getName();
                 }else if(bProp.lhs instanceof JCTypeCast){
-                    return handleTypeCast((JCTypeCast)bProp.lhs).getName();
+                    n =  handleTypeCast((JCTypeCast)bProp.lhs).getName();
                 }else{
                     return null; //((JCLiteral)bProp.lhs).getValue();
                 }
@@ -277,9 +278,21 @@ public class SubstituteTree extends JmlTreeScanner{
             
         }else if(p instanceof JCVariableDecl){
             JCVariableDecl pVarDecl = (JCVariableDecl)p;
-            return pVarDecl.getName();
+            n =  pVarDecl.getName();
         }
-        return null;
+        
+        if(n==null){
+            return null;
+        }
+        
+        // it's possible it was a pre-state assignment
+//        if(n.toString().startsWith("PRE_")){
+//            // fix it up
+//            n = n.subName(4, n.length());
+//        }
+//        
+        return n;
+        
     }
     
     public JCExpression with(){
