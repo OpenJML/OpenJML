@@ -103,10 +103,15 @@ public class StrongarmBase extends EscBase {
 	    String expectedSpec = outDir + "/" + clz[0] + "_expected.jml";
 	    String actSpec = outDir + "/" + clz[0] + ".jml";
 
-	    new File(actCompile).delete();
-	    new File(actSpec).delete();
-
-
+	    if(new File(actCompile).exists()){
+		new File(actCompile).delete();		    
+	    }
+	    
+	    if(new File(actSpec).exists()){
+		new File(actSpec).delete();		    
+	    }
+	    
+	    
 	    // before we do anything, if the expected spec doesn't exist, that
 	    // means we
 	    // are generating it.
