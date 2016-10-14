@@ -106,6 +106,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         
         ArrayList<JCTree> subs = new ArrayList<JCTree>(); //getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
         
+        
         if(!limitDepth){
            subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
         }else{
@@ -119,6 +120,19 @@ public class Prop<T extends JCExpression> implements Cloneable {
         //
         Collections.reverse(subs);
         //
+        
+        subs.remove(p); // have to remove this or we get crazy results
+        
+        ArrayList<JCTree> removals = new ArrayList<JCTree>();
+        
+        for(JCTree t : subs){
+            if(t.toString().equals(p.toString())){
+                removals.add(t);
+            }
+        }
+        
+        subs.removeAll(removals);
+
         
         for(JCTree ss : subs){
             System.out.println("\t[SUB TABLE] " + ss.toString());

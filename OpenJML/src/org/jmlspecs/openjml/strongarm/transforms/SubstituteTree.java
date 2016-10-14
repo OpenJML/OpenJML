@@ -166,7 +166,7 @@ public class SubstituteTree extends JmlTreeScanner{
         
         if(isRedundant(tree)) return;
         
-        if(tree.lhs instanceof JCIdent && tree.operator.toString().startsWith("==")==false){ 
+        if(tree.lhs instanceof JCIdent){ // && tree.operator.toString().startsWith("==")==false){ 
             JCIdent lhs = (JCIdent)tree.lhs;
 
             if(replace().toString().equals(lhs.getName().toString())){
@@ -199,11 +199,15 @@ public class SubstituteTree extends JmlTreeScanner{
             handleField((JCFieldAccess)tree.rhs);
         }
 
-        if(tree.operator.toString().startsWith("==")){
-            scan(tree.rhs);            
-        }else{
-            super.visitBinary(tree);
-        }
+        
+//        if(tree.operator.toString().startsWith("==")){
+//            scan(tree.rhs);            
+//        }else{
+//            super.visitBinary(tree);
+//        }
+//        
+         super.visitBinary(tree);
+        
     }
     
     private void handleField(JCFieldAccess access){
