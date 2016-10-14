@@ -7,12 +7,9 @@ public class D {
       requires true; 
       {|
         requires (a < 10); 
-        ensures c_158_158___7 == a; 
-        ensures c_158_185___8 == 100; 
         ensures \result == 100; 
       also
         requires !(a < 10); 
-        ensures c_158_158___7 == a; 
         ensures \result == a; 
       |}
    */
