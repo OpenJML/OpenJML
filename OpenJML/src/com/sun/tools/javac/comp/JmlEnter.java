@@ -192,7 +192,7 @@ public class JmlEnter extends Enter {
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
-        jmltree.topLevelEnv = null;
+//        jmltree.topLevelEnv = null;
         if (jmltree.specsCompilationUnit == null) {
             specTopEnv = null;
         } else {
@@ -823,11 +823,11 @@ public class JmlEnter extends Enter {
     @Override
     public void main(List<JCCompilationUnit> trees) {
         super.main(trees);
-        // FIXME - these are not currently used - but perhaps should be to get the binary envs type checked
-        for (JmlCompilationUnit jcu: binaryEnvs) {
-            trees.append(jcu);
-        }
-        binaryEnvs.clear();
+//        // FIXME - these are not currently used - but perhaps should be to get the binary envs type checked
+//        for (JmlCompilationUnit jcu: binaryEnvs) {
+//            trees.append(jcu);
+//        }
+//        binaryEnvs.clear();
     }
     
     public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,

@@ -395,7 +395,8 @@ public class JmlCompiler extends JavaCompiler {
                 nestingLevel++;
                 try {
                     memberEnter.binaryEnter(speccu);
-//                    ((JmlEnter)enter).binaryEnvs.add(speccu);
+ //                   ((JmlEnter)enter).binaryEnvs.add(speccu);
+                    todo.append(speccu.topLevelEnv);
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
                 } finally {
                     nestingLevel--;

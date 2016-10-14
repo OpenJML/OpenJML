@@ -542,6 +542,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
         JavaFileObject prev = log.currentSourceFile();
         
+        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
+        
         // This is not recursive within a class, but we can call out to attribute 
         // another class while in the middle of a clause
         JmlTokenKind prevClauseType = currentClauseType;

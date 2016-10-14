@@ -740,9 +740,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Find any specsVarDecl counterpart in the javaDecl
         // For fields it is sufficient to match by name
         Name id = specsVarDecl.name;
-        if (id.toString().equals("elementCount")) Utils.stop();
+        if (id.toString().equals("_stackTrace")) Utils.stop();
         VarSymbol matchSym = null;
-        if (!sameTree) {
+        if (true || !sameTree) {
             Scope.Entry entry = csym.members().lookup(id);
             while (entry != null && entry.sym != null) {
                 if (entry.sym instanceof VarSymbol && entry.sym.name == id) {
@@ -822,7 +822,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 log.error("jml.internal", "Unexpected duplicate Java field declaration, without a matching symbol: " + matchSym);
             }
         }
-        { // Check the match only if it is not a duplicate
+        if (javaMatch != specsVarDecl) { // Check the match only if it is not a duplicate
             checkFieldMatch(javaMatch,matchSym,specsVarDecl);
             addAnnotations(matchSym,enter.getEnv(csym),specsVarDecl.mods);
         }

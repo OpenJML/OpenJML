@@ -881,7 +881,7 @@ public class JavaCompiler {
      */
     protected void compile2(CompilePolicy compPolicy) { // DRC - changed from private to protected
         try {
-            switch (compilePolicy) {
+            switch (compPolicy) { // DRC - changed this - investigate (FIXME)
             case SKIP:   // DRC - added for the convenience of derived classes defining new compile policy options
                 break;
                     
