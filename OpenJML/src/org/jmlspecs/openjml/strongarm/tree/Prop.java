@@ -146,7 +146,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
             
             iteration++;
             
-        }while(before.equals(p.toString())==false && limitDepth==false);
+        }while(before.equals(p.toString())==false);
         
     }
     
