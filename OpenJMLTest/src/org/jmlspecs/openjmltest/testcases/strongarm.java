@@ -128,7 +128,7 @@ public class strongarm extends StrongarmBase {
     
     @Test
     public void testE1() {
-	//expectedExit = 1;
+	expectedExit = 1; // SMT solver has problems but we find the right contract. 
 	helpSA("test/strongarm/base/E1.java", "test/strongarm/base/");
     }
 
