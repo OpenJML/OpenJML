@@ -128,7 +128,9 @@ public class BlockReader {
                         
                         if(parts.length == 2){
                             preconditionAssertions.add(parts[1].trim());
-                            System.out.println("Added: " + parts[1].trim());
+                            if(verbose){
+                                log.noticeWriter.println("Added: " + parts[1].trim());
+                            }
                         }
                     }
                 }
