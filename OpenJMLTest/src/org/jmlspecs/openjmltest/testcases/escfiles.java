@@ -447,7 +447,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");//,"-show","-method=StorageParameters.StorageParameters");
     }
 
     @Test

@@ -604,15 +604,15 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlGroupName(JmlGroupName that) {
-        try { 
-        	// FIXME - this was changed - is it right?
-            if (that.selection != null) {
+//        try { 
+//        	// FIXME - this was changed - is it right?
+//            if (that.selection != null) {
                 that.selection.accept(this); 
-                print(".");
-            }
-            print(that.sym);
-        }
-        catch (IOException e) { perr(that,e); }
+//                print(".");
+//            }
+//            print(that.sym);
+//        }
+//        catch (IOException e) { perr(that,e); }
     }
 
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) {

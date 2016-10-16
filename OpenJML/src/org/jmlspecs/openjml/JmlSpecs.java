@@ -933,6 +933,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
+        if (m.name.toString().equals("configurationSizes")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
@@ -1013,6 +1014,7 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getSpecs(VarSymbol m) {
+//        if (m.name.toString().equals("theString")) Utils.stop();
         ClassSymbol c = m.enclClass();
         if (c == null) return null; // This happens at least when m is the symbol for 'class' as in int.class
         TypeSpecs t = getSpecs(c);
@@ -1044,7 +1046,7 @@ public class JmlSpecs {
          * specs for the class this TypeSpecs object documents.  This is only
          * valid for a TypeSpecs object holding combined specifications.
          */
-        public JmlClassDecl refiningSpecDecls = null;
+        public JmlClassDecl refiningSpecDecls = null;  // FIXME - not conssitently used
         
         /** The source file for the modifiers, not necessarily for the rest of the specs
          * if these are the combined specs */
@@ -1312,8 +1314,8 @@ public class JmlSpecs {
     }
     
     public boolean isNonNull(JmlClassDecl decl) { // FIXM E- change this to return the token that defines the nullity
+        makeAnnotationSymbols();
         if (decl.specsDecls != null) {
-            makeAnnotationSymbols();
             if (utils.findMod(decl.specsDecls.mods, nullablebydefaultAnnotationSymbol) != null) return false;
             if (utils.findMod(decl.specsDecls.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         } else {
@@ -1428,9 +1430,10 @@ public class JmlSpecs {
         tspecs.refiningSpecDecls = specTypeDecl;
         if (specTypeDecl != null) {
             tspecs.modifiers = specTypeDecl.mods;
-            tspecs.file = specTypeDecl.sourcefile; // sourcefile for the modifiers
+            tspecs.file = specTypeDecl.source();
         } else {
             tspecs.modifiers = null;
+            if (principalDecl != null) tspecs.file = principalDecl.source();
         }
         tspecs.defaultNullity = defaultNullity(sym);
 

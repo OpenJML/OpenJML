@@ -1856,9 +1856,6 @@ public class Resolve {
     Symbol findFun(Env<AttrContext> env, Name name,
                    List<Type> argtypes, List<Type> typeargtypes,
                    boolean allowBoxing, boolean useVarargs) {
-//        if (name.toString().equals("equal")) {
-//            System.out.println();
-//        }
         Symbol bestSoFar = methodNotFound;
         Symbol sym;
         Env<AttrContext> env1 = env;

@@ -581,6 +581,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor5() {
+    	//main.addOptions("-jmldebug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model Object state;\n"
                 +"  private int i; //@ in state;\n"

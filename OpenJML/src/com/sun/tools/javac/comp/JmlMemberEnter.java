@@ -207,7 +207,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlClassDecl prevClass = currentClass;
         currentClass = (JmlClassDecl)tree;
         int prevMode = modeOfFileBeingChecked;  // FIXME _ suspect this is not accurate
-        modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
+        int nowmode = modeOfFileBeingChecked = ((JmlCompilationUnit)env.toplevel).mode;
         boolean prevAllowJML = resolve.allowJML();
         if (jtree.isJML()) resolve.setAllowJML(true);
 
@@ -222,7 +222,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
         
-        if ((JmlCompilationUnit.isForBinary(modeOfFileBeingChecked)) && !JmlAttr.instance(context).isModel(tree.mods)
+        if ((JmlCompilationUnit.isForBinary(nowmode)) && !JmlAttr.instance(context).isModel(tree.mods)
                 && !(tree.sym.toString().startsWith("$anonymous$"))) { // FIXME - do something more robust than checking the name
             finishSpecClass((JmlClassDecl)tree,env); 
             modeOfFileBeingChecked = prevMode;
@@ -739,8 +739,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected boolean matchAndSetFieldSpecs(JmlClassDecl javaDecl, ClassSymbol csym, JmlVariableDecl specsVarDecl, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
         // Find any specsVarDecl counterpart in the javaDecl
         // For fields it is sufficient to match by name
+        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
         Name id = specsVarDecl.name;
-        if (id.toString().equals("_stackTrace")) Utils.stop();
         VarSymbol matchSym = null;
         if (true || !sameTree) {
             Scope.Entry entry = csym.members().lookup(id);
@@ -796,7 +796,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             matchesSoFar.put(matchSym,  specsVarDecl);
             JmlSpecs.FieldSpecs fieldSpecs = specsVarDecl.fieldSpecs;
             if (fieldSpecs != null) JmlSpecs.instance(context).putSpecs(matchSym,fieldSpecs);
+            else {
+                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl.mods);   // FIXME - what about lists of in clauses
+                specsVarDecl.fieldSpecs = fieldSpecs;
+                specs.putSpecs(matchSym,  fieldSpecs);
+            }
             specsVarDecl.sym = matchSym;
+            specsVarDecl.type = matchSym.type;
         }
 
         // If there is a Java AST, find the match and set the specsDecl field
@@ -839,7 +845,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      * */
     protected boolean matchAndSetMethodSpecs(@Nullable JmlClassDecl javaDecl, ClassSymbol csym, JmlMethodDecl specsMethodDecl, Env<AttrContext> env, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
 
-        if (specsMethodDecl.name.toString().equals("identityHashCode")) Utils.stop();
+//        if (specsMethodDecl.name.toString().equals("identityHashCode")) Utils.stop();
         // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
@@ -2907,7 +2913,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     @Override
     public void complete(Symbol sym) throws CompletionFailure {
-        if (sym.flatName().toString().contains("java.lang.System")) Utils.stop();
+//        if (sym.flatName().toString().contains("java.lang.System")) Utils.stop();
         
         JmlResolve jresolve = JmlResolve.instance(context);
         boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
@@ -2992,7 +2998,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
-        specs.putSpecs(tree.sym,new JmlSpecs.FieldSpecs(tree.mods)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
+        JmlVariableDecl jtree = (JmlVariableDecl)tree;
+        
+        // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
+        JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
+        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(tree.mods); // Does not include any in or maps clauses
+        jtree.fieldSpecsCombined = fspecs; 
+        specs.putSpecs(tree.sym,fspecs);
         if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
                 && utils.isJML(tree.mods)) {
             // In the case of a JML ghost variable that is a field of an interface, the default is static and not final

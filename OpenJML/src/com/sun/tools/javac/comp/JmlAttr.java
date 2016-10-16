@@ -375,6 +375,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
+//        if (c.toString().equals("java.lang.Object")) Utils.stop();
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
@@ -386,13 +387,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // class symbol, even if the TypeSpecs is empty
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 c.complete(); // At least complete it
-                return;
+//                return;
             } 
-            if (classSpecs.decl == null) {
-                // No specs were found for a binary file, so there is nothing to attribute
-                c.complete(); // At least complete it
-                return;
-            }
+//            if (classSpecs.decl == null) {
+//                // No specs were found for a binary file, so there is nothing to attribute
+//                c.complete(); // At least complete it
+//                return;
+//            }
         }
 
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
@@ -542,7 +543,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
         JavaFileObject prev = log.currentSourceFile();
         
-        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
+//        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
         
         // This is not recursive within a class, but we can call out to attribute 
         // another class while in the middle of a clause
@@ -580,8 +581,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     attribAnnotationTypes(tspecs.modifiers.annotations,env);
                     isInJmlDeclaration = prevIsInJmlDeclaration;
                     ((JmlCheck)chk).setInJml(isInJmlDeclaration);
-                    // FIXME - this should not be null
-                    if (tspecs.refiningSpecDecls != null && tspecs.refiningSpecDecls.source() != null) log.useSource(tspecs.refiningSpecDecls.source()); // FIXME - this comparison is a bit mixed up
+                    if (tspecs.file != null) log.useSource(tspecs.file);
                     checkClassMods(c,(JmlClassDecl)env.tree,tspecs);
                 } else {
 //                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c); // FIXME - testJML2
@@ -789,7 +789,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         {
          // FIXME - this attribution should be done in the Enter or MemberEnter phase?
             attribAnnotationTypes(specsModifiers.annotations,env); 
-            JavaFileObject prev = log.useSource(specsDecl.source());
+            JavaFileObject prev = log.useSource(tspecs.file);
             if (javaDecl != null) {
                 checkSameAnnotations(javaDecl.mods,specsModifiers); 
             } else {
@@ -846,14 +846,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             //checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
             // FIXME - check that both are Enum; check that both are Annotation
         }
-        if (specsClassDecl.source() == null || specsClassDecl.source().getKind() == JavaFileObject.Kind.SOURCE){
+        if (combinedTypeSpecs.file == null || combinedTypeSpecs.file.getKind() == JavaFileObject.Kind.SOURCE){
             // This is already checked in enterTypeParametersForBinary (for binary classes)
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
+            if (specsClassDecl != null) { // FIXME
             List<JCTypeParameter> specTypes = specsClassDecl.typarams;
             if (t.size() != specTypes.size()) {
                 Log.instance(context).error(specsClassDecl.pos(),"jml.mismatched.type.arguments",javaClassSym.fullname,javaClassSym.type.toString());
             }
             // FIXME - check that the names and bounds are the same
+            }
         }
     }
     
@@ -3309,6 +3311,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
         // Otherwise this is just a Java method application
+        if (tree.meth.toString().equals("B") || tree.meth.toString().equals("<init>")) Utils.stop();
         super.visitApply(tree);
         if (result.isErroneous()) return;
         Type savedResult = result;
@@ -4325,7 +4328,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-//        if (tree.name.toString().equals("equal")) org.jmlspecs.openjml.Utils.stop();
+//        if (tree.name.toString().equals("TestJava")) org.jmlspecs.openjml.Utils.stop();
         long prevVisibility = jmlVisibility;
         JmlTokenKind prevClauseType = currentClauseType;
         try {
@@ -5409,6 +5412,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
+        if (that.name.toString().equals("B")) Utils.stop();
         // Typically, classes are attributed by calls to attribClass and
         // then to attibClassBody and attribClassBodySpecs, but local
         // classes do end up here.
@@ -5500,6 +5504,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.vartype.type == null) attribType(that.vartype,env);
 //            if (that.name.toString().equals("objectState")) Utils.stop();
             ((JmlMemberEnter)memberEnter).dojml = true;
+            if (that.name.toString().equals("theString")) Utils.stop();
             visitVarDef(that);
             ((JmlMemberEnter)memberEnter).dojml = false;
             // Anonymous classes construct synthetic members (constructors at least)
@@ -5596,7 +5601,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else {
             JCFieldAccess fa = (JCFieldAccess)that.expression;
             name = fa.name;
-            attribExpr(fa.selected,localEnv);
+            attribType(fa.selected,localEnv);
             classType = fa.selected.type;
         }
         if (name.toString().equals(env.enclClass.name.toString())) {

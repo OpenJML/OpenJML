@@ -123,7 +123,11 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: variable k is already defined in class A",21
+                        // Change in output for Java8
+//        ,"/$A/A.jml:2: variable k is already defined in class A",21
+		,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",21
+		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",16
+
         );
     }
 
@@ -340,13 +344,16 @@ public class namelookup extends TCBase {
                 "         //@ assert B.i;\n" + // OK, but wrong type
                 "      }\n" +
                 "   }\n" +
-                "}\n" +
-                ""
-       ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
-       ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:16: ",8
+                "}\n"
+
+                // Change in output for Java8
+                ,"/$A/A.jml:16: duplicate class: A",1
+//       ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
+//       ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:16: ",8
        ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
-       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
-       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
+       ,"/$A/A.jml:11: duplicate class: AA",11
+//       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
+//       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
        ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
         ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23

@@ -1613,7 +1613,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         
-        if (label == Label.UNDEFINED_PRECONDITION) Utils.stop();
+        if (label == Label.POSSIBLY_NULL_ASSIGNMENT) Utils.stop();
         if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);

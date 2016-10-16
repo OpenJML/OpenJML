@@ -661,11 +661,13 @@ public class Utils {
      * if checking the visibility, say of a clause.
      */
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
-        if (!visible(base,parent,flags)) return false;
+        if (!visible(base,parent,flags)) return false;  // FIXME - this looks backwards - if it is Java-visible, then it ought to be JML visible???
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
+        
+        boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,JmlTokenKind.SPEC_PUBLIC);
         
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
