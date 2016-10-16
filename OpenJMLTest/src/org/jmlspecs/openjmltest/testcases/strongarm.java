@@ -161,6 +161,31 @@ public class strongarm extends StrongarmBase {
 	//expectedExit = 1;
 	helpSA("test/strongarm/loops/C1.java", "test/strongarm/loops/");
     }
+    
+    
+    /// examples
+    
+
+
+    @Test
+    public void testDehexchar() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/examples/Dehexchar.java", "test/strongarm/examples/");
+    }
+    
+    @Test
+    public void testEnd() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/examples/End.java", "test/strongarm/examples/");
+    }
+    
+    @Test
+    public void testMore() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/examples/More.java", "test/strongarm/examples/");
+    }
+    
+
 
     
 }
