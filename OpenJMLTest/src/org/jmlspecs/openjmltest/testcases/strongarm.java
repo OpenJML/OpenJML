@@ -118,24 +118,8 @@ public class strongarm extends StrongarmBase {
 	//expectedExit = 1;
 	helpSA("test/strongarm/base/A14.java", "test/strongarm/base/");
     }
-    @Test
-    public void testA15() {
-	//expectedExit = 1;
-	helpSA("test/strongarm/base/A15.java", "test/strongarm/base/");
-    }
-    @Test
-    public void testB() {
-	//expectedExit = 1;
-	helpSA("test/strongarm/base/B.java", "test/strongarm/base/");
-    }
-
-    
-    @Test
-    public void testC1() {
-	//expectedExit = 1;
-	helpSA("test/strongarm/base/C1.java", "test/strongarm/base/");
-    }
-
+        
+   
     @Test
     public void testD() {
 	//expectedExit = 1;
@@ -148,6 +132,35 @@ public class strongarm extends StrongarmBase {
 	helpSA("test/strongarm/base/E1.java", "test/strongarm/base/");
     }
 
+    /////// interprocedural tests
+    
+    @Test
+    public void testA15() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/interprocedural/A15.java", "test/strongarm/interprocedural/");
+    }
+    
+    @Test
+    public void testA16() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/interprocedural/A16.java", "test/strongarm/interprocedural/");
+    }
+    
+    @Test
+    public void testB() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/interprocedural/B.java", "test/strongarm/interprocedural/");
+    }
+    
+    
+    
+    //////// loop tests. 
+
+    @Test
+    public void testC1() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/loops/C1.java", "test/strongarm/loops/");
+    }
 
     
 }
