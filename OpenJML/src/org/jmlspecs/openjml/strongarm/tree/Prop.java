@@ -107,15 +107,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         ArrayList<JCTree> subs = new ArrayList<JCTree>(); //getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
         
         
-        if(!limitDepth){
-           subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
-        }else{
-          
-            if(mappings.get(def.id())!=null){
-              subs.addAll(mappings.get(def.id()));
-            }
-
-        }
+        subs = getSubstitutionTree(def, new ArrayList<JCTree>(), mappings, limitDepth);
         
         //
         Collections.reverse(subs);
@@ -190,7 +182,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         
     }
     
-    public ArrayList<JCTree> getSubstitutionTree(BasicBlock b, ArrayList<JCTree> subs, Map<JCIdent, ArrayList<JCTree>> mappings){
+    public ArrayList<JCTree> getSubstitutionTree(BasicBlock b, ArrayList<JCTree> subs, Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
         if(b==null){ return subs; }
         
@@ -202,8 +194,12 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         for(BasicBlock before : b.preceders()){
             // don't add substitutions that aren't in the path.
-            if(path.contains(before) || before.id().toString().contains("bodyBegin") || before.id().toString().contains("Start")){
-                getSubstitutionTree(before, subs, mappings);
+            if(limitDepth){
+                if(path.contains(before) || before.id().toString().contains("bodyBegin") || before.id().toString().contains("Start")){
+                    getSubstitutionTree(before, subs, mappings, limitDepth);
+                }
+            }else{
+                getSubstitutionTree(before, subs, mappings, limitDepth);                
             }
         }
         

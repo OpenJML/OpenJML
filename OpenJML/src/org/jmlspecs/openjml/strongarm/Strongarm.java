@@ -431,7 +431,7 @@ public class Strongarm
             // the underlying expressions for the temporary variables.
             // The substitution we do later then resolves the variables 
             // in the equations we substitute here. 
-            reader.postcondition.replace(reader.getSubstitutionMappings(), false);
+            reader.postcondition.replace(reader.getSubstitutionMappings(), true);
             
         }
 
