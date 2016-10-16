@@ -7,10 +7,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Stack;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
@@ -18,14 +20,18 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.strongarm.Strongarm;
+import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 
+import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log;
 
 public class Prop<T extends JCExpression> implements Cloneable {
 
@@ -34,15 +40,40 @@ public class Prop<T extends JCExpression> implements Cloneable {
     public Label label;
     public ArrayList<BasicBlock> path;
     
+    ///
+    ///
+    final protected Log                    log;
+    final protected Utils                  utils;
+    public static boolean verbose = false; 
+
+    
     public Prop(T p, BasicBlock def){
         this.p = p;
         this.def = def;
+        
+        this.log = Log.instance(Strongarm._context);
+        this.utils = Utils.instance(Strongarm._context);
+        
+        
+        init();
+    }
+    
+    public void init(){
+        this.verbose = JmlOption.isOption(Strongarm._context,"-verbose") // The Java verbose option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
+        
     }
     
     public Prop(T p, BasicBlock def, Label label){
         this.p = JmlTreeCopier.copy(Strongarm.MM, (T)p.clone());
         this.def = def;
         this.label = label;
+        
+        this.log = Log.instance(Strongarm._context);
+        this.utils = Utils.instance(Strongarm._context);
+        
+        
+        init();
     }
 
     public Prop<T> fix(Stack<BasicBlock> p){
@@ -53,17 +84,37 @@ public class Prop<T extends JCExpression> implements Cloneable {
         return this;
     }
     
-    public Prop(){}
+    public Prop(){
+        
+        this.log = Log.instance(Strongarm._context);
+        this.utils = Utils.instance(Strongarm._context);
+        
+        
+        init();
+        
+    }
+    
+    public void log(String msg){
+        if(verbose){
+            log.noticeWriter.println(msg);
+        }
+    }
+    
+    public void logl(String msg){
+        if(verbose){
+            log.noticeWriter.print(msg);
+        }
+    }
     
     public void replace(ArrayList<JCTree> subs){
         
         JCExpression e = null;
         
-        System.out.println("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        log("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
         if(p.toString().contains("_JML___NEWARRAY_317")){
-            System.out.println("Found failing prop...");
+            log("Found failing prop...");
         }
         
         
@@ -85,23 +136,23 @@ public class Prop<T extends JCExpression> implements Cloneable {
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
                 
-        System.out.println("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
-        System.out.println("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
+        log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path
-        System.out.print("[PATH]");        
+        logl("[PATH]");        
         for(BasicBlock b : path){
-            System.out.print(b.id().toString() + ">>");
+            logl(b.id().toString() + ">>");
         }
-        System.out.println("");
+        log("");
         
         // build a list of substitutions by following the mapping backwards.
         
         if(def.id().toString().equals("BL_423_else_19")){
-            System.out.println("");
+            log("");
         }
         
         if(p.toString().contains("_JML___result_400_467___9 == c_425_451___8")){
-            System.out.println("Found failing prop...");
+            log("Found failing prop...");
         }
         
         ArrayList<JCTree> subs = new ArrayList<JCTree>(); //getSubstitutionTree(def, new ArrayList<JCTree>(), mappings);
@@ -127,7 +178,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         
         for(JCTree ss : subs){
-            System.out.println("\t[SUB TABLE] " + ss.toString());
+            log("\t[SUB TABLE] " + ss.toString());
         }
         
         // baby fixpoint
@@ -135,13 +186,13 @@ public class Prop<T extends JCExpression> implements Cloneable {
         int iteration = 1;
                 
         do {
-            System.out.println("\tInternal Fixpoint #" + iteration);
+            log("\tInternal Fixpoint #" + iteration);
 
             before = p.toString();
 
-            System.out.println("\t\tBefore: " + before);
+            log("\t\tBefore: " + before);
             doReplacement(subs);
-            System.out.println("\t\tAfter: " + p.toString());
+            log("\t\tAfter: " + p.toString());
             
             
             iteration++;
@@ -157,10 +208,10 @@ public class Prop<T extends JCExpression> implements Cloneable {
         for(JCTree sub : subs){
              
             if(sub.toString().startsWith("c_425_425___7 == 1")){
-                 System.out.println("Found failing prop...");
+                 log("Found failing prop...");
              }
              
-            //System.out.println("\t\t[ACTIVE SUB]" + sub.toString());
+            //log("\t\t[ACTIVE SUB]" + sub.toString());
             
             JCExpression tmpE;
             
@@ -186,7 +237,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         
         if(b==null){ return subs; }
         
-        //System.out.println("Getting Substitutions from Block: " + b.id().toString());
+        //log("Getting Substitutions from Block: " + b.id().toString());
 
         if(mappings.get(b.id())!=null){
             subs.addAll(mappings.get(b.id()));

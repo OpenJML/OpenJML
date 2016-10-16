@@ -79,8 +79,10 @@ public class RemoveDeadAssignments extends JmlTreeScanner {
                 
                 JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
                 
-                if(mappings.contains(ident.name)==false){ 
-                    log.noticeWriter.println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
+                if(mappings.contains(ident.name)==false){
+                    if(verbose){
+                        log.noticeWriter.println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
+                    }
                     return true;
                 }
             }

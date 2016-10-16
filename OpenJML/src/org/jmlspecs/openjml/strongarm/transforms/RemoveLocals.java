@@ -78,7 +78,9 @@ public class RemoveLocals extends JmlTreeScanner {
                 JCIdent ident = (JCIdent)mExpr.expression;
                 
                 if(ident.name.toString().startsWith(Strings.prePrefix)){ // TODO - this is NOT the right way to do this. 
-                    log.noticeWriter.println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
+                    if(verbose){
+                        log.noticeWriter.println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
+                    }
                     return true; 
                 }
                 
@@ -96,18 +98,24 @@ public class RemoveLocals extends JmlTreeScanner {
                 JCIdent ident = (JCIdent)((JCBinary)mExpr.expression).lhs;
 
                 if(attr.locals.contains(ident.name)){ 
-                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
+                    if(verbose){
+                        log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
+                    }
                     return true;
                 }
                 
-                if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this. 
-                    log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
+                if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this.
+                    if(verbose){
+                        log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
+                    }
                     return true; 
                 }
                
                 
                 if(clause.token!= JmlToken.REQUIRES && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
-                    log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
+                    if(verbose){
+                        log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
+                    }
                     return true;                    
                 }
             }

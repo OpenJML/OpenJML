@@ -89,10 +89,11 @@ public class Strongarm
     final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
     public static JmlTree.Maker MM;
-    
+    public static Context _context;
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
         this.context = infer.context;
+        _context = infer.context;
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         this.treeutils = JmlTreeUtils.instance(context);
@@ -554,9 +555,11 @@ public class Strongarm
         }
         long ts2 = System.currentTimeMillis();
         
-        System.out.println("RUNTIME: " + (ts2 - ts1));
         
         if (verbose) {
+            
+            log.noticeWriter.println("RUNTIME: " + (ts2 - ts1));
+            
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);

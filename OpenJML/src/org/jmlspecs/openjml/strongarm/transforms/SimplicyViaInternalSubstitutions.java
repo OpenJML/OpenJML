@@ -78,8 +78,10 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 JCIdent rident = (JCIdent)((JCBinary)mExpr.expression).rhs;
                 JCIdent lident = (JCIdent)((JCBinary)mExpr.expression).lhs;
 
-                if(attr.locals.contains(rident.name) && !attr.locals.contains(lident.name)){ 
-                    log.noticeWriter.println("[SimplicityViaInternalSubstitutions] Found a clause with locals... " + clause.toString());
+                if(attr.locals.contains(rident.name) && !attr.locals.contains(lident.name)){
+                    if(verbose){
+                        log.noticeWriter.println("[SimplicityViaInternalSubstitutions] Found a clause with locals... " + clause.toString());
+                    }
                     return true;
                 }
             }
@@ -168,7 +170,9 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 
                 for(JCTree sub : subs){
                     
-                    log.noticeWriter.println("Trying: " + sub.toString());
+                    if(verbose){
+                        log.noticeWriter.println("Trying: " + sub.toString());
+                    }
                     
                     JCExpression tmpE;
                     

@@ -481,11 +481,15 @@ public class BlockReader {
                 BasicBlock left  = block.followers().get(0);
                 BasicBlock right = block.followers().get(1);
                 
-                log.noticeWriter.println("[STRONGARM] Finding LCA...");
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] Finding LCA...");
+                }
     
                 BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
                 
-                log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
+                if(verbose){
+                    log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
+                }
     
                 if(lca==null){
                     
@@ -1009,9 +1013,10 @@ public class BlockReader {
     
         Set<VarSymbol> syms2 = blockMap.keySet();
         
-        log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
-        log.noticeWriter.println("--------------------------");
-       
+        if(verbose){
+            log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
+            log.noticeWriter.println("--------------------------");
+        }
         for(VarSymbol s : syms2){
 
             debugPremapMappings.add(new Object[]{b.id().toString(), blockMap.getName(s).toString(), s.toString()});

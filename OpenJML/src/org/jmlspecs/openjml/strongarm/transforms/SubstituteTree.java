@@ -77,8 +77,9 @@ public class SubstituteTree extends JmlTreeScanner{
         
         if(replace().toString().equals(tree.getName().toString()) && with() instanceof JCIdent){
             
-            log.noticeWriter.println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
-
+            if(verbose){
+                log.noticeWriter.println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
+            }
             
             JCIdent with = (JCIdent)with();
             tree.name = with.name;

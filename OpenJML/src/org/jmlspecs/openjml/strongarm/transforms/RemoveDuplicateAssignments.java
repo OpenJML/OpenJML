@@ -91,7 +91,9 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
                         String ident2 = ((JCBinary)mExpr2.expression).lhs.toString();
                         
                         if(ident.equals(ident2)){
-                            log.noticeWriter.println("[RemoveDuplicateAssignments] Will remove clause since it will be reassigned: " + clause.toString());
+                            if(verbose){
+                                log.noticeWriter.println("[RemoveDuplicateAssignments] Will remove clause since it will be reassigned: " + clause.toString());
+                            }
                             return true;
                         }
                     }                    
