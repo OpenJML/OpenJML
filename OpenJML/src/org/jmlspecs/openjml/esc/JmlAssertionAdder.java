@@ -1846,6 +1846,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
+        if (label == Label.POSTCONDITION) Utils.stop();
         JCStatement stt = null;
         if (esc) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -10688,7 +10689,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e = treeutils.makeBinary(p, JCTree.Tag.GT, treeutils.intgtSymbol, fa,  treeutils.makeIntLiteral(p, 0) );
                     }
-                    result = eresult = treeutils.makeAnd(that.pos, e, eresult);
+                    result = eresult = treeutils.makeAnd(that.pos, e, ee);
                 }
                 break;
             }

@@ -540,12 +540,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 // currently we add the symbols even if the type is parameterized,
                 // because it's not clear what to do differently with parameterized types;
                 // the code below is copied directly from the if branch
-                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
-                tcommands.add(new C_declare_fun(
-                        tjsym,
-                        emptyList,
-                        jmlTypeSort));
-                jmltypesymbols.add(tjsym);
+                IExpr tjsym = jmlTypeSymbol(ti);
+                if (tjsym instanceof ISymbol) {
+                    tcommands.add(new C_declare_fun(
+                            (ISymbol)tjsym,
+                            emptyList,
+                            jmlTypeSort));
+                }
                 tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 

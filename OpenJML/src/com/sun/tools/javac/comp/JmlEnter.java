@@ -454,8 +454,9 @@ public class JmlEnter extends Enter {
                     utils.error(specsClass.source(), specsClass.pos,"jml.associated.decl.cf",s);
                 } else {
                     specsClass.sym = c;
-                    typeEnvs.put(c, classEnv(specsClass, ownerenv));
-                    specsClass.env = classEnv(specsClass, ownerenv);
+                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
+                    typeEnvs.put(c,localenv);
+                    specsClass.env = localenv;
                     specs.combineSpecs(c,null,specsClass);
                 }
 //            } else {  // Duplicate
@@ -474,8 +475,9 @@ public class JmlEnter extends Enter {
                 } else {
                     Type t = classEnter(specsClass,ownerenv);
                     specsClass.sym = (ClassSymbol)t.tsym;
-                    typeEnvs.put(c, classEnv(specsClass, ownerenv));
-                    specsClass.env = classEnv(specsClass, ownerenv);
+                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
+                    typeEnvs.put(c, localenv);
+                    specsClass.env = localenv;
                     specs.combineSpecs(c,null,specsClass);
                 }
                 
@@ -941,6 +943,7 @@ public class JmlEnter extends Enter {
 
             Env<AttrContext> localEnv = classEnv(that, env); // FIXME - we might well need this, but classEnv(that,env) fails for loading secs of binary classes
             typeEnvs.put(that.sym, localEnv);
+            thattree.env = localEnv;
                 // We are entering a class within specification file for a binary load
                 // So enter any nested classes within the class we have been entering
                 // classEnter(that.defs, typeEnvs.get(cs)); // FIXME - no environment stored

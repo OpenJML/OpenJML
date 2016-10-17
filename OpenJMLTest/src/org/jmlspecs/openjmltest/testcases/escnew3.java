@@ -425,6 +425,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor0() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"

@@ -739,7 +739,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected boolean matchAndSetFieldSpecs(JmlClassDecl javaDecl, ClassSymbol csym, JmlVariableDecl specsVarDecl, Map<Symbol,JCTree> matchesSoFar, boolean sameTree) {
         // Find any specsVarDecl counterpart in the javaDecl
         // For fields it is sufficient to match by name
-        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
+//        if (specsVarDecl.name.toString().equals("configurationSizes")) Utils.stop();
         Name id = specsVarDecl.name;
         VarSymbol matchSym = null;
         if (true || !sameTree) {

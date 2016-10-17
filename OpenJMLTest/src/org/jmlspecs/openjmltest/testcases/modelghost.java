@@ -224,15 +224,26 @@ public class modelghost extends TCBase {
                 "  /*@ model */  public class C{}\n" + // BAD
                 "  //@  public class D{}\n" + // BAD
                 "}\n"
-                ,"/A.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",21
-                ,"/A.java:8: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",17
-                ,"/A.java:24: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",15
+                // Java 8
                 ,"/A.java:3: A Java declaration (not within a JML annotation) may not be either ghost or model",30
+                ,"/A.java:4: A method or type declaration within a JML annotation must be model", 21
                 ,"/A.java:7: A Java declaration (not within a JML annotation) may not be either ghost or model",26
+                ,"/A.java:8: A method or type declaration within a JML annotation must be model", 17
                 ,"/A.java:11: A model type may not contain model declarations",19
                 ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",14
-                ,"/A.java:23: A Java declaration (not within a JML annotation) may not be either ghost or model",24
                 ,"/A.java:18: A model type may not contain model declarations",17
+                ,"/A.java:23: A Java declaration (not within a JML annotation) may not be either ghost or model",24
+                ,"/A.java:24: A method or type declaration within a JML annotation must be model", 15
+                // Java 7
+//                ,"/A.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",21
+//                ,"/A.java:8: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",17
+//                ,"/A.java:24: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",15
+//                ,"/A.java:3: A Java declaration (not within a JML annotation) may not be either ghost or model",30
+//                ,"/A.java:7: A Java declaration (not within a JML annotation) may not be either ghost or model",26
+//                ,"/A.java:11: A model type may not contain model declarations",19
+//                ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",14
+//                ,"/A.java:23: A Java declaration (not within a JML annotation) may not be either ghost or model",24
+//                ,"/A.java:18: A model type may not contain model declarations",17
 
         );
                 
