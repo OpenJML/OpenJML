@@ -1140,11 +1140,9 @@ public class JmlSpecs {
             this.file = decl.source();
             this.decl = decl;
             this.modifiers = decl.mods;
-            this.clauses = decl.typeSpecsCombined != null ? decl.typeSpecsCombined.clauses :
-                decl.typeSpecs != null ? decl.typeSpecs.clauses
+            this.clauses = decl.typeSpecs != null ? decl.typeSpecs.clauses
                     : new ListBuffer<JmlTree.JmlTypeClause>();
-            this.decls = decl.typeSpecsCombined != null ? decl.typeSpecsCombined.decls :
-                decl.typeSpecs != null ? decl.typeSpecs.decls
+            this.decls = decl.typeSpecs != null ? decl.typeSpecs.decls
                     : new ListBuffer<>();
         }
         

@@ -983,17 +983,12 @@ public class JmlTree implements IJmlTree {
         /** This is the class declaration that holds the specifications for the
          * containing class. It may be the same as the containing class, or a different AST
          * (e.g., from a .jml file), or null if there are no specifications for this class.
+         * A class declaration in a .jml file will have a null value for this field.
          */
         public /*@Nullable*/ JmlClassDecl specsDecl;
 
-        /** This field is the combination of specifications from all
-         * specification sources (valid for the Java declaration, or, for
-         * binary files, for the most refined specs file)
-         */        
-        public JmlSpecs.TypeSpecs typeSpecsCombined; 
-        
-        /** This field holds the class-level specifications given in this 
-         * particular class declaration; it may not be all the specs of the class.
+        /** This field holds the class-level specifications for the type corresponding
+         * to this declaration; it is an alias for the specs that are found in the JmlSpecs database
          */
         public JmlSpecs.TypeSpecs typeSpecs;
 
@@ -1007,9 +1002,9 @@ public class JmlTree implements IJmlTree {
         // FIXME - is this used; why would it not be in JCClassDecl?
         public String docComment = null;
         
-        /** The scope environment just inside this class (e.g. with type parameters
-         * added.  Not set or used in parsing; set during the enter phase and
-         * used there and during type attribution. // FIXME - clarify why we need this
+        /** The scope environment for this class declaration.
+         * For a source file, this is the same as typeEnvs.get()
+         * but for a specifications file it may be different.
          */
         public Env<AttrContext> env;
         

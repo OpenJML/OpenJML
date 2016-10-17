@@ -5431,7 +5431,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                log.error("jml.internal.notsobad","A non-local class's specsDecl field was unexpectedly null in JmlAtt.visitJmlClassDecl: " + that.name);
 //            }
             that.specsDecl = that;
-            that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
+            that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         
 

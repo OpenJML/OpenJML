@@ -84,10 +84,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         JmlClassDecl r = (JmlClassDecl)result;
         r.docComment = that.docComment;
         r.toplevel = that.toplevel; // FIXME - need to adjust reference
-        r.typeSpecsCombined = that.typeSpecsCombined;
-        if (that.typeSpecsCombined != null) {
-            JmlSpecs.TypeSpecs rt = r.typeSpecsCombined;// = new JmlSpecs.TypeSpecs();
-            JmlSpecs.TypeSpecs tt = that.typeSpecsCombined;
+        r.typeSpecs = that.typeSpecs;
+        if (that.typeSpecs != null) {
+            JmlSpecs.TypeSpecs rt = r.typeSpecs;// = new JmlSpecs.TypeSpecs();
+            JmlSpecs.TypeSpecs tt = that.typeSpecs;
 //            rt.blocks = (tt.blocks);
 //            rt.checkInvariantDecl = (tt.checkInvariantDecl);
 //            rt.checkStaticInvariantDecl = (tt.checkStaticInvariantDecl);

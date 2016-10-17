@@ -845,9 +845,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     JmlSpecs.TypeSpecs specsToPrint = null;
     
     public void visitJmlClassDecl(JmlClassDecl that) {
-        if (that.typeSpecsCombined != null) {
-            specsToPrint = that.typeSpecsCombined;
-        } else if (that.typeSpecs != null) {
+        if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
         visitClassDef(that);

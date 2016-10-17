@@ -3945,7 +3945,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             d.thisSymbol = null;
             d.toplevel = null;
             d.typeSpecs = null;
-            d.typeSpecsCombined = null;
             result = d;
             classBiMap.put((JmlClassDecl)that,d);
         } else if (translatingJML) {
@@ -9142,7 +9141,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (bl != null) this.classDefs.add(bl);
             }
             
-            JmlSpecs.TypeSpecs tyspecs = that.typeSpecsCombined;
+            JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
             if (tyspecs != null) {
                 for (JmlTypeClause t: tyspecs.clauses) {
                     switch (t.token){
@@ -9191,7 +9190,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             n.env = that.env; // FIXME - translate?
             n.specsDecl = that.specsDecl; // FIXME - these may be self-references - and I think there are now only one
             n.typeSpecs = null; //that.typeSpecs; // not copied - FIXME? here and elsewhere
-            n.typeSpecsCombined = null; //that.typeSpecsCombined; // not copied
             if (savedClassDefs != null && n.sym.owner instanceof ClassSymbol) {
                 savedClassDefs.add(n);
             } else if (currentStatements != null) {

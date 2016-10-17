@@ -336,7 +336,7 @@ public class JmlCompiler extends JavaCompiler {
 
                 nestingLevel++;
                 try {
-                    memberEnter.binaryEnter(speccu);
+                    ((JmlEnter)enter).binaryEnter(speccu);
  //                   ((JmlEnter)enter).binaryEnvs.add(speccu);
                     todo.append(speccu.topLevelEnv);
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
@@ -583,25 +583,4 @@ public class JmlCompiler extends JavaCompiler {
         super.compile2(CompilePolicy.SIMPLE);
     }
     
-    
-//    public void reattribute(Env<AttrContext> env) {
-//        compileStates.put(env,null);
-//        (new ClearAttributes()).scan(env.tree);
-//        attribute(env);
-//    }
-//    
-//    public class ClearAttributes extends JmlTreeScanner {
-//        @Override
-//        public void visitJmlClassDecl(JmlTree.JmlClassDecl that) {
-//            that.mods.flags |= Flags.UNATTRIBUTED;
-//            that.sym.flags_field |= Flags.UNATTRIBUTED;
-//            super.visitJmlClassDecl(that);
-//        }
-//        
-//        @Override
-//        public void visitIdent(JCTree.JCIdent that) {
-//            that.sym = null;
-//            super.visitIdent(that);
-//        }
-//    }
 }

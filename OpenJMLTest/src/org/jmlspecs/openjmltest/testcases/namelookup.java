@@ -137,8 +137,12 @@ public class namelookup extends TCBase {
                 " class A { int k;  \n" +
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
-                "}",
-                "/A.java:2: variable k is already defined in class A",21
+                "}"
+                // Java 8
+                ,"/A.java:2: This specification declaration of field k has the same name as a previous field declaration", 21
+                ,"/A.java:1: Associated declaration: /A.java:2: ", 16
+                // Java 7
+                //,"/A.java:2: variable k is already defined in class A",21
                 );
     }
 
@@ -215,8 +219,14 @@ public class namelookup extends TCBase {
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:2: method k() is already defined in class A",21
+        // Java 8
+        ,"/A.java:2: Method k() is already defined in class A",21
+        ,"/A.java:1: Associated declaration: /A.java:2: ", 18
         ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
+
+        // Java 7
+//        ,"/A.java:2: method k() is already defined in class A",21
+//        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
         );
     }
 
@@ -376,10 +386,17 @@ public class namelookup extends TCBase {
                 "public class A {   \n" +
                 "}\n" +
                 ""
+        // Java 8
+        ,"/$A/A.jml:3: duplicate class: A", 11
+        ,"/$A/A.jml:5: This specification declaration of type B has the same name as a previous JML type declaration", 11
+        ,"/$A/A.jml:4: Associated declaration: /$A/A.jml:5: ",11
         ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",2
-        ,"/$A/A.jml:3: This specification declaration of type A has the same name as a previous JML type declaration",11
-        ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:3: ",8
-        ,"/$A/A.jml:5: duplicate class: B",11   // FIXME - OpenJML reports wrong location
+
+        // Java 7
+//        ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",2
+//        ,"/$A/A.jml:3: This specification declaration of type A has the same name as a previous JML type declaration",11
+//        ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:3: ",8
+//        ,"/$A/A.jml:5: duplicate class: B",11   // FIXME - OpenJML reports wrong location
 
         );
     }
