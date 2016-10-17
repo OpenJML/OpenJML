@@ -146,6 +146,21 @@ public class strongarm extends StrongarmBase {
 	helpSA("test/strongarm/interprocedural/A16.java", "test/strongarm/interprocedural/");
     }
     
+    
+    @Test
+    public void testA17() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/interprocedural/A17.java", "test/strongarm/interprocedural/");
+    }
+    
+    
+    @Test
+    public void testA18() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/interprocedural/A18.java", "test/strongarm/interprocedural/");
+    }
+    
+    
     @Test
     public void testB() {
 	//expectedExit = 1;

@@ -72,6 +72,14 @@ public class SubstituteTree extends JmlTreeScanner{
     }
     
     @Override
+    public void visitSelect(JCFieldAccess tree) {
+        
+        handleField(tree);
+        
+        scan(tree.selected);
+    }
+    
+    @Override
     public void visitIdent(JCIdent tree){
         if(tree==null) return;
         

@@ -207,7 +207,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         for(JCTree sub : subs){
              
-            if(sub.toString().startsWith("c_425_425___7 == 1")){
+            if(sub.toString().contains("eof")){
                  log("Found failing prop...");
              }
              
