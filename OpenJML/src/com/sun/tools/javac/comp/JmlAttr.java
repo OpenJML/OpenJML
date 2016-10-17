@@ -404,7 +404,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         // classSpecs.file is only useful for the modifiers/annotations
         // the specs themselves might come from any specification file
-        JavaFileObject prev = log.useSource(classSpecs.file);
+        JavaFileObject prev = classSpecs == null ? null : log.useSource(classSpecs.file);
 
         // We track pureEnvironment since calls can be nested -
         // we can enter a pure environment from either an impure or pure
@@ -453,7 +453,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         } finally {
             pureEnvironment = prevPureEnvironment;
-            log.useSource(prev);
+            if (prev != null) log.useSource(prev);
             level--;
             if (c != syms.predefClass) {
                 if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"typechecked " + c);
@@ -3991,7 +3991,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             List<JCTree> defs = List.<JCTree>of(methodDecl);
             JmlClassDecl classDecl = (JmlClassDecl)F.AnonymousClassDef(F.Modifiers(0), defs) ;
-            classDecl.specsDecls = classDecl;
+            classDecl.specsDecl = classDecl;
             classDecl.typeSpecs = new JmlSpecs.TypeSpecs(classDecl);
             classDecl.toplevel = ((JmlClassDecl)enclosingClassEnv.enclClass).toplevel;
             JCNewClass anon = F.NewClass(null,List.<JCExpression>nil(),constructName,List.<JCExpression>nil(),classDecl); 
@@ -5418,7 +5418,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // classes do end up here.
         that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
 
-        if (that.specsDecls == null) {
+        if (that.specsDecl == null) {
             // A local class is its own specification , so we fill in the
             // specification information.  It might be nice to do this 
             // earlier and avoid this check, but there is no convenient place
@@ -5430,7 +5430,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                // Warn for non-local classes
 //                log.error("jml.internal.notsobad","A non-local class's specsDecl field was unexpectedly null in JmlAtt.visitJmlClassDecl: " + that.name);
 //            }
-            that.specsDecls = that;
+            that.specsDecl = that;
             that.typeSpecsCombined = that.typeSpecs = new JmlSpecs.TypeSpecs(that);
         }
         

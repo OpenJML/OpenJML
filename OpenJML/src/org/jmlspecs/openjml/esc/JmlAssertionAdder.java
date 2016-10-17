@@ -3939,7 +3939,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             d.setType(that.type);
             d.docComment = null;
             d.env = null;
-            d.specsDecls = null;
+            d.specsDecl = null;
             d.superSymbol = null;
             d.sym = that.sym;
             d.thisSymbol = null;
@@ -9189,7 +9189,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             n.toplevel = that.toplevel;  // FIXME - translate to new top level
             n.docComment = that.docComment;
             n.env = that.env; // FIXME - translate?
-            n.specsDecls = that.specsDecls; // FIXME - these may be self-references - and I think there are now only one
+            n.specsDecl = that.specsDecl; // FIXME - these may be self-references - and I think there are now only one
             n.typeSpecs = null; //that.typeSpecs; // not copied - FIXME? here and elsewhere
             n.typeSpecsCombined = null; //that.typeSpecsCombined; // not copied
             if (savedClassDefs != null && n.sym.owner instanceof ClassSymbol) {

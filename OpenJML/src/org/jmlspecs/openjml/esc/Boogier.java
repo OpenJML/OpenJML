@@ -2164,7 +2164,7 @@ public class Boogier extends BasicBlockerParent<BoogieProgram.BoogieBlock,Boogie
             if (csym == syms.arrayClass) {
                 // This one is special
                 JmlClassInfo classInfo = new JmlClassInfo(null);
-                classInfo.typeSpecs = new TypeSpecs();
+                classInfo.typeSpecs = new TypeSpecs(csym);  // FIXME - save this inJmlSpecs?
                 classInfo.csym = csym;
                 
                 Type type = syms.objectType;

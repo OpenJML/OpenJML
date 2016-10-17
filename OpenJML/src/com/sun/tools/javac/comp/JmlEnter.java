@@ -163,7 +163,8 @@ public class JmlEnter extends Enter {
      */
     private Env<AttrContext> specTopEnv;
     
-    /** This method visits the designated compilation unit; first it matches
+    /** This method is called when a JmlCompilationUnit is in the list of things to 'enter'.
+     * It visits the designated compilation unit; first it matches
      * class declarations in the specification files to class declarations in
      * Java; then it calls the super class visitTopLevel method to initiate
      * walking the tree; overriding methods in JmlEnter will be called when visiting
@@ -174,6 +175,8 @@ public class JmlEnter extends Enter {
      * class declarations and top-level model declarations.
      */
     public void visitTopLevel(JCCompilationUnit tree) {
+        // Already set: toplevel, sourcefile, specsCompilationUnit, 
+        // Need to set: topLevelEnv
         if (!(tree instanceof JmlCompilationUnit)) {
             log.warning("jml.internal.notsobad","Encountered an unexpected JCCompilationUnit instead of a JmlCompilationUnit in JmlEnter.visitTopeLevel");
             super.visitTopLevel(tree);
@@ -183,23 +186,24 @@ public class JmlEnter extends Enter {
 
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
 
-        // Fill in the toplevel field for each class definition
-        for (JCTree t: tree.defs) {
-            if (t instanceof JmlClassDecl) {
-                ((JmlClassDecl)t).toplevel = jmltree;  // FIXME - this is already done, at lesat for parsed files?
-            }
-        }
+//        // Fill in the toplevel field for each class definition
+//        for (JCTree t: jmltree.defs) {
+//            if (t instanceof JmlClassDecl) {
+//                ((JmlClassDecl)t).toplevel = jmltree;  // FIXME - this is already done, at lesat for parsed files?
+//            }
+//        }
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
 //        jmltree.topLevelEnv = null;
         if (jmltree.specsCompilationUnit == null) {
+            // If this is the case we have called visitTopLevel on a specs file
             specTopEnv = null;
         } else {
             JmlCompilationUnit specscu = jmltree.specsCompilationUnit;
-            for (JCTree t: specscu.defs) {
-                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;
-            }
+//            for (JCTree t: specscu.defs) {
+//                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;
+//            }
             // This if-else statement copied from Enter
             if (specscu.pid != null) {
                 specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
@@ -219,10 +223,9 @@ public class JmlEnter extends Enter {
             specscu.topLevelEnv = specTopEnv;
         }
 
-        // Match specifications to the corresponding Java class
-        ListBuffer<JmlClassDecl> unmatched = new ListBuffer<JmlClassDecl>();
+        // Match specifications to the corresponding Java class, for each (toplevel) class; 
         if (jmltree.specsCompilationUnit != null && jmltree.mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
-            tree.defs = matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, tree.sourcefile.toString(), unmatched);
+            tree.defs = matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, tree.sourcefile.toString());
         }
 
         // Then do all the regular Java registering of packages and types
@@ -306,7 +309,7 @@ public class JmlEnter extends Enter {
      * from corresponding nested locations. The composite list of declarations (to replace 'defs') is returned. Any duplicate
      * orphan declarations are warned about.
      */
-    public List<JCTree> matchClasses(List<JCTree> defs, List<? extends JCTree> specsDefs, String javasource, ListBuffer<JmlClassDecl> unmatched) {
+    public List<JCTree> matchClasses(List<JCTree> defs, List<? extends JCTree> specsDefs, String javasource) {
         ListBuffer<JCTree> newdefs = new ListBuffer<JCTree>();
         if (defs !=  specsDefs) {
             for (JCTree tt: defs) { // Iterate over the Java classes 
@@ -318,87 +321,107 @@ public class JmlEnter extends Enter {
         } else {
             newdefs.addAll(defs);
         }
-        for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification
+        for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification, to find the matching java declaration
             if (!(specDecl instanceof JmlClassDecl)) continue;
-            JmlClassDecl specsClass = (JmlClassDecl)specDecl;
-            boolean isSpecsJML = utils.isJML(specsClass.mods);
-            // The declaration 'specsClass' is in a specification file.
+            JmlClassDecl specClassDecl = (JmlClassDecl)specDecl;
+            boolean isSpecsJML = utils.isJML(specClassDecl.mods);
+            // The declaration 'specClassDecl' is in a specification file.
             // We need to find the Java declaration that it matches
-            // There must be one, and there should only be one declaration in the specsDefs list
+            // There is supposed to be one, and there should only be one declaration in the specsDefs list
             // that matches a particular java declaration.
             // A Java declaration need not have a match
-            Name name = specsClass.name;
+            Name name = specClassDecl.name;
             JmlClassDecl matched = null;
-            for (JCTree tt: newdefs) { // Iterate over the list of classes 
+            for (JCTree tt: newdefs) { // Iterate over the list of Java declarations 
                 if (!(tt instanceof JmlClassDecl)) continue;
                 JmlClassDecl javaDecl = (JmlClassDecl)tt;
                 boolean isJML = utils.isJML(javaDecl.mods);
                 if (name.equals(javaDecl.name)) {
                     matched = javaDecl;
-                    if (javaDecl.specsDecls == null) {
-                        // No previous match
+                    if (javaDecl.specsDecl == null) {
+                        // No previous match, so far
                         if (!isJML && isSpecsJML) {
-                            // A model class (in the specs) matches a java class - error - but use it as a match anyway
-                            utils.error(specsClass.source(), specsClass.pos,
+                            // A specification declaration matches a java declaration,
+                            // but the specification declaration is in a JML annotation - error - but use it as a match anyway
+                            utils.error(specClassDecl.source(), specClassDecl.pos,
                                     "jml.duplicate.model",
-                                    specsClass.name,javasource);
-                            String s = utils.locationString(specsClass.pos, specsClass.source());
+                                    specClassDecl.name,javasource);
+                            String s = utils.locationString(specClassDecl.pos, specClassDecl.source());
                             utils.error(javaDecl.source(), javaDecl.pos,"jml.associated.decl.cf",s);
-                            javaDecl.specsDecls = specsClass; // Attach the specification to the matching Java AST
+                            javaDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
                         } else if (isJML && !isSpecsJML) {
-                            // ERROR - FIXME
-                            javaDecl.specsDecls = specsClass; // Attach the specification to the matching Java AST
-                        } else if (isJML && isSpecsJML && javaDecl != specsClass) {
-                            // ERROR - two JML versions with the same name - FIXME
+                            // A specification declaration matches a java declaration,
+                            // but the declaration in the Java file is in a JML annotation, and the specification declaration is not
+                            // Since if the specs declaration list is different than the Java declaration list, 
+                            // any such JML annotated declarations are removed from the Java declaration list,
+                            // this must be a case of a file containing two declarations with the same name, 
+                            // one in a JML annotation and one not
+                            // Issue and error and omit the JML declaration
+                            newdefs = Utils.remove(newdefs, javaDecl);
+                            if (defs !=  specsDefs) {
+                                utils.error(javaDecl.source(), javaDecl.pos, "jml.internal", "Unexpected JML declaration in the Java file");
+                            } else {
+                                utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+                                utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+                                        utils.locationString(javaDecl.pos, javaDecl.source()));
+                            }
+                        } else if (isJML && isSpecsJML) {
+                            if (javaDecl != specClassDecl) {
+                                // There are two declarations, both in JML annotations, with the same name
+                                utils.error(javaDecl.source(), javaDecl.pos,"jml.duplicate.jml.class.decl", javaDecl.name);
+                                utils.error(specClassDecl.source(), specClassDecl.pos,"jml.associated.decl.cf",
+                                        utils.locationString(javaDecl.pos, javaDecl.source()));
+                                newdefs = Utils.remove(newdefs,specClassDecl);
+                            } else {
+                                // The two declarations are the same one - OK
+                                javaDecl.specsDecl = specClassDecl;
+                            }
                         } else {
                             // else OK match
-                            javaDecl.specsDecls = specsClass; // Attach the specification to the matching Java AST
+                            javaDecl.specsDecl = specClassDecl; // Attach the specification to the matching Java AST
                         }
                     } else {  // Duplicate - warn and ignore
                         if (!isJML) {
                             // This less informational error message is here just to duplicate previous behavior (and the Java compiler) for Java duplicates
-                            utils.error(specsClass.source(), specsClass.pos,"duplicate.class",specsClass.name);
+                            utils.error(specClassDecl.source(), specClassDecl.pos,"duplicate.class",specClassDecl.name);
                         } else {
-                            utils.error(specsClass.source(), specsClass.pos,"jml.duplicate.jml.class.decl",specsClass.name);
-                            utils.error(javaDecl.specsDecls.source(), javaDecl.specsDecls.pos,"jml.associated.decl.cf",
-                                    utils.locationString(specsClass.pos, specsClass.source()));
+                            utils.error(specClassDecl.source(), specClassDecl.pos,"jml.duplicate.jml.class.decl",specClassDecl.name);
+                            utils.error(javaDecl.specsDecl.source(), javaDecl.specsDecl.pos,"jml.associated.decl.cf",
+                                    utils.locationString(specClassDecl.pos, specClassDecl.source()));
                         }
-                        if (!isJML && utils.isJML(javaDecl.specsDecls.mods) && !isSpecsJML) javaDecl.specsDecls = specsClass;
-                        // Remove the duplicate if it is in newdefs
-                        ListBuffer<JCTree> n = new ListBuffer<>();
-                        for (JCTree ttt: newdefs) {
-                            if (ttt != specDecl) n.add(ttt);
-                        }
-                        newdefs = n;
+                        if (!isJML && utils.isJML(javaDecl.specsDecl.mods) && !isSpecsJML) javaDecl.specsDecl = specClassDecl;
+                        newdefs = Utils.remove(newdefs, specClassDecl);
                     }
                     break;
                 }
             }
             if (matched == null) {
-                if (!utils.isJML(specsClass.mods)) {
-                    utils.error(specsClass.source(), specsClass.pos,
+                // This specification file is not matched, so it is like a
+                // model class declaration. Pretend it is one.
+                // If necessary, add information so that it appears to be declared in a JML annotation and as a model class
+                // In any case, add it to the list of declarations to export
+                
+                if (!utils.isJML(specClassDecl.mods)) {
+                    utils.error(specClassDecl.source(), specClassDecl.pos,
                             "jml.orphan.jml.class.decl",
-                            specsClass.name,javasource);
-                    utils.setJML(specsClass.mods);
-                    JCAnnotation x = tokenToAnnotationAST(JmlTokenKind.MODEL, specsClass.pos, specsClass.pos);
+                            specClassDecl.name,javasource);
+                    utils.setJML(specClassDecl.mods);
+                    JCAnnotation x = utils.tokenToAnnotationAST(JmlTokenKind.MODEL, specClassDecl.pos, specClassDecl.pos);
                     boolean has = false;
-                    for (JCAnnotation a: specsClass.getModifiers().getAnnotations()) {
+                    for (JCAnnotation a: specClassDecl.getModifiers().getAnnotations()) {
                         // FIXME - this is an inadequate comparison
                         if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
                     }
-                    if (!has) specsClass.mods.annotations = specsClass.mods.getAnnotations().append(x);
+                    if (!has) specClassDecl.mods.annotations = specClassDecl.mods.getAnnotations().append(x);
                 }
                 
-                // This specification file is not matched, so it is like a
-                // model class declaration. Pretend it is one.
-                
-                specsClass.specsDecls = specsClass;
-                newdefs.add(specsClass);
+                specClassDecl.specsDecl = specClassDecl; specClassDecl.env = null;
+                newdefs.add(specClassDecl);
             }
         }
         return newdefs.toList();
     }
-
+    
     public void matchClassesForBinary(Env<AttrContext> ownerenv, String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
         for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification
             if (!(specDecl instanceof JmlClassDecl)) continue;
@@ -448,6 +471,7 @@ public class JmlEnter extends Enter {
         }
     }
 
+    // FIXME - if we do not need spescTopEnv, then delete this override
     // Overridden to use the specTopEnv when appropriate
     @Override
     public <T extends JCTree> List<Type> classEnter(List<T> trees, Env<AttrContext> env) { 
@@ -474,10 +498,10 @@ public class JmlEnter extends Enter {
         JmlClassDecl thattree = (JmlClassDecl)that;
         boolean isSpecForBinary = thattree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
         
-        // Propagate the reference to the CompilationUnit to nested classes
-        for (JCTree t: that.defs) {
-            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = thattree.toplevel;
-        }
+//        // Propagate the reference to the CompilationUnit to nested classes
+//        for (JCTree t: that.defs) {
+//            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = thattree.toplevel;
+//        }
         
         JmlClassDecl specstree;
         JmlClassDecl jmltree;
@@ -498,7 +522,7 @@ public class JmlEnter extends Enter {
             jmltree = null;
         } else {
             jmltree = thattree;
-            specstree = thattree.specsDecls;
+            specstree = thattree.specsDecl;
         }
 
         if (specstree != null && specstree != jmltree) {
@@ -523,12 +547,11 @@ public class JmlEnter extends Enter {
             
             // Match up specs classes with java classes and adjust for unmatched classes or duplicates
             Env<AttrContext> prevenv = this.env;
-            ListBuffer<JmlClassDecl> unmatched = new ListBuffer<JmlClassDecl>();
             if (specstree != null) {
                 // Attaches specs tree from second list at classdecl.specsDecls for each classdecl in the first list
                 // Matching classes has to come before visitClassDef because we need to filter out any non-Java class declarations
                 // but we cannot add JML classes here because we don't have a class symbol yet
-                that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString(), unmatched);
+                that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString());
             }
             if (cs == null) { 
                 if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = true;
@@ -620,9 +643,10 @@ public class JmlEnter extends Enter {
 
     // FIXME - unify the recording of empty specs with default specs??
     public void recordEmptySpecs(ClassSymbol csymbol) {
-        //log.noticeWriter.println("RECORDING EMPTY SPECS FOR " + csymbol.flatName());
-        // TODO - change this if we store JML specs in boinary files - then could get annotation information from the symbol
-        specs.putSpecs(csymbol,new JmlSpecs.TypeSpecs(null,JmlTree.Maker.instance(context).Modifiers(csymbol.flags(),List.<JCTree.JCAnnotation>nil()),null));
+        // TODO - change this if we store JML specs in binary files - then could get annotation information from the symbol
+        JmlSpecs.TypeSpecs typespecs = new JmlSpecs.TypeSpecs(csymbol, csymbol.sourcefile, JmlTree.Maker.instance(context).Modifiers(csymbol.flags(),List.<JCTree.JCAnnotation>nil()), null);
+        specs.putSpecs(csymbol,typespecs);
+        // FIXME - should we be checking for members_field being null? or should we allow completing to proceed?
         if (csymbol.members_field != null) for (Symbol s: csymbol.getEnclosedElements()) {
             if (s instanceof ClassSymbol) recordEmptySpecs((ClassSymbol)s);
         }
@@ -813,9 +837,16 @@ public class JmlEnter extends Enter {
         return filename.endsWith(classname + Strings.specsSuffix); // FIXME - what if classname is just the tail of the filename
     }
 
-    /** Overrides Enter.main simply to add to the list of compilation units 
-     * being processed the compilation units representing the specs of binary
-     * classes.  This is so that they will get type checked.
+    /** The net result of this call is that all classes, including secondary and nested classes (but not local classes)
+     * defined in the given list of source code compilation units are created:
+     *    a symbol is defined, 
+     *    a typespecs structure is created and initialized with class-level annotations,
+     *    for each class the JmlClassDecl.specsDecls field is filled in with the JmlClassDecl for the specifications (if any) 
+     * But no members other than call members are processed.
+     * Note that the compilation units in the argument list are all JmlCOmpilationUnits; the
+     * tree.specsCompilationUnit field is filled in either with a reference to the same java source compilation unit or to the
+     * specs compilation unit obtained by parsing the corresponding .jml file.
+     * are created: a symbol is defined
      * 
      * @param trees the parse trees coming from the user-specified list of
      * files to process
@@ -823,27 +854,7 @@ public class JmlEnter extends Enter {
     @Override
     public void main(List<JCCompilationUnit> trees) {
         super.main(trees);
-//        // FIXME - these are not currently used - but perhaps should be to get the binary envs type checked
-//        for (JmlCompilationUnit jcu: binaryEnvs) {
-//            trees.append(jcu);
-//        }
-//        binaryEnvs.clear();
     }
     
-    public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
-            int position, int endpos) {
-        Class<?> c = jt.annotationType;
-        if (c == null) return null;
-        JmlTree.Maker F = JmlTree.Maker.instance(context);
-        JCExpression t = (F.at(position).Ident(names.fromString("org")));
-        t = (F.at(position).Select(t, names.fromString("jmlspecs")));
-        t = (F.at(position).Select(t, names.fromString("annotation")));
-        t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
-        JCAnnotation ann = (F.at(position).Annotation(t,
-                List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-        return ann;
-    }
-
 
 }

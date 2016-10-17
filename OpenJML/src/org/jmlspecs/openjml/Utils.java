@@ -42,11 +42,14 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
@@ -751,6 +754,32 @@ public class Utils {
             }
         }
         return s;
+    }
+
+    /** Removes an element from a ListBuffer, if there is one, and return the new list */
+    public static <T> ListBuffer<T> remove(ListBuffer<T> list, T element) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        for (T ttt: list) {
+            if (ttt != element) n.add(ttt);
+        }
+        return n;
+    }
+    
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+            int position, int endpos) {
+        Class<?> c = jt.annotationType;
+        if (c == null) return null;
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        Names names = Names.instance(context);
+        JCExpression t = (F.at(position).Ident(names.fromString("org")));
+        t = (F.at(position).Select(t, names.fromString("jmlspecs")));
+        t = (F.at(position).Select(t, names.fromString("annotation")));
+        t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCAnnotation ann = (F.at(position).Annotation(t,
+                com.sun.tools.javac.util.List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        return ann;
     }
 
 

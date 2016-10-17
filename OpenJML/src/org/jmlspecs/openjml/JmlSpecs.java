@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.Platform;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseSignalsOnly;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -1072,11 +1073,11 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClause> clauses;
 
-        public ListBuffer<JmlTree.JmlTypeClauseDecl> decls;
+        public ListBuffer<JmlTree.JmlTypeClauseDecl> decls;  // FIXME - get rid of this - these are all incorporated into the class itself
 
-        /** All the model types directly declared in this type */
-        @NonNull
-        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();
+//        /** All the model types directly declared in this type */
+//        @NonNull
+//        public ListBuffer<JmlTree.JmlClassDecl> modelTypes = new ListBuffer<JmlTree.JmlClassDecl>();  // FIXME - get rid of this
         
         /** Synthetic methods for model fields (these are also included in the clauses list) */
         /*@ non_null */
@@ -1105,10 +1106,10 @@ public class JmlSpecs {
         /*@ nullable */ // will be null if there is no static_initializer specification
         public JmlTypeClauseInitializer staticInitializerSpec = null;
         
-        // FIXME - comment
-        public JmlMethodDecl checkInvariantDecl;
-        // FIXME - comment
-        public JmlMethodDecl checkStaticInvariantDecl;
+//        // FIXME - comment
+//        public JmlMethodDecl checkInvariantDecl;
+//        // FIXME - comment
+//        public JmlMethodDecl checkStaticInvariantDecl;
         
         /** A quite empty and unfinished TypeSpecs object for a given class,
          * possibly but not necessarily one that has only specs and binary,
@@ -1125,8 +1126,9 @@ public class JmlSpecs {
         }
         
         // TODO - comment - only partially fills in the class - used for a binary file - I think everything is pretty much empty and null
-        public TypeSpecs(JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
+        public TypeSpecs(ClassSymbol csymbol, JavaFileObject file, JCTree.JCModifiers mods, ListBuffer<JmlTree.JmlTypeClause> clauses) {
             this.file = file;
+            this.csymbol = csymbol;
             this.decl = null;
             this.modifiers = mods;
             this.clauses = clauses != null ? clauses : new ListBuffer<>();
@@ -1146,15 +1148,15 @@ public class JmlSpecs {
                     : new ListBuffer<>();
         }
         
-        // Use when there is no spec for the type symbol (but records the fact
-        // that we looked and could not find one)
-        public TypeSpecs() {
-            this.file = null;
-            this.decl = null;
-            this.modifiers = null;
-            this.clauses = new ListBuffer<>();
-            this.decls = new ListBuffer<>();
-        }
+//        // Use when there is no spec for the type symbol (but records the fact
+//        // that we looked and could not find one)
+//        public TypeSpecs() {
+//            this.file = null;
+//            this.decl = null;
+//            this.modifiers = null;
+//            this.clauses = new ListBuffer<>();
+//            this.decls = new ListBuffer<>();
+//        }
         
         public String toString() {
             StringWriter s = new StringWriter();
@@ -1223,7 +1225,7 @@ public class JmlSpecs {
                 } 
             } else {
                 JCModifiers mods = spec.refiningSpecDecls.mods;
-                if (spec.decl.specsDecls != null) mods = spec.decl.specsDecls.mods;
+                if (spec.decl.specsDecl != null) mods = spec.decl.specsDecl.mods;
                 if (utils.findMod(mods, attr.nullablebydefaultAnnotationSymbol) != null) {
                     t = JmlTokenKind.NULLABLE;
                 } else if (utils.findMod(mods, attr.nonnullbydefaultAnnotationSymbol) != null) {
@@ -1315,9 +1317,9 @@ public class JmlSpecs {
     
     public boolean isNonNull(JmlClassDecl decl) { // FIXM E- change this to return the token that defines the nullity
         makeAnnotationSymbols();
-        if (decl.specsDecls != null) {
-            if (utils.findMod(decl.specsDecls.mods, nullablebydefaultAnnotationSymbol) != null) return false;
-            if (utils.findMod(decl.specsDecls.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
+        if (decl.specsDecl != null) {
+            if (utils.findMod(decl.specsDecl.mods, nullablebydefaultAnnotationSymbol) != null) return false;
+            if (utils.findMod(decl.specsDecl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
         } else {
             if (utils.findMod(decl.mods, nullablebydefaultAnnotationSymbol) != null) return false;
             if (utils.findMod(decl.mods, nonnullbydefaultAnnotationSymbol) != null) return true;
@@ -1423,7 +1425,7 @@ public class JmlSpecs {
      * stored specs structure.
      */
     public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl principalDecl, /*@ nullable */  JmlClassDecl specTypeDecl) {
-        JmlSpecs.TypeSpecs tspecs = new TypeSpecs();
+        JmlSpecs.TypeSpecs tspecs = new TypeSpecs(sym);
         putSpecs(sym, tspecs);
         tspecs.csymbol = sym;
         tspecs.decl = specTypeDecl;
@@ -1550,6 +1552,41 @@ public class JmlSpecs {
             
         }
     }
+    
+    /** Finds the specs file for a given compilation unit.
+     * @param jmlcu The compilation unit of the Java source, if any
+     * @param specs if true, looks for any specs file; if false, looks for Java file
+     * @return the source object of the specifications
+     */
+    /*@ nullable */
+    public JavaFileObject findSpecs(JmlCompilationUnit jmlcu, boolean specs) {
+        JCTree.JCExpression pkgName = jmlcu.getPackageName();
+        String pack = pkgName == null ? null : pkgName.toString();
+        String filepath = jmlcu.getSourceFile().getName();
+        // In the following, we need a name as the prefix to look for the specs.
+        // That is supposed to be the same as the name of the public class within
+        // the file, and thus the same as the name of the file itself.
+        // However, a file may have no public classes within it - so 
+        // the best indication of the spec file name is the name of the
+        // java file just parsed.
+        // (TODO) Unfortunately, there is no guarantee as to what getName()
+        // will return.  It would be safer, but a pain, to dismember the 
+        // associated URI. (getName is even deprecated within some subclasses)
+        int i = filepath.lastIndexOf('/');
+        int ii = filepath.lastIndexOf('\\');
+        if (i < ii) i = ii;
+        int k = filepath.lastIndexOf(".");
+        String rootname = k >= 0 ? filepath.substring(i+1,k) : filepath.substring(i+1);
+        JavaFileObject f;
+        if (specs) {
+            f = JmlSpecs.instance(context).findAnySpecFile(pack == null ? rootname : (pack + "." + rootname));
+        } else {
+            rootname = rootname + Strings.javaSuffix;
+            f = JmlSpecs.instance(context).findSpecificSourceFile(pack == null ? rootname : (pack + "." + rootname));
+        }
+        return f;
+    }
+
     
 }
 

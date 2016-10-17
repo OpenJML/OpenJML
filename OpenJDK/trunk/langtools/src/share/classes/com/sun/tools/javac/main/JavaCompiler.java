@@ -775,10 +775,11 @@ public class JavaCompiler {
         JavaFileObject prev = log.useSource(filename);
 
         try {
-            tree = parse(filename, filename.getCharContent(false));
-        } catch (IOException e) {
-            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
-            tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(), null, List.<JCTree>nil());
+            tree = parse(filename); // DRC - nchanged this so the endPositionTable is set
+//            // FIXME - can we just use parse(filename) here
+//        } catch (IOException e) {
+//            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
+//            tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(), null, List.<JCTree>nil());
         } finally {
             log.useSource(prev);
         }

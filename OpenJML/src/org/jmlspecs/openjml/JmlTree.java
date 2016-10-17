@@ -206,9 +206,6 @@ public class JmlTree implements IJmlTree {
                     defs,
                     null,null,null,null);
             t.pos = this.pos;
-            for (JCTree d: defs) {
-                if (d instanceof JmlClassDecl) ((JmlClassDecl)d).toplevel = t;
-            }
             return t;
         }
         
@@ -804,13 +801,13 @@ public class JmlTree implements IJmlTree {
          *  This field may point to 'this' if the compilation unit is its own specs file. */
         public /*@ nullable */ JmlCompilationUnit specsCompilationUnit = null;
         
-        /** This list contains the top-level model types declared in this compilation unit; this
-         * is not necessarily all or even part of the top-level model types that the CUs specifications
-         * specify, since (a) other spec files may contribute top-level model types 
-         * and (b) this CU may not be part of its own spec sequence.
-         */
-        public ListBuffer<JmlClassDecl> parsedTopLevelModelTypes = new ListBuffer<JmlClassDecl>();
-        
+//        /** This list contains the top-level model types declared in this compilation unit; this
+//         * is not necessarily all or even part of the top-level model types that the CUs specifications
+//         * specify, since (a) other spec files may contribute top-level model types 
+//         * and (b) this CU may not be part of its own spec sequence.
+//         */
+//        public ListBuffer<JmlClassDecl> parsedTopLevelModelTypes = new ListBuffer<JmlClassDecl>();
+//        
 //        /** This list is the set of top-level model types specified by the
 //         * CUs specifications.  It is assembled when types are entered in JmlEnter.
 //         */
@@ -987,7 +984,7 @@ public class JmlTree implements IJmlTree {
          * containing class. It may be the same as the containing class, or a different AST
          * (e.g., from a .jml file), or null if there are no specifications for this class.
          */
-        public /*@Nullable*/ JmlClassDecl specsDecls;
+        public /*@Nullable*/ JmlClassDecl specsDecl;
 
         /** This field is the combination of specifications from all
          * specification sources (valid for the Java declaration, or, for
@@ -1028,7 +1025,7 @@ public class JmlTree implements IJmlTree {
                 List<JCExpression> implementing, List<JCTree> defs,
                 ClassSymbol sym) {
             super(mods, name, typarams, extending, implementing, defs, sym);
-            specsDecls = null;
+            specsDecl = null;
             typeSpecs = null;
         }
         

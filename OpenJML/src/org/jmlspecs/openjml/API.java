@@ -426,7 +426,7 @@ public class API implements IAPI {
      */
     @Override public @Nullable
     JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
-        return ((JmlCompiler)JmlCompiler.instance(context())).findSpecs(jmlcu,true);
+        return JmlSpecs.instance(context()).findSpecs(jmlcu,true);
     }
 
 

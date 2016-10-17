@@ -187,24 +187,29 @@ public class JmlParser extends JavacParser {
     @Override
     public JCTree.JCCompilationUnit parseCompilationUnit() {
         JCTree.JCCompilationUnit u = super.parseCompilationUnit();
-        if (u instanceof JmlCompilationUnit) {
-            JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
-            // Set the toplevel field for all classes declared in the compilation unit
-            for (JCTree t : u.defs) {
-                if (t instanceof JmlClassDecl) {
-                    JmlClassDecl jcd = (JmlClassDecl) t;
-                    jcd.toplevel = jmlcu;
-                }
-            }
-        } else {
+        if (!(u instanceof JmlCompilationUnit)) {
             log.error(
                     "jml.internal",
                     "JmlParser.compilationUnit expects to receive objects of type JmlCompilationUnit, but it found a "
                             + u.getClass()
                             + " instead, for source "
                             + u.getSourceFile().toUri().getPath());
+        } else {
+            JmlCompilationUnit jmlcu = (JmlCompilationUnit) u;
+            setTopLevel(jmlcu,jmlcu.defs);
         }
         return u;
+    }
+    
+    /** Recursively sets the toplevel field of class declarations */
+    private void setTopLevel(JmlCompilationUnit cu, List<JCTree> defs) {
+        for (JCTree t : defs) {
+            if (t instanceof JmlClassDecl) {
+                JmlClassDecl jcd = (JmlClassDecl) t;
+                jcd.toplevel = cu;
+                setTopLevel(cu, jcd.defs);
+            }
+        }
     }
 
     /**
