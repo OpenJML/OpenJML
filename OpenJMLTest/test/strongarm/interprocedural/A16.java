@@ -16,29 +16,5 @@ public class A16 {
 	int tmp = add(a, b);
 	
 	return tmp * 100;
-    }
-    
-  //@ requires true;
-    public int localTest3(int a, int b){
-	int tmp = add(a, b);
-	
-	if(tmp > 100){
-	    return tmp * 100;
-	}else{
-	    return tmp * 50;	    
-	}
-	
-    }
-    
-   
-    
-   public int localTest2(int a, int b){
-	int tmp = add(a, b);
-	
-	return tmp * this.FIELD;
-   }
-    
-    
-
-    
+    }    
 }
