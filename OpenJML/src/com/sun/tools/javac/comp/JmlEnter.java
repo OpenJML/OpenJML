@@ -185,25 +185,15 @@ public class JmlEnter extends Enter {
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
 
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
-
-//        // Fill in the toplevel field for each class definition
-//        for (JCTree t: jmltree.defs) {
-//            if (t instanceof JmlClassDecl) {
-//                ((JmlClassDecl)t).toplevel = jmltree;  // FIXME - this is already done, at lesat for parsed files?
-//            }
-//        }
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
-//        jmltree.topLevelEnv = null;
         if (jmltree.specsCompilationUnit == null) {
             // If this is the case we have called visitTopLevel on a specs file
             specTopEnv = null;
         } else {
             JmlCompilationUnit specscu = jmltree.specsCompilationUnit;
-//            for (JCTree t: specscu.defs) {
-//                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;
-//            }
+
             // This if-else statement copied from Enter
             if (specscu.pid != null) {
                 specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
@@ -258,9 +248,9 @@ public class JmlEnter extends Enter {
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + specscu.sourcefile.getName());
 
         // Fill in the toplevel field for each class definition
-        for (JCTree t: specscu.defs) {
-            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;  // FIXME - this is already done, at lesat for parsed files?
-        }
+//        for (JCTree t: specscu.defs) {
+//            if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = specscu;  // FIXME - this is already done, at lesat for parsed files?
+//        }
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
@@ -281,18 +271,15 @@ public class JmlEnter extends Enter {
         specTopEnv = topLevelEnv(specscu);
         specscu.topLevelEnv = specTopEnv;
 
-        // Checking that the specs and the java source declare the same package  -- FIXME
-//        if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
-//
-//            if (specscu.packge != specscu.packge) {
-////            if (((jmltree.pid == null) != (specscu.pid == null)) || 
-////                    (jmltree.pid != null && specscu.pid != null && !jmltree.pid.toString().equals(specscu.pid.toString()))) {
-//                utils.error(specscu.sourcefile,specscu.getPackageName().pos,"jml.internal","The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString() + ", which does not match the .java file: " + jmltree.packge.toString()));
-//                String s = utils.locationString(specscu.getPackageName().pos, specscu.sourcefile);
-//                utils.error(jmltree.getSourceFile(), jmltree.getPackageName().pos,"jml.associated.decl.cf",s);
-//            }
-////            specscu.packge = jmltree.packge;
-//        }
+        // Checking that the specs and the class symbol use the same package
+        for (JCTree t: specscu.defs) {
+            if (t instanceof JmlClassDecl) {
+                JmlClassDecl jdecl = (JmlClassDecl)t;
+                if (jdecl.superSymbol.owner != specscu.packge) {
+                    utils.error(specscu.sourcefile,specscu.getPackageName().pos,"jml.internal","The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString() + ", which does not match the binary file: " + jdecl.superSymbol.owner.toString()));
+                }
+            }
+        }
 
         // Match specifications to the corresponding Java class
         {
