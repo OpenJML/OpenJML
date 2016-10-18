@@ -39,6 +39,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /** 
  * This class extends Enter, which has the job of creating symbols for all the
@@ -271,15 +272,16 @@ public class JmlEnter extends Enter {
         specTopEnv = topLevelEnv(specscu);
         specscu.topLevelEnv = specTopEnv;
 
-        // Checking that the specs and the class symbol use the same package
-        for (JCTree t: specscu.defs) {
-            if (t instanceof JmlClassDecl) {
-                JmlClassDecl jdecl = (JmlClassDecl)t;
-                if (jdecl.superSymbol.owner != specscu.packge) {
-                    utils.error(specscu.sourcefile,specscu.getPackageName().pos,"jml.internal","The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString() + ", which does not match the binary file: " + jdecl.superSymbol.owner.toString()));
-                }
-            }
-        }
+        // FIXME - check this somewhere
+//        // Checking that the specs and the class symbol use the same package
+//        for (JCTree t: specscu.defs) {
+//            if (t instanceof JmlClassDecl) {
+//                JmlClassDecl jdecl = (JmlClassDecl)t;
+//                if (jdecl.sym.owner != specscu.packge) {
+//                    utils.error(specscu.sourcefile,specscu.getPackageName().pos,"jml.internal","The package in " + specscu.sourcefile.getName() + " is " + (specscu.pid == null ? "<default>" : specscu.pid.toString() + ", which does not match the binary file: " + jdecl.superSymbol.owner.toString()));
+//                }
+//            }
+//        }
 
         // Match specifications to the corresponding Java class
         {
@@ -850,6 +852,13 @@ public class JmlEnter extends Enter {
 ////        }
 //
 //    }
+
+    /** Complain about a duplicate class. */
+    @Override
+    protected void duplicateClass(DiagnosticPosition pos, ClassSymbol c) {
+        if (((JmlCheck)chk).noDuplicateWarn) return;
+        log.error(pos, "duplicate.class", c.fullname);
+    }
 
 
     @Override

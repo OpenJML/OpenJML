@@ -387,13 +387,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // class symbol, even if the TypeSpecs is empty
                 log.warning("jml.internal.notsobad","loadSpecsForBinary failed for class " + c);
                 c.complete(); // At least complete it
-//                return;
             } 
-//            if (classSpecs.decl == null) {
-//                // No specs were found for a binary file, so there is nothing to attribute
-//                c.complete(); // At least complete it
-//                return;
-//            }
         }
 
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
