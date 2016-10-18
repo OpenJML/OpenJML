@@ -23,6 +23,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
+import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
@@ -158,6 +159,14 @@ public class Utils {
      */
     public boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
+    }
+    
+    /** Tests whether the given tree was directly parsed as part of JML annotation;
+     * nested declarations that are not themselves directly in a JML comment will return false, 
+     * even if they are nested in a class that itself is directly in a JML comment.
+     */
+    public boolean isJML(JCTree t) {
+        return (t instanceof IInJML) && ((IInJML)t).isJML();
     }
 
     /** Tests whether the JML flag is set in the given bit-vector
@@ -764,6 +773,16 @@ public class Utils {
             if (ttt != element) n.add(ttt);
         }
         return n;
+    }
+    
+    /** Removes an element from a List, if there is one, and return the new list */
+    public static <T> com.sun.tools.javac.util.List<T> remove(com.sun.tools.javac.util.List<T> list, T element) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        for (T ttt: list) {
+            if (ttt != element) n.add(ttt);
+        }
+        return n.toList();
     }
     
     public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,

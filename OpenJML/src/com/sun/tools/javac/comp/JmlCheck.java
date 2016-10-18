@@ -4,11 +4,15 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
+import static com.sun.tools.javac.code.Kinds.kindName;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
@@ -16,8 +20,10 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Warner;
@@ -129,8 +135,10 @@ public class JmlCheck extends Check {
     }
     
     boolean noDuplicateWarn = false;
+    DiagnosticPosition duplicateErrorPosition = null;
     void duplicateError(DiagnosticPosition pos, Symbol sym) {
-        if (!noDuplicateWarn) super.duplicateError(pos, sym);
+        if (noDuplicateWarn) return;
+        super.duplicateError(pos, sym);
     }
     
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {

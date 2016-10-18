@@ -106,29 +106,56 @@ public class modelghost extends TCBase {
                 "  /*@ model */ int p2();\n" +  // BAD
                 "  //@ int q();\n" +  // BAD
                 "}"
-                ,"/A.java:8: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
-                ,"/A.java:16: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
-                ,"/A.java:38: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+                // errors in a different order in Java 8
                 ,"/A.java:4: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:5: missing method body, or declare abstract",8
                 ,"/A.java:7: missing method body, or declare abstract",20
                 ,"/A.java:7: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:8: A method or type declaration within a JML annotation must be model",11
                 ,"/A.java:12: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:13: missing method body, or declare abstract",8
                 ,"/A.java:15: missing method body, or declare abstract",20
                 ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:16: A method or type declaration within a JML annotation must be model",11
                 ,"/A.java:20: A model type may not contain model declarations",13
                 ,"/A.java:21: missing method body, or declare abstract",8
                 ,"/A.java:22: missing method body, or declare abstract",13
                 ,"/A.java:22: A model type may not contain model declarations",13
-                ,"/A.java:34: A Java declaration (not within a JML annotation) may not be either ghost or model",20
-                ,"/A.java:35: missing method body, or declare abstract",8
-                ,"/A.java:37: missing method body, or declare abstract",20
-                ,"/A.java:37: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:27: A model type may not contain model declarations",14
                 ,"/A.java:28: missing method body, or declare abstract",8
                 ,"/A.java:29: missing method body, or declare abstract",14
                 ,"/A.java:29: A model type may not contain model declarations",14
+                ,"/A.java:34: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:35: missing method body, or declare abstract",8
+                ,"/A.java:37: missing method body, or declare abstract",20
+                ,"/A.java:37: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:38: A method or type declaration within a JML annotation must be model",11  // FIXME - beginning of declaration?
+
+                
+                
+//                ,"/A.java:8: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:16: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:38: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:4: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:5: missing method body, or declare abstract",8
+//                ,"/A.java:7: missing method body, or declare abstract",20
+//                ,"/A.java:7: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:12: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:13: missing method body, or declare abstract",8
+//                ,"/A.java:15: missing method body, or declare abstract",20
+//                ,"/A.java:15: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:20: A model type may not contain model declarations",13
+//                ,"/A.java:21: missing method body, or declare abstract",8
+//                ,"/A.java:22: missing method body, or declare abstract",13
+//                ,"/A.java:22: A model type may not contain model declarations",13
+//                ,"/A.java:34: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:35: missing method body, or declare abstract",8
+//                ,"/A.java:37: missing method body, or declare abstract",20
+//                ,"/A.java:37: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:27: A model type may not contain model declarations",14
+//                ,"/A.java:28: missing method body, or declare abstract",8
+//                ,"/A.java:29: missing method body, or declare abstract",14
+//                ,"/A.java:29: A model type may not contain model declarations",14
                 );
     }
     
@@ -291,19 +318,36 @@ public class modelghost extends TCBase {
                 "  /*@ ghost */ int m2a;\n" + // BAD
                 "  //@ int q;\n" +  // BAD
                 "}"
-                ,"/A.java:7: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
-                ,"/A.java:14: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
-                ,"/A.java:33: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+                // Order changed for Java8
                 ,"/A.java:5: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:6: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:7: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:12: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:13: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:14: A declaration within a JML annotation must be either ghost or model",11
                 ,"/A.java:18: A model type may not contain model declarations",15
                 ,"/A.java:19: A model type may not contain ghost declarations",15
-                ,"/A.java:31: A Java declaration (not within a JML annotation) may not be either ghost or model",20
-                ,"/A.java:32: A Java declaration (not within a JML annotation) may not be either ghost or model",20
                 ,"/A.java:25: A model type may not contain model declarations",14
                 ,"/A.java:25: A model type may not contain ghost declarations",28
+                ,"/A.java:31: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:32: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+                ,"/A.java:33: A declaration within a JML annotation must be either ghost or model",11 // FIXME - beginning of declaration?
+                
+                
+                
+//                ,"/A.java:7: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:14: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:33: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: int",7
+//                ,"/A.java:5: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:6: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:12: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:13: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:18: A model type may not contain model declarations",15
+//                ,"/A.java:19: A model type may not contain ghost declarations",15
+//                ,"/A.java:31: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:32: A Java declaration (not within a JML annotation) may not be either ghost or model",20
+//                ,"/A.java:25: A model type may not contain model declarations",14
+//                ,"/A.java:25: A model type may not contain ghost declarations",28
                 );
     }
     

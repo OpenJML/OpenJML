@@ -48,12 +48,14 @@ public class matchClasses  extends TCBase {
         		);
     }
     
-    // FIXME - the word JML in error message is inappropriate
     @Test public void testModelDup() {
         helpTCF("$A/A.java",
         		"public class A {  } /*@ model  class A {} */"
-        		,"/$A/A.java:1: This specification declaration of type A has the same name as a previous JML type declaration",32
-        		,"/$A/A.java:1: Associated declaration: /$A/A.java:1: ",8
+        		// Changed for Java 8
+        		,"/$A/A.java:1: duplicate class: A",32
+        		
+//        		,"/$A/A.java:1: This specification declaration of type A has the same name as a previous JML type declaration",32
+//        		,"/$A/A.java:1: Associated declaration: /$A/A.java:1: ",8
         		);
     }
 
@@ -88,8 +90,11 @@ public class matchClasses  extends TCBase {
     	addMockFile("$A/A.jml", "public class A {  } class A {}");
         helpTCF("$A/A.java",
         		"  public class A {  } "
-        		,"/$A/A.jml:1: This specification declaration of type A has the same name as a previous JML type declaration",21
-        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:1: ",8
+        		// Changed for Java 8
+        		,"/$A/A.jml:1: duplicate class: A",21
+        		
+//        		,"/$A/A.jml:1: This specification declaration of type A has the same name as a previous JML type declaration",21
+//        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:1: ",8
         		);
     }
     
@@ -97,8 +102,11 @@ public class matchClasses  extends TCBase {
     	addMockFile("$A/A.jml", "public class A {  } \n/*@ model class A {} */");
         helpTCF("$A/A.java",
         		"  public class A {  } "
-        		,"/$A/A.jml:2: This specification declaration of type A has the same name as a previous JML type declaration",11
-        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",8
+        		// Changed for Java 8
+        		,"/$A/A.jml:2: duplicate class: A",11
+
+//        		,"/$A/A.jml:2: This specification declaration of type A has the same name as a previous JML type declaration",11
+//        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",8
         		);
     }
     
@@ -106,8 +114,11 @@ public class matchClasses  extends TCBase {
     	addMockFile("$A/A.jml", "public class A {  } \n/*@ class A {} */");
         helpTCF("$A/A.java",
         		"public class A {  } "
-        		,"/$A/A.jml:2: This specification declaration of type A has the same name as a previous JML type declaration",5
-        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",8
+        		// Changed for Java 8
+        		,"/$A/A.jml:2: duplicate class: A",5
+
+//        		,"/$A/A.jml:2: This specification declaration of type A has the same name as a previous JML type declaration",5
+//        		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",8
         		); // FIXME - missing the missing model complaint
     }
     
@@ -392,6 +403,7 @@ public class matchClasses  extends TCBase {
     	addMockFile("$A/A.jml", "public class A { \n/*@  int k(){return 0;}  */ }");
         helpTCF("$A/A.java",
         		"public class A { int j(){return 0;}  } "
+        		,"/$A/A.jml:2: The specification of the method A.k() must not have a body",13 // Added for Java 8
         		,"/$A/A.jml:2: A method or type declaration within a JML annotation must be model",10 
         		);
     }

@@ -123,10 +123,7 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-                        // Change in output for Java8
-//        ,"/$A/A.jml:2: variable k is already defined in class A",21
-		,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",21
-		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",16
+        ,"/$A/A.jml:2: variable k is already defined in class A",21
 
         );
     }
@@ -138,11 +135,9 @@ public class namelookup extends TCBase {
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
                 "}"
-                // Java 8
-                ,"/A.java:2: This specification declaration of field k has the same name as a previous field declaration", 21
-                ,"/A.java:1: Associated declaration: /A.java:2: ", 16
-                // Java 7
-                //,"/A.java:2: variable k is already defined in class A",21
+                //,"/A.java:2: This specification declaration of field k has the same name as a previous field declaration", 21
+                //,"/A.java:1: Associated declaration: /A.java:2: ", 16
+                ,"/A.java:2: variable k is already defined in class A",21
                 );
     }
 
@@ -219,14 +214,8 @@ public class namelookup extends TCBase {
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
-        // Java 8
-        ,"/A.java:2: Method k() is already defined in class A",21
-        ,"/A.java:1: Associated declaration: /A.java:2: ", 18
-        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
-
-        // Java 7
-//        ,"/A.java:2: method k() is already defined in class A",21
-//        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
+		        ,"/A.java:2: method k() is already defined in class A",21
+		        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
         );
     }
 

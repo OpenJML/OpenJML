@@ -69,7 +69,7 @@ public class Check {
 
     protected Context context; // OPENJML - added
     protected final Names names; // OPENJML - changed from private to protected
-    private final Log log;
+    protected final Log log;// OPENJML - changed from private to protected
     private final Resolve rs;
     private final Symtab syms;
     private final Enter enter;

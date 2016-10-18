@@ -610,9 +610,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             m.flags_field |= Flags.VARARGS;
 
         localEnv.info.scope.leave();
-        if (chk.checkUnique(tree.pos(), m, enclScope)) {
-        enclScope.enter(m);
-        }
+        visitMethodDefHelper(tree, m, enclScope); // OPENJML - added to allow overriding some functionality
 
         annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
         // Visit the signature of the method. Note that
@@ -621,6 +619,21 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
         if (tree.defaultValue != null)
             annotateDefaultValueLater(tree.defaultValue, localEnv, m);
+    }
+    
+    // OPENJML - added to allow overriding some functionality
+    protected void visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
+        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+            enclScope.enter(m);
+        }
+    }
+
+    // OPENJML - added to allow overriding some functionality
+    protected void visitFieldDefHelper(JCVariableDecl tree, VarSymbol v, Scope enclScope) {
+        if (chk.checkUnique(tree.pos(), v, enclScope)) {
+            chk.checkTransparentVar(tree.pos(), v, enclScope);
+            enclScope.enter(v);
+        }
     }
 
     /** Create a fresh environment for method bodies.
@@ -689,10 +702,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                 v.setLazyConstValue(initEnv(tree, initEnv), attr, tree);
             }
         }
-        if (chk.checkUnique(tree.pos(), v, enclScope)) {
-            chk.checkTransparentVar(tree.pos(), v, enclScope);
-            enclScope.enter(v);
-        }
+        visitFieldDefHelper(tree, v, enclScope); // OPENJML - added to allow overriding some functionality
         annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         typeAnnotate(tree.vartype, env, v, tree.pos());
         v.pos = tree.pos;
