@@ -412,7 +412,11 @@ public class JmlEnter extends Enter {
                         // FIXME - this is an inadequate comparison
                         if (((JCTree.JCFieldAccess)a.annotationType).name == ((JCTree.JCFieldAccess)x.annotationType).name) { has = true; break; }
                     }
-                    if (!has) specClassDecl.mods.annotations = specClassDecl.mods.getAnnotations().append(x);
+                    if (!has) {
+                        specClassDecl.mods.annotations = specClassDecl.mods.getAnnotations().append(x);
+                    } else {
+                        utils.error(specClassDecl.source(), specClassDecl.pos, "jml.ghost.model.on.java");
+                    }
                 }
                 
                 specClassDecl.specsDecl = specClassDecl; specClassDecl.env = null;
@@ -959,11 +963,13 @@ public class JmlEnter extends Enter {
         
         {
             Env<AttrContext> localEnv = getEnv(that.sym);
-            specstree.sym = that.sym;
-            specstree.env = localEnv;
             thattree.env = localEnv;
             if (jmltree != null) {
                 jmltree.env = localEnv;
+            }
+            if (specstree != null) {
+                specstree.sym = that.sym;
+                specstree.env = localEnv;
             }
         }
 
@@ -971,7 +977,7 @@ public class JmlEnter extends Enter {
         {
             JmlSpecs.TypeSpecs tsp = specs.combineSpecs(that.sym,jmltree,specstree);
             if (jmltree != null) jmltree.typeSpecs = tsp;
-            specstree.typeSpecs = tsp;
+            if (specstree != null) specstree.typeSpecs = tsp;
         }
 
     }

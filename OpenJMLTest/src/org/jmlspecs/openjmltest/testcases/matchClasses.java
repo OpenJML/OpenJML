@@ -296,7 +296,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j(){return 0;}  \n/*@ model */ int j(){return 0;} } "
         		,"/$A/A.java:2: method j() is already defined in class A",18
-        		,"/$A/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model",18
+        		,"/$A/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model",5
         		);
     }
     
@@ -304,7 +304,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j(){return 0;}  \n/*@ int j(){return 0;}  */} "
         		,"/$A/A.java:2: method j() is already defined in class A",9
-        		,"/$A/A.java:2: A declaration within a JML annotation must be either ghost or model",9
+        		//,"/$A/A.java:2: A declaration within a JML annotation must be either ghost or model",9 // Duplicate ignored in Java 8
         		);
     }
     
@@ -361,7 +361,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j(){return 0;} } "
         		,"/$A/A.jml:2: A Java declaration (not within a JML annotation) may not be either ghost or model",5
-        		,"/$A/A.jml:2: This method name is used more than once: j",18
+        		,"/$A/A.jml:2: Method j() is already defined in class A",18 
         		,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",22
         		);
     }
@@ -380,7 +380,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j(){return 0;}  } "
         		,"/$A/A.jml:2: method j() is already defined in class A",9
-        		,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9 
+        		//,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9 // duplicate ignored in Java 8
         		);
     }
     

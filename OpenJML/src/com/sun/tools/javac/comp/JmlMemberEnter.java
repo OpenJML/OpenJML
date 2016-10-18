@@ -37,6 +37,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
@@ -217,6 +218,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Adjust the members of jtree - if there is a separate specs file, then remove any JML declarations in the Java file and 
         // replace them with JML declaratinos from the specs file
         
+        boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
         boolean prevEntering = noEntering;
         if (!isSpecForBinary) {
             ListBuffer<JCTree> defs = new ListBuffer<>();
@@ -244,22 +246,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     }
                 }
                 jtree.defs = defs.toList();
-                if (isSpecForBinary) dojml = true;
+                dojml = true;
+                JmlCheck.instance(context).noDuplicateWarn = false;
                 for (JCTree t: jtree.defs) {
-                    boolean jml = (t instanceof IInJML) && ((IInJML)t).isJML();
-                    noEntering = !jml && isSpecForBinary;
-
-//                    JmlCheck.instance(context).noDuplicateWarn = !jml;
-//                    noEntering = !jml;
+                    if (t instanceof JmlSource) log.useSource(((JmlSource)t).source());
                     memberEnter(t,env); // FIXME - do something special for enums
-//                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
-//                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
-//                if (isSpecForBinary) dojml = true;
-//                super.finishClass(tree, env);
-//                if (isSpecForBinary) dojml = false;
-//                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = prevChk;
                 }
-                if (isSpecForBinary) dojml = false;
+////                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
+////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
+////                if (isSpecForBinary) dojml = true;
+////                super.finishClass(tree, env);
+////                if (isSpecForBinary) dojml = false;
+////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = prevChk;
+//                }
             } else {
                 super.finishClass(jtree, env);
             }
@@ -270,7 +269,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         if (isSpecForBinary) {
             // Here we add the JML declarations to the class
-            boolean prevChk = JmlCheck.instance(context).noDuplicateWarn;
+            log.useSource(jtree.source());
             for (JCTree t: jtree.defs) {
                 boolean jml = false;
                 boolean skip = false;
@@ -298,9 +297,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     memberEnter(t,env); // FIXME - do something special for enums
                 }
             }
-            JmlCheck.instance(context).noDuplicateWarn = prevChk;
         }
         noEntering = prevEntering;
+        JmlCheck.instance(context).noDuplicateWarn = prevChk;
         
 
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prevAllowJML);
@@ -891,7 +890,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             // Previous match - give error
             // duplicate already reported if the specs declaration is JML declaration
-            if (!utils.isJML(specsVarDecl.mods)) {
+            if (!utils.isJML(specsVarDecl.mods) && !sameTree) {
                 utils.errorAndAssociatedDeclaration(specsVarDecl.sourcefile, specsVarDecl.pos, ((JmlVariableDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.var.match",specsVarDecl.name);
             }
             return false;
@@ -1005,7 +1004,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
             // Previous match - give error - duplicate already reported if the specsMethodDecl is JML
-            if (!utils.isJML(specsMethodDecl.mods)) {
+            if (!utils.isJML(specsMethodDecl.mods) && !sameTree) {
                 utils.errorAndAssociatedDeclaration(specsMethodDecl.sourcefile, specsMethodDecl.pos, ((JmlMethodDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.method.match",specsMethodDecl.sym.toString(), csym.flatName());
             }
             return false;
@@ -2814,12 +2813,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         long flags = tree.mods.flags;
         boolean isJMLMethod = utils.isJML(flags);
         try {
+            boolean isSpecForBinary = modeOfFileBeingChecked == JmlCompilationUnit.SPEC_FOR_BINARY;
             boolean isSpecFile = currentMethod.sourcefile == null || currentMethod.sourcefile.getKind() != JavaFileObject.Kind.SOURCE;
 //            boolean isClassModel = ((JmlAttr)attr).isModel(env.enclClass.mods);
             if (isSpecFile && tree.sym != null) return; //Sometimes this is called when the method already is entered
             if (isJMLMethod) resolve.setAllowJML(true);
-            if (!isSpecFile) super.visitMethodDef(tree);
-            if (isSpecFile) visitMethodDefBinary(tree);
+            super.visitMethodDef(tree);
+//            if (!isSpecFile) super.visitMethodDef(tree);
+//            if (isSpecFile) visitMethodDefBinary(tree);
         } finally {
             if (isJMLMethod) resolve.setAllowJML(prevAllowJml);
             currentMethod = prevMethod;
