@@ -89,6 +89,7 @@ public class JmlTree implements IJmlTree {
     public interface JmlFactory extends JCTree.Factory {
         JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
+        JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
         JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -208,6 +209,13 @@ public class JmlTree implements IJmlTree {
             t.pos = this.pos;
             return t;
         }
+        
+        public JmlBlock Block(long flags, List<JCStatement> stats) {
+            JmlBlock t = new JmlBlock(flags,stats);
+            t.pos = this.pos;
+            return t;
+        }
+
         
         /** Convenience method to create a qualified identifier - either a 
          * JCIdent or a JCFieldAccess; this is used for field names and
@@ -1131,6 +1139,75 @@ public class JmlTree implements IJmlTree {
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodDecl(this, d);
+            } else {
+                // unexpectedVisitor(this,v);
+                return super.accept(v,d);
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return JmlTree.toString(this);
+        }
+    }
+    
+
+    /** This class adds some JML specific information to the JCMethodDecl node. */
+    public static class JmlBlock extends JCTree.JCBlock implements JmlSource, IInJML {
+
+        /** The file containing this declaration */
+        public JavaFileObject sourcefile;
+
+        /** The declaration in the jml file, 
+         * or null if there is a jml file but no declaration of this method in it, 
+         * or the same as the java declaration if there is no jml file
+         * (set in JmlMemberEnter); set to self in the parser for 
+         * methods in anonymous classes.
+         */
+        @Nullable public JmlMethodDecl specsDecl; 
+
+        /** The final, combined specs from all sources (set in JmlMemberEnter);
+         * set to self in parser for methods in anonymous classes */
+        public JmlSpecs.MethodSpecs methodSpecsCombined; 
+
+        public JmlMethodSpecs cases;  // FIXME - change to JmlSpecificationCase?
+
+        public String docComment = null; // FIXME - clarify why needed
+        public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;
+                                        // valid after attribution
+        
+        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+        public JmlBlock(long flags, List<JCStatement> stats) {
+            super(flags, stats);
+            specsDecl = null;
+            sourcefile = null;
+        }
+        
+        /** The source this method was declared in (model methods may be declared
+         * in a source file different than the class that owns the model method)
+         */
+        @Override
+        public JavaFileObject source() { return sourcefile; }
+        
+        @Override
+        public boolean isJML() {
+            return JmlTree.isJML(flags);
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlBlock(this); 
+            } else {
+                // unexpectedVisitor(this,v);
+                super.accept(v);
+            }
+        }
+
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlBlock(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);

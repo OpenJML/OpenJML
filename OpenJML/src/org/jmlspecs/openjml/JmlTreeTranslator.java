@@ -68,7 +68,15 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: op, opcode, operator
         result = r;
     }
+
+    @Override
+    public void visitJmlBlock(JmlBlock that) {
+        that.stats = translate(that.stats);
+        that.cases = translate(that.cases);
+        result = that;
+    }
     
+
     @Override
     public void visitJmlChoose(JmlChoose that) {
         JmlChoose r = that;

@@ -485,7 +485,7 @@ public class Annotate {
 
             // Only report errors if this isn't the first occurrence I.E. count > 1
             boolean reportError = count > 1;
-            Type currentContainerType = getContainingType(currentAnno, ctx.pos.get(currentAnno), reportError);
+            Type currentContainerType = getContainingType(currentAnno, lookup(ctx,currentAnno), reportError);
             if (currentContainerType == null) {
                 continue;
             }
@@ -550,6 +550,20 @@ public class Annotate {
         } else {
             return null; // errors should have been reported elsewhere
         }
+    }
+    
+    // OPENJML - revised this implementation to avoid a bug
+    protected <T extends Attribute.Compound> JCDiagnostic.DiagnosticPosition lookup(AnnotateRepeatedContext<T> ctx, Attribute.Compound currentAnno) {
+        JCDiagnostic.DiagnosticPosition d = null;
+        for (T t: ctx.pos.keySet()) {
+            if (t.type == currentAnno.type) {
+                JCDiagnostic.DiagnosticPosition dd = ctx.pos.get(t);
+                if (d == null) d = dd;
+                else if (d.getStartPosition() < dd.getStartPosition()) d = dd;
+            }
+        }
+        return d;
+        //return ctx.pos.get(currentAnno);
     }
 
     /** Fetches the actual Type that should be the containing annotation. */

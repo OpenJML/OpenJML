@@ -771,6 +771,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         for (JCTree specsMemberDecl: specsDecl.defs) {
             if (specsMemberDecl instanceof JmlVariableDecl) {
                 JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
+                if (specsVarDecl.name.toString().equals("J")) Utils.stop();
                     boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
                     if (ok) {
                         newlist.add(specsVarDecl);

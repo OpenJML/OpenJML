@@ -37,6 +37,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -1849,11 +1850,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     // MAINTENANCE ISSUE - copied from super class
     @Override
-    protected void checkInit(JCTree tree,   // DRC - changed from private to protected
+    protected void checkInit(JCTree tree,
             Env<AttrContext> env,
             VarSymbol v,
             boolean onlyWarning) {
 
+        if (env.tree instanceof JmlQuantifiedExpr) return;
         //      System.err.println(v + " " + ((v.flags() & STATIC) != 0) + " " +
         //      tree.pos + " " + v.pos + " " +
         //      Resolve.isStatic(env));//DEBUG
@@ -3598,6 +3600,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
         // FIXME - ignoring model
+    }
+    
+    public void visitJmlBlock(JmlBlock that) {
+        visitBlock(that);
+        if (that.cases != null) {
+            boolean isStatic = (that.flags & Flags.STATIC) != 0;
+            if (isStatic) env.info.staticLevel++;
+            try {
+                that.cases.accept(this);
+            } finally {
+                if (isStatic) env.info.staticLevel--;
+            }
+        }
     }
     
 
@@ -5498,7 +5513,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.vartype.type == null) attribType(that.vartype,env);
 //            if (that.name.toString().equals("objectState")) Utils.stop();
             ((JmlMemberEnter)memberEnter).dojml = true;
-            if (that.name.toString().equals("theString")) Utils.stop();
             visitVarDef(that);
             ((JmlMemberEnter)memberEnter).dojml = false;
             // Anonymous classes construct synthetic members (constructors at least)

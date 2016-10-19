@@ -27,6 +27,7 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -2887,7 +2888,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         lit = addImplicitConversion(e,vd.type,lit);
 //                        addStat(treeutils.makeVariableDecl(vd.sym, lit));
                         vd.init = lit;
-                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
+//                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
                         addStat(vd);
                     }
                 }
@@ -12895,6 +12896,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         @Override
         public @Nullable java.util.List<JmlStatementExpr> visitJmlBinary(JmlBinary that, Void p) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public @Nullable java.util.List<JmlStatementExpr> visitJmlBlock(JmlBlock that, Void p) {
             // TODO Auto-generated method stub
             return null;
         }

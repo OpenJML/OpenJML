@@ -69,7 +69,7 @@ public class escfilesTrace extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	Assert.fail();
+ //   	Assert.fail();
     	escOnFiles(sourceDirname,outDir,opts);
     }
 

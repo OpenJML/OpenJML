@@ -8,6 +8,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -157,6 +158,11 @@ public class JmlFlow extends Flow  {
         public void visitJmlBinary(JmlBinary that) {
             scan(that.lhs);
             scan(that.rhs);
+        }
+        
+        @Override
+        public void visitJmlBlock(JmlBlock that) {
+            scan(that.stats);
         }
         
         @Override
@@ -515,6 +521,11 @@ public class JmlFlow extends Flow  {
         public void visitJmlBinary(JmlBinary that) {
             scan(that.lhs);
             scan(that.rhs);
+        }
+        
+        @Override
+        public void visitJmlBlock(JmlBlock that) {
+            scan(that.stats);
         }
         
         @Override
@@ -882,6 +893,11 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
+        public void visitJmlBlock(JmlBlock that) {
+            scan(that.stats);
+        }
+        
+       @Override
         public void visitJmlChoose(JmlChoose that) {
             scan(that.orBlocks);
             scan(that.elseBlock);

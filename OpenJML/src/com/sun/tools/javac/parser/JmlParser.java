@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlAnnotation;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -901,6 +902,16 @@ public class JmlParser extends JavacParser {
                             d.cases = currentMethodSpecs;
                             if (currentMethodSpecs != null) {
                                 currentMethodSpecs.decl = d;
+                                currentMethodSpecs = null;
+                            }
+                            
+                        } else if (tr instanceof JmlBlock) {
+                            JmlBlock d = (JmlBlock) tr;
+                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            attach(d, dc);
+                            d.cases = currentMethodSpecs;
+                            if (currentMethodSpecs != null) {
+                                currentMethodSpecs.decl = null; // FIXME - point to the block?
                                 currentMethodSpecs = null;
                             }
 

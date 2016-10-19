@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -198,6 +199,10 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" ");
             that.rhs.accept(this);
         } catch (IOException e) { perr(that,e); }
+    }
+    
+    public void visitJmlBlock(JmlBlock that) {
+        visitBlock(that);
     }
     
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {

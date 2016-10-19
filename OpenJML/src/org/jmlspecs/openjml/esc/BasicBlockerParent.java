@@ -14,6 +14,7 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
+import org.jmlspecs.openjml.JmlTree.JmlBlock;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -1473,6 +1474,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             // Add the block statements BEFORE any remaining statements
             remainingStatements.addAll(0,s);
         }
+    }
+    
+    @Override
+    public void visitJmlBlock(JmlBlock that) {
+        visitBlock(that);
     }
     
     /** Finds the statement that a labeled statement labels, stripping off all

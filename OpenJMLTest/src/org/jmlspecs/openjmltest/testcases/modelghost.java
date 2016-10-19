@@ -361,16 +361,16 @@ public class modelghost extends TCBase {
 
     @Test
     public void testInitializer2() {
-        addMockFile("$A/A.jml","public class A { /*@ model  class B { int i;  { i = 2; } } */ }");
+        addMockFile("$A/A.jml","public class A { } /*@ model  class B { int i;  { i = 2; } } */ ");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
         );
     }
 
     @Test
     public void testInitializer2a() {
-        addMockFile("$A/A.jml","public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
+        addMockFile("$A/A.jml","public class A { } /*@ model public class B { int i;  { i = 2; } } */ ");
         helpTCF("A.java","public class A { int i; { i = 1; } } "
-        		,"/A.java:1: class B is public, should be declared in a file named B.java",35
+        		,"/A.java:1: class B is public, should be declared in a file named B.java",37
         );
     }
 

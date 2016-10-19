@@ -58,6 +58,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.rhs);
     }
     
+    public void visitJmlBlock(JmlBlock that) {
+        visitBlock(that);
+    }
+    
     public void visitJmlChoose(JmlChoose that) {
         scan(that.orBlocks);
         scan(that.elseBlock);

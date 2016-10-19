@@ -78,6 +78,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return lb;
     }
 
+    /** Deep copy of a list of nodes */
+    public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(@Nullable com.sun.tools.javac.util.List<T> trees, Void p) {
+        if (trees == null)
+            return null;
+        ListBuffer<T> lb = new ListBuffer<T>();
+        for (T tree: trees)
+            lb.append(copy(tree, p));
+        return lb.toList();
+    }
+
 
     
     public void visitTree(JCTree that) {
@@ -142,6 +152,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         r.type = that.type;
         return r;
     }
+    
+    @Override
+    public JCTree visitJmlBlock(JmlBlock that, Void p) {
+        JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
+        return r;
+    }
+
+
     
     @Override
     public JCTree visitJmlConstraintMethodSig(JmlMethodSig that,

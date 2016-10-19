@@ -82,7 +82,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure //@ pure\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",11
+                ,"/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",11 // Changed location in Java8
         );
     }
 
@@ -92,7 +92,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Query //@ query\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: org.jmlspecs.annotation.Query is not a repeatable annotation type",12
+                ,"/A.java:2: org.jmlspecs.annotation.Query is not a repeatable annotation type",12 // CHanged location in Java8
         );
     }
 
@@ -452,6 +452,24 @@ public class QueryPure extends TCBase {
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
                 "} \n"
                 ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",35 
+        );
+    }
+
+    @Test
+    public void testQuery8c() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" +
+                "  @Secret public int q = 5; //@ in o;\n" +
+                "  @Pure public int compute() { return 0; }\n" +
+                "  //@ ensures \\result == compute();\n" +
+                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
+                "  public int use() { return value(); }\n" +
+                "  int f;\n" +
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
+                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
+                "  //@ @Secret public model Object o; in value; \n " +
+                "} \n"
         );
     }
 
