@@ -1460,7 +1460,7 @@ public class JmlSpecs {
                 JCTree tt = t;
                 if (t instanceof JCTree.JCBlock) {
                     JCTree.JCBlock b = (JCTree.JCBlock)t;
-                    tspecs.blocks.put(b, null); // FIXME - method spec?
+                    tspecs.blocks.put(b, null);
                 } else if (t instanceof JmlTypeClauseInitializer) {
                     JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
                     tt = null;
@@ -1470,13 +1470,15 @@ public class JmlSpecs {
                             log.error(init, "jml.one.initializer.spec.only");
                         } else {
                             tspecs.initializerSpec = init;
+                            tspecs.clauses.add((JmlTypeClause)t);
                         }
                     } else {
                         if (tspecs.staticInitializerSpec != null) {
                             log.error(init, "jml.one.initializer.spec.only");
                         } else {
                             tspecs.staticInitializerSpec = init;
-                        }
+                            tspecs.clauses.add((JmlTypeClause)t);
+                       }
                     }
                 } else if (t instanceof JmlMethodDecl) {
                     JmlMethodDecl md = (JmlMethodDecl)t;

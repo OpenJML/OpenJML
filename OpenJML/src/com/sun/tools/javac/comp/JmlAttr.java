@@ -2386,7 +2386,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 new MethodSymbol(Flags.PRIVATE | BLOCK, names.empty, null,
                                  env.info.scope.owner);
             if (tree.token == JmlTokenKind.STATIC_INITIALIZER) localEnv.info.staticLevel++;
-            attribStat(tree.specs,localEnv);
+            if (tree.specs != null) attribStat(tree.specs,localEnv);
         } finally {
             jmlresolve.setAllowJML(prevAllowJML);
             log.useSource(old);
