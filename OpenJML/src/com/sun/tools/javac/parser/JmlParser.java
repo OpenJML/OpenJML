@@ -516,7 +516,7 @@ public class JmlParser extends JavacParser {
                         } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
                             // OK
                         } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
-                            jmlerror(s.pos, "jml.expected.decl.or.jml");
+//                            jmlerror(s.pos, "jml.expected.decl.or.jml");
                         }
                     }
                 }

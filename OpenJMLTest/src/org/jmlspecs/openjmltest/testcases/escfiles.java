@@ -182,7 +182,7 @@ public class escfiles extends EscBase {
         helpTCF("test/bagModified","test/bagModified");
     }
 
-    @Test // FIXME - hangs up sometimes with some solvers
+    @Test @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
     public void testLoopExercises() {
         expectedExit = 0;
         helpTCF("test/loopExercises","test/loopExercises","-logic=AUFNIA");
