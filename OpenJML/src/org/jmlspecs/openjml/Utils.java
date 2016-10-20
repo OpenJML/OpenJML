@@ -143,8 +143,11 @@ public class Utils {
     /** The set of keys that control the use of optional comments, set from options */
     public Set<String> commentKeys = new HashSet<String>();
 
-    /** A bit that indicates that a declaration was declared within a JML annotation */
+    /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+
+    /** A bit that indicates that a declaration was declared somewhere within a JML annotation, but not nested within a class or method body that is also in the JML annotation */
+    final public static long JMLBITTOP = 1L << 53; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
     final public static long JMLINSTRUMENTED = 1L << 51; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
@@ -161,6 +164,10 @@ public class Utils {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
     
+    public boolean isJMLTop(/*@ nullable */ JCModifiers mods) {
+        return mods != null && (mods.flags & JMLBITTOP) != 0;
+    }
+    
     /** Tests whether the given tree was directly parsed as part of JML annotation;
      * nested declarations that are not themselves directly in a JML comment will return false, 
      * even if they are nested in a class that itself is directly in a JML comment.
@@ -168,6 +175,10 @@ public class Utils {
     public boolean isJML(JCTree t) {
         return (t instanceof IInJML) && ((IInJML)t).isJML();
     }
+
+//    public boolean isJMLTop(JCTree t) {
+//        return (t instanceof IInJML) && ((IInJML)t).isJMLTop();
+//    }
 
     /** Tests whether the JML flag is set in the given bit-vector
      * @param flags the bit-array to test
@@ -177,12 +188,20 @@ public class Utils {
         return (flags & JMLBIT) != 0;
     }
 
+    public boolean isJMLTop(long flags) {
+        return (flags & JMLBITTOP) != 0;
+    }
+
     /** Sets the JML flag in the given modifiers.
      * 
      * @param mods The modifiers in which to set the JML flag
      */
     public void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
+    }
+
+    public void setJMLTop(/*@ non_null */ JCModifiers mods) {
+        mods.flags |= JMLBITTOP;
     }
 
     /** Unsets the JML flag in the given modifiers.

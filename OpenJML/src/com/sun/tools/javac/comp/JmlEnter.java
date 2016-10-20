@@ -607,7 +607,7 @@ public class JmlEnter extends Enter {
         return ts.toList();
     }
     
-    public void binaryEnter(JmlCompilationUnit specs) {
+    public boolean binaryEnter(JmlCompilationUnit specs) {
         Env<AttrContext> prevEnv = env;
         ((JmlMemberEnter)JmlMemberEnter.instance(context)).modeOfFileBeingChecked = specs.mode;
         env = specs.topLevelEnv;  // FIXME - is this ever nonnull?
@@ -650,6 +650,7 @@ public class JmlEnter extends Enter {
             // FIXME - need to handle any secondary classes and nested classes as well
         }
         env = prevEnv;
+        return true;
     }
     
 //    public void binaryMemberEnter(ClassSymbol c, JmlClassDecl specs, Env<AttrContext> env) {
