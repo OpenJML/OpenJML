@@ -286,7 +286,7 @@ public class JmlEnter extends Enter {
         // Match specifications to the corresponding Java class
         {
             String owner = (specscu.packge == syms.unnamedPackage?"":(specscu.packge.flatName()+"."));
-            matchClassesForBinary(specTopEnv, owner, specscu.defs, null, null);
+            specscu.defs = matchClassesForBinary(specTopEnv, owner, specscu.defs, null, null);
         }
 
 
@@ -423,7 +423,8 @@ public class JmlEnter extends Enter {
      * @param unmatchedTypesList
      * @param javasource
      */
-    public void matchClassesForBinary(Env<AttrContext> ownerenv, String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
+    public List<JCTree> matchClassesForBinary(Env<AttrContext> ownerenv, String owner, List<JCTree> specsDefs, Collection<JmlClassDecl> unmatchedTypesList, String javasource) {
+        ListBuffer<JCTree>  newlist = null;
         for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the specification
             if (!(specDecl instanceof JmlClassDecl)) continue;
             JmlClassDecl specsClass = (JmlClassDecl)specDecl;
@@ -465,6 +466,11 @@ public class JmlEnter extends Enter {
                     utils.error(specsClass.source(), specsClass.pos,
                             "jml.orphan.jml.class.decl",
                             specsClass.name,javasource);
+                    if (newlist == null) {
+                        newlist = new ListBuffer<JCTree>();
+                        newlist.addAll(specsClass.defs);
+                    }
+                    newlist = Utils.remove(newlist,  specDecl);
                 } else {
                     Type t = classEnter(specsClass,ownerenv);
                     specsClass.sym = (ClassSymbol)t.tsym;
@@ -480,6 +486,7 @@ public class JmlEnter extends Enter {
                 // FIXME - enter the class
             }
         }
+        return newlist == null ? specsDefs : newlist.toList();
     }
 
 //    /** The arguments to this method are a class symbol and then a list of lists of class body definitions
@@ -607,7 +614,7 @@ public class JmlEnter extends Enter {
         return ts.toList();
     }
     
-    public void binaryEnter(JmlCompilationUnit specs) {
+    public boolean binaryEnter(JmlCompilationUnit specs) {
         Env<AttrContext> prevEnv = env;
         ((JmlMemberEnter)JmlMemberEnter.instance(context)).modeOfFileBeingChecked = specs.mode;
         env = specs.topLevelEnv;  // FIXME - is this ever nonnull?
@@ -650,6 +657,7 @@ public class JmlEnter extends Enter {
             // FIXME - need to handle any secondary classes and nested classes as well
         }
         env = prevEnv;
+        return true;
     }
     
 //    public void binaryMemberEnter(ClassSymbol c, JmlClassDecl specs, Env<AttrContext> env) {
