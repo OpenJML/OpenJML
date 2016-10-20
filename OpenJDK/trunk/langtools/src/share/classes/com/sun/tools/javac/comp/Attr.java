@@ -3457,7 +3457,7 @@ public class Attr extends JCTree.Visitor {
          *  @param env        The current environment.
          *  @param resultInfo    The expected result
          */
-        Type checkId(JCTree tree,
+        protected Type checkId(JCTree tree,  // OPENJML- change from package to protected
                      Type site,
                      Symbol sym,
                      Env<AttrContext> env,

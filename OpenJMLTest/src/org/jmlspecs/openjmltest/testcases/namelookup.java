@@ -354,7 +354,8 @@ public class namelookup extends TCBase {
 //       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
 //       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
        ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
-        ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+       ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+       ,"/$A/A.jml:4: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
         ,"/A.java:6: incompatible types: double cannot be converted to boolean",22
         );

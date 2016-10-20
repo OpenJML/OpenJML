@@ -328,7 +328,20 @@ public class JmlCompiler extends JavaCompiler {
             if (speccu == null) {
                 if (utils.jmlverbose >= Utils.JMLVERBOSE) noticeWriter.println("No specs for " + csymbol);
                 ((JmlEnter)enter).recordEmptySpecs(csymbol);
-            } else {
+                continue;
+            } else if (speccu.pid == null) {
+                if (!csymbol.packge().isUnnamed()) {
+                    utils.error(speccu.sourcefile,speccu.pos,"jml.mismatched.package","unnamed package",csymbol.packge().flatName().toString() );
+                    ((JmlEnter)enter).recordEmptySpecs(csymbol);
+                    continue;
+                }
+            } else if (!speccu.pid.toString().equals(csymbol.packge().flatName().toString())) {
+                utils.error(speccu.sourcefile,speccu.pos,"jml.mismatched.package",speccu.pid.toString(),csymbol.packge().flatName().toString() );
+                ((JmlEnter)enter).recordEmptySpecs(csymbol);
+                continue;
+            } 
+
+            {
                 csymbol.flags_field |= Flags.UNATTRIBUTED;
 
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
@@ -336,9 +349,11 @@ public class JmlCompiler extends JavaCompiler {
 
                 nestingLevel++;
                 try {
-                    ((JmlEnter)enter).binaryEnter(speccu);
+                    boolean ok = ((JmlEnter)enter).binaryEnter(speccu);
  //                   ((JmlEnter)enter).binaryEnvs.add(speccu);
-                    todo.append(speccu.topLevelEnv);
+                    
+                    // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
+                    if (ok) todo.append(speccu.topLevelEnv);
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
                 } finally {
                     nestingLevel--;

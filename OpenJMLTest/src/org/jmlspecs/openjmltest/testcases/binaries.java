@@ -32,7 +32,7 @@ public class binaries extends TCBase {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{ static int i; }\n" + 
                 "public class File  implements Serializable, Comparable<File> { \n" +
-                " public void m() { /*@ assert i; assume j; */ }\n" +
+                " public void m() {  }\n" +
                 "//@model static class TTT { static int j; } " +
                 "\n }");
         helpTCF("A.java",

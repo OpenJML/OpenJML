@@ -1116,17 +1116,26 @@ public class modifiers extends TCBase {
     }
     
     // Checking for missing package declaration
-    @Test public void testBinaryModsB() {
+    @Test public void testBinaryPackage1() {
         addMockFile("$A/java/lang/Object.jml",
         		"/*@ non_null */ public class Object {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:2: A declaration may not be both spec_public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
-                ,"/$A/java/lang/Object.jml:2: warning: There is no point to a declaration being both public and spec_public",5
-                ,"/$A/java/lang/Object.jml:1: This JML modifier is not allowed for a type declaration",24
+                ,"/$A/java/lang/Object.jml:1: Specification package does not match Java package: unnamed package vs. java.lang",5
+                );
+    }
+    
+    // Checking for incorrect package declaration
+    @Test public void testBinaryPackage2() {
+        addMockFile("$A/java/lang/Object.jml",
+        		"  package java.utils; \n/*@ non_null */ public class Object {\n"
+                +"//@ spec_public spec_protected\n"
+                +"public boolean equals(Object o);}");
+        helpTCF("A.java","public class A{ A(int i) {} \n" +
+                "  boolean m() { return new Object().equals(null); } }"
+                ,"/$A/java/lang/Object.jml:1: Specification package does not match Java package: java.utils vs. java.lang",3
                 );
     }
     

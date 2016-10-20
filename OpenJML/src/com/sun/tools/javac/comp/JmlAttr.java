@@ -14,6 +14,8 @@ import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.VAL;
 import static com.sun.tools.javac.code.Kinds.VAR;
+import static com.sun.tools.javac.code.TypeTag.FORALL;
+import static com.sun.tools.javac.code.TypeTag.METHOD;
 import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
@@ -94,6 +96,7 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.ClassType;
+import com.sun.tools.javac.comp.Attr.ResultInfo;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -2045,7 +2048,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         // Check that types match 
         if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
+            JavaFileObject prev = log.useSource(tree.specsDecl.source());
             Type specType = attribType(tree.specsDecl.vartype,env);
+            log.useSource(prev);
             if (specType != null) {
                 if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
                     utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
@@ -2327,7 +2332,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> localEnv = env;
             jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
             if (isStatic) localEnv.info.staticLevel++;
+            ResultInfo prevResultInfo = resultInfo;
+            resultInfo = new ResultInfo(VAL|TYP,Type.noType);
             attribExpr(tree.expression, localEnv, syms.booleanType);
+            resultInfo = prevResultInfo;
             if (isStatic) localEnv.info.staticLevel--;
             checkTypeClauseMods(tree,tree.modifiers,"constraint clause",tree.token);
             if (tree.sigs != null) for (JmlTree.JmlMethodSig sig: tree.sigs) {
@@ -4336,6 +4344,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     @Override
+    protected Type checkId(JCTree tree,
+            Type site,
+            Symbol sym,
+            Env<AttrContext> env,
+            ResultInfo resultInfo) {
+            if (checkingSignature) return sym.type;
+            return super.checkId(tree, site, sym, env, resultInfo);
+    }
+
+    
+    @Override
     public void visitIdent(JCIdent tree) {
 //        if (tree.name.toString().equals("TestJava")) org.jmlspecs.openjml.Utils.stop();
         long prevVisibility = jmlVisibility;
@@ -5593,42 +5612,102 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return super.attribTypes(trees,env);
     }
 
+    boolean checkingSignature = false;
+    
     public void visitJmlMethodSig(JmlMethodSig that) {
         Env<AttrContext> localEnv = env.dup(that.expression, env.info.dup());
 
         List<Type> argtypes = that.argtypes != null ? super.attribAnyTypes(that.argtypes, localEnv) : List.<Type>nil();
         List<Type> typeargtypes = List.<Type>nil(); // attribAnyTypes(that.typeargs, localEnv);// FIXME - need to handle template arguments
+
+        Name methName = TreeInfo.name(that.expression);
+
+        boolean isConstructorCall =
+            methName == enclosingClassEnv.enclClass.sym.name;
         
-        // FIXME - need a better check that the expression is a constructor
-        // This won't even work if the method has the class name as a suffix
-        Name name;
-        Type classType;
-        if (that.expression instanceof JCIdent) {
-            name = ((JCIdent)that.expression).name;
-            classType = env.enclClass.type;
-        } else {
-            JCFieldAccess fa = (JCFieldAccess)that.expression;
-            name = fa.name;
-            attribType(fa.selected,localEnv);
-            classType = fa.selected.type;
-        }
-        if (name.toString().equals(env.enclClass.name.toString())) {
-            Symbol sym = jmlresolve.resolveConstructor(that.pos(),localEnv,
-                    env.enclClass.type,
+        // ... and attribute the method using as a prototype a methodtype
+        // whose formal argument types is exactly the list of actual
+        // arguments (this will also set the method symbol).
+        
+        if (isConstructorCall) {
+            // Adapted from Attr.visitApply // FIXME - may not be general enough
+            Type clazztype = attribType(that.expression, env);
+            ClassType site = new ClassType(clazztype.getEnclosingType(),
+                    clazztype.tsym.type.getTypeArguments(),
+                    clazztype.tsym);
+
+            Env<AttrContext> diamondEnv = localEnv.dup(that);
+            diamondEnv.info.selectSuper = false;
+            diamondEnv.info.pendingResolutionPhase = null;
+
+            //if the type of the instance creation expression is a class type
+            //apply method resolution inference (JLS 15.12.2.7). The return type
+            //of the resolved constructor will be a partially instantiated type
+            Symbol constructor = rs.resolveDiamond(that.pos(),
+                    diamondEnv,
+                    site,
                     argtypes,
                     typeargtypes);
-            that.methodSymbol = (MethodSymbol)sym;
+            that.methodSymbol = (MethodSymbol)constructor.baseSymbol();
+            
         } else {
-            Symbol sym = jmlresolve.resolveMethod(that.pos(), localEnv, name, argtypes, typeargtypes);
-            //Symbol sym = jmlresolve.findMethod(localEnv, classType, name, argtypes, typeargtypes,false,false,false);
+            // Adapted from Attr.visitMethodDef // FIXME - may not be general enough
+            int kind = VAL; // FIXME - could also be POLY
+            Type mpt = newMethodTemplate(Type.noType, argtypes, typeargtypes);
+            localEnv.info.pendingResolutionPhase = null;
+            boolean prev = checkingSignature;
+            checkingSignature = true;
+            Type mtype = attribTree(that.expression, localEnv, new ResultInfo(kind, mpt, chk.basicHandler));
+            checkingSignature = prev;
 
-            // If there was an error attributing the JmlMethodSig, then sym
-            // will not be a MethodSymbol
-//            if (!(sym instanceof MethodSymbol)) {
-//                jmlerror(that,"internal.error","No method found with the given signature");
-//            }
-            that.methodSymbol = sym instanceof MethodSymbol ? (MethodSymbol)sym : null;
+            Symbol sym = null;
+            if (that.expression instanceof JCFieldAccess) {
+                sym = ((JCFieldAccess)that.expression).sym;
+            } else { // JCIdent
+                sym = ((JCIdent)that.expression).sym;
+            }
+            if (sym instanceof MethodSymbol) that.methodSymbol = (MethodSymbol)sym;
+            else {
+                // Constructor ?
+                // FIXME
+            }
         }
+        
+//        // FIXME - need a better check that the expression is a constructor
+//        // This won't even work if the method has the class name as a suffix
+//        Name name;
+//        Type classType;
+//        if (that.expression instanceof JCIdent) {
+//            name = ((JCIdent)that.expression).name;
+//            classType = env.enclClass.type;
+//        } else {
+//            JCFieldAccess fa = (JCFieldAccess)that.expression;
+//            name = fa.name;
+//            if (fa.selected instanceof JCIdent && ((JCIdent)fa.selected).name == names._this) {
+//                attribExpr(fa.selected,localEnv);
+//                classType = fa.selected.type;
+//            } else {
+//                attribExpr(fa.selected,localEnv);
+//                classType = fa.selected.type;
+//            }
+//        }
+//        if (name.toString().equals(env.enclClass.name.toString())) {
+//            Symbol sym = jmlresolve.resolveConstructor(that.pos(),localEnv,
+//                    env.enclClass.type,
+//                    argtypes,
+//                    typeargtypes);
+//            that.methodSymbol = (MethodSymbol)sym;
+//        } else {
+//            Symbol sym = jmlresolve.resolveMethod(that.pos(), localEnv, name, argtypes, typeargtypes);
+//            //Symbol sym = jmlresolve.findMethod(localEnv, classType, name, argtypes, typeargtypes,false,false,false);
+//
+//            // If there was an error attributing the JmlMethodSig, then sym
+//            // will not be a MethodSymbol
+////            if (!(sym instanceof MethodSymbol)) {
+////                jmlerror(that,"internal.error","No method found with the given signature");
+////            }
+//            that.methodSymbol = sym instanceof MethodSymbol ? (MethodSymbol)sym : null;
+//        }
     }
 
     public void visitJmlModelProgramStatement(JmlModelProgramStatement that) {
