@@ -1297,6 +1297,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             splitExpressions = savedSplit;
         }
     }
+    
+    public @Nullable <T extends JCTree> T convertCopyNoEmit(@Nullable T tree) {
+        boolean savedCopy = pureCopy;
+        boolean savedSplit = splitExpressions;
+        ListBuffer<JCStatement> prev = currentStatements;
+        currentStatements = null;
+        try {
+            pureCopy = true;
+            splitExpressions = false;
+            return convert(tree);
+        } finally {
+            pureCopy = savedCopy;
+            splitExpressions = savedSplit;
+            currentStatements = prev;
+        }
+    }
+    
+    
 
     /** Does a pure copy of the list of trees */
     public  <T extends JCTree> List<T> convertCopy(List<T> trees) {
@@ -1614,7 +1632,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         
-        if (label == Label.POSSIBLY_NULL_ASSIGNMENT) Utils.stop();
         if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
@@ -2093,6 +2110,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!utils.visible(classDecl.sym, csym, s.flags()/*, methodDecl.mods.flags*/)) continue;
                     if (!stat && contextIsStatic) continue;
                     if (!assume && isConstructor) continue;
+                    if (s.type.isPrimitive() || jmltypes.isJmlType(s.type)) continue;
                     VarSymbol v = (VarSymbol)s;
                     JCExpression e;
                     if (receiver == null) e = M.at(pos).Ident(v);
@@ -2682,7 +2700,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean isNonNull = true;
         Symbol owner = d.sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
-        if (!d.sym.type.isPrimitive()) {
+        if (!d.sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
             isNonNull = specs.isNonNull((JmlVariableDecl)d) ;
         }
         
@@ -2693,7 +2711,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         boolean isNonNull = true;
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
-        if (!sym.type.isPrimitive()) {
+        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
             isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
         }
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
@@ -2718,7 +2736,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
         boolean nnull = true;
-        if (!sym.type.isPrimitive()) {
+        if (sym.type.toString().equals("\\bigint")) Utils.stop();
+        if (!jmltypes.isJmlType(sym.type) && !sym.type.isPrimitive()) {
             // e2 : id.isAlloc
             //JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
             JCExpression e2 = treeutils.makeBinary(p, JCTree.Tag.LE, 
@@ -6077,9 +6096,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 try {
                                     if (clause.token == JmlTokenKind.OLD) { 
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopy(olddecl);
+                                        olddecl = convertCopyNoEmit(olddecl);
                                         for (JCVariableDecl d: olddecl.decls) {
-                                            d.init = treeutils.makeOld(d.init,d.init);
+                                            d.init = treeutils.makeOld(d.init.pos,d.init,preLabel);
                                         }
                                         scan(olddecl);
                                     } else if (clause.token == JmlTokenKind.FORALL) { 
@@ -6300,7 +6319,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 switch (token) {
                                     case OLD: { 
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopy(olddecl);
+                                        olddecl = convertCopyNoEmit(olddecl);
                                         for (JCVariableDecl d: olddecl.decls) {
                                             d.init = treeutils.makeOld(d.init,d.init);
                                         }
@@ -6560,14 +6579,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     { 
                                         currentStatements = ensuresStats;
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopy(olddecl);
+                                        olddecl = convertCopyNoEmit(olddecl);
                                         for (JCVariableDecl d: olddecl.decls) {
                                             d.init = treeutils.makeOld(d.init,d.init);
                                         }
                                         scan(olddecl);
                                         currentStatements = exsuresStats;
                                         olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopy(olddecl);
+                                        olddecl = convertCopyNoEmit(olddecl);
                                         for (JCVariableDecl d: olddecl.decls) {
                                             d.init = treeutils.makeOld(d.init,d.init);
                                         }
