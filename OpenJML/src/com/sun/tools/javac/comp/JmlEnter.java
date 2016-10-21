@@ -184,20 +184,29 @@ public class JmlEnter extends Enter {
             return;
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
+        boolean isSpecsForBinary = jmltree.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
+        if (!isSpecsForBinary && jmltree.specsCompilationUnit == null) {
+            Utils.stop();
+        }
 
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
         // FIXME - a problem here is that the specs and the model fields/classes/methods will be attributed using the set of imports from the Java source file
 
+        JmlCompilationUnit specscu;
         if (jmltree.specsCompilationUnit == null) {
             // If this is the case we have called visitTopLevel on a specs file
             specTopEnv = null;
+            specscu = jmltree;
         } else {
-            JmlCompilationUnit specscu = jmltree.specsCompilationUnit;
-
+            specscu = jmltree.specsCompilationUnit;
+        }
+        String owner;
+        {
             // This if-else statement copied from Enter
             if (specscu.pid != null) {
                 specscu.packge = reader.enterPackage(TreeInfo.fullName(specscu.pid));
+                owner = specscu.packge.flatName().toString() + ".";
 //                if (specscu.packageAnnotations.nonEmpty()
 //                        || pkginfoOpt == PkgInfo.ALWAYS
 //                        || specscu.docComments != null) {
@@ -208,6 +217,7 @@ public class JmlEnter extends Enter {
 //                }
             } else {
                 specscu.packge = syms.unnamedPackage;
+                owner = "";
             }
             specscu.packge.complete(); // Find all classes in package.
             specTopEnv = topLevelEnv(specscu);
@@ -217,6 +227,8 @@ public class JmlEnter extends Enter {
         // Match specifications to the corresponding Java class, for each (toplevel) class; 
         if (jmltree.specsCompilationUnit != null && jmltree.mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
             tree.defs = matchClasses(tree.defs, jmltree.specsCompilationUnit.defs, tree.sourcefile.toString());
+        } else {
+            tree.defs = matchClassesForBinary(specTopEnv, owner, specscu.defs, null, tree.sourcefile.toString());
         }
 
         // Then do all the regular Java registering of packages and types
@@ -225,7 +237,6 @@ public class JmlEnter extends Enter {
         // Checking that the specs and the java source declare the same package 
         if (jmltree.specsCompilationUnit != null && jmltree.specsCompilationUnit != jmltree) {
 
-            JmlCompilationUnit specscu = jmltree.specsCompilationUnit; 
             if (specscu.packge != jmltree.packge) {
 //            if (((jmltree.pid == null) != (specscu.pid == null)) || 
 //                    (jmltree.pid != null && specscu.pid != null && !jmltree.pid.toString().equals(specscu.pid.toString()))) {
@@ -435,9 +446,11 @@ public class JmlEnter extends Enter {
             // that matches a particular java declaration.
             // A Java declaration need not have a match
 
-            ClassSymbol c = reader.enterClass( names.fromString( owner + specsClass.name.toString()));
+            Name flatname = names.fromString( owner + specsClass.name.toString());
+            ClassSymbol c = reader.classExists(flatname);
 
             if (c != null) {
+                c = reader.enterClass(flatname);
                 if (utils.isJML(specsClass.mods)) {
                     // The specs class is in a JML annotation but still matches a java class - error
                     // FIXME _ fix this error message
@@ -464,7 +477,7 @@ public class JmlEnter extends Enter {
                 if (!utils.isJML(specsClass.mods)) {
                     // FIXME - fix error
                     utils.error(specsClass.source(), specsClass.pos,
-                            "jml.orphan.jml.class.decl",
+                            "jml.unmatched.secondary.type",
                             specsClass.name,javasource);
                     if (newlist == null) {
                         newlist = new ListBuffer<JCTree>();
@@ -473,6 +486,7 @@ public class JmlEnter extends Enter {
                     newlist = Utils.remove(newlist,  specDecl);
                 } else {
                     Type t = classEnter(specsClass,ownerenv);
+                    c = (ClassSymbol)t.tsym;
                     specsClass.sym = (ClassSymbol)t.tsym;
                     Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
                     typeEnvs.put(c, localenv);

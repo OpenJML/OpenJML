@@ -163,39 +163,39 @@ public class escm extends EscBase {
                 +"  public static int b;\n"
 
                 +"  public int m1(TestJava o) {\n"
-                +"       /*@ model class C {  \n"
+                +"       /*@ model class C {  \n"  // Invariant is false on exit
                 +"           invariant false;\n" 
-                +"           void mc() {  }};*/ \n"  // Line 10
+                +"           void mc() {  }};*/ \n"  // Line 10  // Invariants are not satisfiable on entry
                 +"       /*@ model class D {  \n"
                 +"           ensures false;\n" 
-                +"           void md() {  }};*/ \n" 
+                +"           void md() {  }};*/ \n"   // Postcondition is false on exit
                 +"       /*@ model class E {  \n"
-                +"           void me() {  assert false; }};*/ \n"
+                +"           void me() {  assert false; }};*/ \n" // Assertion is false
                 +"       //@ ghost E e;\n"
                 +"       return 0;\n"
                 +"  }\n"
 
                 +"  /*@ ensures false;\n"
-                +"      model void mm() {}*/\n"  // Line 20
+                +"      model void mm() {}*/\n"  // Line 20  // Postcondition is false
 
-                +"  /*@ model void mn() {  assert false;  }*/\n"
+                +"  /*@ model void mn() {  assert false;  }*/\n"  // Assertion is false
 
-                +"  /*@ model public static class A {\n"
+                +"  /*@ model public static class A {\n"  // Invariant is false on exit
                 +"     invariant false;\n"
-                +"     public void m2() {\n"
+                +"     public void m2() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
                 +"  }\n"
 
                 +"}"
-                +"  /*@ model class B {\n"
+                +"  /*@ model class B {\n" // Invariant is false on exit
                 +"     public invariant false;\n"
-                +"     public void mb() {\n"
+                +"     public void mb() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
                 +"  }\n"
 
                 +"  /*@ model class BB {\n"
                 +"     ensures false;\n"
-                +"     public void mbb() {\n"
+                +"     public void mbb() {\n" // Postcondition is false
                 +"     }*/\n"
                 +"  }\n"
 
@@ -209,6 +209,9 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (Postcondition) in method mm",18
                 ,"/tt/TestJava.java:19: warning: Associated declaration",7
                 ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method mn",26
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (InvariantExit) in method A", 27
+                ,"/tt/TestJava.java:23: warning: Associated declaration", 6
+                ,"/tt/TestJava.java:24: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()", 18
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (InvariantExit) in method B",14
                 ,"/tt/TestJava.java:28: warning: Associated declaration",13
                 ,"/tt/TestJava.java:29: warning: Invariants+Preconditions appear to be contradictory in method tt.B.mb()",18

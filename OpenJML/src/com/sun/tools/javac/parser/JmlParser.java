@@ -932,6 +932,18 @@ public class JmlParser extends JavacParser {
                         dc = null;
                         list.append(ttr);
                     }
+                } else if (t.head instanceof JmlMethodDecl) {
+                    JmlMethodDecl d = (JmlMethodDecl) t.head;
+                    if (startsInJml) utils.setJML(d.mods);
+                    d.sourcefile = log.currentSourceFile();
+                    attach(d, dc);
+                    d.cases = currentMethodSpecs;
+                    if (currentMethodSpecs != null) {
+                        currentMethodSpecs.decl = d;
+                        currentMethodSpecs = null;
+                    }
+                    list.append(d);
+
                 } else if (t.head instanceof JmlTypeClauseIn
                         || t.head instanceof JmlTypeClauseMaps) {
                     JCTree tree = t.head;

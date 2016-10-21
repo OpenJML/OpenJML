@@ -390,6 +390,7 @@ public class API implements IAPI {
         c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
         JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+        if (name.endsWith(".java")) jcu.specsCompilationUnit = jcu;
         return jcu;
     }
     

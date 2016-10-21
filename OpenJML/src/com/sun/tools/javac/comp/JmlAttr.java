@@ -1071,10 +1071,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             JCModifiers mods = mspecs.mods;
             boolean inJML = utils.isJML(mods);
+            boolean classIsModel = isModel(javaMethodTree.sym.owner);
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
             boolean anon = javaMethodTree.sym.owner.isAnonymous();
-            if (isInJmlDeclaration && model && !synthetic) {
+            if (classIsModel && model && !synthetic) {
                 log.useSource(javaMethodTree.sourcefile);
                 log.error(javaMethodTree.pos,"jml.no.nested.model.type");
             } else if (inJML && !model  && !isInJmlDeclaration) {
@@ -5443,7 +5444,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public void visitJmlClassDecl(JmlClassDecl that) {
-        if (that.name.toString().equals("B")) Utils.stop();
         // Typically, classes are attributed by calls to attribClass and
         // then to attibClassBody and attribClassBodySpecs, but local
         // classes do end up here.
