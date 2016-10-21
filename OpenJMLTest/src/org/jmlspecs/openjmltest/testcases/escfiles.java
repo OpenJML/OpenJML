@@ -318,10 +318,11 @@ public class escfiles extends EscBase {
         helpTF("escRecursiveInvariant2","-minQuant");
     }
 
+    // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {
         expectedExit = 0;
-        helpTF("escBadCast");
+        helpTF("escBadCast"); //,"-show","-method=BadCast.equals");
     }
 
     @Test
@@ -392,7 +393,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testJmlSpecPublic() {
-        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
+        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");//,"-show","-method=credit","-subexpressions","-checkFeasibility=all");
     }
 
     @Test

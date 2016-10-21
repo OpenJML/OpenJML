@@ -402,7 +402,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      */
     protected Name encodedName(VarSymbol sym, long incarnationPosition) {
         Symbol own = sym.owner;
-        if (incarnationPosition <= 0 || own == null) {
+        if (incarnationPosition <= 0 || own == null || (!isConstructor && (sym.flags() & Flags.FINAL) != 0) || (isConstructor && (sym.flags() & (Flags.STATIC|Flags.FINAL)) == (Flags.STATIC|Flags.FINAL))) { 
             Name n = sym.getQualifiedName();
             if (sym.pos >= 0 && !n.toString().equals(Strings.thisName)) n = names.fromString(n.toString() + ("_" + sym.pos));
             if (own != null && own != methodDecl.sym.owner && own instanceof TypeSymbol) {
@@ -458,6 +458,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * This is just used for DSA assignments.
      */
     protected JCIdent newIdentUse(VarMap map, VarSymbol sym, int useposition) {
+        if (sym.toString().startsWith("Pre_")) Utils.stop();
         Name name = map.getCurrentName(sym); // Creates a name if one has not yet been created
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
@@ -472,6 +473,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new JCIdent node
      */
     protected JCIdent newIdentUse(VarSymbol sym, int useposition) {
+        if (sym.toString().startsWith("Pre_")) Utils.stop();
         Name name = currentMap.getCurrentName(sym);
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
@@ -501,6 +503,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        if (vsym.toString().startsWith("Pre_")) Utils.stop();
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;

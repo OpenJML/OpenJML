@@ -1628,6 +1628,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        if (assertCount == 200 || assertCount == 202) {
 //            Utils.print("");
 //        }
+        if (assertID.equals("ASSERT_80")) Utils.stop();
+        
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
         JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? classDecl.sym : methodDecl.sym,translatedExpr);
@@ -1847,7 +1849,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        if (label == Label.POSTCONDITION) Utils.stop();
+        if (translatedExpr.toString().contains("Pre_2")) Utils.stop();
         JCStatement stt = null;
         if (esc) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -2886,10 +2888,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (constValue == null) continue;
                         JCExpression lit = treeutils.makeLit(e.pos, e.type, constValue);
                         lit = addImplicitConversion(e,vd.type,lit);
-//                        addStat(treeutils.makeVariableDecl(vd.sym, lit));
-                        vd.init = lit;
+                        addStat(treeutils.makeVariableDecl(vd.sym, null));
+                        // Note - with the above declaration and initialization, BasicBlocker2 adds an assumption
+                        JCExpression expr = treeutils.makeEquality(vd.pos, treeutils.makeIdent(vd.pos,vd.sym), lit);
+                        addAssume(vd,Label.IMPLICIT_ASSUME,convertExpr(expr));
+//                        vd.init = lit;
 //                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
-                        addStat(vd);
+//                        addStat(vd);
                     }
                 }
             }

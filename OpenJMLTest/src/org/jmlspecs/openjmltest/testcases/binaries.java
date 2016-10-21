@@ -62,7 +62,7 @@ public class binaries extends TCBase {
         );
     }
     
-    /** Tests that model methods etc. in system spec files are actually checked */
+    /** Tests that model methods etc. in system spec files are actually checked */  // FIXME - not sure this should actually work - unlerss File is parsed by some other means, how would one know where VVV and TTT are
     @Test
     public void testBinary3() {
         addMockFile("$A/java/io/File.jml",
