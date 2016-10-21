@@ -1238,6 +1238,7 @@ public class SMTTranslator extends JmlTreeScanner {
             log.error("jml.internal", "No type translation implemented when converting a BasicProgram to SMTLIB: " + t);
             throw new RuntimeException();
         } else {
+ //           if (t.toString().equals("\\bigint")) Utils.stop();
             TypeTag tag = t.getTag();
             if (tag == TypeTag.BOOLEAN) {
                 return F.Bool();
@@ -1263,7 +1264,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 return refSort;
             } else if (tag == TypeTag.BOT) {
                 return refSort;
-            } else if (tag == TypeTag.UNKNOWN){
+            } else if (tag == TypeTag.NONE || tag == TypeTag.UNKNOWN){
                 if (t instanceof JmlType) {
                     JmlType jt = (JmlType)t;
                     if (jt.jmlTypeTag() == JmlTokenKind.BSBIGINT) return intSort; 
