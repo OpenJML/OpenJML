@@ -38,7 +38,7 @@ public class SFBugs extends EscBase {
     }
     
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	Assert.fail(); // FIXME - Java8 - long running
+    	//Assert.fail(); // FIXME - Java8 - long running
 		escOnFiles(sourceDirname,outDir,opts);
 	}
 
@@ -106,6 +106,7 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug260","test/gitbug260", "-cp", "test/gitbug260", "-esc", "-progress");
     }
     
+    // FIXME - generics
     @Test public void gitbug431() {
     	expectedExit = 0;
         helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "-esc", "-progress");
@@ -187,6 +188,7 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
     }
     
+    // FIXME - generics
     @Test public void gitbug445() {
     	expectedExit = 1;
         helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");

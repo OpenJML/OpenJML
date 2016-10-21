@@ -3788,16 +3788,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!(t instanceof JCVariableDecl)) continue;
             JCVariableDecl vd = (JCVariableDecl)t;
             if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
-            JCExpression receiver;
-            receiver = treeutils.makeIdent(vd.pos, vd.sym);
-            receiver = convertJML(receiver);
-            JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
-            addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
-            if (vd.init != null) redo.add(vd);
-        }
-        for (JmlTypeClauseDecl vdj: specs.get(classDecl.sym).decls) {
-            if (!(vdj.decl instanceof JCVariableDecl)) continue;
-            JCVariableDecl vd = (JCVariableDecl)vdj.decl;
             if (isModel(vd.sym)) continue;
             JCExpression receiver;
             receiver = treeutils.makeIdent(vd.pos, vd.sym);
@@ -3806,6 +3796,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
             if (vd.init != null) redo.add(vd);
         }
+//        for (JmlTypeClauseDecl vdj: specs.get(classDecl.sym).decls) {
+//            if (!(vdj.decl instanceof JCVariableDecl)) continue;
+//            JCVariableDecl vd = (JCVariableDecl)vdj.decl;
+//            if (isModel(vd.sym)) continue;
+//            JCExpression receiver;
+//            receiver = treeutils.makeIdent(vd.pos, vd.sym);
+//            receiver = convertJML(receiver);
+//            JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
+//            addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
+//            if (vd.init != null) redo.add(vd);
+//        }
         // Second pass computes the initialized result
         for (JCVariableDecl vd: redo) {
             JCExpression receiver;

@@ -696,7 +696,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
                 } else if (file.isFile()) {
                     String ss = file.toString();
-                    if (utils.hasValidSuffix(ss)) files.add(ss);
+                    if (utils.hasJavaSuffix(ss)) files.add(ss); // FIXME - if we allow .jml files on the command line, we have to guard against parsing them twice
                 }
             }
         } else {
