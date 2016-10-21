@@ -242,7 +242,7 @@ public class escfiles extends EscBase {
     @Test 
     public void testCashAmount() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-logic=AUFNIA");
     }
 
     @Test
@@ -265,9 +265,9 @@ public class escfiles extends EscBase {
 
     @Test
     public void testSettableClock() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        //Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         expectedExit = 0;
-        helpDemo("settableClock","escSettableClock","-logic=AUFNIRA");
+        helpDemo("settableClock","escSettableClock","-logic=AUFNIA");
     }
 
     @Test
@@ -328,7 +328,7 @@ public class escfiles extends EscBase {
     @Test
     public void testCashAmountPrivate2() {
         expectedExit = 0;
-        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase");
+        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-logic=AUFNIA");
     }
 
     @Test

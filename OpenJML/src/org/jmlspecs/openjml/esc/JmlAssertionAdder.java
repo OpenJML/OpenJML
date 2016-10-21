@@ -2906,10 +2906,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (constValue == null) continue;
                         JCExpression lit = treeutils.makeLit(e.pos, e.type, constValue);
                         lit = addImplicitConversion(e,vd.type,lit);
-                        addStat(treeutils.makeVariableDecl(vd.sym, null));
+                        addStat(treeutils.makeVariableDecl(vd.sym, lit));
                         // Note - with the above declaration and initialization, BasicBlocker2 adds an assumption
-                        JCExpression expr = treeutils.makeEquality(vd.pos, treeutils.makeIdent(vd.pos,vd.sym), lit);
-                        addAssume(vd,Label.IMPLICIT_ASSUME,convertExpr(expr));
+//                        JCExpression expr = treeutils.makeEquality(vd.pos, treeutils.makeIdent(vd.pos,vd.sym), lit);
+//                        addAssume(vd,Label.IMPLICIT_ASSUME,convertExpr(expr));
 //                        vd.init = lit;
 //                        vd.sym.owner = null; // This null makes the identifier not subject to havoc
 //                        addStat(vd);
