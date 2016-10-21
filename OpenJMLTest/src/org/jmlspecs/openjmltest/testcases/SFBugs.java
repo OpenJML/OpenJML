@@ -52,7 +52,7 @@ public class SFBugs extends EscBase {
 
 
 
-    @Test public void test() {
+    @Test public void typecheckWithJML() {
     	expectedExit = 1;
         helpTCF("test/tcWithJml/TCWithJml.java","test/tcWithJml", "-cp", "test/tcWithJml", "-check");
     }
@@ -254,7 +254,7 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug999() {
+    public void gitbug999() {
     	expectedExit = 0;
         helpTCG();
     }
