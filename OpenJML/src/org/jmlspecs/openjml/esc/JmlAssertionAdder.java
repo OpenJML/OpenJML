@@ -1849,7 +1849,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JavaFileObject associatedSource, 
             @Nullable JCExpression info,
             Object ... args) {
-        if (translatedExpr.toString().contains("Pre_2")) Utils.stop();
         JCStatement stt = null;
         if (esc) {
             if (label != Label.ASSUME_CHECK && currentStatements != null 
@@ -3801,17 +3800,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
             if (vd.init != null) redo.add(vd);
         }
-//        for (JmlTypeClauseDecl vdj: specs.get(classDecl.sym).decls) {
-//            if (!(vdj.decl instanceof JCVariableDecl)) continue;
-//            JCVariableDecl vd = (JCVariableDecl)vdj.decl;
-//            if (isModel(vd.sym)) continue;
-//            JCExpression receiver;
-//            receiver = treeutils.makeIdent(vd.pos, vd.sym);
-//            receiver = convertJML(receiver);
-//            JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
-//            addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
-//            if (vd.init != null) redo.add(vd);
-//        }
         // Second pass computes the initialized result
         for (JCVariableDecl vd: redo) {
             JCExpression receiver;
@@ -6554,6 +6542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // FIXME - we should set condition
                     // Be sure to do assignable (havoc) clauses, then invariants, and then postcondition clauses
                     for (JmlSpecificationCase cs : calleeSpecs.cases) {
+                        //if (!utils.jmlvisible(null,classDecl.sym, classDecl.sym,  cs.modifiers.flags, methodDecl.mods.flags)) continue;
                         if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;

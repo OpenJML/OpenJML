@@ -678,6 +678,7 @@ public class Utils {
      */
     public boolean visible(Symbol base, Symbol parent, long flags) {
         if (base == parent) return true; // Everything is visible in its own class
+        if (base.isEnclosedBy((ClassSymbol)parent)) return true; // Everything is visible to inner classes
         if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
