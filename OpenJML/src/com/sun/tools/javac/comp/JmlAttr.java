@@ -490,7 +490,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - why should we attribute the Java class body in the case of a binary class
         
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
-        isInJmlDeclaration = utils.isJML(c.flags()); // REMOVED implementationAllowed ||
+        isInJmlDeclaration = isInJmlDeclaration || utils.isJML(c.flags());  // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("ATTRIBUTING-BODY " + c.fullname + " " + (isInJmlDeclaration?"inJML":"notInJML") + " WAS " + (prevIsInJmlDeclaration?"inJML":"notInJML"));
 //        JavaFileObject prev = log.useSource(((JmlClassDecl)env.enclClass).toplevel.sourcefile);  // FIXME - no write for multiple source files
@@ -885,6 +885,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitNewClass(JCNewClass tree) {
         boolean prev = implementationAllowed;
+        boolean prevJml = isInJmlDeclaration;
+        isInJmlDeclaration = true;
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
@@ -899,6 +901,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         } finally {
             implementationAllowed = prev;
+            isInJmlDeclaration = prevJml;
         }
     }
     
@@ -1947,7 +1950,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
                 allAllowed(mods.annotations, allowedFieldModifiers, "field declaration");
             }
-            if (isInJmlDeclaration && modelOrGhost) {
+            if (!inJML && isInJmlDeclaration && modelOrGhost) {
                 if (ghost) log.error(tree.pos,"jml.no.nested.ghost.type");
                 else       log.error(tree.pos,"jml.no.nested.model.type");
             } else if (inJML && !modelOrGhost  && !isInJmlDeclaration) {

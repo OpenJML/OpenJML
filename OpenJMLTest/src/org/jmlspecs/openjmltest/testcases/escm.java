@@ -225,12 +225,12 @@ public class escm extends EscBase {
                 +"@NonNullByDefault public class TestJava { \n"
 
                 +"  public int m1(TestJava o) {\n"
-                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 7
+                +"       //@ assert new TestJava() {  invariant false; int i; } == null; \n"  // Line 5
                 +"       return 0;\n"
                 +"  }\n"
 
                 +"  public int m2(TestJava o) {\n"
-                +"       //@ assert new TestJava() {  int i; } == null; \n"
+                +"       //@ assert new TestJava() {  int i; } == null; \n"  // Line 9
                 +"       return 0;\n"
                 +"  }\n"
                 +"}\n"

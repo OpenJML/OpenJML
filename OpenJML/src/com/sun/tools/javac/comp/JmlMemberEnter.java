@@ -955,7 +955,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // Find the counterpart to specsMethodDecl (from the .jml file) in the Java class declaration (javaDecl or csym)
         // Note that if the class is binary, javaDecl will be null, but csym will not
 
-        if (specsMethodDecl.name.toString().equals("<init>") && csym.toString().contains("anonymous")) Utils.stop();
         MethodSymbol matchSym = false ? specsMethodDecl.sym : matchMethod(specsMethodDecl,csym,env,false);
         
         // matchsym == null ==> no match or duplicate; otherwise matchSym is the matching symbol
