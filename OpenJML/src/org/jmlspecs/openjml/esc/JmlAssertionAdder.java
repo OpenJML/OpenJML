@@ -5841,17 +5841,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCStatement> saved = currentStatements;
             oldStatements = currentStatements; // FIXME - why twice
             
+            ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
             // Before the actual method call, check caller invariants and the invariants of the caller's parameters
             
             if (!isHelper(calleeMethodSym) && applyNesting <= 1) {
                 addStat(comment(that, "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 if (!isSuperCall && !isThisCall) {
-                    addInvariants(that,savedEnclosingClass.type,
-                            savedEnclosingMethod == null || utils.isJMLStatic(savedEnclosingMethod) || savedEnclosingMethod.isConstructor() ? null : currentThisExpr,
-                            currentStatements,
-                            false,methodDecl.sym.isConstructor(),isSuperCall,isHelper(methodDecl.sym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
-                            //utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
-                }
+                    if (meth instanceof JCFieldAccess) {
+                        addInvariants(that,calleeClass.type,
+                                utils.isJMLStatic(calleeMethodSym) || calleeMethodSym.isConstructor() ? null : newThisExpr,
+                                        currentStatements,
+                                        false,calleeMethodSym.isConstructor(),isSuperCall,isHelper(calleeMethodSym),false,false,Label.INVARIANT_EXIT_CALLER,  "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                        //utils.qualifiedMethodSig(methodDecl.sym) + " " + utils.qualifiedMethodSig(calleeMethodSym)); // FIXME - do we really do post here and below
+                    }
+                    }
                 // Note that methodDecl.params will be null for initializer blocks
                 if (methodDecl.params != null) for (JCVariableDecl v: methodDecl.params) {
                     if (v.type.isPrimitive()) continue;
@@ -5865,11 +5868,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
 
-            ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
             JCExpression collectedInvariants = treeutils.trueLit; // FIXME - do we need this - do we include this in the 'condition' ?
             
             if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym)) {   // Iterate through parent classes and interfaces, adding relevant invariants
-                String msg = utils.qualifiedMethodSig(calleeMethodSym) + " from " + utils.qualifiedMethodSig(methodDecl.sym);
+                String msg = "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym);
                 addStat(comment(that, "Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
                         false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),false,false,Label.INVARIANT_ENTRANCE,msg);
