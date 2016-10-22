@@ -206,7 +206,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug444() {
     	expectedExit = 0;
-        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444");
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444","-show","-method=isRelaxedPrefix");
     }
     
     @Test public void gitbug444a() {

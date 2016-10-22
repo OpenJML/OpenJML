@@ -5691,6 +5691,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
                         if (inOldEnv) {
                             escAddToOldList(oldenv,bl);
+                        } else if (nonignoredStatements != null) {
+                            nonignoredStatements.add(bl);
                         } else {
                             addStat(bl);
                         }
@@ -10837,6 +10839,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected java.util.Map<Symbol,Symbol> localVariables = new java.util.HashMap<Symbol,Symbol>();
     
+    protected ListBuffer<JCStatement> nonignoredStatements = null;
     // OK
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
@@ -10847,13 +10850,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
 
             if (!splitExpressions) {
-                JmlQuantifiedExpr q = M.at(that).
-                        JmlQuantifiedExpr(that.op,
-                                convertCopy(that.decls),
-                                convertExpr(that.range),
-                                convertExpr(that.value));
-                q.setType(that.type);
-                result = eresult = q;
+                ListBuffer<JCStatement>  prev = nonignoredStatements;
+                try {
+                    if (translatingJML) {
+                        nonignoredStatements = currentStatements;
+                        pushBlock(); // FIXME - we have not implemented guarding conditions for expressions inside quantifiers
+                    }
+                    JmlQuantifiedExpr q = M.at(that).
+                            JmlQuantifiedExpr(that.op,
+                                    convertCopy(that.decls),
+                                    convertExpr(that.range),
+                                    convertExpr(that.value));
+                    q.setType(that.type);
+                    result = eresult = q;
+                } finally {
+                    if (translatingJML) {
+                        popBlock();
+                        nonignoredStatements = prev;
+                    }
+                }
             } else {
                 java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
                 JCExpression innerexpr = determineRacBounds(that.decls,that.range,bounds);
