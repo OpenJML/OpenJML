@@ -956,7 +956,7 @@ public class JmlParser extends JavacParser {
                     } else {
                         if (mostRecentVarDecl.fieldSpecs == null) {
                             mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                    mostRecentVarDecl.mods);
+                                    mostRecentVarDecl);
                         }
                         mostRecentVarDecl.fieldSpecs.list
                         .append((JmlTypeClause) tree);
@@ -993,7 +993,7 @@ public class JmlParser extends JavacParser {
                 } else {
                     if (mostRecentVarDecl.fieldSpecs == null) {
                         mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                mostRecentVarDecl.mods);
+                                mostRecentVarDecl);
                     }
                     mostRecentVarDecl.fieldSpecs.list.append(inClause);
                     currentVariableDecl = mostRecentVarDecl;
@@ -1006,7 +1006,7 @@ public class JmlParser extends JavacParser {
                 } else {
                     if (mostRecentVarDecl.fieldSpecs == null) {
                         mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                mostRecentVarDecl.mods);
+                                mostRecentVarDecl);
                     }
                     mostRecentVarDecl.fieldSpecs.list.append(mapsClause);
                     currentVariableDecl = mostRecentVarDecl;

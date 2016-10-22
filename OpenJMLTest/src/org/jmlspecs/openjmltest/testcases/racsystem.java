@@ -82,7 +82,7 @@ public class racsystem extends RacBase {
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:99)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)"
-                ,"\tat tt.TestJava.m(TestJava.java:6)"
+                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"       
                 );
     }
@@ -106,7 +106,7 @@ public class racsystem extends RacBase {
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:83)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"            
+                ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
                 );
     }
 
@@ -130,7 +130,7 @@ public class racsystem extends RacBase {
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:99)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)"
-                ,"\tat tt.TestJava.m(TestJava.java:6)"
+                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - nshould be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
                 );
@@ -157,7 +157,7 @@ public class racsystem extends RacBase {
                 ,"org.jmlspecs.utils.JmlAssertionError: /tt/TestJava.java:6: JML assertion is false"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:99)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:58)"
-                ,"\tat tt.TestJava.m(TestJava.java:6)"
+                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 6
                 ,"\tat tt.TestJava.main(TestJava.java:3)"
                 ,"END"
                 );

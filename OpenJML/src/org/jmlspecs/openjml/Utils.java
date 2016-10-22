@@ -817,7 +817,7 @@ public class Utils {
         t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
         JCAnnotation ann = (F.at(position).Annotation(t,
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
-        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         return ann;
     }
 

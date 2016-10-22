@@ -1532,9 +1532,17 @@ public class JmlSpecs {
         /** A list of the clauses pertinent to this field (e.g. in, maps) */
         public ListBuffer<JmlTree.JmlTypeClause> list = new ListBuffer<JmlTree.JmlTypeClause>();
         
+        public JavaFileObject source() {
+            return decl.source();
+        }
+        
+        public JmlVariableDecl decl;
+        
         /** Creates a FieldSpecs object initialized with only the given modifiers */
-        public FieldSpecs(JCTree.JCModifiers mods) { 
-            this.mods = mods;
+        public FieldSpecs(JmlVariableDecl decl) { 
+            this.decl = decl;
+            this.mods = decl.mods;
+            decl.fieldSpecsCombined = this;
         }
         
         @Override

@@ -3998,7 +3998,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             JCStatement retStandin = F.Return(F.Literal(restype.getTag(), 0));
             bodyStats.add(retStandin);
-
+            
             JCMethodDecl methodDecl = F.MethodDef(
                     F.Modifiers(Flags.PUBLIC), 
                     names.fromString("value"),
@@ -4008,6 +4008,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     List.<JCExpression>nil(), // thrown types
                     body=F.Block(0,bodyStats.toList()), // body - more to be added later
                     null); // default value
+            utils.setJML(methodDecl.mods);
+            methodDecl.mods.annotations = methodDecl.mods.annotations.append(utils.tokenToAnnotationAST(JmlTokenKind.PURE,0,0)); // FIXME- fix positions?
             // methodDecl is (RT is the result type): public RT value(Object[] args) { ... decls... }
             
             List<JCTree> defs = List.<JCTree>of(methodDecl);
@@ -4021,6 +4023,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // anon is, e.g., depending on the result type: 
             //               new org.jmlspecs.utils.Utils.ValueBool() { public boolean value(Object[] args) { ... decls... } }
 
+            
             ListBuffer<JCExpression> standinargs = new ListBuffer<JCExpression>(); //F.TypeCast(Type.(syms.objectType), F.Literal(syms.objectType.tag,null));
 //            for (JCExpression ex: argslist) {
 //                JCLiteral lit = F.Literal(ex.type.tag,0);
@@ -4035,6 +4038,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Need to fill in (a) the body of the method and (b) the araguments of the call
 
             q.racexpr = call;
+            
+            q.racexpr = trueLit;  // FIXME - RAC without quantifiers for now
             
             // Attribute the unattributed expression
             

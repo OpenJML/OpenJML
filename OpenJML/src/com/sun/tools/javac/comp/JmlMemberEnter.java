@@ -903,7 +903,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             JmlSpecs.FieldSpecs fieldSpecs = specsVarDecl.fieldSpecs;
             if (fieldSpecs != null) JmlSpecs.instance(context).putSpecs(matchSym,fieldSpecs);
             else {
-                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl.mods);   // FIXME - what about lists of in clauses
+                fieldSpecs = new JmlSpecs.FieldSpecs(specsVarDecl);   // FIXME - what about lists of in clauses
                 specsVarDecl.fieldSpecs = fieldSpecs;
                 specs.putSpecs(matchSym,  fieldSpecs);
             }
@@ -1440,9 +1440,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!utils.rac) return;
         
-        if ((sym.flags() & Flags.INTERFACE) != 0) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
+        if (sym.isAnonymous()) return;
+        if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
+        JmlClassDecl jtree = (JmlClassDecl)env.tree;
             
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
@@ -1479,6 +1481,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
         
+        memberEnter(m,env);
+        memberEnter(ms,env);
+        jtree.defs = jtree.defs.append(m).append(ms);
+        
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(m));
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(ms));
 //        tsp.checkInvariantDecl = m;
@@ -1487,30 +1493,38 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        memberEnter(ms,env);
 //        setDefaultCombinedMethodSpecs(m);
 //        setDefaultCombinedMethodSpecs(ms);
-        
+        JmlAttr attr = JmlAttr.instance(context);
         HashSet<Name> modelMethodNames = new HashSet<Name>();
-        for (JmlTypeClauseDecl td : tsp.decls) {
-            if (!(td.decl instanceof JCVariableDecl)) continue;
-            JCVariableDecl vdecl = (JCVariableDecl)td.decl;
-            JCAnnotation modelAnnotation = JmlAttr.instance(context).findMod(vdecl.mods,JmlTokenKind.MODEL);
-            if (modelAnnotation == null) continue;  // FIXME -check for model on the symbol?
+        Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlToken.MODEL);
+        for (Symbol sy : sym.members().getElements()) {
+            Compound annotation = sy.attribute(modelSym);
+            if (annotation == null) continue;
+            //if (!attr.isModel(sy)) continue;
+            if (!(sy instanceof VarSymbol)) continue;
+            VarSymbol vsym = (VarSymbol)sy;
+            //JCVariableDecl vdecl = (JCVariableDecl)td.decl;
             long flags = Flags.SYNTHETIC;
-            flags |= (vdecl.mods.flags & (Flags.STATIC|Flags.AccessFlags));
-            modelMethodNames.add(vdecl.name);
-            Name name = names.fromString(Strings.modelFieldMethodPrefix + vdecl.name);
-            JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name,vdecl.vartype,
+            flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
+            modelMethodNames.add(vsym.name);
+            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
+            Name name = names.fromString(Strings.modelFieldMethodPrefix + vsym.name);
+            JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(vsym.type),
                     List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
-            mr.pos = vdecl.pos;
+            mr.pos = vsym.pos;
             utils.setJML(mr.mods);
-            mr.mods.annotations = List.<JCAnnotation>of(modelAnnotation);
+            mr.mods.annotations = List.<JCAnnotation>of(jmlF.Annotation(annotation));
             memberEnter(mr,env);
             setDefaultCombinedMethodSpecs(mr);
             JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
             tcd.pos = mr.pos;
-            tcd.source = td.source;
+            tcd.source = fspecs.source();
             tcd.modifiers = mr.mods;
             tsp.modelFieldMethods.append(tcd);
             tsp.decls.append(tcd);
+            
+            memberEnter(mr,env);
+            jtree.defs = jtree.defs.append(mr);
+
         }
     }
     
@@ -1528,6 +1542,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     // MUST HAVE log.useSource set to specs file!
     protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods) {
         // FIXME - check for null in annotations?
+        if (sym.isAnonymous()) return;
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (Compound a  : sym.getAnnotationMirrors()) {
             if (a.type.tsym.owner.equals(p) && utils.findMod(specsmods,a.type.tsym) == null) {
@@ -2148,7 +2163,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
 
-            checkSameAnnotations(match,specMethodDecl.mods);
+            // FIXME - we do need to exclude some anonymous classes,  but all of them?
+            if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods);
             Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
             Iterator<Symbol.VarSymbol> javaiter = match.getParameters().iterator();
             while (javaiter.hasNext() && jmliter.hasNext()) {
@@ -3134,7 +3150,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         // FIXME - the following duplicates setting the specs with matchAndSetFieldSpecs - but if there is a source file, this comes first
         JmlSpecs.FieldSpecs fspecs = jtree.fieldSpecs;
-        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(tree.mods); // Does not include any in or maps clauses
+        if (fspecs == null) fspecs = new JmlSpecs.FieldSpecs(jtree); // Does not include any in or maps clauses
         jtree.fieldSpecsCombined = fspecs; 
         specs.putSpecs(tree.sym,fspecs);
         if (sym.kind == Kinds.VAR && sym.owner.kind == TYP && (sym.owner.flags_field & INTERFACE) != 0
@@ -3217,7 +3233,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (isInstance && !wasStatic) specstree.mods.flags &= ~Flags.STATIC;
         }
         if (specs.getSpecs(specstree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + specstree.sym.owner + "." + specstree.sym);
-        specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree.mods)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
+        specs.putSpecs(specstree.sym,new JmlSpecs.FieldSpecs(specstree)); // This specs only has modifiers - field spec clauses are added later (FIXME - where? why not here?)
 
         if (vsym.kind == Kinds.VAR && vsym.owner.kind == TYP && (vsym.owner.flags_field & INTERFACE) != 0
                 && isJML) {

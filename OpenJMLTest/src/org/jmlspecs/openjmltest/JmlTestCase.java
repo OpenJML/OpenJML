@@ -407,8 +407,15 @@ public abstract class JmlTestCase {
                     return diff;
                 }
                 if (sexp != null && sact == null) {
-                    diff += ("Less actual input than expected" + eol);
-                    return diff;
+                	while (sexp != null && sexp.startsWith("Note: ")) {
+                		sexp = exp.readLine();
+                	}
+                	if (sexp == null) {
+                		return diff.isEmpty() ? null : diff;
+                	} else {
+                		diff += ("Less actual input than expected" + eol);
+                		return diff;
+                	}
                 }
                 sexp = sexp.replace("$ROOT",root);
                 String env = System.getenv("SPECSDIR");
