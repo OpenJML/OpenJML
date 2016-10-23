@@ -420,6 +420,17 @@ public class JmlTreeUtils {
      * @return the AST node
      */ 
     public JCLiteral makeZeroEquivalentLit(int pos, Type type) {
+//        if (type == types.BIGINT) {
+//            return makeLit(pos,type,0);
+//           
+//        } else if (type == types.REAL) {
+//            return makeLit(pos,type,0.0);
+//            
+//        } else if (type == types.TYPE) {
+//            // FIXME - ???
+//            return makeNullLiteral(pos);
+//            
+//        } else {
         switch (type.getTag()) {
             case CHAR:
                 return makeLit(pos,type,0); // Character literal requires an int value
@@ -442,6 +453,7 @@ public class JmlTreeUtils {
             default:
                 return makeNullLiteral(pos);
         }
+//        }
     }
 
     // FIXME - the following method appears to be misnamed

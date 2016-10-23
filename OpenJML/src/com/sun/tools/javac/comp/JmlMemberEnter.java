@@ -45,6 +45,7 @@ import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import com.sun.tools.javac.code.Attribute.Compound;
+import com.sun.tools.javac.code.Flags.Flag;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
@@ -172,8 +173,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public void memberEnter(JCTree tree, Env<AttrContext> env) {
         if (tree instanceof JmlTypeClause) return;
-//        if (!dojml && tree instanceof JmlMethodDecl && utils.isJML(((JmlMethodDecl)tree).mods)) return;
-//        if (!dojml && tree instanceof JmlVariableDecl && utils.isJML(((JmlVariableDecl)tree).mods)) return;
         super.memberEnter(tree, env);
         if (tree instanceof JmlCompilationUnit) {  // FIXME - this is also called with tree being a JmlClassDecl - then nothing is done; also part of the below is done already??
             JmlCompilationUnit javacu = (JmlCompilationUnit)tree;
@@ -1445,6 +1444,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).get(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
+        JmlClassDecl specstree = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY ? jtree : jtree.specsDecl;
             
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
                 jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
@@ -1481,9 +1481,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         m.mods.annotations = m.mods.annotations.append(a);
         ms.mods.annotations = ms.mods.annotations.append(a);
         
-        memberEnter(m,env);
-        memberEnter(ms,env);
-        jtree.defs = jtree.defs.append(m).append(ms);
+        ListBuffer<JCTree> newdefs = new ListBuffer<>();
+        newdefs.add(m);
+        newdefs.add(ms);
         
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(m));
 //        tsp.clauses.append(jmlF.JmlTypeClauseDecl(ms));
@@ -1493,28 +1493,33 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        memberEnter(ms,env);
 //        setDefaultCombinedMethodSpecs(m);
 //        setDefaultCombinedMethodSpecs(ms);
+        
+        // We can't use the annotations on the symbol because the annotations are not 
+        // necessarily completed. We could force it, but in the interst of least disruption
+        // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
         HashSet<Name> modelMethodNames = new HashSet<Name>();
-        Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlToken.MODEL);
-        for (Symbol sy : sym.members().getElements()) {
-            Compound annotation = sy.attribute(modelSym);
+        Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
+        for (JCTree decl: specstree.defs) {
+            if (!(decl instanceof JmlVariableDecl)) continue;
+            JmlVariableDecl vdecl = (JmlVariableDecl)decl;
+            JCAnnotation annotation = utils.findMod(vdecl.mods, modelSym);
             if (annotation == null) continue;
-            //if (!attr.isModel(sy)) continue;
-            if (!(sy instanceof VarSymbol)) continue;
-            VarSymbol vsym = (VarSymbol)sy;
-            //JCVariableDecl vdecl = (JCVariableDecl)td.decl;
+            VarSymbol vsym = vdecl.sym;
+            
+            JCStatement returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.type));
+
             long flags = Flags.SYNTHETIC;
             flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
             modelMethodNames.add(vsym.name);
             JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
             Name name = names.fromString(Strings.modelFieldMethodPrefix + vsym.name);
             JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(vsym.type),
-                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(),jmlF.Block(0,List.<JCStatement>nil()), null);
+                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
+            mr.mods.flags |= Flags.DEFAULT;
             mr.pos = vsym.pos;
             utils.setJML(mr.mods);
-            mr.mods.annotations = List.<JCAnnotation>of(jmlF.Annotation(annotation));
-            memberEnter(mr,env);
-            setDefaultCombinedMethodSpecs(mr);
+            mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,vdecl.pos,vdecl.getEndPosition(log.getSource(vdecl.sourcefile).getEndPosTable())));
             JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
             tcd.pos = mr.pos;
             tcd.source = fspecs.source();
@@ -1522,10 +1527,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             tsp.modelFieldMethods.append(tcd);
             tsp.decls.append(tcd);
             
-            memberEnter(mr,env);
-            jtree.defs = jtree.defs.append(mr);
-
+            newdefs.add(mr);
         }
+        
+        List<JCTree> nd = newdefs.toList();
+        memberEnter(nd,env);
+        jtree.defs = jtree.defs.appendList(nd);
+        // The call to set the specs must come after the the method symbol is set, so after memberEnter
+        for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
+
+
     }
     
     /** For synthetic methods or methods that do not have occasion to declare

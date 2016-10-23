@@ -112,7 +112,7 @@ public class JmlCheck extends Check {
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         JCTree.JCVariableDecl d = (tree instanceof JCTree.JCVariableDecl) ? (JCTree.JCVariableDecl) tree : null;
         if (staticOldEnv) flags &= ~Flags.STATIC;
-        long k = super.checkFlags(pos,flags,sym,tree);
+        long k = super.checkFlags(pos,flags&~Flags.DEFAULT,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (d != null) {
             boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlTokenKind.INSTANCE) != null;

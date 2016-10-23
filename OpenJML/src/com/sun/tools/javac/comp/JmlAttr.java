@@ -9,6 +9,7 @@ import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
+import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
@@ -1065,6 +1066,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Does the various checks of method/constructor modifiers */
     public void checkMethodModifiers(JmlMethodDecl javaMethodTree) {
+        if ((javaMethodTree.sym.flags() & SYNTHETIC) != 0) return;
         JavaFileObject prev = log.currentSourceFile();
         try {
             JmlSpecs.MethodSpecs mspecs = specs.getSpecs(javaMethodTree.sym); //javaMethodTree.methodSpecsCombined;
@@ -4039,8 +4041,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             q.racexpr = call;
             
-            q.racexpr = trueLit;  // FIXME - RAC without quantifiers for now
-            
+            q.racexpr = treeutils.makeZeroEquivalentLit(q.pos, q.type);
+
             // Attribute the unattributed expression
             
             attribExpr(q.racexpr, localEnv, resultType); // This puts in the default constructor, which the check call does not

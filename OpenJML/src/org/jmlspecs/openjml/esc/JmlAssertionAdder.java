@@ -5873,7 +5873,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression collectedInvariants = treeutils.trueLit; // FIXME - do we need this - do we include this in the 'condition' ?
             
             if (!isSuperCall && !isThisCall && !isHelper(calleeMethodSym)) {   // Iterate through parent classes and interfaces, adding relevant invariants
-                String msg = "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym);
+                String msg = "(Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")";
                 addStat(comment(that, "Checking callee invariants by the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 addInvariants(that,calleeClass.type,newThisExpr,currentStatements,
                         false,calleeMethodSym.isConstructor(),false,isHelper(calleeMethodSym),false,false,Label.INVARIANT_ENTRANCE,msg);
@@ -9182,21 +9182,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
                     }
                 }
-                for (JmlTypeClause t: tyspecs.decls) {
-                    switch (t.token){
-                        case JMLDECL:
-                            scan(t);
-                            break;
-                        default:
-                            log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
-                    }
-                }
+//                for (JmlTypeClause t: tyspecs.decls) {
+//                    switch (t.token){
+//                        case JMLDECL:
+//                            scan(t);
+//                            break;
+//                        default:
+//                            log.error(t.pos,"jml.internal","Clause type not handled in visitJmlClassDecl: " + t.token.internedName());
+//                    }
+//                }
 //                if (rac) for (JmlClassDecl t: tyspecs.modelTypes) {
 //                    scan(t);
 //                }
             }
             
             List<JCTree> defs = this.classDefs.toList();
+            
+            for (JCTree def: defs) {
+                if (def instanceof JmlMethodDecl) {
+                    JmlMethodDecl jdef = (JmlMethodDecl)def;
+                    String nm = jdef.name.toString();
+                    if (attr.isModel(jdef.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
+                        if ((jdef.mods.flags & Flags.DEFAULT) != 0) {
+                            // We are presuming that all represents clauses are processed
+                            // (as part of scanning the specs defs in visitJmlClassDecl)
+                            // before we handle all the model field methods.
+                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
+                        }
+                    }
+                }
+            }
+            
             // FIXME - replicate all the other AST nodes
             List<JCTypeParameter> typarams = that.typarams;
             if (fullTranslation) typarams = convert(typarams);
@@ -10181,27 +10197,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // it will not be, and we need to find the class
         if (esc && JmlEsc.skip(that)) return;
         if (rac && (JmlEsc.skipRac(that) || utils.hasAny(that.mods, Flags.ABSTRACT))) {
-            classDefs.add(that); // FIXME - should make a fresh copy of the declaration
+            if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
             return;
         }
         
+        String nm = that.name.toString();
+        if (attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
+            if (classDefs != null) classDefs.add(that);
+            return;
+        }
+
         if (classDecl == null) classDecl = utils.getOwner(that);
         log.useSource(that.source());
         boolean saved = translatingJML;
-        String nm = that.name.toString();
-        if (!pureCopy && attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-            if (that.body.stats.isEmpty()) {
-                // We are presuming that all represents clauses are processed
-                // (as part of scanning the specs defs in visitJmlClassDecl)
-                // before we handle all the model field methods.
-                log.warning(that.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
-                JCReturn st = M.Return(treeutils.makeZeroEquivalentLit(that.pos,that.sym.type.getReturnType()));
-                st.pos = that.pos;
-                that.body.stats = List.<JCStatement>of(st);
-                classDefs.add(that);
-                return;
-            }
-        }
         try {
             // FIXME - implemente constructors - need super calls.
             //        if (that.restype == null) { classDefs.add(that); return; } // FIXME - implement constructors
@@ -11660,6 +11668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         else {
             log.warning(that,"jml.internal.notsobad",
                     "The lhs of a represents clause is expected to be an identifier or field access (found "+e.getClass()+")");
+            return;
         }
         JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
         if (sym != null) {
@@ -11676,18 +11685,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JmlMethodDecl md = (JmlMethodDecl)m.decl;
                 if (! md.name.equals(name)) continue; 
                 try {
-                    JCReturn st = M.at(that).Return(that.expression);
-                    // We have a match
-                    if (md.body.stats.isEmpty()) {
-                        // But no body yet
-                        md.body.stats = List.<JCStatement>of(st);
-                    } else {
-                        log.warning(that.pos,"jml.duplicate.represents");
+                    pushBlock();
+                    boolean save = splitExpressions;
+                    splitExpressions = false;
+                    try {
+                        JCReturn st = M.at(that).Return(convertExpr(that.expression)); // FIXME - what do we do about undefined expressions?
+                        // We have a match
+                        if ((md.mods.flags & Flags.DEFAULT) != 0) {
+                            // But no body yet
+                            md.body.stats = List.<JCStatement>of(st);
+                            md.mods.flags &= ~Flags.DEFAULT;
+                        } else {
+                            log.warning(that.pos,"jml.duplicate.represents");
+                        }
+                    } finally {
+                        popBlock();
+                        splitExpressions = save;
                     }
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because
                     // of some non-translatable expression within it
-                    notImplemented(that,"represents clause containing " + ee.toString() + " expression", that.source());
+                    notImplemented(that.token.internedName() + " clause containing ", ee, that.source());
                 }
                 mdecl = md;
                 break;
@@ -11711,7 +11729,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because
                     // of some non-translatable expression within it
-                    notImplemented(that,"represents clause containing " + ee.getMessage() + " expression", that.source());
+                    notImplemented(that.token.internedName() + " clause containing ", ee, that.source());
                 } finally {
                     msdecl.body.stats = popBlock(0L,msdecl.body).stats;
                 }
