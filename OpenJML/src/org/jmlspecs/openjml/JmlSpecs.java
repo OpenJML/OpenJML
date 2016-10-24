@@ -1422,18 +1422,18 @@ public class JmlSpecs {
      * given class symbol. Presumes there is already at least an empty
      * stored specs structure.
      */
-    public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl principalDecl, /*@ nullable */  JmlClassDecl specTypeDecl) {
+    public JmlSpecs.TypeSpecs combineSpecs(ClassSymbol sym, /*@ nullable */ JmlClassDecl javaClassDecl, /*@ nullable */  JmlClassDecl specClassDecl) {
         JmlSpecs.TypeSpecs tspecs = new TypeSpecs(sym);
         putSpecs(sym, tspecs);
         tspecs.csymbol = sym;
-        tspecs.decl = specTypeDecl;
-        tspecs.refiningSpecDecls = specTypeDecl;
-        if (specTypeDecl != null) {
-            tspecs.modifiers = specTypeDecl.mods;
-            tspecs.file = specTypeDecl.source();
+        tspecs.decl = specClassDecl;
+        tspecs.refiningSpecDecls = specClassDecl;
+        if (specClassDecl != null) {
+            tspecs.modifiers = specClassDecl.mods;
+            tspecs.file = specClassDecl.source();
         } else {
             tspecs.modifiers = null;
-            if (principalDecl != null) tspecs.file = principalDecl.source();
+            if (javaClassDecl != null) tspecs.file = javaClassDecl.source();
         }
         tspecs.defaultNullity = defaultNullity(sym);
 
@@ -1447,16 +1447,16 @@ public class JmlSpecs {
         //      modelFieldMethods
         //      checkInvariantDecl, checkStaticInvariantDecl (RAC related)
 
-        if (tspecs.decl != null && specTypeDecl != tspecs.decl ) {
-            log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specTypeDecl != null) + " " + (tspecs.decl != null));
+        if (tspecs.decl != null && specClassDecl != tspecs.decl ) {
+            log.getWriter(WriterKind.NOTICE).println("PRECONDITION FALSE IN COMBINESPECS " + sym + " " + (specClassDecl != null) + " " + (tspecs.decl != null));
         }
 
 
         // FIXME - do not bother copying if there is only one file
         // modelFieldMethods, checkInvariantDecl, checkStaticInvariantDecl not relevant yet
         ListBuffer<JCTree> newlist = new ListBuffer<JCTree>();
-        if (specTypeDecl != null) {
-            for (JCTree t: specTypeDecl.defs) {
+        if (specClassDecl != null) {
+            for (JCTree t: specClassDecl.defs) {
                 JCTree tt = t;
                 if (t instanceof JCTree.JCBlock) {
                     JCTree.JCBlock b = (JCTree.JCBlock)t;
@@ -1494,7 +1494,7 @@ public class JmlSpecs {
                 }
                 if (tt != null) newlist.add(tt);
             }
-            specTypeDecl.defs = newlist.toList();
+            specClassDecl.defs = newlist.toList();
         }
         return tspecs;
     }

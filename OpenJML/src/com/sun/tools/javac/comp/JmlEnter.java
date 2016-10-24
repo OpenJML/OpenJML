@@ -915,64 +915,51 @@ public class JmlEnter extends Enter {
             specstree = thattree.specsDecl;
         }
 
-//        if (specstree != null && specstree != jmltree) {
-//            JmlCompilationUnit top = specstree.toplevel;
-//            for (JCTree t: specstree.defs) {
-//                if (t instanceof JmlClassDecl) ((JmlClassDecl)t).toplevel = top;
-//            }
-//        }
-//        
         
-        // FIXME - the rest of the method needs review
-        
-        ClassSymbol cs = csym;
-//        {
-//            Name flatname = specstree.toplevel.pid == null ? that.name : names.fromString(specstree.toplevel.pid.toString() + "." + that.name.toString());
-//            cs = reader.classExists(flatname);
-//            // cs is non-null if the class has already been loaded/entered
-//            // cs is null for a source file, with or without a specs file
-//        }
-        {
-            // Do not redo the visitClassDef for binary loading, when the class is read but the specs are not loaded
             
-            // Match up specs classes with java classes and adjust for unmatched classes or duplicates
-            Env<AttrContext> prevenv = this.env;
-            if (specstree != null) {
-                // Attaches specs tree from second list at classdecl.specsDecls for each classdecl in the first list
-                // Matching classes has to come before visitClassDef because we need to filter out any non-Java class declarations
-                // but we cannot add JML classes here because we don't have a class symbol yet
-                that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString());
+        // Match up specs classes with java classes and adjust for unmatched classes or duplicates
+        if (specstree != null) {
+            // Attaches specs tree from second list at classdecl.specsDecls for each classdecl in the first list
+            // Matching classes has to come before visitClassDef because we need to filter out any non-Java class declarations
+            // but we cannot add JML classes here because we don't have a class symbol yet
+            that.defs = matchClasses(that.defs, specstree.defs, thattree.source().toString());
+        }
+        if (csym == null) { 
+            if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = true;
+            super.visitClassDef(that); // Uses this.env
+            if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
+            if (that.sym == null) {
+                log.error("jml.internal", "Unexpected null class symbol after processing class " + that.name);
+                return;
             }
-            if (cs == null) { 
-                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = true;
-                super.visitClassDef(that); // Uses this.env
-                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
-                if (that.sym == null) {
-                    log.error("jml.internal", "Unexpected null class symbol after processing class " + that.name);
-                    return;
-                }
-            } else {
-                that.sym = cs;
-                cs.completer = memberEnter;
-                chk.checkFlags(thattree.pos(), thattree.mods.flags, cs, thattree); // Do not overwrite flags in the binary
-                cs.sourcefile = thattree.sourcefile;
-                //cs.members_field = new Scope(cs); // DO not overwrite the fields that are in the binary
+        } else {
+            
+            // FIXME - explaing what is happening here
+            
+            that.sym = csym;
+            csym.completer = memberEnter;
+            chk.checkFlags(thattree.pos(), thattree.mods.flags, csym, thattree); // Do not overwrite flags in the binary
+            csym.sourcefile = thattree.sourcefile;
+            //cs.members_field = new Scope(cs); // DO not overwrite the fields that are in the binary
 
-                Scope enclScope = enterScope(env);
-                enclScope.enter(cs);
+            Scope enclScope = enterScope(env);
+            enclScope.enter(csym);
 
-             }
+        }
 
+        if (isSpecForBinary) {
+            // FIXME - this is already done for source classes. Is it needed for binary classes?
             Env<AttrContext> localEnv = classEnv(that, env); // FIXME - we might well need this, but classEnv(that,env) fails for loading secs of binary classes
             typeEnvs.put(that.sym, localEnv);
             thattree.env = localEnv;
-                // We are entering a class within specification file for a binary load
-                // So enter any nested classes within the class we have been entering
-                // classEnter(that.defs, typeEnvs.get(cs)); // FIXME - no environment stored
-//            }
         }
         
         if (specstree != null) {
+            // Check the names of type parameters in the specifications against those defined
+            // in the class symbol (so should work for both source and binary).
+            // Sets the type of type parameters in the specs declaration accordingly.
+            // With the third argument null, no class entering is performed; all the type
+            // parameters from the source/binary Java file should be entered and in scope.
             checkAndEnterTypeParameters(that.sym, specstree, null);
         }
 
@@ -987,6 +974,7 @@ public class JmlEnter extends Enter {
             }
             if (specstree != null) {
                 specstree.sym = that.sym;
+                // FIXME - the specstree might actually want a different local environment because it may have different imports
                 specstree.env = localEnv;
             }
         }
@@ -1148,11 +1136,9 @@ public class JmlEnter extends Enter {
         int numSpecTypeParams = specTypeDeclaration.typarams.size();
         int numJavaTypeParams = csym.type.getTypeArguments().size();
         if (numSpecTypeParams != numJavaTypeParams) {
-            JavaFileObject prev = log.useSource(specTypeDeclaration.source());
-            log.error(specTypeDeclaration.pos(),"jml.mismatched.type.arguments",specTypeDeclaration.name,csym.type.toString());
+            utils.error(specTypeDeclaration.source(),specTypeDeclaration.pos(),"jml.mismatched.type.arguments",specTypeDeclaration.name,csym.type.toString());
             //log.error(specTypeDeclaration.pos(),"jml.mismatched.type.parameters", specTypeDeclaration.name, csym.fullname, n, javaN);
             result = false;
-            log.useSource(prev);
         }
         int nn = numSpecTypeParams; if (numJavaTypeParams < nn) nn = numJavaTypeParams;
         for (int i = 0; i<nn; i++) {
