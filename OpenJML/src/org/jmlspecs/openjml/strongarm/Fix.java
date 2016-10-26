@@ -95,7 +95,7 @@ public class Fix {
                File.separator + "bin" +
                File.separator + "java";
        
-       String[] baseArgs = new String[]{javaBin, "-Dopenjml.eclipseSpecsProjectLocation=../../Specs","-cp", classpath, "org.jmlspecs.openjml.Main"};
+       String[] baseArgs = new String[]{javaBin, "-Xmx5G", "-Dopenjml.eclipseSpecsProjectLocation=../../Specs","-cp", classpath, "org.jmlspecs.openjml.Main"};
 
        String[] processArgs = new String[baseArgs.length + args.length];
        
