@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -31,6 +32,8 @@ import com.sun.tools.javac.util.Name;
 public class PropsInSubtree extends JmlTreeScanner{
 
     private int props;
+    private int ensures;
+    private int assignable;
     
     public PropsInSubtree(){}
     
@@ -39,6 +42,15 @@ public class PropsInSubtree extends JmlTreeScanner{
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         props++;
+        
+        if(tree.token==JmlToken.ENSURES){
+            ensures++;
+        }
+        
+        if(tree.token==JmlToken.ASSIGNABLE){
+            assignable++;
+        }
+        
         super.visitJmlMethodClauseExpr(tree);
     }
 
@@ -49,5 +61,12 @@ public class PropsInSubtree extends JmlTreeScanner{
         instance.scan(node);
         
         return instance.props;
+    }
+    
+    public static boolean viable(JCTree node){
+        PropsInSubtree instance = new PropsInSubtree();
+        instance.scan(node);
+        
+        return instance.assignable + instance.ensures > 0;
     }
 }

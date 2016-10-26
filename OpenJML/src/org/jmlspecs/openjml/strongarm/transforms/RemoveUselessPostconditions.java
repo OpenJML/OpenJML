@@ -101,6 +101,14 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
                         replacedCases = replacedCases.append(cases.head);
                     }
                 }
+            }else if(cases.head.clauses.head instanceof JmlMethodClauseGroup){
+                if(PropsInSubtree.viable(cases.head)){
+                    if(replacedCases == null){
+                        replacedCases = List.of(cases.head);
+                    }else{
+                        replacedCases = replacedCases.append(cases.head);
+                    }
+                }
             }else{
                 scan(cases.head.clauses.head);
                 
