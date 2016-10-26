@@ -16,14 +16,14 @@ public class Next {
     
     //@ requires this.reader != null;
     public char next() throws Exception {
-    int c;
+    int c = 0;
     if (this.usePrevious) {
         this.usePrevious = false;
         c = this.previous;
     } else {
         try {
             c = this.reader.read();
-        } catch (IOException exception) {
+         } catch (IOException exception) {
             throw new Exception(exception);
         }
 

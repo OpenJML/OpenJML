@@ -177,9 +177,9 @@ public class Prop<T extends JCExpression> implements Cloneable {
         subs.removeAll(removals);
 
         
-        for(JCTree ss : subs){
-            log("\t[SUB TABLE] " + ss.toString());
-        }
+//        for(JCTree ss : subs){
+//            log("\t[SUB TABLE] " + ss.toString());
+//        }
         
         // baby fixpoint
         String before;
@@ -207,8 +207,9 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         for(JCTree sub : subs){
              
-            if(sub.toString().contains("eof")){
-                 log("Found failing prop...");
+            if(sub.toString().contains("THIS == THIS")){
+                 //log("Found failing prop...");
+                 continue;
              }
              
             //log("\t\t[ACTIVE SUB]" + sub.toString());

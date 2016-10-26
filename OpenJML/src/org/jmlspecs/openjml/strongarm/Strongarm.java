@@ -690,7 +690,7 @@ public class Strongarm
         // Clean up clauses lacking useful postconditions
         //
         
-        RemoveUselessPostconditions.simplify(contract);
+        //RemoveUselessPostconditions.simplify(contract);
         
         if (verbose) {
             log.noticeWriter.println(Strings.empty);
