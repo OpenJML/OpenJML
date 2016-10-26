@@ -78,6 +78,11 @@ public class RemoveContradictions extends JmlTreeScanner {
     protected boolean isFeasible(List<JmlMethodClause> clauses) {
 
         for (JmlMethodClause c : clauses) {
+            
+            if(c instanceof JmlMethodClauseGroup){
+                visitJmlMethodClauseGroup((JmlMethodClauseGroup)c);
+            }
+            
             if (c instanceof JmlMethodClauseExpr) {
                 JmlMethodClauseExpr expr = (JmlMethodClauseExpr) c;
                 if (expr.expression.toString().equals("!true")
