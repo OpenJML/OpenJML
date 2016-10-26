@@ -1130,8 +1130,9 @@ public class JmlSpecs {
             this.csymbol = csymbol;
             this.decl = null;
             this.modifiers = mods;
-            this.clauses = clauses != null ? clauses : new ListBuffer<>();
-            this.decls = decls != null ? decls : new ListBuffer<>();
+            this.clauses = new ListBuffer<>();
+            if (clauses != null) this.clauses = this.clauses.appendList(clauses);
+            this.decls = new ListBuffer<>();
         }
         
         // TODO - comment - only partially fills in the class
@@ -1141,8 +1142,10 @@ public class JmlSpecs {
             this.modifiers = decl.mods;
             this.clauses = decl.typeSpecs != null ? decl.typeSpecs.clauses
                     : new ListBuffer<JmlTree.JmlTypeClause>();
-            this.decls = decl.typeSpecs != null ? decl.typeSpecs.decls
-                    : new ListBuffer<>();
+            this.decls = new ListBuffer<>();
+            if (decl.typeSpecs != null) {
+                this.decls = this.decls.appendList(decl.typeSpecs.decls);
+            }
         }
         
 //        // Use when there is no spec for the type symbol (but records the fact
