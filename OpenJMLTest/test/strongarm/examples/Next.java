@@ -24,7 +24,7 @@ public class Next {
         try {
             c = this.reader.read();
          } catch (IOException exception) {
-            throw new Exception(exception);
+           throw new Exception(exception);
         }
 
         if (c <= 0) { // End of stream
