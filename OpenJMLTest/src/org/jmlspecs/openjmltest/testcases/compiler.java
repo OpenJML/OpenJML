@@ -68,7 +68,8 @@ public class compiler {
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = bout.toString();
         String errOutput = berr.toString();
-        actualOutput = actualOutput.toString().replace("\\","/");
+        actualOutput = actualOutput.replace("\\","/");
+        actualOutput = actualOutput.replaceAll("Note:[\\S ]*$", ""); // FIXME - does not work
         errOutput = errOutput.toString().replace("\\","/");
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
