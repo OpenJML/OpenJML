@@ -43,6 +43,7 @@ public class escfeatures extends EscBase {
     
     public escfeatures(String option, String solver) {
         super(option,solver);
+        ignoreNotes = true;
     }
     
     

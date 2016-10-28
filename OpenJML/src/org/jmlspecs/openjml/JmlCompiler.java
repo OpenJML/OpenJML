@@ -271,7 +271,6 @@ public class JmlCompiler extends JavaCompiler {
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
  //       if (csymbol.toString().equals("java.lang.Object")) Utils.stop();
  //       if (csymbol.toString().equals("java.io.File")) Utils.stop();
- //       if (csymbol.toString().equals("java.lang.Character")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
 
@@ -282,11 +281,6 @@ public class JmlCompiler extends JavaCompiler {
                 if (csymbol.getSuperclass() != Type.noType) loadSpecsForBinary(env, (ClassSymbol)csymbol.getSuperclass().tsym);
                 for (Type t: csymbol.getInterfaces()) {
                     loadSpecsForBinary(env, (ClassSymbol)t.tsym);  // FIXME - env is not necessarily the tree for the classSymbol
-                }
-
-                if (!csymbol.getTypeParameters().isEmpty()) {
-                    ((JmlEnter)enter).recordEmptySpecs(csymbol);
-                    return; // FIXME - specs with type parameters not working correctly yet
                 }
 
                 // It can happen that the specs are loaded during the loading of the super class 
@@ -318,30 +312,17 @@ public class JmlCompiler extends JavaCompiler {
     
     // FIXME - do we really need this deferred processing?
     public void completeBinaryEnterTodo() {
-        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
-        JmlMemberEnter memberEnter = ((JmlMemberEnter)JmlMemberEnter.instance(context));
         while (!binaryEnterTodo.isEmpty()) {
             ClassSymbol csymbol = binaryEnterTodo.remove();
+            if (JmlSpecs.instance(context).get(csymbol) != null) continue;
 
-            JmlCompilationUnit speccu = parseSpecs(csymbol);
+            // Record default specs just to show they are in process
+            // If there are actual specs, they will be recorded later
+            // We do this, in combination with the check above, to avoid recursive loops
+            ((JmlEnter)enter).recordEmptySpecs(csymbol);
             
-            if (speccu == null) {
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) noticeWriter.println("No specs for " + csymbol);
-                ((JmlEnter)enter).recordEmptySpecs(csymbol);
-                continue;
-            } else if (speccu.pid == null) {
-                if (!csymbol.packge().isUnnamed()) {
-                    utils.error(speccu.sourcefile,speccu.pos,"jml.mismatched.package","unnamed package",csymbol.packge().flatName().toString() );
-                    ((JmlEnter)enter).recordEmptySpecs(csymbol);
-                    continue;
-                }
-            } else if (!speccu.pid.toString().equals(csymbol.packge().flatName().toString())) {
-                utils.error(speccu.sourcefile,speccu.pos,"jml.mismatched.package",speccu.pid.toString(),csymbol.packge().flatName().toString() );
-                ((JmlEnter)enter).recordEmptySpecs(csymbol);
-                continue;
-            } 
-
-            {
+            JmlCompilationUnit speccu = parseSpecs(csymbol);
+            if (speccu != null) {
                 csymbol.flags_field |= Flags.UNATTRIBUTED;
 
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;

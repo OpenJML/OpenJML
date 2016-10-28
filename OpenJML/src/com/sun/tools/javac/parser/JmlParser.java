@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.jmlspecs.openjml.*;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -826,8 +827,8 @@ public class JmlParser extends JavacParser {
      * declarations even though they may be within a JML comment.
      */
     protected boolean inJmlDeclaration = false;
-    protected JmlMethodSpecs currentMethodSpecs = null;
-    protected JmlVariableDecl currentVariableDecl = null;
+    protected @Nullable JmlMethodSpecs currentMethodSpecs = null;
+    protected @Nullable JmlVariableDecl currentVariableDecl = null;
     
 
     /**
@@ -846,6 +847,7 @@ public class JmlParser extends JavacParser {
             Comment dc = token.comment(CommentStyle.JAVADOC);
             if (jmlTokenKind() == ENDJMLCOMMENT) {
                 nextToken(); // swallows the ENDJMLCOMMENT
+                currentVariableDecl = mostRecentVarDecl;
                 break loop;
             }
             if (S.jml()) S.setJmlKeyword(true);

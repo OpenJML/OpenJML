@@ -120,7 +120,7 @@ public class binaries extends TCBase {
                 "package java.io; class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
-                ,"/$A/java/io/File.jml:4: This secondary type declaration (Extra) is not matched by a binary class",1
+                ,"/$A/java/io/File.jml:4: This secondary type declaration (java.io.Extra) is not matched by a binary class",1
         );
     }
 }

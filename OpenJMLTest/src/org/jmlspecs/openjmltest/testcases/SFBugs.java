@@ -30,6 +30,7 @@ public class SFBugs extends EscBase {
 
 	public SFBugs(String options, String solver) {
 		super(options, solver);
+		ignoreNotes = true;
 	}
 	
     @Parameters

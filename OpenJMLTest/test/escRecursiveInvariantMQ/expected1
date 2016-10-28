@@ -19,7 +19,7 @@ test\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated de
                ^
 Completed proof of RecursiveInvariantMQ.m() with prover !!!! - with warnings
 Starting proof of RecursiveInvariantMQ.t() with prover !!!!
-test\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:8: warning: The prover cannot establish an assertion (InvariantEntrance) in method t:  (Caller: RecursiveInvariantMQ.t(), Callee: RecursiveInvariantMQ.m()
+test\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:8: warning: The prover cannot establish an assertion (InvariantEntrance) in method t:  (Caller: RecursiveInvariantMQ.t(), Callee: RecursiveInvariantMQ.m())
     //@ requires m();
                   ^
 test\escRecursiveInvariantMQ\RecursiveInvariantMQ.java:4: warning: Associated declaration

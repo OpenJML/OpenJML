@@ -56,6 +56,7 @@ public class escfiles extends EscBase {
     public void setUp() throws Exception {
         rac = sysrac;
         super.setUp();
+    	ignoreNotes = true;
     }
     
     public void helpTF(String testDirname, String ... opts) {

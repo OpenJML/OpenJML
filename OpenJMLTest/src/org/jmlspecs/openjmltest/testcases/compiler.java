@@ -596,7 +596,7 @@ public class compiler {
                             "test/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol + "1 error" + eol
+                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol
                           );
     }
     

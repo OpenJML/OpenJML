@@ -267,6 +267,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
         
         if (isSpecForBinary) {
+            jtree.specsDecl = jtree;
             // Here we add the JML declarations to the class
             log.useSource(jtree.source());
             for (JCTree t: jtree.defs) {
@@ -291,9 +292,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 // FIXME - however, then erroneous unmatched java declarations will be added to the class and silently accepted.
                 
                 if (!skip) {
-                    JmlCheck.instance(context).noDuplicateWarn = !jml;
-                    noEntering = !jml;
+                    JmlCheck jmlcheck = JmlCheck.instance(context);
+                    boolean pre = jmlcheck.noDuplicateWarn;
+                    jmlcheck.noDuplicateWarn = !jml;
+                    noEntering = !jml && !utils.isJML(jtree); // FIXME - does this really need to be recursive?
                     memberEnter(t,env); // FIXME - do something special for enums
+                    jmlcheck.noDuplicateWarn = pre;
                 }
             }
         }
@@ -1507,7 +1511,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (annotation == null) continue;
             VarSymbol vsym = vdecl.sym;
             
-            JCStatement returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.type));
+            JCStatement returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
 
             long flags = Flags.SYNTHETIC;
             flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
@@ -2211,7 +2215,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // FIXME - when the result type is parameterized in a static method, the java and spec declarations
                     // end up with different types for the parameter.  Is this also true for the regular parameters?  
                     // FIXME - avoud the probloem for now.
-                    if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty())
+                    if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
+                            && !(specReturnType instanceof Type.ArrayType) && !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar) )
                         log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
                                 match.enclClass().fullname + "." + match.toString(),
                                 specReturnType, javaReturnType);
@@ -3070,7 +3075,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     @Override
     public void complete(Symbol sym) throws CompletionFailure {
-//        if (sym.flatName().toString().contains("java.lang.System")) Utils.stop();
         
         JmlResolve jresolve = JmlResolve.instance(context);
         boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
@@ -3084,7 +3088,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // If this is a specification file then remove any automatically generated constructor
             if (env.tree instanceof JmlClassDecl) {
                 JmlClassDecl jmltree = (JmlClassDecl)env.tree;
-                if (jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY) {
+                if (jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
                     if (jmltree.defs.head instanceof JmlMethodDecl) {
                         JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
                         if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
@@ -3093,6 +3097,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     }
                 }
             }
+            
+            // FIXME - this might already be done?
             // If this is an interface, enter symbol for this into
             // current scope.
             ClassSymbol c = (ClassSymbol)sym;

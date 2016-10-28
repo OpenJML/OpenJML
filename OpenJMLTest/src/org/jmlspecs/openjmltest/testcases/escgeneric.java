@@ -84,6 +84,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericType() {
+    	main.addOptions("-show","-progress","-method=C");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> extends B<T> { \n"
                 +"  public void ma(T i) {\n"
