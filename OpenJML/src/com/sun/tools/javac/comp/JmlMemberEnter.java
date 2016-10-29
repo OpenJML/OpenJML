@@ -270,6 +270,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             jtree.specsDecl = jtree;
             // Here we add the JML declarations to the class
             log.useSource(jtree.source());
+            JCTree first = jtree.defs.head;
+            if (first != null) {
+                if (first instanceof JmlMethodDecl) {
+                    if ((((JmlMethodDecl)first).mods.flags & Flags.GENERATEDCONSTR) != 0) {
+                        jtree.defs = Utils.remove(jtree.defs,first);
+                    }
+                }
+            }
             for (JCTree t: jtree.defs) {
                 boolean jml = false;
                 boolean skip = false;
@@ -771,14 +779,29 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         ListBuffer<JCTree> newlist = new ListBuffer<>();
         ListBuffer<JCTree> toadd = new ListBuffer<>();
         ListBuffer<JCTree> toremove = new ListBuffer<>();
+//        Map<Name,JmlVariableDecl> fields = new HashMap<>();
+//        if (jtree != null) {
+//            for (JCTree j: jtree.defs) if (j instanceof JmlVariableDecl) {
+//                Name n = ((JmlVariableDecl)j).name;
+//                if (fields.get(n) != null) {
+//                    // FIXME - duplicate in Java fields, remove
+//                } else fields.put(n,(JmlVariableDecl)j);
+//            }
+//        }
         for (JCTree specsMemberDecl: specsDecl.defs) {
             if (specsMemberDecl instanceof JmlVariableDecl) {
                 JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
-                if (specsVarDecl.name.toString().equals("J")) Utils.stop();
-                    boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
-                    if (ok) {
-                        newlist.add(specsVarDecl);
-                    }
+//                Name nn = specsVarDecl.name;
+//                JmlVariableDecl nnn = fields.get(nn);
+//                if (nnn != null) {
+//                    
+//                } else {
+//                    fields.put(nn, specsVarDecl);
+//                }
+                boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
+                if (ok) {
+                    newlist.add(specsVarDecl);
+                }
             } else if (specsMemberDecl instanceof JmlMethodDecl) {
                 JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
                 boolean ok = matchAndSetMethodSpecs(jtree, csym, specsMethodDecl, env, matches, jtree == specsDecl);
@@ -2216,7 +2239,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     // end up with different types for the parameter.  Is this also true for the regular parameters?  
                     // FIXME - avoud the probloem for now.
                     if (!(specReturnType instanceof Type.TypeVar) && specReturnType.getTypeArguments().isEmpty()
-                            && !(specReturnType instanceof Type.ArrayType) && !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar) )
+                            && (!(specReturnType instanceof Type.ArrayType) || !(((Type.ArrayType)specReturnType).elemtype instanceof Type.TypeVar)) )
                         log.error(specMethodDecl.restype.pos(),"jml.mismatched.return.type",
                                 match.enclClass().fullname + "." + match.toString(),
                                 specReturnType, javaReturnType);

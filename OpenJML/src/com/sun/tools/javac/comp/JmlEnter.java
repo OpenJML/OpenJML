@@ -508,7 +508,7 @@ public class JmlEnter extends Enter {
 //                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
 //                    typeEnvs.put(c,localenv);
 //                    specsClass.env = localenv;
-                    specs.combineSpecs(c,null,specsClass);
+//                    specs.combineSpecs(c,null,specsClass);
                 }
             }
             if (c == null) {
@@ -520,7 +520,7 @@ public class JmlEnter extends Enter {
                             owner + specsClass.name.toString(),javasource);
                     if (newlist == null) {
                         newlist = new ListBuffer<JCTree>();
-                        newlist.addAll(specsClass.defs);
+                        newlist.addAll(specsDefs);
                     }
                     newlist = Utils.remove(newlist,  specDecl);
                 } else {
@@ -574,9 +574,19 @@ public class JmlEnter extends Enter {
             JmlMemberEnter.instance(context).importHelper(specs);
 //            super.memberEnter(specs, env);  // Does not do members for binary classes
 //            env = specs.topLevelEnv;
+            ListBuffer<JCTree> newlist = null;
             for (JCTree d: specs.defs) {
                 if (!(d instanceof JmlClassDecl)) continue;
                 JmlClassDecl cd = (JmlClassDecl)d;
+                if (cd.sym == null) {
+                    // This class had errors such that we should remove it
+                    if (newlist == null) {
+                        newlist = new ListBuffer<>();
+                        newlist.appendList(specs.defs);
+                    }
+                    newlist = Utils.remove(newlist, cd);
+                    continue;
+                }
                 cd.specsDecl = cd;
                 Env<AttrContext> clenv = typeEnvs.get(cd.sym);
                 if (clenv == null) {
@@ -586,6 +596,7 @@ public class JmlEnter extends Enter {
                 cd.env = clenv;
                 JmlMemberEnter.instance(context).memberEnter(cd,clenv);  // FIXME - does nothing
             }
+            if (newlist != null) specs.defs = newlist.toList();
             JmlMemberEnter.instance(context).env = prevEnvME;
         }
         for (JCTree cd: specs.defs) {
@@ -916,7 +927,7 @@ public class JmlEnter extends Enter {
         
         // Set the sym and env fields of the classes
         
-        {
+        if (ok) {
             Env<AttrContext> localenv = getEnv(csym);
             thattree.env = localenv;
             if (jmltree != null) {
@@ -926,6 +937,11 @@ public class JmlEnter extends Enter {
                 specstree.sym = that.sym;
                 // FIXME - the specstree might actually want a different local environment because it may have different imports
                 specstree.env = localenv;
+            }
+        } else {
+            if (specstree != null) {
+                specstree.sym = null;
+                specstree.env = null;
             }
         }
 

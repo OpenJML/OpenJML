@@ -1463,21 +1463,24 @@ public class JmlSpecs {
                     tspecs.blocks.put(b, null);
                 } else if (t instanceof JmlTypeClauseInitializer) {
                     JmlTypeClauseInitializer init = (JmlTypeClauseInitializer)t;
-                    tt = null;
                     //if (!utils.isJMLStatic(init.modifiers, sym)) {
                     if (init.token == JmlTokenKind.INITIALIZER) {
                         if (tspecs.initializerSpec != null) {
                             log.error(init, "jml.one.initializer.spec.only");
+                            tt = null;
                         } else {
                             tspecs.initializerSpec = init;
                             tspecs.clauses.add((JmlTypeClause)t);
+                            tt = null;
                         }
                     } else {
                         if (tspecs.staticInitializerSpec != null) {
                             log.error(init, "jml.one.initializer.spec.only");
+                            tt = null;
                         } else {
                             tspecs.staticInitializerSpec = init;
                             tspecs.clauses.add((JmlTypeClause)t);
+                            tt = null;
                        }
                     }
                 } else if (t instanceof JmlMethodDecl) {

@@ -328,13 +328,18 @@ public class JmlCompiler extends JavaCompiler {
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
                 else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;
 
+                //if (speccu.sourcefile.toString().contains("File")) Utils.stop();
                 nestingLevel++;
                 try {
                     boolean ok = ((JmlEnter)enter).binaryEnter(speccu);
  //                   ((JmlEnter)enter).binaryEnvs.add(speccu);
                     
                     // specscu.defs is empty if nothing was declared or if all class declarations were removed because of errors
-                    if (ok) todo.append(speccu.topLevelEnv);
+                    if (ok) {
+                        for (JCTree d: speccu.defs) {
+                            if (d instanceof JmlClassDecl) todo.append(((JmlClassDecl)d).env);
+                        }
+                    }
 //                    memberEnter.enterSpecsForBinaryClasses(csymbol,List.<JCTree>of(speccu));
                 } finally {
                     nestingLevel--;

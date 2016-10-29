@@ -3098,6 +3098,11 @@ public class JmlTree implements IJmlTree {
         public int getStartPosition() {
             return pos;
         }
+        
+        @Override
+        public Tag getTag() {
+            return Tag.NO_TAG;
+        }
     }
     
     /** This class represents 'represents' type clauses  in a class specification */
@@ -3220,10 +3225,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3265,10 +3270,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3319,10 +3324,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3364,10 +3369,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3413,10 +3418,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3459,10 +3464,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {
@@ -3512,10 +3517,10 @@ public class JmlTree implements IJmlTree {
             return Kind.OTHER; // See note above
         }
         
-        @Override
-        public Tag getTag() {
-            return null;
-        }
+//        @Override
+//        public Tag getTag() {
+//            return null;
+//        }
         
         @Override
         public void accept(Visitor v) {

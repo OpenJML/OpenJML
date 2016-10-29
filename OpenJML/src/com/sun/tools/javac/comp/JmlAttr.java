@@ -1954,25 +1954,25 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 allAllowed(mods.annotations, allowedFieldModifiers, "field declaration");
             }
             if (!inJML && isInJmlDeclaration && modelOrGhost) {
-                if (ghost) log.error(tree.pos,"jml.no.nested.ghost.type");
-                else       log.error(tree.pos,"jml.no.nested.model.type");
+                if (ghost) utils.error(tree.sourcefile,tree.pos,"jml.no.nested.ghost.type");
+                else       utils.error(tree.sourcefile,tree.pos,"jml.no.nested.model.type");
             } else if (inJML && !modelOrGhost  && !isInJmlDeclaration) {
-                log.error(tree,"jml.missing.ghost.model");
+                utils.error(tree.sourcefile,tree,"jml.missing.ghost.model");
             } else if (!inJML && modelOrGhost) {
-                log.error(tree.pos,"jml.ghost.model.on.java");
+                utils.error(tree.sourcefile,tree.pos,"jml.ghost.model.on.java");
             } 
-            JCTree.JCAnnotation a;
+            JmlAnnotation a;
             if (!model) {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
             }
             a = utils.findMod(mods,INSTANCE);
             if (a != null && isStatic(tree.mods)) {
-                log.error(a.pos(),"jml.conflicting.modifiers","instance","static");
+                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","instance","static");
             }
             if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {
                 a = utils.findMod(tree.mods,MODEL);
-                log.error(a.pos(),"jml.conflicting.modifiers","model","final");
+                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
             }
             checkForConflict(mods,NONNULL,NULLABLE);
             if (tree.specsDecl != null) log.useSource(tree.source());
@@ -1982,8 +1982,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JCModifiers jmlmods = tree.specsDecl.mods;
                 attribAnnotationTypes(jmlmods.annotations,env);
                 for (JCAnnotation a: tree.mods.annotations) {
-                    JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-                    if (aa == null) {
+                    JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
+                    if (aa == null) { // FIXME _ check on sourcefile
                         log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
                     }
                 }
@@ -1997,9 +1997,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else { // local declaration
             allAllowed(tree.mods.annotations, allowedLocalVarModifiers, "local variable declaration");
             if (inJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
-                log.error(tree.pos,"jml.missing.ghost");
+                utils.error(tree.source(),tree.pos,"jml.missing.ghost");
             } else if (!inJML && ghost) {
-                log.error(tree.pos,"jml.ghost.on.java");
+                utils.error(tree.source(),tree.pos,"jml.ghost.on.java");
             } 
             checkForConflict(tree.mods,NONNULL,NULLABLE);
         }
@@ -2016,9 +2016,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (secret != null) {
             List<JCExpression> args = secret.getArguments();
             if (!args.isEmpty()) {
-                JavaFileObject prev = log.useSource(secret.sourcefile);
-                log.error(args.get(0).pos,"jml.no.arg.for.field.secret");
-                log.useSource(prev);
+                utils.error(secret.sourcefile,args.get(0).pos,"jml.no.arg.for.field.secret");
             }
         }
         
