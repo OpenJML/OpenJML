@@ -178,7 +178,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j; \n/*@ model */ int j;} "
         		,"/$A/A.java:2: variable j is already defined in class A",18
-        		,"/$A/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model",18
+        		,"/$A/A.java:2: A Java declaration (not within a JML annotation) may not be either ghost or model",5
         		);
     }
     
@@ -237,7 +237,7 @@ public class matchClasses  extends TCBase {
         helpTCF("$A/A.java",
         		"public class A { int j; } "
         		,"/$A/A.jml:2: variable j is already defined in class A",9
-        		,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",9
+        		,"/$A/A.jml:2: A declaration within a JML annotation must be either ghost or model",4
         		);
     }
     
