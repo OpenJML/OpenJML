@@ -107,7 +107,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug260","test/gitbug260", "-cp", "test/gitbug260", "-esc", "-progress");
     }
     
-    // FIXME - generics
     @Test public void gitbug431() {
     	expectedExit = 0;
         helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "-esc", "-progress");

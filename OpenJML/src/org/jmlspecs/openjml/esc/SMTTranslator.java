@@ -499,8 +499,17 @@ public class SMTTranslator extends JmlTreeScanner {
             tcommands.add(new C_declare_fun(sym,emptyList,jmlTypeSort));
         }
         for (Type ti: javaTypes) {
-            if (ti.getTag() == TypeTag.WILDCARD) continue; 
-            if (ti.getTag() == TypeTag.TYPEVAR) continue; // Have to do the type variables after all regular types, so that their upper bounds are declared
+            if (ti.getTag() == TypeTag.TYPEVAR) {
+                if (ti instanceof Type.CapturedType) continue; 
+                tcommands.add(new C_declare_fun(
+                        (ISymbol)jmlTypeSymbol(ti),
+                        emptyList,
+                        jmlTypeSort));
+            }
+        }
+        for (Type ti: javaTypes) {
+            if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
+            if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (erasure tjml) tjava))
@@ -510,6 +519,25 @@ public class SMTTranslator extends JmlTreeScanner {
                     emptyList,
                     javaTypeSort));
             typesymbols.add(tisym);
+            if (!ti.tsym.type.isParameterized()) {
+                // Note: ti.isParameterized() is true if the type name has actual parameters
+                // ti.tsym.type.isParameterized() is true if the declaration has parameters
+                // e.g.  java.util.Set is false on the first, but true on the second
+                ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
+                tcommands.add(new C_declare_fun(
+                        tjsym,
+                        emptyList,
+                        jmlTypeSort));
+                jmltypesymbols.add(tjsym);
+            }
+        }
+        for (Type ti: javaTypes) {
+            if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
+            if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
+            // (declare-fun tjava () JavaTypeSort)
+            // (declare-fun tjml () JMLTypeSort)
+            // (assert (= (erasure tjml) tjava))
+            ISymbol tisym = (ISymbol)javaTypeSymbol(ti);
             tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
             if ((ti.tsym.flags() & Flags.FINAL) != 0) {
             	addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (=> ("+JAVASUBTYPE+" t "+tisym.toString()+")  (= t "+tisym.toString()+"))))");
@@ -519,11 +547,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 // ti.tsym.type.isParameterized() is true if the declaration has parameters
                 // e.g.  java.util.Set is false on the first, but true on the second
             	ISymbol tjsym = (ISymbol)jmlTypeSymbol(ti);
-                tcommands.add(new C_declare_fun(
-                        tjsym,
-                        emptyList,
-                        jmlTypeSort));
-                jmltypesymbols.add(tjsym);
                 tcommands.add(new C_assert(F.fcn(F.symbol("not"),F.fcn(F.symbol("_isJMLArrayType"), tjsym)) ));
                 tcommands.add(new C_assert(F.fcn(
                         eqSym, 
@@ -555,15 +578,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 if ((ti.tsym.flags() & Flags.FINAL) != 0) {
                     addCommand(smt,"(assert (forall ((t "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" t "+tjsym.toString()+")  (= t "+tjsym.toString()+"))))");
                 } 
-            }
-        }
-        for (Type ti: javaTypes) {
-            if (ti.getTag() == TypeTag.TYPEVAR) {
-                if (ti instanceof Type.CapturedType) continue; 
-                tcommands.add(new C_declare_fun(
-                        (ISymbol)jmlTypeSymbol(ti),
-                        emptyList,
-                        jmlTypeSort));
             }
         }
 
@@ -981,7 +995,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     if (javaTypeSymbols.add(t.tsym.toString())) {
                         javaTypes.add(t);
                     }
-                    javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t)); // FIXME - should we make an implicit argument?
+                    // This is an unparameterized use of a should-be-parameterized class symbol
+//                    javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t)); // FIXME - should we make an implicit argument?
                 }
             } else if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));

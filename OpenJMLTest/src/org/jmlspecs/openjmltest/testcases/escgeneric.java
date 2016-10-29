@@ -84,7 +84,6 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericType() {
-    	main.addOptions("-show","-progress","-method=C");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> extends B<T> { \n"
                 +"  public void ma(T i) {\n"
@@ -272,9 +271,10 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    // FIXME - need to fix tyep parameters for inner (non-static) classes
+    // FIXME - this is an issue of instantiating the value of the callee's type parameters
     @Test
     public void testTypeParameter2() {
+    	//main.addOptions("-show","-method=mb");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
