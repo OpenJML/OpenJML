@@ -1,26 +1,17 @@
-Proving methods in ArrList
-Starting proof of ArrList.ArrList(int) with prover !!!!
-<<<<<<< HEAD
-test\gitbug450\ArrList.java:11: warning: The prover cannot establish an assertion (Postcondition) in method ArrList
-    public ArrList(int a) {
-           ^
-test\gitbug450\ArrList.java:10: warning: Associated declaration
-    //@ ensures theList.indexOf(a) == 0;
-        ^
-Completed proof of ArrList.ArrList(int) with prover !!!! - with warnings
-Starting proof of ArrList.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
-Completed proof of ArrList.main(java.lang.String[]) with prover !!!! - no warnings
-Completed proving methods in ArrList
-2 warnings
-=======
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
-Completed proof of ArrList.ArrList(int) with prover !!!! - no warnings
-Starting proof of ArrList.main(java.lang.String[]) with prover !!!!
-Feasibility check #1 - end of preconditions : OK
-Feasibility check #2 - at program exit : OK
-Completed proof of ArrList.main(java.lang.String[]) with prover !!!! - no warnings
-Completed proving methods in ArrList
->>>>>>> refs/remotes/origin/master
+test\gitbug450\ArrList.java:15: error: no suitable method found for add(int)
+        theList.add(a);
+               ^
+    method Collection.add(String) is not applicable
+      (argument mismatch; int cannot be converted to String)
+    method List.add(String) is not applicable
+      (argument mismatch; int cannot be converted to String)
+    method AbstractCollection.add(String) is not applicable
+      (argument mismatch; int cannot be converted to String)
+    method AbstractList.add(String) is not applicable
+      (argument mismatch; int cannot be converted to String)
+    method ArrayList.add(String) is not applicable
+      (argument mismatch; int cannot be converted to String)
+Note: $SPECS\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+1 error

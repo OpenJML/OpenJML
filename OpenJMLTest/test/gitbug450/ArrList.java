@@ -1,5 +1,5 @@
 // This test case corresponds to Git issue #450
-
+// This version has a type chekcing error
 import java.util.ArrayList;
 
 public class ArrList {

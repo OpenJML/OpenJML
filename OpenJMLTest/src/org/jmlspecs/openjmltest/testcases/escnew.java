@@ -501,6 +501,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
+    	//main.addOptions("-show","-method=m2good","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -556,7 +557,7 @@ public class escnew extends EscBase {
                 +"        } return k;\n"
                 +"  }\n"
                 
-                +"  //@ ensures \\result == 2; \n"
+                +"  //@ ensures \\result == 2; \n"   // Line 50
                 +"  public int m2good() throws Exception {\n"
                 +"      int k;\n"
                 +"       try {\n"

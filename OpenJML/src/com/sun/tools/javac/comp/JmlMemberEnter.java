@@ -202,6 +202,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
+        if (tree.sym.toString().contains("Throwable")) Utils.stop();
+
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         JmlClassDecl jtree = (JmlClassDecl)tree;
         JavaFileObject prevSource = log.useSource(jtree.source());;

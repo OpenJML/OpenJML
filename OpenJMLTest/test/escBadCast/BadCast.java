@@ -6,6 +6,7 @@ public class BadCast {
     
     public boolean equals(final Object the_other) {
         boolean result = false;
+        //@ assume the_other != null;
         
         if (this == the_other) {
           result = true;

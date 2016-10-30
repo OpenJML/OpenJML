@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // This test case is a different case of Git issue #450; has an NPE with -minQuant
 
 import java.util.ArrayList;
@@ -37,5 +36,4 @@ public class ArrList {
         // @ assert al.theList.content.owner == al.theList; // FIXME - with -minQuant, this assertion cannot be proved, though it can with -no-minQuant
         System.out.println(al.theList.get(0));
     }
->>>>>>> refs/remotes/origin/master
 }

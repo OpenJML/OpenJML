@@ -4029,6 +4029,7 @@ public class esc extends EscBase {
     
     @Test
     public void testTypes3() {
+    	main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.lang.JML; \n"
                 +"public class TestJava { \n"
                 +"  public void m1(/*@non_null*/Object o) {\n"

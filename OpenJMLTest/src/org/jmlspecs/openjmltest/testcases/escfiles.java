@@ -109,7 +109,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB","-method=tick","-show","-subexpressions","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");//,"-method=tick","-show","-subexpressions","-escMaxWarnings=1");
     }
 
     @Test
@@ -323,7 +323,7 @@ public class escfiles extends EscBase {
     @Test
     public void testBadCast() {
         expectedExit = 0;
-        helpTF("escBadCast"); //,"-show","-method=BadCast.equals");
+        helpTF("escBadCast","-show","-method=BadCast.equals");
     }
 
     @Test

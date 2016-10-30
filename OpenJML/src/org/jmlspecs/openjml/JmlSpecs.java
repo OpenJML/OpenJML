@@ -934,7 +934,8 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (m.name.toString().equals("configurationSizes")) Utils.stop();
+        if (m.name.toString().equals("_message")) Utils.stop();
+        if (m.name.toString().equals("_cause")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }
@@ -1352,6 +1353,7 @@ public class JmlSpecs {
         if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
             // Field
             FieldSpecs fspecs = getSpecs((Symbol.VarSymbol)symbol);
+            if (fspecs == null) return false; // FIXME - we need private fields of binary classes that have no specs declared to be nullable
             if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
             else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
             else if (symbol.name == names._this) return true;

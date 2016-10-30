@@ -1868,6 +1868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Object ... args) {
         JCStatement stt = null;
         if (esc) {
+            if (translatedExpr.toString().equals("e.cause != null")) Utils.stop();
             if (label != Label.ASSUME_CHECK && currentStatements != null 
                     && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { 
                 addAssumeCheck(translatedExpr,currentStatements,"Extra-Assume");  
@@ -2698,10 +2699,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeCondition2(JCVariableDecl d, Symbol sym, boolean instanceBeingConstructed) {
         boolean isNonNull = true;
-        Symbol owner = d.sym.owner;
+        Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
-        if (!d.sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
-            isNonNull = specs.isNonNull((JmlVariableDecl)d) ;
+        if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
+            isNonNull = specs.isNonNull(sym) ;
         }
         
         return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed);
@@ -2712,6 +2713,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
         if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
+            if (sym.toString().equals("_message")) Utils.stop();
+            if (sym.toString().equals("_cause")) Utils.stop();
             isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
         }
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
@@ -3265,6 +3268,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JmlClassDecl cdecl = (JmlClassDecl)e.tree;
                     for (JCTree def : cdecl.defs) {
                         if (def instanceof JmlVariableDecl) {
+                            if (((JmlVariableDecl) def).name.toString().equals("cause")) Utils.stop();
                             if (((JmlVariableDecl)def).sym == sy) {
                                 addNullnessAllocationTypeCondition2((JmlVariableDecl)def, sy, beingConstructed && !utils.isJMLStatic(sy));
                                 continue x;
@@ -4234,9 +4238,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (that.catchers != null) {
             ListBuffer<JCCatch> ncatchers = new ListBuffer<JCCatch>();
             for (JCCatch catcher: that.catchers) {
-                JCBlock block = convertBlock(catcher.getBlock());
-                //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
+                
+                pushBlock();
+                JCIdent id = treeutils.makeIdent(catcher.param, catcher.param.sym);
+                addRecInvariants(true,catcher.param,id);
+                JCBlock block = popBlock(0, catcher.param);
                 block.stats = block.stats.prepend(comment(catcher.getParameter(),"catch (" + catcher.param +") ...",null));
+                
+                JCBlock bl = convertBlock(catcher.getBlock());
+                //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
+                block.stats = block.stats.append(bl);
                 
                 // EXCEPTION = NULL
                 int sp = catcher.getParameter().getStartPosition();
@@ -5887,6 +5898,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                     addInvariants(arg,arg.type,id,currentStatements,
                             false,false,false,false,false,false,Label.INVARIANT_ENTRANCE,msg);
+                }
+            }
+            
+            // The following assumptions are to state that non-primitive arguments of a constructor call
+            // cannot be equal to the newly constructed object. 
+            // FIXME - why don't the stipulations about allocation time suffice?
+            if (calleeMethodSym.isConstructor()) {
+                for (JCExpression arg: trArgs) {
+                    if (arg.type.isPrimitive() || jmltypes.isJmlType(arg.type)) continue;
+                    JCExpression neq = treeutils.makeNeqObject(arg.pos,arg,newThisExpr);
+                    addAssume(arg, Label.IMPLICIT_ASSUME,neq);
                 }
             }
             
