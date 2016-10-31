@@ -6,6 +6,8 @@ if [ $# -ne 1 ]; then
 fi
 
 REL=$1
+REFBRANCH=master
+REFBRANCH=jdk8u
 
 if [ -z "$REL" ]; then
     echo "Please give the desired release number as the one argument"
@@ -34,35 +36,35 @@ ant -f build-bash.xml release
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
+git checkout $REFBRANCH
 git push
 
 cd ../../Specs
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
+git checkout $REFBRANCH
 git push
 
 cd ../JMLAnnotations
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
+git checkout $REFBRANCH
 git push
 
 cd ../JmlOpenJMLDemo
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
+git checkout $REFBRANCH
 git push
 
 cd ../OpenJML-UpdateSite
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
+git checkout $REFBRANCH
 git push
 
 echo Push to plugin site
