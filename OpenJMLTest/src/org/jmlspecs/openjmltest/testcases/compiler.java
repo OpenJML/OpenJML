@@ -811,6 +811,24 @@ public class compiler {
                 ,""
                 );
     }
+    
+    @Test
+    public void releaseHelp() throws Exception {
+    	helper(new String[]
+                { 
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void releaseTest() throws Exception {
+    	helper(new String[]
+                { "-jmltesting","-noPurityCheck","testfiles/testPath/data/TestPath.java","-sourcepath","testfiles/testPath/data-specs"
+                },0,0
+                ,""
+                );
+    }
 
 
 }

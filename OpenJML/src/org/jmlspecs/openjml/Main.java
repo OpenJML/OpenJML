@@ -41,6 +41,8 @@ import com.sun.tools.javac.comp.JmlResolve;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.CommandLine;
 import com.sun.tools.javac.main.JavaCompiler;
+import com.sun.tools.javac.main.Option;
+import com.sun.tools.javac.main.Main.Result;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -530,6 +532,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         register(context);
         context.put(IAPI.IProofResultListener.class, proofResultListener);
         initializeOptions(savedOptions);
+        if (args.length == 0
+                && (processors == null || !processors.iterator().hasNext())
+                && fileObjects.isEmpty()) {
+            help();
+            return Result.CMDERR;
+        }
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
@@ -542,8 +550,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     
     @Override
     protected void help() {
-        super.help();
-        helpJML(out);
+        Option.HELP.process(optionHelper,"-help");
+        PrintWriter p = optionHelper.getLog().getWriter(WriterKind.NOTICE);
+        helpJML(p);
+        JmlOptions.instance(context).put(Option.HELP,"");
     }
         
     /** This is a utility method to print out all of the JML help information */
@@ -677,7 +687,11 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
         if (o == null) {
-            remainingArgs.add(s);
+            if (s.equals("-help")) {
+                help();
+            } else {
+                remainingArgs.add(s);
+            }
         } else if (JmlOption.DIR.optionName().equals(s) || JmlOption.DIRS.optionName().equals(s)) {
             java.util.List<File> todo = new LinkedList<File>();
             todo.add(new File(res));

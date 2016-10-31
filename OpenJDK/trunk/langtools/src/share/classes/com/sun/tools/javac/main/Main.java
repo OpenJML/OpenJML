@@ -116,7 +116,7 @@ public class Main {
     private Option[] recognizedOptions =
             Option.getJavaCompilerOptions().toArray(new Option[0]);
 
-    private OptionHelper optionHelper = new OptionHelper() {
+    protected OptionHelper optionHelper = new OptionHelper() { // OPENJML - changed from private to protected
         @Override
         public String get(Option option) {
             return options.get(option);
@@ -188,12 +188,11 @@ public class Main {
     /** Print a string that explains usage.
      */
     protected void help() { // DRC - changed to protected from package visibility
-// FIXME
-        //        Log.printLines(out, JavacMessages.instance(context).getLocalizedString("msg.usage.header", ownName));
-//        for (int i=0; i<recognizedOptions.length; i++) {
-//            recognizedOptions[i].help(out,OptionKind.STANDARD);
-//        }
-//        out.println();
+        log.note("msg.usage.header", ownName);
+        for (Option o: recognizedOptions) {
+            o.help(log,o.kind);
+        }
+        out.println();
     }
 
     /** Print a string that explains usage for X options.

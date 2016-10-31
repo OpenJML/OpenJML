@@ -9,9 +9,9 @@ echo TESTING ${TESTNAME}
 mkdir -p ${TESTLOC}/${TESTNAME}
 
 if [[ "${SWITCHSLASH}" != "" ]] ; then
-${CMD} | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
+${CMD} 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
 else
-${CMD} | grep -v "Note: " | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
+${CMD} 2>&1 | grep -v "Note: " | tr -d '\r' > ${TESTLOC}/${TESTNAME}/actual
 fi
 
 LRES=1
