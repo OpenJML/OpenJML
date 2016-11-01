@@ -24,8 +24,8 @@ cd ../OpenJMLDemo
 git checkout -b "$REL"
 cd ../Specs
 git checkout -b "$REL"
-cd ../OpenJML-UpdateSite -b "$REL"
-git checkout -b "$REL"
+#cd ../OpenJML-UpdateSite -b "$REL"
+#git checkout -b "$REL"
 cd ../OpenJML/OpenJML
 
 ant -f build-bash.xml release
@@ -64,10 +64,11 @@ cd ../OpenJML-UpdateSite
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout $REFBRANCH
+git checkout master
 git push
 
 echo Push to plugin site
+chmod ugo+x web/toSF web/publish
 web/toSF
 
 cd ../OpenJML/OpenJML

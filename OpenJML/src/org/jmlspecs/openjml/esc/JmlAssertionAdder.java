@@ -8238,16 +8238,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (origType.isPrimitive()) {
                 // Java primitive to Java primitive - must be a numeric cast
                 if (changePrecision == 1) {
+                    // change precision == 1 means that a higher precision value is being cast to a lower precision
+                    // so we check the range of the argument
                     switch (origType.getTag()) {
                         case LONG:
+                            emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
+                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag()))));
+                            emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
+                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
+                                    arg);
+                            break;
                         case INT:
                         case SHORT:
                         case CHAR:
                         case BYTE:
                             emax = treeutils.makeBinary(that.pos, JCTree.Tag.LE, arg, 
-                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(maxValue(that.pos,that.type.getTag())))); // FIXME - here and below, INT but we need LONGr
+                                    treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)maxValue(that.pos,that.type.getTag()))));
                             emin = treeutils.makeBinary(that.pos, JCTree.Tag.LE,  
-                                    treeutils.makeLit(that.pos, arg.type, Long.valueOf(minValue(that.pos,that.type.getTag()))),
+                                    treeutils.makeLit(that.pos, arg.type, Integer.valueOf((int)minValue(that.pos,that.type.getTag()))),
                                     arg);
                             break;
                         default:
@@ -8262,6 +8270,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(that, Label.ARITHMETIC_CAST_RANGE, emax);
                     addAssert(that, Label.ARITHMETIC_CAST_RANGE, emin);
                 } else if (changePrecision == -1) {
+                    // In this branch we are casting from a lower precision to a higher precision
+                    // So we can assume that the range of the value in the new type is the smaller range appropriate to the original type
+                    
+                    // FIXME the type of the valueOf needs to match the output type
                     switch (origType.getTag()) {
                         case LONG:
                         case INT:

@@ -728,7 +728,7 @@ public class racnew2 extends RacBase {
                 "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR (char)(i+60)) != 0; \n" +
+                "//@ assert (\\lbl CHAR (char)(i+60) ) != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
                 "//@ assert (\\lbl OBJECT o) == null; \n" +
                 "//@ assert (\\lbl NULL null) == null; \n" +

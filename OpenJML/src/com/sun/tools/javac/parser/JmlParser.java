@@ -517,7 +517,7 @@ public class JmlParser extends JavacParser {
                         } else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
                             // OK
                         } else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
-//                            jmlerror(s.pos, "jml.expected.decl.or.jml");
+                            jmlerror(s.pos, "jml.expected.decl.or.jml");
                         }
                     }
                 }
@@ -642,7 +642,10 @@ public class JmlParser extends JavacParser {
                     // Only StatementExpressions are allowed - 
                     // assignment statements and stand-alone method calls -
                     // but JML constructs are allowed.
+                    boolean prev = inJmlDeclaration;
+                    inJmlDeclaration = true;
                     JCStatement t = super.parseStatement();
+                    inJmlDeclaration = prev;
                     if (!(t instanceof JCExpressionStatement)) {
                         jmlerror(t.getStartPosition(),
                                 getEndPos(t),
