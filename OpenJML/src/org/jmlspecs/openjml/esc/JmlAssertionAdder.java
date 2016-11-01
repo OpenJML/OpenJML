@@ -7537,7 +7537,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             Symbol.VarSymbol vsym = (Symbol.VarSymbol)id.sym;
 //            specs.getSpecs(vsym).  // FIXME - need to call isNonNull with the declaration for id
-            if (specs.isNonNull(vsym)) {
+            if (specs.isNonNull(vsym) && !(rac && vsym.type.tsym.toString().equals("org.jmlspecs.utils.IJMLTYPE"))) {
                 JCExpression e = treeutils.makeNeqObject(that.pos, rhs, treeutils.nullLit);
                 // FIXME - location of nnonnull declaration?
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
