@@ -904,6 +904,7 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLblX() {
+    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(); mm(); ma(); mg(); \n" +
                 "System.out.println(\"END\"); } \n" +

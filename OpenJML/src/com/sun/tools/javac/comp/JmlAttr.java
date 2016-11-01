@@ -4188,7 +4188,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             q.racexpr = call;
             
-            q.racexpr = treeutils.makeZeroEquivalentLit(q.pos, q.type);
+            // FIXME - it does not seem like q.racexpr is used anywhere - JmlAssertionAdder creates a whole new 
+            // representation for the quantified stastement. But yet uncommenting the next line causes wrong results.
+            
+//            q.racexpr = treeutils.makeZeroEquivalentLit(q.pos, q.type);
 
             // Attribute the unattributed expression
             
