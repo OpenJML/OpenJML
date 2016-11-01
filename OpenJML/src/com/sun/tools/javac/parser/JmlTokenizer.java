@@ -142,11 +142,11 @@ public class JmlTokenizer extends JavadocTokenizer { // FIXME - or should this b
     }
     
     protected void getKeys() {
-        String keyoption = JmlOption.value(context, JmlOption.KEYS);
-        keys.clear();
-        for (String k: keyoption.split(",")) {
-            keys.add(k);
-        }
+//        String keyoption = JmlOption.value(context, JmlOption.KEYS);
+//        keys.clear();
+//        for (String k: keyoption.split(",")) {
+            keys.addAll(Utils.instance(context).commentKeys);
+//        }
     }
 
     /**

@@ -934,8 +934,6 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (m.name.toString().equals("_message")) Utils.stop();
-        if (m.name.toString().equals("_cause")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving field specs for " + m.enclClass() + " " + m);
         specsmap.get(m.enclClass()).fields.put(m,spec);
     }

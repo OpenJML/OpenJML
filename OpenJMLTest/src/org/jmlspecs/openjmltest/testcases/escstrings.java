@@ -524,7 +524,7 @@ public class escstrings extends EscBase {
     }
 
     /** Tests String charAt operation */
-    @Test
+    @Test @Ignore // FIXME - crashes Z3
     public void testStringCharAt3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

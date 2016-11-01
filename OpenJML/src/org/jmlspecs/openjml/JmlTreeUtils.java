@@ -593,6 +593,7 @@ public class JmlTreeUtils {
         return t;
     }
     
+    
     public Type opType(Type lhs, Type rhs) {
         Type lhsu = unboxedType(lhs);
         Type rhsu = unboxedType(rhs);
@@ -601,10 +602,16 @@ public class JmlTreeUtils {
         if (lhs == types.REAL || rhs == types.REAL) return types.REAL;
         if (lhs == types.BIGINT || rhs == types.BIGINT) return types.BIGINT;
         if (lhs == types.TYPE || rhs == types.TYPE) return types.TYPE;
-        if (TypeTag.INT.ordinal() >= lhsu.getTag().ordinal() && TypeTag.INT.ordinal() >= rhsu.getTag().ordinal()) return syms.intType;
-        if (TypeTag.LONG.ordinal() >= lhsu.getTag().ordinal() && TypeTag.LONG.ordinal() >= rhsu.getTag().ordinal()) return syms.longType;
-        if (TypeTag.DOUBLE.ordinal() >= lhsu.getTag().ordinal() && TypeTag.DOUBLE.ordinal() >= rhsu.getTag().ordinal()) return syms.doubleType;
-        throw new JmlInternalError("Unknown combined type for " + lhs + " and " + rhs);
+        TypeTag ltag = lhsu.getTag();
+        TypeTag rtag = rhsu.getTag();
+        
+        if (ltag == TypeTag.DOUBLE) return lhs;
+        if (rtag == TypeTag.DOUBLE) return rhs;
+        if (ltag == TypeTag.FLOAT) return lhs;
+        if (rtag == TypeTag.FLOAT) return rhs;
+        if (ltag == TypeTag.LONG) return lhs;
+        if (rtag == TypeTag.LONG) return rhs;
+        return syms.intType;
     }
     
     /** Makes a Java unary operator node; it may be constant-folded
@@ -685,10 +692,10 @@ public class JmlTreeUtils {
      * @return the new node
      */
     public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findOpSymbol(optag,maxType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findOpSymbol(optag,maxType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,findOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
     }
 
     /** Produces an Equality AST node; presumes that the lhs and rhs have the 

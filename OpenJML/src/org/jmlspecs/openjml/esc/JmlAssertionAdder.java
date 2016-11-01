@@ -2713,8 +2713,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol owner = sym.owner;
         if (owner instanceof MethodSymbol) owner = owner.owner;
         if (!sym.type.isPrimitive() && !jmltypes.isJmlType(sym.type)) {
-            if (sym.toString().equals("_message")) Utils.stop();
-            if (sym.toString().equals("_cause")) Utils.stop();
             isNonNull = specs.isNonNull(sym, (Symbol.ClassSymbol)owner) ;
         }
         return addNullnessAllocationTypeCondition(pos,sym,isNonNull,instanceBeingConstructed);
@@ -7156,7 +7154,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitParens(JCParens that) {
         JCExpression arg = convertExpr(that.getExpression());
-        result = eresult = M.at(that).Parens(arg).setType(that.type);
+        result = eresult = M.at(that).Parens(arg).setType(arg.type);
         treeutils.copyEndPosition(eresult,that);
     }
     
