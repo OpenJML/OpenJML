@@ -271,7 +271,7 @@ public class JmlSpecs {
         else if (versionString.startsWith("1.")) version = versionString.charAt(2) - '0';
         else {
             noticeWriter.println("Unrecognized version: " + versionString);
-            version = 6; // default, if the version string is in an unexpected format
+            version = 8; // default, if the version string is in an unexpected format
         }
         if (verbose) noticeWriter.println("Java version " + version);
        
