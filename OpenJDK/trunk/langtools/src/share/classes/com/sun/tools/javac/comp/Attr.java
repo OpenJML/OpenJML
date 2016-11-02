@@ -1446,7 +1446,7 @@ public class Attr extends JCTree.Visitor {
         result = check(tree, owntype, VAL, resultInfo);
     }
     //where
-        private boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) {
+        protected boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) { // OPENJML _ change from private to protected
             switch (tree.getTag()) {
                 case LITERAL: return ((JCLiteral)tree).typetag.isSubRangeOf(DOUBLE) ||
                               ((JCLiteral)tree).typetag == BOOLEAN ||

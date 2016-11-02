@@ -130,7 +130,6 @@ public class racfiles extends RacBase {
 
     @Test
     public void testreal() {
-    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
         helpTCF("test/racreal","test/racreal","real");
     }
@@ -190,7 +189,7 @@ public class racfiles extends RacBase {
     public void racNoModel() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest");
+        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-show");
     }
 
     @Test

@@ -5903,5 +5903,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
 
+    @Override
+    protected boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) {
+        if (tree instanceof JmlQuantifiedExpr) return true; // At least for current quantifiers: forall, exists, sum, prod, num_of
+        return super.isBooleanOrNumeric(env,tree);
+    }
+
 
 }
