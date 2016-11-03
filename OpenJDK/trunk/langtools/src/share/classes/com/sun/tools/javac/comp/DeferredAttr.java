@@ -352,6 +352,10 @@ public class DeferredAttr extends JCTree.Visitor {
          */
         CHECK;
     }
+    
+    protected TreeCopier makeCopier(TreeMaker make) {
+        return new TreeCopier<Object>(make);
+    }
 
     /**
      * Routine that performs speculative type-checking; the input AST node is
@@ -360,7 +364,7 @@ public class DeferredAttr extends JCTree.Visitor {
      * disabled during speculative type-checking.
      */
     JCTree attribSpeculative(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) {
-        final JCTree newTree = new TreeCopier<Object>(make).copy(tree);
+        final JCTree newTree = makeCopier(make).copy(tree); // OPENJML - changed to avoid using constructor directly
         Env<AttrContext> speculativeEnv = env.dup(newTree, env.info.dup(env.info.scope.dupUnshared()));
         speculativeEnv.info.scope.owner = env.info.scope.owner;
         Log.DeferredDiagnosticHandler deferredDiagnosticHandler =

@@ -255,6 +255,11 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test public void gitbug482() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug482/checkers/src/main","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","-check"); // check only, not esc
+    }
+
     public void gitbug999() {
     	expectedExit = 0;
         helpTCG();

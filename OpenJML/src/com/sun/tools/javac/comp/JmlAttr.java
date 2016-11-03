@@ -46,6 +46,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlDoWhileLoop;
 import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
+import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
@@ -5905,7 +5906,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     @Override
     protected boolean isBooleanOrNumeric(Env<AttrContext> env, JCExpression tree) {
-        if (tree instanceof JmlQuantifiedExpr) return true; // At least for current quantifiers: forall, exists, sum, prod, num_of
+        if (tree instanceof JmlExpression) {
+            if (tree instanceof JmlQuantifiedExpr) return true; // At least for current quantifiers: forall, exists, sum, prod, num_of
+            if (tree instanceof JmlSingleton) {
+                JmlTokenKind kind = ((JmlSingleton)tree).token;
+                if (kind == JmlTokenKind.INFORMAL_COMMENT) return true;
+                if (kind == JmlTokenKind.BSRESULT) {
+                    JCTree.JCMethodDecl md = enclosingMethodEnv.enclMethod;
+                    JCTree res = md.getReturnType(); 
+                    TypeTag t = res.type.getTag();
+                    if (t == TypeTag.BOOLEAN || t == TypeTag.INT || t == TypeTag.LONG || t == TypeTag.SHORT || t == TypeTag.CHAR || t == TypeTag.BYTE) return true;
+                    return false;
+                }
+            }
+            jmlerror(tree,"jml.internal", "Unimplemented option in JmlAttr:isBooleanOrNumeric -- "  + tree.getClass());
+            return false;
+        }
         return super.isBooleanOrNumeric(env,tree);
     }
 

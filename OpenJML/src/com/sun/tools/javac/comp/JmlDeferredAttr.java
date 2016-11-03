@@ -1,8 +1,13 @@
 package com.sun.tools.javac.comp;
 
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeCopier;
+
 import com.sun.tools.javac.comp.DeferredAttr.ArgumentExpressionKind;
 import com.sun.tools.javac.comp.DeferredAttr.DeferredChecker;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeCopier;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.util.Context;
@@ -23,9 +28,12 @@ public class JmlDeferredAttr extends DeferredAttr {
             instance = new JmlDeferredAttr(context);
         return instance;
     }
+    
+    Context context;
 
     private JmlDeferredAttr(Context context) {
         super(context);
+        this.context = context;
     }
     
     @Override
@@ -34,6 +42,12 @@ public class JmlDeferredAttr extends DeferredAttr {
         dc.scan(expr);
         return dc.result.isPoly();
     }
+    
+    protected TreeCopier makeCopier(TreeMaker make) {
+        return new JmlTreeCopier(context,JmlTree.Maker.instance(context));
+    }
+
+
     
     class JmlDeferredChecker extends DeferredChecker {
 

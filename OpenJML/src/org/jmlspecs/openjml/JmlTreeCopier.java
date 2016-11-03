@@ -50,7 +50,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     protected JmlTree.Maker M;
     
     /** Creates a new copier, whose new nodes are generated from the given factory*/
-    protected JmlTreeCopier(Context context, JmlTree.Maker maker) {
+    public JmlTreeCopier(Context context, JmlTree.Maker maker) {
         super(maker);
         this.M = maker;
         this.context = context;
