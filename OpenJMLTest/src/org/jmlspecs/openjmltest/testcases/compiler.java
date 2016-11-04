@@ -829,6 +829,35 @@ public class compiler {
 //                ,""
 //                );
 //    }
+    
+    @Test
+    public void release_testOK1() throws Exception {
+    	helper(new String[]
+    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java"
+    			},0,0
+    			,""
+    			);
+    }
+
+    @Test
+    public void release_testOK2() throws Exception {
+    	helper(new String[]
+    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testRuntime1() throws Exception {
+    	helper(new String[]
+    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
+
 
 
 }

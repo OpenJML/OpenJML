@@ -2058,12 +2058,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.useSource(prev);
             if (specType != null) {
                 if (!Types.instance(context).isSameType(tree.sym.type,specType)) {
-                    utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
+                    if (specType.hasTag(TypeTag.TYPEVAR) && tree.sym.type.hasTag(TypeTag.TYPEVAR)) {
+                        if (specType.tsym.name != tree.sym.type.tsym.name) {
+                            utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
+                                tree.sourcefile, tree.pos(),
+                                "jml.mismatched.field.types",tree.name,
+                                tree.sym.enclClass().getQualifiedName()+"."+tree.sym.name,
+                                specType.tsym,
+                                tree.sym.type.tsym);
+                        }
+                        
+                    } else {
+                       utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
                             tree.sourcefile, tree.pos(),
                             "jml.mismatched.field.types",tree.name,
                             tree.sym.enclClass().getQualifiedName()+"."+tree.sym.name,
                             specType,
                             tree.sym.type);
+                    }
                 }
             }
         }
