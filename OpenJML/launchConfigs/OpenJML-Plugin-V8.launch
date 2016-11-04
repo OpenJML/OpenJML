@@ -9,7 +9,7 @@
 <booleanAttribute key="clearConfig" value="true"/>
 <booleanAttribute key="clearws" value="false"/>
 <booleanAttribute key="clearwslog" value="false"/>
-<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/OpenJML-Plugin-Mars"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/OpenJML-Plugin-V8"/>
 <booleanAttribute key="default" value="true"/>
 <stringAttribute key="deselected_workspace_plugins" value="org.jmlspecs.OpenJMLUI,org.jmlspecs.Specs,org.jmlspecs.annotation,org.jmlspecs.openjml.OpenJDK,org.jmlspecs.openjml.OpenJML"/>
 <booleanAttribute key="includeOptional" value="true"/>
@@ -21,7 +21,7 @@
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog -Dopenjml.eclipseSpecsProjectLocation=../Specs org.openjml.option.jmltesting=true"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms400m -Xmx3840m -XX:MaxPermSize=1024m -XX:PermSize=512m"/>
