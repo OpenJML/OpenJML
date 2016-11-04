@@ -16,7 +16,7 @@ public class GetValue {
 	char c;
 	char q;
 	
-	StringBuffer sb = new StringBuffer();
+	StringBuffer sb = new StringBuffer(); 
 	do {
 	    c = (char)x.read();
 	} while (c == ' ' || c == '\t');
