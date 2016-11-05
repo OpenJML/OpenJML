@@ -477,7 +477,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Adds a class symbol to the list of classes to be attributed later */
     public void addTodo(ClassSymbol c) {
         if (!todo.contains(c)) {
-            todo.add(c);
+            if (!utils.isTypeChecked(c)) todo.add(c);
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Queueing for attribution " + result.tsym + " " + todo.size());
         }
     }
@@ -1560,18 +1560,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
-                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                    for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
                             boolean hasAssignableClause = false;
+                            boolean hasAccessibleClause = false;
                             for (JmlMethodClause clm: cs.clauses) {
                                 if (clm.token == JmlTokenKind.ASSIGNABLE) { 
                                     hasAssignableClause = true; 
-                                    break; 
+                                }
+                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
+                                    hasAccessibleClause = true; 
                                 }
                             }
-                            if (!hasAssignableClause) {
+                            if (!hasAssignableClause && clp != null) {
                                 cs.clauses = cs.clauses.append(clp);
+                            }
+                            if (!hasAccessibleClause) {
+                                JmlMethodClause defaultClause;
+                                if (decl.sym.isConstructor()) {
+                                    JCIdent t = jmlMaker.Ident(names._this);
+                                    t.type = decl.sym.owner.type;
+                                    t.sym = decl.sym.owner;
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
+                                } else {
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+                                }
+                                cs.clauses = cs.clauses.append(defaultClause);
                             }
                         }
                     }
@@ -1583,18 +1600,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
-                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                    for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
                             boolean hasAssignableClause = false;
+                            boolean hasAccessibleClause = false;
                             for (JmlMethodClause clm: cs.clauses) {
                                 if (clm.token == JmlTokenKind.ASSIGNABLE) { 
                                     hasAssignableClause = true; 
-                                    break; 
+                                }
+                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
+                                    hasAccessibleClause = true; 
                                 }
                             }
-                            if (!hasAssignableClause) {
+                            if (!hasAssignableClause && clp != null) {
                                 cs.clauses = cs.clauses.append(clp);
+                            }
+                            if (!hasAccessibleClause) {
+                                JmlMethodClause defaultClause;
+                                if (decl.sym.isConstructor()) {
+                                    JCIdent t = jmlMaker.Ident(names._this);
+                                    t.type = decl.sym.owner.type;
+                                    t.sym = decl.sym.owner;
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
+                                } else {
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+                                }
+                                cs.clauses = cs.clauses.append(defaultClause);
                             }
                         }
                     }
@@ -1606,18 +1640,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JCModifiers mods = c.modifiers;
                     if (c.token == null) mods = decl.mods;
                     ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
-                    if (clp != null) for (JmlSpecificationCase cs: newcases) {
+                    for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
                             boolean hasAssignableClause = false;
+                            boolean hasAccessibleClause = false;
                             for (JmlMethodClause clm: cs.clauses) {
                                 if (clm.token == JmlTokenKind.ASSIGNABLE) { 
                                     hasAssignableClause = true; 
-                                    break; 
+                                }
+                                if (clm.token == JmlTokenKind.ACCESSIBLE) { 
+                                    hasAccessibleClause = true; 
                                 }
                             }
-                            if (!hasAssignableClause) {
+                            if (!hasAssignableClause && clp != null) {
                                 cs.clauses = cs.clauses.append(clp);
+                            }
+                            if (!hasAccessibleClause) {
+                                JmlMethodClause defaultClause;
+                                if (decl.sym.isConstructor()) {
+                                    JCIdent t = jmlMaker.Ident(names._this);
+                                    t.type = decl.sym.owner.type;
+                                    t.sym = decl.sym.owner;
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(t,jmlMaker.Select(t,(Name)null)));
+                                } else {
+                                    defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+                                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+                                }
+                                cs.clauses = cs.clauses.append(defaultClause);
                             }
                         }
                     }
@@ -1644,6 +1695,38 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             log.useSource(prevSource);
         }
     }
+    
+//    public void addDefaultClauses(List<JmlMethodClause> clauses) {
+//        ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
+//        cl.appendList(clauses);
+//        JCModifiers mods = c.modifiers;
+//        if (c.token == null) mods = decl.mods;
+//        ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,mods);
+//        for (JmlSpecificationCase cs: newcases) {
+//            // Note: a model program spec case has no clauses
+//            if (cs.clauses != null) {
+//                boolean hasAssignableClause = false;
+//                boolean hasAccessibleClause = false;
+//                for (JmlMethodClause clm: cs.clauses) {
+//                    if (clm.token == JmlTokenKind.ASSIGNABLE) { 
+//                        hasAssignableClause = true; 
+//                    }
+//                    if (clm.token == JmlTokenKind.ACCESSIBLE) { 
+//                        hasAccessibleClause = true; 
+//                    }
+//                }
+//                if (!hasAssignableClause && clp != null) {
+//                    cs.clauses = cs.clauses.append(clp);
+//                }
+//                if (!hasAccessibleClause) {
+//                    JmlMethodClause defaultClause = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ACCESSIBLE,
+//                             List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
+//                     cs.clauses = cs.clauses.append(defaultClause);
+//                }
+//            }
+//        }
+//
+//    }
     
     
     boolean desugaringPure = false;
@@ -4692,7 +4775,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            int i = 0;
 //        }
         if (tree.name != null) {
-            if (tree.toString().equals("pending.elementCount")) Utils.stop();
+            if (!tree.toString().startsWith("java")  && !tree.toString().startsWith("org.")) {
+                if (tree.toString().endsWith(".buf")) Utils.stop();
+            }
             super.visitSelect(tree);
 //            if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,(ClassSymbol)tree.sym);
             // The super call does not always call check... (which assigns the

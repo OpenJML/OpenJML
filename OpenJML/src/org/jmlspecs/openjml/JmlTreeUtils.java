@@ -309,6 +309,8 @@ public class JmlTreeUtils {
      */
     public boolean isATypeTree(JCExpression tree) {
         if (tree instanceof JCIdent) { 
+            Name n = ((JCIdent)tree).name;
+            if (n == names._this || n == names._super) return false; // this (and super I think) are ClassSymbol, not VarSymbol
             return !(((JCIdent)tree).sym instanceof VarSymbol);
         }
         if (tree instanceof JCFieldAccess) {

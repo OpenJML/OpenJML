@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -651,6 +653,12 @@ public class Utils {
         codeBigintMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
     }
     
+    public boolean isTypeChecked(ClassSymbol sym) {
+        ClassSymbol c = sym;
+        if (c == null) return false;
+        return ((c.flags_field & UNATTRIBUTED) == 0);
+    }
+    
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         initModeSymbols();
         if (!jml) {
@@ -740,6 +748,18 @@ public class Utils {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
+                list.add((Symbol.VarSymbol)s);
+            }
+        }
+        return list;
+    }
+
+    public List<Symbol.VarSymbol> listAllFields(TypeSymbol base, boolean forStatic) {
+        List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
+        for (TypeSymbol csym: parents(base, true)) {
+            for (Symbol s: csym.members().getElements()) {
+                if (s.kind != Kinds.VAR) continue;
+                if (!isJMLStatic(s) && forStatic) continue;
                 list.add((Symbol.VarSymbol)s);
             }
         }

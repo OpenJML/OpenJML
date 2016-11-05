@@ -3795,7 +3795,7 @@ public class esc extends EscBase {
     
     @Test 
     public void testUndefinedInSpec5() {
-        main.addOptions("-nullableByDefault");
+        main.addOptions("-nullableByDefault","-no-checkAccessible");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static TestJava t;\n"

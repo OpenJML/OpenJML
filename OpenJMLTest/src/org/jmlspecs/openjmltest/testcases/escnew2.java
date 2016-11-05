@@ -295,7 +295,9 @@ public class escnew2 extends EscBase {
                 );
     }
 
-    @Test public void testSuper() { 
+    @Test public void testSuper() {
+    	main.addOptions("-show","-method=B");
+    	//main.addOptions("-no-checkAccessible");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "

@@ -325,7 +325,7 @@ public class JmlCompiler extends JavaCompiler {
             
             JmlCompilationUnit speccu = parseSpecs(csymbol);
             if (speccu != null) {
-                csymbol.flags_field |= Flags.UNATTRIBUTED;
+//                csymbol.flags_field |= Flags.UNATTRIBUTED;
 
                 if (speccu.sourcefile.getKind() == JavaFileObject.Kind.SOURCE) speccu.mode = JmlCompilationUnit.JAVA_AS_SPEC_FOR_BINARY;
                 else speccu.mode = JmlCompilationUnit.SPEC_FOR_BINARY;

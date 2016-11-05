@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -110,6 +111,7 @@ public class JmlCheck extends Check {
      */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
+        if (sym.kind == Kinds.ERR) return flags;
         JCTree.JCVariableDecl d = (tree instanceof JCTree.JCVariableDecl) ? (JCTree.JCVariableDecl) tree : null;
         if (staticOldEnv) flags &= ~Flags.STATIC;
         long k = super.checkFlags(pos,flags&~Flags.DEFAULT,sym,tree);

@@ -29,6 +29,7 @@ public class compiler {
     boolean print = false;
     boolean capture = true;
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
+    String expectedFile = null;
     
     @Before
     public void setUp() throws Exception {
@@ -71,6 +72,23 @@ public class compiler {
         actualOutput = actualOutput.replace("\\","/");
         actualOutput = actualOutput.replaceAll("Note:[\\S ]*$", ""); // FIXME - does not work
         errOutput = errOutput.toString().replace("\\","/");
+        
+        String expected;
+        if (expectedFile != null) {
+        	try {
+        		java.util.List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(expectedFile));
+        		StringBuffer out = new StringBuffer();
+        		for (String s: lines) out.append(s);
+        		expected = out.toString();
+        	} catch (Exception ee) {
+        		expected = null;
+        		org.junit.Assert.fail(ee.toString());
+        	}
+        } else {
+            expected = output[0];
+        }
+        expected = expected.replace("${PROJ}",projHome);
+        
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
@@ -78,7 +96,6 @@ public class compiler {
         if (capture) try {
             String tail = "";
             if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
-            String expected = output[0].replace("${PROJ}",projHome);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
@@ -850,6 +867,7 @@ public class compiler {
     
     @Test
     public void release_testRuntime1() throws Exception {
+    	expectedFile = "releaseTests/testRuntime1/expected";
     	helper(new String[]
     			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
     			},0,0

@@ -35,6 +35,7 @@ public class escgeneric extends EscBase {
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
         main.addOptions("-timeout=30");
+        main.addOptions("-jmltesting");
     }
     
     @Test
