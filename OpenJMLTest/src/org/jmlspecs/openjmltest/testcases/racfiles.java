@@ -54,7 +54,6 @@ public class racfiles extends RacBase {
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
     public void test1a() {
-    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
         expectedRACExit = 0;
         helpTCF("test/rac1a","test/rac1a","Bug1");
@@ -70,7 +69,7 @@ public class racfiles extends RacBase {
     @Test // Originally a Stack overflow because of recursive check of invariant
     public void testBugStackTrace() {
         expectedExit = 0;
-        helpTCF("test/racStackTrace","test/racStackTrace","CantCompileRAC");
+        helpTCF("test/racStackTrace","test/racStackTrace","CantCompileRAC","-show");
     }
 
     @Test // Originally crashed because of a model method in a library class
@@ -123,9 +122,8 @@ public class racfiles extends RacBase {
 
     @Test
     public void testbigint() {
-    	Assert.fail(); // FIXME - Java8 - appears to hang
         expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
+        helpTCF("test/racbigint","test/racbigint","bigint","-show");
     }
 
     @Test
@@ -170,7 +168,6 @@ public class racfiles extends RacBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
 
-    @Ignore // FIXME - Java8
     @Test
     public void racAddng() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
@@ -189,7 +186,7 @@ public class racfiles extends RacBase {
     public void racNoModel() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-show");
+        helpTCF("test/racNoModel","test/racNoModel","NoModelTest");
     }
 
     @Test

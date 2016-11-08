@@ -316,7 +316,7 @@ public class JmlCompiler extends JavaCompiler {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (JmlSpecs.instance(context).get(csymbol) != null) continue;
             
-            if (csymbol.toString().contains("Throwable")) Utils.stop();
+//            if (csymbol.toString().contains("Throwable")) Utils.stop();
 
             // Record default specs just to show they are in process
             // If there are actual specs, they will be recorded later

@@ -9,4 +9,4 @@ test\racHansStorageB\StorageParameters.java:7: Associated declaration: test\racH
 	                                                        ^
 	at org.jmlspecs.utils.Utils.createException(Utils.java:83)
 	at org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)
-	at StorageParameters.main(StorageParameters.java:25)
+	at StorageParameters.main(StorageParameters.java:1)

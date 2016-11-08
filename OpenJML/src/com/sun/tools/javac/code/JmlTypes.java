@@ -310,7 +310,7 @@ public class JmlTypes extends Types {
     
     /** Returns true if the given type is a JML primitive type. */
     public boolean isJmlType(Type t) {
-        return t.getTag() == TypeTag.UNKNOWN;  // FIXME - needs review
+        return t.getTag() == TypeTag.NONE || t.getTag() == TypeTag.UNKNOWN;  // FIXME - needs review
     }
     
     /** Returns true if the given type is a JML primitive type. */

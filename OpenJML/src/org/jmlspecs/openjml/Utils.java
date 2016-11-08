@@ -831,14 +831,23 @@ public class Utils {
         if (c == null) return null;
         JmlTree.Maker F = JmlTree.Maker.instance(context);
         Names names = Names.instance(context);
-        JCExpression t = (F.at(position).Ident(names.fromString("org")));
-        t = (F.at(position).Select(t, names.fromString("jmlspecs")));
-        t = (F.at(position).Select(t, names.fromString("annotation")));
+        JCExpression t = nametree(position, "org.jmlspecs.annotation");
         t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
         JCAnnotation ann = (F.at(position).Annotation(t,
                 com.sun.tools.javac.util.List.<JCExpression> nil()));
         ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
         return ann;
+    }
+    
+    public JCExpression nametree(int position, String s) {
+        String[] nms = s.split("\\.");
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        Names names = Names.instance(context);
+        JCExpression tree = F.at(position).Ident(nms[0]);
+        for (int i = 1; i<nms.length; i++) {
+            tree = F.at(position).Select(tree, names.fromString(nms[i]));
+        }
+        return tree;
     }
 
 

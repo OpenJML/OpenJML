@@ -1541,6 +1541,7 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
+                ,"/tt/A.java:4: warning: Duplicate represents clause - only the first is used for RAC",13
                 ,"/tt/A.java:5: warning: Duplicate represents clause - only the first is used for RAC",13
                 ,"A 6"
                 ,"A 11"

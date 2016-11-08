@@ -42,6 +42,7 @@ import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
+import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import com.sun.tools.javac.code.Attribute.Compound;
@@ -202,7 +203,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
-        if (tree.sym.toString().contains("Throwable")) Utils.stop();
 
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         JmlClassDecl jtree = (JmlClassDecl)tree;
@@ -1536,15 +1536,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (annotation == null) continue;
             VarSymbol vsym = vdecl.sym;
             
-            JCStatement returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
-
+            JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
+            JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,"org.jmlspecs.lang.NoModelFieldMethod"), List.<JCExpression>nil(), null));
+            
             long flags = Flags.SYNTHETIC;
             flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
             modelMethodNames.add(vsym.name);
             JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
             Name name = names.fromString(Strings.modelFieldMethodPrefix + vsym.name);
             JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(vsym.type),
-                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
+                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(throwStatement)), null);
             mr.mods.flags |= Flags.DEFAULT;
             mr.pos = vsym.pos;
             utils.setJML(mr.mods);
@@ -1557,6 +1558,17 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             tsp.decls.append(tcd);
             
             newdefs.add(mr);
+            
+            for (JCTree ddecl: tsp.clauses) {
+                if (!(ddecl instanceof JmlTypeClauseRepresents)) continue;
+                JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)ddecl;
+                if (((JCTree.JCIdent)rep.ident).name != vdecl.name) continue;
+                if (utils.isJMLStatic(vdecl.sym) != utils.isJMLStatic(rep.modifiers,sym)) continue;
+                returnStatement.expr = rep.expression;
+                mr.body.stats = List.of(returnStatement);
+                mr.mods.flags &= ~Flags.DEFAULT;
+                break;
+            }
         }
         
         List<JCTree> nd = newdefs.toList();

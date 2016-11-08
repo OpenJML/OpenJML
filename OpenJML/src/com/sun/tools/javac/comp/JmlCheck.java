@@ -4,10 +4,12 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.HYPOTHETICAL;
 import static com.sun.tools.javac.code.Kinds.MTH;
 import static com.sun.tools.javac.code.Kinds.TYP;
 import static com.sun.tools.javac.code.Kinds.kindName;
 import static com.sun.tools.javac.code.TypeTag.FORALL;
+import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
@@ -23,6 +25,10 @@ import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -122,6 +128,22 @@ public class JmlCheck extends Check {
         }
         return k;
     }
+    
+    @Override
+    protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - changed from private to protected
+        boolean is292targetTypeCast = false;
+        JCExpression expr = TreeInfo.skipParens(tree.expr);
+        if (expr.hasTag(APPLY)) {
+            JCMethodInvocation apply = (JCMethodInvocation)expr;
+            if (apply.meth == null) return false;  // Overridden to add this check
+            Symbol sym = TreeInfo.symbol(apply.meth);
+            is292targetTypeCast = sym != null &&
+                sym.kind == MTH &&
+                (sym.flags() & HYPOTHETICAL) != 0;
+        }
+        return is292targetTypeCast;
+    }
+
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req) {

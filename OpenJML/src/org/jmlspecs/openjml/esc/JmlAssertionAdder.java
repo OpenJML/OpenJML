@@ -1665,7 +1665,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        if (assertCount == 200 || assertCount == 202) {
 //            Utils.print("");
 //        }
-        if (assertID.equals("ASSERT_80")) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -2655,19 +2654,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 while (iter.hasPrevious()) {
                     JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
                     for (JmlTypeClauseDecl x: tyspecs.modelFieldMethods) {
-                        if (x.decl instanceof JmlMethodDecl && ((JmlMethodDecl)x.decl).name.equals(mmName)) {
+                        if (x.decl instanceof JmlMethodDecl) {
                             JmlMethodDecl md = (JmlMethodDecl)x.decl;
-                            JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
-                            result = eresult = app;
-                            treeutils.copyEndPosition(eresult, that);
-                            return;
+                            // THe DEFAULT Flag is used to indicate that the method is just the place-holder method
+                            // created in JmlMemberEnter. It should be ignored as it is not a user supplied method.
+                            if (md.name == mmName && (md.mods.flags & Flags.DEFAULT) == 0) {
+                                JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
+                                result = eresult = app;
+                                treeutils.copyEndPosition(eresult, that);
+                                return;
+                            }
                         }
                     }
                 }
                 result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
-                //log.warning(that.pos, "jml.no.model.method.implementation", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+                result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+//                log.warning(that.pos, "jml.no.model.method.implementation", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
                 throw new NoModelMethod("No represents clause for model field " + varsym);
-                //return;
+//                return;
             }
             if (esc) {
                 java.util.List<Type> p = parents(clsym.type, true);
@@ -2719,6 +2723,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             reps.remove(varsym);
             checkAccessEnabled = pv;
         }
+        result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
     }
 
     protected void addInvariantsForVar(JCExpression thisExpr) {
@@ -5948,7 +5953,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ClassSymbol calleeClass = (ClassSymbol)calleeMethodSym.owner;
             // Before the actual method call, check caller invariants and the invariants of the caller's parameters
             
-            if (!isHelper(calleeMethodSym) && applyNesting <= 1) {
+            // FIXME - the check on helper here is only if callee and caller have the same receiver, or is it receivers with the same class?
+            if (!isHelper(calleeMethodSym) && !methodDecl.sym.isConstructor() && applyNesting <= 1) {
                 addStat(comment(that, "Checking caller invariants before calling method " + utils.qualifiedMethodSig(calleeMethodSym),null));
                 if (!isSuperCall && !isThisCall) {
                     if (meth instanceof JCFieldAccess) {
@@ -5993,9 +5999,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // The following assumptions are to state that non-primitive arguments of a constructor call
-            // cannot be equal to the newly constructed object. 
+            // cannot be equal to the newly constructed object. We don't check this for RAC because
+            // at this point the value of the new object is still null, and might be equal to a null
+            // argument.
             // FIXME - why don't the stipulations about allocation time suffice?
-            if (calleeMethodSym.isConstructor()) {
+            if (calleeMethodSym.isConstructor() && esc) {
                 for (JCExpression arg: trArgs) {
                     if (arg.type.isPrimitive() || jmltypes.isJmlType(arg.type)) continue;
                     JCExpression neq = treeutils.makeNeqObject(arg.pos,arg,newThisExpr);
@@ -7352,7 +7360,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult = id;
 
         } else {
-            JCTypeCast t = M.at(pos).TypeCast(newtype,eresult);
+            JCTypeCast t = M.at(pos).TypeCast(newtype,expr);
             t.clazz.type = newtype;
             t.type = newtype;
             eresult = t;
@@ -7570,8 +7578,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             e = treeutils.makeBinary(index.pos, JCTree.Tag.GT, newfa, index);
             if (javaChecks) addAssert(aa, Label.POSSIBLY_TOOLARGEINDEX, e);
             
+            JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
             // FIXME - test this 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that,aa, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, newfaa, currentThisId, currentThisId);
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(aa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -7674,7 +7683,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             Type t = unboxedType(that.type);
             
-            JCExpression lhsc = addImplicitConversion(lhs,optype,lhs);
+            JCExpression lhsc = addImplicitConversion(lhs,optype,convertCopy(lhs));
 
             rhs = convertExpr(rhs);
             rhs = addImplicitConversion(rhs,optype,rhs); // or optype?
@@ -7698,7 +7707,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression newlhs = treeutils.makeIdent(lhs.pos,((JCIdent)lhs).sym);
             JCExpression nid = addImplicitConversion(id,lhs.type,id);
             JCExpressionStatement st = addStat(treeutils.makeAssignStat(that.getStartPosition(), newlhs, nid));
-            result = eresult = post ? nid : newlhs;
+            result = eresult = post ? newTemp(lhs) : newlhs;
             exprBiMap.put(that.lhs,eresult);
             lastStat = st.expr;
             
@@ -8862,8 +8871,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            if (that.toString().equals("this")) Utils.stop();
-
             if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, currentThisId, currentThisId);
             // Lookup if there is some other translation of the id. For example, 
             // this could be a translation of the formal from the specification 
@@ -9254,6 +9261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
+        if (that.name.toString().equals("Time")) Utils.stop();
         
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -9365,7 +9373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // We are presuming that all represents clauses are processed
                             // (as part of scanning the specs defs in visitJmlClassDecl)
                             // before we handle all the model field methods.
-                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
+//                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
                         }
                     }
                 }
@@ -10368,7 +10376,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         String nm = that.name.toString();
         if (attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-            if (classDefs != null) classDefs.add(that);
+//            if (classDefs != null) classDefs.add(that);
             return;
         }
 
@@ -11857,27 +11865,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // might not yet be filled in by processing a represents clause.
             // Or it might never be filled in if it only has a representation
             // in a derived class.
+            String str = Strings.modelFieldMethodPrefix + sym.name.toString();
             for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
                 JmlMethodDecl md = (JmlMethodDecl)m.decl;
-                if (! md.name.equals(name)) continue; 
+                if (! md.name.toString().equals(str)) continue; 
                 try {
-                    pushBlock();
-                    boolean save = splitExpressions;
-                    splitExpressions = false;
-                    try {
-                        JCReturn st = M.at(that).Return(convertExpr(that.expression)); // FIXME - what do we do about undefined expressions?
-                        // We have a match
-                        if ((md.mods.flags & Flags.DEFAULT) != 0) {
-                            // But no body yet
-                            md.body.stats = List.<JCStatement>of(st);
+                    if (((JCReturn)md.body.stats.head).expr == that.expression) {
+                        pushBlock();
+                        boolean save = splitExpressions;
+                        splitExpressions = false;
+                        try {
+                            JCReturn st = M.at(that).Return(convertExpr(that.expression)); // FIXME - what do we do about undefined expressions?
+                            addStat(st);
+                            md.body.stats = popBlock(0L,that.expression).stats;
                             md.mods.flags &= ~Flags.DEFAULT;
-                        } else {
-                            log.warning(that.pos,"jml.duplicate.represents");
+                        } finally {
+                            classDefs.add(md);
+                            splitExpressions = save;
                         }
-                    } finally {
-                        popBlock();
-                        splitExpressions = save;
+                    } else {
+                        log.warning(that.pos,"jml.duplicate.represents");
                     }
+
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because
                     // of some non-translatable expression within it

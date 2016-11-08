@@ -458,7 +458,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * This is just used for DSA assignments.
      */
     protected JCIdent newIdentUse(VarMap map, VarSymbol sym, int useposition) {
-        if (sym.toString().startsWith("Pre_")) Utils.stop();
+        if (sym.toString().startsWith("aux")) Utils.stop();
         Name name = map.getCurrentName(sym); // Creates a name if one has not yet been created
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
@@ -473,7 +473,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
      * @return the new JCIdent node
      */
     protected JCIdent newIdentUse(VarSymbol sym, int useposition) {
-        if (sym.toString().startsWith("Pre_")) Utils.stop();
+        if (sym.toString().startsWith("aux")) Utils.stop();
         Name name = currentMap.getCurrentName(sym);
         JCIdent n = factory.at(useposition).Ident(name);
         n.sym = sym;
@@ -503,6 +503,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        if (vsym.name.toString().startsWith("aux")) Utils.stop();
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
@@ -513,6 +514,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // FIXME - review and document
     protected JCIdent newArrayIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
+        if (vsym.name.toString().startsWith("aux")) Utils.stop();
         JCIdent n = factory.at(incarnationPosition).Ident(encodedArrayName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
@@ -1358,6 +1360,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (localVars.contains(vsym)) {
                 // no change to local vars (e.g. quantifier and let decls)
             } else {
+                if (vsym.toString().startsWith("aux")) Utils.stop();
                 that.name = currentMap.getCurrentName(vsym);
                 if (isDefined.add(that.name)) {
                     if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + vsym + " " + that.name);
@@ -1584,6 +1587,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.sym == null || that.sym.owner == null) {
+            if (that.sym.toString().startsWith("aux")) Utils.stop();
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;

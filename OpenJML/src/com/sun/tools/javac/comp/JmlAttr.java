@@ -381,7 +381,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
-//        if (c.toString().equals("java.lang.Object")) Utils.stop();
+        if (c.toString().equals("Time")) Utils.stop();
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet

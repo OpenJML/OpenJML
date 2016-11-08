@@ -595,7 +595,7 @@ public class Check {
         }
     }
     //where
-        private boolean is292targetTypeCast(JCTypeCast tree) {
+        protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - changed from private to protected
             boolean is292targetTypeCast = false;
             JCExpression expr = TreeInfo.skipParens(tree.expr);
             if (expr.hasTag(APPLY)) {

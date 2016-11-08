@@ -7,10 +7,10 @@ public class real {
     // FIXME - what about ++, --, conversion to \real, op=
 
     public static void main(String... args) {
-        //@ ghost \real b = 32;
+        //@ ghost \real b = 20;
         //@ ghost \real bb = -b;
         //@ ghost \real zero = 0;
-        //@ ghost \real prod = -1024;
+        //@ ghost \real prod = -400;
         //@ assert b + bb == zero;
         //@ assert b * bb == prod;
         //@ assert b + 0 == b;
