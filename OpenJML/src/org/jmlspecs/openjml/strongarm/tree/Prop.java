@@ -65,7 +65,9 @@ public class Prop<T extends JCExpression> implements Cloneable {
     }
     
     public Prop(T p, BasicBlock def, Label label){
-        this.p = JmlTreeCopier.copy(Strongarm.MM, (T)p.clone());
+        //this.p = JmlTreeCopier.copy(Strongarm.MM, (T)p.clone());
+        this.p = JmlTreeCopier.copy(Strongarm.MM, p);
+        
         this.def = def;
         this.label = label;
         
@@ -315,15 +317,19 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
         return false;
     }
-    
-    
+
+    public static int count = 0;
     @Override 
     public Object clone(){
+                
+        //count++;
         
         // this method automatically does a deep copy. 
         Prop<T> clonedProp = new Prop<T>(p, def, label);
         
         clonedProp.path = path;
+        
+        //System.out.println("$$COUNT: " + count);
         
         return clonedProp;
         

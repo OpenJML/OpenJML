@@ -45,7 +45,10 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
     @Override
     public Object clone(){
         
-        And<T> cloned = new And((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        //And<T> cloned = new And((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        
+        
+        And<T> cloned = new And(p1, p2);
         
         return cloned;
     }

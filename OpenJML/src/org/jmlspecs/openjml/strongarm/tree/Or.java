@@ -23,7 +23,7 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
     public Prop<T> p2;
     
     public Or(Prop<T> p1, Prop<T> p2){
-        this.p1 = (Prop<T>) p1.clone();
+        this.p1 = p1; //(Prop<T>) p1.clone();
         this.p2 = (Prop<T>) p2.clone();
     }
     
@@ -40,7 +40,8 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
     @Override
     public Object clone(){
         
-        Or<T> cloned = new Or((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        //Or<T> cloned = new Or((Prop<T>)p1.clone(), (Prop<T>)p2.clone());
+        Or<T> cloned = new Or(p1,p2);
         
         return cloned;
     }
