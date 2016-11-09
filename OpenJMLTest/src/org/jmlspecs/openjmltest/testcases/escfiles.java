@@ -161,7 +161,7 @@ public class escfiles extends EscBase {
     public void testDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test // FIXME - Problem with int / short conversions
@@ -323,7 +323,7 @@ public class escfiles extends EscBase {
     @Test
     public void testBadCast() {
         expectedExit = 0;
-        helpTF("escBadCast","-show","-method=BadCast.equals");
+        helpTF("escBadCast");//,"-show","-method=BadCast.equals");
     }
 
     @Test

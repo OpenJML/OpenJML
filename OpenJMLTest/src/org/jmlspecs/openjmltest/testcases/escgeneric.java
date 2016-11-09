@@ -272,10 +272,10 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    // FIXME - this is an issue of instantiating the value of the callee's type parameters
+    // FIXME - this is an issue of instantiating the value of the callee's type parameters for nested types
     @Test
     public void testTypeParameter2() {
-    	//main.addOptions("-show","-method=mb");
+    	main.addOptions("-show","-method=mc");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -285,7 +285,7 @@ public class escgeneric extends EscBase {
                 +"  public void mb(/*@ non_null*/TestG<Object>.TestH i, Object j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void mc(/*@ non_null*/TestG<String>.TestH i, String j) {\n"
+                +"  public void mc(/*@ non_null*/TestG<String>.TestH i, String j) {\n  //@ assume \\typeof(i) == \\type(TestG<String>.TestH); \n"
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"

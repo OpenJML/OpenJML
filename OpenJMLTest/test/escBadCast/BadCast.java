@@ -6,14 +6,10 @@ public class BadCast {
     
     public boolean equals(final Object the_other) {
         boolean result = false;
-        //@ assume the_other != null;
         
         if (this == the_other) {
           result = true;
         } else if (the_other != null && the_other.getClass() == getClass()) {
-        	//@ assert \erasure(\typeof(the_other)) == \erasure(\typeof(this));
-        	//@ assert \typeof(the_other) == \type(BadCast);
-        	//@ assert the_other instanceof BadCast;
           final BadCast other_cash = (BadCast) the_other;
           result = other_cash.my_dollars == my_dollars && 
                    other_cash.my_cents == my_cents;

@@ -354,6 +354,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 Arrays.asList(new ISort[]{jmlTypeSort}), 
                 javaTypeSort);
         commands.add(c);
+
+        addCommand(smt,"(declare-fun _JMLT_0 ("+JAVATYPESORT+") "+JMLTYPESORT+")");
+        addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+        addCommand(smt,"(declare-fun _JMLT_2 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+
         addCommand(smt,"(assert (forall ((o REF)) (= (erasure (jmlTypeOf o)) (javaTypeOf o))))");
         
         addCommand(smt,"(declare-fun _makeArrayType ("+JAVATYPESORT+") "+JAVATYPESORT+")");
@@ -363,6 +368,10 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun "+arrayElemType+" ("+JMLTYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= (erasure (_makeJMLArrayType T)) (_makeArrayType (erasure T)))))");
         addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (erasure T1) (erasure T2)))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+"))  (= ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3)))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (and ("+JAVASUBTYPE+" T1 T2) (not (= T3 T4))) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and ("+JAVASUBTYPE+" T1 T2) (= T3 T4)) ) )))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (= (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and (= T1 T2) (= T3 T4)) ) )))");
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" (_makeArrayType T)) T)))");
         if (quants) {
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" (_makeJMLArrayType T)) T)))");
@@ -432,9 +441,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                     )));
             commands.add(c);
         }
-        addCommand(smt,"(declare-fun _JMLT_0 ("+JAVATYPESORT+") "+JMLTYPESORT+")");
-        addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
-        addCommand(smt,"(declare-fun _JMLT_2 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+
         if (quants) {
             // (forall ((t JMLTYPESORT) (tt JMLTYPESORT)) (==> (jmlSubtype t tt) (javaSubtype (erasure t) (erasure tt)))) 
             c = new C_assert(
