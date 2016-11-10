@@ -1662,9 +1662,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-//        if (assertCount == 200 || assertCount == 202) {
-//            Utils.print("");
-//        }
+        if (assertCount == 1149) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -5095,7 +5093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * @param baseThisSym
      * @param targetThisSym
      */
-    protected void checkAccess(JmlTokenKind token, DiagnosticPosition assignPosition, JCExpression lhs,
+    protected void checkAccess(JmlTokenKind token, DiagnosticPosition assignPosition, JCExpression origlhs, JCExpression lhs,
             JCExpression baseThisExpr, JCExpression targetThisExpr) {
         if (rac) return; // FIXME - turn off checking assignable until we figure out how to handle fresh allocations in rac
         if (recursiveCall) return;
@@ -5119,7 +5117,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 check = makeAssertionOptional(check);
                 addAssert(assignPosition,
                         token == JmlTokenKind.ASSIGNABLE ? Label.ASSIGNABLE : Label.ACCESSIBLE,
-                        check,cpos,c.sourcefile,lhs.toString());
+                        check,cpos,c.sourcefile,origlhs.toString());
             }
         }
         if (noSpecCases) {
@@ -5129,7 +5127,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 check = makeAssertionOptional(check);
                 addAssert(assignPosition,
                         token == JmlTokenKind.ASSIGNABLE ? Label.ASSIGNABLE : Label.ACCESSIBLE,
-                        check,methodDecl,methodDecl.sourcefile,lhs.toString());
+                        check,methodDecl,methodDecl.sourcefile,origlhs.toString());
             }
         }
         recursiveCall = false;
@@ -7491,7 +7489,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - location of nnonnull declaration?
                 addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
             }
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, that.lhs, lhs, currentThisId, currentThisId);
             checkRW(JmlTokenKind.WRITABLE,id.sym,currentThisExpr,id);
             
             JCExpressionStatement st = treeutils.makeAssignStat(that.pos,  lhs, rhs);
@@ -7542,7 +7540,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             // FIXME _ use checkAssignable
-            checkAccess(JmlTokenKind.ASSIGNABLE, that,fa, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, fa, fa, currentThisId, currentThisId); // FIXME - should the second argument be newfa?
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(fa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -7580,7 +7578,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             JCArrayAccess newfaa = M.at(that.pos).Indexed(array,index);
             // FIXME - test this 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, newfaa, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, aa, newfaa, currentThisId, currentThisId);
 //            for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
 //                JCExpression check = checkAssignable(aa,c,currentThisId.sym,currentThisId.sym);
 //                if (!treeutils.isTrueLit(check)) {
@@ -7698,7 +7696,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
   //          }
             treeutils.copyEndPosition(rhs, that);
 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
             checkRW(JmlTokenKind.WRITABLE,((JCIdent)lhs).sym,currentThisExpr,lhs);
 
             // Note that we need to introduce the temporary since the rhs contains
@@ -7748,7 +7746,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             }
             addBinaryChecks(that,op,newfa,rhs,maxJmlType);
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
 
             // We have to make a copy because otherwise the old and new JCFieldAccess share
             // a name field, when in fact they must be different
@@ -7788,7 +7786,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(that.lhs, Label.POSSIBLY_TOOLARGEINDEX, e);
             }
 
-            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, currentThisId, currentThisId);
+            checkAccess(JmlTokenKind.ASSIGNABLE, that, lhs, lhs, currentThisId, currentThisId);
 
             rhs = convertExpr(rhs);
             rhs = addImplicitConversion(rhs,optype,rhs);
@@ -8577,7 +8575,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 
         // FIXME _ readable?
-        checkAccess(JmlTokenKind.ACCESSIBLE, that, that, currentThisId, currentThisId);
+        checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisId, currentThisId);
 
         JCExpression index = convertExpr(that.index);
         index = addImplicitConversion(index,syms.intType,index);
@@ -8648,7 +8646,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         checkRW(JmlTokenKind.READABLE,that.sym,trexpr,that);
-        checkAccess(JmlTokenKind.ACCESSIBLE, that, that, currentThisExpr, currentThisExpr);
+        checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisExpr, currentThisExpr);
         if (localVariables.containsKey(s)) {
             result = eresult = treeutils.makeSelect(that.pos, trexpr, s);
         } else if (esc && s != null && "class".equals(s.toString())) {
@@ -8871,7 +8869,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, currentThisId, currentThisId);
+            if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, that, currentThisId, currentThisId);
             // Lookup if there is some other translation of the id. For example, 
             // this could be a translation of the formal from the specification 
             // in a parent class mapped to the formal in the target class. It

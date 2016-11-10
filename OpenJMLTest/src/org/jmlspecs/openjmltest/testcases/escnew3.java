@@ -462,7 +462,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -477,7 +477,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:5: warning: Associated declaration",10
                 );
     }
@@ -492,7 +492,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -507,7 +507,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",22
                 );
     }
@@ -522,7 +522,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }

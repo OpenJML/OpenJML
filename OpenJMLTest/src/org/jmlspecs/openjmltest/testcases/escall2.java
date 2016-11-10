@@ -982,7 +982,7 @@ public class escall2 extends EscBase {
                 ,"/tt/TestJava.java:11: warning: Associated declaration",7
                 ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a:  o.a",9
                 ,"/tt/TestJava.java:31: warning: Associated declaration",7
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7:  THIS.a",7
+                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7:  a",7
                 ,"/tt/TestJava.java:48: warning: Associated declaration",7
                 ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b:  o.a",9
                 ,"/tt/TestJava.java:61: warning: Associated declaration",7

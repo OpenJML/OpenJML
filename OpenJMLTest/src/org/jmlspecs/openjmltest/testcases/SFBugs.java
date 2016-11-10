@@ -255,6 +255,21 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test @Ignore public void gitbug481() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481","test/gitbug481", "-cp", "test/gitbug481b","-dir","test/gitbug481b","-progress");
+    }
+
+    @Test @Ignore public void gitbug481a() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481b","test/gitbug481b", "-cp", "test/gitbug481b","-dir","test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+    }
+
+    @Test @Ignore public void gitbug481b() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481b","test/gitbug481b", "-cp", "test/gitbug481b","test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+    }
+
     @Test public void gitbug482() {
     	expectedExit = 0;
         helpTCF("test/gitbug482/checkers/src/main","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","-check"); // check only, not esc
