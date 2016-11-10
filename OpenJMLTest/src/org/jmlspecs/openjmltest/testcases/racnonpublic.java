@@ -48,7 +48,7 @@ public class racnonpublic extends RacBase {
     }
 
 
-    @Test // FIXME - crashes in code generation
+    @Test
     public void racSokoban() {
         String dir = OpenJMLNonPublicDemoPath + "/src/sokoban/src";
         expectedExit = 0;

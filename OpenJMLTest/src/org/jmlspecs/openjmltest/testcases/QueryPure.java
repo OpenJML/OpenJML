@@ -301,13 +301,12 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + // ERROR - value not found (implicitly defined by the Query) TODO - perhaps relax this restriction
+                "  @Secret Integer cache = null; //@ in value; \n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" + 
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
                 "  public int use() { return value(); }\n" +
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",40
         );
     }
 
@@ -571,6 +570,7 @@ public class QueryPure extends TCBase {
                 "  @Secret Integer cache = null; //@ in value; \n" + 
                 "  @Secret(\"value\") public int mm() {  q = 0;  }\n" +  // ERROR - can't read or write q
                 "} \n"
+                ,"/A.java:5: A field may not be read in a secret context unless it is in the same secret datagroup: o not in value",30  // FIXME - this did not used to be an error - should it be?
                 ,"/A.java:9: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",39
                 ,"/A.java:9: The field q is not writable since it is not in the value secret datagroup",39
         );

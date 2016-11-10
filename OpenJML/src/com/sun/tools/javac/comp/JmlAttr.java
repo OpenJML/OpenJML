@@ -419,6 +419,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JavaFileObject prevv = log.useSource(eee.toplevel.sourcefile);
                 try {
                     super.attribClass(c); // No need to attribute the class itself if it was binary
+                    attribFieldSpecs(eee,c);
                 } finally {
                     log.useSource(prevv);
                 }
@@ -461,6 +462,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
         }
+    }
+    
+    public void attribFieldSpecs(Env<AttrContext> env, ClassSymbol csym) {
+        Env<AttrContext> prev = this.env;
+        this.env = env;
+        try {
+            JmlClassDecl cdecl = (JmlClassDecl)env.tree;
+            for (JCTree t: cdecl.defs) {
+                if (t instanceof JCVariableDecl) {
+                    JCVariableDecl vdecl = (JCVariableDecl)t;
+                    if (vdecl.sym != null) {  // FIXME - WHY WOULD THIS SYM EVER BE NULL?
+                        FieldSpecs fspecs = specs.getSpecs(vdecl.sym);
+                        if (fspecs != null) {
+                            for (JmlTypeClause spec:  fspecs.list) {
+                                if (spec instanceof JmlTypeClauseIn) spec.accept(this);
+                                if (spec instanceof JmlTypeClauseMaps) spec.accept(this);
+                            }
+                        }
+                    }
+                }
+            }
+        } finally {
+            this.env = prev;
+        }
+        
     }
     
     /** Attribute all classes whose attribution was deferred (while in the middle of attributing another class) */
@@ -5643,7 +5669,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Anonymous classes construct synthetic members (constructors at least)
             // which are not JML nodes.
             FieldSpecs fspecs = specs.getSpecs(that.sym);
-            if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
+            
+            // We do the checking of in and maps clauses after all fields and methods have been attributed
+            //if (fspecs != null) for (JmlTypeClause spec:  fspecs.list) spec.accept(this);
 
             if (!that.type.isPrimitive()) {
                 JCAnnotation snullness;

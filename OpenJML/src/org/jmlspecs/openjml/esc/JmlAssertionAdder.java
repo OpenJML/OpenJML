@@ -9261,7 +9261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
-        if (that.name.toString().equals("Time")) Utils.stop();
+        if (that.name.toString().equals("A")) Utils.stop();
         
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -9362,6 +9362,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                }
             }
             
+//            JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
+////            for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
+////                this.classDefs.add(m);
+////            }
             List<JCTree> defs = this.classDefs.toList();
             
             for (JCTree def: defs) {
@@ -9373,7 +9377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // We are presuming that all represents clauses are processed
                             // (as part of scanning the specs defs in visitJmlClassDecl)
                             // before we handle all the model field methods.
-//                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
+                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
                         }
                     }
                 }
@@ -10375,10 +10379,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         
         String nm = that.name.toString();
-        if (attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-//            if (classDefs != null) classDefs.add(that);
-            return;
-        }
+//        if (attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
+////            if (classDefs != null) classDefs.add(that);
+//            return;
+//        }
 
         if (classDecl == null) classDecl = utils.getOwner(that);
         log.useSource(that.source());
@@ -10433,6 +10437,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = m;
             methodBiMap.put(that,m);
         } catch (JmlNotImplementedException e) {
+            // FIXME _ if it is actually the synthetic method for a model field we used to use this
+            //notImplemented("represents clause containing ", ee, that.source());
+
             notImplemented("method (or represents clause) containing ",e); // FIXME - location?
             log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
         } finally {
@@ -11840,52 +11847,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return;
         }
         
-        if (rac && that.suchThat) {
-            notImplemented(that,"relational represents clauses (\\such_that)", that.source());
-            return;
-        }
-        
         JCExpression e = that.ident;
         Symbol sym = null;
         if (e instanceof JCIdent) sym = ((JCIdent)e).sym;
         else if (e instanceof JCFieldAccess) sym = ((JCFieldAccess)e).sym;
         else {
+            // FIXME - this should really be in JmlAttr
             log.warning(that,"jml.internal.notsobad",
                     "The lhs of a represents clause is expected to be an identifier or field access (found "+e.getClass()+")");
             return;
         }
+
+        if (rac && that.suchThat) {
+            notImplemented(that,"relational represents clauses (\\such_that)", that.source());
+            return;
+        }
+        if (rac) return;
+        
+
         JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
         if (sym != null) {
             // Construct a method that implements the represents clause
             Name name = names.fromString(Strings.modelFieldMethodPrefix + sym.name);
             JmlMethodDecl mdecl = null;
-            // Check if we already have a method for this model field. Note
-            // that the method itself might not have been processed yet, so it
-            // will not necessarily by in the new list (classdefs). Also it 
-            // might not yet be filled in by processing a represents clause.
-            // Or it might never be filled in if it only has a representation
-            // in a derived class.
+            // Find the method for this model field. It will have been created in
+            // JmlMemberEnter
             String str = Strings.modelFieldMethodPrefix + sym.name.toString();
             for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
                 JmlMethodDecl md = (JmlMethodDecl)m.decl;
                 if (! md.name.toString().equals(str)) continue; 
                 try {
-                    if (((JCReturn)md.body.stats.head).expr == that.expression) {
-                        pushBlock();
-                        boolean save = splitExpressions;
-                        splitExpressions = false;
-                        try {
-                            JCReturn st = M.at(that).Return(convertExpr(that.expression)); // FIXME - what do we do about undefined expressions?
-                            addStat(st);
-                            md.body.stats = popBlock(0L,that.expression).stats;
-                            md.mods.flags &= ~Flags.DEFAULT;
-                        } finally {
-                            classDefs.add(md);
-                            splitExpressions = save;
-                        }
-                    } else {
-                        log.warning(that.pos,"jml.duplicate.represents");
-                    }
+                    JCStatement firststat = md.body.stats.head;
+//                    if (firststat instanceof JCThrow) {
+//                        // No (non-such_that) represents clause
+//                        // But still keep the model field's method
+//                        classDefs.add(md);
+//                    } else if (firststat instanceof JCReturn && ((JCReturn)firststat).expr == that.expression) {
+//                        pushBlock();
+//                        boolean save = splitExpressions;
+//                        splitExpressions = false;
+//                        try {
+//                            JCReturn st = M.at(that).Return(convertExpr(that.expression)); // FIXME - what do we do about undefined expressions?
+//                            addStat(st);
+//                            md.body.stats = popBlock(0L,that.expression).stats;
+//                            md.mods.flags &= ~Flags.DEFAULT;
+//                        } finally {
+//                            classDefs.add(md);
+//                            splitExpressions = save;
+//                        }
+//                    } else {
+//                        log.warning(that.pos,"jml.duplicate.represents");
+//                    }
 
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because

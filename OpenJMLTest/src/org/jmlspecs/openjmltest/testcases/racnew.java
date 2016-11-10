@@ -1465,6 +1465,7 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuchThat() {
+    	main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n"
                 +"//@ static model int i; \n"
@@ -1528,7 +1529,7 @@ public class racnew extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        main.addOptions("-keys=DEBUG");
+        main.addOptions("-keys=DEBUG","-show");
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
@@ -1541,7 +1542,6 @@ public class racnew extends RacBase {
                 +"//@ debug System.out.println(\"A \" + i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:4: warning: Duplicate represents clause - only the first is used for RAC",13
                 ,"/tt/A.java:5: warning: Duplicate represents clause - only the first is used for RAC",13
                 ,"A 6"
                 ,"A 11"

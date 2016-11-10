@@ -1559,15 +1559,24 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             newdefs.add(mr);
             
+            JmlTypeClauseRepresents found = null;
             for (JCTree ddecl: tsp.clauses) {
                 if (!(ddecl instanceof JmlTypeClauseRepresents)) continue;
                 JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)ddecl;
                 if (((JCTree.JCIdent)rep.ident).name != vdecl.name) continue;
                 if (utils.isJMLStatic(vdecl.sym) != utils.isJMLStatic(rep.modifiers,sym)) continue;
+                if (rep.suchThat) {
+                    continue;
+                }
+                if (found != null) {
+                    utils.warning(rep.source,ddecl.pos,"jml.duplicate.represents");
+                    // FIXME - the duplicate is at found.pos
+                    continue;
+                }
                 returnStatement.expr = rep.expression;
                 mr.body.stats = List.of(returnStatement);
                 mr.mods.flags &= ~Flags.DEFAULT;
-                break;
+                found = rep;
             }
         }
         
@@ -1877,7 +1886,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            if (isModel == isMatchModel) {
             
                 // Attributes the annotations and adds them to the given MethodSymbol, if they are not already present
-                addAnnotations(match,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call  // FIXME - we aren't using the conditional call
+ //               addAnnotations(match,env,specMethod.mods);  // Might repeat annotations, so we use the conditional call  // FIXME - we aren't using the conditional call
 //            } else {
 //                // We have a model and non-model method with matching signatures.  Declare them
 //                // non-matching and wait for an error when the model method is entered.
@@ -2803,12 +2812,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     : deferredLintHandler.immediate();
                 Lint prevLint = deferPos != null ? null : chk.setLint(lint);
                 try {
-//                    if (s.hasAnnotations() &&
-//                        annotations.nonEmpty())
+                    if (!(s.hasAnnotations() &&
+                        annotations.nonEmpty())) 
+                        actualEnterAnnotations(annotations, localEnv, s);
+//                    else if (!(annotations.head.type instanceof Type.ErrorType) )
 //                        log.error(annotations.head.pos,
 //                                  "already.annotated",
 //                                  kindName(s), s);
-                    actualEnterAnnotations(annotations, localEnv, s);
                 } finally {
                     if (prevLint != null)
                         chk.setLint(prevLint);

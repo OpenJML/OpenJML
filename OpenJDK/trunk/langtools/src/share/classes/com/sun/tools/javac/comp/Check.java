@@ -3120,6 +3120,7 @@ public class Check {
         }
 
         // remove the ones that are assigned values
+        ListBuffer<JCTree> dups = null;  //OPENJML
         for (JCTree arg : a.args) {
             if (!arg.hasTag(ASSIGN)) continue; // recovery
             JCAssign assign = (JCAssign) arg;
@@ -3129,7 +3130,18 @@ public class Check {
                 isValid = false;
                 log.error(assign.lhs.pos(), "duplicate.annotation.member.value",
                           m.name, a.type);
+                if (dups == null) dups = new ListBuffer<JCTree>();
+                dups.add(arg);
             }
+        }
+        if (dups != null) { // OPENJML - added this to remove duplicate arguments, to avoid multiple error messages
+            ListBuffer<JCExpression> newlist = new ListBuffer<>();
+            for (JCExpression e: a.args) {
+                if (!dups.contains(e)) {
+                    newlist.add(e);
+                }
+            }
+            a.args = newlist.toList();
         }
 
         // all the remaining ones better have default values

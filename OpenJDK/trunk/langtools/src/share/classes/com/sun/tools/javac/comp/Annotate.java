@@ -99,6 +99,9 @@ public class Annotate {
     }
 
     public void normal(Worker a) {
+//        if (a.toString().contains("Query")) {
+//            System.out.println();
+//        }
         q.append(a);
     }
 

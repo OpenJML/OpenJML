@@ -929,6 +929,16 @@ public class Utils {
         return jfo1.equals(jfo2);
     }
 
+    public void warning(JavaFileObject source, int pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.warning(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = log.useSource(source);
