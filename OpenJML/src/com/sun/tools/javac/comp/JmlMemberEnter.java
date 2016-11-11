@@ -249,9 +249,20 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 jtree.defs = defs.toList();
                 dojml = true;
                 JmlCheck.instance(context).noDuplicateWarn = false;
+                ListBuffer<JCTree> remove = null;
                 for (JCTree t: jtree.defs) {
                     if (t instanceof JmlSource) log.useSource(((JmlSource)t).source());
                     memberEnter(t,env); // FIXME - do something special for enums
+                    if (t instanceof JCVariableDecl && ((JCVariableDecl)t).sym == null) {
+                        if (remove == null) remove = new ListBuffer<>();
+                        remove.add(t);
+                    }
+                }
+                if (remove != null) {
+                    for (JCTree t: remove) {
+                        jtree.defs = Utils.remove(jtree.defs, t);
+                        if (jtree.specsDecl !=null) jtree.specsDecl.defs = Utils.remove(jtree.specsDecl.defs, t);
+                    }
                 }
 ////                boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 ////                if (isSpecForBinary) ((JmlCheck)chk).noDuplicateWarn = false;
@@ -486,7 +497,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 JmlVariableDecl specsVarDecl = (JmlVariableDecl)specsMemberDecl;
                 boolean ok = matchAndSetFieldSpecs(jtree, csym, specsVarDecl, matches, jtree == specsDecl);
                 if (ok) {
-                    newlist.add(specsVarDecl);
+                    newlist.add(specsVarDecl); // FIXME - are we actually using newlist? should we?
+                } else {
+                    toremove.add(specsVarDecl); 
                 }
             } else if (specsMemberDecl instanceof JmlMethodDecl) {
                 JmlMethodDecl specsMethodDecl = (JmlMethodDecl)specsMemberDecl;
@@ -2614,8 +2627,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         super.visitVarDef(tree);
         log.useSource(prevSource);
 //        ((JmlCheck)chk).noDuplicateWarn = prevChk;
-
         if (utils.isJML(tree.mods)) resolve.setAllowJML(prev);
+        if (tree.sym == null) {
+            // A duplicate
+            return;
+        }
         Symbol sym = tree.sym;
         if (specs.getSpecs(tree.sym) != null) log.warning("jml.internal","Expected null field specs here: " + tree.sym.owner + "." + tree.sym);
         JmlVariableDecl jtree = (JmlVariableDecl)tree;
@@ -2642,6 +2658,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (chk.checkUnique(tree.pos(), v, enclScope)) {
             chk.checkTransparentVar(tree.pos(), v, enclScope);
             if (!noEntering) enclScope.enter(v);
+        } else {
+            tree.sym = null; // An indication that the field is a duplicate and should be removed/ignored
         }
     }
 
