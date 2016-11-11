@@ -1557,7 +1557,7 @@ public class racnew extends RacBase {
     /** Represents with super model field */
     @Test public void testModelField3() {
         continueAnyway = true; // That is, even though there are compile errors
-        main.addOptions("-keys=DEBUG");
+        main.addOptions("-keys=DEBUG","-show");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
                 +"//@  represents i = j+1; \n "
@@ -1649,7 +1649,7 @@ public class racnew extends RacBase {
 
     /** Model field with no represents */
     @Test public void testModelField2() {
-        main.addOptions("-keys=DEBUG");
+        main.addOptions("-keys=DEBUG","-show");
         expectedExit = 0;
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"

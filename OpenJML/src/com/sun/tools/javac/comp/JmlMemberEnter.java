@@ -943,6 +943,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!utils.rac) return;
+        // We can't add methods to a binary class, can we?
+        if (((JmlCompilationUnit)env.toplevel).mode == JmlCompilationUnit.SPEC_FOR_BINARY) return;
         
         if (sym.isAnonymous()) return;
         if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
@@ -1003,7 +1005,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // necessarily completed. We could force it, but in the interst of least disruption
         // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
-        HashSet<Name> modelMethodNames = new HashSet<Name>();
+        Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
         Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
         for (JCTree decl: specstree.defs) {
             if (!(decl instanceof JmlVariableDecl)) continue;
@@ -1015,23 +1017,24 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
             JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,"org.jmlspecs.lang.NoModelFieldMethod"), List.<JCExpression>nil(), null));
             
-            long flags = Flags.SYNTHETIC;
-            flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
-            modelMethodNames.add(vsym.name);
-            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
-            Name name = names.fromString(Strings.modelFieldMethodPrefix + vsym.name);
-            JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(vsym.type),
-                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(throwStatement)), null);
-            mr.mods.flags |= Flags.DEFAULT;
-            mr.pos = vsym.pos;
-            utils.setJML(mr.mods);
-            mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,vdecl.pos,vdecl.getEndPosition(log.getSource(vdecl.sourcefile).getEndPosTable())));
-            JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
-            tcd.pos = mr.pos;
-            tcd.source = fspecs.source();
-            tcd.modifiers = mr.mods;
-            tsp.modelFieldMethods.append(tcd);
-            tsp.decls.append(tcd);
+//            long flags = Flags.SYNTHETIC;
+//            flags |= (vsym.flags() & (Flags.STATIC|Flags.AccessFlags));
+            modelMethodNames.put(vsym.name,vdecl);
+            JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
+//            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(vsym);
+//            Name name = names.fromString(Strings.modelFieldMethodPrefix + vsym.name);
+//            JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(vsym.type),
+//                    List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
+//            mr.mods.flags |= Flags.DEFAULT;
+//            mr.pos = vsym.pos;
+//            utils.setJML(mr.mods);
+//            mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,vdecl.pos,vdecl.getEndPosition(log.getSource(vdecl.sourcefile).getEndPosTable())));
+//            JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
+//            tcd.pos = mr.pos;
+//            tcd.source = fspecs.source();
+//            tcd.modifiers = mr.mods;
+//            tsp.modelFieldMethods.append(tcd);
+//            tsp.decls.append(tcd);
             
             newdefs.add(mr);
             
@@ -1055,7 +1058,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 found = rep;
             }
         }
-        
+
+//        for (JCTree ddecl: tsp.clauses) {
+//            if (!(ddecl instanceof JmlTypeClauseRepresents)) continue;
+//            JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)ddecl;
+//            Name name = ((JCTree.JCIdent)rep.ident).name;
+//            JmlVariableDecl vdecl = modelMethodNames.get(name);
+//            if (vdecl != null) continue;
+//            modelMethodNames.put(name,null);
+//            JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
+//            newdefs.add(mr);
+//        }
+            
+
         List<JCTree> nd = newdefs.toList();
         memberEnter(nd,env);
         jtree.defs = jtree.defs.appendList(nd);
@@ -1063,6 +1078,27 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
 
 
+    }
+            
+    public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
+        long flags = Flags.SYNTHETIC;
+        flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
+        JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl.pos,modelVarDecl.sym.type));
+        Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
+        JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
+                List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
+        mr.mods.flags |= Flags.DEFAULT;
+        mr.pos = modelVarDecl.pos;
+        utils.setJML(mr.mods);
+        mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable())));
+        JmlSpecs.FieldSpecs fspecs = specs.getSpecs(modelVarDecl.sym);
+        JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
+        tcd.pos = mr.pos;
+        tcd.source = fspecs.source();
+        tcd.modifiers = mr.mods;
+        tsp.modelFieldMethods.append(tcd);
+        tsp.decls.append(tcd);
+        return mr;
     }
     
     /** For synthetic methods or methods that do not have occasion to declare

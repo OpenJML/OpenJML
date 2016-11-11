@@ -92,6 +92,7 @@ import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -2295,6 +2296,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             DiagnosticPosition cpos = clause;
                             boolean clauseIsStatic = utils.isJMLStatic(clause.modifiers,csym);
                             currentStatements = clauseIsStatic? staticStats : instanceStats;
+                            //JavaFileObject prevSource = log.useSource(clause.source());
                             try {
                                 // FIXME - guard against the receiver being null for non-static invariants
                                 switch (clause.token) {
@@ -2349,6 +2351,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                log.error(clause.pos, "jml.message", e.getMessage());
                             } catch (JmlNotImplementedException e) {
                                 notImplemented(clause.token.internedName() + " clause containing ", e, clause.source());
+                            } finally {
+                                //log.useSource(prevSource);
                             }
                         }
                     } finally {
@@ -2656,7 +2660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JmlMethodDecl md = (JmlMethodDecl)x.decl;
                             // THe DEFAULT Flag is used to indicate that the method is just the place-holder method
                             // created in JmlMemberEnter. It should be ignored as it is not a user supplied method.
-                            if (md.name == mmName && (md.mods.flags & Flags.DEFAULT) == 0) {
+                            if (md.name == mmName ) { // && (md.mods.flags & Flags.DEFAULT) == 0) {
                                 JCMethodInvocation app = treeutils.makeMethodInvocation(that,translatedSelector,md.sym);
                                 result = eresult = app;
                                 treeutils.copyEndPosition(eresult, that);
@@ -2665,11 +2669,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     }
                 }
-                result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
-                result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
-//                log.warning(that.pos, "jml.no.model.method.implementation", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
-                throw new NoModelMethod("No represents clause for model field " + varsym);
-//                return;
+//                String optvalue = JmlOption.value(context, JmlOption.MODEL_FIELD_NO_REP);
+//                if ("zero".equals(optvalue)) {
+                    result = eresult = treeutils.makeZeroEquivalentLit(that.pos, varsym.type);
+//                } else if ("ignore".equals(optvalue)) {
+//                    throw new NoModelMethod("No represents clause for model field " + varsym);
+//                } else {
+                    Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
+                    // We don't warn if the problem is that we just have a binary class and consequently no implementations of model fields
+                    // FIXME - need some tests for these options - not sure the binary ones have any effect here???
+                    if (env != null && ((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.SPEC_FOR_BINARY) {
+                        String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
+                        if ("skip".equals(opt)) {
+                            throw new NoModelMethod("No represents clause for model field " + varsym);
+                        } else  {
+                            // already set the eresult
+                            if ("warn".equals(opt)) log.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+                        }
+                    } else {
+                        String opt = JmlOption.value(context,JmlOption.RAC_MISSING_MODEL_FIELD_REP_BINARY);
+                        if ("skip".equals(opt)) {
+                            throw new NoModelMethod("No represents clause for model field " + varsym);
+                        } else  {
+                            // already set the eresult
+                            if ("warn".equals(opt)) log.warning(that.pos, "jml.no.model.method.ignore", varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+                        }
+                    }
+//                }
+                return;
             }
             if (esc) {
                 java.util.List<Type> p = parents(clsym.type, true);
@@ -9259,7 +9286,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
-        if (that.name.toString().equals("A")) Utils.stop();
+        //if (that.name.toString().equals("A")) Utils.stop();
         
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -9309,6 +9336,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
 
             enclosingClass = that.sym;
+            
+            
+            if (rac) {
+                // For RAC, we need to be sure there are no missing model field methods
+                // because of a represents clause representing a super class field.
+                JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
+                if (tyspecs != null) {
+                    for (JmlTypeClause t: tyspecs.clauses) {
+                        switch (t.token){
+                            case REPRESENTS:
+                                boolean pv = checkAccessEnabled;
+                                checkAccessEnabled = false; // Do not check access in JML clauses
+                                try {
+                                    scan(t);
+                                } finally {
+                                    checkAccessEnabled = pv;
+                                }
+                                break;
+                            default:
+                                // skip
+                        }
+                    }
+                }
+            }
+            
+            
             for (JCTree t: that.defs) {
                 scan(t);
             }
@@ -9320,7 +9373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
-            if (tyspecs != null) {
+            if (!rac) if (tyspecs != null) {
                 for (JmlTypeClause t: tyspecs.clauses) {
                     switch (t.token){
                         case REPRESENTS:
@@ -9375,7 +9428,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // We are presuming that all represents clauses are processed
                             // (as part of scanning the specs defs in visitJmlClassDecl)
                             // before we handle all the model field methods.
-                            log.warning(jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
+                            utils.warning(jdef.source(),jdef.pos,"jml.no.model.method.implementation",nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of model field
                         }
                     }
                 }
@@ -10404,7 +10457,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (fullTranslation) params = convertCopy(params); // Just a copy - the parameters are just modifiers, types, and names
             JCExpression restype = that.restype;
             if (fullTranslation) restype = convertExpr(restype);
-            JmlMethodDecl m = M.at(that).MethodDef(convert(that.mods), that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
+            JmlMethodDecl m = M.MethodDef(convert(that.mods), that.name, restype, typarams, null, params, convertExprList(that.thrown), body, convertExpr(that.defaultValue));
+            m.pos = that.pos;
             m.sym = that.sym;
             m.setType(that.type);
             m._this = that._this;
@@ -11860,22 +11914,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             notImplemented(that,"relational represents clauses (\\such_that)", that.source());
             return;
         }
-        if (rac) return;
         
-
+        // The class we are in has a represents clause.
+        // It may not have a corresponding model field; that field might be in a super class.
+        // If so, we need to construct the synthetic model metehod to hold it.
         JmlSpecs.TypeSpecs typeSpecs = specs.getSpecs(classDecl.sym);
         if (sym != null) {
-            // Construct a method that implements the represents clause
-            Name name = names.fromString(Strings.modelFieldMethodPrefix + sym.name);
+            String str = Strings.modelFieldMethodPrefix + sym.name.toString();
+            Name name = names.fromString(str);
             JmlMethodDecl mdecl = null;
             // Find the method for this model field. It will have been created in
             // JmlMemberEnter
-            String str = Strings.modelFieldMethodPrefix + sym.name.toString();
             for (JmlTypeClauseDecl m: typeSpecs.modelFieldMethods) {
                 JmlMethodDecl md = (JmlMethodDecl)m.decl;
                 if (! md.name.toString().equals(str)) continue; 
-                try {
-                    JCStatement firststat = md.body.stats.head;
+//                try {
+//                    JCStatement firststat = md.body.stats.head;
 //                    if (firststat instanceof JCThrow) {
 //                        // No (non-such_that) represents clause
 //                        // But still keep the model field's method
@@ -11896,19 +11950,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    } else {
 //                        log.warning(that.pos,"jml.duplicate.represents");
 //                    }
-
-                } catch (JmlNotImplementedException ee) {
-                    // Can't implement this represents clause because
-                    // of some non-translatable expression within it
-                    notImplemented(that.token.internedName() + " clause containing ", ee, that.source());
-                }
+//
+//                } catch (JmlNotImplementedException ee) {
+//                    // Can't implement this represents clause because
+//                    // of some non-translatable expression within it
+//                    notImplemented(that.token.internedName() + " clause containing ", ee, that.source());
+//                }
                 mdecl = md;
                 break;
             }
             if (mdecl == null) {
-                // We can get here if there is no model field at all, but then
-                // there would have been an error on resolving the target of
-                // the represents clause.  The usual route to this code is
+                // We can get here 
                 // when a subclass has a represents clause for a super class's
                 // model field.
 
@@ -11916,10 +11968,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 flags |= (that.modifiers.flags & Flags.STATIC);
                 JCModifiers mods = M.Modifiers(flags);
                 JCMethodDecl msdecl = treeutils.makeMethodDefNoArg(mods,name,that.ident.type,classDecl.sym);
+                msdecl.pos = that.pos;
                 pushBlock();
                 try {
                     currentStatements.addAll(msdecl.body.stats);
-                    JCReturn st = M.Return(convertJML(that.expression));
+                    // Note: we do not call convertJML on that expression because the body is converted
+                    // later on - for rac, in visitClassDecl we are handling represents clauses before we process
+                    // all the definitions in the class.
+                    // If we did call convertJML we would need to set the methodDecl so that newly created
+                    // variables are owned by the method and not by the class (which would causes NoSuchFieldError
+                    // when executed)
+                    JCReturn st = M.Return(that.expression);
                     currentStatements.add(st);
                 } catch (JmlNotImplementedException ee) {
                     // Can't implement this represents clause because
@@ -11931,7 +11990,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 classDefs.add(msdecl);
                 JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
                 tcd.modifiers = msdecl.mods;
+                tcd.pos = msdecl.pos;
+                tcd.source = that.source();
+                tcd.modifiers = msdecl.mods; // FIXME - is this necesssary
                 typeSpecs.modelFieldMethods.append(tcd);
+//                typeSpecs.decls.append(tcd);
             }
         }
         result = null;

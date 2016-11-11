@@ -186,7 +186,7 @@ public class racfiles extends RacBase {
     public void racNoModel() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest");
+        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-racMissingModelFieldRepSource=skip");
     }
 
     @Test
