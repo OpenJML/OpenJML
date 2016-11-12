@@ -88,5 +88,7 @@ JML options:
   -racJavaChecks             RAC: Enables explicit checking of Java language checks
   -racCompileToJavaAssert    RAC: Compiles JML checks as Java asserts
   -racPreconditionEntry      RAC: Distinguishes Precondition failures on entry calls
+  -racMissingModelFieldRepSource RAC: action when a model field has no representation (zero,warn,skip)
+  -racMissingModelFieldRepBinary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
   -properties                Specifies the path to the properties file
   -properties-default        Specifies the path to the default properties file

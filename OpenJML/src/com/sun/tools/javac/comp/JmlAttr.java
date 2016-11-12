@@ -2736,6 +2736,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlCheck.instance(context).staticOldEnv = wasFlags != 0;
                 try {
                     decl.accept(this);
+                    if (decl.sym == null) {
+                        if (toRemove == null) toRemove = new ListBuffer<>();
+                        toRemove.add(tree);
+                    }
                 } finally {
                     JmlCheck.instance(context).staticOldEnv = forallOldEnv;
                     forallOldEnv = false;
@@ -2899,6 +2903,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The JML modifiers allowed for a specification case */
     JmlTokenKind[] specCaseAllowed = new JmlTokenKind[]{};
     
+    ListBuffer<JmlMethodClause> toRemove = null;
+    
     /** This implements the visiting of a JmlSpecificationCase, initiating
      * a visit of each clause in the case, setting the currentClauseType field
      * before visiting each one.
@@ -2963,9 +2969,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 
             } else {
+                toRemove = null;
                 for (JmlMethodClause c: tree.clauses) {
                     currentClauseType = c.token;
                     c.accept(this);
+                }
+                if (toRemove != null) {
+                    for (JmlMethodClause mc: toRemove) {
+                        tree.clauses = Utils.remove(tree.clauses, mc);
+                    }
+                    toRemove = null;
                 }
             }
             
@@ -5666,6 +5679,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             ((JmlMemberEnter)memberEnter).dojml = true;
             visitVarDef(that);
             ((JmlMemberEnter)memberEnter).dojml = false;
+            if (that.sym == null) return; // Duplicate to be removed 
             // Anonymous classes construct synthetic members (constructors at least)
             // which are not JML nodes.
             FieldSpecs fspecs = specs.getSpecs(that.sym);

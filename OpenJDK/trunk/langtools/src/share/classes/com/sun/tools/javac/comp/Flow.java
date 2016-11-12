@@ -1852,7 +1852,7 @@ public class Flow {
                         if (isInitialConstructor) {
                             inits.assign(exit.exit_inits);
                             for (int i = firstadr; i < nextadr; i++) {
-                                checkInit(exit.tree.pos(), vardecls[i].sym);
+//                                checkInit(exit.tree.pos(), vardecls[i].sym);
                             }
                         }
                     }

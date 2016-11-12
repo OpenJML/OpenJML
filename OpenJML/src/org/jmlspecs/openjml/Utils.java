@@ -815,6 +815,19 @@ public class Utils {
         return n;
     }
     
+    /** Removes an element from a ListBuffer, if there is one, and return the new list */
+    public static <T> ListBuffer<T> remove(ListBuffer<T> list, ListBuffer<T> elements) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        x: for (T ttt: list) {
+            for (T rem: elements) {
+                if (ttt == rem) continue x;
+            }
+            n.add(ttt);
+        }
+        return n;
+    }
+    
     /** Removes an element from a List, if there is one, and return the new list */
     public static <T> com.sun.tools.javac.util.List<T> remove(com.sun.tools.javac.util.List<T> list, T element) {
         // Remove the duplicate if it is in newdefs

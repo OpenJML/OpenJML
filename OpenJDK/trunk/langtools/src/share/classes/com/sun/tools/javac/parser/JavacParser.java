@@ -30,6 +30,7 @@ import java.util.*;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
 
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Flags.Flag;
 import com.sun.tools.javac.parser.Tokens.*;
 import com.sun.tools.javac.parser.Tokens.Comment.CommentStyle;
 import com.sun.tools.javac.tree.*;
@@ -3205,6 +3206,7 @@ public class JavacParser implements Parser {
         if (token.kind == PACKAGE) {
             seenPackage = true;
             if (mods != null) {
+                mods.flags &= ~Flags.DEPRECATED; // OPENJML - is deprecated allowed on package files?
                 checkNoMods(mods.flags);
                 packageAnnotations = mods.annotations;
                 mods = null;

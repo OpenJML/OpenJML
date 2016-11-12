@@ -184,6 +184,7 @@ public class Fraction
             throw new FractionConversionException(value, a0, 1l);
         }
 
+
         // check for (almost) integer arguments, which should not go to iterations.
         if (FastMath.abs(a0 - value) < epsilon) {
             this.numerator = (int) a0;

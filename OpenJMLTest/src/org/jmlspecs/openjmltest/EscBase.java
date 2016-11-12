@@ -197,8 +197,12 @@ public abstract class EscBase extends JmlTestCase {
     		String actCompile = outDir + "/actual";
     		new File(actCompile).delete();
     		PrintWriter pw = new PrintWriter(actCompile);
-    		int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-    		pw.close();
+    		int ex = -1;
+    		try {
+    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    		} finally {
+    			pw.close();
+    		}
 
     		String diffs = compareFiles(outDir + "/expected", actCompile);
     		int n = 0;
@@ -212,8 +216,8 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		new File(actCompile).delete();
     		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		new File(actCompile).delete();
 
     	} catch (Exception e) {
     		e.printStackTrace(System.out);

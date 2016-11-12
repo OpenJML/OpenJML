@@ -877,6 +877,16 @@ public class compiler {
     			);
     }
     
+    @Test
+    public void release_testRuntime3() throws Exception {
+    	expectedFile = "releaseTests/testRuntime1/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java",  "-classpath", "../OpenJML/runtime;../../JMLAnnotations/src", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
 
 
 

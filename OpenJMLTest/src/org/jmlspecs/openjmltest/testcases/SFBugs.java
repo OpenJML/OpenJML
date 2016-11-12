@@ -255,19 +255,28 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;
-        helpTCF("test/gitbug481","test/gitbug481", "-cp", "test/gitbug481b","-dir","test/gitbug481b","-progress");
+        helpTCF("test/gitbug481b","test/gitbug481", "-cp", "test/gitbug481b","-progress");
     }
 
-    @Test @Ignore public void gitbug481a() {
+    // Just one method, but parse and typecheck all files first
+    @Test @Ignore public void gitbug481c() {
     	expectedExit = 0;
-        helpTCF("test/gitbug481b","test/gitbug481b", "-cp", "test/gitbug481b","-dir","test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+        helpTCF("test/gitbug481b","test/gitbug481c", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
-    @Test @Ignore public void gitbug481b() {
+    // Just one method in one file
+    @Test public void gitbug481b() {
     	expectedExit = 0;
-        helpTCF("test/gitbug481b","test/gitbug481b", "-cp", "test/gitbug481b","test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+    }
+
+    // Just one file
+    @Test public void gitbug481a() {
+    	expectedExit = 1;
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b");
     }
 
     @Test public void gitbug482() {

@@ -555,7 +555,7 @@ public class JmlEnter extends Enter {
         // in the visitClassDef call.
         
         JmlClassDecl thattree = (JmlClassDecl)that;
-        boolean isSpecForBinary = thattree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
+        boolean isSpecForBinary = thattree.toplevel != null && thattree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
         
         JmlClassDecl specstree;
         JmlClassDecl jmltree;

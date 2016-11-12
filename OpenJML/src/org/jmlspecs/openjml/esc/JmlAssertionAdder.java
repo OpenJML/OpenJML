@@ -963,6 +963,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // We'll add the block into the right spot later.
             // Other checks will be created during addPrePostConditions
             ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
+            //if (pclassDecl.name.toString().equals("ArrayFieldVector") && pmethodDecl.name.toString().equals("hashCode")) Utils.stop();
             if (!pureCopy) {
                 addPreConditions(initialStatements);
                 pushBlock();
@@ -989,7 +990,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
                 while (iter.hasNext()) {
-                    convert(iter.next());
+                    JCStatement s = iter.next();
+                    //System.out.println("CONVERTING " + s.toString());
+                    convert(s);
                 }
             }
             JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body,check);
@@ -1465,11 +1468,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * the block's statements are translated, so there is not an excess nested
      * block. */
     protected JCBlock convertIntoBlock(DiagnosticPosition pos, JCStatement stat) {
-        pushBlock();
+        ListBuffer<JCStatement> check = pushBlock();
         try {
             if (stat instanceof JCBlock) scan(((JCBlock)stat).stats); else scan(stat);
         } finally {
-            return popBlock(0,pos);
+            return popBlock(0,pos,check);
         }
     }
 
@@ -1479,6 +1482,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         ListBuffer<JCStatement> temp = currentStatements;
         statementStack.add(0,currentStatements);
         currentStatements = new ListBuffer<JCStatement>();
+        //if (temp != null) System.out.println("PUSHING " + temp.hashCode() + "  NEW " + currentStatements.hashCode());
         return temp;
     }
     
@@ -1488,12 +1492,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected JCBlock popBlock(long flags, DiagnosticPosition pos) {
         JCBlock b = M.at(pos).Block(flags, currentStatements.toList());
+        //System.out.println("POPPING   " + currentStatements.hashCode());
         currentStatements = statementStack.removeFirst();
         return b;
     }
     
     protected JCBlock popBlock(long flags, DiagnosticPosition pos, ListBuffer<JCStatement> check) {
         JCBlock b = M.at(pos).Block(flags, currentStatements.toList());
+        //System.out.println("POPPING   " + currentStatements.hashCode());
         currentStatements = statementStack.removeFirst();
         if (check != currentStatements) {
             log.error("jml.internal", "MISMATCHED BLOCKS");
@@ -2644,7 +2650,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     }
     
-    public void addRepresentsAxioms(ClassSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
+    public void addRepresentsAxioms(TypeSymbol clsym, Symbol varsym, JCTree that, JCExpression translatedSelector) {
         reps.add(0,varsym);
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
@@ -2702,8 +2708,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 java.util.List<Type> p = parents(clsym.type, true);
                 ListIterator<Type> iter = p.listIterator(p.size());
                 while (iter.hasPrevious()) {
-
-                    TypeSpecs tspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
+                    TypeSymbol ty = iter.previous().tsym;
+                    if (!(ty instanceof ClassSymbol)) continue; // FIXME - could be a TypeVariable
+                    TypeSpecs tspecs = specs.getSpecs((ClassSymbol)ty);
                     for (JmlTypeClause tc : tspecs.clauses) {
                         if (tc.token == JmlTokenKind.REPRESENTS) {
                             JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)tc;
@@ -5584,6 +5591,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // before we return to complete the translation of method declaration
         // we are now in (methodDecl)
         
+        LinkedList<ListBuffer<JCStatement>> check0 = markBlock();
         JCExpression savedCondition = condition; // This is the logical context in which this method is called - only used for JML expressions
         /*@ nullable */ Symbol savedResultSym = resultSym; // This is the symbol of the JCIdent representing the result of the method call, null if the method is void
         /*@ nullable */ JCExpression savedResultExpr = resultExpr;
@@ -6778,6 +6786,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 addAssume(that,Label.POSTCONDITION,e,clause,clauseSource);
                                             } catch (NoModelMethod e) { // FIXME - need this elsewhere as well, e.g., signals
                                                 // continue
+                                            //} catch (Exception e) {
+                                            //    System.out.println(e);
                                             } finally {
                                                 if (prevSource != null) log.useSource(prevSource);
                                                 assumingPureMethod = savedAssuming;
@@ -6970,6 +6980,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             enclosingClass = savedEnclosingClass;
             typevarMapping = savedTypeVarMapping;
             applyNesting--;
+            checkBlock(check0);
         }
     }
 
@@ -8890,7 +8901,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
-                addRepresentsAxioms((ClassSymbol)currentThisExpr.type.tsym, sym, that, currentThisExpr);
+                addRepresentsAxioms(currentThisExpr.type.tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
                 return;
@@ -9877,7 +9888,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         // Finish up the new loop body
         // Finish up the output block
-        loopHelperFinish(loop,that);
+        loopHelperFinish(loop,that); // Does two popBlock operations
 
         
         // FIXME Need to add specifications; also index and values variables

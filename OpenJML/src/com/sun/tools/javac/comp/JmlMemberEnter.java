@@ -214,7 +214,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean prevAllowJML = resolve.allowJML();
         if (jtree.isJML()) resolve.setAllowJML(true);
         
-        boolean isSpecForBinary = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
+        boolean isSpecForBinary = jtree.toplevel != null && jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
         
         // Adjust the members of jtree - if there is a separate specs file, then remove any JML declarations in the Java file and 
         // replace them with JML declaratinos from the specs file
@@ -2556,7 +2556,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             // If this is a specification file then remove any automatically generated constructor
             if (env.tree instanceof JmlClassDecl) {
                 JmlClassDecl jmltree = (JmlClassDecl)env.tree;
-                if (jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
+                if (jmltree.toplevel != null && jmltree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY && !utils.isJML(jmltree)) {
                     if (jmltree.defs.head instanceof JmlMethodDecl) {
                         JmlMethodDecl md = (JmlMethodDecl)jmltree.defs.head;
                         if ((md.getModifiers().flags & Flags.GENERATEDCONSTR) != 0) {
