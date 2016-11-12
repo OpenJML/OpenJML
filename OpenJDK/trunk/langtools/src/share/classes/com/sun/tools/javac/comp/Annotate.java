@@ -118,6 +118,9 @@ public class Annotate {
     }
 
     public void validate(Worker a) {
+//        if (a instanceof MemberEnter  && ((MemberEnter)a).annotationType.toString().equals("NonNull")) {
+//            System.out.println();
+//        }
         validateQ.append(a);
     }
 

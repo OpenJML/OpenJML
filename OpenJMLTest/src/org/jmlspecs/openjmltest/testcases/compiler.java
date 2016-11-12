@@ -867,6 +867,7 @@ public class compiler {
     			);
     }
     
+    // Testing typechecking without org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime1() throws Exception {
     	expectedFile = "releaseTests/testRuntime1/expected";
@@ -877,11 +878,45 @@ public class compiler {
     			);
     }
     
+    // Testing typechecking with binary files for org.jmlspecs.annotation.*
+    @Test
+    public void release_testRuntime2() throws Exception {
+    	expectedFile = "releaseTests/testRuntime2/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin;../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with source files for org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime3() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected";
+    	expectedFile = "releaseTests/testRuntime3/expected";
     	helper(new String[]
-    			{ "temp-release/C.java",  "-classpath", "../OpenJML/runtime;../../JMLAnnotations/src", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src;../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with normal internal libaries
+    @Test
+    public void release_testRuntime4() throws Exception {
+    	expectedFile = "releaseTests/testRuntime4/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java", "-no-purityCheck",
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with normal internal libaries
+    @Test
+    public void release_testRuntime5() throws Exception {
+    	expectedFile = "releaseTests/testRuntime5/expected";
+    	helper(new String[]
+    			{ "temp-release/D.java", "-no-purityCheck",
     			},0,0
     			,""
     			);
