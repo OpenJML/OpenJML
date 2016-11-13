@@ -57,6 +57,7 @@ JML options:
   -nullableByDefault         Makes references nullable by default
   -code-math                 Arithmetic mode for Java code
   -spec-math                 Arithmetic mode for specifications
+  -checkAccessible           When on (the default), JML accessible clauses are checked
   -specspath                 Specifies the directory path to search for specification files
   -checkSpecsPath            When on (the default), warnings for non-existent specification path directories are issued
   -purityCheck               When on (off by default), warnings for use of impure methods are issued
@@ -83,6 +84,7 @@ JML options:
   -benchmarks                ESC: Collects solver communications
   -minQuant                  Minimizes using quantifications, in favor of inlining
   -typeQuants                Introduces quantified assertions for type variables (true, false, or auto)
+  -modelFieldNoRep           RAC action when a model field has no represents clause (zero,ignore,warn)
   -racShowSource             RAC: Error messages will include source information
   -racCheckAssumptions       RAC: Enables runtime checking that assumptions hold
   -racJavaChecks             RAC: Enables explicit checking of Java language checks

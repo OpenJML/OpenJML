@@ -29,6 +29,14 @@ public class compiler {
     boolean print = false;
     boolean capture = true;
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
+    String specsHome;
+    {
+    	try {
+    		specsHome = new java.io.File("../../Specs").getCanonicalPath().replace("\\", "/");
+    	} catch (Exception e) {
+    		specsHome = null;
+    	}
+    }
     String expectedFile = null;
     
     @Before
@@ -52,15 +60,15 @@ public class compiler {
     /** This is a helper method that runs the compiler on the given set of
      * command-line arguments, checking the result
      * @param args the command-line arguments
-     * @param exitcode the expected exit code (0=OK, 1=completed with error messages
+     * @param expectedExitCode the expected exit code (0=OK, 1=completed with error messages
      *      2=command-line problems, 3=system errors, 4=abort)
      * @param all whether the expected output is all of (0) or just the prefix
      *      of (1) or a part of (2) the actual output
      * @param output the expected output as one string; if there are two Strings,
      * then they are the expected error and standard output 
      */
-    public void helper(String[] args, int exitcode, int all, String ... output) {
-        int e = org.jmlspecs.openjml.Main.execute(args);
+    public void helper(String[] args, int expectedExitCode, int all, String ... output) {
+        int exitCode = org.jmlspecs.openjml.Main.execute(args);
         System.err.flush();
         System.out.flush();
         System.setErr(savederr);
@@ -76,10 +84,7 @@ public class compiler {
         String expected;
         if (expectedFile != null) {
         	try {
-        		java.util.List<String> lines = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(expectedFile));
-        		StringBuffer out = new StringBuffer();
-        		for (String s: lines) out.append(s);
-        		expected = out.toString();
+        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles").replace("\n",eol);
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
@@ -87,7 +92,7 @@ public class compiler {
         } else {
             expected = output[0];
         }
-        expected = expected.replace("${PROJ}",projHome);
+        expected = expected.replace("${PROJ}",projHome).replace("$SPECS", specsHome);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
@@ -95,7 +100,7 @@ public class compiler {
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (capture) try {
             String tail = "";
-            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + errOutput);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
@@ -116,9 +121,9 @@ public class compiler {
                     fail("Output does not contain: " + expected + eol + "Instead is: " + actual);
                 }
             }
-            assertEquals("The exit code is wrong",exitcode,e);
+            assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + berr.toString());
+            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
             throw ex;
         }
     }
@@ -490,43 +495,13 @@ public class compiler {
     //@Test  // FIXME - try running the build programmatically
     @Test 
     public void testSourcePath4() throws Exception {
-        if (!new java.io.File("tempjars/jmlruntime.jar").exists()) {
+        if (!new java.io.File("../OpenJML/tempjars/jmlruntime.jar").exists()) {
             System.setErr(savederr);
             System.setOut(savedout);
-            System.out.println("Starting");
-
-//            org.eclipse.ant.core.AntRunner runner = new AntRunner();
-//            //runner.setBuildFileLocation("C:/home/eclipse-workspace2/OpenJML/build-bash.xml");
-//            runner.setBuildFileLocation("build-bash.xml");
-//            System.out.println("Running? " + AntRunner.isBuildRunning());
-//            runner.setArguments("-Dmessage=Building -verbose");
-//            runner.setExecutionTargets(new String[]{"jmlruntime.jar"});
-//            try {
-//                runner.run();
-//            } catch (Exception e) {
-//                System.out.println("Exception " + e);
-//                e.printStackTrace(System.out);
-//            }
-
-            //Process p = Runtime.getRuntime().exec("C:/home/apps/ant/apache-ant-1.7.1/bin/ant.cmd",new String[]{"-f","build-bash.xml","jmlruntime.jar"});
-            //Process p = Runtime.getRuntime().exec("bash",new String[]{"C:/home/projects/OpenJML/trunk/OpenJML/buildRuntimelib"});
-            //Process p = Runtime.getRuntime().exec("bash",new String[]{"buildRuntimelib"});
-            //Process p = Runtime.getRuntime().exec("./buildRuntimelib");
-//            System.out.println("Waiting");
-//            StreamGobbler out = new StreamGobbler(p.getInputStream());
-//            StreamGobbler err = new StreamGobbler(p.getErrorStream());
-//            out.start(); err.start();
-//            System.out.println("Waiting more");
-//            boolean timedout = JmlTestCase.timeout(p,10000);
-//            System.out.println("Timedout " + timedout);
-//            if (!timedout) {
-//                int e = p.waitFor();
-//                System.out.println("Exit " + e);
-//            }
             System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                          { "-classpath","tempjars/jmlruntime.jar",
+                          { "-classpath","../OpenJML/tempjars/jmlruntime.jar",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","",
                             "-noInternalSpecs",
@@ -830,25 +805,80 @@ public class compiler {
                 ,""
                 );
     }
+    // FIXME - check the version
+    // FIXME - testOK2, testOK3, testJmlBad2
+    // FIXME - test RAC-OK, SIMPLE, etc.
     
-//    @Test
-//    public void releaseHelp() throws Exception {
-//    	helper(new String[]
-//                { 
-//                },0,0
-//                ,""
-//                );
-//    }
-//
-//    @Test
-//    public void releaseTest() throws Exception {
-//    	helper(new String[]
-//                { "-jmltesting","-noPurityCheck","testfiles/testPath/data/TestPath.java","-sourcepath","testfiles/testPath/data-specs"
-//                },0,0
-//                ,""
-//                );
-//    }
-    
+    @Test
+    public void release_testJmlHelp() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { 
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlHelp2() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { "-help"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness="
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_A() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness"
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_B() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness", ""
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_C() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness= "
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad3() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-check","-java"
+                },2,0
+                ,""
+                );
+    }
+
     @Test
     public void release_testOK1() throws Exception {
     	helper(new String[]
@@ -859,9 +889,9 @@ public class compiler {
     }
 
     @Test
-    public void release_testOK2() throws Exception {
+    public void release_testOK4() throws Exception {
     	helper(new String[]
-    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java"
+    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java","-noInternalSpecs"
     			},0,0
     			,""
     			);
@@ -922,7 +952,66 @@ public class compiler {
     			);
     }
     
-
-
+    @Test
+    public void release_testEsc1() throws Exception {
+    	expectedFile = "releaseTests/testEsc1/expected";
+    	helper(new String[]
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testEsc2() throws Exception {
+    	expectedFile = "releaseTests/testEsc2/expected";
+    	helper(new String[]
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath1() throws Exception {
+    	expectedFile = "releaseTests/testPath1/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", 
+    			},1,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath2() throws Exception {
+    	expectedFile = "releaseTests/testPath2/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
+    			},1,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath3() throws Exception {
+    	expectedFile = "releaseTests/testPath3/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
+    			},1,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath4() throws Exception {
+    	expectedFile = "releaseTests/testPath4/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-sourcepath", "testfiles/testPath/data-specs" 
+    			},1,0
+    			,""
+    			);
+    }
+    
+    // FIXME - rest of testPath release tests
 
 }
