@@ -52,9 +52,11 @@ public enum JmlTokenKind implements ITokenKind {
     NULLABLE("nullable",org.jmlspecs.annotation.Nullable.class),
     NULLABLE_BY_DEFAULT("nullable_by_default",org.jmlspecs.annotation.NullableByDefault.class),
     NON_NULL_BY_DEFAULT("non_null_by_default",org.jmlspecs.annotation.NonNullByDefault.class), // TODO: In some code, but not in JML
+    FUNCTION("function",org.jmlspecs.annotation.Function.class),
     HELPER("helper",org.jmlspecs.annotation.Helper.class),
     UNINITIALIZED("uninitialized",org.jmlspecs.annotation.Uninitialized.class),
     MONITORED("monitored",org.jmlspecs.annotation.Monitored.class),
+    OPTIONS(null,org.jmlspecs.annotation.Options.class),
     PEER("peer",org.jmlspecs.annotation.Peer.class),
     READONLY("readonly",org.jmlspecs.annotation.Readonly.class),
     REP("rep",org.jmlspecs.annotation.Rep.class),
@@ -244,7 +246,7 @@ public enum JmlTokenKind implements ITokenKind {
      * @param s The string that will be the canonical form of the token
      */
     private JmlTokenKind(String s, Class<?> annotationType) { 
-        this.name = s.intern(); 
+        this.name = s == null ? null : s.intern(); 
         this.annotationType = annotationType;
     }
     

@@ -762,19 +762,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JmlTokenKind[] allowedTypeModifiers = new JmlTokenKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PURE, MODEL, QUERY, SKIP_RAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
+        OPTIONS, PURE, MODEL, QUERY, SKIP_RAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public JmlTokenKind[] allowedNestedTypeModifiers = new JmlTokenKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PURE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
+        OPTIONS, PURE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public JmlTokenKind[] allowedNestedModelTypeModifiers = new JmlTokenKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PURE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT};
+        OPTIONS, PURE, MODEL, QUERY, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public JmlTokenKind[] allowedLocalTypeModifiers = new JmlTokenKind[]{
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PURE, MODEL, QUERY};
+        OPTIONS, PURE, MODEL, QUERY, IMMUTABLE};
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, TypeSpecs tspecs) {
@@ -1040,7 +1040,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods */
     public final JmlTokenKind[] allowedMethodAnnotations =
         new JmlTokenKind[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET,
+        MODEL, PURE, NONNULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIP_ESC, SKIP_RAC // FIXME - allowing these until the rules are really implemented
 
@@ -1049,7 +1049,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model non-constructor methods in interfaces */
     public final JmlTokenKind[] allowedInterfaceMethodAnnotations =
         new JmlTokenKind[] {
-        MODEL, PURE, NONNULL, NULLABLE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY,
+        MODEL, PURE, NONNULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, QUERY, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
@@ -1058,7 +1058,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor methods */
     public final JmlTokenKind[] allowedModelMethodAnnotations =
         new JmlTokenKind[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER, EXTRACT, QUERY, SECRET,
+        MODEL, PURE, NONNULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
 
@@ -1067,7 +1067,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor interface methods */
     public final JmlTokenKind[] allowedInterfaceModelMethodAnnotations =
         new JmlTokenKind[] {
-        MODEL, PURE, NONNULL, NULLABLE, HELPER, QUERY, SECRET,
+        MODEL, PURE, NONNULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
@@ -1078,7 +1078,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, OPTIONS, SKIP_ESC // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1087,7 +1087,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, HELPER, EXTRACT ,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        OPTIONS, PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1145,8 +1145,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }            
             }
             
+            // Check rules about Function
+            JCAnnotation a=utils.findMod(mods,tokenToAnnotationSymbol.get(FUNCTION));
+            if (a != null && !utils.isJMLStatic(javaMethodTree.sym)) {
+                Symbol sym = javaMethodTree.sym.owner;
+                if (sym instanceof ClassSymbol && !isImmutable((ClassSymbol)sym)) {
+                    log.error(a.pos,"jml.function.must.have.immutable",javaMethodTree.name.toString());
+                }
+            }
+            
             // Check rules about helper
-            JCTree.JCAnnotation a;
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(HELPER))) != null  &&
                     utils.findMod(mods,tokenToAnnotationSymbol.get(PURE)) == null  && 
                     (    (mods.flags & Flags.PRIVATE) == 0 
@@ -1474,8 +1482,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         try {
             JmlTree.Maker jmlMaker = (JmlTree.Maker)make;
-            JCAnnotation pure;
-            desugaringPure = (pure = findMod(msp.mods,JmlTokenKind.PURE)) != null;
+            JCAnnotation pure = findMod(msp.mods,JmlTokenKind.PURE);
+            if (pure == null) pure = findMod(msp.mods,JmlTokenKind.FUNCTION);
+            desugaringPure = pure != null;
             if (!desugaringPure) {
                 if (enclosingClassEnv != null) desugaringPure = (pure = findMod(enclosingClassEnv.enclClass.mods,JmlTokenKind.PURE)) != null;
             }
@@ -1903,6 +1912,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         if (tt instanceof JmlStoreRefKeyword &&
                             ((JmlStoreRefKeyword)tt).token == JmlTokenKind.BSNOTHING) {
                                 // OK
+                        } else if (isFunction(decl.sym)) {
+                            jmlerror(tt,"jml.function.method",tt);
                         } else {
                             jmlerror(tt,"jml.pure.method",tt);
                         }
@@ -5111,11 +5122,29 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        return findMod(mspecs.mods,JmlTokenKind.HELPER) != null;
+        return findMod(mspecs.mods,JmlTokenKind.HELPER) != null || findMod(mspecs.mods,JmlTokenKind.FUNCTION) != null;
 //
 //        if (symbol.attributes_field == null) return false;  // FIXME - should have the attributes - this is necessary but why?
 //        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.HELPER))!=null;
 
+    }
+    
+    public boolean isFunction(MethodSymbol symbol) {
+        MethodSpecs mspecs = specs.getSpecs(symbol);
+        if (mspecs == null) {
+            // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+            return false;
+        }
+        return findMod(mspecs.mods,JmlTokenKind.FUNCTION) != null;
+    }
+    
+    public boolean isImmutable(ClassSymbol symbol) {
+        TypeSpecs mspecs = specs.getSpecs(symbol);
+        if (mspecs == null) {
+            // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+            return false;
+        }
+        return findMod(mspecs.modifiers,JmlTokenKind.IMMUTABLE) != null;
     }
     
     public JCAnnotation hasAnnotation(JmlVariableDecl decl, JmlTokenKind token) {

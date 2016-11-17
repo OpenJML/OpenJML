@@ -384,6 +384,15 @@ public class Utils {
         return null;
     }
     
+//    public boolean hasAnnotation(Symbol sym, JmlTokenKind token) {
+//        for (com.sun.tools.javac.code.Attribute.Compound c: sym.getDeclarationAttributes()) {
+//            String s = c.toString();
+//            String ss = token.annotationType.toString();
+//            if (s.equals(ss)) return true;
+//        }
+//        return false;
+//    }
+    
     /** Finds a member of a class with a given name; note that this works for methods only
      * if the method is uniquely named.
      */

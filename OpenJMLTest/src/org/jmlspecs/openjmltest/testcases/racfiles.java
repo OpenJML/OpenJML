@@ -69,7 +69,7 @@ public class racfiles extends RacBase {
     @Test // Originally a Stack overflow because of recursive check of invariant
     public void testBugStackTrace() {
         expectedExit = 0;
-        helpTCF("test/racStackTrace","test/racStackTrace","CantCompileRAC","-show");
+        helpTCF("test/racStackTrace","test/racStackTrace","CantCompileRAC");
     }
 
     @Test // Originally crashed because of a model method in a library class
@@ -123,7 +123,7 @@ public class racfiles extends RacBase {
     @Test
     public void testbigint() {
         expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint","-show");
+        helpTCF("test/racbigint","test/racbigint","bigint");
     }
 
     @Test
@@ -147,7 +147,7 @@ public class racfiles extends RacBase {
     @Test
     public void purseCardTest() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","CardTest");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","CardTest","-show");
     }
 
     @Test
@@ -257,7 +257,7 @@ public class racfiles extends RacBase {
     	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
     			"test/hans",
     			null,
-    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",
+    			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/bin",
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
@@ -272,7 +272,7 @@ public class racfiles extends RacBase {
     	helpTCF("test/racHans2/account",
     			"test/racHans2",
     			"account.AllTests",
-    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin;test/racHans2",
+    			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/bin"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"

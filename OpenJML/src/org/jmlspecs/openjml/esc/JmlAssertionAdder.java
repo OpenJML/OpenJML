@@ -751,6 +751,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return convertMethodBodyNoInit(pmethodDecl,pclassDecl);
     }
     
+    public JmlOptions pushOptions(JCModifiers mods) {
+        JCAnnotation addedOptionsAnnotation = utils.findMod(mods, names.fromString("org.jmlspecs.annotation.Options"));
+        if (addedOptionsAnnotation != null) {
+            List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
+            JCExpression rhs = ((JCAssign)exprs.head).rhs;
+            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
+                          : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
+                          : null;
+//                System.out.println(opts);
+        }
+        return (JmlOptions)JmlOptions.instance(context);
+    }
+    
     Name defaultOldLabel = null;
 
     Map<TypeSymbol,Type> typevarMapping;
@@ -759,6 +772,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
+        JmlOptions prevOptions = pushOptions(pmethodDecl.mods);
         int prevAssumeCheckCount = assumeCheckCount;
         JmlMethodDecl prev = this.methodDecl;
         JmlClassDecl prevClass = this.classDecl;
@@ -2041,15 +2055,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 
-    /** Returns true if the given symbol has a Helper annotation */
-    public boolean isHelper(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlTokenKind.HELPER))!=null; // FIXME - need to get this from the spec
-
+    /** Returns true if the given symbol is specified as Helper or Function annotation */
+    public boolean isHelper(MethodSymbol symbol) {
+        return attr.isHelper(symbol);
     }
     
-    /** Returns true if the given symbol has a Pure annotation */
-    public boolean isPure(Symbol symbol) {
-        return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlTokenKind.PURE))!=null;
+    /** Returns true if the given symbol has a annotation */
+    public boolean isPure(MethodSymbol symbol) {
+        return attr.isPureMethod(symbol);
 
     }
     
@@ -5824,8 +5837,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!utils.isJMLStatic(calleeMethodSym)) {
                         ntrArgs = ntrArgs.prepend(newThisExpr);
                     }
-                    JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
-                    ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
+                    if (!attr.hasAnnotation(calleeMethodSym,JmlTokenKind.FUNCTION)) {
+                        JCExpression heap = treeutils.makeIdent(that.pos,heapSym);
+                        ntrArgs = ntrArgs.prepend(heap); // only if heap dependent
+                    }
                     
                     JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
                     if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
@@ -9298,6 +9313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         //if (that.name.toString().equals("A")) Utils.stop();
+        pushOptions(that.mods);
         
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -12720,7 +12736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     ListBuffer<JCStatement> savedForAxioms = null;
     protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym, 
             java.util.List<Pair<MethodSymbol,Type>> overridden) {
-        boolean isFunction = false;
+        boolean isFunction = attr.isFunction(msym);
         if (!inOldEnv && !addAxioms(heapCount,msym)) { return M.at(Position.NOPOS).Block(0L, List.<JCStatement>nil()); }
         boolean isStatic = utils.isJMLStatic(msym);
         
