@@ -747,7 +747,7 @@ public class compiler {
                            "test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                 ^" + eol +
-                           "Note: C:/cygwin/home/OpenJML-git-java8-B/Specs/java5/java/util/Arrays.jml uses unchecked or unsafe operations." + eol +
+                           "Note: $SPECS/java5/java/util/Arrays.jml uses unchecked or unsafe operations." + eol +
                            "Note: Recompile with -Xlint:unchecked for details." + eol +
                            "2 errors" + eol
                           );

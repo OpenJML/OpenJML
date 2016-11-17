@@ -1066,7 +1066,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     continue;
                 }
                 returnStatement.expr = rep.expression;
-                mr.body.stats = List.of(returnStatement);
+                mr.body.stats = List.<JCStatement>of(returnStatement);
                 mr.mods.flags &= ~Flags.DEFAULT;
                 found = rep;
             }

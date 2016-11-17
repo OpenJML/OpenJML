@@ -621,7 +621,7 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
             quantDeclStack.add(0,that.decls);
-            if (false && that.racexpr != null) {
+            if (that.racexpr != null) {
                 scanExpr(that.racexpr);
             } else {
                 scanExpr(that.range);
