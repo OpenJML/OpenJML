@@ -751,19 +751,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return convertMethodBodyNoInit(pmethodDecl,pclassDecl);
     }
     
-    public JmlOptions pushOptions(JCModifiers mods) {
-        JCAnnotation addedOptionsAnnotation = utils.findMod(mods, names.fromString("org.jmlspecs.annotation.Options"));
-        if (addedOptionsAnnotation != null) {
-            List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
-            JCExpression rhs = ((JCAssign)exprs.head).rhs;
-            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
-                          : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
-                          : null;
-//                System.out.println(opts);
-        }
-        return (JmlOptions)JmlOptions.instance(context);
-    }
-    
     Name defaultOldLabel = null;
 
     Map<TypeSymbol,Type> typevarMapping;
@@ -772,7 +759,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Internal method to do the method body conversion */
     protected JCBlock convertMethodBodyNoInit(JmlMethodDecl pmethodDecl, JmlClassDecl pclassDecl) {
-        JmlOptions prevOptions = pushOptions(pmethodDecl.mods);
+        Main.instance(context).pushOptions(pmethodDecl.mods);
         int prevAssumeCheckCount = assumeCheckCount;
         JmlMethodDecl prev = this.methodDecl;
         JmlClassDecl prevClass = this.classDecl;
@@ -1096,6 +1083,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.enclosingClass = savedEnclosingClass;
             this.defaultOldLabel = savedOldLabel;
             this.currentArithmeticMode = savedArithmeticMode;
+            Main.instance(context).popOptions();
         }
     }
     
@@ -9313,7 +9301,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     @Override
     public void visitJmlClassDecl(JmlClassDecl that) {
         //if (that.name.toString().equals("A")) Utils.stop();
-        pushOptions(that.mods);
+        Main.instance(context).pushOptions(that.mods);
         
         JmlMethodDecl savedMethodDecl = this.methodDecl;
         JmlClassDecl savedClassDecl = this.classDecl;
@@ -9491,6 +9479,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             this.allocSym = savedAllocSym;
             this.isAllocSym = savedIsAllocSym;
             this.currentArithmeticMode = savedMode;
+            Main.instance(context).popOptions();
         }
     }
     

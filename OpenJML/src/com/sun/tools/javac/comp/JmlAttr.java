@@ -159,8 +159,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** This is the compilation context for which this is the unique instance */
     protected Context context;
     
-    /** Set from the options for user-requested verbosity */
-    protected boolean verbose = false;
+//    /** Set from the options for user-requested verbosity */
+//    protected boolean verbose = false;
     
     /** The Name version of resultVarString in the current context */
     final public Name resultName;
@@ -314,8 +314,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose = JmlOption.isOption(context,"-verbose") ||
-                utils.jmlverbose >= Utils.JMLVERBOSE;
+//        this.verbose = JmlOption.isOption(context,"-verbose") ||
+//                utils.jmlverbose >= Utils.JMLVERBOSE;
 
         this.specs = JmlSpecs.instance(context);
         this.factory = JmlTree.Maker.instance(context);
@@ -3978,13 +3978,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public void createRacExpr(JmlQuantifiedExpr q, Env<AttrContext> localEnv, Type resultType) {
-        /* The purpose of this method is to create a fully-qualified. attributed executable expression to use
+        /* The purpose of this method is to create a fully-qualified executable expression to use
          * in RAC. This is tricky. The primary JML quantified expression has already been attributed.
          * That declarations and the range and value expressions are reused in creating this RAC equivalent.
          * The problematic aspect is that one cannot attribute an expression twice and there is no check
          * to prevent re-attribution; re-attributing simple expressions causes no trouble, but the
          * reattribution logic can complain about, for example, duplicate declarations. Problems particularly
-         * arise if the value subexpression of the quantified expression includes a nested quantified
+         * arise if the value subexpression of the quantified expression includes a a nested quantified
          * expression or method calls.
          * 
          * So we construct our RAC expression carefully distinguishing between new portions and already
@@ -4003,9 +4003,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
          * This approach means that the initial, unattributed expression has some holes in it that need
          * filling in later.
          */
-        
-        // Why not just make an entire clean copy
-        
         JCStatement update = null;
         List<JCExpression> argslist = null;
         JCNewArray newarray = null;
@@ -4076,7 +4073,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // through the rewritten range and value expressions.
             
             Name argsname = names.fromString("args");
-            //JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL|Flags.PARAMETER),argsname,
             JCVariableDecl argsdef = F.VarDef(F.Modifiers(Flags.FINAL),argsname,
                     F.TypeArray(F.Type(syms.objectType)),null);
             JCIdent argsID = F.Ident(argsdef.name);
@@ -4188,9 +4184,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Need to fill in (a) the body of the method and (b) the araguments of the call
 
             q.racexpr = call;
-            
-            // FIXME - it does not seem like q.racexpr is used anywhere - JmlAssertionAdder creates a whole new 
-            // representation for the quantified stastement. But yet uncommenting the next line causes wrong results.
             
             q.racexpr = treeutils.makeZeroEquivalentLit(q.pos, q.type);
 
@@ -4399,7 +4392,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return;
 
     }
-    
     
     protected static class Bound {
         public JCVariableDecl decl;

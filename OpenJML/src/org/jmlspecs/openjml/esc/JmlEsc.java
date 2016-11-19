@@ -96,12 +96,12 @@ public class JmlEsc extends JmlTreeScanner {
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
-            || utils.jmlverbose >= Utils.JMLVERBOSE;
     }
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
+        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
         	assertionAdder.convert(tree); // get at the converted tree through the map
@@ -127,12 +127,14 @@ public class JmlEsc extends JmlTreeScanner {
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+        Main.instance(context).pushOptions(node.mods);
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
         utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         super.visitClassDef(node);
         utils.progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        Main.instance(context).popOptions();
     }
     
     /** When we visit a method declaration, we translate and prove the method;
@@ -141,6 +143,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
+        Main.instance(context).pushOptions(decl.mods);
         IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
@@ -163,6 +166,7 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
     	res = doMethod(methodDecl);
+        Main.instance(context).popOptions();
         return;        
     }
     

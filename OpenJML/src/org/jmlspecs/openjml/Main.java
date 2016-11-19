@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
@@ -46,11 +47,19 @@ import com.sun.tools.javac.main.Main.Result;
 import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.tree.JCTree.JCNewArray;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 
@@ -796,6 +805,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             // Note, though that this won't udo the setting, if verbosity is
             // turned off.
             if (!progressDelegate.hasDelegate()) progressDelegate.setDelegate(new PrintProgressReporter(context,out));
+        } else {
+            progressDelegate.setDelegate(null);
         }
         
         if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
@@ -901,7 +912,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         this.context = context;// A hack so that context is available in processArgs()
         if (progressDelegate != null) progressDelegate.setContext(context);
         context.put(IProgressListener.class,progressDelegate);
+        context.put(key, this);
         registerTools(context,out,diagListener);
+    }
+    
+    public static Context.Key<Main> key = new Context.Key<Main>();
+    
+    public static Main instance(Context context) {
+        return context.get(key);
     }
     
     /** Called to register the JML internal tools that replace the tools used
@@ -1074,6 +1092,33 @@ public class Main extends com.sun.tools.javac.main.Main {
             Options.instance(context).put(arg.substring(0,k),value);
         }
     }
+
+    protected Name optionName;
+
+    public void pushOptions(JCModifiers mods) {
+        if (optionName == null) optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
+
+        ((JmlOptions)JmlOptions.instance(context)).pushOptions();
+        JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
+        if (addedOptionsAnnotation != null) {
+            List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
+            JCExpression rhs = ((JCAssign)exprs.head).rhs;
+            String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
+                          : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
+                          : null;
+//                System.out.println(opts);
+            addOptions(opts);
+            setupOptions();
+        }
+        int v = Utils.instance(context).jmlverbose;
+    }
+    
+    public void popOptions() {
+        ((JmlOptions)JmlOptions.instance(context)).popOptions();
+        setupOptions();
+        int v = Utils.instance(context).jmlverbose;
+    }
+
     
     static protected void fixClasspath(Context context) {
         String cp = Options.instance(context).get("-classpath");

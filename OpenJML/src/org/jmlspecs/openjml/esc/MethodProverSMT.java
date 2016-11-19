@@ -137,8 +137,8 @@ public class MethodProverSMT {
 
     // DEBUGGING SETTINGS
 
-    /** local field used to enable verbose output for this object */
-    protected boolean verbose;
+//    /** local field used to enable verbose output for this object */
+//    protected boolean verbose;
     
     /** Just for debugging esc */
     public static boolean escdebug = false; // May be set externally to enable debugging while testing
@@ -192,9 +192,9 @@ public class MethodProverSMT {
      */
     public IProverResult prove(JmlMethodDecl methodDecl, String proverToUse) {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+        boolean verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
-        this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        this.showSubexpressions = verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
         boolean showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
         boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
