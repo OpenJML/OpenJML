@@ -34,7 +34,10 @@ public class methodspecs extends TCBase {
                 +"//@ s ignals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
+                ,"/TEST.java:4: ';' expected",18
+                ,"/TEST.java:4: <identifier> expected",28
+                ,"/TEST.java:4: cannot find symbol\n  symbol:   class s\n  location: class A",5
+//                ,"/TEST.java:4: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: s",5
                 );
     }
 
@@ -46,7 +49,9 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: r",5
+                ,"/TEST.java:2: ';' expected",14
+                ,"/TEST.java:2: cannot find symbol\n  symbol:   class r\n  location: class A",5
+//                ,"/TEST.java:2: A declaration within a JML annotation must be either ghost or model",7
                 );
     }
     
@@ -58,7 +63,11 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: true",5
+                ,"/TEST.java:2: illegal start of type",5
+                ,"/TEST.java:2: ';' expected",9
+                ,"/TEST.java:2: illegal start of type",18
+                ,"/TEST.java:2: <identifier> expected",22
+                ,"/TEST.java:2: ';' expected",23
                 );
     }
     
@@ -70,7 +79,22 @@ public class methodspecs extends TCBase {
                 +"//@ signals_only Exception;\n"
                 +"int m() { return 0; }\n"
                 +"}"
-                ,"/TEST.java:2: A JML annotation must start with a JML keyword or have a Model or Ghost annotation: class",5
+                ,"/TEST.java:2: '{' expected",18
+                ,"/TEST.java:5: reached end of file while parsing",2
+                ,"/TEST.java:2: A method or type declaration within a JML annotation must be model",5
+                );
+    }
+    
+    /** Tests bad keyword */
+    @Test
+    public void testBadKeyword3c() {
+        helpTC(" class A { \n"
+                +"//@ model class ;\n"
+                +"//@ signals_only Exception;\n"
+                +"int m() { return 0; }\n"
+                +"}"
+                ,"/TEST.java:2: <identifier> expected",16
+                ,"/TEST.java:5: reached end of file while parsing",2
                 );
     }
     
