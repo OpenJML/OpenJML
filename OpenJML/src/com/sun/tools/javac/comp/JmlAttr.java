@@ -381,7 +381,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
-        if (c.toString().equals("Time")) Utils.stop();
+        if (c.toString().contains("LinkedList")) Utils.stop();
+        if (c.toString().contains("Bug1")) Utils.stop();
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
@@ -513,6 +514,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
         Env<AttrContext> prevClassEnv = enclosingClassEnv;
         enclosingClassEnv = env;
+        if (c.toString().contains("LinkedList")) Utils.stop();
 
         // FIXME - for a binary class c, env.tree appears to be the tree of the specs
         // FIXME - why should we attribute the Java class body in the case of a binary class
@@ -912,9 +914,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitNewClass(JCNewClass tree) {
+        if (tree.toString().contains("new LinkedList")) Utils.stop();
         boolean prev = implementationAllowed;
         boolean prevJml = isInJmlDeclaration;
-        isInJmlDeclaration = true;
+        isInJmlDeclaration = true;  // FIXME - why is this true
         try {
             implementationAllowed= true;
             super.visitNewClass(tree);
@@ -927,6 +930,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
             }
+            Type saved = result;
+            TypeSymbol tsym = tree.clazz.type.tsym;
+            if (tsym instanceof ClassSymbol) {
+                isInJmlDeclaration = false;
+                attribClass((ClassSymbol)tsym); // FIXME - perhaps this needs to be checked when specs are retrieved
+            }
+            result = saved;
         } finally {
             implementationAllowed = prev;
             isInJmlDeclaration = prevJml;
