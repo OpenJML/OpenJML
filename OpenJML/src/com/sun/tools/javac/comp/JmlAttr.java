@@ -2048,6 +2048,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
        
     public void checkVarMods(JmlVariableDecl tree) {
+        if (tree.name == names.error || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
         if (tree.specsDecl != null) {
             JCModifiers jmlmods = tree.specsDecl.mods;
@@ -5746,7 +5747,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // the specification clauses being attributed
 
             that.mods = originalMods; 
-            checkVarMods(that);
+            if (!that.type.isErroneous()) checkVarMods(that);
             that.mods = newMods;
             if (utils.isJML(that.mods)) prev = ((JmlResolve)rs).setAllowJML(prev);
 
