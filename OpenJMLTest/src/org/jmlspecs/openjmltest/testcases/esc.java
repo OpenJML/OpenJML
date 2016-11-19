@@ -87,16 +87,18 @@ public class esc extends EscBase {
                 +"    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double;\n"
                 +"    Object oo = v.getClass();\n"
-                +"    v.add(0,i);\n"  // FIXME - this is interpreted as changing state of InputStream
+                +"    v.add(0,i);\n" 
                 +"    bb = v.elements().hasMoreElements();\n"
                 +"    return null; \n" // FAILS
                 +"  }\n"
                 +"}\n"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",17
               );
     }
 
     
-    @Test  // FIXME: Needs some implementation
+    @Test 
     public void testCollectC() {
         main.addOptions("-nonnullByDefault","-timeout=300");
         helpTCX("tt.TestJava","package tt; \n"
@@ -111,6 +113,8 @@ public class esc extends EscBase {
                 +"    return null; \n" // FAILS
                 +"  }\n"
                 +"}\n"
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",17
               );
     }
 
