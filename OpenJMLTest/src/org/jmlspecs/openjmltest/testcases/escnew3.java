@@ -531,7 +531,7 @@ public class escnew3 extends EscBase {
     public void testAssignableConstructor4() {
     	main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -544,7 +544,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4e() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -557,7 +557,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4a() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true;\n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -570,7 +570,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4ae() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true; assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -584,7 +584,7 @@ public class escnew3 extends EscBase {
     public void testAssignableConstructor5() {
     	//main.addOptions("-jmldebug");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable state; \n"
                 +"  public TestJava() { i = 0; }\n"
@@ -597,7 +597,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor5s() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.state; \n"
                 +"  public TestJava() { i = 0; }\n"

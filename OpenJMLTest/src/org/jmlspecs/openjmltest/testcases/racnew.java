@@ -2187,6 +2187,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"/tt/A.java:7: JML assignment of null to a non_null variable"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
 
     }
@@ -2203,6 +2204,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:2: JML static initialization may not be correct: null static field has null value: oo"
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
 
     }
@@ -2251,6 +2254,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:6: JML null initialization of non_null field local"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null" // FIXME - add the name of the field
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
     }
     
@@ -2269,11 +2274,11 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:6: JML non-null field is null"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
+                ,"/tt/A.java:3: JML non-null field is null"
                 );
     }
     
     @Test public void testNullInit() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"/*@nullable*/ static Object o,oo = null; \n"
                 +"static Object ooo = null;\n"
@@ -2295,6 +2300,7 @@ public class racnew extends RacBase {
                 ,"END"
                 ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:3: JML non-null field is null"
                 );
     }
     

@@ -327,7 +327,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
-                +"  String f; @NonNull String ff; @Nullable String fff; \n"
+                +"  public String f; @NonNull public String ff; @Nullable public String fff; \n"
                 
                 +"  public void m3() {\n"
                 +"    f = null;\n" // ERROR if default is nonnull
@@ -353,6 +353,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
+                +"  public TestJava() { f = ff = \"\"; }\n"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
@@ -399,7 +400,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
-                +"  String f; @NonNull String ff; @Nullable String fff; \n"
+                +"  public String f; @NonNull public String ff; @Nullable public String fff; \n"
                 
                 +"  public void m3() {\n"
                 +"    f = null;\n" // ERROR if default is nonnull
@@ -425,6 +426,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
+                +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1:  s",12
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
@@ -473,7 +475,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
-                +"  String f; @NonNull String ff; @Nullable String fff; \n"
+                +"  public String f; @NonNull public String ff; @Nullable public String fff; \n"
                 
                 +"  public void m3() {\n"
                 +"    f = null;\n" // ERROR if default is nonnull
@@ -499,6 +501,7 @@ public class escall2 extends EscBase {
                 +"    s = null;\n"
                 +"  }\n"
                 
+                +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a:  s",21
                 ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
@@ -514,9 +517,9 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
-                +"  public static class A {\n" 
-                +"      String q; @NonNull String qq; @Nullable String qqq; \n"
-                +"      static String r; static @NonNull String rr; static @Nullable String rrr; \n"
+                +"  public static class A { /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
+                +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
+                +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"
                 
                 +"  public void m1() {\n"
@@ -559,9 +562,10 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
-                +"  public static class A {\n" // Tests whether this gets the enclosing class's annotation; global option is nullable
-                +"      String q; @NonNull String qq; @Nullable String qqq; \n"
-                +"      static String r; static @NonNull String rr; static @Nullable String rrr; \n"
+                +"  public static class A {" // Tests whether this gets the enclosing class's annotation; global option is nullable
+                +"      /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n"
+                +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
+                +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"
                 
                 +"  public void m1() {\n"
@@ -606,9 +610,9 @@ public class escall2 extends EscBase {
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
-                +"  public static class A {\n" 
-                +"      String q; @NonNull String qq; @Nullable String qqq; \n"
-                +"      static String r; static @NonNull String rr; static @Nullable String rrr; \n"
+                +"  public static class A { /*@ assignable this.*, A.*; */ public A() { q = qq = new String(); r = rr = new String(); }\n" 
+                +"      public String q; @NonNull public String qq; @Nullable public String qqq; \n"
+                +"      static public String r; static @NonNull public String rr; static @Nullable public String rrr; \n"
                 +"   }\n"
                 
                 +"  public void m1() {\n"
@@ -975,6 +979,7 @@ public class escall2 extends EscBase {
                 +"    o.a = 0;\n"  // BAD
                 +"  }\n"
                 
+                +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1:  o.a",9
                 ,"/tt/TestJava.java:7: warning: Associated declaration",7

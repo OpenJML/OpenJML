@@ -1428,6 +1428,8 @@ public class escnew extends EscBase {
 //                +"  public void m2ok() {\n"
 //                +"    f = null ;\n"
 //                +"  }\n"
+
+                +"  public TestJava() { nnf = new Object(); }"
                 
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",9

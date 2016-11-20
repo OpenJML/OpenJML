@@ -44,7 +44,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-
+                +"  public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
@@ -80,7 +80,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-
+                +"  public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mc",45
@@ -126,7 +126,7 @@ public class escm extends EscBase {
                 +"     }\n"
                 +"  }\n"
                 
-
+                +"  public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
@@ -184,8 +184,8 @@ public class escm extends EscBase {
                 +"     invariant false;\n"
                 +"     public void m2() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
-                +"  }\n"
-
+                +"  }"
+                +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 +"  /*@ model class B {\n" // Invariant is false on exit
                 +"     public invariant false;\n"

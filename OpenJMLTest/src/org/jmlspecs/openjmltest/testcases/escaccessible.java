@@ -114,12 +114,13 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleFA() {
+    	main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ accessible a,a.i;\n"
                 +"  int m() { return a.i; }\n"
                 +"  int i,j;\n"
-                +"  TestJava a;\n"
+                +"  TestJava a; TestJava() { a = new TestJava(); } \n"
                 +"}"
                 );
     }
@@ -131,7 +132,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible a,a.j;\n"
                 +"  int m() { return a.i; }\n"
                 +"  int i,j;\n"
-                +"  TestJava a;\n"
+                +"  TestJava a; TestJava() { a = new TestJava(); } \n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3: ) in method m:  a.i",21
                 ,"/tt/TestJava.java:3: warning: Associated declaration: /tt/TestJava.java:4: ",7
@@ -146,7 +147,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible b.i,a;\n"
                 +"  int m() { return a.i; }\n"
                 +"  int i,j;\n"
-                +"  TestJava a,b;\n"
+                +"  TestJava a, b; TestJava() { a = b = new TestJava(); } \n"
                 +"}"
                 );
     }
@@ -158,7 +159,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible a,b.i;\n"
                 +"  int m() { return a.i; }\n"
                 +"  int i,j;\n"
-                +"  TestJava a,b;\n"
+                +"  TestJava a, b; TestJava() { a = b = new TestJava(); } \n"
                 +"}"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3: ) in method m:  a.i",21
                 ,"/tt/TestJava.java:3: warning: Associated declaration: /tt/TestJava.java:4: ",7
@@ -173,7 +174,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible a,i,a[*];\n"
                 +"  int m() { return a[i]; }\n"
                 +"  int i,j;\n"
-                +"  int[] a; int[] b;\n"
+                +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"
                 +"}"
                 );
     }
@@ -186,7 +187,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible \\everything;\n"
                 +"  int m() { return a[i]; }\n"
                 +"  int i,j;\n"
-                +"  int[] a; int[] b;\n"
+                +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"
                 +"}"
                 );
     }
@@ -199,7 +200,7 @@ public class escaccessible extends EscBase {
                 +"  //@ accessible a,i;\n"
                 +"  int m() { return a[i]; }\n"
                 +"  int i,j;\n"
-                +"  int[] a; int[] b;\n"
+                +"  int[] a; int[] b; TestJava() { a = b = new int[1]; } \n"
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:4: ) in method m:  a[i]",21
                 ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:5: ",7
