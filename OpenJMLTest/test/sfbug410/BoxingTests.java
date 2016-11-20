@@ -29,6 +29,8 @@ public class BoxingTests {
         b &= false;
         return b;
     }
+    
+    public BoxingTests() { i = 0; }
 }
 
 // FIXME - add tests like Short += int, Short += SHort, etc.

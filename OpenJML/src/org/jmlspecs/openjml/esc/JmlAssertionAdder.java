@@ -1052,6 +1052,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             initialStatements.add(outerTryStatement);
             return M.at(methodDecl).Block(0,initialStatements.toList());
         } catch (JmlNotImplementedException e) {
+//            JCExpression expr = treeutils.makeZeroEquivalentLit(pmethodDecl.pos, pmethodDecl.restype.type);
+//            JCStatement stat = M.at(pmethodDecl.pos).Return(expr); 
+//            pmethodDecl.body.stats = List.<JCStatement>of(stat);
             throw e;
         } catch (JmlInternalAbort e) {
             return null;
@@ -10478,10 +10481,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (classDecl == null) classDecl = utils.getOwner(that);
         log.useSource(that.source());
         boolean saved = translatingJML;
+        JCBlock body = null;
         try {
             // FIXME - implemente constructors - need super calls.
             //        if (that.restype == null) { classDefs.add(that); return; } // FIXME - implement constructors
-            JCBlock body = null;
             if (pureCopy) {
                 JmlMethodDecl savedMD = methodDecl;
                 methodDecl = that;
@@ -10491,6 +10494,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 body = convertMethodBodyNoInit(that,classDecl);
             }
 
+        } catch (JmlNotImplementedException e) {
+            // FIXME _ if it is actually the synthetic method for a model field we used to use this
+            //notImplemented("represents clause containing ", ee, that.source());
+
+            if ((that.mods.flags & Flags.SYNTHETIC) != 0) {
+                // FIXME - if we don't actually error out, we need to fix up the method to be executable; it currently is not
+                notImplemented(e.pos, "represents clause containing " + e.getMessage());
+                JCExpression expr = treeutils.makeZeroEquivalentLit(that.pos, that.restype.type);
+                JCStatement stat = M.at(that.pos).Return(expr);
+                body = M.at(that.pos).Block(0L,List.<JCStatement>of(stat));
+//                log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a represents clause");
+            } else {
+                // FIXME - is this branch possible
+                notImplemented(e.pos, "method containing " + e.getMessage());
+                log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method");
+            }
+        } finally {
             List<JCTypeParameter> typarams = that.typarams;
             if (fullTranslation) typarams = convertCopy(typarams); // FIXME - is there anything to be translated
             List<JCVariableDecl> params = that.params;
@@ -10528,13 +10548,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             result = m;
             methodBiMap.put(that,m);
-        } catch (JmlNotImplementedException e) {
-            // FIXME _ if it is actually the synthetic method for a model field we used to use this
-            //notImplemented("represents clause containing ", ee, that.source());
-
-            notImplemented("method (or represents clause) containing ",e); // FIXME - location?
-            log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
-        } finally {
             translatingJML = saved;
         }
         

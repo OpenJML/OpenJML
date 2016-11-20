@@ -1022,6 +1022,11 @@ public class JmlTree implements IJmlTree {
         public VarSymbol thisSymbol;
         public VarSymbol superSymbol;
         
+        public JCBlock initializerBlock;
+        public Env<AttrContext> initializerBlockEnv;
+        public JCBlock staticInitializerBlock;
+        public Env<AttrContext> staticInitializerBlockEnv;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,

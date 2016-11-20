@@ -646,18 +646,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             super.visitBlock(tree);
             JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
             //if (attribSpecs && sp != null) {
+            Env<AttrContext> localEnv = localEnv(env,tree);
+            localEnv.info.scope.owner =
+                new MethodSymbol(tree.flags | BLOCK, names.empty, null,
+                                 env.info.scope.owner);
+            if (isStatic(tree.flags)) localEnv.info.staticLevel++;
             if (msp != null) {
                 JmlMethodSpecs sp = msp.cases;
-                Env<AttrContext> localEnv = localEnv(env,tree);
-                localEnv.info.scope.owner =
-                    new MethodSymbol(tree.flags | BLOCK, names.empty, null,
-                                     env.info.scope.owner);
-                if (isStatic(tree.flags)) localEnv.info.staticLevel++;
                 //boolean prev = attribSpecs;
                 //attribSpecs = true;
                 attribStat(sp,localEnv);
                 //attribSpecs = prev;
             }
+            JmlClassDecl classDecl = (JmlClassDecl)enclosingClassEnv.tree;
+            if (classDecl.initializerBlock == tree) classDecl.initializerBlockEnv = localEnv;
+            if (classDecl.staticInitializerBlock == tree) classDecl.staticInitializerBlockEnv = localEnv;
+            
+            
         } else {
             // Method blocks
             

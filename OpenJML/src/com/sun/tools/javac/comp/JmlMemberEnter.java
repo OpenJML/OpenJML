@@ -438,6 +438,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             inSpecFile = prevInSpecFile;
             inModelTypeDeclaration = prevInModel;
             addRacMethods(tree.sym,env);
+            addInitializerBlocks(tree.sym, env);
             resolve.setJML(prevAllowJML);
             log.useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {
@@ -954,6 +955,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         }
     }
     
+    public void addInitializerBlocks(ClassSymbol sym, Env<AttrContext> env) {
+        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
+        
+        JCTree.JCBlock block = jmlF.Block(Flags.SYNTHETIC, List.<JCStatement>nil());
+        classDecl.defs = classDecl.defs.append(block);
+        classDecl.initializerBlock = block;
+    
+        block = jmlF.Block(Flags.STATIC|Flags.SYNTHETIC, List.<JCStatement>nil());
+        classDecl.defs = classDecl.defs.append(block);
+        classDecl.staticInitializerBlock = block;
+    
+    }
+
     public void addRacMethods(ClassSymbol sym, Env<AttrContext> env) {
         if (!utils.rac) return;
         // We can't add methods to a binary class, can we?
