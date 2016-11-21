@@ -5806,9 +5806,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     ;
             boolean doTranslations = rac || !translatingJML || (!uma &&  localVariables.isEmpty());
             if (!doTranslations && that instanceof JCNewClass) doTranslations = true; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
-            if (!doTranslations || attr.isFunction(calleeMethodSym)) {
+            boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
+            if (calleeIsFunction) doTranslations = false;
+            if (!doTranslations) {
                 List<JCExpression> ntrArgs = trArgs;
-                if (useMethodAxioms || !localVariables.isEmpty()) {
+                if (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction) {
 
                     boolean details = true
                             && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass)
