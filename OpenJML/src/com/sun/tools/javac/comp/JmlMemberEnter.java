@@ -438,7 +438,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             inSpecFile = prevInSpecFile;
             inModelTypeDeclaration = prevInModel;
             addRacMethods(tree.sym,env);
-            addInitializerBlocks(tree.sym, env);
+ //           addInitializerBlocks(tree.sym, env);
             resolve.setJML(prevAllowJML);
             log.useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {

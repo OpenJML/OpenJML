@@ -646,23 +646,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             super.visitBlock(tree);
             JmlSpecs.MethodSpecs msp = JmlSpecs.instance(context).getSpecs(env.enclClass.sym,tree);
             //if (attribSpecs && sp != null) {
-            Env<AttrContext> localEnv = localEnv(env,tree);
-            localEnv.info.scope.owner =
-                new MethodSymbol(tree.flags | BLOCK, names.empty, null,
-                                 env.info.scope.owner);
-            if (isStatic(tree.flags)) localEnv.info.staticLevel++;
             if (msp != null) {
                 JmlMethodSpecs sp = msp.cases;
+                Env<AttrContext> localEnv = localEnv(env,tree);
+                localEnv.info.scope.owner =
+                    new MethodSymbol(tree.flags | BLOCK, names.empty, null,
+                                     env.info.scope.owner);
+                if (isStatic(tree.flags)) localEnv.info.staticLevel++;
                 //boolean prev = attribSpecs;
                 //attribSpecs = true;
                 attribStat(sp,localEnv);
                 //attribSpecs = prev;
             }
-            JmlClassDecl classDecl = (JmlClassDecl)enclosingClassEnv.tree;
-            if (classDecl.initializerBlock == tree) classDecl.initializerBlockEnv = localEnv;
-            if (classDecl.staticInitializerBlock == tree) classDecl.staticInitializerBlockEnv = localEnv;
-            
-            
         } else {
             // Method blocks
             
@@ -930,7 +925,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Symbol sym = tree.constructor;
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
-                boolean isPure = msym == null || isPureMethod(msym) || isPureClass(msym.enclClass());
+                boolean isPure = msym == null || isPureMethod(msym);
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
@@ -3492,9 +3487,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (pureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
             // Check that the method being called is pure
             if (msym != null) {
-                boolean isPure = isPureMethod(msym) || isPureClass(msym.enclClass());
+                boolean isPure = isPureMethod(msym);
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-                    if (!msym.owner.type.isParameterized()) // FIXME - just until we read generic specs
+                    //if (!msym.owner.type.isParameterized()) // FIXME - just until we read generic specs
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
                 if (isPure && currentClauseType == JmlTokenKind.INVARIANT
@@ -5096,22 +5091,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
   }
   
-    /** Returns true if the given symbol has a pure annotation 
-     * @param symbol the symbol to check
-     * @return true if the symbol has a model annotation, false otherwise
-     */
-    public boolean isPureClass(ClassSymbol symbol) {
-            TypeSpecs tspecs = specs.getSpecs(symbol);
-            if (tspecs == null) return false;
-            return findMod(tspecs.modifiers,PURE) != null;
-//        } else if (symbol instanceof ClassSymbol)
-//        if (symbol.attributes_field == null) {
-//            // This happens for model methods in jml files
-//            return false;  // FIXME - should have the attributes - this is necessary but why?
-//        }
-//        return symbol.attribute(tokenToAnnotationSymbol.get(JmlToken.PURE))!=null;
-//
-    }
+//    /** Returns true if the given symbol has a pure annotation 
+//     * @param symbol the symbol to check
+//     * @return true if the symbol has a model annotation, false otherwise
+//     */
+//    public boolean isPureClass(ClassSymbol symbol) {
+//        return specs.isPure(symbol);
+////            TypeSpecs tspecs = specs.getSpecs(symbol);
+////            if (tspecs == null) return false;
+////            return findMod(tspecs.modifiers,PURE) != null;
+//    }
     
     public boolean isPureMethod(MethodSymbol symbol) {
         for (MethodSymbol msym: Utils.instance(context).parents(symbol)) {
@@ -5122,7 +5111,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
                 continue;
             }
-            boolean isPure = findMod(mspecs.mods,PURE) != null;
+            boolean isPure = specs.isPure(symbol);
             if (isPure) return true;
         }
         return false;

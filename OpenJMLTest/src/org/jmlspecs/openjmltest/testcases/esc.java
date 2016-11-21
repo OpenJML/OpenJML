@@ -100,9 +100,12 @@ public class esc extends EscBase {
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 						+ "  public String m(java.lang.Integer i, Number b) {\n"
 						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-						+ "    boolean bb = b instanceof Double;\n" + "    Object oo = v.getClass();\n"
-						+ "    Object o = (Class<?>)v.getClass();\n" + "    v.add(0,new Integer(0));\n"
-						+ "    bb = v.elements().hasMoreElements();\n" + "    return null; \n" // FAILS
+						+ "    boolean bb = b instanceof Double;\n" 
+						+ "    Object oo = v.getClass();\n"
+						+ "    Object o = (Class<?>)v.getClass();\n" 
+						+ "    v.add(0,new Integer(0));\n"
+						+ "    bb = v.elements().hasMoreElements();\n" 
+						+ "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
 				"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m",
 				5, "/tt/TestJava.java:3: warning: Associated declaration", 17);

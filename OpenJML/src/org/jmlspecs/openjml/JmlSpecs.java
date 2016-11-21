@@ -1390,14 +1390,19 @@ public class JmlSpecs {
     
     /** Caches the symbol for a Pure annotation, which is computed on demand. */
     private ClassSymbol pureAnnotationSymbol = null;
+    private ClassSymbol functionAnnotationSymbol = null;
 
-    /** Returns true if the given symbol is annotated as Pure */
-    public boolean isPure(Symbol symbol) {
+    /** Returns true if the given method symbol is annotated as Pure */
+    public boolean isPure(MethodSymbol symbol) {
         if (pureAnnotationSymbol == null) {
             pureAnnotationSymbol = utils.createClassSymbol(Strings.pureAnnotation);
         }
+        if (functionAnnotationSymbol == null) {
+            functionAnnotationSymbol = utils.createClassSymbol(Strings.functionAnnotation);
+        }
         MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol);
         if (mspecs != null && utils.findMod(mspecs.mods,pureAnnotationSymbol) != null) return true;
+        if (mspecs != null && utils.findMod(mspecs.mods,functionAnnotationSymbol) != null) return true;
         TypeSpecs tspecs = getSpecs((Symbol.ClassSymbol)symbol.owner);
         // FIXME - the following will not find a pure annotation on the class in a .jml file.
         if (tspecs != null && utils.findMod(tspecs.modifiers,pureAnnotationSymbol) != null) return true;

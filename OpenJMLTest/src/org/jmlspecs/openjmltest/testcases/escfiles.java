@@ -379,7 +379,12 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEscDeterministic() {
-        helpTF("escDeterministic","-logic=AUFLIA","-counterexample","-trace");
+        helpTF("escDeterministic");
+	}
+
+    @Test
+    public void testEscDeterministic2() {
+        helpTF("escDeterministic2");
 	}
 
     @Test
