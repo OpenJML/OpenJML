@@ -1114,7 +1114,6 @@ public class racnew extends RacBase {
     // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
     // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
                 " //@ requires i != 0; \n" +
@@ -1465,7 +1464,6 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSuchThat() {
-    	main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n"
                 +"//@ static model int i; \n"
@@ -1529,7 +1527,7 @@ public class racnew extends RacBase {
     
     /** Duplicate represents */
     @Test public void testModelField1() {
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static int j = 5; \n "
@@ -1557,7 +1555,7 @@ public class racnew extends RacBase {
     /** Represents with super model field */
     @Test public void testModelField3() {
         continueAnyway = true; // That is, even though there are compile errors
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.PA","package tt; public class PA extends PB { \n"
                 +" int j = 5; \n "
                 +"//@  represents i = j+1; \n "
@@ -1649,7 +1647,7 @@ public class racnew extends RacBase {
 
     /** Model field with no represents */
     @Test public void testModelField2() {
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         expectedExit = 0;
         continueAnyway = true;
         helpTCX("tt.A","package tt; public class A { \n"
@@ -1758,7 +1756,7 @@ public class racnew extends RacBase {
     
     /** Numof quantifier */
     @Test public void testCountQuantifierExt() {
-        main.addOptions("-keys=DEBUG","-show");
+        main.addOptions("-keys=DEBUG");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
@@ -2236,7 +2234,6 @@ public class racnew extends RacBase {
     @Test public void testNullInitialization() {
         noCollectDiagnostics = true;
         print = true;
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
                 +"/*@non_null*/ static Object o,oo = null; \n"
                 +"static String ooo = null;\n"

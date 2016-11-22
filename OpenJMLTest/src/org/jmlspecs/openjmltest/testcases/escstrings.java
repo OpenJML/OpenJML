@@ -35,7 +35,6 @@ public class escstrings extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testSimpleString() {
-        main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -50,7 +49,7 @@ public class escstrings extends EscBase {
                 +"       //@ assert s == ss;\n"
                 +"  }\n"
                 
-                
+                +" public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 );
     }
@@ -340,7 +339,6 @@ public class escstrings extends EscBase {
     /** Tests String concatenation - whether the result, computed in JML, is non-null*/
     @Test
     public void testStringConcat1a() {
-        main.addOptions("-show","-method=m","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -353,6 +351,8 @@ public class escstrings extends EscBase {
                 +"       //@ reachable true;\n"
                 +"       //@ assert (s + ss) != null;\n"
                 +"  }\n"
+                
+                +" public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
                 ,!"yices2".equals(solver)?null: // because yices2 cannot do quantifiers

@@ -148,7 +148,6 @@ public class escnowarn extends EscBase {
     
     @Test
     public void testLocationInitially() {
-    	main.addOptions("-show","-method=tt.TestJava.TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"

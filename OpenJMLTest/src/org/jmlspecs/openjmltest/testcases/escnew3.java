@@ -425,7 +425,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor0() {
-    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
@@ -529,7 +528,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor4() {
-    	main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
@@ -687,7 +685,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs() {
-    	main.addOptions("-show","-method=n0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default */ public class TestJava { \n"
                 +"  //@ ensures \\result == ints.length;\n"
@@ -749,7 +746,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs3() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"

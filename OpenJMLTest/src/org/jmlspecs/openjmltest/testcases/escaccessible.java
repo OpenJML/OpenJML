@@ -114,7 +114,6 @@ public class escaccessible extends EscBase {
 
     @Test
     public void testAccessibleFA() {
-    	main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ accessible a,a.i;\n"

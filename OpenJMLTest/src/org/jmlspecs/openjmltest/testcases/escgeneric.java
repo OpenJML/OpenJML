@@ -275,7 +275,7 @@ public class escgeneric extends EscBase {
     // FIXME - this is an issue of instantiating the value of the callee's type parameters for nested types
     @Test
     public void testTypeParameter2() {
-    	main.addOptions("-show","-method=mc");
+    	//main.addOptions("-show","-method=mc");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

@@ -162,7 +162,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4() { 
-    	main.addOptions("-show","-method=main");
+    	//main.addOptions("-show","-method=main");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -296,7 +296,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testSuper() {
-    	main.addOptions("-show","-method=B");
     	//main.addOptions("-no-checkAccessible");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "

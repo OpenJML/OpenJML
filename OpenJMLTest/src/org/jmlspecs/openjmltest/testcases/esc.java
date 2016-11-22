@@ -1853,13 +1853,29 @@ public class esc extends EscBase {
 
 	@Test
 	public void testMethodCall2() { // Had problems with static and non-static
-		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
-				+ "  public int j;\n" + "  //@ requires i>0;\n" + "  //@ modifies j;\n" + "  //@ ensures j == -i;\n"
-				+ "  public void m(int i) { j = -i; }\n" + "  //@ requires i>1; \n" + "  //@ modifies j;\n"
-				+ "  //@ ensures \\result == -i;\n" + "  public int inst(boolean b, int i) { m(i); return j; }\n"
-				+ "  //@ modifies j;\n" + "  //@ ensures \\result == j;\n"
-				+ "  public int instbad(boolean b, int i) { m(i); return j; }\n" + "  //@ modifies j;\n"
-				+ "  //@ ensures \\result == i;\n" + "  public int instbad2(boolean b, int i) { m(1); return j; }\n"
+		helpTCX("tt.TestJava", 
+				  "package tt; import org.jmlspecs.annotation.*; \n" 
+			    + "public class TestJava { \n"
+				
+			    + "  public int j;\n" 
+			    
+			    + "  //@ requires i>0;\n" 
+				+ "  //@ modifies j;\n" 
+			    + "  //@ ensures j == -i;\n"
+			    + "  public void m(int i) { j = -i; }\n" 
+			    
+			    + "  //@ requires i>1; \n" 
+				+ "  //@ modifies j;\n"
+				+ "  //@ ensures \\result == -i;\n" 
+				+ "  public int inst(boolean b, int i) { m(i); return j; }\n"
+				
+				+ "  //@ modifies j;\n" 
+				+ "  //@ ensures \\result == j;\n"
+				+ "  public int instbad(boolean b, int i) { m(i); return j; }\n" 
+				
+				+ "  //@ modifies j;\n"
+				+ "  //@ ensures \\result == i;\n" 
+				+ "  public int instbad2(boolean b, int i) { m(1); return j; }\n"
 				+ "}",
 				"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Precondition) in method instbad",
 				43, "/tt/TestJava.java:4: warning: Associated declaration", 7,
@@ -2675,19 +2691,43 @@ public class esc extends EscBase {
 	 */
 	@Test
 	public void testUndefinedInJava() {
-		helpTCX("tt.TestJava", "package tt; \n" + "/*@ nullable_by_default */ public class TestJava { \n" + "  int j;\n"
-				+ "  public static void m0(TestJava o) { \n" + "    int i = o.j; \n" + "  }\n"
-				+ "  public static void m1(/*@non_null*/ TestJava o) { \n" + "    int i = o.j; \n" + "  }\n"
-				+ "  //@ requires o != null;\n" + "  public static void m2(TestJava o) { \n" + "    int i = o.j; \n"
-				+ "  }\n" + "  public static void m3(TestJava o) { \n" + "    boolean i = o != null && o.j == 1; \n"
-				+ "  }\n" + "  public static void m4(TestJava o) { \n" + "    boolean i = o == null || o.j == 1; \n"
-				+ "  }\n" + "  public static void m5(TestJava o) { \n" + "    int i = ( o != null ? o.j : 6); \n"
-				+ "  }\n" + "  public static void m6(TestJava o) { \n" + "    int i = ( o == null ? 7 : o.j); \n"
-				+ "  }\n" + "  public static void m6a(TestJava o) { \n" + "    int i = ( o != null ? 7 : o.j); \n"
-				+ "  }\n" + "  //@ public normal_behavior  ensures \\result == (oo != null);\n"
+		helpTCX("tt.TestJava", "package tt; \n" 
+				+ "/*@ nullable_by_default */ public class TestJava { \n" 
+				+ "  int j;\n"
+				+ "  public static void m0(TestJava o) { \n" 
+				+ "    int i = o.j; \n" 
+				+ "  }\n"
+				+ "  public static void m1(/*@non_null*/ TestJava o) { \n" 
+				+ "    int i = o.j; \n" 
+				+ "  }\n"
+				+ "  //@ requires o != null;\n" 
+				+ "  public static void m2(TestJava o) { \n" 
+				+ "    int i = o.j; \n"
+				+ "  }\n" 
+				+ "  public static void m3(TestJava o) { \n" 
+				+ "    boolean i = o != null && o.j == 1; \n"
+				+ "  }\n" 
+				+ "  public static void m4(TestJava o) { \n" 
+				+ "    boolean i = o == null || o.j == 1; \n"
+				+ "  }\n" 
+				+ "  public static void m5(TestJava o) { \n" 
+				+ "    int i = ( o != null ? o.j : 6); \n"
+				+ "  }\n" 
+				+ "  public static void m6(TestJava o) { \n" 
+				+ "    int i = ( o == null ? 7 : o.j); \n"
+				+ "  }\n" 
+				+ "  public static void m6a(TestJava o) { \n" 
+				+ "    int i = ( o != null ? 7 : o.j); \n"
+				+ "  }\n" 
+				+ "  //@ public normal_behavior  ensures \\result == (oo != null);\n"
 				+ "  public static boolean p(TestJava oo) { \n" + "    return oo != null; \n" + "  }\n"
-				+ "  public static void m7(TestJava o) { \n" + "    boolean i = p(o) && o.j == 0; \n" + "  }\n"
-				+ "  public static void m7a(TestJava o) { \n" + "    boolean i = p(o) || o.j == 0; \n" + "  }\n" + "}",
+				+ "  public static void m7(TestJava o) { \n" 
+				+ "    boolean i = p(o) && o.j == 0; \n" 
+				+ "  }\n"
+				+ "  public static void m7a(TestJava o) { \n" 
+				+ "    boolean i = p(o) || o.j == 0; \n" 
+				+ "  }\n" 
+				+ "}",
 				"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m0",
 				14,
 				"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m6a",
@@ -3068,7 +3108,6 @@ public class esc extends EscBase {
 
 	@Test
 	public void testTypes3() {
-		main.addOptions("-show", "-method=m1");
 		helpTCX("tt.TestJava",
 				"package tt; import org.jmlspecs.lang.JML; \n" + "public class TestJava { \n"
 						+ "  public void m1(/*@non_null*/Object o) {\n"
@@ -3320,7 +3359,6 @@ public class esc extends EscBase {
 
 	@Test 
 	public void testNullityAndConstructors() {
-		main.addOptions("-show");
 		main.addOptions("-nonnullByDefault");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
@@ -3331,8 +3369,7 @@ public class esc extends EscBase {
 				);
 	}
 
-	@Test // FIXME - fails - results in infeasible but shoudl complain that oo
-			// is null at tend of constructor
+	@Test
 	public void testNullityAndConstructors2() {
 		main.addOptions("-nonnullByDefault");
 		helpTCX("tt.TestJava",
@@ -3340,7 +3377,9 @@ public class esc extends EscBase {
 						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "
 						+ "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
 						+ "      o = new char[the_array.length]; \n"
-						+ "      System.arraycopy(the_array, 0, o, 0, the_array.length); \n" + "  }\n" + "}");
+						+ "      System.arraycopy(the_array, 0, o, 0, the_array.length); \n" + "  }\n" + "}"
+				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (NullField) in method TestJava",36
+				);
 	}
 
 }
