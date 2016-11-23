@@ -78,7 +78,7 @@ public class compiler {
         String actualOutput = bout.toString();
         String errOutput = berr.toString();
         actualOutput = actualOutput.replace("\\","/");
-        actualOutput = actualOutput.replaceAll("Note:[\\S ]*$", ""); // FIXME - does not work
+        //actualOutput = actualOutput.replaceAll("temp-release/", "");
         errOutput = errOutput.toString().replace("\\","/");
         
         String expected;
@@ -126,6 +126,16 @@ public class compiler {
             if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
             throw ex;
         }
+    }
+    
+    public String removeNotes(String input) {
+        while (true) {
+        	int p = input.indexOf("Note: ");
+        	if (p < 0) break;
+        	int q = input.indexOf("\n",p);
+        	input = input.substring(0, p) + input.substring(q+1);
+        }
+        return input;
     }
 
     /** Tests a null argument for the args */
@@ -346,7 +356,7 @@ public class compiler {
                           );
     }
 
-    /** Tests using having a .jml file on the command line.
+    /** Tests having a .jml file on the command line.
      * @throws Exception
      */ 
     @Test
@@ -357,8 +367,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSource/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol + 
+                          "test/testNoSource/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {}" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -373,8 +386,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoErrors/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol +
+                          "test/testNoErrors/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {}" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -386,13 +402,14 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSourceParseError/A.jml"
-                          },1,0
+                          },1,1
                           ,"test/testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
                            "int i = ;" + eol +
                            "        ^" + eol +
                            "warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol + 
-                           "1 error" + eol +
-                           "1 warning" + eol
+                           "test/testNoSourceParseError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol 
                           );
     }
 
@@ -404,13 +421,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSourceTypeError/A.jml"
-                          },1,0
+                          },1,1
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceTypeError/A.jml" + eol +
-                           "test/testNoSourceTypeError/A.jml:4: error: Field initializers are not permitted in specification files (A.s)" + eol + 
-                           "  Integer s = \"abc\";" + eol + 
-                           "              ^" + eol +
-                           "1 error" + eol +
-                           "1 warning" + eol
+                           "test/testNoSourceTypeError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol 
                            );
     }
 
@@ -423,8 +438,8 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-noPurityCheck",
                             "test/testNoSourceWithClass/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol 
                           );
     }
 
@@ -437,8 +452,10 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-no-purityCheck","-nowarn",
                             "test/testNoSourceWithClass/A.jml"
-                          },0,0
-                          ,""
+                          },1,1
+                          ,"test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -451,11 +468,12 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-no-purityCheck","-Werror",
                             "test/testNoSourceWithClass/A.jml"
-                          },1,0
+                          },1,1
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol +
                            "error: warnings found and -Werror specified" + eol + 
-                           "1 error" + eol + 
-                           "1 warning" + eol);
+                           "test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol);
     }
 
     /** Tests using source path but including java spec files - may encounter
@@ -590,6 +608,7 @@ public class compiler {
                           },1,0
                           ,""
                           ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol
+                          //+ "1 error" + eol
                           );
     }
     
@@ -900,10 +919,10 @@ public class compiler {
     // Testing typechecking without org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime1() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected";
+    	expectedFile = "releaseTests/testRuntime1/expected2";
     	helper(new String[]
     			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
-    			},0,0
+    			},1,0
     			,""
     			);
     }
@@ -987,7 +1006,7 @@ public class compiler {
     	expectedFile = "releaseTests/testPath2/expected";
     	helper(new String[]
     			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
-    			},1,0
+    			},1,1
     			,""
     			);
     }
@@ -997,7 +1016,7 @@ public class compiler {
     	expectedFile = "releaseTests/testPath3/expected";
     	helper(new String[]
     			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
-    			},1,0
+    			},1,1
     			,""
     			);
     }

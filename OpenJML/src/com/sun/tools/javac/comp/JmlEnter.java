@@ -435,7 +435,7 @@ public class JmlEnter extends Enter {
                     // We have a Java declaration in the specs file that does not match an actual Java class.
                     // This is an error. We will ignore the declaration.
                     utils.error(specsClass.source(), specsClass.pos,
-                            "jml.unmatched.secondary.type",  // FIXME - not necessarily a secondary type
+                            "jml.unmatched.type",
                             owner + specsClass.name.toString(),javasource);
                     if (newlist == null) {
                         newlist = new ListBuffer<JCTree>();

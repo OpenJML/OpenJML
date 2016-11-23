@@ -4544,7 +4544,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.type == null) tree.type = tree.sym.type;
         
         Type saved = result;
-        if (tree.sym instanceof VarSymbol) {
+        if (!justAttribute && tree.sym instanceof VarSymbol) {
             checkSecretReadable(tree.pos(),(VarSymbol)tree.sym);
         }// Could also be a method call, and error, a package, a class...
         
@@ -4778,6 +4778,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         ((JmlResolve)rs).setAllowJML(prevAllow);
     }
+    
+    boolean justAttribute = false;
+    
     // Returns true if contextSym is contained (transitively) in the varSym datagroup
     protected boolean isContainedInDatagroup(@Nullable VarSymbol varSym, @Nullable VarSymbol contextSym) {
         if (varSym == contextSym) return true;
@@ -4787,7 +4790,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
                     if (g.sym == null) {
                         // Possibly not yet resolved - perhaps a forward reference, or perhaps does not exist
+                        justAttribute = true;
                         g.accept(this); // FIXME - I'm worried about this out of context attribution of another piece of the parse tree
+                        justAttribute = false;
                     }
                     if (varSym == g.sym) { // Explicitly listed in self - should this be allowed? (FIXME)
                         continue;

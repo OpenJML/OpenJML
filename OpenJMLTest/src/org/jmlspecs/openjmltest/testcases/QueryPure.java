@@ -432,9 +432,7 @@ public class QueryPure extends TCBase {
         );
     }
 
-    // TODO - fix use of forward references in 'in' and 'maps' clauses
-    
-    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 fails because it is 
+    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 used to fail because it is 
     // processed before the datagroup 'value' is created
     @Test
     public void testQuery8() {
@@ -450,7 +448,6 @@ public class QueryPure extends TCBase {
                 "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",35 
         );
     }
 
@@ -570,7 +567,6 @@ public class QueryPure extends TCBase {
                 "  @Secret Integer cache = null; //@ in value; \n" + 
                 "  @Secret(\"value\") public int mm() {  q = 0;  }\n" +  // ERROR - can't read or write q
                 "} \n"
-                ,"/A.java:5: A field may not be read in a secret context unless it is in the same secret datagroup: o not in value",30  // FIXME - this did not used to be an error - should it be?
                 ,"/A.java:9: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",39
                 ,"/A.java:9: The field q is not writable since it is not in the value secret datagroup",39
         );

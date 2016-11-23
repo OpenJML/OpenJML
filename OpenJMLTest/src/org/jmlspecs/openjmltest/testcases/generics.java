@@ -85,7 +85,7 @@ public class generics extends TCBase {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: This secondary type declaration (Collection) is not matched by a binary class",8
+                ,"/$A/java/util/Collection.jml:1: This type declaration (Collection) is not matched by a binary class",8
                 );
     }
 

@@ -1119,11 +1119,11 @@ public class modifiers extends TCBase {
     @Test public void testBinaryPackage1() {
         addMockFile("$A/java/lang/Object.jml",
         		"/*@ non_null */ public class Object {\n"
-                +"//@ spec_public spec_protected\n"
+                +"\n"
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:1: This secondary type declaration (Object) is not matched by a binary class",24
+                ,"/$A/java/lang/Object.jml:1: This type declaration (Object) is not matched by a binary class",24
                 //,"/$A/java/lang/Object.jml:1: Specification package does not match Java package: unnamed package vs. java.lang",5 // FIXME - improve error message, here and below?
                 );
     }
@@ -1136,7 +1136,7 @@ public class modifiers extends TCBase {
                 +"public boolean equals(Object o);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Object.jml:2: This secondary type declaration (java.utils.Object) is not matched by a binary class",24
+                ,"/$A/java/lang/Object.jml:2: This type declaration (java.utils.Object) is not matched by a binary class",24
                 //,"/$A/java/lang/Object.jml:1: Specification package does not match Java package: java.utils vs. java.lang",3
                 );
     }
