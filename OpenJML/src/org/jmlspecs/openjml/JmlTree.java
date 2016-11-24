@@ -1676,6 +1676,11 @@ public class JmlTree implements IJmlTree {
         }
         
         @Override
+        public int getStartPosition() {
+            return pos;
+        }
+        
+        @Override
         public Tag getTag() {
             return null;
         }

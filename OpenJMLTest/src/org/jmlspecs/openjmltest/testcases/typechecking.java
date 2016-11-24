@@ -992,6 +992,8 @@ public class typechecking extends TCBase {
                 +"    my_height = 1;\n"
                 +"  }\n"
                 +"}\n"
+                ,"/Test.java:2: This field participates in a circular datagroup inclusion chain: my_height",19
+                ,"/Test.java:3: This field participates in a circular datagroup inclusion chain: height",24
                 ,"/Test.java:6: This field participates in a circular datagroup inclusion chain: height2",24
         );
         

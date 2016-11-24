@@ -292,6 +292,7 @@ public class QueryPure extends TCBase {
                 "  //@ secret model Integer cache = null; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
+                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache",28
                 ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value",27
         );
     }

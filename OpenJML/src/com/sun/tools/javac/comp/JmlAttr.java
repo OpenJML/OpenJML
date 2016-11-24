@@ -20,6 +20,7 @@ import static com.sun.tools.javac.code.TypeTag.METHOD;
 import static com.sun.tools.javac.tree.JCTree.Tag.ASSIGN;
 import static org.jmlspecs.openjml.JmlTokenKind.*;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -569,6 +570,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     public void attribClassBodySpecs(Env<AttrContext> env, ClassSymbol c, boolean prevIsInJmlDeclaration) {
         JmlSpecs.TypeSpecs tspecs = JmlSpecs.instance(context).get(c);
+        JmlClassDecl classDecl = (JmlClassDecl)env.tree;
         JavaFileObject prev = log.currentSourceFile();
         
 //        if (c.flatName().toString().equals("java.lang.Throwable")) Utils.stop();
@@ -610,11 +612,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     isInJmlDeclaration = prevIsInJmlDeclaration;
                     ((JmlCheck)chk).setInJml(isInJmlDeclaration);
                     if (tspecs.file != null) log.useSource(tspecs.file);
-                    checkClassMods(c,(JmlClassDecl)env.tree,tspecs);
+                    checkClassMods(c,classDecl,tspecs);
                 } else {
 //                    log.warning("jml.internal.notsobad","Unexpected lack of modifiers in class specs structure for " + c); // FIXME - testJML2
                 }
+                
+                // Checking all the in and maps clauses is delayed until all the fields have been processed 
 
+                for (JCTree t: classDecl.defs) {
+                    if (t instanceof JmlVariableDecl) {
+                        checkVarMods2((JmlVariableDecl)t);
+                    }
+                }
 
                 this.env = prevEnv;
             } else {
@@ -2141,47 +2150,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkSameAnnotations(tree.mods,tree.specsDecl.mods);
             log.useSource(prev);
         }
-        
-        // Secret
-        JmlAnnotation secret = findMod(mods,JmlTokenKind.SECRET);
-        VarSymbol secretDatagroup = null;
-        if (secret != null) {
-            List<JCExpression> args = secret.getArguments();
-            if (!args.isEmpty()) {
-                utils.error(secret.sourcefile,args.get(0).pos,"jml.no.arg.for.field.secret");
-            }
-        }
-        
-        // Note that method parameters, which belong to Methods, have
-        // null FieldSpecs
-        if (tree.sym.owner.kind == Kinds.TYP) {
-            // Check all datagroups that the field is in
-            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
-            if (fspecs != null) for (JmlTypeClause tc: fspecs.list) {
-                if (tc.token == JmlTokenKind.IN) {
-                    JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
-                    for (JmlGroupName g: tcin.list) {
-                        if (g.sym == null) continue; // Happens if there was an error in finding g
-                        if (hasAnnotation(g.sym,JmlTokenKind.SECRET) != (secret != null)) {
-                            if (secret != null) {
-                                log.error(tcin.pos,"jml.secret.field.in.nonsecret.datagroup");
-                            } else {
-                                log.error(tcin.pos,"jml.nonsecret.field.in.secret.datagroup");
-                            }
-                        }
-                    }
-                }
-            }
-            // Allow Java fields to be datagroups
-//            if (secret != null && fspecs.list.isEmpty()) {
-//                // Not in any datagroups
-//                // Had better be model itself
-//                if (!isModel(fspecs.mods)) {
-//                    log.error(tree.pos,"jml.secret.field.model.or.in.secret.datagroup");
-//                }
-//            }
-        }
-        
+             
         // Check that types match 
         if (tree.specsDecl != null) { // tree.specsDecl can be null if there is a parsing error
             JavaFileObject prev = log.useSource(tree.specsDecl.source());
@@ -2211,6 +2180,71 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
 
+    }
+    
+    /** This method checks specifications of field declarations that must be checked after all
+     * fields have been initially processed, because they might have forward declarations.
+     */
+    public void checkVarMods2(JmlVariableDecl tree) {
+        if (tree.name == names.error || tree.type.isErroneous()) return;
+        JCModifiers mods = tree.mods;
+        boolean inJML = utils.isJML(mods);
+        boolean ownerInJML = utils.isJML(tree.sym.owner.flags());
+        boolean ghost = isGhost(mods);
+        boolean model = isModel(mods);
+        boolean modelOrGhost = model || ghost;
+        inVarDecl = tree;
+        
+        // Secret
+        JmlAnnotation secret = findMod(mods,JmlTokenKind.SECRET);
+        VarSymbol secretDatagroup = null;
+        if (secret != null) {
+            List<JCExpression> args = secret.getArguments();
+            if (!args.isEmpty()) {
+                utils.error(secret.sourcefile,args.get(0).pos,"jml.no.arg.for.field.secret");
+            }
+        }
+        
+        // Note that method parameters, which belong to Methods, have
+        // null FieldSpecs
+        if (tree.sym.owner.kind == Kinds.TYP) {
+            // Check all datagroups that the field is in
+            JmlSpecs.FieldSpecs fspecs = specs.getSpecs(tree.sym);
+            long prevVisibility = jmlVisibility;
+            JmlTokenKind prevClauseType = currentClauseType;
+            if (fspecs != null) try {
+                for (JmlTypeClause tc: fspecs.list) {
+                    if (tc.token == JmlTokenKind.IN) {
+                        JmlTypeClauseIn tcin = (JmlTypeClauseIn)tc;
+                        currentClauseType = JmlTokenKind.IN;
+                        jmlVisibility = tcin.parentVar.mods.flags & Flags.AccessFlags;
+                        for (JmlGroupName g: tcin.list) {
+                            attributeGroup(g);
+                            if (g.sym == null) continue; // Happens if there was an error in finding g
+                            if (hasAnnotation(g.sym,JmlTokenKind.SECRET) != (secret != null)) {
+                                if (secret != null) {
+                                    log.error(tcin.pos,"jml.secret.field.in.nonsecret.datagroup");
+                                } else {
+                                    log.error(tcin.pos,"jml.nonsecret.field.in.secret.datagroup");
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                jmlVisibility = prevVisibility;
+                currentClauseType = prevClauseType;
+                inVarDecl = null;
+            }
+            // Allow Java fields to be datagroups
+//            if (secret != null && fspecs.list.isEmpty()) {
+//                // Not in any datagroups
+//                // Had better be model itself
+//                if (!isModel(fspecs.mods)) {
+//                    log.error(tree.pos,"jml.secret.field.model.or.in.secret.datagroup");
+//                }
+//            }
+        }    
     }
     
 //    // FIXME - this should be done in MemberEnter, not here
@@ -2271,14 +2305,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         inVarDecl = tree.parentVar;
         long prevVisibility = jmlVisibility;
         try {
-            jmlVisibility = tree.parentVar.mods.flags & Flags.AccessFlags;
-            for (JmlGroupName n: tree.list) {
-                n.accept(this);
-                if (n.sym != null && n.sym != inVarDecl.sym && checkForCircularity(n.sym,inVarDecl.sym)) {
-                    log.error(inVarDecl.pos(),"jml.circular.datagroup.inclusion",inVarDecl.name);
-                    continue;
-                }
+            jmlVisibility = tree.parentVar.mods.flags & Flags.AccessFlags; // FIXME - don't thnk this is needed here
+            if (checkForCircularity(inVarDecl.sym)) {
+                log.error(inVarDecl.pos(),"jml.circular.datagroup.inclusion",inVarDecl.name);
             }
+//            for (JmlGroupName n: tree.list) {
+//                n.accept(this);
+//                if (n.sym != null && n.sym != inVarDecl.sym && checkForCircularity(n.sym,inVarDecl.sym)) {
+//                    log.error(inVarDecl.pos(),"jml.circular.datagroup.inclusion",inVarDecl.name);
+//                    continue;
+//                }
+//            }
         } finally {
             jmlVisibility = prevVisibility;
             inVarDecl = prevDecl;
@@ -4781,6 +4818,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     boolean justAttribute = false;
     
+    protected void attributeGroup(JmlGroupName g) {
+        // Note that this.env should be the class env of the environment in which the group name is being resolved
+        if (g.sym == null) {
+            // Possibly not yet resolved - perhaps a forward reference, or perhaps does not exist
+            boolean prevj = justAttribute;
+            justAttribute = true;
+            boolean prev = JmlResolve.instance(context).allowJML();
+            JmlResolve.instance(context).setAllowJML(true);
+            try {
+                g.accept(this);
+            } finally {
+                JmlResolve.instance(context).setAllowJML(prev);
+                justAttribute = prevj;
+            }
+        }
+    }
+    
     // Returns true if contextSym is contained (transitively) in the varSym datagroup
     protected boolean isContainedInDatagroup(@Nullable VarSymbol varSym, @Nullable VarSymbol contextSym) {
         if (varSym == contextSym) return true;
@@ -4788,12 +4842,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JmlTypeClause t: fspecs.list) {
             if (t.token == JmlTokenKind.IN) {  // FIXME - relies on variable IN clauses being attributed before a method that uses them
                 for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
-                    if (g.sym == null) {
-                        // Possibly not yet resolved - perhaps a forward reference, or perhaps does not exist
-                        justAttribute = true;
-                        g.accept(this); // FIXME - I'm worried about this out of context attribution of another piece of the parse tree
-                        justAttribute = false;
-                    }
+                    attributeGroup(g);
                     if (varSym == g.sym) { // Explicitly listed in self - should this be allowed? (FIXME)
                         continue;
                     }
@@ -4812,23 +4861,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return false;
     }
     
-    public boolean checkForCircularity(VarSymbol varsym, VarSymbol root) {
-        if (root == varsym) return true;
+    public boolean checkForCircularity(VarSymbol varsym) {
+        Collection<VarSymbol> roots = new LinkedList<>();
+        return checkForCircularity(varsym, roots);
+    }
+    
+    public boolean checkForCircularity(VarSymbol varsym, Collection<VarSymbol> roots) {
+        if (roots.contains(varsym)) return true;
+        roots.add(varsym);
         JmlSpecs.FieldSpecs fspecs = specs.getSpecs(varsym);
         for (JmlTypeClause t: fspecs.list) {
-            if (t.token == JmlTokenKind.IN) {  // FIXME - relies on variable IN clauses being attributed before a method that uses them
+            if (t.token == JmlTokenKind.IN) {
                 for (JmlGroupName g: ((JmlTypeClauseIn)t).list) {
+                    attributeGroup(g);
                     if (g.sym == null) {
                         continue;
                     }
-                    if (checkForCircularity(g.sym,root)) return true;
+                    if (g.sym == varsym) {
+                        // FIXME - should we waran about listing oneslef in an IN clause?
+                    } else if (checkForCircularity(g.sym,roots)) {
+                        return true;
+                    }
                 }
             }
         }
+        roots.remove(varsym);
         return false;
     }
-
-
+    
     
     /** Attributes a member select expression (e.g. a.b); also makes sure
      * that the type of the selector (before the dot) will be attributed;
