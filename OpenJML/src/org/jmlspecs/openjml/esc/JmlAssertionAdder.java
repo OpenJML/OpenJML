@@ -522,6 +522,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      * when 'result' is a JCExpression. */
     protected JCExpression eresult;
     
+    protected JCBlock axiomBlock = null;
+    
     /** Assertions that can be changed to be feasibility checks */
     public Map<Symbol,java.util.List<JCTree.JCParens>> assumptionChecks = new HashMap<Symbol,java.util.List<JCTree.JCParens>>();
     public Map<Symbol,java.util.List<JmlTree.JmlStatementExpr>> assumptionCheckStats = new HashMap<Symbol,java.util.List<JmlTree.JmlStatementExpr>>();
@@ -3575,6 +3577,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     paramActuals.put(newsym,treeutils.makeIdent(dp.pos, dp.sym));
                 }
             }
+            
+            axiomBlock = M.Block(0L,List.<JCStatement>nil());
+//            addStat(axiomBlock);
             
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
@@ -8996,7 +9001,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             } else if (!utils.isJMLStatic(sym)) {
                 // It is a non-static class field, so we prepend the receiver
-                JCExpression fa = treeutils.makeSelect(that.pos,convertCopy(currentThisExpr),that.sym);
+                JCExpression cp = convertCopy(currentThisExpr);
+                if (cp.toString().equals("THIS")) ((JCIdent)cp).pos = that.pos;
+                JCExpression fa = treeutils.makeSelect(that.pos,cp,that.sym);
 //                if (sym instanceof VarSymbol && sym.owner instanceof ClassSymbol && specs.isNonNull(sym, classDecl.sym) && !localVariables.isEmpty()) {
 //                    JCExpression e = treeutils.makeNotNull(that.pos, fa);
 //                    addAssume(that,Label.NULL_FIELD,e);
@@ -10468,6 +10475,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
+        if (that.name.toString().equals("tick")) Utils.stop();
         // If we visit this method by visiting its containing class, classDecl will be set
         // but if we call this visit method directly, e.g., from the api,
         // it will not be, and we need to find the class
@@ -10539,8 +10547,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } catch (JmlNotImplementedException e) {
             // FIXME _ if it is actually the synthetic method for a model field we used to use this
             //notImplemented("represents clause containing ", ee, that.source());
-
-            notImplemented("method (or represents clause) containing ",e); // FIXME - location?
+            if (that.name.toString().startsWith(Strings.modelFieldMethodPrefix)) {
+                notImplemented("represents clause containing ",e);
+            } else {
+                notImplemented("method (or represents clause) containing ",e);
+            }
             log.error(e.pos,"jml.unrecoverable", "Unimplemented construct in a method or model method or represents clause");
         } finally {
             translatingJML = saved;

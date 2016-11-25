@@ -102,11 +102,11 @@ public class escDemofiles extends EscBase {
 
     @Test // FIXME: Fails because of inadequate specs and use of \created
     public void testCustomer() {
-        expectedExit = 1;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");
+        expectedExit = 0;
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/Customer.java","test/demoCustomer","-progress","-noInternalSpecs");//,"-show","-method=request");
     }
 
-    @Test // FIXME: Failure to reason about quantifiers
+    @Test
     public void testMaxByElimination() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress");
@@ -118,7 +118,7 @@ public class escDemofiles extends EscBase {
         helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/SumAndMax.java","test/demoSumAndMax","-progress");
     }
 
-    @Test // FIXME: Fails to reason about quantifiers
+    @Test
     public void testEscTest() {
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");//,"-subexpressions","-method=zero_matrix","-show");

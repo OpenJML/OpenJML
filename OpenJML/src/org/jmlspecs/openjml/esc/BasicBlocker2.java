@@ -503,7 +503,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        if (vsym.name.toString().startsWith("aux")) Utils.stop();
+        if (vsym.name.toString().startsWith("phase")) Utils.stop();
         JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
         n.type = vsym.type;
         n.sym = vsym;
@@ -1458,7 +1458,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // FIXME - is all implicit casting handled
     // Note that only the right expression is translated.
     protected JCExpression doAssignment(Type restype, JCExpression left, JCExpression right, int pos, JCExpression statement) {
-        int sp = left.getStartPosition();
+        int sp = left.getPreferredPosition();
         JCStatement newStatement;
         JCExpression newExpr;
         if (left instanceof JCIdent) {

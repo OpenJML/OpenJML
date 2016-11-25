@@ -2310,7 +2310,7 @@ public class racnew extends RacBase {
     @Test public void testNotImplemented() {
         main.addOptions("-keys=DEBUG");
         //print = true;
-        expectedExit = 0;
+        expectedExit = 1;
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"//@ axiom true;\n"
                 +"//@ public invariant \\duration(true) == 0;\n"
@@ -2358,6 +2358,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
+                ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37
                 ,"END"
                 );
 
