@@ -94,7 +94,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectC() {
-		main.addOptions("-nonnullByDefault", "-timeout=300");
+		main.addOptions("-nonnullByDefault", "-timeout=300", "-show","-method=m","-checkFeasibility=debug");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"

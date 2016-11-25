@@ -1006,6 +1006,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!pureCopy) {
                 outerFinalizeStats.add( comment(methodDecl,"Check Postconditions",null));
                 addPostConditions(outerFinalizeStats);
+                axiomBlock = null;
             }
             
 
@@ -3375,7 +3376,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCMethodDecl methodDecl = this.methodDecl;
         boolean isConstructor = methodDecl.sym.isConstructor();
         ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
-        currentStatements = null; // Just to make sure everything is assigned to either ensuresStats or exsuresStats
+
         
         // FIXME - need to figure out what to do for Enums. But one issue is this
         // Constructors are constructors for individual enum values, not for the class.
@@ -3450,9 +3451,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            addStat(dd);
 //        }
         
-        ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
-        ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
-        
         // Construct a condition, to be used later, that the method has not thrown an exception
         DiagnosticPosition methodPos = methodDecl;
         JCExpression noException = treeutils.makeEqObject(methodPos.getPreferredPosition(),
@@ -3466,7 +3464,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedThis = currentThisExpr;
 
         // FIXME Don't replicate the invariants in ensures and exsuresStats
+
+        currentStatements = null; // Just to make sure everything is assigned to either ensuresStats or exsuresStats
+        ListBuffer<JCStatement> ensuresStats = new ListBuffer<JCStatement>();
+        ListBuffer<JCStatement> exsuresStats = new ListBuffer<JCStatement>();
         
+
         // Accumulate the invariants to be checked after the method returns
         clearInvariants();
         if (rac) {
@@ -3550,7 +3553,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addRecInvariants(false,d,fa);
         }
         currentThisExpr = savedThis;
-        
+
+        JCBlock ensuresAxiomBlock = M.Block(0L,List.<JCStatement>nil());
+        ensuresStats.add(ensuresAxiomBlock);
+        JCBlock exsuresAxiomBlock = M.Block(0L,List.<JCStatement>nil());
+        exsuresStats.add(exsuresAxiomBlock);
+
         // Iterate over all methods that methodDecl overrides, collecting specs
         boolean sawSomeSpecs = false;
         for (MethodSymbol msym: utils.parents(methodDecl.sym)) { 
@@ -3578,9 +3586,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             
-            axiomBlock = M.Block(0L,List.<JCStatement>nil());
-//            addStat(axiomBlock);
-            
             for (JmlSpecificationCase scase : denestedSpecs.cases) {
                 sawSomeSpecs = true;
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
@@ -3595,7 +3600,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // FIXME - would be nice if RAC postconditions could refer to the last return that was executed
                             case ENSURES:
                             {
-                                currentStatements = ensuresStats;
+                                currentStatements = ensuresStats; axiomBlock = ensuresAxiomBlock;
                                 pushBlock();
                                 try {
                                     JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
@@ -3615,7 +3620,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                             case SIGNALS: // FIXME - need to check exception type of the exception
                             {
-                                currentStatements = exsuresStats;
+                                currentStatements = exsuresStats; axiomBlock = exsuresAxiomBlock;
                                 JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionSym);
                                 {
                                     JCIdent nid = convertCopy(exceptionId);
@@ -3659,7 +3664,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             {
                                 sawSignalsOnly = true;
                                 {
-                                    currentStatements = exsuresStats;
+                                    currentStatements = exsuresStats; axiomBlock = exsuresAxiomBlock;
                                     pushBlock();
                                     try {
                                         JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionSym);
@@ -3685,7 +3690,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             case DIVERGES:
                             {
                                 // FIXME _ implement
-                                currentStatements = ensuresStats;
+                                currentStatements = ensuresStats; axiomBlock = ensuresAxiomBlock;
                                 pushBlock();
                                 try {
                                     JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
@@ -3704,7 +3709,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             case WORKING_SPACE:
                             {
                                 // FIXME - implement
-                                currentStatements = ensuresStats;
+                                currentStatements = ensuresStats; axiomBlock = ensuresAxiomBlock;
                                 pushBlock();
                                 try {
                                     JCExpression ex = ((JmlMethodClauseConditional)clause).expression;
@@ -3738,7 +3743,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (!sawSignalsOnly) {
                     sawSomeSpecs = true;
-                    currentStatements = exsuresStats;
+                    currentStatements = exsuresStats; axiomBlock = exsuresAxiomBlock;
                     pushBlock();
                     try {
                         JCIdent exceptionId = treeutils.makeIdent(scase.pos,exceptionSym);
@@ -3752,7 +3757,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             if (!sawSomeSpecs) {
-                currentStatements = exsuresStats;
+                currentStatements = exsuresStats; axiomBlock = exsuresAxiomBlock;
                 pushBlock();
                 try {
                     JCIdent exceptionId = treeutils.makeIdent(methodDecl.pos,exceptionSym);
@@ -3870,6 +3875,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         paramActuals = null;
         clearInvariants();
         currentStatements = savedCurrentStatements;
+        axiomBlock = null;
         assumingPostConditions = true;
     }
     
@@ -5866,10 +5872,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     
                     JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
                     if (details) { // FIXME - document this details check - if it is false, the axioms are dropped
+                        // FIXME - actually should add these into whatever environment is operative
                         if (inOldEnv) {
                             escAddToOldList(oldenv,bl);
                         } else if (nonignoredStatements != null) {
                             nonignoredStatements.add(bl);
+                        } else if (axiomBlock != null) {
+                            axiomBlock.stats = axiomBlock.stats.append(bl);
                         } else {
                             addStat(bl);
                         }

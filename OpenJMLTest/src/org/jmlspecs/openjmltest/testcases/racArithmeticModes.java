@@ -67,7 +67,7 @@ public class racArithmeticModes extends RacBase {
         
     }
 
-    // FIXME - need to settle on how to handle int declarations in Math mode
+    // FIXME - Bitint mode not implemented
     @Test public void testNegMath() {
     	Assert.fail();
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
