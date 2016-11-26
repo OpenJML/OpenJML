@@ -222,6 +222,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnon() {
+    	//main.addOptions("-show","-method=m2");
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -239,6 +240,7 @@ public class escm extends EscBase {
                 +"}\n"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method tt.TestJava$1$",34
                 ,"/tt/TestJava.java:5: warning: Associated declaration",37
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1",12
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2",12
         );
     }

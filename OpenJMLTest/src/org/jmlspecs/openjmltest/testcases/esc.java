@@ -94,7 +94,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectC() {
-		main.addOptions("-nonnullByDefault", "-timeout=300", "-show","-method=m","-checkFeasibility=debug");
+		main.addOptions("-nonnullByDefault", "-timeout=300");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -107,8 +107,9 @@ public class esc extends EscBase {
 						+ "    bb = v.elements().hasMoreElements();\n" 
 						+ "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
-				"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m",
-				5, "/tt/TestJava.java:3: warning: Associated declaration", 17);
+				"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m", 5, 
+				"/tt/TestJava.java:3: warning: Associated declaration", 17
+				);
 	}
 
 	// Just testing a binary method

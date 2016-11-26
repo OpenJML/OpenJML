@@ -6655,7 +6655,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             typevarMapping = newTypeVarMapping;
             if (newclass != null || (!specs.isPure(calleeMethodSym) && !calleeMethodSym.isConstructor())) {
-                if (inProcessInvariants.isEmpty()) changeState();
+                if (inProcessInvariants.isEmpty() && !translatingJML) changeState();
             }
 
             if (doTranslations) {

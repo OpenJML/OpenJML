@@ -12,7 +12,7 @@ public class Initializer {
       @   assignable a;
       @   ensures this.a == \old(this.a) + 1;
       @   ensures \fresh(\result);
-      @   ensures \result.equals(\old(new Initializer(a)));
+      @   ensures \result.equals(new Initializer(\old(a)));
       @*/
     public Initializer dupe() {
         Initializer other = new Initializer(a);
