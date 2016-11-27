@@ -43,7 +43,7 @@ public class racnonpublic extends RacBase {
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
-        Assert.fail();
+//        Assert.fail();
         Assume.assumeTrue( new File(OpenJMLNonPublicDemoPath).exists() );
     }
 
