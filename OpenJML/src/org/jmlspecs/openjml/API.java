@@ -312,11 +312,14 @@ public class API implements IAPI {
     @Override
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        Log log = Log.instance(context());
         c.inSequence = false;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context().get(JavaFileManager.class)).getJavaFileObjects(files);
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
-        for (JavaFileObject fileObject : fobjects)
+        for (JavaFileObject fileObject : fobjects) {
+            if (log.getSource(fileObject).getEndPosTable() != null) continue; // File object already parsed
             trees.add((JmlCompilationUnit)c.parse(fileObject));
+        }
         return trees;
     }
     

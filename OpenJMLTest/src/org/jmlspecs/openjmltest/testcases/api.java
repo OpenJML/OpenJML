@@ -100,6 +100,12 @@ public class api extends JmlTestCase {
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualErr = errorOutput();
         String actualOut = output();
+        while (true) {
+        	int k = actualOut.indexOf("Note:");
+        	if (k < 0) break;
+        	int p = actualOut.indexOf("\n",k);
+        	actualOut = actualOut.substring(0, k) + actualOut.substring(p+1);
+        }
         if (print) {
             System.out.println("TEST: " + name.getMethodName());
             System.out.println("ERR: " + actualErr);
@@ -143,37 +149,57 @@ public class api extends JmlTestCase {
     
     
     String prettyprint =
-        eol + 
-        "public class A {" + eol +
-        "  // JML specifications" + eol +
-        "  @Ghost " + eol +
-        "  int i = 0;" + eol +
-        "}" + eol +
-        "// Specifications: test/testNoErrors/A.java" + eol +
-        "// Specification file: test/testNoErrors/A.java" + eol +
-        "" + eol +
-        "public class A {" + eol +
-        "  // JML specifications" + eol +
-        "  @Ghost " + eol +
-        "  int i = 0;" + eol +
-        "}" + eol;
-    
+            eol + 
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol +
+            "// Specifications: test/testNoErrors/A.java" + eol +
+            "// Specification file: test/testNoErrors/A.java" + eol +
+            "" + eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol;
+        
+    String prettyprint2a =
+            eol + 
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol +
+            "// Specifications: /A.java" + eol +
+            "// Specification file: /A.java" + eol +
+            "" + eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol;
+        
     String prettyprint2 =
             eol + 
             "public class A {" + eol +
-            "  // JML specifications" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
             "}";
+
         
     String prettyprint3 =
             "package a.b;" + eol +
             eol +
             "public class A {" + eol +
-            "  // JML specifications" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
-            "}";
+            "}" + eol + 
+            "// Specifications: /a/b/A.java" + eol +
+            "// Specification file: /a/b/A.java" + eol +
+            "package a.b;" + eol +
+            eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}"  + eol; 
+
     
     String prettyprint4 = prettyprint +
     		"NEXT AST" + eol +
@@ -380,13 +406,13 @@ public class api extends JmlTestCase {
             String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
             JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-            m.attachSpecs(ast1,null);
+            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
             int n = m.typecheck(ast1);
             endCapture();
             if (n != 0) {
                 System.out.println("Errors: " + n);
-                System.out.println(bout.toString());
-                System.out.println(berr.toString());
+                System.out.println(actualOut.toString());
+                System.out.println(actualErr.toString());
                 assertTrue(false);
             }
         } catch (Exception e) {
@@ -446,7 +472,7 @@ public class api extends JmlTestCase {
             String s = parseAndPrettyPrintString();
             check("","");
             s = s.replace('\\','/');
-            compareStrings(prettyprint2,s);
+            compareStrings(prettyprint2a,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -1119,7 +1145,7 @@ public class api extends JmlTestCase {
             assertEquals(1,dlist.get(0).getLineNumber());
             assertEquals(7,dlist.get(0).getPosition());
             assertEquals(0,dlist.get(0).getStartPosition());
-            assertEquals(58,dlist.get(0).getEndPosition());
+            assertEquals(56,dlist.get(0).getEndPosition());
             assertEquals("test/testNoErrors2/A.java",dlist.get(0).getSource().getName().toString().replace('\\','/'));
         } catch (Exception e) {
             check("","");
@@ -1132,14 +1158,34 @@ public class api extends JmlTestCase {
     /** Tests the parseAndCheck call */
     // parseAndCheck 
     @Test
-    public void testParseAndCheckCrash() {
+    public void testParseAndCheckCrash2() {
         start(true);
         String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
         try {
             java.io.File f = new java.io.File("test/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
-            m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
+            m.parseAndCheck(f,f); 
+            check("","");
+        } catch (Exception e) {
+            check("",out);
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+        }
+    }
+    
+    /** Tests the parseAndCheck call */
+    // parseAndCheck 
+    @Test
+    public void testParseAndCheckCrash() {
+        start(true);
+        String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
+        try {
+            java.io.File f = new java.io.File("test/testNoErrors/A.java");
+            java.io.File ff = new java.io.File("test/testNoErrors/A.java");
+            IAPI m = Factory.makeAPI();
+            m.addOptions("-no-purityCheck");
+            m.parseAndCheck(f,ff); 
             check("","");
         } catch (Exception e) {
             check("",out);
