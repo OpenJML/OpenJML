@@ -100,7 +100,13 @@ public class statements extends TCBase {
     }
 
     @Test public void testLoop2() {
-        helpTCF("A.java"," class A { void m() { \n //@ loop_invariant j;\n  \n}}"
+        helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n  \n}}"
+                ,"/A.java:2: Loop specifications must immediately precede a while or for statement",6
+                );
+    }
+    
+    @Test public void testLoop3() {
+        helpTCF("A.java"," class A { boolean j; void m() { \n //@ loop_invariant j;\n j=true; \n}}"
                 ,"/A.java:2: Loop specifications must immediately precede a while or for statement",6
                 );
     }
@@ -117,8 +123,8 @@ public class statements extends TCBase {
 
     @Test public void testAssert2() {
         helpTCF("A.java"," class A { Object o; void m() { \n /*@ assume 0; assert o;*/\n  \n}}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",13
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    java.lang.Object",23
+                ,"/A.java:2: incompatible types: int cannot be converted to boolean",13
+                ,"/A.java:2: incompatible types: java.lang.Object cannot be converted to boolean",23
                 );
     }
 

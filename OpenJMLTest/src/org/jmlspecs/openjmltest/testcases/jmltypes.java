@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -109,8 +110,8 @@ public class jmltypes extends TCBase {
                 "  //@ set t = (\\TYPE)0;\n" + // No casts of ints
                 "  //@ set t = (\\TYPE)o;\n" + // No casts of Object
                 "}}\n"
-                ,"/A.java:4: incompatible types\n  required: \\TYPE\n  found:    java.lang.Class<java.lang.Object>",29
-                ,"/A.java:5: incompatible types\n  required: java.lang.Class<?>\n  found:    \\TYPE",27
+                ,"/A.java:4: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
+                ,"/A.java:5: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
                 ,"/A.java:6: incomparable types: \\TYPE and java.lang.Class<java.lang.Object>",39
                 ,"/A.java:8: The arguments to <: must both be \\TYPE or both be Class",26
                 ,"/A.java:9: The arguments to <: must both be \\TYPE or both be Class",31
@@ -141,11 +142,7 @@ public class jmltypes extends TCBase {
                 " void m() {\n" +
                 "  Class<?> c = A<T>.class; \n" +
                 "}}\n"
-                ,"/A.java:3: illegal start of expression",20
-                ,"/A.java:3: <identifier> expected",26
-                ,"/A.java:4: reached end of file while parsing",3
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable A\n  location: class A<T>",16
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable T\n  location: class A<T>",18
+                ,"/A.java:3: <identifier> expected",21
         );
     }
     

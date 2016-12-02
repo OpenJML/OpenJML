@@ -3,6 +3,7 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -28,6 +29,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
 
@@ -94,12 +96,12 @@ public class JmlEsc extends JmlTreeScanner {
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
-            || utils.jmlverbose >= Utils.JMLVERBOSE;
     }
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
+        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
         	assertionAdder.convert(tree); // get at the converted tree through the map
@@ -125,12 +127,14 @@ public class JmlEsc extends JmlTreeScanner {
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+        Main.instance(context).pushOptions(node.mods);
         if (node.sym.isInterface()) return;  // Nothing to verify in an interface
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
         utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         super.visitClassDef(node);
         utils.progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        Main.instance(context).popOptions();
     }
     
     /** When we visit a method declaration, we translate and prove the method;
@@ -139,6 +143,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(@NonNull JCMethodDecl decl) {
+        Main.instance(context).pushOptions(decl.mods);
         IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
@@ -161,6 +166,7 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
     	res = doMethod(methodDecl);
+        Main.instance(context).popOptions();
         return;        
     }
     
@@ -232,11 +238,12 @@ public class JmlEsc extends JmlTreeScanner {
 
         // print the body of the method to be proved
         if (printPrograms) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(methodDecl.body));
+            PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("STARTING PROOF OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
         
         IProverResult res;
@@ -302,7 +309,7 @@ public class JmlEsc extends JmlTreeScanner {
                     }
                 }
                 if (utils.jmlverbose > Utils.PROGRESS) {
-                    log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+                    log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
                 }
                 return false;
             }
@@ -316,7 +323,7 @@ public class JmlEsc extends JmlTreeScanner {
                         simpleName.equals(exclude) ||
                         Pattern.matches(exclude,fullyQualifiedName)) {
                     if (utils.jmlverbose > Utils.PROGRESS)
-                        log.noticeWriter.println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     return false;
                 }
             }

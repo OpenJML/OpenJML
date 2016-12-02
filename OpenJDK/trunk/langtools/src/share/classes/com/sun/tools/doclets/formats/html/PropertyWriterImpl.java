@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -35,6 +35,11 @@ import com.sun.tools.doclets.internal.toolkit.util.*;
 /**
  * Writes property documentation in HTML format.
  *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  * @author Robert Field
  * @author Atul M Dambalkar
  * @author Jamie Ho (rewrite)
@@ -61,67 +66,82 @@ public class PropertyWriterImpl extends AbstractMemberWriter
     /**
      * {@inheritDoc}
      */
-    public Content getFieldDetailsTreeHeader(ClassDoc classDoc,
+    public Content getPropertyDetailsTreeHeader(ClassDoc classDoc,
             Content memberDetailsTree) {
         memberDetailsTree.addContent(HtmlConstants.START_OF_PROPERTY_DETAILS);
-        Content fieldDetailsTree = writer.getMemberTreeHeader();
-        fieldDetailsTree.addContent(writer.getMarkerAnchor("property_detail"));
+        Content propertyDetailsTree = writer.getMemberTreeHeader();
+        propertyDetailsTree.addContent(writer.getMarkerAnchor(
+                SectionName.PROPERTY_DETAIL));
         Content heading = HtmlTree.HEADING(HtmlConstants.DETAILS_HEADING,
                 writer.propertyDetailsLabel);
-        fieldDetailsTree.addContent(heading);
-        return fieldDetailsTree;
+        propertyDetailsTree.addContent(heading);
+        return propertyDetailsTree;
     }
 
     /**
      * {@inheritDoc}
      */
-    public Content getFieldDocTreeHeader(MethodDoc field,
-            Content fieldDetailsTree) {
-        fieldDetailsTree.addContent(
-                writer.getMarkerAnchor(field.name()));
-        Content fieldDocTree = writer.getMemberTreeHeader();
+    public Content getPropertyDocTreeHeader(MethodDoc property,
+            Content propertyDetailsTree) {
+        propertyDetailsTree.addContent(
+                writer.getMarkerAnchor(property.name()));
+        Content propertyDocTree = writer.getMemberTreeHeader();
         Content heading = new HtmlTree(HtmlConstants.MEMBER_HEADING);
-        heading.addContent(field.name().substring(0, field.name().lastIndexOf("Property")));
-        fieldDocTree.addContent(heading);
-        return fieldDocTree;
+        heading.addContent(property.name().substring(0, property.name().lastIndexOf("Property")));
+        propertyDocTree.addContent(heading);
+        return propertyDocTree;
     }
 
     /**
      * {@inheritDoc}
      */
-    public Content getSignature(MethodDoc field) {
-        return new Comment("property signature");
+    public Content getSignature(MethodDoc property) {
+        Content pre = new HtmlTree(HtmlTag.PRE);
+        writer.addAnnotationInfo(property, pre);
+        addModifiers(property, pre);
+        Content propertylink = writer.getLink(new LinkInfoImpl(
+                configuration, LinkInfoImpl.Kind.MEMBER,
+                property.returnType()));
+        pre.addContent(propertylink);
+        pre.addContent(" ");
+        if (configuration.linksource) {
+            Content propertyName = new StringContent(property.name());
+            writer.addSrcLink(property, propertyName, pre);
+        } else {
+            addName(property.name(), pre);
+        }
+        return pre;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void addDeprecated(MethodDoc field, Content fieldDocTree) {
+    public void addDeprecated(MethodDoc property, Content propertyDocTree) {
     }
 
     /**
      * {@inheritDoc}
      */
-    public void addComments(MethodDoc field, Content fieldDocTree) {
-        ClassDoc holder = field.containingClass();
-        if (field.inlineTags().length > 0) {
+    public void addComments(MethodDoc property, Content propertyDocTree) {
+        ClassDoc holder = property.containingClass();
+        if (property.inlineTags().length > 0) {
             if (holder.equals(classdoc) ||
-                    (! (holder.isPublic() || Util.isLinkable(holder, configuration())))) {
-                writer.addInlineComment(field, fieldDocTree);
+                    (! (holder.isPublic() || Util.isLinkable(holder, configuration)))) {
+                writer.addInlineComment(property, propertyDocTree);
             } else {
-                Content link = new RawHtml(
-                        writer.getDocLink(LinkInfoImpl.CONTEXT_FIELD_DOC_COPY,
-                        holder, field,
+                Content link =
+                        writer.getDocLink(LinkInfoImpl.Kind.PROPERTY_DOC_COPY,
+                        holder, property,
                         holder.isIncluded() ?
                             holder.typeName() : holder.qualifiedTypeName(),
-                            false));
+                            false);
                 Content codeLink = HtmlTree.CODE(link);
-                Content strong = HtmlTree.STRONG(holder.isClass()?
+                Content descfrmLabel = HtmlTree.SPAN(HtmlStyle.descfrmTypeLabel, holder.isClass()?
                    writer.descfrmClassLabel : writer.descfrmInterfaceLabel);
-                strong.addContent(writer.getSpace());
-                strong.addContent(codeLink);
-                fieldDocTree.addContent(HtmlTree.DIV(HtmlStyle.block, strong));
-                writer.addInlineComment(field, fieldDocTree);
+                descfrmLabel.addContent(writer.getSpace());
+                descfrmLabel.addContent(codeLink);
+                propertyDocTree.addContent(HtmlTree.DIV(HtmlStyle.block, descfrmLabel));
+                writer.addInlineComment(property, propertyDocTree);
             }
         }
     }
@@ -129,23 +149,23 @@ public class PropertyWriterImpl extends AbstractMemberWriter
     /**
      * {@inheritDoc}
      */
-    public void addTags(MethodDoc field, Content fieldDocTree) {
-        writer.addTagsInfo(field, fieldDocTree);
+    public void addTags(MethodDoc property, Content propertyDocTree) {
+        writer.addTagsInfo(property, propertyDocTree);
     }
 
     /**
      * {@inheritDoc}
      */
-    public Content getFieldDetails(Content fieldDetailsTree) {
-        return getMemberTree(fieldDetailsTree);
+    public Content getPropertyDetails(Content propertyDetailsTree) {
+        return getMemberTree(propertyDetailsTree);
     }
 
     /**
      * {@inheritDoc}
      */
-    public Content getFieldDoc(Content fieldDocTree,
+    public Content getPropertyDoc(Content propertyDocTree,
             boolean isLastContent) {
-        return getMemberTree(fieldDocTree, isLastContent);
+        return getMemberTree(propertyDocTree, isLastContent);
     }
 
     /**
@@ -172,16 +192,16 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      * {@inheritDoc}
      */
     public String getTableSummary() {
-        return configuration().getText("doclet.Member_Table_Summary",
-                configuration().getText("doclet.Property_Summary"),
-                configuration().getText("doclet.properties"));
+        return configuration.getText("doclet.Member_Table_Summary",
+                configuration.getText("doclet.Property_Summary"),
+                configuration.getText("doclet.properties"));
     }
 
     /**
      * {@inheritDoc}
      */
-    public String getCaption() {
-        return configuration().getText("doclet.Properties");
+    public Content getCaption() {
+        return configuration.getResource("doclet.Properties");
     }
 
     /**
@@ -189,10 +209,10 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      */
     public String[] getSummaryTableHeader(ProgramElementDoc member) {
         String[] header = new String[] {
-            configuration().getText("doclet.Type"),
-            configuration().getText("doclet.0_and_1",
-                    configuration().getText("doclet.Property"),
-                    configuration().getText("doclet.Description"))
+            configuration.getText("doclet.Type"),
+            configuration.getText("doclet.0_and_1",
+                    configuration.getText("doclet.Property"),
+                    configuration.getText("doclet.Description"))
         };
         return header;
     }
@@ -201,7 +221,8 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      * {@inheritDoc}
      */
     public void addSummaryAnchor(ClassDoc cd, Content memberTree) {
-        memberTree.addContent(writer.getMarkerAnchor("property_summary"));
+        memberTree.addContent(writer.getMarkerAnchor(
+                SectionName.PROPERTY_SUMMARY));
     }
 
     /**
@@ -209,18 +230,19 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      */
     public void addInheritedSummaryAnchor(ClassDoc cd, Content inheritedTree) {
         inheritedTree.addContent(writer.getMarkerAnchor(
-                "properties_inherited_from_class_" + configuration().getClassName(cd)));
+                SectionName.PROPERTIES_INHERITANCE,
+                configuration.getClassName(cd)));
     }
 
     /**
      * {@inheritDoc}
      */
     public void addInheritedSummaryLabel(ClassDoc cd, Content inheritedTree) {
-        Content classLink = new RawHtml(writer.getPreQualifiedClassLink(
-                LinkInfoImpl.CONTEXT_MEMBER, cd, false));
+        Content classLink = writer.getPreQualifiedClassLink(
+                LinkInfoImpl.Kind.MEMBER, cd, false);
         Content label = new StringContent(cd.isClass() ?
-            configuration().getText("doclet.Properties_Inherited_From_Class") :
-            configuration().getText("doclet.Properties_Inherited_From_Interface"));
+            configuration.getText("doclet.Properties_Inherited_From_Class") :
+            configuration.getText("doclet.Properties_Inherited_From_Interface"));
         Content labelHeading = HtmlTree.HEADING(HtmlConstants.INHERITED_SUMMARY_HEADING,
                 label);
         labelHeading.addContent(writer.getSpace());
@@ -231,17 +253,16 @@ public class PropertyWriterImpl extends AbstractMemberWriter
     /**
      * {@inheritDoc}
      */
-    protected void addSummaryLink(int context, ClassDoc cd, ProgramElementDoc member,
+    protected void addSummaryLink(LinkInfoImpl.Kind context, ClassDoc cd, ProgramElementDoc member,
             Content tdSummary) {
-        Content strong = HtmlTree.STRONG(new RawHtml(
-                writer.getDocLink(context,
-                        cd,
-                        (MemberDoc) member,
-                        member.name().substring(0, member.name().lastIndexOf("Property")),
-                        false,
-                        true)));
+        Content memberLink = HtmlTree.SPAN(HtmlStyle.memberNameLink,
+                writer.getDocLink(context, cd,
+                (MemberDoc) member,
+                member.name().substring(0, member.name().lastIndexOf("Property")),
+                false,
+                true));
 
-        Content code = HtmlTree.CODE(strong);
+        Content code = HtmlTree.CODE(memberLink);
         tdSummary.addContent(code);
     }
 
@@ -250,27 +271,27 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      */
     protected void addInheritedSummaryLink(ClassDoc cd,
             ProgramElementDoc member, Content linksTree) {
-        linksTree.addContent(new RawHtml(
-                writer.getDocLink(LinkInfoImpl.CONTEXT_MEMBER, cd, (MemberDoc)member,
-                ((member.name().lastIndexOf("Property") != -1) && Configuration.getJavafxJavadoc())
+        linksTree.addContent(
+                writer.getDocLink(LinkInfoImpl.Kind.MEMBER, cd, (MemberDoc)member,
+                ((member.name().lastIndexOf("Property") != -1) && configuration.javafx)
                         ? member.name().substring(0, member.name().length() - "Property".length())
                         : member.name(),
-                false, true)));
+                false, true));
     }
 
     /**
      * {@inheritDoc}
      */
     protected void addSummaryType(ProgramElementDoc member, Content tdSummaryType) {
-        MethodDoc method = (MethodDoc)member;
-        addModifierAndType(method, method.returnType(), tdSummaryType);
+        MethodDoc property = (MethodDoc)member;
+        addModifierAndType(property, property.returnType(), tdSummaryType);
     }
 
     /**
      * {@inheritDoc}
      */
     protected Content getDeprecatedLink(ProgramElementDoc member) {
-        return writer.getDocLink(LinkInfoImpl.CONTEXT_MEMBER,
+        return writer.getDocLink(LinkInfoImpl.Kind.MEMBER,
                 (MemberDoc) member, ((MethodDoc)member).qualifiedName());
     }
 
@@ -279,11 +300,15 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      */
     protected Content getNavSummaryLink(ClassDoc cd, boolean link) {
         if (link) {
-            return writer.getHyperLink("", (cd == null)?
-                "property_summary":
-                "properties_inherited_from_class_" +
-                configuration().getClassName(cd),
+            if (cd == null) {
+                return writer.getHyperLink(
+                SectionName.PROPERTY_SUMMARY,
                 writer.getResource("doclet.navProperty"));
+            } else {
+                return writer.getHyperLink(
+                SectionName.PROPERTIES_INHERITANCE,
+                configuration.getClassName(cd), writer.getResource("doclet.navProperty"));
+            }
         } else {
             return writer.getResource("doclet.navProperty");
         }
@@ -294,7 +319,8 @@ public class PropertyWriterImpl extends AbstractMemberWriter
      */
     protected void addNavDetailLink(boolean link, Content liNav) {
         if (link) {
-            liNav.addContent(writer.getHyperLink("", "property_detail",
+            liNav.addContent(writer.getHyperLink(
+                    SectionName.PROPERTY_DETAIL,
                     writer.getResource("doclet.navProperty")));
         } else {
             liNav.addContent(writer.getResource("doclet.navProperty"));

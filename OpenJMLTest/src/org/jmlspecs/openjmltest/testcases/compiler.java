@@ -29,6 +29,15 @@ public class compiler {
     boolean print = false;
     boolean capture = true;
     String projHome = System.getProperty("openjml.eclipseProjectLocation").replace("C:","").replace("\\","/");
+    String specsHome;
+    {
+    	try {
+    		specsHome = new java.io.File("../../Specs").getCanonicalPath().replace("\\", "/");
+    	} catch (Exception e) {
+    		specsHome = null;
+    	}
+    }
+    String expectedFile = null;
     
     @Before
     public void setUp() throws Exception {
@@ -51,15 +60,15 @@ public class compiler {
     /** This is a helper method that runs the compiler on the given set of
      * command-line arguments, checking the result
      * @param args the command-line arguments
-     * @param exitcode the expected exit code (0=OK, 1=completed with error messages
+     * @param expectedExitCode the expected exit code (0=OK, 1=completed with error messages
      *      2=command-line problems, 3=system errors, 4=abort)
      * @param all whether the expected output is all of (0) or just the prefix
      *      of (1) or a part of (2) the actual output
      * @param output the expected output as one string; if there are two Strings,
      * then they are the expected error and standard output 
      */
-    public void helper(String[] args, int exitcode, int all, String ... output) {
-        int e = org.jmlspecs.openjml.Main.execute(args);
+    public void helper(String[] args, int expectedExitCode, int all, String ... output) {
+        int exitCode = org.jmlspecs.openjml.Main.execute(args);
         System.err.flush();
         System.out.flush();
         System.setErr(savederr);
@@ -68,16 +77,30 @@ public class compiler {
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = bout.toString();
         String errOutput = berr.toString();
-        actualOutput = actualOutput.toString().replace("\\","/");
+        actualOutput = actualOutput.replace("\\","/");
+        //actualOutput = actualOutput.replaceAll("temp-release/", "");
         errOutput = errOutput.toString().replace("\\","/");
+        
+        String expected;
+        if (expectedFile != null) {
+        	try {
+        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles").replace("\n",eol);
+        	} catch (Exception ee) {
+        		expected = null;
+        		org.junit.Assert.fail(ee.toString());
+        	}
+        } else {
+            expected = output[0];
+        }
+        expected = expected.replace("${PROJ}",projHome).replace("$SPECS", specsHome);
+        
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (capture) try {
             String tail = "";
-            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
-            String expected = output[0].replace("${PROJ}",projHome);
+            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + errOutput);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
@@ -94,15 +117,25 @@ public class compiler {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
                     assertEquals("The standard out is wrong",expected,actual);
-                } else if (all == 1 && actualOutput.indexOf(expected) == -1) {
-                    fail("Output does not end with: " + expected + eol + "Instead is: " + actual);
+                } else if (all == 1 && (actualOutput.indexOf(expected) == -1 && errOutput.indexOf(expected) == -1)) {
+                    fail("Output does not contain: " + expected + eol + "Instead is: " + actual);
                 }
             }
-            assertEquals("The exit code is wrong",exitcode,e);
+            assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + berr.toString());
+            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
             throw ex;
         }
+    }
+    
+    public String removeNotes(String input) {
+        while (true) {
+        	int p = input.indexOf("Note: ");
+        	if (p < 0) break;
+        	int q = input.indexOf("\n",p);
+        	input = input.substring(0, p) + input.substring(q+1);
+        }
+        return input;
     }
 
     /** Tests a null argument for the args */
@@ -179,9 +212,8 @@ public class compiler {
                           },1,0,
                           "test/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
                           "public class A {" +eol+
-                          "^"+eol+
-                          "1 error" + eol+
-                          "");
+                          "^" + eol +
+                          "1 error" + eol);
     }
 
     /** Test verbose with no specs used */
@@ -324,7 +356,7 @@ public class compiler {
                           );
     }
 
-    /** Tests using having a .jml file on the command line.
+    /** Tests having a .jml file on the command line.
      * @throws Exception
      */ 
     @Test
@@ -335,8 +367,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSource/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol + 
+                          "test/testNoSource/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {}" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -351,8 +386,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoErrors/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol +
+                          "test/testNoErrors/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {}" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -364,13 +402,14 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSourceParseError/A.jml"
-                          },1,0
+                          },1,1
                           ,"test/testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
                            "int i = ;" + eol +
                            "        ^" + eol +
                            "warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol + 
-                           "1 error" + eol +
-                           "1 warning" + eol
+                           "test/testNoSourceParseError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol 
                           );
     }
 
@@ -382,15 +421,11 @@ public class compiler {
                             "-specspath","../OpenJML/runtime",
                             "-noPurityCheck",
                             "test/testNoSourceTypeError/A.jml"
-                          },1,0
+                          },1,1
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceTypeError/A.jml" + eol +
-                           "test/testNoSourceTypeError/A.jml:4: error: incompatible types" + eol + 
-                           "  Integer s = \"abc\";" + eol + 
-                           "              ^" + eol +
-                           "  required: Integer" + eol + 
-                           "  found:    String" + eol +
-                           "1 error" + eol +
-                           "1 warning" + eol
+                           "test/testNoSourceTypeError/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol 
                            );
     }
 
@@ -403,8 +438,8 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-noPurityCheck",
                             "test/testNoSourceWithClass/A.jml"
-                          },0,0
-                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol + "1 warning" + eol
+                          },1,1
+                          ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol 
                           );
     }
 
@@ -417,8 +452,10 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-no-purityCheck","-nowarn",
                             "test/testNoSourceWithClass/A.jml"
-                          },0,0
-                          ,""
+                          },1,1
+                          ,"test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                          "public class A {" + eol +
+                          "       ^" + eol
                           );
     }
 
@@ -431,11 +468,12 @@ public class compiler {
                             "-specspath","../OpenJML/runtime"+z+"test/testNoSourceWithClass",
                             "-no-purityCheck","-Werror",
                             "test/testNoSourceWithClass/A.jml"
-                          },1,0
+                          },1,1
                           ,"warning: There is no java file on the sourcepath corresponding to the given jml file: test/testNoSourceWithClass/A.jml" + eol +
                            "error: warnings found and -Werror specified" + eol + 
-                           "1 error" + eol + 
-                           "1 warning" + eol);
+                           "test/testNoSourceWithClass/A.jml:2: error: This type declaration (A) is not matched by a binary class" + eol +
+                           "public class A {" + eol +
+                           "       ^" + eol);
     }
 
     /** Tests using source path but including java spec files - may encounter
@@ -475,43 +513,13 @@ public class compiler {
     //@Test  // FIXME - try running the build programmatically
     @Test 
     public void testSourcePath4() throws Exception {
-        if (!new java.io.File("tempjars/jmlruntime.jar").exists()) {
+        if (!new java.io.File("../OpenJML/tempjars/jmlruntime.jar").exists()) {
             System.setErr(savederr);
             System.setOut(savedout);
-            System.out.println("Starting");
-
-//            org.eclipse.ant.core.AntRunner runner = new AntRunner();
-//            //runner.setBuildFileLocation("C:/home/eclipse-workspace2/OpenJML/build-bash.xml");
-//            runner.setBuildFileLocation("build-bash.xml");
-//            System.out.println("Running? " + AntRunner.isBuildRunning());
-//            runner.setArguments("-Dmessage=Building -verbose");
-//            runner.setExecutionTargets(new String[]{"jmlruntime.jar"});
-//            try {
-//                runner.run();
-//            } catch (Exception e) {
-//                System.out.println("Exception " + e);
-//                e.printStackTrace(System.out);
-//            }
-
-            //Process p = Runtime.getRuntime().exec("C:/home/apps/ant/apache-ant-1.7.1/bin/ant.cmd",new String[]{"-f","build-bash.xml","jmlruntime.jar"});
-            //Process p = Runtime.getRuntime().exec("bash",new String[]{"C:/home/projects/OpenJML/trunk/OpenJML/buildRuntimelib"});
-            //Process p = Runtime.getRuntime().exec("bash",new String[]{"buildRuntimelib"});
-            //Process p = Runtime.getRuntime().exec("./buildRuntimelib");
-//            System.out.println("Waiting");
-//            StreamGobbler out = new StreamGobbler(p.getInputStream());
-//            StreamGobbler err = new StreamGobbler(p.getErrorStream());
-//            out.start(); err.start();
-//            System.out.println("Waiting more");
-//            boolean timedout = JmlTestCase.timeout(p,10000);
-//            System.out.println("Timedout " + timedout);
-//            if (!timedout) {
-//                int e = p.waitFor();
-//                System.out.println("Exit " + e);
-//            }
             System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                          { "-classpath","tempjars/jmlruntime.jar",
+                          { "-classpath","../OpenJML/tempjars/jmlruntime.jar",
                             "-sourcepath","test/testNoErrors",
                             "-specspath","",
                             "-noInternalSpecs",
@@ -599,7 +607,8 @@ public class compiler {
                             "test/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"test/testSpecErrors/A.jml:4: error: incompatible types" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol + "  required: int" + eol + "  found:    boolean" + eol + "1 error" + eol
+                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol
+                          //+ "1 error" + eol
                           );
     }
     
@@ -757,6 +766,8 @@ public class compiler {
                            "test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                 ^" + eol +
+                           "Note: $SPECS/java5/java/util/Arrays.jml uses unchecked or unsafe operations." + eol +
+                           "Note: Recompile with -Xlint:unchecked for details." + eol +
                            "2 errors" + eol
                           );
     }
@@ -813,6 +824,213 @@ public class compiler {
                 ,""
                 );
     }
+    // FIXME - check the version
+    // FIXME - testOK2, testOK3, testJmlBad2
+    // FIXME - test RAC-OK, SIMPLE, etc.
+    
+    @Test
+    public void release_testJmlHelp() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { 
+                },2,0
+                ,""
+                );
+    }
 
+    @Test
+    public void release_testJmlHelp2() throws Exception {
+    	expectedFile = "releaseTests/testJmlHelp/expected";
+    	helper(new String[]
+                { "-help"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness="
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_A() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness"
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_B() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness", ""
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad_C() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-verboseness= "
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlBad3() throws Exception {
+    	expectedFile = "releaseTests/testJmlBad/expected";
+    	helper(new String[]
+                { "-check","-java"
+                },2,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testOK1() throws Exception {
+    	helper(new String[]
+    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java"
+    			},0,0
+    			,""
+    			);
+    }
+
+    @Test
+    public void release_testOK4() throws Exception {
+    	helper(new String[]
+    			{ "-noPurityCheck","-specspath","releaseTests/testOK1","temp-release/B.java","-noInternalSpecs"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking without org.jmlspecs.annotation.*
+    @Test
+    public void release_testRuntime1() throws Exception {
+    	expectedFile = "releaseTests/testRuntime1/expected2";
+    	helper(new String[]
+    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
+    			},1,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with binary files for org.jmlspecs.annotation.*
+    @Test
+    public void release_testRuntime2() throws Exception {
+    	expectedFile = "releaseTests/testRuntime2/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin;../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with source files for org.jmlspecs.annotation.*
+    @Test
+    public void release_testRuntime3() throws Exception {
+    	expectedFile = "releaseTests/testRuntime3/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src;../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with normal internal libaries
+    @Test
+    public void release_testRuntime4() throws Exception {
+    	expectedFile = "releaseTests/testRuntime4/expected";
+    	helper(new String[]
+    			{ "temp-release/C.java", "-no-purityCheck",
+    			},0,0
+    			,""
+    			);
+    }
+    
+    // Testing typechecking with normal internal libaries
+    @Test
+    public void release_testRuntime5() throws Exception {
+    	expectedFile = "releaseTests/testRuntime5/expected";
+    	helper(new String[]
+    			{ "temp-release/D.java", "-no-purityCheck",
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testEsc1() throws Exception {
+    	expectedFile = "releaseTests/testEsc1/expected";
+    	helper(new String[]
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testEsc2() throws Exception {
+    	expectedFile = "releaseTests/testEsc2/expected";
+    	helper(new String[]
+    			{ "-no-purityCheck", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc"
+    			},0,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath1() throws Exception {
+    	expectedFile = "releaseTests/testPath1/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", 
+    			},1,0
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath2() throws Exception {
+    	expectedFile = "releaseTests/testPath2/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
+    			},1,1
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath3() throws Exception {
+    	expectedFile = "releaseTests/testPath3/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
+    			},1,1
+    			,""
+    			);
+    }
+    
+    @Test
+    public void release_testPath4() throws Exception {
+    	expectedFile = "releaseTests/testPath4/expected";
+    	helper(new String[]
+    			{ "-jmltesting", "-no-purityCheck", "testfiles/testPath/data/TestPath.java", "-sourcepath", "testfiles/testPath/data-specs" 
+    			},1,0
+    			,""
+    			);
+    }
+    
+    // FIXME - rest of testPath release tests
 
 }

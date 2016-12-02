@@ -94,7 +94,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlToken.BSRESULT) {
+        if (that.token == JmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);

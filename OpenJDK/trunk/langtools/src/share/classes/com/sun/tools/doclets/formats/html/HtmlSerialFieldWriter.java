@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,23 +28,26 @@ package com.sun.tools.doclets.formats.html;
 import java.util.*;
 
 import com.sun.javadoc.*;
+import com.sun.tools.doclets.formats.html.markup.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.taglets.*;
-import com.sun.tools.doclets.formats.html.markup.*;
 
 /**
  * Generate serialized form for serializable fields.
  * Documentation denoted by the tags <code>serial</code> and
  * <code>serialField</code> is processed.
  *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  * @author Joe Fialli
  * @author Bhavesh Patel (Modified)
  */
 public class HtmlSerialFieldWriter extends FieldWriterImpl
-    implements SerializedFormWriter.SerialFieldWriter {
+        implements SerializedFormWriter.SerialFieldWriter {
     ProgramElementDoc[] members = null;
-
-    private boolean printedOverallAnchor = false;
 
     public HtmlSerialFieldWriter(SubWriterHolderWriter writer,
                                     ClassDoc classdoc) {
@@ -53,18 +56,6 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
 
     public List<FieldDoc> members(ClassDoc cd) {
         return Arrays.asList(cd.serializableFields());
-    }
-
-    protected void printTypeLinkNoDimension(Type type) {
-        ClassDoc cd = type.asClassDoc();
-        //Linking to package private classes in serialized for causes
-        //broken links.  Don't link to them.
-        if (type.isPrimitive() || cd.isPackagePrivate()) {
-            print(type.typeName());
-        } else {
-            writer.printLink(new LinkInfoImpl(
-                LinkInfoImpl.CONTEXT_SERIAL_MEMBER, type));
-        }
     }
 
     /**
@@ -105,10 +96,6 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
         HtmlTree li = new HtmlTree(HtmlTag.LI);
         li.addStyle(HtmlStyle.blockList);
         if (serializableFieldsTree.isValid()) {
-            if (!printedOverallAnchor) {
-                li.addContent(writer.getMarkerAnchor("serializedForm"));
-                printedOverallAnchor = true;
-            }
             Content headingContent = new StringContent(heading);
             Content serialHeading = HtmlTree.HEADING(HtmlConstants.SERIALIZED_MEMBER_HEADING,
                     headingContent);
@@ -121,10 +108,10 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
     /**
      * Add the member header.
      *
-     * @param fieldsType the class document to be listed
-     * @param fieldTypeStr the string for the filed type to be documented
+     * @param fieldType the class document to be listed
+     * @param fieldTypeStr the string for the field type to be documented
      * @param fieldDimensions the dimensions of the field string to be added
-     * @param firldName name of the field to be added
+     * @param fieldName name of the field to be added
      * @param contentTree the content tree to which the member header will be added
      */
     public void addMemberHeader(ClassDoc fieldType, String fieldTypeStr,
@@ -136,8 +123,8 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
         if (fieldType == null) {
             pre.addContent(fieldTypeStr);
         } else {
-            Content fieldContent = new RawHtml(writer.getLink(new LinkInfoImpl(
-                    LinkInfoImpl.CONTEXT_SERIAL_MEMBER, fieldType)));
+            Content fieldContent = writer.getLink(new LinkInfoImpl(
+                    configuration, LinkInfoImpl.Kind.SERIAL_MEMBER, fieldType));
             pre.addContent(fieldContent);
         }
         pre.addContent(fieldDimensions + " ");
@@ -193,17 +180,13 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
      * @param contentTree the tree to which the member tags info will be added
      */
     public void addMemberTags(FieldDoc field, Content contentTree) {
-        TagletOutputImpl output = new TagletOutputImpl("");
-        TagletWriter.genTagOuput(configuration().tagletManager, field,
-                configuration().tagletManager.getCustomTags(field),
-                writer.getTagletWriterInstance(false), output);
-        String outputString = output.toString().trim();
+        Content tagContent = new ContentBuilder();
+        TagletWriter.genTagOuput(configuration.tagletManager, field,
+                configuration.tagletManager.getCustomTaglets(field),
+                writer.getTagletWriterInstance(false), tagContent);
         Content dlTags = new HtmlTree(HtmlTag.DL);
-        if (!outputString.isEmpty()) {
-            Content tagContent = new RawHtml(outputString);
-            dlTags.addContent(tagContent);
-        }
-        contentTree.addContent(dlTags);
+        dlTags.addContent(tagContent);
+        contentTree.addContent(dlTags);  // TODO: what if empty?
     }
 
     /**
@@ -215,7 +198,7 @@ public class HtmlSerialFieldWriter extends FieldWriterImpl
      * @return true if overview details need to be printed
      */
     public boolean shouldPrintOverview(FieldDoc field) {
-        if (!configuration().nocomment) {
+        if (!configuration.nocomment) {
             if(!field.commentText().isEmpty() ||
                     writer.hasSerializationOverviewTags(field))
                 return true;

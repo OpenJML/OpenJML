@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 public class ExternalProcess implements IExternalProcess  {
 
@@ -219,8 +220,8 @@ public class ExternalProcess implements IExternalProcess  {
         outputString.setLength(0);
         errorString.setLength(0);
         if (showCommunication >= 2) {
-            log.noticeWriter.println("SENDING ["+s.length()+ "]" + s);
-            log.noticeWriter.flush();
+            log.getWriter(WriterKind.NOTICE).println("SENDING ["+s.length()+ "]" + s);
+            log.getWriter(WriterKind.NOTICE).flush();
         }
         try {
             // The number 2000 here is arbitrary - it is just a significant
@@ -291,7 +292,7 @@ public class ExternalProcess implements IExternalProcess  {
      */
     protected void showCommunication(String out, String err) throws ProverException {
         if (showCommunication >= 3) {
-            log.noticeWriter.println("HEARD: " + out);
+            log.getWriter(WriterKind.NOTICE).println("HEARD: " + out);
         }
         if (showCommunication >= 1) {
             if (!err.isEmpty()  &&
@@ -300,10 +301,10 @@ public class ExternalProcess implements IExternalProcess  {
                     !err.startsWith("Yices (version") &&
                     !err.contains("searching") &&
                     !err.trim().isEmpty()) {
-                if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + err);
+                if (showCommunication >= 1) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + err);
                 //throw new ProverException("Prover error message: " + errorString);
             } else {
-                if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + err);
+                if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + err);
             }
         }
     }

@@ -34,20 +34,26 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
+//    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
     
-    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
-    		null,
-   //         "z3_4_3", 
-   //        "z3_4_3_2", 
-            "z3_4_4", 
+    static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
+            "z3_4_3", 
+ //           "z3_4_3_2", 
+ //           "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 
             });
         
-    static public java.util.List<String> solvers = solversWithNull.subList(1, solversWithNull.size());
+    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
+    		null,
+            "z3_4_3", 
+ //           "cvc4",
+            //"yices2",
+ //             "yices", 
+ //            "simplify" 
+            });
         
     static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
             new String[]{"-minQuant"}, 
@@ -191,8 +197,12 @@ public abstract class EscBase extends JmlTestCase {
     		String actCompile = outDir + "/actual";
     		new File(actCompile).delete();
     		PrintWriter pw = new PrintWriter(actCompile);
-    		int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-    		pw.close();
+    		int ex = -1;
+    		try {
+    			ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+    		} finally {
+    			pw.close();
+    		}
 
     		String diffs = compareFiles(outDir + "/expected", actCompile);
     		int n = 0;
@@ -206,8 +216,8 @@ public abstract class EscBase extends JmlTestCase {
     			System.out.println(diffs);
     			fail("Files differ: " + diffs);
     		}  
-    		new File(actCompile).delete();
     		if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+    		new File(actCompile).delete();
 
     	} catch (Exception e) {
     		e.printStackTrace(System.out);
@@ -262,6 +272,7 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     protected void helpTCX(String classname, String s, Object... list) {
+    	//fail("Java8 not yet implemented"); // FIXME - Java8 - 
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);
@@ -277,7 +288,7 @@ public abstract class EscBase extends JmlTestCase {
         try {
             for (JavaFileObject f: mockFiles) files = files.append(f);
             
-            int ex = main.compile(args, null, context, files, null);
+            int ex = main.compile(args, null, context, files, null).exitCode;
             if (captureOutput) collectOutput(false);
             
             if (print) printDiagnostics();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2012, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -58,7 +58,7 @@ public abstract class AbstractLog {
         return prev;
     }
 
-    protected DiagnosticSource getSource(JavaFileObject file) {
+    public DiagnosticSource getSource(JavaFileObject file) { // DRC - protected to public
         if (file == null)
             return DiagnosticSource.NO_SOURCE;
         DiagnosticSource s = sourceMap.get(file);
@@ -132,7 +132,6 @@ public abstract class AbstractLog {
 
     /** Report a warning, unless suppressed by the  -nowarn option or the
      *  maximum number of warnings has been reached.
-     *  @param pos    The source position at which to report the warning.
      *  @param key    The key for the localized warning message.
      *  @param args   Fields of the warning message.
      */

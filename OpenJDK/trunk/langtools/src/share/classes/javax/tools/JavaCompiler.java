@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -108,8 +108,8 @@ import javax.annotation.processing.Processor;
  *     example a recommended coding pattern:
  *
  *     <pre>
- *       Files[] files1 = ... ; // input for first compilation task
- *       Files[] files2 = ... ; // input for second compilation task
+ *       File[] files1 = ... ; // input for first compilation task
+ *       File[] files2 = ... ; // input for second compilation task
  *
  *       JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
  *       StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
@@ -137,7 +137,7 @@ import javax.annotation.processing.Processor;
  *       StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
  *       compiler.getTask(null, fileManager, diagnostics, null, null, compilationUnits).call();
  *
- *       for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics())
+ *       for ({@code Diagnostic<? extends JavaFileObject>} diagnostic : diagnostics.getDiagnostics())
  *           System.out.format("Error on line %d in %s%n",
  *                             diagnostic.getLineNumber(),
  *                             diagnostic.getSource().toUri());
@@ -165,7 +165,7 @@ import javax.annotation.processing.Processor;
  *       JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
  *       StandardJavaFileManager stdFileManager = compiler.getStandardFileManager(null, null, null);
  *       JavaFileManager fileManager = new ForwardingJavaFileManager(stdFileManager) {
- *           public void flush() {
+ *           public void flush() throws IOException {
  *               logger.entering(StandardJavaFileManager.class.getName(), "flush");
  *               super.flush();
  *               logger.exiting(StandardJavaFileManager.class.getName(), "flush");
@@ -251,8 +251,8 @@ public interface JavaCompiler extends Tool, OptionChecker {
      * occurred in a user supplied component.  The
      * {@linkplain Throwable#getCause() cause} will be the error in
      * user code.
-     * @throws IllegalArgumentException if any of the given
-     * compilation units are of other kind than
+     * @throws IllegalArgumentException if any of the options are invalid,
+     * or if any of the given compilation units are of other kind than
      * {@linkplain JavaFileObject.Kind#SOURCE source}
      */
     CompilationTask getTask(Writer out,
@@ -266,7 +266,7 @@ public interface JavaCompiler extends Tool, OptionChecker {
      * Gets a new instance of the standard file manager implementation
      * for this tool.  The file manager will use the given diagnostic
      * listener for producing any non-fatal diagnostics.  Fatal errors
-     * will be signalled with the appropriate exceptions.
+     * will be signaled with the appropriate exceptions.
      *
      * <p>The standard file manager will be automatically reopened if
      * it is accessed after calls to {@code flush} or {@code close}.

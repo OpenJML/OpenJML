@@ -56,6 +56,7 @@ public class escfiles extends EscBase {
     public void setUp() throws Exception {
         rac = sysrac;
         super.setUp();
+    	ignoreNotes = true;
     }
     
     public void helpTF(String testDirname, String ... opts) {
@@ -108,7 +109,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB","-method=tick","-show","-subexpressions","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");//,"-method=tick","-show","-escMaxWarnings=1");
     }
 
     @Test
@@ -160,7 +161,7 @@ public class escfiles extends EscBase {
     public void testDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","-noInternalSpecs",enableSubexpressions ? "-subexpressions" : "");
     }
 
     @Test // FIXME - Problem with int / short conversions
@@ -182,7 +183,7 @@ public class escfiles extends EscBase {
         helpTCF("test/bagModified","test/bagModified");
     }
 
-    @Test // FIXME - hangs up sometimes with some solvers
+    @Test @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
     public void testLoopExercises() {
         expectedExit = 0;
         helpTCF("test/loopExercises","test/loopExercises","-logic=AUFNIA");
@@ -242,7 +243,7 @@ public class escfiles extends EscBase {
     @Test 
     public void testCashAmount() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-logic=AUFNIA");
     }
 
     @Test
@@ -265,9 +266,9 @@ public class escfiles extends EscBase {
 
     @Test
     public void testSettableClock() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        //Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         expectedExit = 0;
-        helpDemo("settableClock","escSettableClock","-logic=AUFNIRA");
+        helpDemo("settableClock","escSettableClock","-logic=AUFNIA");
     }
 
     @Test
@@ -318,16 +319,17 @@ public class escfiles extends EscBase {
         helpTF("escRecursiveInvariant2","-minQuant");
     }
 
+    // FIXME - reasoning about getClass
     @Test
     public void testBadCast() {
         expectedExit = 0;
-        helpTF("escBadCast");
+        helpTF("escBadCast");//,"-show","-method=BadCast.equals");
     }
 
     @Test
     public void testCashAmountPrivate2() {
         expectedExit = 0;
-        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase");
+        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-logic=AUFNIA");
     }
 
     @Test
@@ -350,7 +352,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=SimpleString","-show","-checkFeasibility=debug");
     }
 
     @Test
@@ -377,7 +379,12 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEscDeterministic() {
-        helpTF("escDeterministic","-logic=AUFLIA","-counterexample","-trace");
+        helpTF("escDeterministic");
+	}
+
+    @Test
+    public void testEscDeterministic2() {
+        helpTF("escDeterministic2");
 	}
 
     @Test
@@ -392,7 +399,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testJmlSpecPublic() {
-        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
+        helpTCF("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");//,"-show","-method=credit","-subexpressions","-checkFeasibility=all");
     }
 
     @Test
@@ -447,7 +454,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");//,"-show","-method=StorageParameters.StorageParameters");
     }
 
     @Test

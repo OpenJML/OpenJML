@@ -52,6 +52,8 @@ public enum JmlOption implements IOption {
     CODE_MATH("-code-math",true,"safe","Arithmetic mode for Java code",null),
     SPEC_MATH("-spec-math",true,"bigint","Arithmetic mode for specifications",null),
     
+    // FIXME - turn default back to true when problems have been worked out
+    CHECK_ACCESSIBLE("-checkAccessible",false,false,"When on (the default), JML accessible clauses are checked",null),
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
     PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),
@@ -82,6 +84,7 @@ public enum JmlOption implements IOption {
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
     QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
 
+    MODEL_FIELD_NO_REP("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null),
 //    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
     RAC_SHOW_SOURCE("-racShowSource",false,true,"RAC: Error messages will include source information",null),
@@ -89,6 +92,9 @@ public enum JmlOption implements IOption {
     RAC_JAVA_CHECKS("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
     RAC_PRECONDITION_ENTRY("-racPreconditionEntry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null),
+    RAC_MISSING_MODEL_FIELD_REP_SOURCE("-racMissingModelFieldRepSource",true,"zero","RAC: action when a model field has no representation (zero,warn,skip)",null),
+    RAC_MISSING_MODEL_FIELD_REP_BINARY("-racMissingModelFieldRepBinary",true,"skip","RAC: action when a model field for a binary class has no representation (zero,warn,skip)",null),
+
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
@@ -235,6 +241,12 @@ public enum JmlOption implements IOption {
      //@ non_null
     public String optionName() { return name; }
 
+    /** The name of the option, including any leading - sign
+     * @see org.jmlspecs.openjml.IOption#optionName()
+     */
+     //@ non_null
+    public String getText() { return name; }
+    
     /* Whether the option takes an argument
      * @see org.jmlspecs.openjml.OptionInterface#hasArg()
      */

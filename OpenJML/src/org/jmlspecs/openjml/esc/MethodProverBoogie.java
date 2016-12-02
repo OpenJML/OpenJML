@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.esc;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.tools.JavaFileObject;
@@ -23,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
@@ -39,19 +41,20 @@ public class MethodProverBoogie extends MethodProverSMT {
     /** Perform an ESC check of the method using boogie+Z3 */
     public IProverResult prove(JmlMethodDecl decl) {
         boolean print = true; //true;
+        PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         if (print && decl.name.toString().equals("<init>")) {
-            log.noticeWriter.println("SKIPPING PROOF OF " + decl.name);
+            noticeWriter.println("SKIPPING PROOF OF " + decl.name);
             return null;
         }
 
         utils.progress(1,2,"Starting proof of " + utils.qualifiedMethodSig(decl.sym)+ " with prover " + jmlesc.proverToUse);
 
         if (print) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------");
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("STARTING PROOF OF " + decl.sym.owner.getQualifiedName() + "." + decl.sym);
-            log.noticeWriter.println(JmlPretty.write(decl.body));
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("--------------------------------------");
+            noticeWriter.println(Strings.empty);
+            noticeWriter.println("STARTING PROOF OF " + decl.sym.owner.getQualifiedName() + "." + decl.sym);
+            noticeWriter.println(JmlPretty.write(decl.body));
         }
 
         JmlMethodDecl tree = (JmlMethodDecl)decl;
@@ -65,7 +68,7 @@ public class MethodProverBoogie extends MethodProverSMT {
 
         JmlAssertionAdder assertionAdder = new JmlAssertionAdder(context,true,false);
         JCBlock newblock = assertionAdder.convertMethodBody(tree,currentClassDecl);
-        log.noticeWriter.println(JmlPretty.write(newblock));
+        noticeWriter.println(JmlPretty.write(newblock));
 
         BoogieProgram program = new Boogier(context).convertMethodBody(newblock, decl, denestedSpecs, currentClassDecl, assertionAdder);
         String filename = "boogie_" + decl.getName() + ".bpl";
@@ -78,10 +81,10 @@ public class MethodProverBoogie extends MethodProverSMT {
             fw.append(programString);
             fw.close();
         } catch (IOException e) {
-            log.noticeWriter.println("Could not write boogie output file"); // FIXME - error
+            noticeWriter.println("Could not write boogie output file"); // FIXME - error
             return null;
         }
-        log.noticeWriter.println(programString);
+        noticeWriter.println(programString);
 
         String boogie = Options.instance(context).get("openjml.prover.boogie");
         ExternalProcess p = new ExternalProcess(context,null,
@@ -94,10 +97,10 @@ public class MethodProverBoogie extends MethodProverSMT {
         try {
             p.start();
             int exitVal = p.readToCompletion();
-            log.noticeWriter.println("Boogie exit val " + exitVal); // FIXME - guard or delete verbose output
+            noticeWriter.println("Boogie exit val " + exitVal); // FIXME - guard or delete verbose output
             String out = p.outputString.toString();
-            log.noticeWriter.println("OUTPUT: " + out);
-            log.noticeWriter.println("ERROR: " + p.errorString.toString());
+            noticeWriter.println("OUTPUT: " + out);
+            noticeWriter.println("ERROR: " + p.errorString.toString());
             if (out.contains("This assertion might not hold")) {
                 int k = out.indexOf('(');
                 int kk = out.indexOf(',');
@@ -122,7 +125,7 @@ public class MethodProverBoogie extends MethodProverSMT {
                     try {
                         terminationPos = Integer.parseInt(out.substring(kkk,kk));
                     } catch (NumberFormatException e) {
-                        log.noticeWriter.println("NO RETURN FOUND"); // FIXME
+                        noticeWriter.println("NO RETURN FOUND"); // FIXME
                         // continue
                     }
                 }

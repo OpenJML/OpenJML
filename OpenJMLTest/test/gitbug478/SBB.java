@@ -12,6 +12,7 @@ public class SBB implements SB {
     
     private SBB(ByteBuffer buf, int size) {
 	this.buf = buf;
+	this.size = size;
     }
     
     /**

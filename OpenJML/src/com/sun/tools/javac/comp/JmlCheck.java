@@ -4,18 +4,34 @@
  */
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.TypeTags.FORALL;
+import static com.sun.tools.javac.code.Flags.HYPOTHETICAL;
+import static com.sun.tools.javac.code.Kinds.MTH;
+import static com.sun.tools.javac.code.Kinds.TYP;
+import static com.sun.tools.javac.code.Kinds.kindName;
+import static com.sun.tools.javac.code.TypeTag.FORALL;
+import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.annotation.NonNull;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Kinds;
+import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ForAll;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.Warner;
 
@@ -88,15 +104,11 @@ public class JmlCheck extends Check {
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
         if (!isInJml) return super.checkCastable(pos,found,req);
-        if (found.tag == FORALL) {
-            instantiatePoly(pos, (ForAll) found, req, new NoWarningsAtAll());
-            return req;
-        } else if (types.isCastable(found, req, new NoWarningsAtAll())) {
+        if (types.isCastable(found, req, castWarner(pos, found, req))) {
             return req;
         } else {
-            return typeError(pos,
-                             diags.fragment("inconvertible.types"),
-                             found, req);
+            basicHandler.report(pos, diags.fragment("inconvertible.types", found, req));
+            return types.createErrorType(found);
         }
     }
     
@@ -105,20 +117,37 @@ public class JmlCheck extends Check {
      */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
+        if (sym.kind == Kinds.ERR) return flags;
         JCTree.JCVariableDecl d = (tree instanceof JCTree.JCVariableDecl) ? (JCTree.JCVariableDecl) tree : null;
         if (staticOldEnv) flags &= ~Flags.STATIC;
-        long k = super.checkFlags(pos,flags,sym,tree);
+        long k = super.checkFlags(pos,flags&~Flags.DEFAULT,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (d != null) {
-            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlToken.INSTANCE) != null;
+            boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlTokenKind.INSTANCE) != null;
             if (isInstance) k &= ~Flags.STATIC;
         }
         return k;
     }
     
     @Override
-    public Type checkType(DiagnosticPosition pos, Type found, Type req, String errKey) {
-        if (found.tag == TypeTags.ARRAY && req.tag == TypeTags.ARRAY &&
+    protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - changed from private to protected
+        boolean is292targetTypeCast = false;
+        JCExpression expr = TreeInfo.skipParens(tree.expr);
+        if (expr.hasTag(APPLY)) {
+            JCMethodInvocation apply = (JCMethodInvocation)expr;
+            if (apply.meth == null) return false;  // Overridden to add this check
+            Symbol sym = TreeInfo.symbol(apply.meth);
+            is292targetTypeCast = sym != null &&
+                sym.kind == MTH &&
+                (sym.flags() & HYPOTHETICAL) != 0;
+        }
+        return is292targetTypeCast;
+    }
+
+    
+    @Override
+    public Type checkType(DiagnosticPosition pos, Type found, Type req) {
+        if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 found.toString().equals("org.jmlspecs.utils.IJMLTYPE[]") &&
                 req.toString().equals("\\TYPE[]")) {
             // FIXME - can we do the above without converting to String
@@ -126,7 +155,33 @@ public class JmlCheck extends Check {
             // does it cause problems elsewhere?
             return req;
         }
-        return super.checkType(pos, found, req, errKey);
+        return super.checkType(pos, found, req);
     }
+    
+    boolean noDuplicateWarn = false;
+    DiagnosticPosition duplicateErrorPosition = null;
+    void duplicateError(DiagnosticPosition pos, Symbol sym) {
+        if (noDuplicateWarn) return;
+        super.duplicateError(pos, sym);
+    }
+    
+    void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
+        if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
+    }
+    
+    Symbol findClassName(DiagnosticPosition pos, Name name, Scope s) {
+        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
+            if (e.sym.kind == TYP && e.sym.name != names.error) {
+                return e.sym;
+            }
+        }
+        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
+            if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
+                return sym;
+            }
+        }
+        return null;
+    }
+
 
 }

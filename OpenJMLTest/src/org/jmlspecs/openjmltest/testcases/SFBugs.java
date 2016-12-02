@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,7 @@ public class SFBugs extends EscBase {
 
 	public SFBugs(String options, String solver) {
 		super(options, solver);
+		ignoreNotes = true;
 	}
 	
     @Parameters
@@ -37,6 +39,7 @@ public class SFBugs extends EscBase {
     }
     
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
+    	//Assert.fail(); // FIXME - Java8 - long running
 		escOnFiles(sourceDirname,outDir,opts);
 	}
 
@@ -50,7 +53,7 @@ public class SFBugs extends EscBase {
 
 
 
-    @Test public void test() {
+    @Test public void typecheckWithJML() {
     	expectedExit = 1;
         helpTCF("test/tcWithJml/TCWithJml.java","test/tcWithJml", "-cp", "test/tcWithJml", "-check");
     }
@@ -91,9 +94,8 @@ public class SFBugs extends EscBase {
     @Ignore // Can be very long running
     @Test public void sfbug414() {
     	expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5","-show","-method=Sqrt.sqrt","-subexpressions");
+        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5");
     }
-    
     @Ignore // Can be very long running
     @Test public void gitbug257() {
     	expectedExit = 0;
@@ -111,7 +113,8 @@ public class SFBugs extends EscBase {
     }
     
     @Test public void gitbug450() {
-    	expectedExit = 0;
+    	expectedExit = 1;
+    	ignoreNotes = true;
         helpTCF("test/gitbug450","test/gitbug450", "-cp", "test/gitbug450", "-esc", "-progress");
     }
     
@@ -157,7 +160,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug462b() {
     	expectedExit = 0;
-        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc"); // , "-show", "-method=Container.ContainerUser.allocate","-subexpressions");
+        helpTCF("test/gitbug462b","test/gitbug462b", "-cp", "test/gitbug462b", "-esc" );//, "-show", "-method=Container.ContainerUser.allocate","-subexpressions");
     }
     
     @Test public void gitbug462c() {
@@ -186,6 +189,7 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
     }
     
+    // FIXME - generics
     @Test public void gitbug445() {
     	expectedExit = 1;
         helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
@@ -203,7 +207,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug444() {
     	expectedExit = 0;
-        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444");
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444"); //,"-show","-method=isRelaxedPrefix");
     }
     
     @Test public void gitbug444a() {
@@ -251,8 +255,38 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug999() {
+    // Check everything in apache commons library!
+    @Test @Ignore public void gitbug481() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481b","test/gitbug481", "-cp", "test/gitbug481b","-progress");
+    }
+
+    // Just one method, but parse and typecheck all files first
+    @Test @Ignore public void gitbug481c() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481b","test/gitbug481c", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+    }
+
+    // Just one method in one file
+    @Test public void gitbug481b() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
+    }
+
+    // Just one file
+    @Test public void gitbug481a() {
+    	expectedExit = 1;
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b");
+    }
+
+    @Test public void gitbug482() {
+    	expectedExit = 0;
+        helpTCF("test/gitbug482/checkers/src/main","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","-check"); // check only, not esc
+    }
+
+    public void gitbug999() {
     	expectedExit = 0;
         helpTCG();
     }
 }
+

@@ -18,7 +18,20 @@ public static class Bar {
     }
 
 
+    //@ requires length > 0;
+    //@ requires URANDOM.isOpen;
+    //@ requires URANDOM.availableBytes > 0;
     private static synchronized void getSeed(int length) {
+        int read = 0;
+        byte[] result = new byte[length];
+        try {
+    URANDOM.read(result, read, length-read);
+        } catch (final IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    private static synchronized void getSeed2(int length) {
         int read = 0;
         byte[] result = new byte[length];
         try {

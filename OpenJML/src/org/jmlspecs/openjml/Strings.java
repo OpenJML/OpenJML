@@ -29,9 +29,9 @@ public class Strings {
     static public final String eol = System.getProperty("line.separator");
 	
     // Names of Java options, from the JDK compiler
-    static public final String classpathOptionName = com.sun.tools.javac.main.OptionName.CLASSPATH.optionName;
-    static public final String sourcepathOptionName = com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName;
-    static public final String outputOptionName = com.sun.tools.javac.main.OptionName.D.optionName;
+    static public final String classpathOptionName = com.sun.tools.javac.main.Option.CLASSPATH.getText();
+    static public final String sourcepathOptionName = com.sun.tools.javac.main.Option.SOURCEPATH.getText();
+    static public final String outputOptionName = com.sun.tools.javac.main.Option.D.getText();
 
     // Suffixes
     static public final String javaSuffix = ".java"; //$NON-NLS-1$
@@ -72,6 +72,9 @@ public class Strings {
     
     /** The fully-qualified name of the Pure annotation */
     static public final String pureAnnotation = jmlAnnotationPackage + ".Pure"; //$NON-NLS-1$
+    
+    /** The fully-qualified name of the Function annotation */
+    static public final String functionAnnotation = jmlAnnotationPackage + ".Function"; //$NON-NLS-1$
     
     /** The fully-qualified name of the Model annotation */
     static public final String modelAnnotation = jmlAnnotationPackage + ".Model"; //$NON-NLS-1$

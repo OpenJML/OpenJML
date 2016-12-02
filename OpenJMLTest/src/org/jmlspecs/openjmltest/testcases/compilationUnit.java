@@ -175,7 +175,7 @@ public class compilationUnit extends ParseBase {
         checkCompilationUnit("/*@ pure */ class A {}",
         JmlCompilationUnit.class, 4,4,22,
         JmlClassDecl.class, 4,12,22,
-        JCModifiers.class, 4,4,11, // FIXME - end
+        JCModifiers.class, 4,4,11, // FIXME - would like this to be 8
         JmlAnnotation.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,
         JCFieldAccess.class, 4,4,8,
@@ -194,7 +194,7 @@ public class compilationUnit extends ParseBase {
               JmlMethodDecl.class, 10,15,72,
               JCModifiers.class, -1,-1,-1,
               JCPrimitiveTypeTree.class, 10,10,14,
-              JCBlock.class, 19,19,72,
+              JmlBlock.class, 19,19,72,
               JmlStatementSpec.class, 25, 25, 62, 
               JmlMethodSpecs.class, 34, 34, 62,
               JmlSpecificationCase.class, 34,34,62,
@@ -219,7 +219,7 @@ public class compilationUnit extends ParseBase {
               JmlMethodDecl.class, 10,15,72,
               JCModifiers.class, -1,-1,-1,
               JCPrimitiveTypeTree.class, 10,10,14,
-              JCBlock.class, 19,19,72,
+              JmlBlock.class, 19,19,72,
               JmlStatementSpec.class, 34,34, 62,
               JmlMethodSpecs.class, 34, 34, 62,
               JmlSpecificationCase.class, 34,34,62,
@@ -258,7 +258,7 @@ public class compilationUnit extends ParseBase {
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 64,64,67,
                 // The parameter name is a Name, not an AST
-                JCBlock.class, 71,71,73
+                JmlBlock.class, 71,71,73
                 );
         
         checkMessages();
@@ -283,7 +283,7 @@ public class compilationUnit extends ParseBase {
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 57,57,61,
                 // The method name is a Name, not an AST
-                JCBlock.class, 66,66,68
+                JmlBlock.class, 66,66,68
                 );
         
         checkMessages();
@@ -305,7 +305,7 @@ public class compilationUnit extends ParseBase {
                 
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 39,39,43,
-                JCBlock.class, 48,48,50
+                JmlBlock.class, 48,48,50
                 );        
         checkMessages();
     }
@@ -326,7 +326,7 @@ public class compilationUnit extends ParseBase {
                 
                 JCModifiers.class, -1,-1,-1,
                 JCPrimitiveTypeTree.class, 39,39,43,
-                JCBlock.class, 48,48,50
+                JmlBlock.class, 48,48,50
                 );
         
         checkMessages();

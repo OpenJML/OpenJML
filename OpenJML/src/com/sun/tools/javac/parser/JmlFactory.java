@@ -57,9 +57,8 @@ public class JmlFactory extends ParserFactory {
     // @ ensures this.S != null && this.context != null;
     // @ ensures this.names != null && this.jmlF != null;
     @Override
-    public Parser newParser(CharSequence input, boolean keepDocComments,
-            boolean genEndPos, boolean keepLineMap) {
-        return newParser(input, keepDocComments, genEndPos, keepLineMap,
+    public JavacParser newParser(CharSequence input, boolean keepDocComments, boolean keepEndPos, boolean keepLineMap) {
+        return newParser(input, keepDocComments, keepEndPos, keepLineMap,
                 false); // The last argument says that the parser begins
                         // not within a JML comment
     }

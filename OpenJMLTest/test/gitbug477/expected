@@ -11,3 +11,5 @@ Feasibility check #4 - before explicit assert statement : OK
 Feasibility check #5 - at program exit : OK
 Completed proof of Foo.foo() with prover !!!! - no warnings
 Completed proving methods in Foo
+Note: $SPECS\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.

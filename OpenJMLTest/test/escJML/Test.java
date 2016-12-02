@@ -83,9 +83,9 @@ public class Test {
 	void mf4() {
 		@NonNull Object q = fii; // Error
 	}
-
-
+	Test() { fi = fiii = new Object(); }
 }
+
 
 class A { // NullableByDefault
 	
@@ -135,8 +135,8 @@ class A { // NullableByDefault
     void tt(Object ott) {
     	ott = null; // Error - ott is NonNull
     }
+    A() { fnn = fii = fiii = new Object(); }
 }
-
 class B { // NullableByDefault
 	
 	// Initializing local variables, using a parameter
@@ -171,5 +171,4 @@ class B { // NullableByDefault
 		Object o = ooo;
 		@NonNull Object oo = o; // Error - o is nullable by default
 	}
-	
 }

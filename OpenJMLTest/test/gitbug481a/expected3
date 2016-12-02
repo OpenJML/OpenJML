@@ -1,0 +1,503 @@
+Proving methods in org.apache.commons.math3.linear.ArrayFieldVector
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:72: warning: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  this.field
+        this.field = field;
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: warning: Associated declaration
+    public ArrayFieldVector(Field<T> field, int size) {
+           ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: warning: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  \everything
+        this.data  = MathArrays.buildArray(field, size);
+                                          ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: warning: Associated declaration
+    public ArrayFieldVector(Field<T> field, int size) {
+           ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: warning: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  this.data
+        this.data  = MathArrays.buildArray(field, size);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: warning: Associated declaration
+    public ArrayFieldVector(Field<T> field, int size) {
+           ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(int,T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:84: warning: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  a[*]
+        Arrays.fill(data, preset);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:82: warning: Associated declaration
+    public ArrayFieldVector(int size, T preset) {
+           ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:83: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+        this(preset.getField(), size);
+            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: warning: Associated declaration
+    public ArrayFieldVector(Field<T> field, int size) {
+                                     ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(int,T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[]) with prover !!!!
+error: An error while executing a proof script for <init>: (error "line 2646 column 34: logic does not support reals")
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[]) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[]) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[]) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],boolean) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],boolean) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],boolean) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],boolean) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],int,int) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],int,int) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],int,int) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],int,int) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,T[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,T[]) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[]) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],T[]) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(T[],T[]) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],T[]) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,T[],T[]) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getField() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getField() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.copy() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.copy() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:441: warning: The prover cannot establish an assertion (PossiblyBadCast) in method add:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+            return add((ArrayFieldVector<T>) v);
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:446: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method add
+                out[i] = data[i].add(v.getEntry(i));
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:446: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method add
+                out[i] = data[i].add(v.getEntry(i));
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:446: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method add
+                out[i] = data[i].add(v.getEntry(i));
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:446: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method add
+                out[i] = data[i].add(v.getEntry(i));
+                                ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:464: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method add
+            out[i] = data[i].add(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:464: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method add
+            out[i] = data[i].add(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:464: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method add
+            out[i] = data[i].add(v.data[i]);
+                                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:464: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method add
+            out[i] = data[i].add(v.data[i]);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:464: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method add
+            out[i] = data[i].add(v.data[i]);
+                            ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.add(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:473: warning: The prover cannot establish an assertion (PossiblyBadCast) in method subtract:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+            return subtract((ArrayFieldVector<T>) v);
+                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:478: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method subtract
+                out[i] = data[i].subtract(v.getEntry(i));
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:478: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method subtract
+                out[i] = data[i].subtract(v.getEntry(i));
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:478: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method subtract
+                out[i] = data[i].subtract(v.getEntry(i));
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:478: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method subtract
+                out[i] = data[i].subtract(v.getEntry(i));
+                                ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:496: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method subtract
+            out[i] = data[i].subtract(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:496: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method subtract
+            out[i] = data[i].subtract(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:496: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method subtract
+            out[i] = data[i].subtract(v.data[i]);
+                                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:496: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method subtract
+            out[i] = data[i].subtract(v.data[i]);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:496: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method subtract
+            out[i] = data[i].subtract(v.data[i]);
+                            ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.subtract(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAdd(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:505: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapAdd
+            out[i] = data[i].add(d);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:505: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method mapAdd
+            out[i] = data[i].add(d);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:505: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapAdd
+            out[i] = data[i].add(d);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:505: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapAdd
+            out[i] = data[i].add(d);
+                            ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAdd(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAddToSelf(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:513: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapAddToSelf
+            data[i] = data[i].add(d);
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:513: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapAddToSelf
+            data[i] = data[i].add(d);
+                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:513: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapAddToSelf
+            data[i] = data[i].add(d);
+                             ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapAddToSelf(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtract(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:522: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapSubtract
+            out[i] = data[i].subtract(d);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:522: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapSubtract
+            out[i] = data[i].subtract(d);
+                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:522: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapSubtract
+            out[i] = data[i].subtract(d);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:522: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method mapSubtract
+            out[i] = data[i].subtract(d);
+               ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtract(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtractToSelf(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:530: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapSubtractToSelf
+            data[i] = data[i].subtract(d);
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:530: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapSubtractToSelf
+            data[i] = data[i].subtract(d);
+                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:530: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapSubtractToSelf
+            data[i] = data[i].subtract(d);
+                             ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapSubtractToSelf(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiply(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:539: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapMultiply
+            out[i] = data[i].multiply(d);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:539: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapMultiply
+            out[i] = data[i].multiply(d);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:539: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapMultiply
+            out[i] = data[i].multiply(d);
+                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:539: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method mapMultiply
+            out[i] = data[i].multiply(d);
+               ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiply(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiplyToSelf(T) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:547: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapMultiplyToSelf
+            data[i] = data[i].multiply(d);
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:547: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapMultiplyToSelf
+            data[i] = data[i].multiply(d);
+                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:547: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mapMultiplyToSelf
+            data[i] = data[i].multiply(d);
+                             ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapMultiplyToSelf(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivide(T) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivide(T) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivideToSelf(T) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapDivideToSelf(T) with prover !!!! - ERROR
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInv() with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:576: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mapInv:  one
+        final T one = field.getOne();
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:579: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapInv
+                out[i] = one.divide(data[i]);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:579: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapInv
+                out[i] = one.divide(data[i]);
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:579: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method mapInv
+                out[i] = one.divide(data[i]);
+                   ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInv() with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInvToSelf() with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:589: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mapInvToSelf:  one
+        final T one = field.getOne();
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:592: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method mapInvToSelf
+                data[i] = one.divide(data[i]);
+                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:592: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method mapInvToSelf
+                data[i] = one.divide(data[i]);
+                        ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.mapInvToSelf() with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:604: warning: The prover cannot establish an assertion (PossiblyBadCast) in method ebeMultiply:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+            return ebeMultiply((ArrayFieldVector<T>) v);
+                               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:609: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method ebeMultiply
+                out[i] = data[i].multiply(v.getEntry(i));
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:609: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method ebeMultiply
+                out[i] = data[i].multiply(v.getEntry(i));
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:609: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ebeMultiply
+                out[i] = data[i].multiply(v.getEntry(i));
+                                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:609: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeMultiply
+                out[i] = data[i].multiply(v.getEntry(i));
+                   ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:627: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ebeMultiply
+            out[i] = data[i].multiply(v.data[i]);
+                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:627: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method ebeMultiply
+            out[i] = data[i].multiply(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:627: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeMultiply
+            out[i] = data[i].multiply(v.data[i]);
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:627: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeMultiply
+            out[i] = data[i].multiply(v.data[i]);
+                                            ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:627: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method ebeMultiply
+            out[i] = data[i].multiply(v.data[i]);
+                   ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeMultiply(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:636: warning: The prover cannot establish an assertion (PossiblyBadCast) in method ebeDivide:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+            return ebeDivide((ArrayFieldVector<T>) v);
+                             ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:642: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ebeDivide
+                    out[i] = data[i].divide(v.getEntry(i));
+                                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:642: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method ebeDivide
+                    out[i] = data[i].divide(v.getEntry(i));
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:642: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method ebeDivide
+                    out[i] = data[i].divide(v.getEntry(i));
+                           ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:642: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeDivide
+                    out[i] = data[i].divide(v.getEntry(i));
+                       ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method ebeDivide
+                out[i] = data[i].divide(v.data[i]);
+                   ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method ebeDivide
+                out[i] = data[i].divide(v.data[i]);
+                       ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeDivide
+                out[i] = data[i].divide(v.data[i]);
+                                              ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ebeDivide
+                out[i] = data[i].divide(v.data[i]);
+                                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:665: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method ebeDivide
+                out[i] = data[i].divide(v.data[i]);
+                   ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ebeDivide(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getData() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getData() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getDataRef() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getDataRef() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:691: warning: The prover cannot establish an assertion (PossiblyBadCast) in method dotProduct:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+            return dotProduct((ArrayFieldVector<T>) v);
+                              ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:694: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method dotProduct:  dot
+            T dot = field.getZero();
+              ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method dotProduct
+                dot = dot.add(data[i].multiply(v.getEntry(i)));
+                         ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method dotProduct
+                dot = dot.add(data[i].multiply(v.getEntry(i)));
+                                  ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method dotProduct
+                dot = dot.add(data[i].multiply(v.getEntry(i)));
+                    ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method dotProduct
+                dot = dot.add(data[i].multiply(v.getEntry(i)));
+                                     ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:698: warning: The prover cannot establish an assertion (Postcondition) in method dotProduct
+            return dot;
+            ^
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:207: warning: Associated declaration
+    T dotProduct(FieldVector<T> v) throws DimensionMismatchException;
+      ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method dotProduct
+            dot = dot.add(data[i].multiply(v.data[i]));
+                              ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method dotProduct
+            dot = dot.add(data[i].multiply(v.data[i]));
+                                 ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method dotProduct
+            dot = dot.add(data[i].multiply(v.data[i]));
+                     ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method dotProduct
+            dot = dot.add(data[i].multiply(v.data[i]));
+                                                 ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method dotProduct
+            dot = dot.add(data[i].multiply(v.data[i]));
+                ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:712: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method dotProduct:  dot
+        T dot = field.getZero();
+          ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:716: warning: The prover cannot establish an assertion (Postcondition) in method dotProduct
+        return dot;
+        ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:709: warning: Associated declaration
+    public T dotProduct(ArrayFieldVector<T> v)
+             ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:722: warning: The prover cannot establish an assertion (Precondition) in method projection
+        return v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
+                            ^
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: warning: Associated declaration
+    FieldVector<T> mapMultiply(T d) throws NullArgumentException;
+                                 ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734: warning: The prover cannot establish an assertion (PossiblyBadCast) in method projection:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
+        return (ArrayFieldVector<T>) v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
+               ^
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734: warning: The prover cannot establish an assertion (Precondition) in method projection
+        return (ArrayFieldVector<T>) v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
+                                                  ^
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: warning: Associated declaration
+    FieldVector<T> mapMultiply(T d) throws NullArgumentException;
+                                 ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:747: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method outerProduct
+                    out.setEntry(i, j, data[i].multiply(v.getEntry(j)));
+                                           ^
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getDimension() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getDimension() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.append(T) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.append(T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getSubVector(int,int) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getSubVector(int,int) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.setEntry(int,T) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.setEntry(int,T) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.setSubVector(int,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.setSubVector(int,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.set(int,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.set(int,org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.set(T) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.set(T) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.toArray() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.toArray() with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkVectorDimensions(int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorPreservingVisitor<T>,int,int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInDefaultOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.walkInOptimizedOrder(org.apache.commons.math3.linear.FieldVectorChangingVisitor<T>,int,int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.equals(java.lang.Object) with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.equals(java.lang.Object) with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.hashCode() with prover !!!!
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.hashCode() with prover !!!! - with warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndex(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndex(int) with prover !!!! - no warnings
+Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(int,int) with prover !!!! - no warnings
+Completed proving methods in org.apache.commons.math3.linear.ArrayFieldVector
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: C:\cygwin\home\OpenJML-git-java8\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 error
+100 warnings

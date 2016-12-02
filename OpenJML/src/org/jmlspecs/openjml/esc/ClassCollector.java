@@ -12,7 +12,7 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -48,7 +48,7 @@ class ClassCollector extends JmlTreeScanner {
     
     // FIXME - what about generic type variables
     protected void save(Type tt) {
-        if (tt != null && tt.tag != TypeTags.VOID && tt.tag != TypeTags.BOT && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
+        if (tt != null && tt.getTag() != TypeTag.VOID && tt.getTag() != TypeTag.BOT && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
             ClassSymbol c = (ClassSymbol)tt.tsym;
             classes.add(c);
         }

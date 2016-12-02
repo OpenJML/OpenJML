@@ -29,6 +29,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitLetExpr(LetExpr that, P p)                         ;
 
     R visitJmlBinary(JmlBinary that, P p)                     ;
+    R visitJmlBlock(JmlBlock that, P p)                       ;
     R visitJmlChoose(JmlChoose that, P p)                     ;
     R visitJmlClassDecl(JmlClassDecl that, P p)               ;
     R visitJmlCompilationUnit(JmlCompilationUnit that, P p)   ;

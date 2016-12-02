@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -108,6 +108,13 @@ public class Items {
      */
     Item makeStackItem(Type type) {
         return stackItem[Code.typecode(type)];
+    }
+
+    /** Make an item representing a dynamically invoked method.
+     *  @param member   The represented symbol.
+     */
+    Item makeDynamicItem(Symbol member) {
+        return new DynamicItem(member);
     }
 
     /** Make an item representing an indexed expression.
@@ -457,6 +464,35 @@ public class Items {
         }
     }
 
+    /** An item representing a dynamic call site.
+     */
+    class DynamicItem extends StaticItem {
+        DynamicItem(Symbol member) {
+            super(member);
+        }
+
+        Item load() {
+            assert false;
+            return null;
+        }
+
+        void store() {
+            assert false;
+        }
+
+        Item invoke() {
+            // assert target.hasNativeInvokeDynamic();
+            MethodType mtype = (MethodType)member.erasure(types);
+            int rescode = Code.typecode(mtype.restype);
+            code.emitInvokedynamic(pool.put(member), mtype);
+            return stackItem[rescode];
+        }
+
+        public String toString() {
+            return "dynamic(" + member + ")";
+        }
+    }
+
     /** An item representing an instance variable or method.
      */
     class MemberItem extends Item {
@@ -487,7 +523,7 @@ public class Items {
         Item invoke() {
             MethodType mtype = (MethodType)member.externalType(types);
             int rescode = Code.typecode(mtype.restype);
-            if ((member.owner.flags() & Flags.INTERFACE) != 0) {
+            if ((member.owner.flags() & Flags.INTERFACE) != 0 && !nonvirtual) {
                 code.emitInvokeinterface(pool.put(member), mtype);
             } else if (nonvirtual) {
                 code.emitInvokespecial(pool.put(member), mtype);
@@ -535,10 +571,8 @@ public class Items {
             int idx = pool.put(value);
             if (typecode == LONGcode || typecode == DOUBLEcode) {
                 code.emitop2(ldc2w, idx);
-            } else if (idx <= 255) {
-                code.emitop1(ldc1, idx);
             } else {
-                code.emitop2(ldc2, idx);
+                code.emitLdc(idx);
             }
         }
 
@@ -755,18 +789,18 @@ public class Items {
         Chain jumpTrue() {
             if (tree == null) return Code.mergeChains(trueJumps, code.branch(opcode));
             // we should proceed further in -Xjcov mode only
-            int startpc = code.curPc();
+            int startpc = code.curCP();
             Chain c = Code.mergeChains(trueJumps, code.branch(opcode));
-            code.crt.put(tree, CRTable.CRT_BRANCH_TRUE, startpc, code.curPc());
+            code.crt.put(tree, CRTable.CRT_BRANCH_TRUE, startpc, code.curCP());
             return c;
         }
 
         Chain jumpFalse() {
             if (tree == null) return Code.mergeChains(falseJumps, code.branch(Code.negate(opcode)));
             // we should proceed further in -Xjcov mode only
-            int startpc = code.curPc();
+            int startpc = code.curCP();
             Chain c = Code.mergeChains(falseJumps, code.branch(Code.negate(opcode)));
-            code.crt.put(tree, CRTable.CRT_BRANCH_FALSE, startpc, code.curPc());
+            code.crt.put(tree, CRTable.CRT_BRANCH_FALSE, startpc, code.curCP());
             return c;
         }
 

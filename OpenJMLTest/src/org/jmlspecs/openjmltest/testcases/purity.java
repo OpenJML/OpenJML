@@ -2,6 +2,7 @@ package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class purity extends TCBase {

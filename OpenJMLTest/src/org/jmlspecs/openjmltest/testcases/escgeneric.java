@@ -35,6 +35,7 @@ public class escgeneric extends EscBase {
         main.addOptions("-nullableByDefault"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
         main.addOptions("-timeout=30");
+        main.addOptions("-jmltesting");
     }
     
     @Test
@@ -271,9 +272,10 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    // FIXME - need to fix tyep parameters for inner (non-static) classes
+    // FIXME - this is an issue of instantiating the value of the callee's type parameters for nested types
     @Test
     public void testTypeParameter2() {
+    	//main.addOptions("-show","-method=mc");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -281,6 +283,9 @@ public class escgeneric extends EscBase {
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"  public void mb(/*@ non_null*/TestG<Object>.TestH i, Object j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"  public void mc(/*@ non_null*/TestG<String>.TestH i, String j) {\n  //@ assume \\typeof(i) == \\type(TestG<String>.TestH); \n"
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"

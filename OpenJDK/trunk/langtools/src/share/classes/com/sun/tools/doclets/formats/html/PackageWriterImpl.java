@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -27,15 +27,21 @@ package com.sun.tools.doclets.formats.html;
 
 import java.io.*;
 import java.util.*;
+
 import com.sun.javadoc.*;
+import com.sun.tools.doclets.formats.html.markup.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.tools.doclets.internal.toolkit.util.*;
-import com.sun.tools.doclets.formats.html.markup.*;
 
 /**
  * Class to generate file for each package contents in the right-hand
  * frame. This will list all the Class Kinds in the package. A click on any
  * class-kind will update the frame with the clicked class-kind page.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Atul M Dambalkar
  * @author Bhavesh Patel (Modified)
@@ -59,17 +65,12 @@ public class PackageWriterImpl extends HtmlDocletWriter
     protected PackageDoc packageDoc;
 
     /**
-     * The name of the output file.
-     */
-    private static final String OUTPUT_FILE_NAME = "package-summary.html";
-
-    /**
      * Constructor to construct PackageWriter object and to generate
      * "package-summary.html" file in the respective package directory.
      * For example for package "java.lang" this will generate file
      * "package-summary.html" file in the "java/lang" directory. It will also
      * create "java/lang" directory in the current or the destination directory
-     * if it doesen't exist.
+     * if it doesn't exist.
      *
      * @param configuration the configuration of the doclet.
      * @param packageDoc    PackageDoc under consideration.
@@ -77,22 +78,12 @@ public class PackageWriterImpl extends HtmlDocletWriter
      * @param next            Next package in the sorted array.
      */
     public PackageWriterImpl(ConfigurationImpl configuration,
-        PackageDoc packageDoc, PackageDoc prev, PackageDoc next)
-    throws IOException {
-        super(configuration, DirectoryManager.getDirectoryPath(packageDoc), OUTPUT_FILE_NAME,
-             DirectoryManager.getRelativePath(packageDoc.name()));
+            PackageDoc packageDoc, PackageDoc prev, PackageDoc next)
+            throws IOException {
+        super(configuration, DocPath.forPackage(packageDoc).resolve(DocPaths.PACKAGE_SUMMARY));
         this.prev = prev;
         this.next = next;
         this.packageDoc = packageDoc;
-    }
-
-    /**
-     * Return the name of the output file.
-     *
-     * @return the name of the output file.
-     */
-    public String getOutputFileName() {
-        return OUTPUT_FILE_NAME;
     }
 
     /**
@@ -111,7 +102,7 @@ public class PackageWriterImpl extends HtmlDocletWriter
         Content tHeading = HtmlTree.HEADING(HtmlConstants.TITLE_HEADING, true,
                 HtmlStyle.title, packageLabel);
         tHeading.addContent(getSpace());
-        Content packageHead = new RawHtml(heading);
+        Content packageHead = new StringContent(heading);
         tHeading.addContent(packageHead);
         div.addContent(tHeading);
         addDeprecationInfo(div);
@@ -121,7 +112,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
             addSummaryComment(packageDoc, docSummaryDiv);
             div.addContent(docSummaryDiv);
             Content space = getSpace();
-            Content descLink = getHyperLink("", "package_description",
+            Content descLink = getHyperLink(getDocLink(
+                    SectionName.PACKAGE_DESCRIPTION),
                     descriptionLabel, "", "");
             Content descPara = new HtmlTree(HtmlTag.P, seeLabel, space, descLink);
             div.addContent(descPara);
@@ -149,7 +141,7 @@ public class PackageWriterImpl extends HtmlDocletWriter
         if (Util.isDeprecated(packageDoc)) {
             HtmlTree deprDiv = new HtmlTree(HtmlTag.DIV);
             deprDiv.addStyle(HtmlStyle.deprecatedContent);
-            Content deprPhrase = HtmlTree.SPAN(HtmlStyle.strong, deprecatedPhrase);
+            Content deprPhrase = HtmlTree.SPAN(HtmlStyle.deprecatedLabel, deprecatedPhrase);
             deprDiv.addContent(deprPhrase);
             if (deprs.length > 0) {
                 Tag[] commentTags = deprs[0].inlineTags();
@@ -177,8 +169,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
             String tableSummary, String[] tableHeader, Content summaryContentTree) {
         if(classes.length > 0) {
             Arrays.sort(classes);
-            Content caption = getTableCaption(label);
-            Content table = HtmlTree.TABLE(HtmlStyle.packageSummary, 0, 3, 0,
+            Content caption = getTableCaption(new RawHtml(label));
+            Content table = HtmlTree.TABLE(HtmlStyle.typeSummary, 0, 3, 0,
                     tableSummary, caption);
             table.addContent(getSummaryTableHeader(tableHeader, "col"));
             Content tbody = new HtmlTree(HtmlTag.TBODY);
@@ -187,8 +179,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
                     !configuration.isGeneratedDoc(classes[i])) {
                     continue;
                 }
-                Content classContent = new RawHtml(getLink(new LinkInfoImpl(
-                        LinkInfoImpl.CONTEXT_PACKAGE, classes[i], false)));
+                Content classContent = getLink(new LinkInfoImpl(
+                        configuration, LinkInfoImpl.Kind.PACKAGE, classes[i]));
                 Content tdClass = HtmlTree.TD(HtmlStyle.colFirst, classContent);
                 HtmlTree tr = HtmlTree.TR(tdClass);
                 if (i%2 == 0)
@@ -220,7 +212,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
      */
     public void addPackageDescription(Content packageContentTree) {
         if (packageDoc.inlineTags().length > 0) {
-            packageContentTree.addContent(getMarkerAnchor("package_description"));
+            packageContentTree.addContent(
+                    getMarkerAnchor(SectionName.PACKAGE_DESCRIPTION));
             Content h2Content = new StringContent(
                     configuration.getText("doclet.Package_Description",
                     packageDoc.name()));
@@ -248,7 +241,7 @@ public class PackageWriterImpl extends HtmlDocletWriter
     /**
      * {@inheritDoc}
      */
-    public void printDocument(Content contentTree) {
+    public void printDocument(Content contentTree) throws IOException {
         printHtmlDocument(configuration.metakeywords.getMetaKeywords(packageDoc),
                 true, contentTree);
     }
@@ -259,7 +252,7 @@ public class PackageWriterImpl extends HtmlDocletWriter
      * @return a content tree for the class use link
      */
     protected Content getNavLinkClassUse() {
-        Content useLink = getHyperLink("package-use.html", "",
+        Content useLink = getHyperLink(DocPaths.PACKAGE_USE,
                 useLabel, "", "");
         Content li = HtmlTree.LI(useLink);
         return li;
@@ -275,9 +268,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
         if (prev == null) {
             li = HtmlTree.LI(prevpackageLabel);
         } else {
-            String path = DirectoryManager.getRelativePath(packageDoc.name(),
-                                                           prev.name());
-            li = HtmlTree.LI(getHyperLink(path + "package-summary.html", "",
+            DocPath path = DocPath.relativePath(packageDoc, prev);
+            li = HtmlTree.LI(getHyperLink(path.resolve(DocPaths.PACKAGE_SUMMARY),
                 prevpackageLabel, "", ""));
         }
         return li;
@@ -293,9 +285,8 @@ public class PackageWriterImpl extends HtmlDocletWriter
         if (next == null) {
             li = HtmlTree.LI(nextpackageLabel);
         } else {
-            String path = DirectoryManager.getRelativePath(packageDoc.name(),
-                                                           next.name());
-            li = HtmlTree.LI(getHyperLink(path + "package-summary.html", "",
+            DocPath path = DocPath.relativePath(packageDoc, next);
+            li = HtmlTree.LI(getHyperLink(path.resolve(DocPaths.PACKAGE_SUMMARY),
                 nextpackageLabel, "", ""));
         }
         return li;
@@ -308,7 +299,7 @@ public class PackageWriterImpl extends HtmlDocletWriter
      * @return a content tree for the tree link
      */
     protected Content getNavLinkTree() {
-        Content useLink = getHyperLink("package-tree.html", "",
+        Content useLink = getHyperLink(DocPaths.PACKAGE_TREE,
                 treeLabel, "", "");
         Content li = HtmlTree.LI(useLink);
         return li;

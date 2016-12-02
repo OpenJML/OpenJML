@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,11 +25,9 @@
 
 package com.sun.source.tree;
 
-import com.sun.source.tree.Tree;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
 
 /**
  * Interface for determining locally available program elements, such as
@@ -50,6 +48,7 @@ import javax.lang.model.type.DeclaredType;
  *
  * @since 1.6
  */
+@jdk.Exported
 public interface Scope {
     /**
      * Returns the enclosing scope.

@@ -1,8 +1,9 @@
 // This test case corresponds to Git issue #450
-
+// This version has a type chekcing error
 import java.util.ArrayList;
 
 public class ArrList {
+
     public ArrayList<String> theList;
 
     // Use default assignable, else use assignable theList, theList.*;
@@ -18,6 +19,6 @@ public class ArrList {
     public static void main(String[] args) {
         ArrList al = new ArrList(1);
         // @ assert al.theList.content.owner == al.theList; // FIXME - with -minQuant, this assertion cannot be proved, though it can with -no-minQuant
-        System.out.println(al.theList.get(0));
+        //System.out.println(al.theList.get(0));
     }
 }

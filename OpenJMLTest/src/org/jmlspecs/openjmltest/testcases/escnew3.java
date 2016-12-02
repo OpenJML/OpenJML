@@ -461,7 +461,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -476,7 +476,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:5: warning: Associated declaration",10
                 );
     }
@@ -491,7 +491,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -506,7 +506,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",22
                 );
     }
@@ -521,7 +521,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -529,7 +529,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -542,7 +542,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4e() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -555,7 +555,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4a() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true;\n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -568,7 +568,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4ae() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true; assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -580,8 +580,9 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor5() {
+    	//main.addOptions("-jmldebug");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable state; \n"
                 +"  public TestJava() { i = 0; }\n"
@@ -594,7 +595,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor5s() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.state; \n"
                 +"  public TestJava() { i = 0; }\n"
@@ -684,7 +685,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs() {
-    	main.addOptions("-show","-method=n0");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default */ public class TestJava { \n"
                 +"  //@ ensures \\result == ints.length;\n"
@@ -746,7 +746,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs3() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"

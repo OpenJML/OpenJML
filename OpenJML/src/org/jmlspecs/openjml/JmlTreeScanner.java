@@ -58,6 +58,10 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.rhs);
     }
     
+    public void visitJmlBlock(JmlBlock that) {
+        visitBlock(that);
+    }
+    
     public void visitJmlChoose(JmlChoose that) {
         scan(that.orBlocks);
         scan(that.elseBlock);
@@ -67,12 +71,14 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         if (scanMode == AST_SPEC_MODE) {
             if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
         }
-        visitClassDef(that);
+        boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
+        if (!isJML || scanMode == AST_JML_MODE) visitClassDef(that);
         if (scanMode == AST_SPEC_MODE) {
-            JmlSpecs.TypeSpecs ms = that.typeSpecsCombined;
+            JmlSpecs.TypeSpecs ms = that.typeSpecs;
             if (ms != null) {
                 scan(ms.modifiers);
                 scan(ms.clauses);
+                scan(ms.decls);
             } else {
                 // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
             }
@@ -81,6 +87,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
             JmlSpecs.TypeSpecs ms = that.typeSpecs;
             // already done - scan(ms.modifiers);
             if (ms != null) scan(ms.clauses);
+            if (ms != null) scan(ms.decls);
         }
     }
 
@@ -88,8 +95,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
         scan(that.packageAnnotations);
         scan(that.pid); // package id
         scan(that.defs);
-        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
-        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
+//        if (scanMode == AST_JML_MODE) scan(that.parsedTopLevelModelTypes);
+//        if (scanMode == AST_SPEC_MODE) scan(that.specsTopLevelModelTypes);
     }
 
     public void visitJmlMethodSig(JmlMethodSig that) {

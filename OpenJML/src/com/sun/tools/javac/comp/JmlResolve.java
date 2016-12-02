@@ -4,9 +4,17 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.ABSTRACT;
+import static com.sun.tools.javac.code.Flags.DEFAULT;
+import static com.sun.tools.javac.code.Flags.SYNTHETIC;
+import static com.sun.tools.javac.code.Kinds.MTH;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
@@ -17,11 +25,16 @@ import com.sun.tools.javac.code.Symbol.OperatorSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
+import com.sun.tools.javac.comp.Resolve.LookupFilter;
+import com.sun.tools.javac.comp.Resolve.ResolveError;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Filter;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Pair;
 
 /**
  * This class extends Resolve in order to implement lookup of JML names. In the
@@ -142,7 +155,7 @@ public class JmlResolve extends Resolve {
      * @param allowJML the new value
      * @return the old value
      */
-    public boolean setJML(boolean allowJML) {
+    public boolean setJML(boolean allowJML) {  // FIXME _ duplicates setAllowJML
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
@@ -164,7 +177,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     public Symbol resolveBinaryOperator(DiagnosticPosition pos,
-            int optag,
+            JCTree.Tag optag,
             Env<AttrContext> env,
             Type left,
             Type right) {
@@ -173,11 +186,11 @@ public class JmlResolve extends Resolve {
         // FIXME - should compare against Float or Double or Character or Short or Byte or Long as well?
         if (allowJML && !left.isPrimitive() && !right.isPrimitive()) {
             if (!types.isSameType(left,integerType) && !types.isSameType(right,integerType)) {
-                if (optag == JCTree.LT) {
+                if (optag == JCTree.Tag.LT) {
                     log.warning(pos,"lock.ops");
                     return lockLT;
                 }
-                if (optag == JCTree.LE) {
+                if (optag == JCTree.Tag.LE) {
                     log.warning(pos,"lock.ops");
                     return lockLE;
                 }
@@ -206,7 +219,6 @@ public class JmlResolve extends Resolve {
      }
 
 
-
      /** This method overrides the superclass method in order to load spec files
       * when a class is loaded.  If the superclass loads a method from source, then
       * the specs are parsed at the same time that the source file is parsed.
@@ -217,9 +229,10 @@ public class JmlResolve extends Resolve {
       * @param name the qualified name of the class to load
       * @return the unique symbol corresponding to this class
       */
+     Symbol savedSym;
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
-         if (utils.jmlverbose >= Utils.JMLDEBUG) log.noticeWriter.println("LOADING REQUESTED " + name );
+         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
          Symbol s = super.loadClass(env, name);
          // Here s can be a type or a package or not exist 
          // s may not exist because it is being tested whether such a type exists
@@ -229,21 +242,34 @@ public class JmlResolve extends Resolve {
          if (!s.exists()) {
              return s;
          }
-         if (!(s instanceof ClassSymbol)) return s; // loadClass can be called for a package
-         JmlSpecs specs = JmlSpecs.instance(context);
-         JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
-         if (tsp == null) {
-             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
-             // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
-             if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
-             jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
-             //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
-             if (specs.get((ClassSymbol)s) == null) 
-                 log.noticeWriter.println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
-         } else {
-             //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+         if (!(s instanceof ClassSymbol)) {
+             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("  LOADING IS NOT A CLASS " + name );
+             return s; // loadClass can be called for a package
          }
-         return s;
+
+         JmlMemberEnter memberEnter = (JmlMemberEnter)JmlMemberEnter.instance(context);
+         boolean completion = memberEnter.completionEnabled;
+         memberEnter.completionEnabled= true;
+         try {
+
+             JmlSpecs specs = JmlSpecs.instance(context);
+             JmlSpecs.TypeSpecs tsp = specs.get((ClassSymbol)s);
+             if (tsp == null) {
+
+                 //if (true || utils.jmldebug) log.noticeWriter.println("   LOADING SPECS FOR (BINARY) CLASS " + name);
+                 // Cannot set jmlcompiler in the constructor because we get a circular initialization problem.
+                 if (jmlcompiler == null) jmlcompiler = ((JmlCompiler)JmlCompiler.instance(context));
+                 jmlcompiler.loadSpecsForBinary(env,(ClassSymbol)s);
+                 //if (true || utils.jmldebug) log.noticeWriter.println("   LOADED BINARY " + name + " HAS SCOPE WITH SPECS " + s.members());
+                 //             if (specs.get((ClassSymbol)s) == null) 
+                 //                 log.getWriter(WriterKind.NOTICE).println("(Internal error) POSTCONDITION PROBLEM - no typeSpecs stored for " + s);
+             } else {
+                 //log.noticeWriter.println("   LOADED CLASS " + name + " ALREADY HAS SPECS LOADED");
+             }
+             return s;
+         } finally {
+             memberEnter.completionEnabled = completion;
+         }
      }
      
      /** A cache of the symbol for the spec_public annotation class, created on
@@ -273,10 +299,10 @@ public class JmlResolve extends Resolve {
          }
          
          if (specPublicSym == null) {
-             specPublicSym = attr.tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC);
+             specPublicSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC);
          }
          if (specProtectedSym == null) {
-             specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED);
+             specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
          }
          // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
          // (Is this because the binary file will not have the attributes in it - they are added ad hoc when the spec file is parsed???)
@@ -284,7 +310,7 @@ public class JmlResolve extends Resolve {
 //             (sym.attribute(specPublicSym) != null || attr.findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
          boolean isSpecPublic = utils.findMod(mods,specPublicSym)!=null;
          if (isSpecPublic) {
-             long saved = sym.flags_field;
+             long saved = sym.flags();
              sym.flags_field |= Flags.PUBLIC;
              boolean b = super.isAccessible(env,site,sym);
              sym.flags_field = saved;
@@ -306,12 +332,12 @@ public class JmlResolve extends Resolve {
      }
      
      /** This is declared in order to provide public visibility */
-     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Env<AttrContext> env, Type arg) {
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Env<AttrContext> env, Type arg) {
          return super.resolveUnaryOperator(pos,optag,env,arg);
      }
      
      /** Returns the predefined operator with the given operator and type */
-     public Symbol resolveUnaryOperator(DiagnosticPosition pos, int optag, Type arg) {
+     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Type arg) {
          Scope.Entry e = syms.predefClass.members().lookup(treeinfo.operatorName(optag));
          return e.sym;
      }
@@ -321,10 +347,8 @@ public class JmlResolve extends Resolve {
       */
      public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
              Type site, List<Type> argtypes,
-             List<Type> typeargtypes,
-             boolean allowBoxing,
-             boolean useVarargs) {
-         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes,allowBoxing,useVarargs);
+             List<Type> typeargtypes) {
+         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes);
      }
 
      /** This method is used to set the value of the allowJML flag.  It returns
@@ -337,4 +361,57 @@ public class JmlResolve extends Resolve {
          this.allowJML = allowJML;
          return b;
      }
+     
+     boolean silentErrors = false;
+     boolean errorOccurred = false;
+     
+     protected void logResolveError(ResolveError error, 
+             DiagnosticPosition pos,
+             Symbol location,
+             Type site,
+             Name name,
+             List<Type> argtypes,
+             List<Type> typeargtypes) {
+         if (!silentErrors) super.logResolveError(error,pos,location,site,name,argtypes,typeargtypes);
+     }
+     
+     // Overridden purely to invoke JmlLookupFilter; otherwise a copy of Resolve.findMethodInScope
+     @Override
+     protected Symbol findMethodInScope(Env<AttrContext> env, 
+             Type site,
+             Name name,
+             List<Type> argtypes,
+             List<Type> typeargtypes,
+             Scope sc,
+             Symbol bestSoFar,
+             boolean allowBoxing,
+             boolean useVarargs,
+             boolean operator,
+             boolean abstractok) {
+         for (Symbol s : sc.getElementsByName(name, new JmlLookupFilter(abstractok))) {
+             bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
+                     bestSoFar, allowBoxing, useVarargs, operator);
+         }
+         return bestSoFar;
+     }
+     
+     /** This class extends Resolve.LookupFilter to disallow using variables declared in
+      * JML within Java code
+      */
+     class JmlLookupFilter extends LookupFilter {
+
+         boolean abstractOk;
+
+         JmlLookupFilter(boolean abstractOk) {
+             super(abstractOk);
+         }
+
+         public boolean accepts(Symbol s) {
+             if (!super.accepts(s)) return false;
+             if (utils.isJML(s.flags()) && !allowJML()) return false;
+             return true;
+         }
+     };
+
+
 }

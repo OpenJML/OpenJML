@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.fail;
+
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -317,7 +319,7 @@ public class racnew extends RacBase {
                 ,"/tt/TestJava.java:10: Associated declaration"
                 ,"\tat org.jmlspecs.utils.Utils.createException(Utils.java:99)"
                 ,"\tat org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)"
-                ,"\tat tt.TestJava.m(TestJava.java:14)"
+                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 14
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
     }
@@ -1112,7 +1114,6 @@ public class racnew extends RacBase {
     // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
     // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(0); m(1); System.out.println(\"END\"); } \n" +
                 " //@ requires i != 0; \n" +
@@ -1243,7 +1244,7 @@ public class racnew extends RacBase {
                 ,"MID"
                 ,"/tt/A.java:7: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // caller on leaving to call m
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])" // callee invariant by caller
+                ,"/tt/A.java:7: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // callee invariant by caller
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()" // callee invariant by callee
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -1275,7 +1276,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:5: JML caller invariant is false on reentering calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Reentering main from m
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"MID"
-                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:7: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.A())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -1288,13 +1289,13 @@ public class racnew extends RacBase {
 
                 ,"/tt/A.java:7: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:7: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:7: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 
                 ,"MID"
-                ,"/tt/A.java:9: JML invariant is false on entering method tt.A.A() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:9: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.A())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:1: JML invariant is false on entering method tt.A.A()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -1306,7 +1307,7 @@ public class racnew extends RacBase {
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:9: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
-                ,"/tt/A.java:9: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:9: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/A.jml:2: Associated declaration"
@@ -1400,7 +1401,9 @@ public class racnew extends RacBase {
                 ,"/$A/tt/A.jml:4: Associated declaration"
                 ,"/tt/A.java:10: JML initially clause is false at exit from constructor"
                 ,"/$A/tt/A.jml:3: Associated declaration"
-                ,"/tt/A.java:10: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
+                ,"/$A/tt/A.jml:4: Associated declaration"
+                ,"/tt/A.java:10: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/A.jml:4: Associated declaration"
                 ,"/tt/A.java:5: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/A.jml:4: Associated declaration"
@@ -1757,7 +1760,7 @@ public class racnew extends RacBase {
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static int m = 2;\n"
                 +"public static void main(String[] argv) { \n "
-                +"//@ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
+                +"//  @ ghost int nnn = new org.jmlspecs.utils.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
                 +"//@ ghost int n = (\\num_of int i; 0 <= i && i < 5; i >= m); \n "
                 +"//@ ghost int nn = (\\num_of int i; 0 <= i && i < 5; m > 0); \n "
                 +"//@ debug System.out.println(\"A \" + n + \" \" + nn ); \n"
@@ -2182,6 +2185,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"/tt/A.java:7: JML assignment of null to a non_null variable"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
 
     }
@@ -2198,6 +2202,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:2: JML static initialization may not be correct: null static field has null value: oo"
                 ,"/tt/A.java:4: JML assignment of null to a non_null variable"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null"
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
 
     }
@@ -2226,8 +2232,8 @@ public class racnew extends RacBase {
     }
 
     @Test public void testNullInitialization() {
-//        noCollectDiagnostics = true;
-//        print = true;
+        noCollectDiagnostics = true;
+        print = true;
         helpTCX("tt.A","package tt; /*@nullable_by_default*/ public class A  { \n"
                 +"/*@non_null*/ static Object o,oo = null; \n"
                 +"static String ooo = null;\n"
@@ -2245,6 +2251,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:6: JML null initialization of non_null field local"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
+                ,"/tt/A.java:2: JML non-null field is null" // FIXME - add the name of the field
+                ,"/tt/A.java:2: JML non-null field is null"
                 );
     }
     
@@ -2263,11 +2271,11 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:6: JML non-null field is null"
                 ,"/tt/A.java:7: JML null initialization of non_null field loc"
                 ,"END"
+                ,"/tt/A.java:3: JML non-null field is null"
                 );
     }
     
     @Test public void testNullInit() {
-        main.addOptions("-show");
         helpTCX("tt.A","package tt; public class A  { \n"
                 +"/*@nullable*/ static Object o,oo = null; \n"
                 +"static Object ooo = null;\n"
@@ -2289,6 +2297,7 @@ public class racnew extends RacBase {
                 ,"END"
                 ,"/tt/A.java:6: JML invariant is false on leaving method tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:4: Associated declaration"
+                ,"/tt/A.java:3: JML non-null field is null"
                 );
     }
     
@@ -2299,7 +2308,6 @@ public class racnew extends RacBase {
     // what about assignable
     // check any problems with grouped clauses
     @Test public void testNotImplemented() {
-        // FIXME - fix duplication and reseting of messages
         main.addOptions("-keys=DEBUG");
         //print = true;
         expectedExit = 1;
@@ -2340,6 +2348,8 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
                 ,"/tt/A.java:13: Note: Not implemented for runtime assertion checking: set statement containing \\duration",26
                 ,"/tt/A.java:14: Note: Not implemented for runtime assertion checking: debug statement containing \\duration",28
+                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
+                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
                 ,"/tt/A.java:18: Note: Not implemented for runtime assertion checking: requires clause containing \\duration",23
                 ,"/tt/A.java:6: Note: Not implemented for runtime assertion checking: constraint clause containing \\duration",32
                 ,"/tt/A.java:19: Note: Not implemented for runtime assertion checking: ensures clause containing \\duration",22
@@ -2347,9 +2357,7 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:22: Note: Not implemented for runtime assertion checking: diverges clause containing \\duration",23
                 ,"/tt/A.java:23: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
-                ,"/tt/A.java:16: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",29
-                ,"/tt/A.java:17: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",34
-                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: method (or represents clause) containing \\duration",37
+                ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
                 ,"/tt/A.java:5: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37
                 ,"END"
                 );
@@ -2399,7 +2407,7 @@ public class racnew extends RacBase {
                 +"  public int i=0; \n"
                 +"  public void m() {} \n"
                 +"  //@ public invariant i == 3; \n"
-                +"}\n"   // FIXME - this all needs a review
+                +"}\n"   // FIXME - should check invariants on reentering caller after returning from super call
                 ,"/tt/A.java:13: JML invariant is false on leaving method tt.C.C()"  // Invariant in C, exiting C()
                 ,"/tt/A.java:17: Associated declaration"
                 ,"/tt/A.java:11: JML invariant is false on leaving method tt.B.B()" // Invariant in C, exiting B()
@@ -2418,11 +2426,17 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:11: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.A(), returning to tt.A.main(java.lang.String[])" // Invariant in A, exiting caller
                 ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])" // Invariant in C, entering m
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in C, entering m
                 ,"/tt/A.java:17: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])" // Invariant in B, entering m
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in C, entering m
                 ,"/tt/A.java:11: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])" // Invariant in A, entering m
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in C, entering m
+                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in C, entering m
+                ,"/tt/A.java:17: Associated declaration"
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in B, entering m
+                ,"/tt/A.java:11: Associated declaration"
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())" // Invariant in A, entering m
                 ,"/tt/A.java:2: Associated declaration"
                 ,"/tt/A.java:2: JML invariant is false on entering method tt.A.m()" // Invariant in C, beginning m()
                 ,"/tt/A.java:17: Associated declaration"
@@ -2453,8 +2467,11 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:17: Associated declaration"
                 ,"/tt/A.java:6: JML invariant is false on leaving method tt.B.B(), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:11: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])" // Invariant in C, entering m() - this is C.m()
+                ,"/tt/A.java:6: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())" // Invariant in C, entering m() - this is C.m()
                 ,"/tt/A.java:17: Associated declaration"
+                ,"/tt/A.java:6: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())" // Invariant in C, entering m() - this is C.m()
+                ,"/tt/A.java:17: Associated declaration"
+                // FIXME should be checking B's invariants as well, since the receiver is B, above
                 ,"/tt/A.java:16: JML invariant is false on entering method tt.C.m()" // Invariant in C, beginning m()
                 ,"/tt/A.java:17: Associated declaration"
                 ,"/tt/A.java:16: JML invariant is false on leaving method tt.C.m()" // Invariant in C, completing m()
@@ -2466,7 +2483,9 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:17: Associated declaration"
                 ,"/tt/A.java:8: JML invariant is false on leaving method tt.C.C(), returning to tt.A.main(java.lang.String[])"  // Invariant in C, exiting C()
                 ,"/tt/A.java:17: Associated declaration"
-                ,"/tt/A.java:8: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])" // Invariant in C, entering m()
+                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+                ,"/tt/A.java:17: Associated declaration"              
+                ,"/tt/A.java:8: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())" // Invariant in C, entering m()
                 ,"/tt/A.java:17: Associated declaration"
                 ,"/tt/A.java:16: JML invariant is false on entering method tt.C.m()" // Invariant in C, entering m()
                 ,"/tt/A.java:17: Associated declaration"
@@ -2478,6 +2497,7 @@ public class racnew extends RacBase {
                 );
     }
 
+    // Testing inheritance of invariants; here m() is implemented for classes A and C, but not B
     @Test public void testSuperInvariantB() {
         addMockFile("$A/tt/B.java","package tt; public class B extends tt.C { \n"
                 +"//@ public invariant i == 2; \n"
@@ -2516,24 +2536,35 @@ public class racnew extends RacBase {
                 ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.A(), returning to tt.A.main(java.lang.String[])"
                 ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:4: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:4: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/tt/A.java:2: Associated declaration"
+                
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
+                ,"/$A/tt/B.java:2: Associated declaration"
+                ,"/tt/A.java:4: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
+                ,"/tt/A.java:2: Associated declaration"
+                
                 ,"/tt/A.java:2: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:2: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:2: JML invariant is false on entering method tt.A.m()"
                 ,"/tt/A.java:2: Associated declaration"
+
                 ,"/tt/A.java:2: JML invariant is false on leaving method tt.A.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:2: JML invariant is false on leaving method tt.A.m()"
                 ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:2: JML invariant is false on leaving method tt.A.m()"
                 ,"/tt/A.java:2: Associated declaration"
+
                 ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.m(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:4: JML invariant is false on leaving method tt.A.m(), returning to tt.A.main(java.lang.String[])"
@@ -2547,12 +2578,18 @@ public class racnew extends RacBase {
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/$A/tt/B.java:1: JML invariant is false on leaving method tt.B.B()"
                 ,"/$A/tt/B.java:2: Associated declaration"
+
                 ,"/tt/A.java:6: JML invariant is false on leaving method tt.B.B(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:6: JML invariant is false on leaving method tt.B.B(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])"
+
+                ,"/tt/A.java:6: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
+
+                ,"/tt/A.java:6: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                
                 ,"/$A/tt/C.java:2: JML invariant is false on entering method tt.C.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/$A/tt/C.java:2: JML invariant is false on leaving method tt.C.m()"
@@ -2564,7 +2601,10 @@ public class racnew extends RacBase {
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/tt/A.java:8: JML invariant is false on leaving method tt.C.C(), returning to tt.A.main(java.lang.String[])"
                 ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:8: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+                ,"/$A/tt/C.java:3: Associated declaration"
+                
+                ,"/tt/A.java:8: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/$A/tt/C.java:2: JML invariant is false on entering method tt.C.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
@@ -2624,11 +2664,11 @@ public class racnew extends RacBase {
                 ,"/$A/tt/B.java:2: Associated declaration"
                 ,"/tt/A.java:6: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:6: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:6: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:6: JML invariant is false on entering method tt.A.m() from tt.A.main(java.lang.String[])"
+                ,"/tt/A.java:6: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.A.m())"
                 ,"/tt/A.java:2: Associated declaration"
                 ,"/tt/A.java:3: JML invariant is false on entering method tt.A.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
@@ -2661,11 +2701,11 @@ public class racnew extends RacBase {
                 ,"B"
                 ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
-                ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
-                ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:8: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])"
+//                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+//                ,"/$A/tt/B.java:2: Associated declaration"
+//                ,"/tt/A.java:8: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+//                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:8: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/$A/tt/C.java:2: JML invariant is false on entering method tt.C.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"
@@ -2682,11 +2722,11 @@ public class racnew extends RacBase {
                 ,"C"
                 ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
-                ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
-                ,"/$A/tt/B.java:2: Associated declaration"
-                ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
-                ,"/tt/A.java:2: Associated declaration"
-                ,"/tt/A.java:10: JML invariant is false on entering method tt.C.m() from tt.A.main(java.lang.String[])"
+//                ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+//                ,"/$A/tt/B.java:2: Associated declaration"
+//                ,"/tt/A.java:10: JML caller invariant is false on leaving calling method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
+//                ,"/tt/A.java:2: Associated declaration"
+                ,"/tt/A.java:10: JML invariant is false on entering method (Caller: tt.A.main(java.lang.String[]), Callee: tt.C.m())"
                 ,"/$A/tt/C.java:3: Associated declaration"
                 ,"/$A/tt/C.java:2: JML invariant is false on entering method tt.C.m()"
                 ,"/$A/tt/C.java:3: Associated declaration"

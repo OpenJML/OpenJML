@@ -17,16 +17,20 @@ import org.junit.Test;
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Parser;
-import com.sun.tools.javac.parser.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.*;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCConditional;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -64,10 +68,7 @@ public class expressions extends ParseBase {
     public void helpExpr(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,true);
-            if (jml) {
-                p.getScanner().setJml(jml);
-            }
+            JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
             JCTree.JCExpression e = p.parseExpression();
             List<JCTree> out = ParseTreeScanner.walk(e);
             int i = 0;
@@ -91,23 +92,22 @@ public class expressions extends ParseBase {
                 p1 = list[i++];
                 p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
                 p3 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
+                // FIXME - need better way to obtain positions
                 if (p3 != null) {
-                    assertEquals("Start position for token " + k, p1, TreeInfo.getStartPos(t)); // t.getStartPosition());
-                    //if (t.getPreferredPosition() != (Integer)p2 && t.getPreferredPosition() != (Integer)p2+1)
-                        assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
+                    assertEquals("Start position for token " + k, p1, t.getStartPosition());
+                    assertEquals("Preferred position for token " + k, p2, t.getPreferredPosition());
                     assertEquals("End position for token " + k, p3, p.getEndPos(t));
                 } else if (p2 != null) {
                     assertEquals("Start position for token " + k, p1, t.getStartPosition());
                     assertEquals("End position for token " + k, p2, p.getEndPos(t));
                 } else {
-                    //if (t.getPreferredPosition() != (Integer)p1 && t.getPreferredPosition() != (Integer)p1+1)
-                        assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
+                    assertEquals("Preferred position for token " + k, p1, t.getPreferredPosition());
                 }
                 ++k;
             }
             if ( i != list.length) fail("Incorrect number of nodes listed");
 
-            if (p.getScanner().token() != Token.EOF) fail("Not at end of input");
+            if (p.getScanner().token().kind != TokenKind.EOF) fail("Not at end of input");
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
@@ -133,6 +133,39 @@ public class expressions extends ParseBase {
     
     String noSource(JCDiagnostic dd) {
         return dd.noSource();
+    }
+    
+    @Test
+    public void testBug2() {
+    	helpExpr("equals(\\result.multiply(val).add(remainder(val)))"
+    			,JCMethodInvocation.class, 0,6,49
+    			,JCIdent.class, 0,0,6
+    			,JCMethodInvocation.class, 7,32,48
+    			,JCFieldAccess.class, 7,28,32
+    			,JCMethodInvocation.class, 7,23,28
+    			,JCFieldAccess.class, 7,14,23
+    			,JmlSingleton.class, 7,7,14
+    			,JCIdent.class, 24,24,27
+    			,JCMethodInvocation.class, 33,42,47
+    			,JCIdent.class, 33,33,42
+    			,JCIdent.class, 43,43,46
+         );
+    }
+
+    @Test
+    public void testBug() {
+    	helpExpr("equals(\\result[0].equals(divide(val)))"
+    			,JCMethodInvocation.class, 0,6,38
+    			,JCIdent.class, 0,0,6
+    			,JCMethodInvocation.class, 7,24,37
+    			,JCFieldAccess.class, 7,17,24
+    			,JCArrayAccess.class, 7,14,17
+    			,JmlSingleton.class, 7,7,14
+    			,JCLiteral.class, 15,15,16
+    			,JCMethodInvocation.class, 25,31,36
+    			,JCIdent.class, 25,25,31
+    			,JCIdent.class, 32,32,35
+         );
     }
 
 
@@ -408,29 +441,29 @@ public class expressions extends ParseBase {
     @Test
     public void testResult() {
         helpExpr(" \\result + \\result",
-                JCBinary.class, 9,
-                JmlSingleton.class ,1,
-                JmlSingleton.class ,11);
+                JCBinary.class, 1,9,18,
+                JmlSingleton.class ,1,1,8,
+                JmlSingleton.class ,11,11,18);
     }
 
     /** Test scanning \old expression */
     @Test
     public void testOld() {
         helpExpr(" \\old(a+b)",
-                JmlMethodInvocation.class, 5,
-                JCBinary.class, 7,
-                JCIdent.class ,6,
-                JCIdent.class ,8);
+                JmlMethodInvocation.class, 1,5,10,
+                JCBinary.class, 6,7,9,
+                JCIdent.class ,6,6,7,
+                JCIdent.class ,8,8,9);
     }
 
     /** Test scanning \elemtype expression */
     @Test
     public void testElemtype() {
         helpExpr(" \\elemtype(a+b)",
-                JmlMethodInvocation.class, 10,
-                JCBinary.class, 12,
-                JCIdent.class ,11,
-                JCIdent.class ,13);
+                JmlMethodInvocation.class, 1,10,15,
+                JCBinary.class, 11,12,14,
+                JCIdent.class ,11,11,12,
+                JCIdent.class ,13,13,14);
     }
 
     /** Test scanning \nonnullelements expression */
@@ -686,6 +719,31 @@ public class expressions extends ParseBase {
                 ,JmlMethodInvocation.class, 31,36,40
                 ,JCIdent.class ,37,37,39
                 );
+    }
+    
+    @Test
+    public void testCastResult2() {
+    	helpExpr("((Integer)\\result) == 0"
+                ,JCBinary.class ,0,19,23
+                ,JCParens.class, 0,0,18
+                ,JCTypeCast.class ,1,1,17
+                ,JCIdent.class ,2,2,9
+                ,JmlSingleton.class ,10,10,17 
+                ,JCLiteral.class, 22,22,23 
+    			);
+    }
+
+    @Test
+    public void testCastResult() {
+    	helpExpr("((x)==>\\result) == 0"
+                ,JCBinary.class ,0,16,20
+                ,JCParens.class, 0,0,15
+                ,JmlBinary.class ,1,4,14
+                ,JCParens.class, 1,1,4
+                ,JCIdent.class ,2,2,3
+                ,JmlSingleton.class ,7,7,14 
+                ,JCLiteral.class, 19,19,20 
+    			);
     }
 
 // TODO: other expressions, etc.

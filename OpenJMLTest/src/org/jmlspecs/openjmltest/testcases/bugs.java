@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.*;
+
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
@@ -55,7 +57,7 @@ public class bugs extends TCBase {
     * */
     @Test
     public void testMiscBug5() {  
-        helpTCF("A.java","public class A {  int p(A a) { /*@ set a = null; set a = null; */\n return 0; }}"
+        helpTCF("A.java","public class A {  int p(A a) { \n/*@ set a = null; set a = null; */\n return 0; }}"
                 );
     }
 

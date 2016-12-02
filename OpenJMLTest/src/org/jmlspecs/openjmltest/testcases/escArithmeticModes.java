@@ -49,7 +49,6 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testNegNeg() {
-        main.addOptions("-subexpressions","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires i >= 0;\n"

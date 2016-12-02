@@ -63,6 +63,8 @@ public abstract class JmlTestCase {
     static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
     
     static protected String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+    
+    protected boolean ignoreNotes = false;
 
     /** This is here so we can get the name of a test, using name.getMethodName() */
     @Rule public TestName name = new TestName();
@@ -401,13 +403,24 @@ public abstract class JmlTestCase {
                 line++;
                 String sexp = exp.readLine();
                 String sact = act.readLine();
+                while (ignoreNotes && sact != null && sact.startsWith("Note: ")) {
+                	sact = act.readLine();
+                }
                 if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
+            	while (ignoreNotes && sexp != null && sexp.startsWith("Note: ")) {
+            		sexp = exp.readLine();
+            	}
+                if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
+                if (sexp != null && sact == null) {
+                	if (sexp == null) {
+                		return diff.isEmpty() ? null : diff;
+                	} else {
+                		diff += ("Less actual input than expected" + eol);
+                		return diff;
+                	}
+                }
                 if (sexp == null && sact != null) {
                     diff += ("More actual input than expected" + eol);
-                    return diff;
-                }
-                if (sexp != null && sact == null) {
-                    diff += ("Less actual input than expected" + eol);
                     return diff;
                 }
                 sexp = sexp.replace("$ROOT",root);

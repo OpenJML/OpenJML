@@ -4,7 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
 import com.sun.tools.javac.code.JmlTypes;
@@ -16,6 +16,7 @@ import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -37,7 +38,7 @@ public class Erasure extends ExpressionExtension {
         
     }
     
-    static public JmlToken[] tokens() { return new JmlToken[]{JmlToken.BSERASURE}; }
+    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{JmlTokenKind.BSERASURE}; }
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
@@ -46,7 +47,7 @@ public class Erasure extends ExpressionExtension {
     
     public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        JmlToken token = tree.token;
+        JmlTokenKind token = tree.token;
         
         // Expect one argument of any array type, result type is \TYPE
         // The argument expression may contain JML constructs
@@ -55,12 +56,13 @@ public class Erasure extends ExpressionExtension {
             error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
         } else {
             JCExpression e = tree.args.get(0);
-            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlToken.BSTYPELC) {
+            if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).token == JmlTokenKind.BSTYPELC) {
                 ((JmlMethodInvocation)e).javaType = true;
             }
         }
-        attr.attribArgs(tree.args, localEnv);
-        attr.attribTypes(tree.typeargs, localEnv);
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, localEnv, argtypesBuf);
+        //attr.attribTypes(tree.typeargs, localEnv);
         Type t = syms.errType;
         if (n > 0) {
             Type tt = tree.args.get(0).type;

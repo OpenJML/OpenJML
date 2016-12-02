@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,15 +25,17 @@
 
 package com.sun.tools.doclets.internal.toolkit;
 
-import com.sun.tools.doclets.internal.toolkit.util.*;
 import com.sun.javadoc.*;
+import com.sun.tools.javac.jvm.Profile;
+import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * The interface for a factory creates writers.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @since 1.4
@@ -62,6 +64,33 @@ public interface WriterFactory {
     public abstract PackageSummaryWriter getPackageSummaryWriter(PackageDoc
         packageDoc, PackageDoc prevPkg, PackageDoc nextPkg)
     throws Exception;
+
+    /**
+     * Return the writer for the profile summary.
+     *
+     * @param profile the profile being documented.
+     * @param prevProfile the previous profile that was documented.
+     * @param nextProfile the next profile being documented.
+     * @return the writer for the profile summary.  Return null if this
+     * writer is not supported by the doclet.
+     */
+    public abstract ProfileSummaryWriter getProfileSummaryWriter(Profile
+        profile, Profile prevProfile, Profile nextProfile)
+    throws Exception;
+
+    /**
+     * Return the writer for the profile package summary.
+     *
+     * @param packageDoc the profile package being documented.
+     * @param prevPkg the previous profile package that was documented.
+     * @param nextPkg the next profile package being documented.
+     * @param profile the profile being documented.
+     * @return the writer for the profile package summary.  Return null if this
+     * writer is not supported by the doclet.
+     */
+    public abstract ProfilePackageSummaryWriter getProfilePackageSummaryWriter(
+            PackageDoc packageDoc, PackageDoc prevPkg, PackageDoc nextPkg,
+            Profile profile) throws Exception;
 
     /**
      * Return the writer for a class.
@@ -99,6 +128,18 @@ public interface WriterFactory {
      */
     public abstract MethodWriter getMethodWriter(ClassWriter classWriter)
             throws Exception;
+
+    /**
+     * Return the annotation type field writer for a given annotation type.
+     *
+     * @param annotationTypeWriter the writer for the annotation type
+     *        being documented.
+     * @return the member writer for the given annotation type.  Return null if
+     *         this writer is not supported by the doclet.
+     */
+    public abstract AnnotationTypeFieldWriter
+            getAnnotationTypeFieldWriter(
+        AnnotationTypeWriter annotationTypeWriter) throws Exception;
 
     /**
      * Return the annotation type optional member writer for a given annotation

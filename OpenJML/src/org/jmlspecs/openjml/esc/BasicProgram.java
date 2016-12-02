@@ -77,7 +77,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
         /** Returns the lazily created equality for the definition */
         public JCExpression expr(Context context) {
             if (expr != null) return expr;
-            expr = JmlTree.Maker.instance(context).Binary(JCTree.EQ,id,value); // use treeutils?
+            expr = JmlTree.Maker.instance(context).Binary(JCTree.Tag.EQ,id,value); // use treeutils?
             expr.pos = id.pos;  // FIXME _ end position not set, do we need it?
             expr.type = Symtab.instance(context).booleanType;
             return expr;

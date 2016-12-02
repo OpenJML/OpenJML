@@ -1,5 +1,5 @@
 <project name="OpenJML" default="release-test" basedir=".">
-	<property name="openjml.jdk" value="C:/Program Files/Java/jdk1.7.0_80/"/>
+	<property name="openjml.jdk" value="C:/Program Files/Java/jdk1.8.0_40/"/>
 	<property name="openjml.env.path" value="${openjml.jdk}/bin;${openjml.jdk}/../bin;/usr/bin"/>
 	
 	<description>

@@ -898,7 +898,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
-       // main.addOptions("-show","-method=m2");
+        //main.addOptions("-show","-method=B");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1037,7 +1037,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
-    	main.addOptions("-show","-progress");
+    	main.addOptions("-verbose","-trace","-ce");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

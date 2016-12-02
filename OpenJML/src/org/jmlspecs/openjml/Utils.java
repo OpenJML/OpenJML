@@ -4,9 +4,12 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +25,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
+import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
@@ -41,12 +45,16 @@ import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
@@ -137,8 +145,11 @@ public class Utils {
     /** The set of keys that control the use of optional comments, set from options */
     public Set<String> commentKeys = new HashSet<String>();
 
-    /** A bit that indicates that a declaration was declared within a JML annotation */
+    /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
     final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+
+    /** A bit that indicates that a declaration was declared somewhere within a JML annotation, but not nested within a class or method body that is also in the JML annotation */
+    final public static long JMLBITTOP = 1L << 53; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
     final public static long JMLINSTRUMENTED = 1L << 51; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
@@ -154,6 +165,22 @@ public class Utils {
     public boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
+    
+    public boolean isJMLTop(/*@ nullable */ JCModifiers mods) {
+        return mods != null && (mods.flags & JMLBITTOP) != 0;
+    }
+    
+    /** Tests whether the given tree was directly parsed as part of JML annotation;
+     * nested declarations that are not themselves directly in a JML comment will return false, 
+     * even if they are nested in a class that itself is directly in a JML comment.
+     */
+    public boolean isJML(JCTree t) {
+        return (t instanceof IInJML) && ((IInJML)t).isJML();
+    }
+
+//    public boolean isJMLTop(JCTree t) {
+//        return (t instanceof IInJML) && ((IInJML)t).isJMLTop();
+//    }
 
     /** Tests whether the JML flag is set in the given bit-vector
      * @param flags the bit-array to test
@@ -163,12 +190,20 @@ public class Utils {
         return (flags & JMLBIT) != 0;
     }
 
+    public boolean isJMLTop(long flags) {
+        return (flags & JMLBITTOP) != 0;
+    }
+
     /** Sets the JML flag in the given modifiers.
      * 
      * @param mods The modifiers in which to set the JML flag
      */
     public void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
+    }
+
+    public void setJMLTop(/*@ non_null */ JCModifiers mods) {
+        mods.flags |= JMLBITTOP;
     }
 
     /** Unsets the JML flag in the given modifiers.
@@ -243,7 +278,7 @@ public class Utils {
             Symbol csym = sym.owner;
             if ((csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
-                if (JmlAttr.instance(context).hasAnnotation(sym,JmlToken.INSTANCE)) return false;
+                if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 
         }
         return true;
@@ -256,7 +291,7 @@ public class Utils {
         // JML field marked as instance.
         if ((csym.flags() & Flags.INTERFACE) != 0) {
             // TODO - should cleanup this reference to JmlAttr from Utils
-            if (JmlAttr.instance(context).findMod(mods,JmlToken.INSTANCE) != null) return false;
+            if (JmlAttr.instance(context).findMod(mods,JmlTokenKind.INSTANCE) != null) return false;
         } 
         return ((mods.flags & Flags.STATIC) != 0);
     }
@@ -322,7 +357,7 @@ public class Utils {
         return null;
     }
 
-    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */JmlToken ta) {
+    public JmlTree.JmlAnnotation findMod(/*@ nullable */ JCModifiers mods, /*@ non_null */JmlTokenKind ta) {
         if (mods == null) return null;
         return findMod(mods,JmlAttr.instance(context).tokenToAnnotationSymbol.get(ta));
     }
@@ -348,6 +383,15 @@ public class Utils {
         }
         return null;
     }
+    
+//    public boolean hasAnnotation(Symbol sym, JmlTokenKind token) {
+//        for (com.sun.tools.javac.code.Attribute.Compound c: sym.getDeclarationAttributes()) {
+//            String s = c.toString();
+//            String ss = token.annotationType.toString();
+//            if (s.equals(ss)) return true;
+//        }
+//        return false;
+//    }
     
     /** Finds a member of a class with a given name; note that this works for methods only
      * if the method is uniquely named.
@@ -432,6 +476,7 @@ public class Utils {
 
         boolean verbose = context != null && Utils.instance(context).jmlverbose >= Utils.JMLVERBOSE;
         Properties properties = System.getProperties();
+        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         // Load properties files found in these locations:
         // These are read in inverse order of priority, so that later reads
         // overwrite the earlier ones.
@@ -444,9 +489,9 @@ public class Utils {
                 try {
                     boolean found = readProps(properties,s);
                     if (found && verbose) 
-                        Log.instance(context).noticeWriter.println("Properties read from system classpath: " + s);
+                        noticeWriter.println("Properties read from system classpath: " + s);
                 } catch (java.io.IOException e) {
-                    Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
                 }
             }
         }
@@ -457,9 +502,9 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from user's home directory: " + s);
+                    noticeWriter.println("Properties read from user's home directory: " + s);
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
@@ -469,9 +514,9 @@ public class Utils {
             try {
                 boolean found = readProps(properties,s);
                 if (found && verbose) 
-                    Log.instance(context).noticeWriter.println("Properties read from working directory: " + s);
+                    noticeWriter.println("Properties read from working directory: " + s);
             } catch (java.io.IOException e) {
-                Log.instance(context).noticeWriter.println("Failed to read property file " + s); // FIXME - review
+                noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
         }
 
@@ -486,9 +531,9 @@ public class Utils {
                 try {
                     boolean found = readProps(properties,properties_file);
                     if (found && verbose) 
-                        Log.instance(context).noticeWriter.println("Properties read from file: " + properties_file);
+                        noticeWriter.println("Properties read from file: " + properties_file);
                 } catch (java.io.IOException e) {
-                    Log.instance(context).noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
+                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
                 }
             }
         }
@@ -496,10 +541,10 @@ public class Utils {
         if (verbose) {
             // Print out the properties
             for (String key: new String[]{"user.home","user.dir"}) {
-                Log.instance(context).noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
+                noticeWriter.println("Environment:    " + key + " = " + System.getProperty(key));
             }
             for (java.util.Map.Entry<Object,Object> entry: properties.entrySet()) {
-                Log.instance(context).noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
+                noticeWriter.println("Local property: " + entry.getKey() + " = " + entry.getValue());
             }
         }
         return properties;
@@ -576,19 +621,23 @@ public class Utils {
     /** Creates the location prefix including the colon without any message;
      * 'pos' is the position in the file given by log().currentSource(). */
     public String locationString(int pos) {
-        // USE JCDiagnostic.NO_SOURCE ? FIXME
-        JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
-        String msg = diag.noSource().replace("Note: ", "");
-        return msg;
+        return locationString(pos, null);
     }
 
     /** Creates the location prefix including the colon without any message;
-     * 'pos' is the position in the file given by log.currentSource(). */
+     * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
     public String locationString(int pos, /*@ nullable */ JavaFileObject source) {
+        return locationString(new SimpleDiagnosticPosition(pos), source);
+    }
+    
+    /** Creates the location prefix including the colon without any message;
+     * 'pos' is the position in the file given by source or if source is null, by log.currentSource(). */
+    public String locationString(DiagnosticPosition pos, /*@ nullable */ JavaFileObject source) {
+        // USE JCDiagnostic.NO_SOURCE ? FIXME
         JavaFileObject prev = null;
         if (source != null) prev = log().useSource(source);
         try {
-            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), new SimpleDiagnosticPosition(pos), "empty", "");
+            JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(log().currentSource(), pos, "empty", "");
             String msg = diag.noSource().replace("Note: ", "");
             return msg;
         } finally {
@@ -611,6 +660,12 @@ public class Utils {
         codeSafeMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeSafeMath"));
         codeJavaMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeJavaMath"));
         codeBigintMath = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
+    }
+    
+    public boolean isTypeChecked(ClassSymbol sym) {
+        ClassSymbol c = sym;
+        if (c == null) return false;
+        return ((c.flags_field & UNATTRIBUTED) == 0);
     }
     
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
@@ -639,20 +694,12 @@ public class Utils {
      * Java visibility.
      */
     public boolean visible(Symbol base, Symbol parent, long flags) {
-        if (isNestedIn(base,parent)) return true; // Everything is visible in its own class
+        if (base == parent) return true; // Everything is visible in its own class
+        if (base.isEnclosedBy((ClassSymbol)parent)) return true; // Everything is visible to inner classes
         if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses
-    }
-    
-    /** Returns true if 'inner' is equal to or nested in 'outer' */
-    public boolean isNestedIn(Symbol inner, Symbol outer) {
-        while (inner instanceof ClassSymbol) {
-            if (inner == outer) return true;
-            inner = inner.owner;
-        }
-        return false;
     }
 
     /** Returns true if a declaration in the 'parent' class with the given flags 
@@ -663,15 +710,17 @@ public class Utils {
      * if checking the visibility, say of a clause.
      */
     public boolean jmlvisible(/*@ nullable */ Symbol s, Symbol base, Symbol parent, long flags, long methodFlags) {
-        if (!visible(base,parent,flags)) return false;
+        if (!visible(base,parent,flags)) return false;  // FIXME - this looks backwards - if it is Java-visible, then it ought to be JML visible???
         
         // In JML the clause must be at least as visible to clients as the method
         flags &= Flags.AccessFlags;
         methodFlags &= Flags.AccessFlags;
         
+        //boolean isPublic = null != JmlSpecs.instance(context).fieldSpecHasAnnotation((Symbol.VarSymbol)s,JmlTokenKind.SPEC_PUBLIC);
+        
         // If target is public, then it is jml-visible, since everyone can see it
         if (flags == Flags.PUBLIC) return true;
-        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PUBLIC)) != null) return true;
+        if (s != null && s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PUBLIC)) != null) return true;
 
         // Otherwise a public method sees nothing
         if (methodFlags == Flags.PUBLIC) return false;
@@ -684,7 +733,7 @@ public class Utils {
         // The target is either protected or package or private
         // FIXME - comment more
         if (flags == Flags.PRIVATE && s != null && 
-                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlToken.SPEC_PROTECTED)) == null
+                s.attribute(JmlAttr.instance(context).tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED)) == null
                 ) return false;
         
         if (flags == 0) return methodFlags == 0;
@@ -708,6 +757,18 @@ public class Utils {
                 if (s.kind != Kinds.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
+                list.add((Symbol.VarSymbol)s);
+            }
+        }
+        return list;
+    }
+
+    public List<Symbol.VarSymbol> listAllFields(TypeSymbol base, boolean forStatic) {
+        List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
+        for (TypeSymbol csym: parents(base, true)) {
+            for (Symbol s: csym.members().getElements()) {
+                if (s.kind != Kinds.VAR) continue;
+                if (!isJMLStatic(s) && forStatic) continue;
                 list.add((Symbol.VarSymbol)s);
             }
         }
@@ -753,6 +814,64 @@ public class Utils {
         return s;
     }
 
+    /** Removes an element from a ListBuffer, if there is one, and return the new list */
+    public static <T> ListBuffer<T> remove(ListBuffer<T> list, T element) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        for (T ttt: list) {
+            if (ttt != element) n.add(ttt);
+        }
+        return n;
+    }
+    
+    /** Removes an element from a ListBuffer, if there is one, and return the new list */
+    public static <T> ListBuffer<T> remove(ListBuffer<T> list, ListBuffer<T> elements) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        x: for (T ttt: list) {
+            for (T rem: elements) {
+                if (ttt == rem) continue x;
+            }
+            n.add(ttt);
+        }
+        return n;
+    }
+    
+    /** Removes an element from a List, if there is one, and return the new list */
+    public static <T> com.sun.tools.javac.util.List<T> remove(com.sun.tools.javac.util.List<T> list, T element) {
+        // Remove the duplicate if it is in newdefs
+        ListBuffer<T> n = new ListBuffer<>();
+        for (T ttt: list) {
+            if (ttt != element) n.add(ttt);
+        }
+        return n.toList();
+    }
+    
+    public/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
+            int position, int endpos) {
+        Class<?> c = jt.annotationType;
+        if (c == null) return null;
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        Names names = Names.instance(context);
+        JCExpression t = nametree(position, "org.jmlspecs.annotation");
+        t = (F.at(position).Select(t, names.fromString(c.getSimpleName())));
+        JCAnnotation ann = (F.at(position).Annotation(t,
+                com.sun.tools.javac.util.List.<JCExpression> nil()));
+        ((JmlTree.JmlAnnotation)ann).sourcefile = log().currentSourceFile();
+        return ann;
+    }
+    
+    public JCExpression nametree(int position, String s) {
+        String[] nms = s.split("\\.");
+        JmlTree.Maker F = JmlTree.Maker.instance(context);
+        Names names = Names.instance(context);
+        JCExpression tree = F.at(position).Ident(nms[0]);
+        for (int i = 1; i<nms.length; i++) {
+            tree = F.at(position).Select(tree, names.fromString(nms[i]));
+        }
+        return tree;
+    }
+
 
 
     /** Instances of this class are used to abort operations that are not
@@ -775,7 +894,7 @@ public class Utils {
         return true;
     }
     
-    /** This is a predicate that can be used in a debugging condition */
+    /** This is solely used to easily insert conditional breakpoints for debugging. */
     public static void stop() {
         return;
     }
@@ -831,4 +950,67 @@ public class Utils {
         } catch (IOException e) {}
         return jfo1.equals(jfo2);
     }
+
+    public void warning(JavaFileObject source, int pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.warning(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void error(JavaFileObject source, int pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void error(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void errorAndAssociatedDeclaration(JavaFileObject source, int pos, JavaFileObject assoc, int assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            log.error(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
+    public void errorAndAssociatedDeclaration(JavaFileObject source, DiagnosticPosition pos, JavaFileObject assoc, DiagnosticPosition assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            log.error(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            log.error(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
+        }
+    }
+
 }

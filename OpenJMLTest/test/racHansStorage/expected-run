@@ -6,5 +6,5 @@ Exception in thread "main" org.jmlspecs.utils.JmlAssertionError$Precondition: te
 	         ^
 	at org.jmlspecs.utils.Utils.createException(Utils.java:83)
 	at org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)
-	at StorageParameters.<init>(StorageParameters.java:4)
+	at StorageParameters.<init>(StorageParameters.java:1)
 	at StorageParameters.main(StorageParameters.java:26)

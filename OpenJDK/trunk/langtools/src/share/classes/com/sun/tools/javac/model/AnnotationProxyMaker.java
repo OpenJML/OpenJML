@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,9 +25,8 @@
 
 package com.sun.tools.javac.model;
 
-import com.sun.tools.javac.util.*;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.lang.annotation.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -35,12 +34,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import sun.reflect.annotation.*;
 
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.MirroredTypesException;
+import javax.lang.model.type.TypeMirror;
+
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.code.Type.ArrayType;
+import com.sun.tools.javac.util.*;
 
 
 /**
@@ -177,7 +178,7 @@ public class AnnotationProxyMaker {
         }
 
         public void visitClass(Attribute.Class c) {
-            value = new MirroredTypeExceptionProxy(c.type);
+            value = new MirroredTypeExceptionProxy(c.classType);
         }
 
         public void visitArray(Attribute.Array a) {
@@ -187,7 +188,7 @@ public class AnnotationProxyMaker {
                 // Construct a proxy for a MirroredTypesException
                 ListBuffer<TypeMirror> elems = new ListBuffer<TypeMirror>();
                 for (Attribute value : a.values) {
-                    Type elem = ((Attribute.Class) value).type;
+                    Type elem = ((Attribute.Class) value).classType;
                     elems.append(elem);
                 }
                 value = new MirroredTypesExceptionProxy(elems.toList());
@@ -243,7 +244,10 @@ public class AnnotationProxyMaker {
         }
 
         public void visitError(Attribute.Error e) {
-            value = null;       // indicates a type mismatch
+            if (e instanceof Attribute.UnresolvedClass)
+                value = new MirroredTypeExceptionProxy(((Attribute.UnresolvedClass)e).classType);
+            else
+                value = null;       // indicates a type mismatch
         }
 
 
@@ -272,7 +276,7 @@ public class AnnotationProxyMaker {
 
     /**
      * ExceptionProxy for MirroredTypeException.
-     * The toString, hashCode, and equals methods foward to the underlying
+     * The toString, hashCode, and equals methods forward to the underlying
      * type.
      */
     private static final class MirroredTypeExceptionProxy extends ExceptionProxy {

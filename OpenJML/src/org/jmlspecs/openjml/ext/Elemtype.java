@@ -4,7 +4,7 @@
  */
 package org.jmlspecs.openjml.ext;
 
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
 import com.sun.tools.javac.code.JmlTypes;
@@ -16,6 +16,7 @@ import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.ListBuffer;
 
 /** This class handles expression extensions that take an argument list of JCExpressions.
  * Even if there are constraints on the number of arguments, it
@@ -37,10 +38,10 @@ public class Elemtype extends ExpressionExtension {
         
     }
     
-    static public JmlToken[] tokens() { return new JmlToken[]{
-            JmlToken.BSELEMTYPE,JmlToken.BSTYPEOF,
-            JmlToken.BSOLD,JmlToken.BSPAST,JmlToken.BSPRE,JmlToken.BSNOWARN, JmlToken.BSNOWARNOP,
-            JmlToken.BSWARN, JmlToken.BSWARNOP}; }
+    static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
+            JmlTokenKind.BSELEMTYPE,JmlTokenKind.BSTYPEOF,
+            JmlTokenKind.BSOLD,JmlTokenKind.BSPAST,JmlTokenKind.BSPRE,JmlTokenKind.BSNOWARN, JmlTokenKind.BSNOWARNOP,
+            JmlTokenKind.BSWARN, JmlTokenKind.BSWARNOP}; }
     
     @Override
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
@@ -49,12 +50,13 @@ public class Elemtype extends ExpressionExtension {
     
     public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> localEnv) {
         JmlMethodInvocation tree = (JmlMethodInvocation)expr;
-        JmlToken token = tree.token;
+        JmlTokenKind token = tree.token;
         
         // Expect one argument of any array type, result type is \TYPE
         // The argument expression may contain JML constructs
-        attr.attribArgs(tree.args, localEnv);
-        attr.attribTypes(tree.typeargs, localEnv);
+        ListBuffer<Type> argtypesBuf = new ListBuffer<>();
+        attr.attribArgs(tree.args, localEnv, argtypesBuf);
+        //attr.attribTypes(tree.typeargs, localEnv);
         int n = tree.args.size();
         if (n != 1) {  // FIXME _ incorrect for BSOLD
             error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
