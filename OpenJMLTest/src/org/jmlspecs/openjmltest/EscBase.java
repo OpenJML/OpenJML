@@ -37,9 +37,9 @@ public abstract class EscBase extends JmlTestCase {
 //    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-            "z3_4_3", 
+ //           "z3_4_3", 
  //           "z3_4_3_2", 
- //           "z3_4_4", 
+           "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
@@ -48,7 +48,7 @@ public abstract class EscBase extends JmlTestCase {
         
     static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
     		null,
-            "z3_4_3", 
+            "z3_4_4", 
  //           "cvc4",
             //"yices2",
  //             "yices", 
@@ -177,7 +177,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-no-purityCheck");
         main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
-        main.addUncheckedOption("openjml.defaultProver=z3_4_3");
+        main.addUncheckedOption("openjml.defaultProver=z3_4_4");
         addOptions(options);
         if (solver != null) main.addOptions(JmlOption.PROVER.optionName(),solver);
         specs = JmlSpecs.instance(context);

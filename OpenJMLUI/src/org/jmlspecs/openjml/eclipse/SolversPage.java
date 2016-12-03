@@ -65,7 +65,7 @@ IWorkbenchPreferencePage {
         
         String ss = getValue();
         //if (ss == null || ss.isEmpty()) {
-    		setValue("cvc4,simplify,yices2,z3_4_3"); // FIXME - temporary default
+    		setValue("cvc4,simplify,yices2,z3_4_3,z3_4_4"); // FIXME - temporary default
     		ss = getValue();
         //}
         solvers = ss.split(Utils.comma);
@@ -191,6 +191,7 @@ IWorkbenchPreferencePage {
 enum Solvers {
 	simplify,
 	z3_4_3,
+	z3_4_4,
 	yices2
 }
 
