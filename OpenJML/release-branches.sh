@@ -6,8 +6,8 @@ if [ $# -ne 1 ]; then
 fi
 
 REL=$1
-REFBRANCH=master
-REFBRANCH=jdk8u
+REFBRANCH=`git rev-parse --abbrev-ref HEAD`
+
 
 if [ -z "$REL" ]; then
     echo "Please give the desired release number as the one argument"
@@ -64,8 +64,6 @@ cd ../OpenJML-UpdateSite
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
-git checkout master
-git push
 
 echo Push to plugin site
 chmod ugo+x web/toSF web/publish
