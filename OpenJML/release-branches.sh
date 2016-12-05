@@ -1,12 +1,15 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-	echo "Please give the desired release number as the one argument"
-    exit 1
-fi
-
-REL=$1
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
+if [ $# -gt 1 ]; then
+  echo 'Expected at most one argument'
+  exit 1
+elif [ $# -ne 1 ]; then
+  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '"'`
+  echo 'Current version is' $REL
+else
+  REL=$1
+fi
 
 
 if [ -z "$REL" ]; then
