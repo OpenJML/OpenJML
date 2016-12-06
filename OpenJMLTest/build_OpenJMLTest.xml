@@ -2,7 +2,7 @@
 <!--This script can be used to run OpenJML Junit tests. It builds all the required projects and runs the Junit tests.
     The script can be executed using following command:
     ant -buildfile build_OpenJMLTest.xml -Declipse.home="path/to/eclipse" cleanall build OpenJMLTest junitreport
-    Before running the script make sure that Environment variable "JAVA_HOME"is set and ant executable is in the PATH. 
+    Before running the script make sure that the environment variable "JAVA_HOME" is set and ant executable is in the PATH. 
  -->
     <project basedir="." default="build" name="OpenJMLTest">
     <property environment="env"/>
