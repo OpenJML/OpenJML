@@ -179,10 +179,6 @@ public class JmlEnter extends Enter {
             return;
         }
         JmlCompilationUnit jmltree = (JmlCompilationUnit)tree;
-        boolean isSpecsForBinary = jmltree.mode == JmlCompilationUnit.SPEC_FOR_BINARY;
-//        if (!isSpecsForBinary && jmltree.specsCompilationUnit == null) {
-//            Utils.stop();
-//        }
 
         if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"entering " + jmltree.sourcefile.getName());
         
@@ -385,8 +381,6 @@ public class JmlEnter extends Enter {
         for (JCTree specDecl: specsDefs) {  // Iterate over the classes in the list
             if (!(specDecl instanceof JmlClassDecl)) continue;
             JmlClassDecl specsClass = (JmlClassDecl)specDecl;
-//            if (specsClass.name.toString().equals("Collection")) Utils.stop();
-//            if (specsClass.name.toString().equals("Content")) Utils.stop();
             // The declaration 'specsClass' is in a specification file.
             // This is matching for a binary class, so there is no source code Java declarations
             // We need to find the Java declaration that it matches
@@ -446,13 +440,6 @@ public class JmlEnter extends Enter {
                     // There is no Java declaration, but we have a JML declaration (presumably a model declaration)
                     // We leave it to be added as a new declaration
                     // FIXME - we need to catch duplicate declarations
-//                    Type t = classEnter(specsClass,ownerenv);
-//                    c = (ClassSymbol)t.tsym;
-//                    specsClass.sym = (ClassSymbol)t.tsym;
-//                    Env<AttrContext> localenv = classEnv(specsClass, ownerenv);
-//                    typeEnvs.put(c, localenv);
-//                    specsClass.env = localenv;
-//                    specs.combineSpecs(c,null,specsClass);
                     if (unmatchedTypesList != null) unmatchedTypesList.add(specsClass);
                 }
             }
