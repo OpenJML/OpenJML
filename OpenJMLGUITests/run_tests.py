@@ -5,6 +5,7 @@
 import os
 import shutil
 import subprocess
+import platform
 
 # Set RCPTT Test Runner Path (if not available download Test Runner from https://www.eclipse.org/rcptt/download/)
 RUNNER_PATH = "C:/rcptt.runner-2.1.0/eclipse"
@@ -27,14 +28,20 @@ def run_plugin_tests():
             
     # create latest plugin jars
     # Note that we are assuming here that JAVA_HOME env variable in set and ant is in the PATH
-    cmd = [ "ant", "-buildfile","../OpenJMLFeature/Create_Update_Site.xml", "-Declipse.home=" +AUT_PATH, "create_dirs"  ]
+    if platform.system().startswith('Linux'):
+        ant_exe = "ant"
+    else:
+        # on Windows, python 3.5 fails to execute ant script if ant.bat file is not specified. 
+        ant_exe = "ant.bat"
+    cmd = [ ant_exe, "-buildfile","../OpenJMLFeature/Create_Update_Site.xml", "-Declipse.home=" +AUT_PATH, "create_dirs"  ]
     exitcode = execute_process(cmd)
-    print exitcode
-        
+    if exitcode != 0 :
+        raise Exception ("Cannot create OpenJML plugin files successfully.")
+    
     for file in os.listdir("../OpenJMLFeature/plugins"):
         shutil.copyfile(os.path.join("../OpenJMLFeature/plugins", file), os.path.join(AUT_PATH, "dropins", file))
         
-    cmd = ["ant", "-Drunner-path="+RUNNER_PATH, "-Daut-path="+AUT_PATH]
+    cmd = [ant_exe, "-Drunner-path="+RUNNER_PATH, "-Daut-path="+AUT_PATH]
     execute_process(cmd)
     
     #clean up 
@@ -43,13 +50,14 @@ def run_plugin_tests():
     shutil.rmtree("../OpenJMLFeature/features")
         
 def execute_process(cmd): 
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell = False)
+    new_env = dict(os.environ)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=new_env, shell=False)
     while(True):
         line = p.stdout.readline()
         if(len(line) == 0):
             break
         print (line.decode("utf-8"))
-    print p.returncode
+    p.wait()
     return p.returncode
 
 if __name__ == "__main__":
