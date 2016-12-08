@@ -38,7 +38,7 @@
     <path id="Plug-in Dependencies.libraryclasspath">
         <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.ui.workbench_*.jar"/>
         <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.osgi_*.jar"/>
-        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.annotation_*.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.annotation_1.1*.jar"/>
         <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.core.runtime_*.jar"/>
     </path>
     <path id="JMLAnnotations.classpath">

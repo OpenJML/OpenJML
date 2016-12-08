@@ -26,7 +26,7 @@
         <pathelement location="${OpenJDK.location}/bin"/>
     </path>
     <path id="JUnit 4.libraryclasspath">
-        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.annotation_*.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.annotation_1.1*.jar"/>
         <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.osgi_*.jar"/>
     </path>
     <path id="Specs.classpath">
