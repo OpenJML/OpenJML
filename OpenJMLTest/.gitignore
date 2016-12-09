@@ -5,3 +5,4 @@
 /test/**/actual
 /test/**/actual-compile
 /openjml.properties
+/junit/
