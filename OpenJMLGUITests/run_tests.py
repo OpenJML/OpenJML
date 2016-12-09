@@ -1,17 +1,19 @@
+#! C:/Python35/python
 # This script is used to run OpenJMLGUITests.
 # Before running the script make sure that the environment variable "JAVA_HOME" is set and ant executable is in the PATH. 
 # Set the RUNNER_PATH and AUT_PATH to run the RCPTT tests. 
+
+# Set RCPTT Test Runner Path (if not available download Test Runner from https://www.eclipse.org/rcptt/download/)
+RUNNER_PATH="C:/cygwin/home/dcok/apps/rcptt.runner-2.1.0/eclipse"
+
+# Set location of Eclipse used for testing the plugins
+AUT_PATH="C:/cygwin/home/dcok/apps/eclipse-neon-gui/eclipse"
 
 import os
 import shutil
 import subprocess
 import platform
 
-# Set RCPTT Test Runner Path (if not available download Test Runner from https://www.eclipse.org/rcptt/download/)
-RUNNER_PATH = "C:/rcptt.runner-2.1.0/eclipse"
-
-# Set location of Eclipse used for testing the plugins
-AUT_PATH="C:/eclipse"
 
 def run_plugin_tests():
 
@@ -33,6 +35,7 @@ def run_plugin_tests():
     else:
         # on Windows, python 3.5 fails to execute ant script if ant.bat file is not specified. 
         ant_exe = "ant.bat"
+    ant_exe = "C:/cygwin/home/dcok/ant/apache-ant-1.9.4/bin/ant.bat"
     cmd = [ ant_exe, "-buildfile","../OpenJMLFeature/Create_Update_Site.xml", "-Declipse.home=" +AUT_PATH, "create_dirs"  ]
     exitcode = execute_process(cmd)
     if exitcode != 0 :
