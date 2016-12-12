@@ -9,8 +9,12 @@ import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -488,8 +492,10 @@ public class Utils {
                 String s = url2.getFile();
                 try {
                     boolean found = readProps(properties,s);
-                    if (found && verbose) 
-                        noticeWriter.println("Properties read from system classpath: " + s);
+                    if (verbose) {
+                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
+                        else noticeWriter.println("No properties found on system classpath: " + s);
+                    }
                 } catch (java.io.IOException e) {
                     noticeWriter.println("Failed to read property file " + s); // FIXME - review
                 }
@@ -497,12 +503,15 @@ public class Utils {
         }
 
         // In the user's home directory
+        // Note that this implementation does not read through symbolic links
         {
             String s = System.getProperty("user.home") + "/" + Strings.propertiesFileName;
             try {
                 boolean found = readProps(properties,s);
-                if (found && verbose) 
-                    noticeWriter.println("Properties read from user's home directory: " + s);
+                if (verbose) {
+                    if (found) noticeWriter.println("Properties read from user's home directory: " + s);
+                    else noticeWriter.println("No properties found in user's home directory: " + s);
+                }
             } catch (java.io.IOException e) {
                 noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
@@ -513,8 +522,10 @@ public class Utils {
             String s = System.getProperty("user.dir") + "/" + Strings.propertiesFileName;
             try {
                 boolean found = readProps(properties,s);
-                if (found && verbose) 
-                    noticeWriter.println("Properties read from working directory: " + s);
+                if (verbose) {
+                    if (found) noticeWriter.println("Properties read from working directory: " + s);
+                    else noticeWriter.println("No properties found in working directory: " + s);
+                }
             } catch (java.io.IOException e) {
                 noticeWriter.println("Failed to read property file " + s); // FIXME - review
             }
@@ -527,14 +538,18 @@ public class Utils {
         {
             String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
            
-            if(properties_file != null){
+            if (properties_file != null) {
                 try {
                     boolean found = readProps(properties,properties_file);
-                    if (found && verbose) 
-                        noticeWriter.println("Properties read from file: " + properties_file);
+                    if (verbose) {
+                        if (found) noticeWriter.println("Properties read from file: " + properties_file);
+                        else noticeWriter.println("No properties file option found: " + properties_file);
+                    }
                 } catch (java.io.IOException e) {
                     noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
                 }
+            } else {
+                if (verbose) noticeWriter.println("No properties file option is set");
             }
         }
 
@@ -556,13 +571,16 @@ public class Utils {
      * @return true if the file was found and read successfully
      */
     public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
-        File f = new File(filename);
-        // Options may not be set yet
-        if (f.exists()) {
-            properties.load(new FileInputStream(f));
-            return true;
+        // Note: Java, or at least this code, does not read through Cygwin symbolic links
+        Path filepath = Paths.get(filename);
+        if (filepath.toFile().exists()) {
+            try (InputStream stream = Files.newInputStream(filepath)) {
+                properties.load(stream);
+                return true;
+            }
+        } else {
+            return false;
         }
-        return false;
     }
 
     // Includes self

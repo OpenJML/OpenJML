@@ -4,11 +4,14 @@
  */
 package org.jmlspecs.openjml;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -70,7 +73,8 @@ public enum JmlOption implements IOption {
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
     JMLVERBOSE("-jmlverbose",false,null,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,null,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
-
+    SHOW_OPTIONS("-showOptions",false, false,"When enabled, the values of options and properties are printed, for debugging",null),
+    
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
@@ -326,5 +330,13 @@ public enum JmlOption implements IOption {
         }
         return sb.toString();
         
+    }
+    
+    public static void listOptions(Context context) {
+        Options options = JmlOptions.instance(context);
+        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
+        for (String key: new java.util.TreeSet<String>(options.keySet())) {
+            noticeWriter.println(key + " = " + JmlOption.value(context,key));
+        }
     }
 }

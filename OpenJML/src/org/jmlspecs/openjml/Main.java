@@ -897,6 +897,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (files != null) files.addAll(jmlfiles);
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
+
+        if (JmlOption.isOption(context,JmlOption.SHOW_OPTIONS)) {
+            JmlOption.listOptions(context);
+        }
         return files;
     }
         
@@ -1018,6 +1022,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         } catch (java.io.IOException e) {
             Log.instance(context).error("jml.process.args.exception", e.toString());
         }
+        
     }    
     
     protected void setPropertiesFileOptions(Options opts, Properties properties){

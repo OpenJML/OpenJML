@@ -31,5 +31,3 @@ Feasibility check #2 - at reachable statement : OK
 Feasibility check #3 - at program exit : OK
 Completed proof of loops.EscTest.zero_matrix_2(int[][]) with prover !!!! - no warnings
 Completed proving methods in loops.EscTest
-Note: C:\cygwin\home\OpenJML-git-java8\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

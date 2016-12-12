@@ -497,7 +497,5 @@ Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices
 Completed proving methods in org.apache.commons.math3.linear.ArrayFieldVector
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
-Note: C:\cygwin\home\OpenJML-git-java8-B\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 1 error
 100 warnings

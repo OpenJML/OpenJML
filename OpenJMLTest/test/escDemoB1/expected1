@@ -72,6 +72,4 @@ Starting proof of openjml.clock.TickTockClockB1.tick() with prover !!!!
 	           ^
 Completed proof of openjml.clock.TickTockClockB1.tick() with prover !!!! - with warnings
 Completed proving methods in openjml.clock.TickTockClockB1
-Note: C:\cygwin\home\OpenJML-git-java8\Specs\java5\java\util\Arrays.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 18 warnings

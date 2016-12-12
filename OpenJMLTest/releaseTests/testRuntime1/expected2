@@ -602,7 +602,5 @@ C:/cygwin/home/OpenJML-git-java8/Specs/java5/java/lang/Double.jml:20: error: pac
 C:/cygwin/home/OpenJML-git-java8/Specs/java5/java/lang/String.jml:25: error: package org.jmlspecs.lang does not exist
 import java.util.regex.Pattern;
      ^
-Note: C:/cygwin/home/OpenJML-git-java8/Specs/java5/java/util/Arrays.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
 100 errors
 100 warnings
