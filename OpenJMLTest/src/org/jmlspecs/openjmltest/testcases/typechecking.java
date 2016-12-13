@@ -17,7 +17,7 @@ public class typechecking extends TCBase {
 
     /** Test something very simple with no errors*/
     @Test public void testSomeJava() {
-    	main.addOptions("-verbose");
+//    	main.addOptions("-verbose");
         helpTC("import org.jmlspecs.lang.JMLDataGroup; class A { public A(){} }");
     }
 
@@ -144,6 +144,49 @@ public class typechecking extends TCBase {
                 "/A.java:2: A \\max function expects an argument of type org.jmlspecs.lang.JMLSetType<E> rather than boolean",17,
                 "/A.java:2: incompatible types: java.lang.Object cannot be converted to boolean",16);
     }
+
+    @Test public void testInvariantFor1() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(i);\n}}"
+        		);
+    }
+
+    @Test public void testInvariantFor2() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(k);\n}}"
+        		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
+        		);
+    }
+
+    @Test public void testInvariantFor3() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(A);\n}}"
+        		);
+    }
+
+    @Test public void testInvariantFor4() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
+        		);
+    }
+
+    @Test public void testInvariantFor5() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
+        		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
+        		);
+    }
+
+    @Test public void testInvariantFor6() {
+    	main.addOptions("-strictJML");
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
+        		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
+        		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
+        		);
+    }
+
+    @Test public void testInvariantFor7() {
+    	main.addOptions("-strictJML");
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for();\n}}"
+        		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 0", 26
+        		);
+    }
+
 
     @Test public void testType() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\type(A,k);\n}}"

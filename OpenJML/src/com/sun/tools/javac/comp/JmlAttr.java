@@ -121,8 +121,8 @@ import com.sun.tools.javac.util.Position;
 
 /**
  * This class is an extension of the Attr class; it adds visitors methods so
- * that as the Attr class walks the entire AST, attributing all nodes (that is
- * doing name lookup and type assignment), the JML parts of the source tree are
+ * that as the Attr class walks the entire AST, attributing all nodes 
+ * (i.e., doing name lookup and type assignment), the JML parts of the source tree are
  * attributed and checked as well.
  * <P>
  * On input to this class all top-level types and all their members,
@@ -158,24 +158,21 @@ import com.sun.tools.javac.util.Position;
 public class JmlAttr extends Attr implements IJmlVisitor {
 
     /** This is the compilation context for which this is the unique instance */
-    protected Context context;
-    
-//    /** Set from the options for user-requested verbosity */
-//    protected boolean verbose = false;
+    @NonNull final protected Context context;
     
     /** The Name version of resultVarString in the current context */
-    final public Name resultName;
+    @NonNull final public Name resultName;
     
     /** The Name version of exceptionVarString in the current context */
-    final public Name exceptionName;
+    @NonNull final public Name exceptionName;
 
     /** The fully-qualified name of the Utils class */
     // Use .class on the class name instead of a string so that an error happens if the class is renamed
     // This class is in the runtime library
-    final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
+    @NonNull final public static String utilsClassName = org.jmlspecs.utils.Utils.class.getCanonicalName();
     
     /** Cached value of the org.jmlspecs.utils.Utils class */
-    final protected ClassSymbol utilsClass;
+    @NonNull final protected ClassSymbol utilsClass;
     
     /** Cached identifier of the org.jmlspecs.utils.Utils class */
     @NonNull final protected JCIdent utilsClassIdent;
@@ -242,10 +239,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // FIXME - may need to revisit this for boxing and unboxing
     final public Type Lock;// = new Type(1003,null);
     final public Type LockSet;// = new Type(1004,null);
-    final public Type JMLUtilsType;
     final public Type JMLValuesType;
     final public Type JMLIterType;
     final public Type JMLSetType;
+    
+    // The following fields are stacked as the environment changes as one
+    // visits down the tree.
     
     /** When true, we are visiting subtrees that allow only pure methods and
      * pure operations */
@@ -268,10 +267,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected JmlTokenKind currentClauseType = null;
     
     /**
-     * Holds the visibility of JML construct which is currently being visited.
+     * Holds the visibility of JML construct that is currently being visited.
      * Values are 0=package, Flags.PUBLIC=public, Flags.PROTECTED=protected,
      *      Flags.PRIVATE=private, -1=not in JML
-     */
+     */  // FIXME - isa this Java visibility or JML visibility?
     protected long jmlVisibility = -1;
     
     /** This value is valid within a Signals clause */
@@ -315,9 +314,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-//        this.verbose = JmlOption.isOption(context,"-verbose") ||
-//                utils.jmlverbose >= Utils.JMLVERBOSE;
-
         this.specs = JmlSpecs.instance(context);
         this.factory = JmlTree.Maker.instance(context);
         this.names = Names.instance(context);
@@ -346,7 +342,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         datagroupClass = createClass("org.jmlspecs.lang.JMLDataGroup");
         JMLSetType = createClass("org.jmlspecs.lang.JMLSetType").type;
         JMLValuesType = createClass("org.jmlspecs.lang.JMLList").type;
-        JMLUtilsType = utilsClass.type;
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
@@ -382,8 +377,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
-//        if (c.toString().contains("LinkedList")) Utils.stop();
-//        if (c.toString().contains("Bug1")) Utils.stop();
         
         // FIXME - can we make the following more efficient - this gets called a lot for classes already attributed
         /*@Nullable*/ JmlSpecs.TypeSpecs classSpecs = specs.get(c);  // Get null if there are none yet
@@ -488,7 +481,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } finally {
             this.env = prev;
         }
-        
     }
     
     /** Attribute all classes whose attribution was deferred (while in the middle of attributing another class) */
@@ -732,6 +724,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitAssign(JCAssign tree) {
         super.visitAssign(tree);
         if (pureEnvironment) {
+            // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
@@ -742,6 +735,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitAssignop(JCAssignOp tree) {
         super.visitAssignop(tree);
         if (pureEnvironment) {
+            // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == Kinds.MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
@@ -752,7 +746,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type saved = result;
         Symbol s = null;
 
-        if (lhs instanceof JCArrayAccess) {
+        if (lhs instanceof JCArrayAccess) {  // FIXME - shuold this be while instead of if
             lhs = ((JCArrayAccess)lhs).indexed;
         }
         if (lhs instanceof JCIdent) {
@@ -2893,6 +2887,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a signals method specification clause
      * @param tree the method specification clause being attributed
      */
+    @Override
     public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
         
         if (tree.vardef.name == null) {
@@ -2918,6 +2913,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * a signals_only method specification clause
      * @param tree the method specification clause being attributed
      */
+    @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
         for (JCExpression e: tree.list) {
             e.type = attribTree(e, env, new ResultInfo(TYP, syms.exceptionType));
@@ -3412,13 +3408,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSINVARIANTFOR :
                 // The argument can be a JML spec-expression
                 // Expects one argument of reference type; result is of type boolean
-                attribArgs(tree.args, localEnv, argtypesBuf);
-                //attribTypes(tree.typeargs, localEnv);
+            	
                 n = tree.args.size();
-                if (n != 1) {
+                if (n != 1 && JmlOption.isOption(context, JmlOption.STRICT)) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
-                } else {
-                    JCExpression arg = tree.args.get(0);
+                }
+
+                for (JCExpression arg: tree.args) {
+                    attribTree(arg, localEnv, new ResultInfo(TYP|VAR, Infer.anyPoly));
+
                     if (arg.type.isPrimitive()) {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
@@ -3511,7 +3509,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
         // Otherwise this is just a Java method application
-        if (tree.meth.toString().equals("B") || tree.meth.toString().equals("<init>")) Utils.stop();
         super.visitApply(tree);
         if (result.isErroneous()) return;
         Type savedResult = result;
@@ -3524,7 +3521,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (msym != null) {
                 boolean isPure = isPureMethod(msym);
                 if (!isPure && JmlOption.isOption(context,JmlOption.PURITYCHECK)) {
-                    //if (!msym.owner.type.isParameterized()) // FIXME - just until we read generic specs
                     log.warning(tree.pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
                 }
                 if (isPure && currentClauseType == JmlTokenKind.INVARIANT
@@ -5459,8 +5455,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param tree  the enhanced for loop
      * @param vartype the type of the loop variable
      */
-    public void trForeachLoop(JmlEnhancedForLoop tree, Type vartype) {
         // Translating:  T elem : e
+    public void trForeachLoop(JmlEnhancedForLoop tree, Type vartype) {
         // vartype is T ; boxedVarType is T' which is the boxed type (if necessary) of T
         
         // Desugar the foreach loops in order to put in the JML auxiliary loop indices
@@ -5499,7 +5495,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         {
             
             Name defempty = names.fromString("defaultEmpty");
-            JCFieldAccess sel = factory.Select(factory.Type(JMLUtilsType),defempty);
+            JCFieldAccess sel = factory.Select(factory.Type(utilsClass.type),defempty);
             JCExpression e = factory.Apply(List.<JCExpression>of(factory.Type(boxedVarType)),sel,List.<JCExpression>nil()); 
             // FIXME e.type = ?
             // e:    Utils.<T'>defaultEmpty()
