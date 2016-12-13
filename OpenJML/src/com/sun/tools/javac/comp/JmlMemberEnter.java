@@ -378,7 +378,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
             }
 
-            resolve.setJML(true);
+            resolve.setAllowJML(true);
             
             
             // At this point, all java and spec members are entered
@@ -425,7 +425,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             inSpecFile = prevInSpecFile;
             inModelTypeDeclaration = prevInModel;
             addRacMethods(tree.sym,env);
-            resolve.setJML(prevAllowJML);
+            resolve.setAllowJML(prevAllowJML);
             log.useSource(prevSource);
             if (utils.jmlverbose >= Utils.JMLDEBUG) {
                 noticeWriter.println("FINISHING CLASS - COMPLETE " + tree.sym.fullname);
@@ -1764,7 +1764,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public void complete(Symbol sym) throws CompletionFailure {
         
         JmlResolve jresolve = JmlResolve.instance(context);
-        boolean prevAllowJML = jresolve.setJML(utils.isJML(sym.flags()));
+        boolean prevAllowJML = jresolve.setAllowJML(utils.isJML(sym.flags()));
         try {
             Env<AttrContext> env = enter.typeEnvs.get(sym.type.tsym);
             if (env == null) {
@@ -1796,7 +1796,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 env.info.scope.enter(thisSym);
             }
         } finally {
-            jresolve.setJML(prevAllowJML);
+            jresolve.setAllowJML(prevAllowJML);
         }
 
     }

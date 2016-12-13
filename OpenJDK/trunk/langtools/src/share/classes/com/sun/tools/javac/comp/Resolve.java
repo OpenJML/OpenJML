@@ -2027,7 +2027,7 @@ public class Resolve {
         Symbol bestSoFar = typeNotFound;
         for (Scope.Entry e = scope.lookup(name); e.scope != null; e = e.next()) {
             Symbol sym = loadClass(env, e.sym.flatName());
-            if (!symbolOK(e)) continue; // DRCok added for OpenJML
+            if (!symbolOK(e)) continue; // OPENJML added to allow derived class to disallow symbols
             if (bestSoFar.kind == TYP && sym.kind == TYP &&
                 bestSoFar != sym)
                 return new AmbiguityError(bestSoFar, sym);
@@ -2040,7 +2040,7 @@ public class Resolve {
     /** This hook method is added so that derived classes can add their
      * own spin on whether the entry may be returned as the result of the lookup.
      */
-    protected boolean symbolOK(Scope.Entry e) { // DRCok - added this hook method
+    protected boolean symbolOK(Scope.Entry e) { // OPENJML - added this hook method
         return true;
     }
 
@@ -2555,7 +2555,7 @@ public class Resolve {
      *  @param typeargtypes  The types of the constructor invocation's type
      *                   arguments.
      */
-    protected Symbol resolveConstructor(DiagnosticPosition pos, // DRC - switch to protected
+    public Symbol resolveConstructor(DiagnosticPosition pos, // OpenJML - switch to public
                               Env<AttrContext> env,
                               Type site,
                               List<Type> argtypes,
@@ -2563,7 +2563,7 @@ public class Resolve {
         return resolveConstructor(new MethodResolutionContext(), pos, env, site, argtypes, typeargtypes);
     }
 
-    protected Symbol resolveConstructor(MethodResolutionContext resolveContext, // DRC - switch to protected
+    private Symbol resolveConstructor(MethodResolutionContext resolveContext, // OPENJML - switch to protected - FIXME  - change notneeded
                               final DiagnosticPosition pos,
                               Env<AttrContext> env,
                               Type site,

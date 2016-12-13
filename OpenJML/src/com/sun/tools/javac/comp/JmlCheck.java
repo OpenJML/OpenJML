@@ -1,39 +1,27 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed: 2016-12-12
  */
 package com.sun.tools.javac.comp;
 
-import static com.sun.tools.javac.code.Flags.HYPOTHETICAL;
-import static com.sun.tools.javac.code.Kinds.MTH;
-import static com.sun.tools.javac.code.Kinds.TYP;
-import static com.sun.tools.javac.code.Kinds.kindName;
-import static com.sun.tools.javac.code.TypeTag.FORALL;
 import static com.sun.tools.javac.tree.JCTree.Tag.APPLY;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.JmlTokenKind;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
-import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.ForAll;
 import com.sun.tools.javac.code.TypeTag;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.Warner;
 
 /** The Check class is specialized for JML in order to avoid unchecked-cast warnings
  * for uses of casts in JML expressions.  JML checks these logically. Also adjusts
@@ -84,21 +72,22 @@ public class JmlCheck extends Check {
     /** Set by setInJml in order to avoid errors about generic casts.*/
     protected boolean isInJml = false;
     
-    /** public method to control the inJml flag */
+    /** public method to control the isInJml flag; returns the previous value */
     public boolean setInJml(Boolean inJml) {
         boolean b = isInJml;
         isInJml = inJml;
         return b;
     }
     
-    /** A warning object that issues no warnings.*/
-    public static class NoWarningsAtAll extends Warner {
-        public void warnUnchecked() {
-        }
-        public void silentUnchecked() {
-        }
-    }
+//    /** A warning object that issues no warnings.*/
+//    public static class NoWarningsAtAll extends Warner {
+//        public void warnUnchecked() {
+//        }
+//        public void silentUnchecked() {
+//        }
+//    }
 
+    // FIXME - the overriding method seems to do the same thing as the super method
     /** Overridden to avoid generic cast warnings in JML.
      */
     @Override
@@ -113,16 +102,16 @@ public class JmlCheck extends Check {
     }
     
     /** Overridden to avoid errors about static-ness of old variables in 
-     * method specifications.
+     * method specifications and to remove static from instance declarations.
      */
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (sym.kind == Kinds.ERR) return flags;
-        JCTree.JCVariableDecl d = (tree instanceof JCTree.JCVariableDecl) ? (JCTree.JCVariableDecl) tree : null;
         if (staticOldEnv) flags &= ~Flags.STATIC;
         long k = super.checkFlags(pos,flags&~Flags.DEFAULT,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
-        if (d != null) {
+        if (tree instanceof JCTree.JCVariableDecl) {
+            JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
             boolean isInstance = JmlAttr.instance(context).findMod(d.mods,JmlTokenKind.INSTANCE) != null;
             if (isInstance) k &= ~Flags.STATIC;
         }
@@ -131,17 +120,12 @@ public class JmlCheck extends Check {
     
     @Override
     protected boolean is292targetTypeCast(JCTypeCast tree) { // OPENJML - changed from private to protected
-        boolean is292targetTypeCast = false;
         JCExpression expr = TreeInfo.skipParens(tree.expr);
         if (expr.hasTag(APPLY)) {
             JCMethodInvocation apply = (JCMethodInvocation)expr;
-            if (apply.meth == null) return false;  // Overridden to add this check
-            Symbol sym = TreeInfo.symbol(apply.meth);
-            is292targetTypeCast = sym != null &&
-                sym.kind == MTH &&
-                (sym.flags() & HYPOTHETICAL) != 0;
+            if (apply.meth == null) return false;  // OPENJML - Overridden to add this check; apply.meth is null for function-like JML backslash operators
         }
-        return is292targetTypeCast;
+        return super.is292targetTypeCast(tree);
     }
 
     
@@ -165,23 +149,25 @@ public class JmlCheck extends Check {
         super.duplicateError(pos, sym);
     }
     
+    // Overridden so that we can hide warnings about not-really-duplicate declarations, when needed
+    @Override
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
         if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
     }
     
-    Symbol findClassName(DiagnosticPosition pos, Name name, Scope s) {
-        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
-            if (e.sym.kind == TYP && e.sym.name != names.error) {
-                return e.sym;
-            }
-        }
-        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
-            if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
-                return sym;
-            }
-        }
-        return null;
-    }
+//    Symbol findClassName(DiagnosticPosition pos, Name name, Scope s) {
+//        for (Scope.Entry e = s.lookup(name); e.scope == s; e = e.next()) {
+//            if (e.sym.kind == TYP && e.sym.name != names.error) {
+//                return e.sym;
+//            }
+//        }
+//        for (Symbol sym = s.owner; sym != null; sym = sym.owner) {
+//            if (sym.kind == TYP && sym.name == name && sym.name != names.error) {
+//                return sym;
+//            }
+//        }
+//        return null;
+//    }
 
 
 }

@@ -1,16 +1,9 @@
 /*
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
+ * Reviewed: 2016-12-12
  */
 package com.sun.tools.javac.comp;
-
-import static com.sun.tools.javac.code.Flags.ABSTRACT;
-import static com.sun.tools.javac.code.Flags.DEFAULT;
-import static com.sun.tools.javac.code.Flags.SYNTHETIC;
-import static com.sun.tools.javac.code.Kinds.MTH;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
 
 import org.jmlspecs.openjml.JmlCompiler;
 import org.jmlspecs.openjml.JmlSpecs;
@@ -21,20 +14,13 @@ import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.OperatorSymbol;
-import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.MethodType;
-import com.sun.tools.javac.comp.Resolve.LookupFilter;
-import com.sun.tools.javac.comp.Resolve.ResolveError;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Filter;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Pair;
 
 /**
  * This class extends Resolve in order to implement lookup of JML names. In the
@@ -72,18 +58,18 @@ public class JmlResolve extends Resolve {
     /** Cached value of JmlAttr, used for resolving annotations */
     final protected JmlAttr attr;
     
-    /** A constant symbol that represents the <# operation on locks; it is 
-     * initialized in the constructor.
-     */
-    final public OperatorSymbol lockLT;
-
-    /** A constant symbol that represents the <#= operation on locks; it is 
-     * initialized in the constructor.
-     */
-    final public OperatorSymbol lockLE;
-    
-    /** A private cache for the java.lang.Integer type */
-    final private Type integerType;
+//    /** A constant symbol that represents the <# operation on locks; it is 
+//     * initialized in the constructor.
+//     */
+//    final public OperatorSymbol lockLT;
+//
+//    /** A constant symbol that represents the <#= operation on locks; it is 
+//     * initialized in the constructor.
+//     */
+//    final public OperatorSymbol lockLE;
+//    
+//    /** A private cache for the java.lang.Integer type */
+//    final private Type integerType;
     
     /** Returns the unique instance of this class for the given compilation context
      * @param context the compilation context whose instance of Resolve is desired
@@ -122,40 +108,39 @@ public class JmlResolve extends Resolve {
         this.utils = Utils.instance(context);
         this.attr = JmlAttr.instance(context);
         
-        Symtab syms = Symtab.instance(context);
-        integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
-        lockLT = new OperatorSymbol(
-                names.fromString("<#"),
-                new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
-                        List.<Type>nil(), syms.methodClass),
-                        1000,
-                        syms.predefClass);
-        lockLE = new OperatorSymbol(
-                names.fromString("<#="),
-                new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
-                        List.<Type>nil(), syms.methodClass),
-                        1001,
-                        syms.predefClass);
-        // We could enter these operators into the symbol table 
-        // with the code below.  That works nicely for operator
-        // lookup, but it is hard to control that they are looked 
-        // up only when JML is active.  Also, these operators take
-        // Objects as arguments.  With type boxing, that means that
-        // they can take any argument.  However, boxed arguments
-        // will not have locks anyway, so with direct control in
-        // resolveBinaryOperator we avoid this.
-//        syms.predefClass.members().enter(lockLT);
-//        syms.predefClass.members().enter(lockLE);
+//        Symtab syms = Symtab.instance(context);
+//        integerType = reader.enterClass(names.fromString("java.lang.Integer")).type;
+//        lockLT = new OperatorSymbol(
+//                names.fromString("<#"),
+//                new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
+//                        List.<Type>nil(), syms.methodClass),
+//                        1000,
+//                        syms.predefClass);
+//        lockLE = new OperatorSymbol(
+//                names.fromString("<#="),
+//                new MethodType(List.of(syms.objectType, syms.objectType), syms.booleanType,
+//                        List.<Type>nil(), syms.methodClass),
+//                        1001,
+//                        syms.predefClass);
+//        // We could enter these operators into the symbol table 
+//        // with the code below.  That works nicely for operator
+//        // lookup, but it is hard to control that they are looked 
+//        // up only when JML is active.  Also, these operators take
+//        // Objects as arguments.  With type boxing, that means that
+//        // they can take any argument.  However, boxed arguments
+//        // will not have locks anyway, so with direct control in
+//        // resolveBinaryOperator we avoid this.
+////        syms.predefClass.members().enter(lockLT);
+////        syms.predefClass.members().enter(lockLE);
 
     }
     
     /** This method is used to set the value of the allowJML flag.  It returns
      * the previous value.
-     * @param context the compilation context in which to do the modification
      * @param allowJML the new value
      * @return the old value
      */
-    public boolean setJML(boolean allowJML) {  // FIXME _ duplicates setAllowJML
+    public boolean setAllowJML(boolean allowJML) {
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
@@ -166,38 +151,38 @@ public class JmlResolve extends Resolve {
         return this.allowJML;
     }
     
-    /** This method overrides the super class method in order to check for
-     * resolutions against JML operators: in particular, the < and <= operators
-     * on Objects that used to implement lock ordering comparisons.  The method
-     * returns an error symbol (Symtab.instance(context).errSymbol) if there
-     * is no matching operator.
-     * 
-     * Once < and <= are no longer used for lock ordering, this method can be
-     * removed.
-     */
-    @Override
-    public Symbol resolveBinaryOperator(DiagnosticPosition pos,
-            JCTree.Tag optag,
-            Env<AttrContext> env,
-            Type left,
-            Type right) {
-        // TODO: Eventually disallow using < and <= for lock operations
-        // Then this whole method can be removed
-        // FIXME - should compare against Float or Double or Character or Short or Byte or Long as well?
-        if (allowJML && !left.isPrimitive() && !right.isPrimitive()) {
-            if (!types.isSameType(left,integerType) && !types.isSameType(right,integerType)) {
-                if (optag == JCTree.Tag.LT) {
-                    log.warning(pos,"lock.ops");
-                    return lockLT;
-                }
-                if (optag == JCTree.Tag.LE) {
-                    log.warning(pos,"lock.ops");
-                    return lockLE;
-                }
-            }
-        }
-        return super.resolveBinaryOperator(pos, optag, env, left, right);
-    }
+//    /** This method overrides the super class method in order to check for
+//     * resolutions against JML operators: in particular, the < and <= operators
+//     * on Objects that used to implement lock ordering comparisons.  The method
+//     * returns an error symbol (Symtab.instance(context).errSymbol) if there
+//     * is no matching operator.
+//     * 
+//     * Once < and <= are no longer used for lock ordering, this method can be
+//     * removed.
+//     */
+//    @Override
+//    public Symbol resolveBinaryOperator(DiagnosticPosition pos,
+//            JCTree.Tag optag,
+//            Env<AttrContext> env,
+//            Type left,
+//            Type right) {
+//        // TODO: Eventually disallow using < and <= for lock operations
+//        // Then this whole method can be removed
+//        // FIXME - should compare against Float or Double or Character or Short or Byte or Long as well?
+//        if (allowJML && !left.isPrimitive() && !right.isPrimitive()) {
+//            if (!types.isSameType(left,integerType) && !types.isSameType(right,integerType)) {
+//                if (optag == JCTree.Tag.LT) {
+//                    log.warning(pos,"lock.ops");
+//                    return lockLT;
+//                }
+//                if (optag == JCTree.Tag.LE) {
+//                    log.warning(pos,"lock.ops");
+//                    return lockLE;
+//                }
+//            }
+//        }
+//        return super.resolveBinaryOperator(pos, optag, env, left, right);
+//    }
     
 
     /** This check is inserted in the superclass methods: JML symbols are mixed in
@@ -229,7 +214,6 @@ public class JmlResolve extends Resolve {
       * @param name the qualified name of the class to load
       * @return the unique symbol corresponding to this class
       */
-     Symbol savedSym;
      @Override
      public Symbol loadClass(Env<AttrContext> env, Name name) {
          if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("BINARY LOADING STARTING " + name );
@@ -304,10 +288,7 @@ public class JmlResolve extends Resolve {
          if (specProtectedSym == null) {
              specProtectedSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.SPEC_PROTECTED);
          }
-         // FIXME - sort out what is really happening here - the second part seems at least needed when a java file is referencing a binary file with a spec
-         // (Is this because the binary file will not have the attributes in it - they are added ad hoc when the spec file is parsed???)
-//         boolean isSpecPublic = sym.attributes_field == null ? false : 
-//             (sym.attribute(specPublicSym) != null || attr.findMod(mods,JmlToken.SPEC_PUBLIC)!=null);
+
          boolean isSpecPublic = utils.findMod(mods,specPublicSym)!=null;
          if (isSpecPublic) {
              long saved = sym.flags();
@@ -318,8 +299,6 @@ public class JmlResolve extends Resolve {
          }
          
          if ((sym.flags() & Flags.PROTECTED) != 0) return false;
-//         boolean isSpecProtected = sym.attributes_field == null ? false : 
-//             (sym.attribute(specProtectedSym) != null || attr.findMod(mods,JmlToken.SPEC_PROTECTED)!=null);
          boolean isSpecProtected = utils.findMod(mods,specProtectedSym)!=null;
          if (isSpecProtected) {
              long saved = sym.flags_field;
@@ -336,32 +315,21 @@ public class JmlResolve extends Resolve {
          return super.resolveUnaryOperator(pos,optag,env,arg);
      }
      
-     /** Returns the predefined operator with the given operator and type */
-     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Type arg) {
-         Scope.Entry e = syms.predefClass.members().lookup(treeinfo.operatorName(optag));
-         return e.sym;
-     }
+//     /** Returns the predefined operator with the given operator and type */
+//     public Symbol resolveUnaryOperator(DiagnosticPosition pos, JCTree.Tag optag, Type arg) {
+//         Scope.Entry e = syms.predefClass.members().lookup(treeinfo.operatorName(optag));
+//         return e.sym;
+//     }
      
-     /** Finds the constructor in the given environment that matches the given type arguments
-      * and arguments.
-      */
-     public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
-             Type site, List<Type> argtypes,
-             List<Type> typeargtypes) {
-         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes);
-     }
+//     /** Finds the constructor in the given environment that matches the given type arguments
+//      * and arguments.
+//      */
+//     public Symbol resolveConstructor(DiagnosticPosition pos, Env<AttrContext> env,
+//             Type site, List<Type> argtypes,
+//             List<Type> typeargtypes) {
+//         return super.resolveConstructor(pos,env,site,argtypes,typeargtypes);
+//     }
 
-     /** This method is used to set the value of the allowJML flag.  It returns
-      * the previous value.
-      * @param allowJML the new value
-      * @return the old value
-      */
-     public boolean setAllowJML(boolean allowJML) {
-         boolean b = this.allowJML;
-         this.allowJML = allowJML;
-         return b;
-     }
-     
      boolean silentErrors = false;
      boolean errorOccurred = false;
      

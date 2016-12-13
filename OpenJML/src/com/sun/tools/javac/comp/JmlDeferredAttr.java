@@ -3,8 +3,6 @@ package com.sun.tools.javac.comp;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeCopier;
 
-import com.sun.tools.javac.comp.DeferredAttr.ArgumentExpressionKind;
-import com.sun.tools.javac.comp.DeferredAttr.DeferredChecker;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.TreeMaker;
@@ -36,6 +34,7 @@ public class JmlDeferredAttr extends DeferredAttr {
         this.context = context;
     }
     
+    // Overridden to use a JmlDeferredChecker
     @Override
     boolean isDeferred(Env<AttrContext> env, JCExpression expr) {
         DeferredChecker dc = new JmlDeferredChecker(env);
@@ -43,10 +42,10 @@ public class JmlDeferredAttr extends DeferredAttr {
         return dc.result.isPoly();
     }
     
-    protected TreeCopier makeCopier(TreeMaker make) {
+    // Overridden to use a JML copier
+    protected TreeCopier<Void> makeCopier(TreeMaker make) {
         return new JmlTreeCopier(context,JmlTree.Maker.instance(context));
     }
-
 
     
     class JmlDeferredChecker extends DeferredChecker {
@@ -55,6 +54,7 @@ public class JmlDeferredAttr extends DeferredAttr {
             super(env);
         }
         
+        // Overridden to handle JML function-like operators
         @Override
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth != null) super.visitApply(tree);
@@ -62,6 +62,7 @@ public class JmlDeferredAttr extends DeferredAttr {
             return;
         }
 
+        // FIXME - motivate this override
         protected boolean isSimpleReceiver(JCTree rec) {
             if (rec.getTag() == null) return true;
             return super.isSimpleReceiver(rec);

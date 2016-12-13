@@ -650,24 +650,24 @@ public class typechecking extends TCBase {
                 );
     }
     
-    @Test public void testLockCompare() {
-        expectedExit = 0;
-        helpTCF("A.java","public class A { Object o,oo; //@ invariant o < oo; \n }"
-                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
-                );
-    }
+//    @Test public void testLockCompare() {
+//        expectedExit = 0;
+//        helpTCF("A.java","public class A { Object o,oo; //@ invariant o < oo; \n }"
+//                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
+//                );
+//    }
     
     @Test public void testLockCompareX() {
         helpTCF("A.java","public class A { Integer o,oo; //@ invariant o < oo; \n }"
                 );
     }
     
-    @Test public void testLockCompare1() {
-        expectedExit = 0;
-        helpTCF("A.java","public class A { Object o,oo; //@ invariant o <= oo; \n }"
-                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
-                );
-    }
+//    @Test public void testLockCompare1() {
+//        expectedExit = 0;
+//        helpTCF("A.java","public class A { Object o,oo; //@ invariant o <= oo; \n }"
+//                ,"/A.java:1: warning: Operators < and <= are deprecated as lock comparisons - use <# and <#= instead",47
+//                );
+//    }
     
     @Test public void testLockCompare1X() {
         helpTCF("A.java","public class A { Integer o,oo; //@ invariant o <= oo; \n }"
