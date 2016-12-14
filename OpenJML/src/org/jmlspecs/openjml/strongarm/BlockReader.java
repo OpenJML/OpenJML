@@ -92,6 +92,9 @@ public class BlockReader {
         
         this.inferdebug = JmlOption.isOption(context, JmlOption.INFER_DEBUG);           
         
+        
+        _substitutionCache = new SubstitutionCache(basicBlocker.blockmaps, treeutils);
+        
         // verbose will print all the chatter
         this.verbose = inferdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
             || utils.jmlverbose >= Utils.JMLVERBOSE;
@@ -584,19 +587,25 @@ public class BlockReader {
     private void pickupLexicalMappings(JCStatement stmt, BasicBlock block){
 
         if(stmt instanceof JmlStatementExpr){
+           
             JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
         
             if(isAssignStmt(jmlStmt)){
+                _substitutionCache.addSubstitutionAtBlock(stmt, block);
                 addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
 
             }else if(isPostconditionStmt(jmlStmt)){
+                _substitutionCache.addSubstitutionAtBlock(stmt, block);
+                
                 addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});                    
             }else if(isLoopInvariant(jmlStmt) && jmlStmt.expression instanceof JCBinary){
                 
                 JCBinary jmlBinary = (JCBinary)jmlStmt.expression;
-                //TODO -- might have to add filtering for only equalities 
+                //TODO -- might have to add filtering for only equalities
+                _substitutionCache.addSubstitutionAtBlock(stmt, block);
+                
                 addSubstitutionAtBlock(jmlStmt.expression, _mappings, block);
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
             }
@@ -609,7 +618,9 @@ public class BlockReader {
                     if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
                         
                         JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
-                    
+                
+                        _substitutionCache.addSubstitutionAtBlock(stmt, block); // TODO REVIEW THIS
+                        
                         addSubstitutionAtBlock(expr, _mappings, block);
                         debugLexicalMappings.add(new Object[]{block.id().toString(), expr.toString()});
                     }
@@ -617,6 +628,9 @@ public class BlockReader {
             }
             
         }else if(isVarDecl(stmt)){
+            
+            _substitutionCache.addSubstitutionAtBlock(stmt, block);
+            
             JmlVariableDecl decl = (JmlVariableDecl)stmt;
             addSubstitutionAtBlock(decl, _mappings, block);
             debugLexicalMappings.add(new Object[]{block.id().toString(), decl.toString()});
@@ -959,11 +973,15 @@ public class BlockReader {
         return false;
     }
 
+    public static SubstitutionCache _substitutionCache;
+    
     public void addSubstitutionAtBlock(JCTree sub, Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
         
         if(mappings.get(block.id())==null){
             mappings.put(block.id(), new ArrayList<JCTree>());
         }
+        
+        
         
         
         mappings.get(block.id()).add(sub);
