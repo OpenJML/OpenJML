@@ -662,6 +662,154 @@ public class escall2 extends EscBase {
     }
     
     @Test
+    public void testInvariantForOK() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = 10; \n"
+                +"     //@ assert \\invariant_for(this);\n" // OK - invariant is true
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { public int f; //@ public invariant f >= 0; \n"
+                +"}\n"
+                );
+    }
+    
+    @Test
+    public void testInvariantForVisibility() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = 10; \n"
+                +"     //@ assert \\invariant_for(this);\n" // OK - does not see invariant
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { public int f; //@ private invariant false; \n"
+                +"}\n"
+                );
+    }
+    
+    @Test
+    public void testInvariantForVisibility2() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = 10; \n"
+                +"     //@ assert \\invariant_for(this);\n" // OK - sees invariant
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { public int f; //@ public invariant true; \n"
+                +"}\n"
+                );
+    }
+    
+    @Test
+    public void testInvariantFor() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = -10; \n"
+                +"     //@ assert \\invariant_for(this);\n" // ERROR - should see inherited invariant and fail
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { public int f; //@ public invariant f >= 0; \n"
+                +"}\n"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                );
+    }
+    
+    @Test
+    public void testInvariantForSeeStatic() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = -10; \n"
+                +"     //@ assert \\invariant_for(this);\n" // ERROR - should see static invariant
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { static public int f; //@ static public invariant f >= 0; \n"
+                +"}\n"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                );
+    }
+    
+    @Test
+    public void testInvariantForStatic() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                
+                +"  public void m() {\n"
+                +"     f = -10; \n"
+                +"     //@ assert \\invariant_for(TestJava);\n" // OK - sees only static invariants
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { public int f; //@ public invariant f >= 0; \n"
+                +"}\n"
+                );
+    }
+
+    @Test
+    public void testInvariantForStatic1() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                +"  static public int f; //@ static public invariant f >= 0; \n"
+                
+                +"  public void m() {\n"
+                +"     f = -10; \n"
+                +"     //@ assert \\invariant_for(TestJava);\n" // ERROR - should see static invariant
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { }\n "
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",10
+                );
+    }
+    
+    @Test
+    public void testInvariantForStatic2() {
+    	main.addOptions("-method=m"); // Part of test - don't test constructor
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava extends P { \n"
+                +"  static public int f; //@ static public invariant f >= 0; \n"
+                
+                +"  public void m() {\n"
+                +"     f = -10; \n"
+                +"     //@ assert \\invariant_for(P);\n" // OK
+                +"     f = 1; \n"
+                +"  }\n"
+                
+                +"} class P { }\n "
+                );
+    }
+    
+
+    @Test
     public void testDZero() {
         Assume.assumeTrue(runLongTests);
         Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division

@@ -2063,6 +2063,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return symbol.attribute(attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL))!=null; // FIXME - need to get this from the spec
     }
     
+    public boolean hasStatic(JCModifiers mods) {
+        return (mods.flags & Flags.STATIC) != 0;
+    }
+    
 
     /** Creates a try statement that wraps the given block and catches any
      * RuntimeException; the catch block prints the given message; esc just
@@ -11065,14 +11069,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 eresult.type = syms.booleanType;
                 break;
             }
-            
+
+            case BSINVARIANTFOR :
+            {
+                JCExpression res = null;
+                for (JCExpression arg: that.args) {
+                    JCExpression a = treeutils.isATypeTree(arg)? null : convertJML(arg);
+                    JCExpression e = getInvariantAll(that,arg.type,a);
+                    res = e == null ? res : res == null ? e : treeutils.makeAnd(that, res, e);
+                }
+                if (res == null) res = treeutils.trueLit;
+                result = eresult = res;
+                break;
+            }
+
             case BSMAX :
             case BSREACH :
             case BSSPACE :
             case BSWORKINGSPACE :
             case BSDURATION :
             case BSISINITIALIZED :
-            case BSINVARIANTFOR :
             case BSNOWARN:
             case BSNOWARNOP:
             case BSWARN:
@@ -11088,6 +11104,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 throw new JmlNotImplementedException(that,that.token.internedName());
         }
         result = eresult;
+    }
+    
+    @Nullable JCExpression getInvariantAll(DiagnosticPosition pos, Type baseType, JCExpression obj) {
+        JCExpression res = null;
+        for (Type ty: parents(baseType,true)) {  // FIXME - make sure parents() works for TypeVar
+            JCExpression e = getInvariant(pos, baseType, ty, obj);
+            res = e == null ? res : res == null ? e : treeutils.makeAnd(pos, res, e);
+        }
+        return res;
+    }
+    
+    @Nullable JCExpression getInvariant(@NonNull DiagnosticPosition pos, @NonNull Type base, @NonNull Type t, @Nullable JCExpression obj) {
+        if (!(t.tsym instanceof ClassSymbol)) return null;
+        TypeSpecs tspecs = specs.getSpecs((ClassSymbol)t.tsym);
+        JCExpression saved = currentThisExpr;
+        currentThisExpr = convertJML(obj);
+        JCExpression result = null;
+        try {
+            for (JmlTypeClause clause: tspecs.clauses) {
+                if (clause.token != JmlTokenKind.INVARIANT) continue;
+                if (!utils.visible(base.tsym, t.tsym, clause.modifiers.flags)) continue;
+                if (obj == null && !hasStatic(clause.modifiers)) continue;
+                JCExpression e = convertJML(((JmlTypeClauseExpr)clause).expression);
+                result = result == null ? e : treeutils.makeAnd(pos,result,e);
+            }
+        } finally {
+            currentThisExpr = saved;
+        }
+        return result;
     }
  
     protected

@@ -207,7 +207,7 @@ public class escfiles extends EscBase {
     public void testTaxpayer() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/TaxPayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Taxpayer.java","test/demoTaxpayer","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
     }
 
     @Test
