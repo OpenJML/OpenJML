@@ -353,6 +353,8 @@ public class Strongarm
         
         if (verbose) {
             log.noticeWriter.println("Inference finished...");
+            
+            log.noticeWriter.println(BlockReader._substitutionCache.toString());
         }
         
         
@@ -369,7 +371,7 @@ public class Strongarm
                 log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
             }
             
-            
+                            
             return null; // no spec 
         }
         
