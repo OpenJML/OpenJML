@@ -405,11 +405,19 @@ public class Strongarm
         boolean verbose        = infer.verbose;
         Timing t;
         
+        
+        
+        
         t = Timing.start();
         RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
        
         
         if (verbose) {
+            log.noticeWriter.println(BlockReader._substitutionCache.toString());
+        }
+        
+        
+       if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
