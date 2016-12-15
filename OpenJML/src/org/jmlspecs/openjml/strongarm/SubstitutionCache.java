@@ -150,7 +150,7 @@ public class SubstitutionCache {
         StringBuffer sb = new StringBuffer();
         
         sb.append("====Substitution Cache====\n");
-        sb.append(String.format("%20s %80s %30s\n", "VarSym", "Substitution", "@ Block"));
+        sb.append(String.format("%20s %140s %30s\n", "VarSym", "Substitution", "@ Block"));
         
         Set<VarSymbol> keys = ds.keySet();
         
@@ -158,8 +158,9 @@ public class SubstitutionCache {
             List<Pair<String,JCTree>> v = ds.get(s);
             
             for(Pair<String,JCTree> vv : v){
-                sb.append(String.format("%20s %80s %30s\n", s.toString(), vv.snd.toString(), vv.fst));
+                sb.append(String.format("%20s %140s %30s\n", s.toString(), vv.snd.toString(), vv.fst));
             }
+            sb.append("=======================================================================================================================================================\n");
         }
         
         

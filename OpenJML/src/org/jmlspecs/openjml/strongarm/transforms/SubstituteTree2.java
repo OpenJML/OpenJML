@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.transforms;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlVisitor;
@@ -9,6 +10,8 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
+import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.SubstitutionCache;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
@@ -325,36 +328,29 @@ public class SubstituteTree2 extends JmlTreeScanner{
         return null;
     }
 
-    public static JCExpression replace(JCTree replace, JCTree in){
+    public static JCExpression replace(SubstitutionCache substitutionCache, ArrayList<BasicBlock> path, JCTree in){
 
-        instance.currentReplacement = replace;
-        
-        if(instance.replace()==null) return null;
-        //if(instance.replace().toString().startsWith("ASSERT")) return null;
-        
-        if(instance.replace()!=null && instance.with()!=null){
-        
-            //it's of course possible this is a direct substitution 
-            if(in instanceof JCIdent){
-                if(((JCIdent) in).getName().equals(instance.replace())){    
+        //it's of course possible this is a direct substitution 
+        if(in instanceof JCIdent){
+            if(((JCIdent) in).getName().equals(instance.replace())){    
+                
+                if(instance.with().toString().equals("true")){
+                    ((JCIdent) in).name = instance.treeutils.makeIdent(0, instance.with().toString(), in.type).name;
+                }else{
                     
-                    if(instance.with().toString().equals("true")){
-                        ((JCIdent) in).name = instance.treeutils.makeIdent(0, instance.with().toString(), in.type).name;
-                    }else{
-                        
 //                        if(instance.with() instanceof JCIdent == false){
 //                            in =                             
 //                        }
-                        
-                    }
                     
-                    
-                    return instance.with();
                 }
-            }else{
-                instance.scan(in);
-            }           
-        }
-        return null;
+                
+                
+                return instance.with();
+            }
+        }else{
+            instance.scan(in);
+        }           
+    
+        
     }
 }
