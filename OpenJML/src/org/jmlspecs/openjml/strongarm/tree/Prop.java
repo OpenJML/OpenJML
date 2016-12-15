@@ -19,9 +19,11 @@ import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeCopier;
+import org.jmlspecs.openjml.strongarm.BlockReader;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -133,9 +135,60 @@ public class Prop<T extends JCExpression> implements Cloneable {
             p = (T) e;
         }
     }
-    
-    
+   
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+     replace2(mappings, limitDepth);   
+    }
+    
+
+    public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+        
+                
+        log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
+        // print path
+        logl("[PATH]");        
+        for(BasicBlock b : path){
+            logl(b.id().toString() + ">>");
+        }
+        
+                // baby fixpoint
+        String before;
+        int iteration = 1;
+        
+        
+                
+        do {
+            log("\tInternal Fixpoint #" + iteration);
+
+            before = p.toString();
+
+            log("\t\tBefore: " + before);
+            doReplacement2();
+            log("\t\tAfter: " + p.toString());
+            
+            
+            iteration++;
+            
+        }while(before.equals(p.toString())==false);
+        
+    }
+    
+    
+    private void doReplacement2(){
+                    
+        JCExpression tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);
+        
+        if(tmpE!=null){
+             p = (T) tmpE;
+         }
+        
+    }
+    
+
+
+    
+    public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
                 
         log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
