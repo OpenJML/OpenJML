@@ -48,6 +48,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
 import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitutions;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
@@ -104,6 +105,8 @@ public class Strongarm
         //
         {
             SubstituteTree.cache(context);
+            SubstituteTree2.cache(context);
+            
             RemoveTautologies.cache(context);
             RemoveContradictions.cache(context);            
             CleanupVariableNames.cache(context);
@@ -446,7 +449,7 @@ public class Strongarm
             // in the equations we substitute here.
             t = Timing.start();
             
-            reader.postcondition.replace(reader.getSubstitutionMappings(), true);
+            reader.postcondition.replace(null, true);
             
         }
 

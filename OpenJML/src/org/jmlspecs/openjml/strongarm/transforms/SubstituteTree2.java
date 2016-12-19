@@ -2,6 +2,9 @@ package org.jmlspecs.openjml.strongarm.transforms;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.openjml.IJmlVisitor;
@@ -85,7 +88,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
     public void visitIdent(JCIdent tree){
         if(tree==null) return;
         
-        if(replace().toString().equals(tree.getName().toString()) && with() instanceof JCIdent){
+        if(canReplace(tree) && with() instanceof JCIdent){
             
             if(verbose){
                 log.noticeWriter.println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
@@ -101,7 +104,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(tree.arg instanceof JCIdent){
             JCIdent arg = (JCIdent)tree.arg;
             
-            if(replace().toString().equals(arg.getName().toString())){
+            if(canReplace(arg)){
 
                 if (verbose) {
                     log.noticeWriter.println("\t\tReplacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
@@ -112,88 +115,94 @@ public class SubstituteTree2 extends JmlTreeScanner{
         super.visitUnary(tree);
     }
 
+    private String replacementSummary(JCTree tree){
+           
+        if(isTmpVar){
+            return String.format("%s -> %s in: %s", replace().toString(), with().toString(), tree.toString());            
+        }else{
+            return String.format("%s -> %s in: %s", replace().toString(), with().toString(), tree.toString());
+        }
+    }
     @Override
     public void visitParens(JCParens tree){
         
         if(tree.expr instanceof JCIdent){
             JCIdent expr = (JCIdent)tree.expr;
             
-            if(replace().toString().equals(expr.getName().toString())){
-
+            if(canReplace(expr)){
                 if (verbose) {
                     log.noticeWriter.println("\t\tReplacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 tree.expr = with();
-            }
-            
+            }    
         }
         super.visitParens(tree);
     }
     
     private boolean isRedundant(JCBinary tree){
-        if(currentReplacement instanceof JCBinary)
-            return tree == currentReplacement;
-        
-        return false;
+        return currentReplacement!=null && currentReplacement.toString().equals(tree.toString());
     }
     
     @Override 
     public void visitIndexed(JCArrayAccess tree){
         
-        if(tree.toString().equals(with().toString())==false){
+        log.error("jml.internal", "Didn't handle this case!!!?!?");
+
         
-            if(tree instanceof JmlBBArrayAccess){
-                JmlBBArrayAccess access = (JmlBBArrayAccess)tree;
-                
-                if(access.indexed instanceof JCFieldAccess){
-                    handleField((JCFieldAccess)access.indexed);
-                }
-                
-                if(access.index instanceof JCFieldAccess){
-                    handleField((JCFieldAccess)access.index);
-                }
-                
-                if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
-                    
-                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
-
-                    access.indexed = with();
-                }
-                
-                if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
-                    
-                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
-
-                    access.index = with();
-                }
-            }
-            
-        }
-        super.visitIndexed(tree);
+        
+//        if(tree.toString().equals(with().toString())==false){
+//        
+//            if(tree instanceof JmlBBArrayAccess){
+//                JmlBBArrayAccess access = (JmlBBArrayAccess)tree;
+//                
+//                if(access.indexed instanceof JCFieldAccess){
+//                    handleField((JCFieldAccess)access.indexed);
+//                }
+//                
+//                if(access.index instanceof JCFieldAccess){
+//                    handleField((JCFieldAccess)access.index);
+//                }
+//                
+//                if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
+//                    
+//                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+//
+//                    access.indexed = with();
+//                }
+//                
+//                if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
+//                    
+//                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+//
+//                    access.index = with();
+//                }
+//            }
+//            
+//        }
+//        super.visitIndexed(tree);
     }
     
     @Override
     public void visitBinary(JCBinary tree) {
         
-        if(isRedundant(tree)) return;
         
         if(tree.lhs instanceof JCIdent){ // && tree.operator.toString().startsWith("==")==false){ 
             JCIdent lhs = (JCIdent)tree.lhs;
 
-            if(replace().toString().equals(lhs.getName().toString())){
-
+            if(canReplace(lhs) && isRedundant(tree)==false){
+                
                 if (verbose) {
                     log.noticeWriter.println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 
                 tree.lhs = with();
-            } 
+            }
         }
         
-        if(tree.rhs instanceof JCIdent){ 
+        if(tree.rhs instanceof JCIdent && isRedundant(tree)==false){ 
             JCIdent rhs = (JCIdent)tree.rhs;
 
-            if(replace().toString().equals(rhs.getName().toString())){
+            if(canReplace(rhs)){
 
                 if (verbose) {
                     log.noticeWriter.println("\t\tReplacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
@@ -210,15 +219,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             handleField((JCFieldAccess)tree.rhs);
         }
 
-        
-//        if(tree.operator.toString().startsWith("==")){
-//            scan(tree.rhs);            
-//        }else{
-//            super.visitBinary(tree);
-//        }
-//        
-         super.visitBinary(tree);
-        
+        super.visitBinary(tree);        
     }
     
     private void handleField(JCFieldAccess access){
@@ -226,7 +227,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(access.selected instanceof JCIdent){
             JCIdent selected = (JCIdent)access.selected;
             
-            if(replace().toString().equals(selected.getName().toString())){
+            if(canReplace(selected)){
 
                 if (verbose) {
                     log.noticeWriter.println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
@@ -237,6 +238,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
         }
         
         if(access.name.toString().equals(replace().toString())){
+            
+            
+            log.error("jml.internal", "Didn't handle this case!!!?!?");
+
             
             if (verbose) {
                 log.noticeWriter.println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
@@ -270,6 +275,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
     public Name replace(){
         JCTree p = currentReplacement;
         Name n = null;
+        
+        if(isTmpVar){
+            return tmpVar.name;
+        }
         
         if(p instanceof JCExpression){
             
@@ -309,6 +318,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
     public JCExpression with(){
         JCTree p = currentReplacement;
         
+        if(isTmpVar){
+            return (JCExpression)currentReplacement;
+        }
+        
         if(p instanceof JCExpression){
             
             if(p instanceof JCBinary){
@@ -327,30 +340,91 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         return null;
     }
+    
+    private ArrayList<JCTree> _subs; 
+    private boolean isTmpVar = false;
+    private JCIdent tmpVar   = null;
+    
+    private boolean canReplace(JCIdent ident){
+
+        _subs = substitutionCache.getSubstitutionsAlongPath(ident, path);
+        instance.currentReplacement = null;
+        
+        Collections.reverse(_subs);
+        
+        if(ident.toString().startsWith("_JML__tmp")){
+            isTmpVar = true;
+            tmpVar = ident;
+        }else{
+            isTmpVar = false;
+            tmpVar = null;
+        }
+        
+        for(JCTree sub : _subs){
+            // tmp vars always match replacement (because they are synthetic)
+            if(isTmpVar){
+                instance.currentReplacement = sub;
+            }
+            // if it's a JCExpression, make sure the LHS says something about the current ident.
+            else{
+                
+                if(sub instanceof JCBinary){
+                    JCBinary e = (JCBinary)sub;
+                    
+                    if(e.lhs.toString().equals(ident.toString())){
+                        instance.currentReplacement = sub;
+                    }
+                    
+                }
+            }
+            
+        }
+        
+        if(_subs.size() > 0 && instance.currentReplacement !=null){
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private SubstitutionCache substitutionCache;
+    private ArrayList<BasicBlock> path;
 
     public static JCExpression replace(SubstitutionCache substitutionCache, ArrayList<BasicBlock> path, JCTree in){
 
-        //it's of course possible this is a direct substitution 
+        instance.substitutionCache = substitutionCache;
+        instance.path              = path;
+        /**
+         * If "in" is a JCIdent, we probably have to directly
+         * make a substitution
+         */
         if(in instanceof JCIdent){
-            if(((JCIdent) in).getName().equals(instance.replace())){    
-                
-                if(instance.with().toString().equals("true")){
-                    ((JCIdent) in).name = instance.treeutils.makeIdent(0, instance.with().toString(), in.type).name;
-                }else{
-                    
-//                        if(instance.with() instanceof JCIdent == false){
-//                            in =                             
-//                        }
-                    
-                }
-                
-                
+
+            if(instance.canReplace((JCIdent)in)){    
                 return instance.with();
             }
+            
         }else{
             instance.scan(in);
         }           
-    
         
+        
+        return null; // this means we didn't change the underlying proposition (but we may have internally substituted some things)
     }
+   
+    /**
+     * TODO: 
+     * 
+     * We need to make a case for expressions that get subed, eg:
+     * 
+     * 
+     * _JMLtmp4  -> a > b
+     * 
+     * There is no equality that manages that. Maybe the functions we've written already take care 
+     * of this detail but not totally sure. 
+     */
+    
+    
+    
+    
 }

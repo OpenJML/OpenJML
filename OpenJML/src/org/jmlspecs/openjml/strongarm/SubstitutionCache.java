@@ -88,15 +88,29 @@ public class SubstitutionCache {
         
         ArrayList<JCTree> subs = new ArrayList<JCTree>();
         
-        // get possible substitutions along this path
-        for(Pair<String,JCTree> p : possibleMatches ){
-            if(path.contains(p.fst)){
-                subs.add(p.snd);
+        if(possibleMatches!=null){
+        
+            // get possible substitutions along this path
+            for(Pair<String,JCTree> p : possibleMatches ){
+                if(path.contains(p.fst)){
+                    subs.add(p.snd);
+                }
             }
+        
         }
         
-        
         return subs;
+    }
+    
+    public ArrayList<JCTree> getSubstitutionsAlongPath(JCIdent ident, ArrayList<BasicBlock> path)
+    {
+        Set<String> sPath = new HashSet<String>();
+        
+        for(BasicBlock b : path){
+            sPath.add(b.id().toString());
+        }
+        
+        return getSubstitutionsAlongPathForIdent(ident, sPath);
     }
     
     

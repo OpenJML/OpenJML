@@ -143,6 +143,10 @@ public class Prop<T extends JCExpression> implements Cloneable {
 
     public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
+        if(mappings!=null){
+            replace1(mappings, limitDepth);
+            return;
+        }
                 
         log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
@@ -174,14 +178,39 @@ public class Prop<T extends JCExpression> implements Cloneable {
         
     }
     
-    
     private void doReplacement2(){
-                    
-        JCExpression tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);
         
-        if(tmpE!=null){
-             p = (T) tmpE;
-         }
+        JCExpression tmpE = null;
+        
+        if(p instanceof JCBinary){
+
+            JCBinary b = (JCBinary)p;
+            
+            // replacements only need to happen on the RHS of an expression if 
+            // it's an assignment 
+            if(label == Label.ASSIGNMENT){
+                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, b.rhs); 
+                
+                if(tmpE!=null){
+                   b.rhs = (T) tmpE;
+                }
+            }else{
+                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);  
+                
+                if(tmpE!=null){
+                    p = (T) tmpE;
+                }
+            }
+            
+        }else{
+             tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);
+             
+             if(tmpE!=null){
+                 p = (T) tmpE;
+             }
+        }
+        
+       
         
     }
     
