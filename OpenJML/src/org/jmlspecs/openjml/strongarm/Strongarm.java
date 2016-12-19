@@ -450,6 +450,9 @@ public class Strongarm
             t = Timing.start();
             
             reader.postcondition.replace(null, true);
+            // will trigger OLD way
+            //reader.postcondition.replace(reader.getSubstitutionMappings(), true);
+
             
         }
 
