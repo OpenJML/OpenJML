@@ -78,10 +78,9 @@ public class SubstitutionCache {
        return getSubstitutionsAlongPathForIdent(ident, s);
     }
     
-    public ArrayList<JCTree> getSubstitutionsAlongPathForIdent(JCIdent ident, Set<String> path)
+    
+    public ArrayList<JCTree> getSubstitutionsAlongPathForIdent(VarSymbol premap, Set<String> path)
     {
-        VarSymbol premap =  (VarSymbol)ident.sym;
-        
         
         // first, get the subset for this ident
         ArrayList<Pair<String,JCTree>> possibleMatches = ds.get(premap);
@@ -102,7 +101,20 @@ public class SubstitutionCache {
         return subs;
     }
     
+    public ArrayList<JCTree> getSubstitutionsAlongPathForIdent(JCIdent ident, Set<String> path)
+    {
+        VarSymbol premap =  (VarSymbol)ident.sym;
+        
+        return getSubstitutionsAlongPathForIdent(premap, path);
+    }
+    
     public ArrayList<JCTree> getSubstitutionsAlongPath(JCIdent ident, ArrayList<BasicBlock> path)
+    {
+        
+        return getSubstitutionsAlongPath((VarSymbol)ident.sym, path);
+    }
+    
+    public ArrayList<JCTree> getSubstitutionsAlongPath(VarSymbol premap, ArrayList<BasicBlock> path)
     {
         Set<String> sPath = new HashSet<String>();
         
@@ -110,7 +122,7 @@ public class SubstitutionCache {
             sPath.add(b.id().toString());
         }
         
-        return getSubstitutionsAlongPathForIdent(ident, sPath);
+        return getSubstitutionsAlongPathForIdent(premap, sPath);
     }
     
     

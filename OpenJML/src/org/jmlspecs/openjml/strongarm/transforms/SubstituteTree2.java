@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.ExpressionStatementTree;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
@@ -237,12 +238,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
             }
         }
         
-        if(access.name.toString().equals(replace().toString())){
-            
-            
-            log.error("jml.internal", "Didn't handle this case!!!?!?");
-
-            
+        
+        
+        if(canReplace((VarSymbol)access.sym, access.name)){
+           
             if (verbose) {
                 log.noticeWriter.println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
             }
@@ -277,7 +276,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         Name n = null;
         
         if(isTmpVar){
-            return tmpVar.name;
+            return tmpVar;
         }
         
         if(p instanceof JCExpression){
@@ -343,18 +342,24 @@ public class SubstituteTree2 extends JmlTreeScanner{
     
     private ArrayList<JCTree> _subs; 
     private boolean isTmpVar = false;
-    private JCIdent tmpVar   = null;
+    private Name tmpVar   = null;
     
     private boolean canReplace(JCIdent ident){
+        return canReplace((VarSymbol)ident.sym, ident.name);
+    }
+    
+    
+    
+    private boolean canReplace(VarSymbol sym, Name name){
 
-        _subs = substitutionCache.getSubstitutionsAlongPath(ident, path);
+        _subs = substitutionCache.getSubstitutionsAlongPath(sym, path);
         instance.currentReplacement = null;
         
         Collections.reverse(_subs);
         
-        if(ident.toString().startsWith("_JML__tmp")){
+        if(name.toString().startsWith("_JML__tmp")){
             isTmpVar = true;
-            tmpVar = ident;
+            tmpVar = name;
         }else{
             isTmpVar = false;
             tmpVar = null;
@@ -371,7 +376,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
                 if(sub instanceof JCBinary){
                     JCBinary e = (JCBinary)sub;
                     
-                    if(e.lhs.toString().equals(ident.toString())){
+                    if(e.lhs.toString().equals(name.toString())){
                         instance.currentReplacement = sub;
                     }
                     
@@ -386,6 +391,8 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         return false;
     }
+    
+    
     
     private SubstitutionCache substitutionCache;
     private ArrayList<BasicBlock> path;
