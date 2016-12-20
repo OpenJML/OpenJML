@@ -335,6 +335,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             return pVarDecl.init;
         }
         
+        // this isn't supposed to happen. 
         log.error("jml.internal", "RHS Missing in Replacement");
         
         return null;

@@ -23,6 +23,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import org.jmlspecs.openjml.esc.BasicBlockerParent;
@@ -42,9 +43,17 @@ public class SubstitutionCache {
     }
     
     // the goal here is to always match a given ident name 
-    public VarSymbol getPremapIdent(JCIdent i, BasicBlock b){
+    public VarSymbol getPremapIdent(JCTree i, BasicBlock b){
 
-        return (VarSymbol)i.sym;
+        if(i instanceof JCIdent){
+            JCIdent id = (JCIdent)i;
+            return (VarSymbol)id.sym;
+        }else if(i instanceof JCFieldAccess){
+            JCFieldAccess fa = (JCFieldAccess)i;
+            return (VarSymbol)fa.sym;
+        }
+        
+        return null;
         
 //          //if(_cache.get(i))
 //
@@ -126,7 +135,7 @@ public class SubstitutionCache {
     }
     
     
-    public void addSubstitutionAtBlock(JCIdent premapIdent, JCTree sub, BasicBlock block){
+    public void addSubstitutionAtBlock(JCTree premapIdent, JCTree sub, BasicBlock block){
         
         VarSymbol premap =  getPremapIdent(premapIdent, block);
        
@@ -148,7 +157,7 @@ public class SubstitutionCache {
             
             if(expr.expression instanceof JCBinary){
                 JCBinary e = (JCBinary)expr.expression;
-                addSubstitutionAtBlock((JCIdent)e.lhs, e, block);
+                addSubstitutionAtBlock(e.lhs, e, block);
             }
             
             else if (expr.expression instanceof JmlBBFieldAssignment){
@@ -163,6 +172,10 @@ public class SubstitutionCache {
         }else if(stmt instanceof JmlVariableDecl){
         
            JmlVariableDecl d = (JmlVariableDecl)stmt;
+           
+           if(d.init == null && d.ident==null){ // we don't learn anything. 
+               return;
+           }
            
            addSubstitutionAtBlock(d.ident, d.init, block);
            

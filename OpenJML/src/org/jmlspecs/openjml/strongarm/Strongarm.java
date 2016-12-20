@@ -455,7 +455,7 @@ public class Strongarm
 
             
         }
-
+        t.tellFile(utils.qualifiedMethodSig(methodDecl.sym), "/tmp/new.csv");
         
         {
             // alternate approach -- here we iterate over the ENTIRE contract
