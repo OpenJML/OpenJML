@@ -48,6 +48,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
 import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitutions;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
+import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
@@ -104,6 +105,8 @@ public class Strongarm
         //
         {
             SubstituteTree.cache(context);
+            SubstituteTree2.cache(context);
+            
             RemoveTautologies.cache(context);
             RemoveContradictions.cache(context);            
             CleanupVariableNames.cache(context);
@@ -353,6 +356,8 @@ public class Strongarm
         
         if (verbose) {
             log.noticeWriter.println("Inference finished...");
+            
+            log.noticeWriter.println(BlockReader._substitutionCache.toString());
         }
         
         
@@ -369,7 +374,7 @@ public class Strongarm
                 log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
             }
             
-            
+                            
             return null; // no spec 
         }
         
@@ -403,11 +408,19 @@ public class Strongarm
         boolean verbose        = infer.verbose;
         Timing t;
         
+        
+        
+        
         t = Timing.start();
         RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
        
         
         if (verbose) {
+            log.noticeWriter.println(BlockReader._substitutionCache.toString());
+        }
+        
+        
+       if (verbose) {
             log.noticeWriter.println(Strings.empty);
             log.noticeWriter.println("--------------------------------------"); 
             log.noticeWriter.println(Strings.empty);
@@ -436,10 +449,14 @@ public class Strongarm
             // in the equations we substitute here.
             t = Timing.start();
             
-            reader.postcondition.replace(reader.getSubstitutionMappings(), true);
+            reader.postcondition.replace(null, true);
+            
+            // will trigger OLD way
+            //reader.postcondition.replace(reader.getSubstitutionMappings(), true);
+
             
         }
-
+        //t.tellFile(utils.qualifiedMethodSig(methodDecl.sym), "/tmp/new.csv");
         
         {
             // alternate approach -- here we iterate over the ENTIRE contract

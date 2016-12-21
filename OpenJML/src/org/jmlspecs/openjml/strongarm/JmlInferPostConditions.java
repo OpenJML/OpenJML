@@ -54,6 +54,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
           
             
         } catch (Exception e) {
+
             e.printStackTrace();
             log.error("jml.internal","Inference aborted with exception: " + e.getMessage());
             
