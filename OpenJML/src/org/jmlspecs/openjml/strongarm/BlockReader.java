@@ -490,7 +490,7 @@ public class BlockReader {
                     log.noticeWriter.println("[STRONGARM] Finding LCA...");
                 }
     
-                BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
+                BasicBlock lca = null; //lca(left, right); // this must ALWAYS be true. 
                 
                 if(verbose){
                     log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
