@@ -14,6 +14,7 @@ public class A10 {
     public int localTest1(){
         
         int a=0;
+       
         
         if(a > -1){
             a = 3;

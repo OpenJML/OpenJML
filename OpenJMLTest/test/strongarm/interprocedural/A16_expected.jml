@@ -1,7 +1,7 @@
 
-public class A15 {
+public class A16 {
   
-  public A15();
+  public A16();
   
     /*@
       requires true; 
@@ -14,7 +14,7 @@ public class A15 {
     /*@
     public normal_behavior
       requires true; 
-      ensures \result == a + b; 
+      ensures \result == (a + b) * 100; 
    */
 
   @Pure 
