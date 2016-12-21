@@ -350,7 +350,19 @@ public class SubstituteTree2 extends JmlTreeScanner{
     }
     
     
-    
+    private boolean nameAssignmentIsntRedundant(Name name, JCTree sub){
+        
+        if(sub instanceof JCBinary){
+            JCBinary e = (JCBinary)sub;
+            
+            if(e.lhs.toString().equals(name.toString())){
+                return false;
+            }
+            
+        }   
+        
+        return true;
+    }
     private boolean canReplace(VarSymbol sym, Name name){
 
         _subs = substitutionCache.getSubstitutionsAlongPath(sym, path);
@@ -368,7 +380,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         for(JCTree sub : _subs){
             // tmp vars always match replacement (because they are synthetic)
-            if(isTmpVar){
+            if(isTmpVar && nameAssignmentIsntRedundant(name, sub)){
                 instance.currentReplacement = sub;
             }
             // if it's a JCExpression, make sure the LHS says something about the current ident.
@@ -387,6 +399,16 @@ public class SubstituteTree2 extends JmlTreeScanner{
         }
         
         if(_subs.size() > 0 && instance.currentReplacement !=null){
+            
+            
+            if(isTmpVar){
+                if(nameAssignmentIsntRedundant(name,instance.currentReplacement)==false){
+                    isTmpVar = false;
+                    tmpVar = null;
+                }
+            }
+            
+            
             return true;
         }
         

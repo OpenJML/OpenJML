@@ -450,12 +450,13 @@ public class Strongarm
             t = Timing.start();
             
             reader.postcondition.replace(null, true);
+            
             // will trigger OLD way
             //reader.postcondition.replace(reader.getSubstitutionMappings(), true);
 
             
         }
-        t.tellFile(utils.qualifiedMethodSig(methodDecl.sym), "/tmp/new.csv");
+        //t.tellFile(utils.qualifiedMethodSig(methodDecl.sym), "/tmp/new.csv");
         
         {
             // alternate approach -- here we iterate over the ENTIRE contract
