@@ -9547,7 +9547,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent id = treeutils.makeIdent(v.pos, v);
                     JCExpression e = treeutils.makeNeqObject(v.pos, id, treeutils.nullLit);
                     //e = convertJML(e);
-                    JCStatement st = addAssert(new JCDiagnostic.SimpleDiagnosticPosition(v.pos),Label.STATIC_INIT,e,"null static field has null value: " + v.name);
+                    JCStatement st = addAssert(new JCDiagnostic.SimpleDiagnosticPosition(v.pos),Label.STATIC_INIT,e,"non-null static field has null value: " + v.name);
                     if (st instanceof JCAssert) {
                         e = ((JCAssert)st).cond;
                     } else if (st instanceof JCIf) {
@@ -12204,7 +12204,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             try {
                 JCExpression init = null;
                 
-                // If we are in a method, there is nowhere to push statements
+                // If we are in a class, there is nowhere to push statements
                 // so we make a block and later turn it into an initializer block
                 if (inClassDecl) { pushBlock();  }
                 JmlVariableDecl stat = null;
@@ -12226,6 +12226,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         } 
                         // FIXME - should have an associated position in assert
                     }
+                    if (inClassDecl) methodDecl = (JmlMethodDecl)M.MethodDef(attr.makeInitializerMethodSymbol(that.mods.flags, JmlEnter.instance(context).getEnv(classDecl.sym)), null);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
                     if (esc && !that.type.isPrimitive()) {
                         addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
@@ -12237,6 +12238,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCBlock bl = popBlock(that.mods.flags & Flags.STATIC,that);
                         if (stat != null) classDefs.add(stat);
                         classDefs.add(bl);
+                        methodDecl = null;
                     } else {
                         if (stat != null) addStat(stat);
                     }

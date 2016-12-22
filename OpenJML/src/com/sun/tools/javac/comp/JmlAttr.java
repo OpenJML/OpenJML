@@ -9,6 +9,7 @@ import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
 import static com.sun.tools.javac.code.Flags.NATIVE;
 import static com.sun.tools.javac.code.Flags.STATIC;
+import static com.sun.tools.javac.code.Flags.STRICTFP;
 import static com.sun.tools.javac.code.Flags.SYNTHETIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.code.Kinds.MTH;
@@ -6157,5 +6158,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return super.isBooleanOrNumeric(env,tree);
     }
 
+    public MethodSymbol makeInitializerMethodSymbol(long flags, Env<AttrContext> env) {
+        JCTree tree = null;
+        Env<AttrContext> localEnv =
+                env.dup(tree, env.info.dup(env.info.scope.dupUnshared()));
+        MethodSymbol msym = new MethodSymbol(flags | BLOCK |
+                env.info.scope.owner.flags() & STRICTFP, names.empty, new Type.JCVoidType(),
+                env.info.scope.owner);
+        localEnv.info.scope.owner = msym;
+        if ((flags & STATIC) != 0) localEnv.info.staticLevel++;
+        return msym;
+    }
+    
 
 }
