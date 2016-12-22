@@ -107,6 +107,8 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         
         List<JmlMethodClause> replacedClauses = null;
         
+        if(block.clauses==null){return;}
+        
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
             if(shouldRemove(clauses.head) == false){

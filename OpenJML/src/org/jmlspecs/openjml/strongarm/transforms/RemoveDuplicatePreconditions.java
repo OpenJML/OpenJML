@@ -114,6 +114,8 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         List<JmlMethodClause> replacedClauses = null;
         Set<String> filterSet = getFilterStrings();
         
+        if(block.clauses==null) return;
+        
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
             if(clauses.head.token != JmlToken.REQUIRES || filterSet.contains(clauses.head.toString())==false){
@@ -150,25 +152,27 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         //
         // add new filters if we need them
         //
-        for(List<JmlMethodClause> clauses = tree.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-
-            if(clauses.head instanceof JmlMethodClauseExpr == false){ continue; }
-            
-            JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
-            
-            // we want to filter out all requires clauses. 
-            if(clauseExpr.token == JmlToken.REQUIRES){
-                addFilterAtBlock(tree, clauseExpr);
+        if(tree.clauses!=null){
+            for(List<JmlMethodClause> clauses = tree.clauses; clauses.nonEmpty(); clauses = clauses.tail){
+    
+                if(clauses.head instanceof JmlMethodClauseExpr == false){ continue; }
+                
+                JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
+                
+                // we want to filter out all requires clauses. 
+                if(clauseExpr.token == JmlToken.REQUIRES){
+                    addFilterAtBlock(tree, clauseExpr);
+                }
             }
+            
+            super.visitJmlSpecificationCase(tree);
+    
+            
+            //
+            // Pop the filters for this block off (if we exit the scope)
+            //
+            removeFiltersForBlock(tree);
         }
-        
-        super.visitJmlSpecificationCase(tree);
-
-        
-        //
-        // Pop the filters for this block off (if we exit the scope)
-        //
-        removeFiltersForBlock(tree);
     }
 
     

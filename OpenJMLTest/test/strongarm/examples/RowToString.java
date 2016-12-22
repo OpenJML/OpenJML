@@ -1,6 +1,7 @@
 
 public class RowToString {
     
+    //@ requires true;
     public static String rowToString(String ja) {
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < ja.length(); i += 1) {

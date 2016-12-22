@@ -110,6 +110,9 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
         //
         // Anytime we decide to use a clause we have to pull it out.  
         //
+        if(block==null || block.clauses==null){
+            return subs;
+        }
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
