@@ -158,144 +158,151 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
         SMTTranslator smttrans = getTranslator(context); 
         
-        ISolver solver;
-        IResponse solverResponse = null;
-        BasicBlocker2 basicBlocker;
-        BasicProgram program;
-        Date start;
-        ICommand.IScript script;
-        boolean usePushPop = true; // FIXME - false is not working yet
-        {
-            // now convert to basic block form
-            basicBlocker = new BasicBlocker2(context);
-            program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
-            if (printPrograms) {
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println(separator);
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
-                log.noticeWriter.println(program.toString());
-            }
-
-            // convert the basic block form to SMT
-            try {
-                script = smttrans.convert(program,smt);
-                if (printPrograms) {
-                    try {
-                        log.noticeWriter.println(Strings.empty);
-                        log.noticeWriter.println(separator);
-                        log.noticeWriter.println(Strings.empty);
-                        log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
-                        log.noticeWriter.println();
-                        log.noticeWriter.println();
-                    } catch (VisitorException e) {
-                        log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
-                    }
-                }
-            } catch (Exception e) {
-                log.error("jml.internal", "Failed to convert to SMT: " + e);
-                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
-            }
-            // Starts the solver (and it waits for input)
-            start = new Date();
-            setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
-            solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
-            if (solver == null) { 
-                log.error("jml.solver.failed.to.start",exec);
-                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
-            } else {
-                // Try the prover
-                if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
-                try {
-                    solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
-                } catch (Exception e) {
-                    // Not sure there is anything to worry about, but just in case
-                    log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-                    return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
-                }
-            }
-
-        }
-        
-        // Now assemble and report the result
-
-        if (verbose) {
-            log.noticeWriter.println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
-        }
-
-        IProverResult proofResult = null;
-
-        IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
-        
-        if (solverResponse.isError()) {
-            solver.exit();
-            log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
-        }
-        
-        
-        // two steps. first we check that the result was 
-        if (!solverResponse.equals(unsatResponse)) {
-            return null;
-        }
-        
-        if (verbose) log.noticeWriter.println("Method checked OK");
-
-        
-        proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
+        ISolver solver =null;
         
         try {
-
-            solver.pop(1); // Pop off previous check_sat
-
-            List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
-            
-            // we want to convert the filters and the current proposition into a statement like this: 
-            //
-            // !(filters => prop)
-            //
-            // this is always true (and thus can be pruned iff it's unsat)
-            
-            
-            if(checks==null) return null;
-            
-            solver.pop(1);  // Pop off previous setting of assumeCheck
-            solver.push(1); // Mark the top
-
-            JCExpression converted = convertToConjunction(filters);
-            
-
-            // don't know
-            if(converted==null){
-                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.POSSIBLY_SAT,start);
+            IResponse solverResponse = null;
+            BasicBlocker2 basicBlocker;
+            BasicProgram program;
+            Date start;
+            ICommand.IScript script;
+            boolean usePushPop = true; // FIXME - false is not working yet
+            {
+                // now convert to basic block form
+                basicBlocker = new BasicBlocker2(context);
+                program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
+                if (printPrograms) {
+                    log.noticeWriter.println(Strings.empty);
+                    log.noticeWriter.println(separator);
+                    log.noticeWriter.println(Strings.empty);
+                    log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
+                    log.noticeWriter.println(program.toString());
+                }
+    
+                // convert the basic block form to SMT
+                try {
+                    script = smttrans.convert(program,smt);
+                    if (printPrograms) {
+                        try {
+                            log.noticeWriter.println(Strings.empty);
+                            log.noticeWriter.println(separator);
+                            log.noticeWriter.println(Strings.empty);
+                            log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+                            org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
+                            log.noticeWriter.println();
+                            log.noticeWriter.println();
+                        } catch (VisitorException e) {
+                            log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("jml.internal", "Failed to convert to SMT: " + e);
+                    return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
+                }
+                // Starts the solver (and it waits for input)
+                start = new Date();
+                setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
+                solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
+                if (solver == null) { 
+                    log.error("jml.solver.failed.to.start",exec);
+                    return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                } else {
+                    // Try the prover
+                    if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+                    try {
+                        solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+                    } catch (Exception e) {
+                        // Not sure there is anything to worry about, but just in case
+                        log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                    }
+                }
+    
             }
             
-            solver.assertExpr(smttrans.convertExpr(converted)); 
-
-            solverResponse = solver.check_sat();
-        
-            utils.progress(1,1, "Seeing if specification case is SAT: " + converted.toString());
+            // Now assemble and report the result
+    
+            if (verbose) {
+                log.noticeWriter.println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
+            }
+    
+            IProverResult proofResult = null;
+    
+            IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
             
-            
-            utils.progress(1,1, "SAT Check - " + converted.toString() + " : " +
-                    (solverResponse.equals(unsatResponse) ? "NOT FEASIBLE": "FEASIBLE"));
-            
-            
-            if (solverResponse.equals(unsatResponse)) {
-                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
-            } else if (solverResponse.isError()) {
+            if (solverResponse.isError()) {
+                solver.exit();
                 log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
-            } else{
-                proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.POSSIBLY_SAT,start);
+                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
             }
             
-        } finally {            
-            solver.exit();
-            smt.smtConfig.logfile = null;
+            
+            // two steps. first we check that the result was 
+            if (!solverResponse.equals(unsatResponse)) {
+                return null;
+            }
+            
+            if (verbose) log.noticeWriter.println("Method checked OK");
+    
+            
+            proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
+            
+            try {
+    
+                solver.pop(1); // Pop off previous check_sat
+    
+                List<JmlStatementExpr> checks = jmlesc.assertionAdder.assumeChecks.get(methodDecl);
+                
+                // we want to convert the filters and the current proposition into a statement like this: 
+                //
+                // !(filters => prop)
+                //
+                // this is always true (and thus can be pruned iff it's unsat)
+                
+                
+                if(checks==null) return null;
+                
+                solver.pop(1);  // Pop off previous setting of assumeCheck
+                solver.push(1); // Mark the top
+    
+                JCExpression converted = convertToConjunction(filters);
+                
+    
+                // don't know
+                if(converted==null){
+                    return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.POSSIBLY_SAT,start);
+                }
+                
+                solver.assertExpr(smttrans.convertExpr(converted)); 
+    
+                solverResponse = solver.check_sat();
+            
+                utils.progress(1,1, "Seeing if specification case is SAT: " + converted.toString());
+                
+                
+                utils.progress(1,1, "SAT Check - " + converted.toString() + " : " +
+                        (solverResponse.equals(unsatResponse) ? "NOT FEASIBLE": "FEASIBLE"));
+                
+                
+                if (solverResponse.equals(unsatResponse)) {
+                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
+                } else if (solverResponse.isError()) {
+                    log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                } else{
+                    proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.POSSIBLY_SAT,start);
+                }
+                
+            } finally {            
+                solver.exit();
+                smt.smtConfig.logfile = null;
+            }
+    
+            return proofResult;
+        }finally{
+            if(solver!=null){
+                solver.exit();
+            }
         }
-
-        return proofResult;
     }
 }
