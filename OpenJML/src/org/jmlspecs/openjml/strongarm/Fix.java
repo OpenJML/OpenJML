@@ -18,7 +18,7 @@ public class Fix {
     public static final String strongarmDebug = "-strongarm:debug";
     
     public final String[] strongarmArgs = new String[]{"-strongarm:debug"}; // these get stripped out. 
-    public final String[] debugArgs = new String[]{"-noexit", "-infer", "-infer-persist", "-progress", "-verbose"};
+    public final String[] debugArgs = new String[]{"-minQuant", "-noexit", "-infer", "-infer-persist", "-progress", "-verbose"};
     public final String[] args;
     
     private static final String persistLine = "[STRONGARM] Persisting specs to:";
