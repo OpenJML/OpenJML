@@ -72,6 +72,7 @@ JML options:
   -progress                  Shows progress through compilation phases [-verboseness=2]
   -jmlverbose                Like -verbose, but only jml information and not as much [-verboseness=3]
   -jmldebug                  When on, the program emits lots of output (includes -progress) [-verboseness=4]
+  -showOptions               When enabled, the values of options and properties are printed, for debugging
   -jmltesting                Only used to generate tracing information during testing
   -trace                     ESC: Enables tracing of counterexamples
   -show                      Show intermediate programs

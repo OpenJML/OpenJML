@@ -607,8 +607,10 @@ public class compiler {
                             "test/testSpecErrors/A.java"
                           },1,0
                           ,""
-                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol + "    //@ ghost int i = true; // Error to provoke a message" + eol + "                      ^" + eol
-                          //+ "1 error" + eol
+                          ,"test/testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol 
+                          +"    //@ ghost int i = true; // Error to provoke a message" + eol 
+                          +"                      ^" + eol
+                          + "1 error" + eol
                           );
     }
     
@@ -766,8 +768,6 @@ public class compiler {
                            "test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                 ^" + eol +
-                           "Note: $SPECS/java5/java/util/Arrays.jml uses unchecked or unsafe operations." + eol +
-                           "Note: Recompile with -Xlint:unchecked for details." + eol +
                            "2 errors" + eol
                           );
     }
