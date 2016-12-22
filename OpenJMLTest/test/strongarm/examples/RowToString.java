@@ -7,7 +7,7 @@ public class RowToString {
           if (i > 0) {
               sb.append(',');
           }
-          Object object = ja.opt(i);
+          Object object = null;
           if (object != null) {
               String string = object.toString();
               if (string.length() > 0 && (string.indexOf(',') >= 0 ||
@@ -30,7 +30,6 @@ public class RowToString {
       sb.append('\n');
       return sb.toString();
       
-      return null;
   }
 
 }

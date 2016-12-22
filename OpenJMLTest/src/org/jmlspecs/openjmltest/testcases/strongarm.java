@@ -156,7 +156,7 @@ public class strongarm extends StrongarmBase {
     
     @Test
     public void testA18() {
-	//expectedExit = 1;
+	expectedExit = 1;
 	helpSA("test/strongarm/interprocedural/A18.java", "test/strongarm/interprocedural/");
     }
     
@@ -200,11 +200,11 @@ public class strongarm extends StrongarmBase {
 	helpSA("test/strongarm/examples/More.java", "test/strongarm/examples/");
     }
     
-    @Test
-    public void testRowToString() {
-	//expectedExit = 1;
-	helpSA("test/strongarm/examples/RowToString.java", "test/strongarm/examples/");
-    }
+//    @Test
+//    public void testRowToString() {
+//	//expectedExit = 1;
+//	helpSA("test/strongarm/examples/RowToString.java", "test/strongarm/examples/");
+//    }
 
 //    @Test
 //    public void testNext() {

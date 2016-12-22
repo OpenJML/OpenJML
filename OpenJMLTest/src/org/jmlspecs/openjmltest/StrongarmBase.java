@@ -21,11 +21,15 @@ public class StrongarmBase extends EscBase {
     public StrongarmBase(String options, String solver) {
 	super(options, solver);
     }
+    
+    //-infer -infer-debug  -progress -verbose 
 
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String... opts) {
 	new File(outDir).mkdirs();
 	java.util.List<String> args = new LinkedList<String>();
 	args.add("-infer");
+	//args.add("-infer-debug");
+	
 	args.add("-infer-persist");
 	args.add("-verbose");
 	args.add("-progress");
