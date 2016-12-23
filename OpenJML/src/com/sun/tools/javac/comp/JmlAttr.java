@@ -2065,10 +2065,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.specsDecl != null) {
             JCModifiers jmlmods = tree.specsDecl.mods;
             attribAnnotationTypes(jmlmods.annotations,env);
-            for (JCAnnotation a: tree.mods.annotations) {
-                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-                if (aa == null) {
-                    log.warning(a.pos(), "jml.java.annotation.superseded", "field", tree.name.toString(), a.toString());
+            String kind = (tree.mods.flags & Flags.PARAMETER) != 0 ? "parameter" : "field";
+            for (JCAnnotation a: tree.mods.annotations) { // Iterating over annotations in .java file
+                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym); // CHeck if it is used in .jml file
+                if (aa == null) { // If not, report that it is ignored
+                    log.warning(a.pos(), "jml.java.annotation.superseded", kind , tree.name.toString(), a.toString());
                 }
             }
             mods = tree.specsDecl.mods;

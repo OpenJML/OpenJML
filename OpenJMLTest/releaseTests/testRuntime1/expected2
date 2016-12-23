@@ -216,37 +216,37 @@ $SPECS/java5/java/lang/reflect/Array.jml:1: error: package org.jmlspecs.lang doe
 $SPECS/java4/java/lang/NegativeArraySizeException.jml:1: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
-$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field i, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
     public static void setIn(InputStream i);
                                          ^
 $SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
     public static void setIn(InputStream i);
                                          ^
-$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field i, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
     public static void setIn(InputStream i);
                                          ^
 $SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
     public static void setIn(InputStream i);
                                          ^
-$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     public static void setOut(PrintStream o);
                                           ^
 $SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     public static void setOut(PrintStream o);
                                           ^
-$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     public static void setOut(PrintStream o);
                                           ^
 $SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     public static void setOut(PrintStream o);
                                           ^
-$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field e, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
     public static void setErr(PrintStream e);
                                           ^
 $SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
     public static void setErr(PrintStream e);
                                           ^
-$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field e, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
     public static void setErr(PrintStream e);
                                           ^
 $SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
@@ -295,7 +295,7 @@ package java.lang;
 $SPECS/java5/java/util/Collection.jml:1: error: package org.jmlspecs.lang does not exist
 // @(#)$Id: Collection.spec 2383 2007-04-16 17:02:07Z mikolas $
 ^
-$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field props, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
     public static void setProperties(Properties props);
                                                 ^
 $SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
@@ -304,103 +304,103 @@ $SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are 
 $SPECS/java6/java/util/Properties.jml:15: error: package org.jmlspecs.annotation does not exist
     //@ spec_public
         ^
-$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field props, annotation @NonNull
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
     public static void setProperties(Properties props);
                                                 ^
 $SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
     public static void setProperties(Properties props);
                                                 ^
-$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                            ^
 $SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                            ^
-$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field oo, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                                      ^
 $SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                                      ^
-$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                            ^
 $SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                            ^
-$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field oo, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                                      ^
 $SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
       @ static public model pure boolean nullequals(Object o, Object oo);
                                                                      ^
-$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
                                             ^
 $SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
                                             ^
-$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
                                             ^
 $SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
                                             ^
-$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     /*@ pure @*/ boolean containsValue(Object value);
                                               ^
 $SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     /*@ pure @*/ boolean containsValue(Object value);
                                               ^
-$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     /*@ pure @*/ boolean containsValue(Object value);
                                               ^
 $SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     /*@ pure @*/ boolean containsValue(Object value);
                                               ^
-$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ V get(Object key);
                               ^
 $SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ V get(Object key);
                               ^
-$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ V get(Object key);
                               ^
 $SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     /*@ pure @*/ V get(Object key);
                               ^
-$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V put(K key, V value);
             ^
 $SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V put(K key, V value);
             ^
-$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     V put(K key, V value);
                    ^
 $SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     V put(K key, V value);
                    ^
-$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V put(K key, V value);
             ^
 $SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V put(K key, V value);
             ^
-$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     V put(K key, V value);
                    ^
 $SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     V put(K key, V value);
                    ^
-$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V remove(Object key);
                     ^
 $SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V remove(Object key);
                     ^
-$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     V remove(Object key);
                     ^
 $SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
@@ -415,157 +415,157 @@ $SPECS/java5/java/util/Map.jml:1: error: package org.jmlspecs.lang does not exis
 $SPECS/java4/java/lang/UnsupportedOperationException.jml:1: error: package org.jmlspecs.lang does not exist
 package java.lang;
 ^
-$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     void putAll(Map<? extends K, ? extends V> t);
                                               ^
 $SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     void putAll(Map<? extends K, ? extends V> t);
                                               ^
-$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     void putAll(Map<? extends K, ? extends V> t);
                                               ^
 $SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     void putAll(Map<? extends K, ? extends V> t);
                                               ^
-$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure @*/ boolean equals(Object o);
                                        ^
 $SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure @*/ boolean equals(Object o);
                                        ^
-$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure @*/ boolean equals(Object o);
                                        ^
 $SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure @*/ boolean equals(Object o);
                                        ^
-$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public Hashtable(Map<? extends K,? extends V> t);
                                                   ^
 $SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public Hashtable(Map<? extends K,? extends V> t);
                                                   ^
-$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public Hashtable(Map<? extends K,? extends V> t);
                                                   ^
 $SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public Hashtable(Map<? extends K,? extends V> t);
                                                   ^
-$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public /*@ pure @*/ synchronized boolean contains(Object value); 
                                                              ^
 $SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public /*@ pure @*/ synchronized boolean contains(Object value); 
                                                              ^
-$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public /*@ pure @*/ synchronized boolean contains(Object value); 
                                                              ^
 $SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public /*@ pure @*/ synchronized boolean contains(Object value); 
                                                              ^
-$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized boolean containsKey(Object key) throws RuntimeException;
                                                    ^
 $SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized boolean containsKey(Object key) throws RuntimeException;
                                                    ^
-$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized boolean containsKey(Object key) throws RuntimeException;
                                                    ^
 $SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized boolean containsKey(Object key) throws RuntimeException;
                                                    ^
-$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public /*@ pure */ synchronized V get(Object key);
                                                  ^
 $SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public /*@ pure */ synchronized V get(Object key);
                                                  ^
-$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public /*@ pure */ synchronized V get(Object key);
                                                  ^
 $SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public /*@ pure */ synchronized V get(Object key);
                                                  ^
-$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public boolean containsValue(Object value) throws NullPointerException;
                                         ^
 $SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public boolean containsValue(Object value) throws NullPointerException;
                                         ^
-$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public boolean containsValue(Object value) throws NullPointerException;
                                         ^
 $SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public boolean containsValue(Object value) throws NullPointerException;
                                         ^
-$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V put(K key, V value);
                                 ^
 $SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V put(K key, V value);
                                 ^
-$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public synchronized V put(K key, V value);
                                        ^
 $SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public synchronized V put(K key, V value);
                                        ^
-$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V put(K key, V value);
                                 ^
 $SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V put(K key, V value);
                                 ^
-$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field value, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public synchronized V put(K key, V value);
                                        ^
 $SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
     public synchronized V put(K key, V value);
                                        ^
-$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V remove(Object key);
                                         ^
 $SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V remove(Object key);
                                         ^
-$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field key, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V remove(Object key);
                                         ^
 $SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
     public synchronized V remove(Object key);
                                         ^
-$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public synchronized void putAll(Map<? extends K, ? extends V> t);
                                                                   ^
 $SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public synchronized void putAll(Map<? extends K, ? extends V> t);
                                                                   ^
-$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field t, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public synchronized void putAll(Map<? extends K, ? extends V> t);
                                                                   ^
 $SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
     public synchronized void putAll(Map<? extends K, ? extends V> t);
                                                                   ^
-$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure */ public synchronized boolean equals(Object o);
                                                           ^
 $SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure */ public synchronized boolean equals(Object o);
                                                           ^
-$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field o, annotation @NonNull
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure */ public synchronized boolean equals(Object o);
                                                           ^
 $SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
     /*@ pure */ public synchronized boolean equals(Object o);
                                                           ^
-$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field p, annotation @NonNull
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
       @ public pure model boolean initialProperties(Properties p);
                                                                ^
 $SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
       @ public pure model boolean initialProperties(Properties p);
                                                                ^
-$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field p, annotation @NonNull
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
       @ public pure model boolean initialProperties(Properties p);
                                                                ^
 $SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull

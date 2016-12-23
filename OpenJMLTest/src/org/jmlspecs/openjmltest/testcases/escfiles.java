@@ -382,7 +382,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEscDeterministic() {
-        helpTF("escDeterministic","-method=m","-show");
+        helpTF("escDeterministic");
 	}
 
     @Test
@@ -457,7 +457,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testEscJml1() {
-        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");//,"-show","-method=StorageParameters.StorageParameters");
+        helpTCF("test/escJml1/StorageParameters.java","test/escJml1","-specspath=test/escJml1/specs");//,"-show","-method=main");
     }
 
     @Test

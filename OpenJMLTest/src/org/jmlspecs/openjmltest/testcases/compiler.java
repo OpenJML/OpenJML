@@ -95,6 +95,7 @@ public class compiler {
         expected = expected.replace("${PROJ}",projHome).replace("$SPECS", specsHome);
         
         if (print) System.out.println("EXPECTING: " + output[0]);
+        print = true;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
         if (print) System.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;

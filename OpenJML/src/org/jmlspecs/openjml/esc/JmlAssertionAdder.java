@@ -5827,6 +5827,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!doTranslations && that instanceof JCNewClass) doTranslations = true; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
             if (calleeIsFunction && translatingJML) doTranslations = false;
+
             if (!doTranslations) {
                 List<JCExpression> ntrArgs = trArgs;
                 if (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction) {
@@ -5922,50 +5923,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 return;
             }
-            if (!doTranslations && calleeIsFunction) {
-                // FIXME - replicated from above
-                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
-                if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
-                    // FIXME - actually should add these into whatever environment is operative
-                    if (inOldEnv) {
-                        escAddToOldList(oldenv,bl);
-                    } else if (nonignoredStatements != null) {
-                        nonignoredStatements.add(bl);
-                    } else if (axiomBlock != null) {
-                        axiomBlock.stats = axiomBlock.stats.append(bl);
-                    } else {
-                        addStat(bl);
-                    }
-                
-                    WellDefined info = wellDefinedCheck.get(calleeMethodSym);
-                    if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
-                        MethodSymbol s = info.sym;
-                        if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
-                            JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(trArgs));
-                            e = treeutils.makeImplies(condition.pos, condition, e);
-                            if (assumingPureMethod) {
-                                addAssume(that,Label.UNDEFINED_PRECONDITION,e,
-                                        info.pos,info.source);
-                            } else {
-                                addAssert(that,Label.UNDEFINED_PRECONDITION,e,
-                                        info.pos,info.source);
-                            }
-
-                        }
-                    }
-                }
-                
-                MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
-                if (newCalleeSym == null) {
-                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
-                }
-
-                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,trArgs);
-                JCStatement stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
-                
-            }
-
-
             // Set up the result variable - for RAC we have to do this
             // outside the block that starts a few lines down, because the
             // result is a temporary ident that is used in subsequent 
@@ -6014,6 +5971,53 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - what about newclass.encl                addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(that.pos, convertCopy(resultId), treeutils.nullLit));
             }
+            
+            
+            
+            if (!translatingJML && calleeIsFunction) {
+                // FIXME - replicated from above
+                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
+                if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
+                    // FIXME - actually should add these into whatever environment is operative
+                    if (inOldEnv) {
+                        escAddToOldList(oldenv,bl);
+                    } else if (nonignoredStatements != null) {
+                        nonignoredStatements.add(bl);
+                    } else if (axiomBlock != null) {
+                        axiomBlock.stats = axiomBlock.stats.append(bl);
+                    } else {
+                        addStat(bl);
+                    }
+                
+                    WellDefined info = wellDefinedCheck.get(calleeMethodSym);
+                    if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
+                        MethodSymbol s = info.sym;
+                        if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
+                            JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(trArgs));
+                            e = treeutils.makeImplies(condition.pos, condition, e);
+                            if (assumingPureMethod) {
+                                addAssume(that,Label.UNDEFINED_PRECONDITION,e,
+                                        info.pos,info.source);
+                            } else {
+                                addAssert(that,Label.UNDEFINED_PRECONDITION,e,
+                                        info.pos,info.source);
+                            }
+
+                        }
+                    }
+                }
+                
+                MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
+                if (newCalleeSym == null) {
+                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+                }
+
+                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,trArgs);
+                JCStatement stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
+                addStat(stat);
+            }
+
+
             
             // Add nullness and type assumptions about the result, for new operations
             // FIXME - what about for method calls

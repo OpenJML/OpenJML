@@ -461,6 +461,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         ListBuffer<JCTree> newlist = new ListBuffer<>();
         ListBuffer<JCTree> toadd = new ListBuffer<>();
         ListBuffer<JCTree> toremove = new ListBuffer<>();
+        Env<AttrContext> prevEnv = this.env;
+        this.env = env;
 
         for (JCTree specsMemberDecl: specsDecl.defs) {
             if (specsMemberDecl instanceof JmlVariableDecl) {
@@ -486,6 +488,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             jtree.defs = Utils.remove(jtree.defs, t);
         }
 
+        this.env = prevEnv;
         matches.clear();
         return toadd.toList();
     }
@@ -571,6 +574,16 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
             specsVarDecl.sym = matchSym;
             specsVarDecl.type = matchSym.type;
+            if (!sameTree) {
+                // Copied from MemberEnter.visitVarDef
+                Env<AttrContext> localEnv = env;
+                if (visitVarDefIsStatic(specsVarDecl,env)) {
+                    localEnv = env.dup(specsVarDecl, env.info.dup());
+                    localEnv.info.staticLevel++;
+                }
+                annotateLater(specsVarDecl.mods.annotations, localEnv, matchSym, specsVarDecl.pos());
+                typeAnnotate(specsVarDecl.vartype, env, matchSym, specsVarDecl.pos());
+            }
         }
 
         // If there is a Java AST, find the match and set the specsDecl field
