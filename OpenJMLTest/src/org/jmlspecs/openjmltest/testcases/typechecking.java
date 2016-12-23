@@ -176,6 +176,13 @@ public class typechecking extends TCBase {
     	main.addOptions("-strictJML");
         helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
         		,"/A.java:2: A \\invariant_for expression expects just 1 argument, not 2", 26
+        		,"/A.java:2: The argument of \\invariant_for must be of reference type", 27
+        		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
+        		);
+    }
+
+    @Test public void testInvariantFor6a() {
+        helpTCF("A.java","public class A { int k; Integer i; void m() { \n//@ assert \\invariant_for(Integer,k);\n}}"
         		,"/A.java:2: The argument of \\invariant_for must be of reference type", 35
         		);
     }

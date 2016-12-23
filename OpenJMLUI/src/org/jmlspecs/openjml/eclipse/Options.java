@@ -79,6 +79,8 @@ public class Options {
 //	final static public String subexpressionsKey = prefix + "subexpressions"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
 	final static public String maxWarningsKey = prefix + "maxWarnings"; //$NON-NLS-1$
+	/** The preference store key for the strict JML option. */
+	final static public String strictKey = prefix + "strictJML"; //$NON-NLS-1$
 	/** The preference store key for the check purity option. */
 	final static public String noCheckPurityKey = prefix + "noPurityCheck"; //$NON-NLS-1$
 	/** The preference store key for the timeout option. */

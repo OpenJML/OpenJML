@@ -152,6 +152,8 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.nullableByDefaultKey, Messages.OpenJMLUI_PreferencesPage_NullableByDefault,
                 getFieldEditorParent()));
+        addField(new BooleanFieldEditor(Options.strictKey, Messages.OpenJMLUI_PreferencesPage_strictCheck,
+                getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.noCheckPurityKey, Messages.OpenJMLUI_PreferencesPage_SkipPurityCheck,
                 getFieldEditorParent()));
         addField(new BooleanFieldEditor(Options.showNotImplementedKey, Messages.OpenJMLUI_PreferencesPage_WarnAboutNonImplementedConstructs,

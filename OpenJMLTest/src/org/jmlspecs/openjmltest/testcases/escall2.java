@@ -69,7 +69,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN2Param() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
@@ -114,7 +114,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN3Param() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
@@ -293,7 +293,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testNNAssign() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
         main.addOptions("-no-internalSpecs");
         helpTCX("tt.TestJava","package tt; \n"
@@ -365,7 +365,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign2() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
 
         main.addOptions("-no-internalSpecs");
         //main.addOptions("-show","-method=<init>");
@@ -442,8 +442,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNAssign3() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        main.addOptions("internalSpecs=false");
+//        Assume.assumeTrue(runLongTests);
+        main.addOptions("internalSpecs=false"); // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
@@ -512,7 +512,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testNNAssignB() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -557,7 +557,7 @@ public class escall2 extends EscBase {
         
     @Test
     public void testNNAssignB1() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -605,7 +605,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testNNAssignB2() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
@@ -736,6 +736,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForSeeStatic() {
+    	Assume.assumeTrue(!solver.startsWith("cvc4"));
     	main.addOptions("-method=m"); // Part of test - don't test constructor
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -811,8 +812,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testDZero() {
-        Assume.assumeTrue(runLongTests);
-        Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+//        Assume.assumeTrue(false); // SKIPPING because CVC4 does not handle integer division
 
         main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
@@ -872,7 +873,7 @@ public class escall2 extends EscBase {
     @Test // THIS ONE BLOWS THE PROVER ??? FIXME (literal divide by zero)
     public void testDZero2() {
         Assume.assumeTrue(runLongTests);
-        Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division
+        Assume.assumeTrue(false);
 
         main.addOptions("-logic=AUFNIRA");
         helpTCX("tt.TestJava","package tt; \n"
@@ -1045,7 +1046,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testAssignable() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+//        Assume.assumeTrue(runLongTests);
 
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

@@ -5922,6 +5922,48 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 return;
             }
+            if (!doTranslations && calleeIsFunction) {
+                // FIXME - replicated from above
+                JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
+                if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
+                    // FIXME - actually should add these into whatever environment is operative
+                    if (inOldEnv) {
+                        escAddToOldList(oldenv,bl);
+                    } else if (nonignoredStatements != null) {
+                        nonignoredStatements.add(bl);
+                    } else if (axiomBlock != null) {
+                        axiomBlock.stats = axiomBlock.stats.append(bl);
+                    } else {
+                        addStat(bl);
+                    }
+                
+                    WellDefined info = wellDefinedCheck.get(calleeMethodSym);
+                    if (info != null && !info.alltrue) { // FIXME - should not ever be null? perhaps anon types?
+                        MethodSymbol s = info.sym;
+                        if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
+                            JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(trArgs));
+                            e = treeutils.makeImplies(condition.pos, condition, e);
+                            if (assumingPureMethod) {
+                                addAssume(that,Label.UNDEFINED_PRECONDITION,e,
+                                        info.pos,info.source);
+                            } else {
+                                addAssert(that,Label.UNDEFINED_PRECONDITION,e,
+                                        info.pos,info.source);
+                            }
+
+                        }
+                    }
+                }
+                
+                MethodSymbol newCalleeSym = pureMethod.get(calleeMethodSym);
+                if (newCalleeSym == null) {
+                    log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
+                }
+
+                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,trArgs);
+                JCStatement stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
+                
+            }
 
 
             // Set up the result variable - for RAC we have to do this
@@ -11751,7 +11793,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             case UNREACHABLE:
                 addTraceableComment(that);
-                result = addAssert(that,Label.UNREACHABLE,treeutils.falseLit);
+                result = addAssert(that,Label.UNREACHABLE,
+                        that.expression == null ? treeutils.falseLit : treeutils.makeNot(that.pos, convertJML(that.expression)));
                 break;
             case REACHABLE:
                 addTraceableComment(that);

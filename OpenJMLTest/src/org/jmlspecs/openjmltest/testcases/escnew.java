@@ -452,8 +452,8 @@ public class escnew extends EscBase {
     // Almost duplicate of escnew
     @Test public void testMethodInvocation1() {
         Assume.assumeTrue(runLongTests);
-        main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
+        main.addOptions("-logic=AUFLIRA");
+        //if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

@@ -166,6 +166,7 @@ public class escfiles extends EscBase {
 
     @Test // FIXME - Problem with int / short conversions
     public void testDemoTime() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime","-logic=AUFNIA");
     }
@@ -242,6 +243,7 @@ public class escfiles extends EscBase {
 
     @Test 
     public void testCashAmount() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-logic=AUFNIA");
     }
@@ -266,7 +268,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testSettableClock() {
-        //Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemo("settableClock","escSettableClock","-logic=AUFNIA");
     }
@@ -328,6 +330,7 @@ public class escfiles extends EscBase {
 
     @Test
     public void testCashAmountPrivate2() {
+        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-logic=AUFNIA");
     }
@@ -379,7 +382,7 @@ public class escfiles extends EscBase {
     
     @Test
     public void testEscDeterministic() {
-        helpTF("escDeterministic");
+        helpTF("escDeterministic","-method=m","-show");
 	}
 
     @Test

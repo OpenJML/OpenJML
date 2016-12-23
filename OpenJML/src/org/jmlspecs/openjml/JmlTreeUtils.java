@@ -307,7 +307,7 @@ public class JmlTreeUtils {
     
 
     // FIXME _ document; does this work correctly for this and super?
-    /** Returns true if the argument is a type name (e.g., A or tt.A)
+    /** Returns true if the argument is a reference type name (e.g., A or tt.A)
      * rather than an identifier for a variable or field or other
      * kind of expression.
      */
@@ -597,6 +597,10 @@ public class JmlTreeUtils {
         Type t = lhs.getTag().ordinal() >= rhs.getTag().ordinal() || rhs.getTag() == TypeTag.BOT ? lhs : rhs;
         if (TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
         return t;
+    }
+    
+    public boolean isIntegral(TypeTag tag) {
+        return tag == TypeTag.INT || tag.ordinal() <= TypeTag.LONG.ordinal();
     }
     
     

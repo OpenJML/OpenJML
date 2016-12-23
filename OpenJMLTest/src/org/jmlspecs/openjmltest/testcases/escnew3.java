@@ -21,8 +21,8 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNonNullElements() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        Assume.assumeTrue(!"z3_4_3".equals(solver));
+        Assume.assumeTrue(!"cvc4".equals(solver));
         Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -395,8 +395,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast1real() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - cannot retrieve values for this logic
-        main.addOptions("-logic=AUFNIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -407,6 +406,18 @@ public class escnew3 extends EscBase {
                 +"    //@ assert 0 == (double)s;\n}"  
                 +"  }\n"
                                   
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
+                );
+    }
+    
+    @Test
+    public void testCast1realb() {
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m6() {\n"
                 +"    {/*@ nullable */ Float s = null;\n"
@@ -415,9 +426,7 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                                   
                 +"}"
-                ,"cvc4".equals(solver)? null :
-                    seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
-                    ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16)
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16
                 );
     }
     

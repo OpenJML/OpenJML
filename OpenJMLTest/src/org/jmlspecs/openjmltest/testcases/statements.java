@@ -148,7 +148,7 @@ public class statements extends TCBase {
 
     @Test public void testUnreachable1() {
         helpTCF("A.java"," class A { Object o; void m() { int i; \n //@ unreachable \n i = 0; \n}}"
-                ,"/A.java:2: Incorrectly formed or terminated unreachable statement near here",18
+                ,"/A.java:2: warning: Inserting missing semicolon at the end of a UNREACHABLE statement",18
                 );
     }
 

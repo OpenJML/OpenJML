@@ -3110,6 +3110,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        // these JML methods, so it should not technically be needed.
         Env<AttrContext> localEnv = env;
         ListBuffer<Type> argtypesBuf = new ListBuffer<Type>();
+        boolean jmlstrict = JmlOption.isOption(context, JmlOption.STRICT);
         
         Type t = null;
         int n;
@@ -3155,6 +3156,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         label = ((JCTree.JCIdent)tr).getName();
                     }
                 }
+                
+                // FIXME - is it possible for a variable to have a different type at a previous label?
+                
                 // label == empty ==> pre state; label == null ==> current state
                 currentEnvLabel = label == null ? names.empty : label;
                 if (n == 0 || t == syms.errType) {
@@ -3261,17 +3265,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSNONNULLELEMENTS :
                 // The argument can be a JML spec-expression
                 // Expect any number of arguments of any array type, result type is boolean
-                // TODO: Jml may require just one argument
-                attribArgs(tree.args, localEnv, argtypesBuf);
-                //attribTypes(tree.typeargs, localEnv);
+            {
                 n = tree.args.size();
-                t = syms.booleanType;
-//                if (n != 1) {
-//                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
-//                }
-                // FIXME - check that arguments are array type
-                result = check(tree, t, VAL, resultInfo);
+                if (n != 1 && jmlstrict) {
+                    log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
+                }
+
+                for (JCExpression arg: tree.args) {
+                    Type argtype = attribExpr(arg, localEnv);
+                    if (!(argtype instanceof Type.ArrayType) && !argtype.isErroneous()) {
+                        log.error(arg.pos(),"jml.arraytype.required",token.internedName(),argtype.toString(),arg.toString());
+                    }
+                }
+                result = check(tree, syms.booleanType, VAL, resultInfo);
                 break;
+            }   
+                
+                
+                
 
             case BSELEMTYPE :
             case BSERASURE :
@@ -3284,22 +3295,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSISINITIALIZED :
                 // The argument is a type that is a reference type; the result is boolean
                 // The argument may contain JML constructs
-                attribTypes(tree.typeargs, localEnv);
+            {
                 n = tree.args.size();
                 if (n != 1) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
                 }
-                if (n > 0) {
-                    JCExpression arg = tree.args.get(0);
-                    attribTree(arg, localEnv, new ResultInfo(TYP, Type.noType));
-                    if (arg.type.isPrimitive()) {
+                for (JCExpression arg: tree.args) {
+                    Type argtype = attribExpr(arg, localEnv);
+                    if (!argtype.isNullOrReference() && !argtype.isErroneous()) {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
                 }
-                
-                t = syms.booleanType;
-                result = check(tree, t, VAL, resultInfo);
+                result = check(tree, syms.booleanType, VAL, resultInfo);
                 break;
+            }
 
             case BSTYPELC :
                 // Takes one argument which is a type (not an expression); the result is of type \TYPE
@@ -3408,10 +3417,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 
             case BSINVARIANTFOR :
                 // The argument can be a JML spec-expression
-                // Expects one argument of reference type; result is of type boolean
+                // Expects one argument of reference type or a typename; result is of type boolean
             	
                 n = tree.args.size();
-                if (n != 1 && JmlOption.isOption(context, JmlOption.STRICT)) {
+                if (n != 1 && jmlstrict) {
                     log.error(tree.pos(),"jml.wrong.number.args",token.internedName(),1,n);
                 }
 
@@ -3419,6 +3428,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     attribTree(arg, localEnv, new ResultInfo(TYP|VAR, Infer.anyPoly));
 
                     if (arg.type.isPrimitive()) {
+                        log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
+                    } else if (jmlstrict && treeutils.isATypeTree(arg)) {
                         log.error(arg.pos(),"jml.ref.arg.required",token.internedName());
                     }
                 }

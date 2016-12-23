@@ -434,78 +434,137 @@ public class esc extends EscBase {
 				"/tt/TestJava.java:32: unexpected type\n  required: variable\n  found:    value", 15);
 	}
 
-	// Test well-definedness within the implicit old
 	@Test
-	public void testNonNullElements() {
-		Assume.assumeTrue(runLongTests);
-		helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+	public void testNonNullElements1() {
+//		Assume.assumeTrue(runLongTests);
+		helpTCX("tt.TestJava", "package tt; \n" 
+				+ "public class TestJava { \n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m1x(Object[] a) {\n"
-				+ "    //@ assume \\nonnullelements(a);\n" + "    //@ assume a.length > 1;\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1x(Object[] a) {\n"
+				+ "    //@ assume \\nonnullelements(a);\n" 
+				+ "    //@ assume a.length > 1;\n"
 				+ "    //@ assert a[0] != null;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m11(Object[] a) {\n"
-				+ "    //@ assume \\nonnullelements(a);\n" + "    //@ assert a != null;\n" // OK
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m11(Object[] a) {\n"
+				+ "    //@ assume \\nonnullelements(a);\n" 
+				+ "    //@ assert a != null;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m11a(/*@ non_null */ Object[] a) {\n"
-				+ "    //@ assume \\nonnullelements(a);\n" + "    //@ assert a == null;\n" // BAD
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m11a(/*@ non_null */ Object[] a) {\n"
+				+ "    //@ assume \\nonnullelements(a);\n" 
+				+ "    //@ assert a == null;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m1a(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length > 1;\n" + "    //@ assert a[0] != null;\n" // BAD
+				+ "}"
+				,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a", 9
+				);
+	}
+
+	@Test
+	public void testNonNullElements2() {
+//		Assume.assumeTrue(runLongTests);
+		helpTCX("tt.TestJava", "package tt; \n" 
+				+ "public class TestJava { \n"
+
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m1a(Object[] a) {\n"
+				+ "    //@ assume a != null && a.length > 1;\n" 
+				+ "    //@ assert a[0] != null;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m2(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 0;\n" + "    //@ assert \\nonnullelements(a);\n" // OK
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m2(Object[] a) {\n"
+				+ "    //@ assume a != null && a.length == 0;\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m22(Object[] a) {\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m22(Object[] a) {\n"
 				+ "    //@ assume a != null && a.length == 0;\n"
 				+ "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
 				+ "  }\n"
 
+				+ "}"
+				,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1a", 9
+				);
+	}
+
+	@Test
+	public void testNonNullElements3() {
+//		Assume.assumeTrue(runLongTests);
+		helpTCX("tt.TestJava", "package tt; \n" 
+				+ "public class TestJava { \n"
+
 				+ "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-				+ "  public void m3(Object[] a) {\n" + "    //@ assume a != null && a.length == 1;\n"
-				+ "    a[0] = new Object();\n" + "    //@ assert \\nonnullelements(a);\n" // OK
+				+ "  public void m3(Object[] a) {\n" 
+				+ "    //@ assume a != null && a.length == 1;\n"
+				+ "    a[0] = new Object();\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m33(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 1;\n" + "    //@ assume a[0] != null;\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m33(Object[] a) {\n"
+				+ "    //@ assume a != null && a.length == 1;\n" 
+				+ "    //@ assume a[0] != null;\n"
 				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
 				+ "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-				+ "  public void m4(Object[] a) {\n" + "    //@ assume a != null && a.length == 2;\n"
-				+ "    a[0] = new Object();\n" + "    a[1] = new Object();\n" + "    //@ assert \\nonnullelements(a);\n" // OK
+				+ "  public void m4(Object[] a) {\n" 
+				+ "    //@ assume a != null && a.length == 2;\n"
+				+ "    a[0] = new Object();\n" 
+				+ "    a[1] = new Object();\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m44(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 2;\n" + "    //@ assume a[0] != null;\n"
-				+ "    //@ assume a[1] != null;\n" + "    //@ assert \\nonnullelements(a);\n" // OK
+				+ "}"
+				);
+	}
+
+	@Test
+	public void testNonNullElements4() {
+//		Assume.assumeTrue(runLongTests);
+		helpTCX("tt.TestJava", "package tt; \n" 
+				+ "public class TestJava { \n"
+
+
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m44(Object[] a) {\n"
+				+ "    //@ assume a != null && a.length == 2;\n" 
+				+ "    //@ assume a[0] != null;\n"
+				+ "    //@ assume a[1] != null;\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
 				+ "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-				+ "  public void m4a(Object[] a) {\n" + "    //@ assume a != null && a.length == 3;\n"
-				+ "    a[0] = new Object();\n" + "    a[1] = new Object();\n" + "    //@ assert \\nonnullelements(a);\n" // BAD
+				+ "  public void m4a(Object[] a) {\n" 
+				+ "    //@ assume a != null && a.length == 3;\n"
+				+ "    a[0] = new Object();\n" 
+				+ "    a[1] = new Object();\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // BAD
 				+ "  }\n"
 
 				+ "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-				+ "  public void m5(Object[] a) {\n" + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
-				+ "    a[0] = new Object();\n" + "    //@ assert \\nonnullelements(a);\n" // OK
+				+ "  public void m5(Object[] a) {\n" 
+				+ "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
+				+ "    a[0] = new Object();\n" 
+				+ "    //@ assert \\nonnullelements(a);\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m5a(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 3;\n" + "    a[0] = null;\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m5a(Object[] a) {\n"
+				+ "    //@ assume a != null && a.length == 3;\n" 
+				+ "    a[0] = null;\n"
 				+ "    //@ assert \\nonnullelements(a);\n" // BAD
 				+ "  }\n"
 
 				+ "}",
-				"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a", 9,
-				"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
-				"/tt/TestJava.java:65: warning: The prover cannot establish an assertion (Assert) in method m4a", 9,
-				"/tt/TestJava.java:77: warning: The prover cannot establish an assertion (Assert) in method m5a", 9);
+				"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m4a", 9,
+				"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Assert) in method m5a", 9);
 	}
 
 	@Test

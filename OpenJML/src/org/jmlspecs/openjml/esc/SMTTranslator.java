@@ -1535,6 +1535,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitBinary(JCBinary tree) {
         JCTree.Tag op = tree.getTag();
+        if (op == JCTree.Tag.EQ && tree.lhs.toString().equals("(double)0")) Utils.stop();
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
         LinkedList<IExpr> args = new LinkedList<IExpr>();
@@ -1641,14 +1642,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 Object v = ((JCLiteral)tree.expr).getValue();
                 if (tage == tagr) {
                     // OK
-                } else if ((tage.ordinal() <= TypeTag.LONG.ordinal()) == (tagr.ordinal() <= TypeTag.LONG.ordinal())) {
+                } else if (treeutils.isIntegral(tage) == treeutils.isIntegral(tagr)) {
                     // Both integral or both floating point
                     // OK
-                } else if (tage.ordinal() <= TypeTag.LONG.ordinal()) {
+                } else if (treeutils.isIntegral(tage)) {
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
                     result = makeRealValue(val.doubleValue());
                 } else if (tage.ordinal() > TypeTag.LONG.ordinal()) {
                     // FIXME - cast from double to integral
+                } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
+                    // Cast to real
+                    Double d = new Double(v.toString());
+                    result = makeRealValue(d.doubleValue());
                 }
             } else {
                 if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr.ordinal() > TypeTag.LONG.ordinal()) {

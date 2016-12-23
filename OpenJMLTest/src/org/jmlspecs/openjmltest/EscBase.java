@@ -34,7 +34,9 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-//    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
+    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
+    
+    protected static boolean runLongTests = false;
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
@@ -46,14 +48,12 @@ public abstract class EscBase extends JmlTestCase {
  //            "simplify" 
             });
         
-    static public java.util.List<String> solversWithNull = java.util.Arrays.asList(new String[]{ 
-    		null,
-            "z3_4_4", 
- //           "cvc4",
-            //"yices2",
- //             "yices", 
- //            "simplify" 
-            });
+    static public java.util.List<String> solversWithNull;
+    		{
+    			solversWithNull = new LinkedList<String>();
+    			solversWithNull.add(null);
+    			solversWithNull.addAll(solvers);
+    		}
         
     static public java.util.List<String[]> minQuants = java.util.Arrays.asList(new String[][]{ 
             new String[]{"-minQuant"}, 
@@ -137,8 +137,6 @@ public abstract class EscBase extends JmlTestCase {
             }
         }
     }
-    
-    protected static boolean runLongTests = false;
     
 
     /** options is a comma- or space-separated list of options to be added */

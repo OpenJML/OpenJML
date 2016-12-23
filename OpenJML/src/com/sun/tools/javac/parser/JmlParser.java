@@ -557,11 +557,11 @@ public class JmlParser extends JavacParser {
     public JCStatement parseStatement() {
         JCStatement st;
         String reason = null;
+        JmlTokenKind jtoken = jmlTokenKind();
         if (token.kind == CUSTOM) {
             boolean needSemi = true;
-            if (jmlTokenKind() != JmlTokenKind.ENDJMLCOMMENT) {
+            if (jtoken != JmlTokenKind.ENDJMLCOMMENT) {
                 int pos = pos();
-                JmlTokenKind jtoken = jmlTokenKind();
                 JmlSpecificationCase spc;
                 if (jtoken != null)
                     reason = jtoken.internedName() + " statement";
@@ -584,25 +584,34 @@ public class JmlParser extends JavacParser {
                     ste.source = log.currentSourceFile();
                     //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                } else if (jtoken == HENCE_BY || jtoken == UNREACHABLE || jtoken == REACHABLE) {
+                } else if (jtoken == UNREACHABLE || jtoken == REACHABLE) {
                     S.setJmlKeyword(false);
                     nextToken();
                     JCExpression t = null;
-                    if (jtoken == REACHABLE) {
-                        if (token.kind != SEMI) t = parseExpression();
-                        else t = toP(jmlF.at(pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE;
+                    if (token.ikind != ENDJMLCOMMENT && token.kind != SEMI) {
+                        t = parseExpression();
                     }
-                    else if (jtoken != UNREACHABLE) t = parseExpression();
                     JmlTree.JmlStatementExpr ste = to(jmlF.at(pos)
                             .JmlExpressionStatement(jtoken, 
                                     jtoken == REACHABLE ? Label.REACHABLE : Label.UNREACHABLE,
                                     t));
                     ste.source = log.currentSourceFile();
-                    //ste.line = log.currentSource().getLineNumber(pos);
                     st = ste;
-                    if (jtoken == REACHABLE && JmlOption.isOption(context, JmlOption.STRICT)) {
-                        log.warning(ste.pos,"jml.not.strict",jtoken.internedName());
+                    if (JmlOption.isOption(context, JmlOption.STRICT)) {
+                        // FIXME - why the difference in the positions of these two warnings
+                        if (jtoken == UNREACHABLE && t != null) log.warning(pos(),"jml.not.strict","unreachable statement with expression");
+                        if (jtoken == REACHABLE) log.warning(ste.pos,"jml.not.strict",jtoken.internedName());
                     }
+                } else if (jtoken == HENCE_BY) {
+                    S.setJmlKeyword(false);
+                    nextToken();
+                    JCExpression t = parseExpression();
+                    JmlTree.JmlStatementExpr ste = to(jmlF.at(pos)
+                            .JmlExpressionStatement(jtoken, 
+                                    Label.EXPLICIT_ASSUME,
+                                    t));
+                    ste.source = log.currentSourceFile();
+                    st = ste;
                 } else if (jtoken == DECREASES || jtoken == LOOP_INVARIANT) {
                     S.setJmlKeyword(false);
                     nextToken();
@@ -752,6 +761,9 @@ public class JmlParser extends JavacParser {
                         S.setToken(new JmlToken(tt, null, pos(), endPos())); // FIXME - but S.token is not set
                     }
                 }
+            } else if (token.ikind == ENDJMLCOMMENT) {
+                log.warning(pos(), "jml.missing.semi", jtoken);
+            	
             } else if (token.kind != SEMI) {
                 jmlerror(pos(), endPos(), "jml.bad.construct", reason);
                 skipThroughSemi();
