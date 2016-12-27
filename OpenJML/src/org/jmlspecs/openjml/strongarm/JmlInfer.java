@@ -128,16 +128,32 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
       
         /** this allows subclasses to have their own keys **/
         public abstract Context.Key<T> getKey();
+        
+        
 
         /** Initializes assertionAdder **/
-        public void check(JCTree tree) {
+        public boolean check(JCTree tree) {
             this.assertionAdder = new JmlAssertionAdder(context, true, false);
             try {
+                
+                if(tree instanceof JmlClassDecl){
+                    JmlClassDecl cd = (JmlClassDecl)tree;
+                    
+                    if(skipExplicit(cd)){
+                        markClassSkipped(cd, "(skipped because of SkipInfer annotation on a class-level element).");
+                        return false;
+                    }
+                }
+                
                 assertionAdder.convert(tree); // get at the converted tree through the map
                 tree.accept(this);
+                return true;
             } catch (Exception e) {
                 log.error("jml.internal","Should not be catching an exception in JmlInfer.check");
             }
+            
+            return false;
+            
         }
         
         /** Visit a class definition */
@@ -277,11 +293,21 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             return;        
         }
         
+        public boolean skipExplicit(JmlClassDecl decl) {
+            if (decl.mods != null) {
+                for (JCTree.JCAnnotation a : decl.mods.annotations) {
+                    if (a != null && a.type.toString().equals("org.jmlspecs.openjml.strongarm.SkipInfer")) { // FIXME - do this without converting to string
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         
         public boolean skipExplicit(JmlMethodDecl methodDecl) {
             if (methodDecl.mods != null) {
                 for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
-                    if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipInfer")) { // FIXME - do this without converting to string
+                    if (a != null && a.type.toString().equals("org.jmlspecs.openjml.strongarm.SkipInfer")) { // FIXME - do this without converting to string
                         return true;
                     }
                 }
@@ -303,6 +329,10 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         
         public void markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
             utils.progress(1,1,"Skipping contract inference of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        
+        public void markClassSkipped(JmlClassDecl classDecl, String reason) {
+            utils.progress(1,1,"Skipping contract inference of " + utils.classQualifiedName(classDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         }
         
 

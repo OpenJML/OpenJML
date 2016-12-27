@@ -676,9 +676,9 @@ public class JmlCompiler extends JavaCompiler {
             return;
         }
 
-        infer.check(env.tree); 
+        boolean didInfer = infer.check(env.tree); 
         
-        if(infer.persistContracts && env.tree instanceof JmlClassDecl){
+        if(didInfer && infer.persistContracts && env.tree instanceof JmlClassDecl){
             infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
         }
     }
