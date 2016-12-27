@@ -15,9 +15,6 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.progress.UIJob;
@@ -34,11 +31,8 @@ public class ConsoleLogger implements Log.IListener {
 	 * @param consoleName The name of the console to be logged to, as it will 
 	 * appear in the Eclipse UI
 	 */
-	//@ requires consoleName != null;
 	//@ modifies this.*;
-	//@ ensures this.consoleName == consoleName;
-	public ConsoleLogger(/*@ non_null */ String consoleName) {
-		this.consoleName = consoleName;
+	public ConsoleLogger() {
 		Plugin plugin = Activator.getDefault();
 		this.pluginLog = plugin.getLog();
 		this.pluginID = plugin.getBundle().getSymbolicName();
@@ -47,12 +41,6 @@ public class ConsoleLogger implements Log.IListener {
 	// This model variable models the content of the material
 	// sent to the log.
 	//@ model public String content;
-
-	/** The name of the console that this plugin writes to. */
-	//@ constraint \not_modified(consoleName);
-	//@ spec_public
-	//@ non_null
-	final private String consoleName;
 
 	/** The ILog of the plugin that this ConsoleLogger object connects to */
 	//@ constraint \not_modified(pluginLog);
@@ -88,22 +76,8 @@ public class ConsoleLogger implements Log.IListener {
 	 */
 	//@ ensures \result != null;
 	public MessageConsoleStream getConsoleStream() {
-		if (stream == null) {
-			MessageConsole console = null;
-			IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
-			IConsole[] existing = consoleManager.getConsoles();
-			for (int i=0; i<existing.length; ++i) {
-				if (existing[i].getName().equals(consoleName)) {
-					console = (MessageConsole)existing[i];
-					break;
-				}
-			}
-			if (console == null) {
-				console = new MessageConsole(consoleName,null);
-				consoleManager.addConsoles(new IConsole[]{console});
-			}
-			stream = console.newMessageStream();
-		}
+		MessageConsole console = ConsoleFactory.getJMLConsole(true);
+		if (stream == null)stream = console.newMessageStream();
 		return stream;
 	}
 
@@ -126,37 +100,9 @@ public class ConsoleLogger implements Log.IListener {
 	//@ modifies content;
 	@Override 
 	public void log(final String msg) {
-
-		if(test &&  Display.getDefault().getThread() != Thread.currentThread() ) {
-			UIJob j = new UIJob(Display.getDefault(),jobName) {
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					getConsoleStream().println(msg);
-					// Also write it to the log file, if requested.
-					if (alsoLogInfo) {
-						pluginLog.log(
-								new Status(Status.INFO, 
-										pluginID,
-										Status.OK, msg, null));
-					}
-					return Status.OK_STATUS;
-				}
-			};
-			// FIXME - does this need a scheduling rule?
-			j.setUser(true);
-			j.schedule();
-
-		} else {
-			getConsoleStream().println(msg);
-			// Also write it to the log file, if requested.
-			if (alsoLogInfo) {
-				pluginLog.log(
-						new Status(Status.INFO, 
-								pluginID,
-								Status.OK, msg, null));
-			}
-		}
+		log_helper(msg,true,false,null);
 	}
-
+	
 	/**
 	 * Records an informational message without a terminating new line.
 	 * If a message is written to the System log, it will be written as
@@ -166,36 +112,9 @@ public class ConsoleLogger implements Log.IListener {
 	//@ requires msg != null;
 	//@ modifies content;
 	public void log_noln(final String msg) {
-		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
-			UIJob j = new UIJob(Display.getDefault(),jobName) { 
-				public IStatus runInUIThread(IProgressMonitor monitor) {
-					getConsoleStream().print(msg);
-					// Also write it to the log file, if requested.
-					if (alsoLogInfo) {
-						pluginLog.log(
-								new Status(Status.INFO, 
-										pluginID,
-										Status.OK, msg, null));
-					}
-					return Status.OK_STATUS;
-				}
-			};
-			// FIXME - does this need a scheduling rule?
-			j.setUser(true);
-			j.schedule();
-
-		} else {
-			getConsoleStream().print(msg);
-			// Also write it to the log file, if requested.
-			if (alsoLogInfo) {
-				pluginLog.log(
-						new Status(Status.INFO, 
-								pluginID,
-								Status.OK, msg, null));
-			}
-		}
+		log_helper(msg,false,false,null);
 	}
-
+	
 	// FIXME - change to logln, errorlogln?
 
 	/**
@@ -206,25 +125,40 @@ public class ConsoleLogger implements Log.IListener {
 	 */
 	//@ modifies content;
 	public void errorlog(final /*@ non_null */String msg, final /*@ nullable */ Throwable e) {
-		if (test && Display.getDefault().getThread() != Thread.currentThread() ) {
+		log_helper(msg,true,true,e);
+	}
+	
+
+	
+	/** Internal helper method to avoid replicating functionality */
+	private void log_helper(final String msg, boolean newline, boolean error, final Throwable e) {
+		MessageConsoleStream cs = getConsoleStream();
+		if (test &&  Display.getDefault().getThread() != Thread.currentThread() ) {
 			UIJob j = new UIJob(Display.getDefault(),jobName) {
 				public IStatus runInUIThread(IProgressMonitor monitor) {
-					// Always put errors in the log
-					pluginLog.log(
-							new Status(Status.ERROR, 
-									pluginID,
-									Status.OK, msg, e));
-					MessageConsoleStream cs = getConsoleStream();
-					Color c = cs.getColor();
-					cs.setColor(errorColor);
-					cs.println(msg);
-					if (e != null) {
-						PrintStream p = new PrintStream(cs);
-						e.printStackTrace(p);
-						p.flush();
+					if (error) {
+						Color c = cs.getColor();
+						cs.setColor(errorColor);
+						cs.println(msg);
+						if (e != null) {
+							PrintStream p = new PrintStream(cs);
+							e.printStackTrace(p);
+							p.flush();
+						}
+						try { cs.flush(); } catch (Exception ee) {} // ignore
+						cs.setColor(c);
+					} else if (newline) {
+						cs.println(msg);
+					} else {
+						cs.print(msg);
 					}
-					try { cs.flush(); } catch (Exception ee) {} // ignore
-					cs.setColor(c);
+					// Also write it to the log file, if requested.
+					if (alsoLogInfo || error) {
+						pluginLog.log(
+								new Status(error ? Status.ERROR : Status.INFO, 
+										pluginID,
+										Status.OK, msg, null));
+					}
 					return Status.OK_STATUS;
 				}
 			};
@@ -233,22 +167,29 @@ public class ConsoleLogger implements Log.IListener {
 			j.schedule();
 
 		} else {
-			// Always put errors in the log
-			pluginLog.log(
-					new Status(Status.ERROR, 
-							pluginID,
-							Status.OK, msg, e));
-			MessageConsoleStream cs = getConsoleStream();
-			Color c = cs.getColor();
-			cs.setColor(errorColor);
-			cs.println(msg);
-			if (e != null) {
-				PrintStream p = new PrintStream(cs);
-				e.printStackTrace(p);
-				p.flush();
+			if (error) {
+				Color c = cs.getColor();
+				cs.setColor(errorColor);
+				cs.println(msg);
+				if (e != null) {
+					PrintStream p = new PrintStream(cs);
+					e.printStackTrace(p);
+					p.flush();
+				}
+				try { cs.flush(); } catch (Exception ee) {} // ignore
+				cs.setColor(c);
+			} else if (newline) {
+				cs.println(msg);
+			} else {
+				cs.print(msg);
 			}
-			try { cs.flush(); } catch (Exception ee) {} // ignore
-			cs.setColor(c);
+			// Also write it to the log file, if requested.
+			if (alsoLogInfo || error) {
+				pluginLog.log(
+						new Status(error ? Status.ERROR : Status.INFO, 
+								pluginID,
+								Status.OK, msg, null));
+			}
 		}
 	}
 

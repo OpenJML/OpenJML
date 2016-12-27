@@ -62,7 +62,7 @@ public class ProposalComputer implements org.eclipse.jdt.ui.text.java.IJavaCompl
 				String prefix = doc.get(firstSpace+1,pos-firstSpace-1);
 				for (JmlTokenKind t: keywords) {
 					String s = t.internedName();
-					if (s.startsWith(prefix)) {
+					if (s != null && s.startsWith(prefix)) {
 						proposals.add(new CompletionProposal(s,firstSpace+1,pos-firstSpace-1,s.length()));
 					}
 				}
