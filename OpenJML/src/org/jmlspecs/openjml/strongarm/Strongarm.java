@@ -86,6 +86,7 @@ public class Strongarm
     final protected JmlTreeUtils           treeutils;
     
     final protected JmlTree.Maker M;
+    public static String Current;
     
     final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
@@ -163,6 +164,7 @@ public class Strongarm
             log.noticeWriter.println(JmlPretty.write(newblock));
         }
         
+        Current = utils.qualifiedMethodSig(methodDecl.sym);
         
         BasicBlocker2 basicBlocker;
 
