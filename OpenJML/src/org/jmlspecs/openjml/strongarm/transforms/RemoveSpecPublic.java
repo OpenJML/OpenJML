@@ -65,14 +65,15 @@ public class RemoveSpecPublic extends JmlTreeScanner {
             instance = new RemoveSpecPublic(context);
         }
     }
-    private boolean remove(JmlMethodClause clause, JCExpression tree){
-        return false;
-    }
+    
     private boolean remove(JmlMethodClause clause, JCBinary tree){
-        JCFieldAccess fa = (JCFieldAccess)tree.lhs;
         
-        if(clause.token==JmlToken.REQUIRES && fa.toString().contains("null")){
-            return true;
+        if(tree.lhs instanceof JCFieldAccess){
+            JCFieldAccess fa = (JCFieldAccess)tree.lhs;
+        
+            if(clause.token==JmlToken.REQUIRES && fa.toString().contains("null")){
+                return true;
+            }
         }
         
         return false;
@@ -80,12 +81,24 @@ public class RemoveSpecPublic extends JmlTreeScanner {
     private boolean remove(JmlMethodClause clause, JCUnary tree){
         return remove(clause, tree.arg);
     }
+    
+    private boolean remove(JmlMethodClause clause, JCExpression expr){
+        
+        if(expr instanceof JCBinary){
+            return remove(clause, (JCBinary)expr);
+            
+        }else if(expr instanceof JCUnary){
+            return remove(clause, (JCUnary)expr);                
+        }
+        
+        return false;
+    }
     public boolean shouldRemove(JmlMethodClause clause){
         
         if(clause instanceof JmlMethodClauseExpr){
-            
-            //FIX THIS
+
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+            
             return remove(clause, mExpr.expression);
         }
         
