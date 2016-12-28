@@ -44,6 +44,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCases;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveSpecPublic;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
 import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitutions;
@@ -115,6 +116,8 @@ public class Strongarm
             RemoveDuplicatePreconditionsSMT.cache(context);
             SimplicyViaInternalSubstitutions.cache(context);
             RemoveLocals.cache(context);
+            RemoveSpecPublic.cache(context);
+            
             RemoveDeadAssignments.cache(context);
             RemoveDuplicateAssignments.cache(context);
             RemoveImpossibleSpecificationCases.cache(context);
@@ -610,6 +613,24 @@ public class Strongarm
             log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.noticeWriter.println(JmlPretty.write(contract));
         }
+        
+        
+        
+        
+        
+        t = Timing.start();
+        
+        RemoveSpecPublic.simplify(methodDecl, contract);
+         
+         if (verbose) {
+             log.noticeWriter.println(Strings.empty);
+             log.noticeWriter.println("--------------------------------------"); 
+             log.noticeWriter.println(Strings.empty);
+             log.noticeWriter.println("AFTER REMOVING SPEC PUBLIC OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+             log.noticeWriter.println(JmlPretty.write(contract));
+         }
+         
+         
         
         
         //
