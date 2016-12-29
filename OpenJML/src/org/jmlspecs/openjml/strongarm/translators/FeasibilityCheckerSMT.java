@@ -300,9 +300,9 @@ public class FeasibilityCheckerSMT extends MethodProverSMT {
     
             return proofResult;
         }finally{
-            if(solver!=null){
+            try {
                 solver.exit();
-            }
+            }catch(Exception e){}
         }
     }
 }

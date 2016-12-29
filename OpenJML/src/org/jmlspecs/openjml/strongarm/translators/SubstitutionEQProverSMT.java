@@ -329,7 +329,9 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             
         } finally {
             if(solver!=null){
-                solver.exit();
+                try {
+                    solver.exit();
+                }catch(Exception e){}
             }
         }
     }
