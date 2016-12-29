@@ -571,8 +571,33 @@ public class BlockReader {
                 depth--;
                 return e;
                 
-            }else if(block.followers().size() > 0){
-                return  sp(p, block.followers().get(0));
+            }else if(block.followers().size()==1){
+                return  sp(p, block.followers().get(0));                
+            }else if(block.followers().size() > 2 && ignoreBranch==false){
+                
+                BasicBlock b1 = block.followers().get(0);
+                BasicBlock b2 = block.followers().get(1);
+                
+                depth++;
+                Prop<JCExpression> e =  Or.of(
+                        sp(p, b1), 
+                        sp(p, b2)
+                        );
+                depth--;
+                
+                for(int i=2; i<block.followers().size(); i++){
+                    
+                    BasicBlock b = block.followers().get(i);
+                
+                    depth++;
+                    e =  Or.of(
+                            e, 
+                            sp(p, b)
+                            );
+                    depth--;
+                }
+                
+                return e;
             }
             
             
@@ -967,7 +992,7 @@ public class BlockReader {
     }
     
     private boolean isAssignStmt(JmlStatementExpr stmt){
-        if(stmt.label == Label.ASSIGNMENT || stmt.label==Label.DSA){
+        if(stmt.label == Label.ASSIGNMENT || stmt.label==Label.DSA || stmt.label == Label.CASECONDITION || stmt.label == Label.SWITCH_VALUE){
             return true;
         }
         return false;

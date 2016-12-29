@@ -100,6 +100,10 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
         
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_switchExpression"))){
+            return true;
+        }
+        
         return false;
     }
     
