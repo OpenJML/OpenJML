@@ -571,9 +571,9 @@ public class BlockReader {
                 depth--;
                 return e;
                 
-            }else if(block.followers().size()==1){
+            }else if(block.followers().size() > 0 && block.followers().size() <= 2){
                 return  sp(p, block.followers().get(0));                
-            }else if(block.followers().size() > 2 && ignoreBranch==false){
+            }else if(block.followers().size() > 2){
                 
                 BasicBlock b1 = block.followers().get(0);
                 BasicBlock b2 = block.followers().get(1);
