@@ -21,15 +21,15 @@ fi
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 ( ( ls openjml.properties > /dev/null ) || ( echo "Not in correct directory"; pwd; exit 1 ) )
 
-git checkout -b "$REL"
+git checkout -B "$REL"
 cd ../../JMLAnnotations
-git checkout -b "$REL"
+git checkout -B "$REL"
 cd ../OpenJMLDemo
-git checkout -b "$REL"
+git checkout -B "$REL"
 cd ../Specs
-git checkout -b "$REL"
-#cd ../OpenJML-UpdateSite -b "$REL"
-#git checkout -b "$REL"
+git checkout -B "$REL"
+#cd ../OpenJML-UpdateSite
+#git checkout -B "$REL"
 cd ../OpenJML/OpenJML
 
 ## FIXME - make platform independent - Eclipse does not set path
