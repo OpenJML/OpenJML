@@ -2216,18 +2216,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
             ListBuffer<JCStatement> staticStats = stats;
             
-            if (receiver instanceof JCFieldAccess) {
-            // FIXME - not sure about this patch (this branch) - needs testing
-                JCFieldAccess that = (JCFieldAccess)receiver;
-                currentThisExpr = currentThisId = treeutils.makeIdent(that.pos, that.name, that.sym);
-            } else if (receiver == null || receiver instanceof JCIdent) {
-                currentThisId = (JCIdent)receiver;
+//            if (receiver instanceof JCFieldAccess) {
+//            // FIXME - not sure about this patch (this branch) - needs testing
+//                JCFieldAccess that = (JCFieldAccess)receiver;
+//                currentThisExpr = currentThisId = treeutils.makeIdent(that.pos, that.name, that.sym);
+//            } else if (receiver == null || receiver instanceof JCIdent) {
+              {
+                if (receiver instanceof JCIdent) currentThisId = (JCIdent)receiver;
                 currentThisExpr = receiver;
 
                 for (Type ctype: parents) {
                     if (!(ctype.tsym instanceof ClassSymbol)) continue;
                     typevarMapping = typemapping(ctype, null, null);
-                    pushBlock();
+                    ListBuffer<JCStatement> check = pushBlock();
                     ListBuffer<JCStatement> instanceStats = currentStatements;
                     try {
                         ClassSymbol csym = (ClassSymbol)ctype.tsym;
@@ -2372,7 +2373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                     } finally {
                         currentStatements = instanceStats;
-                        JCBlock bl = popBlock(0,pos);
+                        JCBlock bl = popBlock(0,pos,check);
                         if (!onlyComments(bl.stats)) {
                             if (contextIsStatic) {
                                 staticStats.add(bl);
@@ -2385,8 +2386,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
 
                 }
-            } else {
-                notImplemented(receiver, "receiver of class " + (receiver == null ? "-null-" : receiver.getClass().getName()));
+//            } else {
+//                notImplemented(receiver, "receiver of class " + (receiver == null ? "-null-" : receiver.getClass().getName()));
             }
         } finally {
             endInvariants(basecsym);
@@ -2498,7 +2499,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisExpr = receiver;
             
             for (ClassSymbol csym: parents) {
-                pushBlock();
+                ListBuffer<JCStatement> check = pushBlock();
                 ListBuffer<JCStatement> instanceStats = currentStatements;
                 boolean pv = checkAccessEnabled;
                 checkAccessEnabled = false; // Do not check access in JML clauses
@@ -2579,7 +2580,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } finally {
                     checkAccessEnabled = pv;
                     currentStatements = instanceStats;
-                    JCBlock bl = popBlock(0,pos);
+                    JCBlock bl = popBlock(0,pos,check);
                     if (!onlyComments(bl.stats)) {
                         if (contextIsStatic) {
                             staticStats.add(bl);
@@ -4448,6 +4449,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(vdecl);
 
             ListBuffer<JCStatement> checkA = pushBlock();
+            if (that.truepart.toString().startsWith("(string.indexOf(',') >= 0 ||")) Utils.stop();
             JCBlock trueblock = null;
             try {
                 JCExpression tres = convertExpr(that.truepart);
@@ -4458,7 +4460,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 trueblock = popBlock(0,that.truepart,checkA);
             }
 
-            pushBlock();
+            checkA = pushBlock();
             JCBlock falseblock = null;
             try {
                 JCExpression fres = convertExpr(that.falsepart);
@@ -4466,7 +4468,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCIdent id = treeutils.makeIdent(that.falsepart.pos, vdecl.sym);
                 addStat( treeutils.makeAssignStat(that.falsepart.pos, id, fres));
             } finally {
-                falseblock = popBlock(0,that.falsepart);
+                falseblock = popBlock(0,that.falsepart,checkA);
             }
 
             JCStatement stat = M.at(that).If(cond, trueblock, falseblock);
@@ -4762,6 +4764,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     JCExpression accessAllowed(JmlStoreRefKeyword storeref, JCExpression pstoreref) {
         DiagnosticPosition pos = storeref;
         JmlTokenKind token = storeref.token;
+        if (token == JmlTokenKind.BSNOTSPECIFIED) token = JmlTokenKind.BSEVERYTHING;
         if (token == JmlTokenKind.BSNOTHING) return treeutils.trueLit; 
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
@@ -4795,6 +4798,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         DiagnosticPosition pos = id;
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
+            if (ptoken == JmlTokenKind.BSNOTSPECIFIED) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSNOTHING) return treeutils.falseLit;
 
@@ -4874,6 +4878,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression pfac = convertAssignable(pstoreref,baseThisExpr,true);
         if (pfac instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pfac).token;
+            if (ptoken == JmlTokenKind.BSNOTSPECIFIED) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSNOTHING) return treeutils.falseLit;
 
@@ -4982,8 +4987,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         int posp = pos.getPreferredPosition();
         if (pstoreref instanceof JmlStoreRefKeyword) {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
-            if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSNOTHING) return treeutils.falseLit;
+            if (ptoken == JmlTokenKind.BSNOTSPECIFIED) return treeutils.trueLit;
+            if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
 
         } else if (pstoreref instanceof JCIdent) {
             return treeutils.falseLit; 
@@ -5055,6 +5061,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JmlTokenKind ptoken = ((JmlStoreRefKeyword)pstoreref).token;
             if (ptoken == JmlTokenKind.BSEVERYTHING) return treeutils.trueLit;
             if (ptoken == JmlTokenKind.BSNOTHING) return treeutils.falseLit;
+            if (ptoken == JmlTokenKind.BSNOTSPECIFIED) return treeutils.trueLit;
 
         } else if (pstoreref instanceof JCIdent) {
             return treeutils.falseLit; 
@@ -5497,6 +5504,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (c.keyword.token == JmlTokenKind.BSNOTHING) {
                                 asg = treeutils.falseLit;
                             } else if (c.keyword.token == JmlTokenKind.BSEVERYTHING) {
+                                asg = null;
+                            } else if (c.keyword.token == JmlTokenKind.BSNOTSPECIFIED) {
                                 asg = null;
                             }
                         } else if (sym == null) {
@@ -6378,6 +6387,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             if (callableClause.keyword.token == JmlTokenKind.BSNOTHING){
                                                 // callee is callable \nothing - no problem
                                             } else if (callableClause.keyword.token == JmlTokenKind.BSEVERYTHING) {
+                                                checkThatMethodIsCallable(callableClause.keyword, null);
+                                            } else if (callableClause.keyword.token == JmlTokenKind.BSNOTSPECIFIED) {
                                                 checkThatMethodIsCallable(callableClause.keyword, null);
                                             }
                                         } else {
@@ -9011,6 +9022,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // this could be a translation of the formal from the specification 
             // in a parent class mapped to the formal in the target class. It
             // can also be the mapping from a formal to actual argument.
+            boolean local = false;
             JCExpression actual = paramActuals == null ? null : paramActuals.get(sym);
             if (actual != null) {
                 // Replicate the AST so we are not sharing ASTs across multiple
@@ -9027,12 +9039,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // just copy - bound in a quantification
                 Symbol sy = localVariables.get(sym);
                 result = eresult = treeutils.makeIdent(that.pos,sy);
+                local = true;
 
             } else if (!(sym.owner instanceof Symbol.TypeSymbol)) {
                 // local variable  - just leave it as 
                 // an ident (the owner is null or the method)
                 JCIdent id = treeutils.makeIdent(that.pos, sym);
                 result = eresult = id;
+                local = true;
 
             } else if (currentThisExpr instanceof JCIdent && sym == ((JCIdent)currentThisExpr).sym) {
                 // 'this' - leave it as it is
@@ -9080,7 +9094,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = fa;
             }
             treeutils.copyEndPosition(eresult, that);
-            if (oldenv != null) {
+            if (oldenv != null && !local) {
                 // FIXME - the old may imappropriately encapsulate the receiver
                 result = eresult = treeutils.makeOld(that.pos, eresult, oldenv);
                 treeutils.copyEndPosition(eresult, that);
@@ -12330,7 +12344,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             stat.fieldSpecsCombined = that.fieldSpecsCombined;
             stat.specsDecl = that.specsDecl;
 
-            pushBlock();
+            ListBuffer<JCStatement> check = pushBlock();
             JCExpression init = null;
             JCExpression nn = null;
             try {
@@ -12385,7 +12399,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (currentStatements.isEmpty() && nn == null) {
                         // Just a simple initialization since there is no nonnull check
                         // and the init expression did not create any new statements
-                        popBlock(0,null); // Nothing present - just ignore the empty block
+                        popBlock(0,null,check); // Nothing present - just ignore the empty block
                         stat.init = init;
                         this.classDefs.add(stat);
                         if (esc && !that.type.isPrimitive()) {
@@ -12404,14 +12418,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     treeutils.makeIdent(that.pos, that.sym), 
                                     that.type));
                         }
-                        JCBlock bl = popBlock(flags,that);
+                        JCBlock bl = popBlock(flags,that,check);
                         this.classDefs.add(stat);
                         this.classDefs.add(bl);
                     }
                     methodDecl = null;
                 } else {
                     // Regular method body
-                    JCBlock bl = popBlock(0,that);
+                    JCBlock bl = popBlock(0,that,check);
                     currentStatements.addAll(bl.stats);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
                     stat.init = init;

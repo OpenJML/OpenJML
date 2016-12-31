@@ -2119,7 +2119,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 for (JCAnnotation a: tree.mods.annotations) {
                     JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
                     if (aa == null) { // FIXME _ check on sourcefile
+                        JavaFileObject psource = log.useSource(tree.source());
                         log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
+                        log.useSource(psource);
                     }
                 }
                 pmods = jmlmods;
@@ -3065,8 +3067,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             (caseMod == Flags.PROTECTED && methodMod == 0)) {
                         DiagnosticPosition p = c.modifiers.pos();
                         if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
-                        if (!enclosingMethodEnv.enclMethod.name.toString().equals("clone"))
+                        if (!enclosingMethodEnv.enclMethod.name.toString().equals("clone")) {
+                            JavaFileObject prevsource = log.useSource(c.source());
                             log.warning(p,"jml.no.point.to.more.visibility");
+                            log.useSource(prevsource);
+                        }
                     }
                 }
             }

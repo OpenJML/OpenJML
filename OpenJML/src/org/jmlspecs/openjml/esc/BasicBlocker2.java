@@ -1126,7 +1126,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlStoreRefKeyword) {
             JmlTokenKind t = ((JmlStoreRefKeyword)storeref).token;
-            if (t == JmlTokenKind.BSEVERYTHING) {
+            if (t == JmlTokenKind.BSEVERYTHING || t == JmlTokenKind.BSNOTSPECIFIED) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
                     // The owner of a local symbol is a MethodSymbol

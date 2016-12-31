@@ -1360,7 +1360,7 @@ public class JmlParser extends JavacParser {
                 notlist = true;
                 nextToken();
             }
-            if (jmlTokenKind() == JmlTokenKind.BSEVERYTHING) {
+            if (jmlTokenKind() == JmlTokenKind.BSEVERYTHING || jmlTokenKind() == JmlTokenKind.BSNOTSPECIFIED) {
                 nextToken();
                 // This is the default, so we just leave sigs null
                 if (notlist) sigs = new ListBuffer<JmlMethodSig>().toList();
