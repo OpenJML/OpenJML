@@ -1,6 +1,8 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -277,6 +279,8 @@ public class BlockReader {
             
             trace.add(traceElement);
             
+            //writeTrace("/tmp/trace.csv");
+            
             for(JCStatement stmt : block.statements()){
                 
     //            if(stmt.toString().contains("_JML___NEWARRAY_317_317.Array_length")){
@@ -518,14 +522,31 @@ public class BlockReader {
                 if(verbose){
                     log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
                 }
+                int propsInLeftSubtree = 0;
+                int propsInRightSubtree = 0;
                 
-                int propsInLeftSubtree = propsInSubtree(left, lca);
-                int propsInRightSubtree = propsInSubtree(right, lca);
-    
-                if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Props in Subtrees L=%d, R=%d", propsInLeftSubtree, propsInRightSubtree));
+                try {
+                    loopCache.clear();
+                    propsInLeftSubtree = propsInSubtree(left, lca);
+                    
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Left Subtree", propsInLeftSubtree));
+                    }
+                    
+                    loopCache.clear();                   
+                    propsInRightSubtree = propsInSubtree(right, lca);
+
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Right Subtree", propsInRightSubtree));
+                    }
+                }catch(CFGLoopException e){
+                    if(verbose){
+                        log.noticeWriter.println("[STRONGARM] LCA Detection Found a loop in the CFG. Disabling LCA Optimization...");
+                    }
+                    propsInLeftSubtree = 1;
+                    propsInRightSubtree = 1;
+                    
                 }
-    
                 // 
                 // We gain nothing by keeping this subtree
                 //
@@ -662,8 +683,17 @@ public class BlockReader {
         } 
       
     }
-    private int propsInSubtree(BasicBlock block, BasicBlock lca){
+    private Set<BasicBlock> loopCache = new HashSet<BasicBlock>();
+    
+    private int propsInSubtree(BasicBlock block, BasicBlock lca) throws CFGLoopException{
 
+//        System.out.println(block.id().toString());
+//        
+//        if(loopCache.contains(block)){
+//            throw new CFGLoopException();
+//        }
+//        loopCache.add(block);
+//        
         if(lca.id()==block.id()){
             return 0;
         }
@@ -1156,8 +1186,17 @@ public class BlockReader {
         return subs;
     }
     
-    // this is a little hacky, but it gets the job done. 
+    public static void showCFG(Context context, List<BasicBlock> bs, BasicBlocker2 bs2){
+        BlockReader reader = new BlockReader(context, bs, bs2);
+        reader.showCFG(false);
+    }
+    
     public void showCFG(){
+        showCFG(true);
+    }
+        
+    // this is a little hacky, but it gets the job done. 
+    public void showCFG(boolean tryToDetectCorrectFlow){
        
         StringBuffer buff = new StringBuffer();
         
@@ -1167,31 +1206,34 @@ public class BlockReader {
         
         HashMap<BasicBlock, HashMap<BasicBlock, Integer>> order = new HashMap<BasicBlock, HashMap<BasicBlock, Integer>>();
 
-        for(int i = 1; i< getTrace().size(); i++){
-
-            BasicBlock dstVertex = getTrace().get(i).getBlock();
-            
-            // go UP until this block is in the followers 
-            for(int j=i-1; j >=0 ; j--){
-                BasicBlock srcVertex = getTrace().get(j).getBlock();
+        if(tryToDetectCorrectFlow){
+            for(int i = 1; i< getTrace().size(); i++){
+    
+                BasicBlock dstVertex = getTrace().get(i).getBlock();
                 
-                if(srcVertex.followers().contains(dstVertex)){
+                // go UP until this block is in the followers 
+                for(int j=i-1; j >=0 ; j--){
+                    BasicBlock srcVertex = getTrace().get(j).getBlock();
                     
-                    if(order.get(srcVertex)==null){
-                        order.put(srcVertex, new HashMap<BasicBlock, Integer>());
+                    if(srcVertex.followers().contains(dstVertex)){
+                        
+                        if(order.get(srcVertex)==null){
+                            order.put(srcVertex, new HashMap<BasicBlock, Integer>());
+                        }
+                        
+                        order.get(srcVertex).put(dstVertex, i);
+                        break;
                     }
-                    
-                    order.get(srcVertex).put(dstVertex, i);
-                    break;
                 }
+                
             }
-            
         }
-        
         ArrayList<BasicBlock> traceBlockCache = new ArrayList<BasicBlock>();
-        
-        for(TraceElement t : getTrace()){
-            traceBlockCache.add(t.getBlock());
+
+        if(tryToDetectCorrectFlow){
+            for(TraceElement t : getTrace()){
+                traceBlockCache.add(t.getBlock());
+            }
         }
         
         // vertexes
@@ -1247,6 +1289,25 @@ public class BlockReader {
         
         
         
+    }
+    
+    
+    private void writeTrace(String file){
+        try {
+            StringBuffer line = new StringBuffer();
+            
+            for(int i=0; i<trace.size(); i++){
+                line.append(trace.get(i).getBlock().id().toString());
+                if(i+1 < trace.size()){
+                    line.append(",");
+                }
+            }
+            
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+            out.println(line);
+            out.close();
+        } catch (IOException e) {
+        }
     }
 }
     

@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,6 +94,8 @@ public class Strongarm
     
     public static JmlTree.Maker MM;
     public static Context _context;
+    private final int maxDepth;
+    
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
         this.context = infer.context;
@@ -126,6 +129,12 @@ public class Strongarm
             Purifier.cache(context);
             PruneUselessClauses.cache(context);
 
+            
+            if(JmlOption.isOption(context, JmlOption.INFER_MAX_DEPTH)){  
+                maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
+            }else{
+                maxDepth = -1;
+            }
 
         }
     }
@@ -195,6 +204,26 @@ public class Strongarm
         //
         // perform symbolic execution on the method
         //
+        
+        if(maxDepth !=-1 && program.blocks().size() > maxDepth){
+         
+            
+            if (verbose) {
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("--------------------------------------"); 
+                log.noticeWriter.println(Strings.empty);
+                log.noticeWriter.println("REFUSING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+                log.noticeWriter.println(String.format("Depth of %d exceeds max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
+            }
+            
+            return;
+        }
+        
+        
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        }
+        
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
         //
