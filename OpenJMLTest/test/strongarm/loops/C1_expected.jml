@@ -1,0 +1,15 @@
+
+public class C1 {
+  
+  public C1();
+    /*@
+    public normal_behavior
+      requires ar != null; 
+      ensures -1 < \result && \result <= ar.length; 
+      ensures !(\result < ar.length); 
+   */
+
+  @Pure 
+  public static int sum(@NonNull 
+  int[] ar);
+}

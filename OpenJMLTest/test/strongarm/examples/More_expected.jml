@@ -1,0 +1,34 @@
+
+import java.io.Reader;
+
+public class More {
+  
+  public More();
+  
+  
+  
+  
+  
+  
+  
+    /*@
+      requires true; 
+      ensures \result == (eof && !usePrevious); 
+   */
+
+  public boolean end();
+    /*@
+    public normal_behavior
+      requires this.reader != null; 
+      {|
+        requires ((this.eof && !this.usePrevious)); 
+        ensures \result == false; 
+      also
+        requires !((this.eof && !this.usePrevious)); 
+        ensures \result == true; 
+      |}
+   */
+
+  @Pure 
+  public boolean more() throws Exception;
+}

@@ -1,0 +1,178 @@
+
+public class B {
+  
+  public B();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        ensures a == b ==> \result == true; 
+      also
+        ensures a != b ==> \result == false; 
+      |}
+   */
+
+  public boolean areEqual(int a, int b);
+    /*@
+    public normal_behavior
+      {|
+        {|
+          {|
+            {|
+              {|
+                requires (_JML__tmp9); 
+                ensures _JML___result == 0; 
+              also
+                {|
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+              |}
+            also
+                {|
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            |}
+          also
+            {|
+                {|
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            also
+                {|
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            |}
+          |}
+        also
+          {|
+            {|
+              {|
+                  
+              also
+                requires !true; 
+              |}
+            also
+                requires !true; 
+                requires !true; 
+            |}
+          also
+              requires !true; 
+              requires !true; 
+          |}
+        |}
+      also
+        {|
+          {|
+            {|
+                {|
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            also
+                {|
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            |}
+          also
+            {|
+                {|
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            also
+                {|
+                  requires !true; 
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires (a < b); 
+                  ensures _JML___result == -1; 
+                also
+                  requires !true; 
+                  requires !true; 
+                  requires !true; 
+                  requires !(_JML__tmp9); 
+                  requires !(a < b); 
+                  ensures _JML___result == 1; 
+                |}
+            |}
+          |}
+        also
+          {|
+            {|
+                requires !true; 
+                requires !true; 
+            also
+                requires !true; 
+                requires !true; 
+                requires !true; 
+            |}
+          also
+              requires !true; 
+              requires !true; 
+              requires !true; 
+          |}
+        |}
+      |}
+   */
+
+  public int cmp(int a, int b);
+}

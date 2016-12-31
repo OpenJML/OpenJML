@@ -1,0 +1,15 @@
+
+public class Pair {
+  @NonNull 
+  private final String first;
+  @NonNull 
+  private final String second;
+  
+  public Pair(@NonNull 
+  String first, @NonNull 
+  String second);
+  
+  public String getFirst();
+  
+  public String getSecond();
+}
