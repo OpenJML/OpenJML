@@ -1,11 +1,12 @@
 #! /bin/bash
 
 REFBRANCH=`git rev-parse --abbrev-ref HEAD`
+echo REFBRANCH is $REFBRANCH
 if [ $# -gt 1 ]; then
   echo 'Expected at most one argument'
   exit 1
 elif [ $# -ne 1 ]; then
-  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '"'`
+  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '"' | tr -d ' ' | tr -d '\t'`
   echo 'Current version is' $REL
 else
   REL=$1
@@ -31,7 +32,8 @@ git checkout -b "$REL"
 #git checkout -b "$REL"
 cd ../OpenJML/OpenJML
 
-ant -f build-bash.xml release
+## FIXME - make platform independent - Eclipse does not set path
+C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
 
 ## Starting in .../OpenJML/OpenJML
 ## Should be in the release branch
