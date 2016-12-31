@@ -494,7 +494,11 @@ public class BlockReader {
                     log.noticeWriter.println("[STRONGARM] Finding LCA...");
                 }
     
-                BasicBlock lca = lca(left, right); // this must ALWAYS be true. 
+                BasicBlock lca = null;
+                
+                if(blocks.size() < 300){
+                    lca = lca(left, right); // this must ALWAYS be true.                         
+                }
                 
                 if(verbose){
                     log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
@@ -524,6 +528,7 @@ public class BlockReader {
                 }
                 int propsInLeftSubtree = 0;
                 int propsInRightSubtree = 0;
+                
                 
                 try {
                     loopCache.clear();

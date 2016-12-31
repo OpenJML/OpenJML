@@ -220,9 +220,9 @@ public class Strongarm
         }
         
         
-        //if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-        //    BlockReader.showCFG(context, program.blocks(),basicBlocker);
-        //}
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        }
         
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
