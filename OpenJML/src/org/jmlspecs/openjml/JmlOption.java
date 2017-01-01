@@ -50,6 +50,23 @@ public enum JmlOption implements IOption {
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
     LOGIC("-logic",true,null,"The SMT logic to use",null),
     
+    
+    // Options Related to Specification Inference
+    INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
+    INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "STRONGARM: If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
+    INFER_NO_EXIT("-noexit",true,null,"STRONGARM: Infer contracts (suppress exiting)","-command=infer-no-exit"),
+    //
+    // Inference decides to write specs based on the following conditions
+    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
+    // 2) Else, if -specspath is specified, specs are written to that directory (base)
+    // 3) Otherwise, we write the specs to the same directory were the java class source exists
+    //
+    INFER_PERSIST("-infer-persist", false, null, "STRONGARM: Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
+    INFER_MAX_DEPTH("-infer-max-depth", true, null, "STRONGARM: The largest CFG we will agree to process", null),
+
+    
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
     CODE_MATH("-code-math",true,"safe","Arithmetic mode for Java code",null),

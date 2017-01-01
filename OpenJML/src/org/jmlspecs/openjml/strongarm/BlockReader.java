@@ -17,6 +17,7 @@ import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
@@ -46,6 +47,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 public class BlockReader {
     
@@ -126,7 +128,7 @@ public class BlockReader {
                     
                     JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
 
-                    if(jmlStmt.token == JmlToken.COMMENT && jmlStmt.toString().contains("Precondition")){
+                    if(jmlStmt.token == JmlTokenKind.COMMENT && jmlStmt.toString().contains("Precondition")){
                         
                         // precondition?
                         String[] parts = jmlStmt.toString().split(":");
@@ -134,7 +136,7 @@ public class BlockReader {
                         if(parts.length == 2){
                             preconditionAssertions.add(parts[1].trim());
                             if(verbose){
-                                log.noticeWriter.println("Added: " + parts[1].trim());
+                                log.getWriter(WriterKind.NOTICE).println("Added: " + parts[1].trim());
                             }
                         }
                     }
@@ -202,17 +204,17 @@ public class BlockReader {
             
             if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
                 if (verbose) {
-                    log.noticeWriter.println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
+                    log.getWriter(WriterKind.NOTICE).println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
                 }
                 // reset the blocks
                 startBlock = blocks.get(0);
 
                 path.push(startBlock);
-                precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.EQ, treeutils.trueLit, treeutils.trueLit), null).fix(path);
+                precondition = new Prop<JCExpression>(treeutils.makeBinary(0, JCTree.Tag.EQ, treeutils.trueLit, treeutils.trueLit), null).fix(path);
                 
             }else{                
                 if (verbose) {
-                    log.noticeWriter.println("Couldn't locate the precondition (and -infer-default-preconditions wasn't set)");
+                    log.getWriter(WriterKind.NOTICE).println("Couldn't locate the precondition (and -infer-default-preconditions wasn't set)");
                 }
                 return null;
             }
@@ -268,7 +270,7 @@ public class BlockReader {
             }
             
             if (verbose) {
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
+                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Inference at block " + block.id().toString());
             }    
             
             if(block.id().toString().contains(Constants.BL_LOOP_BODY)){              // activate loop processing. 
@@ -296,13 +298,13 @@ public class BlockReader {
                 }
                 
                 if (verbose) {
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "STMT: " + stmt.toString());
                 }    
                 
                 if(skip(stmt)){
     
                     if (verbose) {
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: SKIP");
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "ACTION: SKIP");
                     }    
     
                     continue; 
@@ -313,18 +315,18 @@ public class BlockReader {
                 if(isPreconditionStmt(jmlStmt) || isPostconditionStmt(jmlStmt)){
                     
                     if (verbose) {
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: IGNORE PRE/POSTCONDITION ASSERTIONS/ASSUMES");
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "ACTION: IGNORE PRE/POSTCONDITION ASSERTIONS/ASSUMES");
                     }
                     
                     continue;
                 }
     
                 if (verbose) {
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "ACTION: PROCEED");
                 }    
     
                 if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Accepting : " + jmlStmt.toString());
                 }
     
                 // fields get desugared into something else
@@ -333,24 +335,24 @@ public class BlockReader {
                     JmlBBFieldAssignment fieldAssignment = (JmlBBFieldAssignment)jmlStmt.expression;
                     
                     // assign OLD = RHS
-                    //JCExpression a1 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
+                    //JCExpression a1 = treeutils.makeBinary(0, JCTree.Tag.EQ, fieldAssignment.args.get(1), fieldAssignment.args.get(3));
     
                     JmlBBFieldAccess access = new JmlBBFieldAccess((JCIdent)fieldAssignment.args.get(0), fieldAssignment.args.get(2));
                     
                     JCExpression a1 = treeutils.makeBinary(
                             0, 
-                            JCTree.EQ, 
+                            JCTree.Tag.EQ, 
                             access, 
                             fieldAssignment.args.get(3)
                             );
     
                     
                     // assign NEW = OLD
-                    //JCExpression a2 = treeutils.makeBinary(0, JCTree.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
+                    //JCExpression a2 = treeutils.makeBinary(0, JCTree.Tag.EQ, fieldAssignment.args.get(0), fieldAssignment.args.get(1));
     
                     JCExpression a2 = treeutils.makeBinary(
                             0, 
-                            JCTree.EQ, 
+                            JCTree.Tag.EQ, 
                             fieldAssignment.args.get(0), 
                             fieldAssignment.args.get(1)
                             );
@@ -396,7 +398,7 @@ public class BlockReader {
                     
                     JCExpression expr = treeutils.makeBinary(
                             0, 
-                            JCTree.EQ, 
+                            JCTree.Tag.EQ, 
                             arrayAccess, 
                             arrayAssignment.args.get(4)
                             );
@@ -454,7 +456,7 @@ public class BlockReader {
                         ignoreBranch = true;
                         
                         if(verbose){
-                            log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                            log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
                         }
     
                     }
@@ -467,14 +469,14 @@ public class BlockReader {
                             ignoreBranch = true;
                             
                             if(verbose){
-                                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
+                                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore right branch of target: " + block.followers().get(1).toString());
                             }
                         }
                     }
             }
             
             if(ignoreBranch && verbose){
-                log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
+                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Inference will ignore else branch target for block: " + block.id().toString());
             }
             
             // handle the if statement
@@ -491,7 +493,7 @@ public class BlockReader {
                 BasicBlock right = block.followers().get(1);
                 
                 if(verbose){
-                    log.noticeWriter.println("[STRONGARM] Finding LCA...");
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...");
                 }
     
                 BasicBlock lca = null;
@@ -501,7 +503,7 @@ public class BlockReader {
                 }
                 
                 if(verbose){
-                    log.noticeWriter.println("[STRONGARM] Finding LCA...DONE");
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...DONE");
                 }
     
                 if(lca==null){
@@ -517,14 +519,14 @@ public class BlockReader {
                     depth--;
                     
                     
-                    log.noticeWriter.println("[STRONGARM] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Cannot find an LCA for BasicBlocks " + left.id() + " and " + right.id());
     
                     return e;
     
                 }
                 
                 if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + String.format("Found LCA=%s for blocks L=%s, R=%s", lca.id().toString(), left.id().toString(), right.id().toString()));
                 }
                 int propsInLeftSubtree = 0;
                 int propsInRightSubtree = 0;
@@ -535,18 +537,18 @@ public class BlockReader {
                     propsInLeftSubtree = propsInSubtree(left, lca);
                     
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Left Subtree", propsInLeftSubtree));
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Left Subtree", propsInLeftSubtree));
                     }
                     
                     loopCache.clear();                   
                     propsInRightSubtree = propsInSubtree(right, lca);
 
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Right Subtree", propsInRightSubtree));
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + String.format("Found %d PROPS in Right Subtree", propsInRightSubtree));
                     }
                 }catch(CFGLoopException e){
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] LCA Detection Found a loop in the CFG. Disabling LCA Optimization...");
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] LCA Detection Found a loop in the CFG. Disabling LCA Optimization...");
                     }
                     propsInLeftSubtree = 1;
                     propsInRightSubtree = 1;
@@ -558,7 +560,7 @@ public class BlockReader {
                 if(propsInLeftSubtree + propsInRightSubtree == 0){ // skip to LCA
                     
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in either subtree, skipping to LCA=" + lca.id().toString());
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "No propositions in either subtree, skipping to LCA=" + lca.id().toString());
                     }
                     return sp(p, lca);
                 }
@@ -569,7 +571,7 @@ public class BlockReader {
                 if(propsInLeftSubtree == 0){
                     
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in left subtree, skipping to RIGHT=" + right.id().toString());
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "No propositions in left subtree, skipping to RIGHT=" + right.id().toString());
                     }
                    
                     return sp(p, right);
@@ -578,13 +580,13 @@ public class BlockReader {
                 if(propsInRightSubtree == 0){
                     
                     if(verbose){
-                        log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "No propositions in right subtree, skipping to LEFT=" + left.id().toString());
+                        log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "No propositions in right subtree, skipping to LEFT=" + left.id().toString());
                     }
                     return sp(p, left);
                 }
     
                 if(verbose){
-                    log.noticeWriter.println("[STRONGARM] " + this.getDepthStr() + "Found propositions in both branches, will take OR");
+                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] " + this.getDepthStr() + "Found propositions in both branches, will take OR");
                 }
     
                 // otherwise, this is a valid OR and both branches are included.
@@ -661,14 +663,14 @@ public class BlockReader {
                 debugLexicalMappings.add(new Object[]{block.id().toString(), jmlStmt.expression.toString()});
             }
             
-            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlToken.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
+            if(jmlStmt.expression instanceof JCBinary && jmlStmt.token==JmlTokenKind.ASSUME && jmlStmt.label == Label.IMPLICIT_ASSUME){
                 if(jmlStmt.toString().contains(Strings.newArrayVarString)){
 
                     JCBinary binExpr = (JCBinary)jmlStmt.expression;
                    
                     if(binExpr.rhs.toString().contains(Strings.tmpVarString)){
                         
-                        JCExpression expr = treeutils.makeBinary(0, JCTree.EQ, binExpr.rhs, binExpr.lhs);
+                        JCExpression expr = treeutils.makeBinary(0, JCTree.Tag.EQ, binExpr.rhs, binExpr.lhs);
                 
                         _substitutionCache.addSubstitutionAtBlock(stmt, block); // TODO REVIEW THIS
                         
@@ -977,14 +979,14 @@ public class BlockReader {
     boolean initialPreconditionFound = false;
     
     private boolean isAdmissableImplicitAssumption(JmlStatementExpr expr){
-        if(expr.token==JmlToken.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
+        if(expr.token==JmlTokenKind.ASSUME && expr.label == Label.IMPLICIT_ASSUME && expr.toString().contains("Array_length")){
             return true;
         }
         return false;
     }
     
     private boolean isLoopInvariant(JmlStatementExpr expr){
-        if(expr.token==JmlToken.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
+        if(expr.token==JmlTokenKind.ASSUME &&  expr.label == Label.LOOP_INVARIANT_ASSUMPTION){
             return true;
         }
         return false;
@@ -1094,8 +1096,8 @@ public class BlockReader {
         Set<VarSymbol> syms2 = blockMap.keySet();
         
         if(verbose){
-            log.noticeWriter.println("PREMAP BINDINGS @ BLOCK: " + b.id());
-            log.noticeWriter.println("--------------------------");
+            log.getWriter(WriterKind.NOTICE).println("PREMAP BINDINGS @ BLOCK: " + b.id());
+            log.getWriter(WriterKind.NOTICE).println("--------------------------");
         }
         for(VarSymbol s : syms2){
 
@@ -1107,10 +1109,10 @@ public class BlockReader {
             JCIdent replace = treeutils.makeIdent(0, blockMap.getName(s).toString(), s.type);
             JCIdent with    = treeutils.makeIdent(0, s);
             
-            JCBinary replacement = treeutils.makeBinary(0, JCTree.EQ, replace, with);
+            JCBinary replacement = treeutils.makeBinary(0, JCTree.Tag.EQ, replace, with);
             
             if(verbose){
-                log.noticeWriter.println(" --[transformed]--> " + replacement.toString() );
+                log.getWriter(WriterKind.NOTICE).println(" --[transformed]--> " + replacement.toString() );
             }
             
             

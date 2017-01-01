@@ -9,6 +9,7 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -68,7 +69,7 @@ public class TreeContains extends JmlTreeScanner {
 
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
-        if(tree!=null && tree.token == JmlToken.ENSURES){
+        if(tree!=null && tree.token == JmlTokenKind.ENSURES){
             ensuresClauses += 1;
         }
         super.visitJmlMethodClauseExpr(tree);

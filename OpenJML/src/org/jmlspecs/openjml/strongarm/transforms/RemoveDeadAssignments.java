@@ -26,6 +26,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class RemoveDeadAssignments extends JmlTreeScanner {
@@ -81,7 +82,7 @@ public class RemoveDeadAssignments extends JmlTreeScanner {
                 
                 if(mappings.contains(ident.name)==false){
                     if(verbose){
-                        log.noticeWriter.println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[RemoveDeadAssignments] Will remove clause due to missing mapping rules: " + clause.toString());
                     }
                     return true;
                 }
@@ -157,7 +158,7 @@ public class RemoveDeadAssignments extends JmlTreeScanner {
     public void scan(JCTree node, Map<JCIdent, ArrayList<JCTree>> mappings) {
         
         if (verbose) {
-            log.noticeWriter.println("===========<ACTIVE DEAD FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("===========<ACTIVE DEAD FILTERS>================");
         }
         
         this.mappings = new HashSet<Name>();
@@ -167,13 +168,13 @@ public class RemoveDeadAssignments extends JmlTreeScanner {
             for(JCTree t : v){
                 this.mappings.add(replace(t));
                 if(verbose){
-                    log.noticeWriter.println("Added EXPR: " + replace(t));
+                    log.getWriter(WriterKind.NOTICE).println("Added EXPR: " + replace(t));
                 }
             }
         }
     
         if (verbose) {
-            log.noticeWriter.println("===========</ACTIVE DEAD FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("===========</ACTIVE DEAD FILTERS>================");
         }
         
         super.scan(node);

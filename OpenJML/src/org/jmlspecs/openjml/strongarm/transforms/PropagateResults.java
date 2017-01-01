@@ -9,6 +9,7 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -26,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class PropagateResults extends JmlTreeScanner {
@@ -67,7 +69,7 @@ public class PropagateResults extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
-            if(mExpr.token == JmlToken.ENSURES && mExpr.expression instanceof JCBinary ){
+            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
                 
                 if(expr.lhs.toString().equals("\\result") 
@@ -76,7 +78,7 @@ public class PropagateResults extends JmlTreeScanner {
                         ){
                     
                     if(verbose){
-                        log.noticeWriter.println("[PropagateResults] Will remove the clause " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[PropagateResults] Will remove the clause " + clause.toString());
                     }
                     
                     // add this expression!
@@ -91,7 +93,7 @@ public class PropagateResults extends JmlTreeScanner {
                   ){
                     
                     if(verbose){
-                        log.noticeWriter.println("[PropagateResults] Will remove the clause " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[PropagateResults] Will remove the clause " + clause.toString());
                     }
                     
                     // add this expression!
@@ -126,10 +128,10 @@ public class PropagateResults extends JmlTreeScanner {
                 JCBinary expr = (JCBinary)((JmlMethodClauseExpr)clauses.head).expression;
                 // remove the clause and add it to the list.
                 
-                JCBinary newSub = treeutils.makeBinary(0, JCTree.EQ, expr.rhs, expr.lhs);
+                JCBinary newSub = treeutils.makeBinary(0, JCTree.Tag.EQ, expr.rhs, expr.lhs);
                 
                 if(verbose){
-                    log.noticeWriter.println("[PropagateResults] Adding the substitution " + newSub.toString());
+                    log.getWriter(WriterKind.NOTICE).println("[PropagateResults] Adding the substitution " + newSub.toString());
                 }
                 
                 subs.add(newSub);

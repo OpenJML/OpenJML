@@ -9,6 +9,7 @@ import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
@@ -34,6 +35,7 @@ import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 public class Prop<T extends JCExpression> implements Cloneable {
 
@@ -100,13 +102,13 @@ public class Prop<T extends JCExpression> implements Cloneable {
     
     public void log(String msg){
         if(verbose){
-            log.noticeWriter.println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
+            log.getWriter(WriterKind.NOTICE).println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
         }
     }
     
     public void logl(String msg){
         if(verbose){
-            log.noticeWriter.println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
+            log.getWriter(WriterKind.NOTICE).println(String.format("[STRONGARM] [%s] %s", Strongarm.Current, msg));
         }
     }
     
@@ -350,7 +352,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         if(p.toString().contains(Strings.resultVarString) || !isBranchStmt()){
             clause = M.JmlMethodClauseExpr
             (
-                    JmlToken.ENSURES,  
+                    JmlTokenKind.ENSURES,  
                     p
             );
 
@@ -369,7 +371,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
                     
                     return List.of(
                             clause,
-                            M.JmlMethodClauseStoreRef(JmlToken.ASSIGNABLE, List.of(jmlBinary.lhs))
+                            M.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE, List.of(jmlBinary.lhs))
                             );
                 }
                 
@@ -378,7 +380,7 @@ public class Prop<T extends JCExpression> implements Cloneable {
         }else{
             clause = M.JmlMethodClauseExpr
             (
-                    JmlToken.REQUIRES,  
+                    JmlTokenKind.REQUIRES,  
                     p
             );
 

@@ -8,6 +8,7 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -26,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
@@ -80,7 +82,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
 
                 if(attr.locals.contains(rident.name) && !attr.locals.contains(lident.name)){
                     if(verbose){
-                        log.noticeWriter.println("[SimplicityViaInternalSubstitutions] Found a clause with locals... " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[SimplicityViaInternalSubstitutions] Found a clause with locals... " + clause.toString());
                     }
                     return true;
                 }
@@ -95,7 +97,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
             
             if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs instanceof JCIdent){                
                 JCBinary e = (JCBinary)mExpr.expression;
-                return treeutils.makeBinary(0, JCTree.EQ, e.rhs, e.lhs);
+                return treeutils.makeBinary(0, JCTree.Tag.EQ, e.rhs, e.lhs);
             }
         }
         return null; // will get skipped. 
@@ -124,11 +126,11 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                     subs.add(t);
                     
                     if(verbose){
-                        log.noticeWriter.println("[SimplicityViaInternalSubstitutions] Translated " + clauses.head + " -> " + t);
+                        log.getWriter(WriterKind.NOTICE).println("[SimplicityViaInternalSubstitutions] Translated " + clauses.head + " -> " + t);
                     }
                 }else{
                     if(verbose){
-                        log.noticeWriter.println("[SimplicityViaInternalSubstitutions] Strangely didn't find a substitution for clause: " + clauses.head);
+                        log.getWriter(WriterKind.NOTICE).println("[SimplicityViaInternalSubstitutions] Strangely didn't find a substitution for clause: " + clauses.head);
                     }
                 }
             }else{
@@ -161,7 +163,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
         if(subs!=null && subs.size() > 0){
             
             if (verbose) {
-                log.noticeWriter.println("[SimplicyViaInternalSubstitutions] Found some substitutions to replace: " + subs.size());
+                log.getWriter(WriterKind.NOTICE).println("[SimplicyViaInternalSubstitutions] Found some substitutions to replace: " + subs.size());
             }
 
 
@@ -174,7 +176,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 for(JCTree sub : subs){
                     
                     if(verbose){
-                        log.noticeWriter.println("Trying: " + sub.toString());
+                        log.getWriter(WriterKind.NOTICE).println("Trying: " + sub.toString());
                     }
                     
                     JCExpression tmpE;
@@ -195,7 +197,7 @@ public class SimplicyViaInternalSubstitutions extends JmlTreeScanner {
                 
                 // make sure this is an ENSURES clause
                 if(pre.equals(post)==false){
-                    clauses.head.token = JmlToken.ENSURES;
+                    clauses.head.token = JmlTokenKind.ENSURES;
                 }
                 
             }

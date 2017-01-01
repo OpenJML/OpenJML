@@ -36,6 +36,7 @@ import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class SubstituteTree2 extends JmlTreeScanner{
@@ -92,7 +93,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(canReplace(tree) && with() instanceof JCIdent){
             
             if(verbose){
-                log.noticeWriter.println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
             }
             
             JCIdent with = (JCIdent)with();
@@ -108,7 +109,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             if(canReplace(arg)){
 
                 if (verbose) {
-                    log.noticeWriter.println("\t\tReplacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }                
                 tree.arg = with();
             }            
@@ -132,7 +133,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             
             if(canReplace(expr)){
                 if (verbose) {
-                    log.noticeWriter.println("\t\tReplacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 tree.expr = with();
             }    
@@ -166,14 +167,14 @@ public class SubstituteTree2 extends JmlTreeScanner{
 //                
 //                if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
 //                    
-//                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+//                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
 //
 //                    access.indexed = with();
 //                }
 //                
 //                if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
 //                    
-//                    log.noticeWriter.println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+//                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
 //
 //                    access.index = with();
 //                }
@@ -193,7 +194,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             if(canReplace(lhs) && isRedundant(tree)==false){
                 
                 if (verbose) {
-                    log.noticeWriter.println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
                 
                 tree.lhs = with();
@@ -206,7 +207,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             if(canReplace(rhs)){
 
                 if (verbose) {
-                    log.noticeWriter.println("\t\tReplacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
                 }
 
                 tree.rhs = with();
@@ -231,7 +232,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             if(canReplace(selected)){
 
                 if (verbose) {
-                    log.noticeWriter.println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
                 }
 
                 access.selected = with();
@@ -243,7 +244,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(canReplace((VarSymbol)access.sym, access.name)){
            
             if (verbose) {
-                log.noticeWriter.println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
             }
 
             if(with() instanceof JCIdent){

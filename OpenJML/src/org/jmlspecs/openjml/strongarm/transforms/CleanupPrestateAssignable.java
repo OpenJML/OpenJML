@@ -9,6 +9,7 @@ import javax.lang.model.type.TypeKind;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -73,15 +74,15 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseStoreRef){
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef)clause;
             
-            if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result.")){
+            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result.")){
                     return true;
             }
             
-            if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newArrayVarString)){
+            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newArrayVarString)){
                 return true;
             }
             
-            if(mExpr.token == JmlToken.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newObjectVarString)){
+            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newObjectVarString)){
                 return true;
             }
 

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -71,7 +72,7 @@ public class RemoveSpecPublic extends JmlTreeScanner {
         if(tree.lhs instanceof JCFieldAccess){
             JCFieldAccess fa = (JCFieldAccess)tree.lhs;
         
-            if(clause.token==JmlToken.REQUIRES && fa.toString().contains("null")){
+            if(clause.token==JmlTokenKind.REQUIRES && fa.toString().contains("null")){
                 return true;
             }
         }

@@ -31,6 +31,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class RemoveDuplicateAssignments extends JmlTreeScanner {
@@ -92,7 +93,7 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
                         
                         if(ident.equals(ident2)){
                             if(verbose){
-                                log.noticeWriter.println("[RemoveDuplicateAssignments] Will remove clause since it will be reassigned: " + clause.toString());
+                                log.getWriter(WriterKind.NOTICE).println("[RemoveDuplicateAssignments] Will remove clause since it will be reassigned: " + clause.toString());
                             }
                             return true;
                         }
