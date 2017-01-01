@@ -21,11 +21,221 @@ public class More {
     public normal_behavior
       requires this.reader != null; 
       {|
-        requires ((this.eof && !this.usePrevious_379_413___15)); 
-        ensures \result == false; 
+        {|
+          {|
+            {|
+              {|
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          also
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          |}
+        also
+          {|
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          also
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          |}
+        |}
       also
-        requires !((this.eof && !this.usePrevious_379_413___15)); 
-        ensures \result == true; 
+        {|
+          {|
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          also
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          |}
+        also
+          {|
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires this != null; 
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires this != null; 
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          also
+            {|
+              {|
+                requires !(this != null); 
+                requires this != null; 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires this != null; 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            also
+              {|
+                requires !(this != null); 
+                requires ((this.eof && !this.usePrevious)); 
+                ensures \result == false; 
+              also
+                requires !(this != null); 
+                requires !((this.eof && !this.usePrevious)); 
+                ensures \result == true; 
+              |}
+            |}
+          |}
+        |}
       |}
    */
 

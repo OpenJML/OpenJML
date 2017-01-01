@@ -252,7 +252,7 @@ public class MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = new SMTTranslator(context);
+        SMTTranslator smttrans = getTranslator(context);
 
         ISolver solver;
         IResponse solverResponse = null;

@@ -140,6 +140,9 @@ public class Utils {
     /** Do Java compilation - set by Main.setupOptions */
     public boolean compile = false;
 
+    /** Do Contract Inference **/
+    public boolean infer = false;
+    
     /** Do Jmldoc  */
     public boolean doc = false;
     

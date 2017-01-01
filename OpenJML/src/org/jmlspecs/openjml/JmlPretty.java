@@ -474,9 +474,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 // Note - the output is already aligned, so we have to bump up the alignment
                 indentAndRealign();
                 boolean first = true;
-                for (JmlMethodClause c: that.clauses) {
-                    if (first) first = false; else { println(); align(); }
-                    c.accept(this);
+                if(that.clauses!=null){
+                    for (JmlMethodClause c: that.clauses) {
+                        if (first) first = false; else { println(); align(); }
+                        c.accept(this);
+                    }
                 }
             } finally {
                 undent();
