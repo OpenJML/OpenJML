@@ -15,7 +15,6 @@ import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.ExpressionStatementTree;
 import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
