@@ -48,7 +48,8 @@ import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JavaCompiler.CompileState;
+import com.sun.tools.javac.comp.CompileStates;
+import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -225,7 +226,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#jmldoc(String[])
      */
     public int jmldoc(@NonNull String... args) {
-        return org.jmlspecs.openjml.jmldoc.Main.execute(args);
+        return 4; // FIXME - org.jmlspecs.openjml.jmldoc.Main.execute(args);
     }
     
     @Override
@@ -283,14 +284,14 @@ public class API implements IAPI {
         Context context = context();
         JmlCompiler jcomp = (JmlCompiler)JmlCompiler.instance(context);
         JmlTree.Maker maker = JmlTree.Maker.instance(context);
-        for (JCCompilationUnit jcu: list) {
-            for (JCTree t: jcu.defs) {
-                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
-            }
-            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
-                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
-            }
-        }
+//        for (JCCompilationUnit jcu: list) {
+//            for (JCTree t: jcu.defs) {
+//                if (t instanceof JmlClassDecl && ((JmlClassDecl)t).typeSpecs == null) JmlParser.filterTypeBodyDeclarations((JmlClassDecl)t,context,maker);
+//            }
+////            for (JmlClassDecl t: ((JmlCompilationUnit)jcu).parsedTopLevelModelTypes) {
+////                if (t.typeSpecs == null) JmlParser.filterTypeBodyDeclarations(t,context, maker);
+////            }
+//        }
 
         ListBuffer<JCCompilationUnit> jlist = new ListBuffer<JCCompilationUnit>();
         jlist.addAll(list);
@@ -311,11 +312,14 @@ public class API implements IAPI {
     @Override
     public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
+        Log log = Log.instance(context());
         c.inSequence = false;
         Iterable<? extends JavaFileObject> fobjects = ((JavacFileManager)context().get(JavaFileManager.class)).getJavaFileObjects(files);
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
-        for (JavaFileObject fileObject : fobjects)
+        for (JavaFileObject fileObject : fobjects) {
+            if (log.getSource(fileObject).getEndPosTable() != null) continue; // File object already parsed
             trees.add((JmlCompilationUnit)c.parse(fileObject));
+        }
         return trees;
     }
     
@@ -389,6 +393,7 @@ public class API implements IAPI {
         c.inSequence = true;  // true so that no searching for spec files happens
         Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
         JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+        if (name.endsWith(".java")) jcu.specsCompilationUnit = jcu;
         return jcu;
     }
     
@@ -425,7 +430,7 @@ public class API implements IAPI {
      */
     @Override public @Nullable
     JavaFileObject findSpecs(JmlCompilationUnit jmlcu) {
-        return ((JmlCompiler)JmlCompiler.instance(context())).findSpecs(jmlcu,true);
+        return JmlSpecs.instance(context()).findSpecs(jmlcu,true);
     }
 
 

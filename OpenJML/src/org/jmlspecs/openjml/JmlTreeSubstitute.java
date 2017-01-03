@@ -94,7 +94,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     @Override
     public JCTree visitJmlSingleton(JmlSingleton that, Void p) {
         // for substitution \result
-        if (that.token == JmlToken.BSRESULT) {
+        if (that.token == JmlTokenKind.BSRESULT) {
             @Nullable JCExpression newexpr = replacements.get(that.token);
             if (newexpr != null) return copy(newexpr);
             else return super.visitJmlSingleton(that,  p);
@@ -111,7 +111,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 // Quantified expressions do not have initializers; if they did we would have to worry about
                 // the order of copying the initializers and adding items to the replacements map
                 JCVariableDecl newdecl = treeutils.makeVariableDecl(decl.name,  decl.type, null, decl.pos);
-                JCIdent id = M.Ident(newdecl.sym);
+                JCIdent id = treeutils.makeIdent(that,newdecl.sym);
                 replacements.put(decl.sym, id);
                 newdecls.add(newdecl);
             }
@@ -147,7 +147,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
             for (JCVariableDecl decl: that.defs) {
                 JCExpression newinit = newinits.next();
                 JCVariableDecl newdecl = treeutils.makeVariableDecl(decl.name,  decl.type, newinit, decl.pos);
-                JCIdent id = M.Ident(newdecl.sym);
+                JCIdent id = treeutils.makeIdent(that,newdecl.sym);
                 replacements.put(decl.sym, id);
                 newdecls.add(newdecl);
             }
@@ -168,7 +168,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         JCVariableDecl decl = that.variable;
         try {
             JCVariableDecl newdecl = treeutils.makeVariableDecl(decl.name,  decl.type, null, decl.pos);
-            JCIdent id = M.Ident(newdecl.sym);
+            JCIdent id = treeutils.makeIdent(that,newdecl.sym);
             replacements.put(decl.sym,id);
             JmlSetComprehension set = 
                     M.JmlSetComprehension(

@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -85,7 +86,7 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
     }
      
     public JCExpression toTree(JmlTreeUtils treeutils){
-        return treeutils.makeBinary(0, JCTree.OR, p1.toTree(treeutils), p2.toTree(treeutils));
+        return treeutils.makeBinary(0, JCTree.Tag.OR, p1.toTree(treeutils), p2.toTree(treeutils));
     }
     
     class ContractComparator implements Comparator<JmlMethodClause> {
@@ -98,11 +99,11 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
                 return 0;
             }
             
-            if(o1.token == JmlToken.REQUIRES && o2.token == JmlToken.ENSURES){
+            if(o1.token == JmlTokenKind.REQUIRES && o2.token == JmlTokenKind.ENSURES){
                 return -1;
             }
             
-            if(o2.token == JmlToken.REQUIRES && o1.token == JmlToken.ENSURES){
+            if(o2.token == JmlTokenKind.REQUIRES && o1.token == JmlTokenKind.ENSURES){
                 return 1;
             }
             

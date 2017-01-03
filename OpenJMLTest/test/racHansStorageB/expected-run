@@ -7,6 +7,6 @@ Exception in thread "main" org.jmlspecs.utils.JmlAssertionError$Precondition: te
 test\racHansStorageB\StorageParameters.java:7: Associated declaration: test\racHansStorageB\StorageParameters.java:25: 
 	public StorageParameters(long totalBackingStore, long[] sizes) {
 	                                                        ^
-	at org.jmlspecs.utils.Utils.createException(Utils.java:81)
-	at org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:50)
-	at StorageParameters.main(StorageParameters.java:25)
+	at org.jmlspecs.utils.Utils.createException(Utils.java:83)
+	at org.jmlspecs.utils.Utils.assertionFailureL(Utils.java:52)
+	at StorageParameters.main(StorageParameters.java:1)

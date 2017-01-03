@@ -36,14 +36,16 @@ fi
 
 TEMPJAR=tempjars
 
-##svn up
-##REVISION=`svn info . | grep Revision | sed -e "s/Revision: //"`
-##VERSION=`date +%Y%m%d`-REV${REVISION}
-VERSION=`date +%Y%m%d`
+DATE=`date +%Y%m%d`
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+##BRANCH=`git branch | grep '*' | sed 's/* //'`
+echo Branch = ${BRANCH}, Date = ${DATE}
+if [ "${BRANCH}" = "master" ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
+
 NAME=openjml-${VERSION}.tar.gz
 NAMEZ=openjml-${VERSION}.zip
 
-	echo Building ${NAME} in `pwd`
+	echo Building ${NAME}, version ${VERSION} in `pwd`
 
 ##### Build jmlruntime.jar
 	mkdir -p temp2; chmod -R u+rwx,a+rx temp2
@@ -75,7 +77,7 @@ NAMEZ=openjml-${VERSION}.zip
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
 	cp jSMTLIB.jar temp
-	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17; chmod -R u+rwx,a+rx temp
+	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17 temp/specs18; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/java4/* temp/specs14
     ( cd temp; /usr/bin/find specs14 -name '.svn' -exec rm -rf {} + )
 	cp -r temp/specs14/* temp/specs15
@@ -87,10 +89,13 @@ NAMEZ=openjml-${VERSION}.zip
     cp -r temp/specs16/* temp/specs17
     cp -r ${SPECS}/java7/* temp/specs17
     ( cd temp; /usr/bin/find specs17 -name '.svn' -exec rm -rf {} + )
+    cp -r temp/specs17/* temp/specs18
+    cp -r ${SPECS}/java8/* temp/specs18
+    ( cd temp; /usr/bin/find specs18 -name '.svn' -exec rm -rf {} + )
 	echo "   " Creating jmlspecs.jar
-	## The jmlspecs.jar contains the composite Java 1.7 specs files
+	## The jmlspecs.jar contains the composite Java 1.8 specs files
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
-	(cd temp/specs17; jar -cf ../../${TEMPJAR}/jmlspecs.jar . )
+	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . )
 	
 	(cd temp; jar xf ../jsmtlib.jar ; )
 	cp -r bin-runtime/* temp
@@ -122,9 +127,6 @@ NAMEZ=openjml-${VERSION}.zip
 	tar -zcf ../${NAME} * ; zip -q ../${NAMEZ} *)
 	##rm -rf ${TEMPJAR}  ## We don't delete them because some tests use them
 	echo "   " tar created
-	
-##### Build the web pages, even though we are not including them here
-    (cd ../OpenJML-UpdateSite/web/src; . create > log)
-    
+	    
 ##### End	
 	echo Release complete

@@ -452,8 +452,8 @@ public class escnew extends EscBase {
     // Almost duplicate of escnew
     @Test public void testMethodInvocation1() {
         Assume.assumeTrue(runLongTests);
-        main.addOptions("-logic=AUFNIRA");
-        if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
+        main.addOptions("-logic=AUFLIRA");
+        //if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -501,6 +501,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
+    	//main.addOptions("-show","-method=m2good","-checkFeasibility=debug","-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -556,7 +557,7 @@ public class escnew extends EscBase {
                 +"        } return k;\n"
                 +"  }\n"
                 
-                +"  //@ ensures \\result == 2; \n"
+                +"  //@ ensures \\result == 2; \n"   // Line 50
                 +"  public int m2good() throws Exception {\n"
                 +"      int k;\n"
                 +"       try {\n"
@@ -1427,6 +1428,8 @@ public class escnew extends EscBase {
 //                +"  public void m2ok() {\n"
 //                +"    f = null ;\n"
 //                +"  }\n"
+
+                +"  public TestJava() { nnf = new Object(); }"
                 
                 +"}"
                 ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",9

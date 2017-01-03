@@ -1,0 +1,42 @@
+<project name="OpenJMLGUITests" default="test">
+    <property name="suites-to-run" value="OpenJML GUI Tests" />
+    <property name="test-results" location="rcptt-results" />
+    <property name="runner-workspace" location="${runner-path}/../rcptt-runner-workspace" />
+    <property name="aut-workspace" location="${test-results}/aut-workspace-" />
+    <property name="aut-stdout" location="${test-results}/aut-out-" />
+    <property name="junit-report" location="${test-results}/results.xml" />
+    <property name="html-report" location="${test-results}/results.html" />
+    <!-- Get launcher jar -->
+    <first id="LAUNCHER">
+        <fileset dir="${runner-path}" includes="plugins/org.eclipse.equinox.launcher_*.jar" />
+    </first>
+    <target name="init">
+        <delete dir="${test-results}" quiet="true" />
+        <delete dir="${runner-workspace}" quiet="true" />
+        <mkdir dir="${test-results}" />
+    </target>
+    <target name="test" depends="init">
+        <java jar="${toString:LAUNCHER}" fork="true">
+            <arg value="-application" />
+            <arg value="org.eclipse.rcptt.runner.headless" />
+            <arg value="-data" />
+            <arg value="${runner-workspace}" />
+            <arg value="-aut" />
+            <arg value="${aut-path}" />
+            <arg value="-autWsPrefix" />
+            <arg value="${aut-workspace}" />
+            <arg value="-autConsolePrefix" />
+            <arg value="${aut-stdout}" />
+            <arg value="-htmlReport" />
+            <arg value="${html-report}" />
+            <arg value="-junitReport" />
+            <arg value="${junit-report}" />
+            <arg value="-import" />
+            <arg value="." />
+            <arg value="-testOptions" />
+            <arg value="testExecTimeout=18000;execTimeout=18000" />
+            <arg value="-suites" />
+            <arg value="${suites-to-run}" />
+        </java>
+    </target>
+</project>

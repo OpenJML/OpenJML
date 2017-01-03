@@ -58,7 +58,7 @@ public class trace {
         //@ set x = x + 9;
         //@ debug x = 0;
         //@ set x = (\lbl AAA k+1);
-        //-ESC@ set x = (\lbl BBB k+1);
+        //-ESC@ set x = (\lbl BBB k+1);  //@ maintaining m == 14 + z && 0 <= z && z <= 4;
         for (int z = 0; z<4; z = z + 1) {
             m = m + 1;
         }

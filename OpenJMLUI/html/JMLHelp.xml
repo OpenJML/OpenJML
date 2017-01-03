@@ -2,6 +2,8 @@
 <?NLS TYPE="org.eclipse.help.toc"?>
 
 <toc label="JML"  topic="html/JMLHelp.html">
+    <topic label="OpenJML User Guide (PDF)" href="html/OpenJMLUserGuide.pdf"/>
+    <topic label="JML Reference Manual" href="html/JMLReferenceManual.pdf"/>
     <topic label="JML Eclipse User Guide" href="html/JMLHelp.html">
       <topic label="Overview" href="html/JMLHelp.html#Overview"/>
       <topic label="Installation" href="html/JMLHelp.html#Installation"/>

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -24,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import javax.lang.model.type.TypeKind;
 
@@ -79,7 +81,7 @@ public class RemoveLocals extends JmlTreeScanner {
                 
                 if(ident.name.toString().startsWith(Strings.prePrefix)){ // TODO - this is NOT the right way to do this. 
                     if(verbose){
-                        log.noticeWriter.println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove local precondition due to local variable rules: " + clause.toString());
                     }
                     return true; 
                 }
@@ -99,22 +101,22 @@ public class RemoveLocals extends JmlTreeScanner {
 
                 if(attr.locals.contains(ident.name)){ 
                     if(verbose){
-                        log.noticeWriter.println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove clause due to local variable rules: " + clause.toString());
                     }
                     return true;
                 }
                 
                 if(ident.name.toString().startsWith("index_")){ // TODO - this is NOT the right way to do this.
                     if(verbose){
-                        log.noticeWriter.println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove local index due to local variable rules: " + clause.toString());
                     }
                     return true; 
                 }
                
                 
-                if(clause.token!= JmlToken.REQUIRES && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
+                if(clause.token!= JmlTokenKind.REQUIRES && attr.formals.contains(ident.name) &&  ((JCBinary)mExpr.expression).lhs.type!=null && ((JCBinary)mExpr.expression).lhs.type.getKind() instanceof TypeKind){
                     if(verbose){
-                        log.noticeWriter.println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
+                        log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove clause due to formal+primative variable rules: " + clause.toString());
                     }
                     return true;                    
                 }
@@ -146,11 +148,11 @@ public class RemoveLocals extends JmlTreeScanner {
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
 
         if (verbose) {
-            log.noticeWriter.println("===========<ACTIVE LOCAL FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("===========<ACTIVE LOCAL FILTERS>================");
             for(Name n : attr.locals){
-                log.noticeWriter.println("Local Variable: " + n);
+                log.getWriter(WriterKind.NOTICE).println("Local Variable: " + n);
             }
-            log.noticeWriter.println("===========</ACTIVE LOCAL FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("===========</ACTIVE LOCAL FILTERS>================");
         }
 
         //

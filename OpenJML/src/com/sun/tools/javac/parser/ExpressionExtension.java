@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.ext.Arithmetic.Safe;
@@ -18,12 +18,15 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /* FIXME - do more to implement extensions */
 
@@ -37,9 +40,6 @@ abstract public class ExpressionExtension {
 
     /** The parser in use, set when derived classes are instantiated */
     protected /*@ non_null */ JmlParser parser;
-    
-    /** The scanner in use, set when derived classes are instantiated */
-    protected /*@ non_null */ JmlScanner scanner;
     
     /** The symbol table, set when the context is set */
     protected Symtab syms;
@@ -88,7 +88,7 @@ abstract public class ExpressionExtension {
      * @param msg the String to write
      */
     public void info(@NonNull String msg) {
-        Log.instance(context).noticeWriter.println(msg);
+        Log.instance(context).getWriter(WriterKind.NOTICE).println(msg);
     }
     
     /** Sets the end position of the given tree node to be the end position of
@@ -127,16 +127,15 @@ abstract public class ExpressionExtension {
             @Nullable List<JCExpression> typeArgs) {
         // TODO Auto-generated method stub
         this.parser = parser;
-        this.scanner = parser.getScanner();
-        JmlToken jt = scanner.jmlToken();
-        int p = scanner.pos();
-        scanner.nextToken();
-        if (scanner.token() != Token.LPAREN) {
+        JmlTokenKind jt = parser.jmlTokenKind();
+        int p = parser.pos();
+        parser.nextToken();
+        if (parser.token().kind != TokenKind.LPAREN) {
             return parser.syntaxError(p, null, "jml.args.required", jt.internedName());
         } else if (typeArgs != null && !typeArgs.isEmpty()) {
             return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
         } else {
-            int pp = scanner.pos();
+            int pp = parser.pos();
             List<JCExpression> args = parser.arguments();
             JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;
@@ -149,7 +148,7 @@ abstract public class ExpressionExtension {
 
     public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
         if (e.args.size() != 1) {
-            parser.jmlerror(e.pos, e.getEndPosition(parser.endPositions()), "jml.one.arg", e.token.internedName());
+            parser.jmlerror(e.pos, parser.getEndPos(e), "jml.one.arg", e.token.internedName());
         }
     }
 

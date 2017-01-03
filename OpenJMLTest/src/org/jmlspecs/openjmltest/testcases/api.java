@@ -42,7 +42,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
@@ -52,6 +52,7 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
 
@@ -99,6 +100,12 @@ public class api extends JmlTestCase {
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualErr = errorOutput();
         String actualOut = output();
+        while (true) {
+        	int k = actualOut.indexOf("Note:");
+        	if (k < 0) break;
+        	int p = actualOut.indexOf("\n",k);
+        	actualOut = actualOut.substring(0, k) + actualOut.substring(p+1);
+        }
         if (print) {
             System.out.println("TEST: " + name.getMethodName());
             System.out.println("ERR: " + actualErr);
@@ -142,37 +149,62 @@ public class api extends JmlTestCase {
     
     
     String prettyprint =
-        eol + 
-        "public class A {" + eol +
-        "  // JML specifications" + eol +
-        "  @Ghost " + eol +
-        "  int i = 0;" + eol +
-        "}" + eol +
-        "// Specifications: test/testNoErrors/A.java" + eol +
-        "// Specification file: test/testNoErrors/A.java" + eol +
-        "" + eol +
-        "public class A {" + eol +
-        "  // JML specifications" + eol +
-        "  @Ghost " + eol +
-        "  int i = 0;" + eol +
-        "}" + eol;
-    
+            eol + 
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol +
+            "// Specifications: test/testNoErrors/A.java" + eol +
+            "// Specification file: test/testNoErrors/A.java" + eol +
+            "" + eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol;
+        
+    String prettyprint2a =
+            eol + 
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol +
+            "// Specifications: /A.java" + eol +
+            "// Specification file: /A.java" + eol +
+            "" + eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}" + eol;
+        
     String prettyprint2 =
             eol + 
             "public class A {" + eol +
-            "  // JML specifications" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
             "}";
+
         
     String prettyprint3 =
             "package a.b;" + eol +
             eol +
             "public class A {" + eol +
-            "  // JML specifications" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
-            "}";
+            "}" + eol + 
+            "// Specifications: /a/b/A.java" + eol +
+            "// Specification file: /a/b/A.java" + eol +
+            "package a.b;" + eol +
+            eol +
+            "public class A {" + eol +
+            "  @Ghost " + eol +
+            "  int i = 0;" + eol +
+            "}"  + eol; 
+
+    
+    String prettyprint4 = prettyprint +
+    		"NEXT AST" + eol +
+    		"// Specifications: test/testNoErrors/B.java" + eol +
+    		"// Specification file: test/testNoErrors/B.java" + eol + eol;
         
     String parseAndPrettyPrintFromJavaFileObject() throws Exception {
         java.io.File f = new java.io.File("test/testNoErrors/A.java");
@@ -238,14 +270,15 @@ public class api extends JmlTestCase {
         }
     }
     
-    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    @Test
     public void testParseAndPrettyPrint3() {
         start(true);
         try {
             String s = parseAndPrettyPrintFromMultipleFiles();
-            check("","");
+            check("","error: error reading test\\testNoErrors\\B.java; test\\testNoErrors\\B.java (The system cannot find the file specified)\r\n"
+            		);
             s = s.replace('\\','/');
-            compareStrings(prettyprint,s);
+            compareStrings(prettyprint4,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -253,14 +286,15 @@ public class api extends JmlTestCase {
         }
     }
     
-    @Test @Ignore  // FIXME - just haven't got the comparison string correct yet
+    @Test
     public void testParseAndPrettyPrint4() {
         start(true);
         try {
             String s = parseAndPrettyPrintFromFileArray();
-            check("","");
+            check("","error: error reading test\\testNoErrors\\B.java; test\\testNoErrors\\B.java (The system cannot find the file specified)\r\n"
+            		);
             s = s.replace('\\','/');
-            compareStrings(prettyprint,s);
+            compareStrings(prettyprint4,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -372,13 +406,13 @@ public class api extends JmlTestCase {
             String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
             JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
             JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-            m.attachSpecs(ast1,null);
+            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
             int n = m.typecheck(ast1);
             endCapture();
             if (n != 0) {
                 System.out.println("Errors: " + n);
-                System.out.println(bout.toString());
-                System.out.println(berr.toString());
+                System.out.println(actualOut.toString());
+                System.out.println(actualErr.toString());
                 assertTrue(false);
             }
         } catch (Exception e) {
@@ -438,7 +472,7 @@ public class api extends JmlTestCase {
             String s = parseAndPrettyPrintString();
             check("","");
             s = s.replace('\\','/');
-            compareStrings(prettyprint2,s);
+            compareStrings(prettyprint2a,s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -494,13 +528,13 @@ public class api extends JmlTestCase {
     }
     
     String parseJMLStatement2() throws Exception {
-        String expr = "/*@ loop_invariant i < 10;*/";
+        String expr = "/*@ assert i < 10;*/";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseStatement(expr,false));
     }
     
     String parseJMLStatement() throws Exception {
-        String expr = "loop_invariant i >= 0;";
+        String expr = "assert i >= 0;";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseStatement(expr,true));
     }
@@ -587,7 +621,7 @@ public class api extends JmlTestCase {
         try {
             String s = parseJMLStatement2();
             check("","");
-            compareStrings("//@ loop_invariant i < 10;",s);
+            compareStrings("/*@ assert i < 10;*/",s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -602,7 +636,7 @@ public class api extends JmlTestCase {
         try {
             String s = parseJMLStatement();
             check("","");
-            compareStrings("//@ loop_invariant i >= 0;",s);
+            compareStrings("/*@ assert i >= 0;*/",s);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);
@@ -624,7 +658,7 @@ public class api extends JmlTestCase {
             IAPI m = Factory.makeAPI("-v");
             set.add(m.makeJFOfromFilename("test/testNoErrors/A.java"));
             //String s = m.prettyPrint(m.parseFiles(set).get(0),true);
-            check("",output);
+            check(output,"");
             //s = s.replace('\\','/');
             //compareStrings(prettyprint,s);
         } catch (Exception e) {
@@ -643,11 +677,9 @@ public class api extends JmlTestCase {
     @Test
     public void testAPI3() {
       String out =
-          "/A.java:1: error: incompatible types"+eol+
+          "/A.java:1: error: incompatible types: boolean cannot be converted to int"+eol+
           "-------------"+eol+
           "^"+eol+
-          "  required: int"+eol+
-          "  found:    boolean"+eol+
           "/A.java:1: error: duplicate class: org.test.A"+eol+
           "-------------"+eol+
           "^"+eol;
@@ -663,7 +695,7 @@ public class api extends JmlTestCase {
           // protected int field = 5;
           JCModifiers mods2 = f.Modifiers(Flags.PROTECTED);
           Name field = f.Name("field");
-          JCExpression ty = f.TypeIdent(TypeTags.INT);
+          JCExpression ty = f.TypeIdent(TypeTag.INT);
           JCExpression init = f.Literal(true);   // Intentional error
           JCVariableDecl vdecl = f.VarDef(mods2,field,ty,init);
           
@@ -692,11 +724,11 @@ public class api extends JmlTestCase {
           // parsedTopLevelModelTypes, starImportScope
           // refinesClause, specsTopLevelModelTypes, specsSequence
           
-          // Javadoc comments
-          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
-          doccomments.put(cldef,"/** The class */");
-          doccomments.put(vdecl,"/** The field */");
-          jcu.docComments = doccomments;
+          // Javadoc comments // FIXME - ressurect doc comments
+//          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
+//          doccomments.put(cldef,"/** The class */");
+//          doccomments.put(vdecl,"/** The field */");
+//          jcu.docComments = doccomments;
           //System.out.println(api.prettyPrint(jcu,false));   //FIXME - doc comments do not print
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
@@ -748,7 +780,7 @@ public class api extends JmlTestCase {
           // protected int field = 5;
           JCModifiers mods2 = f.Modifiers(Flags.PROTECTED);
           Name field = f.Name("field");
-          JCExpression ty = f.TypeIdent(TypeTags.INT);
+          JCExpression ty = f.TypeIdent(TypeTag.INT);
           JCExpression init = f.Literal(true);   // Intentional error
           JCVariableDecl vdecl = f.VarDef(mods2,field,ty,init);
           
@@ -777,12 +809,12 @@ public class api extends JmlTestCase {
           // parsedTopLevelModelTypes, starImportScope
           // refinesClause, specsTopLevelModelTypes, specsSequence
           
-          // Javadoc comments
-          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
-          doccomments.put(cldef,"/** The class */");
-          doccomments.put(vdecl,"/** The field */");
-          jcu.docComments = doccomments;
-          System.out.println(api.prettyPrint(jcu));   //FIXME - doc comments do not print
+          // Javadoc comments // FIXME - ressurrect doc comments
+//          Map<JCTree,String> doccomments = new HashMap<JCTree,String>();
+//          doccomments.put(cldef,"/** The class */");
+//          doccomments.put(vdecl,"/** The field */");
+//          jcu.docComments = doccomments;
+//          System.out.println(api.prettyPrint(jcu));   //FIXME - doc comments do not print
           
           Collection<JmlCompilationUnit> coll = new LinkedList<JmlCompilationUnit>();
           coll.add(jcu);
@@ -803,7 +835,7 @@ public class api extends JmlTestCase {
       }
     }
   
-    // TODOL test enterAndCheck with >1 arguments
+    // TODO test enterAndCheck with >1 arguments
     
     /** Tests running a scanner over an AST */
     // parseString, tree walking  // FIXME - document & test different scan modes
@@ -819,7 +851,7 @@ public class api extends JmlTestCase {
             v.scan(ast);
             check("","");
             assertEquals(1,v.numberClasses);
-            assertEquals(9,v.numberNodes);
+            assertEquals(6,v.numberNodes);
             
         } catch (Exception e) {
             System.out.println(e);
@@ -899,7 +931,7 @@ public class api extends JmlTestCase {
         public int numberNodes = 0;
         
         public void scan(JCTree node) {
-            numberNodes++;
+            if (node != null) numberNodes++;
             super.scan(node);  // Call this to scan child nodes
         }
         
@@ -1113,7 +1145,7 @@ public class api extends JmlTestCase {
             assertEquals(1,dlist.get(0).getLineNumber());
             assertEquals(7,dlist.get(0).getPosition());
             assertEquals(0,dlist.get(0).getStartPosition());
-            assertEquals(58,dlist.get(0).getEndPosition());
+            assertEquals(56,dlist.get(0).getEndPosition());
             assertEquals("test/testNoErrors2/A.java",dlist.get(0).getSource().getName().toString().replace('\\','/'));
         } catch (Exception e) {
             check("","");
@@ -1126,14 +1158,34 @@ public class api extends JmlTestCase {
     /** Tests the parseAndCheck call */
     // parseAndCheck 
     @Test
-    public void testParseAndCheckCrash() {
+    public void testParseAndCheckCrash2() {
         start(true);
         String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
         try {
             java.io.File f = new java.io.File("test/testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
-            m.parseAndCheck(f,f);  // FIXME - duplicate entries causes crash
+            m.parseAndCheck(f,f); 
+            check("","");
+        } catch (Exception e) {
+            check("",out);
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+        }
+    }
+    
+    /** Tests the parseAndCheck call */
+    // parseAndCheck 
+    @Test
+    public void testParseAndCheckCrash() {
+        start(true);
+        String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
+        try {
+            java.io.File f = new java.io.File("test/testNoErrors/A.java");
+            java.io.File ff = new java.io.File("test/testNoErrors/A.java");
+            IAPI m = Factory.makeAPI();
+            m.addOptions("-no-purityCheck");
+            m.parseAndCheck(f,ff); 
             check("","");
         } catch (Exception e) {
             check("",out);
@@ -1188,7 +1240,6 @@ public class api extends JmlTestCase {
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
             int errs = dlist.size();
             assertEquals(0,errs);
-            //assertEquals("test\\testJavaErrors\\A.java:2: incompatible types\n  required: int\n  found:    boolean",((JCDiagnostic)dlist.get(0)).noSource());
         } catch (Exception e) {
             check("","");
             System.out.println(e);
@@ -1318,7 +1369,7 @@ public class api extends JmlTestCase {
         testESC("");
     }
     
-    @Test @Ignore
+    @Test @Ignore // FIXME - boogie not implemented
     public void testESCBoogie() {
         testESC("-boogie");
     }
@@ -1342,9 +1393,9 @@ public class api extends JmlTestCase {
 //                m.addOptions("openjml.defaultProver","yices");
 //            } else 
             if (option.equals("-boogie")) {
-                m.addOptions("openjml.defaultProver","z3_4_3");
+                m.addOptions("openjml.defaultProver","z3_4_4");
             } else {
-                m.addOptions("openjml.defaultProver","z3_4_3");
+                m.addOptions("openjml.defaultProver","z3_4_4");
             }
             JmlCompilationUnit jcu = m.parseString("A.java",program);
             int n = m.typecheck(jcu);

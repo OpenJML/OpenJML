@@ -4,11 +4,14 @@
  */
 package org.jmlspecs.openjml;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -22,32 +25,17 @@ import com.sun.tools.javac.util.Options;
 // FIXME - best practice would use a resources file for all the help
 // information; javac loads its resources on demand
 public enum JmlOption implements IOption {
-        
+    
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     DIR("-dir",true,null,"Process all files, recursively, within this directory",null),
     DIRS("-dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null),
     ENDOPTIONS("--",false,null,"Terminates option processing - all remaining arguments are files",null),  // FIXME - fix or remove
     KEYS("-keys",true,"","Identifiers for optional JML comments",null),
-    COMMAND("-command",true,"check","The command to execute (check,esc,rac,compile,infer)",null),
+    COMMAND("-command",true,"check","The command to execute (check,esc,rac,compile)",null),
     CHECK("-check",false,null,"Does a JML syntax check","-command=check"),
     COMPILE("-compile",false,null,"Does a Java-only compile","-command=compile"),
     RAC("-rac",false,null,"Enables generating code instrumented with runtime assertion checks","-command=rac"),
     ESC("-esc",false,null,"Enables static checking","-command=esc"),
-    
-    // Options Related to Specification Inference
-    INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
-    INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
-    INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "STRONGARM: If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
-    INFER_NO_EXIT("-noexit",true,null,"STRONGARM: Infer contracts (suppress exiting)","-command=infer-no-exit"),
-    //
-    // Inference decides to write specs based on the following conditions
-    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
-    // 2) Else, if -specspath is specified, specs are written to that directory (base)
-    // 3) Otherwise, we write the specs to the same directory were the java class source exists
-    //
-    INFER_PERSIST("-infer-persist", false, null, "STRONGARM: Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
-    INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
-    
     BOOGIE("-boogie",false,false,"Enables static checking with boogie",null),
     USEJAVACOMPILER("-java",false,false,"When on, the tool uses only the underlying javac or javadoc compiler (must be the first option)",null),
     JML("-jml",false,true,"When on, the JML compiler is used and all JML constructs are ignored; use -no-jml to use OpenJML but ignore JML annotations",null),
@@ -62,11 +50,30 @@ public enum JmlOption implements IOption {
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
     LOGIC("-logic",true,null,"The SMT logic to use",null),
     
+    
+    // Options Related to Specification Inference
+    INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
+    INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
+    INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "STRONGARM: If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
+    INFER_NO_EXIT("-noexit",true,null,"STRONGARM: Infer contracts (suppress exiting)","-command=infer-no-exit"),
+    //
+    // Inference decides to write specs based on the following conditions
+    // 1) If -infer-persist-path is specified, specs are written to that directory (base)
+    // 2) Else, if -specspath is specified, specs are written to that directory (base)
+    // 3) Otherwise, we write the specs to the same directory were the java class source exists
+    //
+    INFER_PERSIST("-infer-persist", false, null, "STRONGARM: Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
+    INFER_MAX_DEPTH("-infer-max-depth", true, null, "STRONGARM: The largest CFG we will agree to process", null),
+
+    
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
     CODE_MATH("-code-math",true,"safe","Arithmetic mode for Java code",null),
     SPEC_MATH("-spec-math",true,"bigint","Arithmetic mode for specifications",null),
     
+    // FIXME - turn default back to true when problems have been worked out
+    CHECK_ACCESSIBLE("-checkAccessible",false,false,"When on (the default), JML accessible clauses are checked",null),
     SPECS("-specspath",true,null,"Specifies the directory path to search for specification files",null),
     CHECKSPECSPATH("-checkSpecsPath",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null),
     PURITYCHECK("-purityCheck",false,false,"When on (off by default), warnings for use of impure methods are issued",null),
@@ -83,7 +90,8 @@ public enum JmlOption implements IOption {
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
     JMLVERBOSE("-jmlverbose",false,null,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,null,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
-
+    SHOW_OPTIONS("-showOptions",false, false,"When enabled, the values of options and properties are printed, for debugging",null),
+    
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
@@ -96,12 +104,18 @@ public enum JmlOption implements IOption {
     BENCHMARKS("-benchmarks",true,null,"ESC: Collects solver communications",null),
     MINIMIZE_QUANTIFICATIONS("-minQuant",false,true,"Minimizes using quantifications, in favor of inlining",null),
     QUANTS_FOR_TYPES("-typeQuants",true,"auto","Introduces quantified assertions for type variables (true, false, or auto)",null),
+
+    MODEL_FIELD_NO_REP("-modelFieldNoRep",true,"zero","RAC action when a model field has no represents clause (zero,ignore,warn)",null),
+//    ROOTS("-roots",false,false,"Enables the Reflective Object-Oriented Testing System---w00t!",null),
     
     RAC_SHOW_SOURCE("-racShowSource",false,true,"RAC: Error messages will include source information",null),
     RAC_CHECK_ASSUMPTIONS("-racCheckAssumptions",false,false,"RAC: Enables runtime checking that assumptions hold",null),
     RAC_JAVA_CHECKS("-racJavaChecks",false,false,"RAC: Enables explicit checking of Java language checks",null),
     RAC_COMPILE_TO_JAVA_ASSERT("-racCompileToJavaAssert",false,false,"RAC: Compiles JML checks as Java asserts",null),
     RAC_PRECONDITION_ENTRY("-racPreconditionEntry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null),
+    RAC_MISSING_MODEL_FIELD_REP_SOURCE("-racMissingModelFieldRepSource",true,"zero","RAC: action when a model field has no representation (zero,warn,skip)",null),
+    RAC_MISSING_MODEL_FIELD_REP_BINARY("-racMissingModelFieldRepBinary",true,"skip","RAC: action when a model field for a binary class has no representation (zero,warn,skip)",null),
+
     PROPERTIES("-properties",true,null,"Specifies the path to the properties file",null),
     PROPERTIES_DEFAULT("-properties-default",true,null,"Specifies the path to the default properties file",null),
     
@@ -248,6 +262,12 @@ public enum JmlOption implements IOption {
      //@ non_null
     public String optionName() { return name; }
 
+    /** The name of the option, including any leading - sign
+     * @see org.jmlspecs.openjml.IOption#optionName()
+     */
+     //@ non_null
+    public String getText() { return name; }
+    
     /* Whether the option takes an argument
      * @see org.jmlspecs.openjml.OptionInterface#hasArg()
      */
@@ -327,5 +347,13 @@ public enum JmlOption implements IOption {
         }
         return sb.toString();
         
+    }
+    
+    public static void listOptions(Context context) {
+        Options options = JmlOptions.instance(context);
+        PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
+        for (String key: new java.util.TreeSet<String>(options.keySet())) {
+            noticeWriter.println(key + " = " + JmlOption.value(context,key));
+        }
     }
 }

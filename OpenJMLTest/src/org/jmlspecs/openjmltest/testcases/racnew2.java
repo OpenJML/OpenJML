@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assert;
 import org.junit.Test;
 
 /** These tests exercise the RAC checking.  They compile a test class 
@@ -727,7 +728,7 @@ public class racnew2 extends RacBase {
                 "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
                 "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR (char)(i+60)) != 0; \n" +
+                "//@ assert (\\lbl CHAR (char)(i+60) ) != 0; \n" +
                 "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
                 "//@ assert (\\lbl OBJECT o) == null; \n" +
                 "//@ assert (\\lbl NULL null) == null; \n" +
@@ -1497,7 +1498,6 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingString() {
-    	main.addOptions("-show");
         helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static int unbox(int i) { return i;}  \n"
                 +"public static Integer box(Integer i) { return i;}  \n"

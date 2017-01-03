@@ -5,7 +5,7 @@ Feasibility check #2 - at program exit : OK
 Completed proof of Types.Types() with prover !!!! - no warnings
 Starting proof of Types.types3(java.util.List<java.lang.Integer>) with prover !!!!
 ..\..\OpenJMLDemo\src\openjml\demo\Types.java:9: warning: The prover cannot establish an assertion (Assert) in method types3
-		//@ assert false; // ERROR
+		//@ assert false; // ERROR should be reported, since a.get(0) should return an Integer
 		    ^
 Completed proof of Types.types3(java.util.List<java.lang.Integer>) with prover !!!! - with warnings
 Starting proof of Types.types2(java.util.List<java.lang.Integer>) with prover !!!!
@@ -23,21 +23,6 @@ Starting proof of Types.types2(java.util.List<java.lang.Integer>) with prover !!
 		                             ^
 ..\..\OpenJMLDemo\src\openjml\demo\Types.java:18: warning: The prover cannot establish an assertion (Assert) in method types2
 		//@ assert false; // To be sure of feasibility and so that labels are printed
-		    ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:13: warning: Label A has value true
-		//@ ghost boolean b1 = (\lbl A \type(Integer) <: \type(Number));// true
-		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:14: warning: Label B has value true
-		//@ ghost boolean b2 = (\lbl B \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Integer>)); // true
-		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:15: warning: Label C has value false
-		//@ ghost boolean b3 = (\lbl C \type(java.util.ArrayList<Integer>) <: \type(java.util.List<Number>)); // false
-		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:16: warning: Label E has value true
-		//@ ghost boolean b5 = (\lbl E \erasure(\type(java.util.ArrayList)) <: \erasure(\type(java.util.List))); // true
-		                             ^
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:17: warning: The prover cannot establish an assertion (Assert) in method types2
-		//@ assert b1 && b2 && !b3 && b5; 
 		    ^
 Completed proof of Types.types2(java.util.List<java.lang.Integer>) with prover !!!! - with warnings
 Starting proof of Types.<T>types(java.util.List<T>) with prover !!!!
@@ -57,10 +42,10 @@ Feasibility check #2 - after explicit assume statement : OK
 Feasibility check #3 - at program exit : OK
 Completed proof of Types.<T>types4(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.types1(java.util.List<?>) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\Types.java:40: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1:  a java.lang.Object cannot be proved to be a java.lang.Integer
-		/*@ nullable */ Integer i = (Integer)a.get(0); // Should be provable with the assumption
-		                            ^
-Completed proof of Types.types1(java.util.List<?>) with prover !!!! - with warnings
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - after explicit assume statement : OK
+Feasibility check #3 - at program exit : OK
+Completed proof of Types.types1(java.util.List<?>) with prover !!!! - no warnings
 Starting proof of Types.typesr(java.util.List<?>) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
@@ -71,7 +56,7 @@ Feasibility check #2 - at program exit : OK
 Completed proof of Types.<T>typesz(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.<T>types4e(java.util.List<T>) with prover !!!!
 ..\..\OpenJMLDemo\src\openjml\demo\Types.java:52: warning: The prover cannot establish an assertion (PossiblyBadCast) in method <T>types4e:  a T cannot be proved to be a java.lang.Integer
-		/*@ nullable */ Integer i = (Integer)a.get(0);
+		/*@ nullable */ Integer i = (Integer)a.get(0); // Expect ERROR
 		                            ^
 Completed proof of Types.<T>types4e(java.util.List<T>) with prover !!!! - with warnings
 Starting proof of Types.types1e(java.util.List<?>) with prover !!!!
@@ -80,4 +65,4 @@ Starting proof of Types.types1e(java.util.List<?>) with prover !!!!
 		                            ^
 Completed proof of Types.types1e(java.util.List<?>) with prover !!!! - with warnings
 Completed proving methods in Types
-7 warnings
+8 warnings

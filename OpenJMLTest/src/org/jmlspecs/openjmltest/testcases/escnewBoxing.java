@@ -72,12 +72,12 @@ public class escnewBoxing extends EscBase {
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  static Integer i = 5;\n"
-//                +"  static int k = i;\n"
-//                +"  static { //@ assert k == 5; \n}\n"
-//                
-//                +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
-//
-//                +"  static { Integer j = null; int m = j; \n}\n"
+                +"  static int k = i;\n"
+                +"  static { //@ assert k == 5; \n}\n"
+                
+                +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
+
+                +"  static { Integer j = null; int m = j; \n}\n"
 
                 +"}"
                 );   // FIXME - should generate warnings here

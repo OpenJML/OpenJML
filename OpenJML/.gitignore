@@ -4,7 +4,5 @@
 /openjml-2015*
 /openjml.properties
 /log
-/benchmarks/
-*.zip
-*.tar.gz
-hs_err*.log
+openjml-master-*
+openjml-*

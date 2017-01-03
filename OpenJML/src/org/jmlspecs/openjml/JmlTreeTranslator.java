@@ -7,6 +7,7 @@ package org.jmlspecs.openjml;
 // FIXME - not ready for use - review and fix
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlTree.*;
 
@@ -38,16 +39,17 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
     public <T extends JCTree> ListBuffer<T> translate(ListBuffer<T> trees) {
         if (trees == null) return null;
-        if (!copy) {
-            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
-                l.head = translate(l.head);
-            return trees;
-        } else {
+//        if (!copy) {
+//            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
+//                l.head = translate(l.head);
+//            return trees;
+//        } else {
             ListBuffer<T> newlist = new ListBuffer<T>();
-            for (List<T> l = trees.elems; l.nonEmpty(); l = l.tail)
-                newlist.append(translate(l.head));
+            Iterator<T> iter = trees.iterator();
+            while (iter.hasNext())
+                newlist.append(translate(iter.next()));
             return newlist;
-        }
+//        }
     }
 
     public <T extends JCTree> java.util.List<T> translate(java.util.List<T> trees) {
@@ -66,7 +68,15 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // Not translating: op, opcode, operator
         result = r;
     }
+
+    @Override
+    public void visitJmlBlock(JmlBlock that) {
+        that.stats = translate(that.stats);
+        that.cases = translate(that.cases);
+        result = that;
+    }
     
+
     @Override
     public void visitJmlChoose(JmlChoose that) {
         JmlChoose r = that;
@@ -82,10 +92,10 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         JmlClassDecl r = (JmlClassDecl)result;
         r.docComment = that.docComment;
         r.toplevel = that.toplevel; // FIXME - need to adjust reference
-        r.typeSpecsCombined = that.typeSpecsCombined;
-        if (that.typeSpecsCombined != null) {
-            JmlSpecs.TypeSpecs rt = r.typeSpecsCombined;// = new JmlSpecs.TypeSpecs();
-            JmlSpecs.TypeSpecs tt = that.typeSpecsCombined;
+        r.typeSpecs = that.typeSpecs;
+        if (that.typeSpecs != null) {
+            JmlSpecs.TypeSpecs rt = r.typeSpecs;// = new JmlSpecs.TypeSpecs();
+            JmlSpecs.TypeSpecs tt = that.typeSpecs;
 //            rt.blocks = (tt.blocks);
 //            rt.checkInvariantDecl = (tt.checkInvariantDecl);
 //            rt.checkStaticInvariantDecl = (tt.checkStaticInvariantDecl);
@@ -100,7 +110,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlCompilationUnit(JmlCompilationUnit that) {
         visitTopLevel(that);
         JmlCompilationUnit r = (JmlCompilationUnit)result;
-        r.parsedTopLevelModelTypes = translate(that.parsedTopLevelModelTypes);
+//        r.parsedTopLevelModelTypes = translate(that.parsedTopLevelModelTypes);
         //r.specsSequence
         //r.specsTopLevelModelTypes - FIXME
         // not translating: mode, FIXME

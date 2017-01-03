@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
@@ -44,6 +46,7 @@ import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditions;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicatePreconditionsSMT;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveImpossibleSpecificationCases;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveLocals;
+import org.jmlspecs.openjml.strongarm.transforms.RemoveSpecPublic;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveTautologies;
 import org.jmlspecs.openjml.strongarm.transforms.RemoveUselessPostconditions;
 import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitutions;
@@ -68,6 +71,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Pair;
 
 public class Strongarm  
@@ -86,11 +90,14 @@ public class Strongarm
     final protected JmlTreeUtils           treeutils;
     
     final protected JmlTree.Maker M;
+    public static String Current;
     
     final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
     public static JmlTree.Maker MM;
     public static Context _context;
+    private final int maxDepth;
+    
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
         this.context = infer.context;
@@ -114,6 +121,8 @@ public class Strongarm
             RemoveDuplicatePreconditionsSMT.cache(context);
             SimplicyViaInternalSubstitutions.cache(context);
             RemoveLocals.cache(context);
+            RemoveSpecPublic.cache(context);
+            
             RemoveDeadAssignments.cache(context);
             RemoveDuplicateAssignments.cache(context);
             RemoveImpossibleSpecificationCases.cache(context);
@@ -122,6 +131,12 @@ public class Strongarm
             Purifier.cache(context);
             PruneUselessClauses.cache(context);
 
+            
+            if(JmlOption.isOption(context, JmlOption.INFER_MAX_DEPTH)){  
+                maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
+            }else{
+                maxDepth = -1;
+            }
 
         }
     }
@@ -155,14 +170,15 @@ public class Strongarm
         }
 
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("TRANSFORMATION OF " //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " //$NON-NLS-1$
                     + utils.qualifiedMethodSig(methodDecl.sym));
-            log.noticeWriter.println(JmlPretty.write(newblock));
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
         }
         
+        Current = utils.qualifiedMethodSig(methodDecl.sym);
         
         BasicBlocker2 basicBlocker;
 
@@ -177,12 +193,12 @@ public class Strongarm
                 infer.assertionAdder);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BasicBlock2 FORM of "
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("BasicBlock2 FORM of "
                     + utils.qualifiedMethodSig(methodDecl.sym));
-            log.noticeWriter.println(program.toString());
+            log.getWriter(WriterKind.NOTICE).println(program.toString());
         }        
 
         String savedProgram = program.toString(); // need to freeze a pre-substitution state.
@@ -190,6 +206,26 @@ public class Strongarm
         //
         // perform symbolic execution on the method
         //
+        
+        if(maxDepth !=-1 && program.blocks().size() > maxDepth){
+         
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("REFUSING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println(String.format("Depth of %d exceeds max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
+            }
+            
+            return;
+        }
+        
+        
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        }
+        
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
         //
@@ -219,7 +255,7 @@ public class Strongarm
         //
         JmlMethodClause precondition = M.JmlMethodClauseExpr
                 (
-                        JmlToken.REQUIRES,
+                        JmlTokenKind.REQUIRES,
                         reader.precondition.p
                 );
             
@@ -234,15 +270,15 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
     	methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-    	methodDecl.cases.cases.head.token = JmlToken.NORMAL_BEHAVIOR;
+    	methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
         
 
     	if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BEGIN CONTRACT CLEANUP of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("BEGIN CONTRACT CLEANUP of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.cases));
         }
         
     	String oldContract = methodDecl.toString();
@@ -284,22 +320,22 @@ public class Strongarm
         
         if (printContracts) {
             if(contract!=null){
-                log.noticeWriter.println("--------------------------------------"); 
-                log.noticeWriter.println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-                log.noticeWriter.println(JmlPretty.write(methodDecl.cases));
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println("INFERRED POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.cases));
             }else{
-                log.noticeWriter.println("--------------------------------------"); 
-                log.noticeWriter.println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println("FAILED TO INFER THE POSTCONDITION OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
             }
         }  
                
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("FINISHED INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(methodDecl));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
         }
         
     }
@@ -320,10 +356,10 @@ public class Strongarm
             
             
             if (verbose) {
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println(separator);
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("[STRONGARM] Skipping inference for  "
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println(separator);
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Skipping inference for  "
                         + utils.qualifiedMethodSig(methodDecl.sym) + " because postconditions are already present.");
             }
             
@@ -344,20 +380,20 @@ public class Strongarm
         // during the first pass we do no simplification
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("BasicBlock2 FORM of "
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("BasicBlock2 FORM of "
                     + utils.qualifiedMethodSig(methodDecl.sym));
-            log.noticeWriter.println(program.toString());
+            log.getWriter(WriterKind.NOTICE).println(program.toString());
         }
                
         Prop<JCExpression> props = reader.sp();
         
         if (verbose) {
-            log.noticeWriter.println("Inference finished...");
+            log.getWriter(WriterKind.NOTICE).println("Inference finished...");
             
-            log.noticeWriter.println(BlockReader._substitutionCache.toString());
+            log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
         }
         
         
@@ -367,11 +403,11 @@ public class Strongarm
         if(reader.postcondition==null){
             
             if (verbose) {
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("--------------------------------------"); //$NON-NLS-1$
-                log.noticeWriter.println(Strings.empty);
-                log.noticeWriter.println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
-                log.noticeWriter.println("(hint: enable -infer-default-preconditions to assume a precondition)");
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("DID NOT INFER POSTCONDITION " + utils.qualifiedMethodSig(methodDecl.sym) + "... (SKIPPING)"); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println("(hint: enable -infer-default-preconditions to assume a precondition)");
             }
             
                             
@@ -386,12 +422,12 @@ public class Strongarm
         
         
         if (verbose && props!=null) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("FINISHED (STAGE 1) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
-            log.noticeWriter.println(JmlPretty.write(methodDecl));
-            log.noticeWriter.println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("FINISHED (STAGE 1) INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
+            log.getWriter(WriterKind.NOTICE).println("POSTCONDITION: " + JmlPretty.write(props.toTree(treeutils)));
         }
 
         
@@ -416,27 +452,27 @@ public class Strongarm
        
         
         if (verbose) {
-            log.noticeWriter.println(BlockReader._substitutionCache.toString());
+            log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
         }
         
         
        if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         t = Timing.start();         
         RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         //
@@ -462,18 +498,18 @@ public class Strongarm
             // alternate approach -- here we iterate over the ENTIRE contract
             
 //            for(BasicBlock exitBlock : reader.getExitBlocks()){
-//                log.noticeWriter.println("[STRONGARM] found exit block: "+ exitBlock.id().toString());
+//                log.getWriter(WriterKind.NOTICE).println("[STRONGARM] found exit block: "+ exitBlock.id().toString());
 //
 //            }
 //            
         }
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }   
         
         
@@ -487,14 +523,14 @@ public class Strongarm
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
         methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-        methodDecl.cases.cases.head.token = JmlToken.NORMAL_BEHAVIOR;
+        methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER PERFORMING LEXICAL SUBSTITUTIONS II" + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(cases));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS II" + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(cases));
         }
 
         
@@ -516,11 +552,11 @@ public class Strongarm
         RemoveTautologies.simplify(contract);
 
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         t = Timing.start();
@@ -528,11 +564,11 @@ public class Strongarm
         RemoveContradictions.simplify(contract);
 
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING CONTRADICTIONS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 
         //
@@ -544,11 +580,11 @@ public class Strongarm
         PruneUselessClauses.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 
         
@@ -562,11 +598,11 @@ public class Strongarm
        RemoveDeadAssignments.simplify(reader.getBlockerMappings(), contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING DEAD ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DEAD ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
        
         
@@ -585,11 +621,11 @@ public class Strongarm
         
         if (verbose) {
             
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER PERFORMING PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 
         
@@ -602,12 +638,30 @@ public class Strongarm
        RemoveLocals.simplify(methodDecl, contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
+        
+        
+        
+        
+        
+        t = Timing.start();
+        
+        RemoveSpecPublic.simplify(methodDecl, contract);
+         
+         if (verbose) {
+             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+             log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING SPEC PUBLIC OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+         }
+         
+         
         
         
         //
@@ -619,11 +673,11 @@ public class Strongarm
         SimplicyViaInternalSubstitutions.simplify(methodDecl, contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER DOING BACKWARDS PROPAGATION OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER DOING BACKWARDS PROPAGATION OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         
@@ -639,11 +693,11 @@ public class Strongarm
        CleanupVariableNames.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER SIMPLIFYING LABELS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER SIMPLIFYING LABELS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         
@@ -655,11 +709,11 @@ public class Strongarm
         RemoveDuplicatePreconditions.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         
@@ -671,11 +725,11 @@ public class Strongarm
        RemoveDuplicateAssignments.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING DUPLICATE ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE ASSIGNMENTS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
        
         
@@ -690,11 +744,11 @@ public class Strongarm
        }
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER FIXING RESULTS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER FIXING RESULTS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         
@@ -708,11 +762,11 @@ public class Strongarm
         CleanupPrestateAssignable.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER CLEANING PRESTATE ASSIGNABLES " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER CLEANING PRESTATE ASSIGNABLES " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         //
@@ -728,11 +782,11 @@ public class Strongarm
         RemoveUselessPostconditions.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         
@@ -742,11 +796,11 @@ public class Strongarm
        PruneUselessClauses.simplify(contract);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 
         //
@@ -757,11 +811,11 @@ public class Strongarm
         Purifier.simplify(contract, methodDecl);
         
         if (verbose) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("--------------------------------------"); 
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("AFTER ADDING PURITY " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.noticeWriter.println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER ADDING PURITY " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
         

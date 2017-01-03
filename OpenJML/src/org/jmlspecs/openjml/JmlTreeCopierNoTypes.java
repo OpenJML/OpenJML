@@ -72,6 +72,16 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         return lb;
     }
 
+    /** Deep copy of a list of nodes */
+    public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(@Nullable com.sun.tools.javac.util.List<T> trees, Void p) {
+        if (trees == null)
+            return null;
+        ListBuffer<T> lb = new ListBuffer<T>();
+        for (T tree: trees)
+            lb.append(copy(tree, p));
+        return lb.toList();
+    }
+
 
     
     public void visitTree(JCTree that) {
@@ -85,8 +95,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         copy.sourcefile = that.sourcefile;
         copy.specsCompilationUnit = that == that.specsCompilationUnit ? copy : copy(that.specsCompilationUnit);
         copy.mode = that.mode;
-        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
-        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
+//        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
+//        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
         copy.type = that.type;
         return copy;
     }
@@ -99,9 +109,8 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
         copy.toplevel.sourcefile = that.source();
-        copy.specsDecls = that.specsDecls;// FIXME - copy
+        copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
-        copy.typeSpecsCombined = that.typeSpecsCombined;// FIXME - copy
         copy.type = that.type;
         return copy;
     }
@@ -134,7 +143,13 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
         JmlBinary r = M.at(that.pos).JmlBinary(that.op,lhs,rhs);
         return r;
     }
-    
+
+    public JCTree visitJmlBlock(JmlBlock that, Void p) {
+        JmlBlock t = M.at(that.pos).Block(that.flags, copy(that.stats, p));
+        return t;
+    }
+
+
     @Override
     public JCTree visitJmlConstraintMethodSig(JmlMethodSig that,
             Void p) {

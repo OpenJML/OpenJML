@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -81,13 +81,11 @@ public class Options {
     public Set<String> accessOptions = new HashSet<String>();
     public Set<InstructionDetailWriter.Kind> details = EnumSet.noneOf(InstructionDetailWriter.Kind.class);
     public boolean showDisassembled;
-    public boolean showInternalSignatures;
+    public boolean showDescriptors;
     public boolean showAllAttrs;
     public boolean showConstants;
     public boolean sysInfo;
     public boolean showInnerClasses;
-    public int indentWidth = 2;   // #spaces per indentWidth level
-    public int tabColumn = 40;    // column number for comments
-
-    public boolean compat;             // bug-for-bug compatibility mode with old javap
+    public int indentWidth = 2;   // #spaces per indentWidth level; must be > 0
+    public int tabColumn = 40;    // column number for comments; must be > 0
 }

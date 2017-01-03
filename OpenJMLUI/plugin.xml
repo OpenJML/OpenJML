@@ -44,7 +44,17 @@
     </builder>
     <!-- FIXME - what about parameter or content-type ? -->
   </extension>
-   
+
+  <!-- This defines a new console type, so that it is listed in the list of kinds of consoles to create. -->
+  <extension
+      point="org.eclipse.ui.console.consoleFactories">
+    <consoleFactory
+         class="org.jmlspecs.openjml.eclipse.ConsoleFactory"
+         icon="icons/jml-logo-16x16.png"
+         label="JML Console">
+    </consoleFactory>
+  </extension> 
+    
   <!-- This decorator is applied to Java projects to indicate whether
 	they have a JML Nature (with decorator) or not (no decorator).
 	NOTE: Per the code in PopupActions.java the decorator id must
@@ -1333,6 +1343,7 @@
     </extension>
     --> 
  
+   <!-- FIXME - document -->
    <extension
          point="org.eclipse.jdt.core.classpathVariableInitializer">
       <classpathVariableInitializer
@@ -1340,12 +1351,15 @@
             variable="OPENJML_PLUGIN"/>
    </extension>   
  
+   <!-- FIXME - document -->
    <extension
          point="org.eclipse.jdt.core.classpathVariableInitializer">
       <classpathVariableInitializer
             class="org.jmlspecs.openjml.eclipse.ClasspathVariableInitializer"
             variable="OPENJML_RUNTIME_LIBRARY"/>
    </extension>
+   
+   <!-- FIXME - what is this for -->
    <extension
          id="OpenJML"
          point="org.eclipse.core.runtime.products">
@@ -1353,5 +1367,15 @@
             application="org.eclipse.ui.ide.workbench"
             name="OpenJML">
       </product>
+   </extension>
+   
+   <!-- This extension enables quick fix processing -->
+   <extension
+         point="org.eclipse.jdt.ui.quickFixProcessors">
+       <quickFixProcessor
+            id="org.jmlspecs.openjml.eclipse.quickfix"
+            class="org.jmlspecs.openjml.eclipse.QuickFixes"
+            name="OpenJML Quick Fixes">
+       </quickFixProcessor>
    </extension>
 </plugin>

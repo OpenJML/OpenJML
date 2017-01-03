@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--This script can be used to run OpenJML Junit tests. It builds all the required projects and runs the Junit tests.
+    The script can be executed using following command:
+    ant -buildfile build_OpenJMLTest.xml -Declipse.home="path/to/eclipse" cleanall build OpenJMLTest junitreport
+    Before running the script make sure that the environment variable "JAVA_HOME" is set and ant executable is in the PATH. 
+ -->
+    <project basedir="." default="build" name="OpenJMLTest">
+    <property environment="env"/>
+    <property name="JMLAnnotations.location" value="../../JMLAnnotations"/>
+    <property name="ECLIPSE_HOME" value="${eclipse.home}"/>
+    <property name="project_loc:OpenJML" value="../OpenJML"/>
+    <property name="project_loc:Specs" value="../../Specs"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="OpenJDK.location" value="../OpenJDK"/>
+    <property name="Specs.location" value="../../Specs"/>
+    <property name="OpenJML.location" value="../OpenJML"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.8"/>
+    <property name="source" value="1.8"/>
+    <target name="check_eclipse_home">
+           <fail message="The eclipse home directory '${ECLIPSE_HOME}' was expected to be available but is not">
+           <condition>
+              <not>
+              <available file="${ECLIPSE_HOME}" type="dir"/>
+              </not>
+           </condition>
+           </fail>
+    </target>
+    <target name="check_java_home">
+           <fail message="The JAVA_HOME directory '${java.home}' was expected to be available but is not">
+           <condition>
+              <not>
+              <available file="${java.home}" type="dir"/>
+              </not>
+           </condition>
+           </fail>
+    </target>
+    <path id="Plug-in Dependencies.libraryclasspath">
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.ui.workbench_*.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.osgi_*.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.annotation_1.1*.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.core.runtime_*.jar"/>
+    </path>
+    <path id="JMLAnnotations.classpath">
+        <pathelement location="${JMLAnnotations.location}/bin"/>
+        <path refid="Plug-in Dependencies.libraryclasspath"/>
+    </path>
+    <path id="OpenJDK.classpath">
+        <path refid="JMLAnnotations.classpath"/>
+        <pathelement location="${OpenJDK.location}/bin"/>
+    </path>
+    <path id="JUnit 4.libraryclasspath">        
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.junit_*/junit.jar"/>
+        <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.hamcrest.core_*.jar"/>
+    </path>
+    <path id="Specs.classpath">
+        <path refid="Plug-in Dependencies.libraryclasspath"/>
+    </path>
+    <path id="OpenJML.classpath">
+        <path refid="JMLAnnotations.classpath"/>
+        <path refid="OpenJDK.classpath"/>
+        <pathelement location="${OpenJML.location}/bin-runtime"/>
+        <pathelement location="${OpenJML.location}/bin"/>
+        <path refid="JUnit 4.libraryclasspath"/>
+        <path refid="Plug-in Dependencies.libraryclasspath"/>
+        <path refid="Specs.classpath"/>
+        <pathelement location="${OpenJML.location}/jSMTLIB.jar"/>
+        <pathelement location="${JMLAnnotations.location}/bin"/>
+    </path>
+    <path id="OpenJMLTest.classpath">
+        <path refid="OpenJML.classpath"/>
+        <path refid="Plug-in Dependencies.libraryclasspath"/>
+        <pathelement location="bin"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target name="update_repo">
+         <exec executable="git">
+             <arg value="pull"/>
+         </exec>
+     </target>
+    <target depends="clean" name="cleanall">
+        <ant antfile="build_JMLAnnotations.xml" dir="${JMLAnnotations.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build_OpenJDK.xml" dir="${OpenJDK.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build_Specs.xml" dir="${Specs.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build_OpenJML.xml" dir="${OpenJML.location}" inheritAll="false" target="clean"/>
+    </target>
+    <target depends="check_eclipse_home,check_java_home,build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects">
+        <ant antfile="build_JMLAnnotations.xml" dir="${JMLAnnotations.location}" inheritAll="false" target="build-project">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+        <ant antfile="build_OpenJDK.xml" dir="${OpenJDK.location}" inheritAll="false" target="build-project">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+        <ant antfile="build_Specs.xml" dir="${Specs.location}" inheritAll="false" target="build-project">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+        <ant antfile="build_OpenJML.xml" dir="${OpenJML.location}" inheritAll="false" target="build-project">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+    </target>
+    <target depends="clean,init,update_repo" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="OpenJMLTest.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="OpenJMLTest - Coverage">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="org.jmlspecs.openjmltest.testcases.scanner" todir="${junit.output.dir}"/>
+            <env key="SPECSDIR" value="${project_loc:Specs}"/>
+            <jvmarg line="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:Specs}"/>
+            <classpath refid="OpenJMLTest.classpath"/>
+        </junit>
+    </target>
+    <target name="OpenJMLTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="org.jmlspecs.openjmltest.testcases.QueryPure" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.QuerySecret" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.SFBugs" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.SpecsBase" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.access" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.api" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.arith" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.assignable" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.binaries" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.bugs" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.compilationUnit" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.compiler" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.deprecation" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.esc" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escArithmeticModes" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escConstantFields" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escCounterexamples" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escDemofiles" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escJML" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escTiming" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escTrace" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escaccessible" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escall2" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escall3" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.esccallable" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.esccode" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escenums" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escfeatures" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escfiles" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escfilesTrace" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escfunction" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escgeneric" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escinclause" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.esclocation" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escm" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnew" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnew2" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnew3" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnewBoxing" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnewassignable" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnonpublic" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escnowarn" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escoption" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escreadable" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escstrings" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escvisibility" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.escvisibility1" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.expressions" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.flow" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.generics" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.harnesstests" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.internalSpecs" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.jmldoc" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.jmltypes" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.lblexpression" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.matchClasses" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.methodspecs" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.misctests" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.modelghost" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.modifiers" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.namelookup" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.notspecified" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.nowarn" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.prettyprinting" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.purity" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racArithmeticModes" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racJML" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racdemoexamples" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racfeatures" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racfiles" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnew" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnew2" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnew3" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnewLoops" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnewWithSpecs" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racnonpublic" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racreadable" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.racsystem" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.redundant" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.scanner" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.statements" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.strict" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.sysclasses" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.typechecking" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.typecheckingJmlTypes" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.typecheckingvisibility" todir="${junit.output.dir}"/>
+            <test name="org.jmlspecs.openjmltest.testcases.typeclauses" todir="${junit.output.dir}"/>
+            <env key="SPECSDIR" value="${project_loc:Specs}"/>
+            <jvmarg line="-Dopenjml.eclipseProjectLocation=${project_loc:OpenJML} -Dopenjml.eclipseSpecsProjectLocation=${project_loc:Specs}"/>
+            <classpath refid="OpenJMLTest.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${junit.output.dir}"/>
+        </junitreport>
+    </target>
+</project>

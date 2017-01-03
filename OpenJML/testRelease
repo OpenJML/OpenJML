@@ -9,7 +9,7 @@
 ## It tests a build with today's date - i.e. the build just created by
 ## ./buildRelease
 
-## You should have Java 1.7 on your path
+## You should have the appropriate version of Java on your path
 
 ## Within Eclipse (in Cygwin at least), the paths that are defined do not work
 ## here, so we just set them.
@@ -23,6 +23,6 @@ VERSION=`date +%Y%m%d`
 NAME=openjml-${VERSION}.tar.gz
 
 echo Testing
-chmod +x releaseTests/runTests releaseTests/releaseTestHelper 
+chmod ugo+x releaseTests/runTests releaseTests/releaseTestHelper 
 releaseTests/runTests  ${NAME}
 echo Testing Complete `date`

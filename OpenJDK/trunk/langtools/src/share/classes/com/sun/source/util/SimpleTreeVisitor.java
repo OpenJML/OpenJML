@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -33,6 +33,7 @@ import com.sun.source.tree.*;
  * @author Peter von der Ah&eacute;
  * @since 1.6
  */
+@jdk.Exported
 public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
     protected final R DEFAULT_VALUE;
 
@@ -172,6 +173,10 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
         return defaultAction(node, p);
     }
 
+    public R visitLambdaExpression(LambdaExpressionTree node, P p) {
+        return defaultAction(node, p);
+    }
+
     public R visitParenthesized(ParenthesizedTree node, P p) {
         return defaultAction(node, p);
     }
@@ -208,6 +213,10 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
         return defaultAction(node, p);
     }
 
+    public R visitMemberReference(MemberReferenceTree node, P p) {
+        return defaultAction(node, p);
+    }
+
     public R visitIdentifier(IdentifierTree node, P p) {
         return defaultAction(node, p);
     }
@@ -232,6 +241,10 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
         return defaultAction(node, p);
     }
 
+    public R visitIntersectionType(IntersectionTypeTree node, P p) {
+        return defaultAction(node, p);
+    }
+
     public R visitTypeParameter(TypeParameterTree node, P p) {
         return defaultAction(node, p);
     }
@@ -245,6 +258,10 @@ public class SimpleTreeVisitor <R,P> implements TreeVisitor<R,P> {
     }
 
     public R visitAnnotation(AnnotationTree node, P p) {
+        return defaultAction(node, p);
+    }
+
+    public R visitAnnotatedType(AnnotatedTypeTree node, P p) {
         return defaultAction(node, p);
     }
 

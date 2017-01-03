@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,6 +26,8 @@
 package com.sun.tools.doclets.internal.toolkit.taglets;
 
 import com.sun.javadoc.*;
+import com.sun.tools.doclets.formats.html.markup.RawHtml;
+import com.sun.tools.doclets.internal.toolkit.Content;
 
 /**
  * This taglet acts as a wrapper to enable
@@ -36,9 +38,10 @@ import com.sun.javadoc.*;
  * This taglet is able to wrap most most legacy taglets because
  * the standard doclet is the only known doclet to use legacy taglets.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @since 1.5
  * @author Jamie Ho
@@ -114,20 +117,26 @@ public class LegacyTaglet implements Taglet {
     /**
      * {@inheritDoc}
      */
-    public TagletOutput getTagletOutput(Tag tag, TagletWriter writer)
+    public Content getTagletOutput(Tag tag, TagletWriter writer)
             throws IllegalArgumentException {
-        TagletOutput output = writer.getOutputInstance();
-        output.setOutput(legacyTaglet.toString(tag));
+        Content output = writer.getOutputInstance();
+        output.addContent(new RawHtml(legacyTaglet.toString(tag)));
         return output;
     }
 
     /**
      * {@inheritDoc}
      */
-    public TagletOutput getTagletOutput(Doc holder, TagletWriter writer)
+    public Content getTagletOutput(Doc holder, TagletWriter writer)
             throws IllegalArgumentException {
-        TagletOutput output = writer.getOutputInstance();
-        output.setOutput(legacyTaglet.toString(holder.tags(getName())));
+        Content output = writer.getOutputInstance();
+        Tag[] tags = holder.tags(getName());
+        if (tags.length > 0) {
+            String tagString = legacyTaglet.toString(tags);
+            if (tagString != null) {
+                output.addContent(new RawHtml(tagString));
+            }
+        }
         return output;
     }
 }

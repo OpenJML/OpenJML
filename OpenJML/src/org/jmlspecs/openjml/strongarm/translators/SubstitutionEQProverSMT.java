@@ -46,6 +46,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Position;
 
@@ -108,7 +109,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             if(P==null){
                 P = expr.expression;
             }else{
-                P = treeutils.makeBinary(0, JCTree.AND, expr.expression, P);
+                P = treeutils.makeBinary(0, JCTree.Tag.AND, expr.expression, P);
             }
         }
         
@@ -116,17 +117,17 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
         JCExpression Q = treeutils.makeNot(0, q.expression);
         
         // construct the implication p ^ !q
-        return treeutils.makeBinary(0,  JCTree.AND, P, Q);
+        return treeutils.makeBinary(0,  JCTree.Tag.AND, P, Q);
     }
     
     public IProverResult prove(JmlMethodDecl methodDecl, String proverToUse, Set<JmlMethodClauseExpr> filters, JmlMethodClauseExpr q) {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+        boolean verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
-        this.showSubexpressions = this.verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
-        this.showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
-        this.showCounterexample = this.showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
-        this.showBBTrace = escdebug;
+        boolean showSubexpressions = verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        boolean showTrace = showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
+        boolean showCounterexample = showTrace || JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
+        boolean showBBTrace = escdebug;
         
         log.useSource(methodDecl.sourcefile);
 
@@ -151,11 +152,11 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
         }
         if (printPrograms) {
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println(separator);
-            log.noticeWriter.println(Strings.empty);
-            log.noticeWriter.println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.noticeWriter.println(JmlPretty.write(newblock));
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(separator);
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("TRANSFORMATION OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(newblock));
         }
 
         // determine the executable
@@ -199,11 +200,11 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
                 basicBlocker = new BasicBlocker2(context);
                 program = basicBlocker.convertMethodBody(newblock, methodDecl, denestedSpecs, currentClassDecl, jmlesc.assertionAdder);
                 if (printPrograms) {
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println(separator);
-                    log.noticeWriter.println(Strings.empty);
-                    log.noticeWriter.println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
-                    log.noticeWriter.println(program.toString());
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println(separator);
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("BasicBlock2 FORM of " + utils.qualifiedMethodSig(methodDecl.sym));
+                    log.getWriter(WriterKind.NOTICE).println(program.toString());
                 }
     
                 // convert the basic block form to SMT
@@ -211,15 +212,15 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
                     script = smttrans.convert(program,smt);
                     if (printPrograms) {
                         try {
-                            log.noticeWriter.println(Strings.empty);
-                            log.noticeWriter.println(separator);
-                            log.noticeWriter.println(Strings.empty);
-                            log.noticeWriter.println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                            org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.noticeWriter),script);
-                            log.noticeWriter.println();
-                            log.noticeWriter.println();
+                            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                            log.getWriter(WriterKind.NOTICE).println(separator);
+                            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                            log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
+                            org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
+                            log.getWriter(WriterKind.NOTICE).println();
+                            log.getWriter(WriterKind.NOTICE).println();
                         } catch (VisitorException e) {
-                            log.noticeWriter.print("Exception while printing SMT script: " + e); //$NON-NLS-1$
+                            log.getWriter(WriterKind.NOTICE).print("Exception while printing SMT script: " + e); //$NON-NLS-1$
                         }
                     }
                 } catch (Exception e) {
@@ -235,7 +236,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
                     return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                 } else {
                     // Try the prover
-                    if (verbose) log.noticeWriter.println("EXECUTION"); //$NON-NLS-1$
+                    if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
                     try {
                         solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
                     } catch (Exception e) {
@@ -250,7 +251,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             // Now assemble and report the result
     
             if (verbose) {
-                log.noticeWriter.println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
+                log.getWriter(WriterKind.NOTICE).println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
             }
     
             IProverResult proofResult = null;
@@ -268,7 +269,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
                 return null;
             }
             
-            if (verbose) log.noticeWriter.println("Method checked OK");
+            if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
     
             
             proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
@@ -329,7 +330,9 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
             
         } finally {
             if(solver!=null){
-                solver.exit();
+                try {
+                    solver.exit();
+                }catch(Exception e){}
             }
         }
     }

@@ -38,6 +38,7 @@ import org.junit.runners.Parameterized.Parameters;
  * </UL>
  */
 
+@Ignore
 @RunWith(ParameterizedWithNames.class)
 public class escnonpublic extends EscBase {
     

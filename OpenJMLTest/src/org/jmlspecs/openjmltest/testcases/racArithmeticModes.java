@@ -1,8 +1,9 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import org.junit.Assert;
 
 /** These tests exercise the RAC checking.  They compile a test class 
  * using RAC and then execute the resulting program, catching that
@@ -66,8 +67,9 @@ public class racArithmeticModes extends RacBase {
         
     }
 
-    @Ignore // FIXME - need to settle on how to handle int declarations in Math mode
+    // FIXME - Bitint mode not implemented
     @Test public void testNegMath() {
+    	Assert.fail();
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int j = Integer.MAX_VALUE; int k = -j; System.out.println(\"END\"); \n" +
                 "int i = Integer.MIN_VALUE; int kk = -i; System.out.println(\"END\");} \n" +
@@ -91,7 +93,6 @@ public class racArithmeticModes extends RacBase {
                 );
     }
 
-    @Ignore // FIXME
     @Test public void testCompMath() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; @CodeBigintMath public class TestJava { public static void main(String[] args) { \n" +
                 "int i = Integer.MIN_VALUE; int k = ~i; System.out.println(\"END \" + k);} \n" +

@@ -412,7 +412,7 @@ public class escCounterexamples extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  int k = 98; Object o; \n"
+                +"  int k = 98; public Object o; \n"
                 +"  public void m1(int i) {\n"
                 +"      //@ assume k == 98; \n"
                 +"      //@ ghost int kk = 0;\n"
@@ -424,7 +424,7 @@ public class escCounterexamples extends EscBase {
                 +"      //@ assume o!= null && \\typeof(o) <: \\type(Object);\n"
                 +"      //@ unreachable;\n"
                 +"  }\n"
-                
+                +"   public TestJava() { o = new Object(); }\n"
                 +"}\n"
                 
                 ,"/tt/TestJava.java:11: warning: Label X has value true",37

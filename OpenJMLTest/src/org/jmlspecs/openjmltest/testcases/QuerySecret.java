@@ -13,6 +13,8 @@ public class QuerySecret extends TCBase {
         super.setUp();
     }
     
+    // FIXME - there still is a problem in that annotations are checked more than once - we have to comment out the error message to avoid repeated error messages
+    
     @Test
     public void testOK1() {
         helpTCF("A.java",
@@ -45,7 +47,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Query",10
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Query",12
         );
     }
     
@@ -57,7 +59,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(9) int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: incompatible types\n  required: java.lang.String\n  found:    int",10
+                ,"/A.java:4: incompatible types: int cannot be converted to java.lang.String",10
         );
     }
     
@@ -69,7 +71,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Query(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Query",20
+                ,"/A.java:4: duplicate element 'value' in annotation @org.jmlspecs.annotation.Query.",20
         );
     }
     
@@ -238,7 +240,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(v=\"q\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",11
+                ,"/A.java:4: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",13
         );
     }
     
@@ -250,7 +252,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(9) int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: incompatible types\n  required: java.lang.String\n  found:    int",11
+                ,"/A.java:4: incompatible types: int cannot be converted to java.lang.String",11
         );
     }
     
@@ -262,8 +264,7 @@ public class QuerySecret extends TCBase {
                 "  //@ public model JMLDataGroup q;\n" +
                 "  @Secret(value=\"q\",value=\"r\") int m() { return 0; } \n" +
                 "} \n"
-                ,"/A.java:4: A secret annotation on a method must have exactly one argument",3
-                ,"/A.java:4: duplicate annotation member value value in org.jmlspecs.annotation.Secret",21
+                ,"/A.java:4: duplicate element 'value' in annotation @org.jmlspecs.annotation.Secret.",21
         );
     }
     
@@ -582,9 +583,8 @@ public class QuerySecret extends TCBase {
                 "public class A { \n" + 
                 "  @Secret(v=\"q\") int m; \n" +
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",11
+                ,"/A.java:3: cannot find symbol\n  symbol:   method v()\n  location: @interface org.jmlspecs.annotation.Secret",13
                 ,"/A.java:3: A secret declaration for a field may not have arguments",12
-                //,"/A.java:3: A secret field must be a model field or in a secret datagroup",22
         );
     }
     
@@ -596,9 +596,9 @@ public class QuerySecret extends TCBase {
                 "public class A { \n" + 
                 "  @Secret(9) int m; \n" +
                 "} \n"
-                ,"/A.java:3: incompatible types\n  required: java.lang.String\n  found:    int",11
+                ,"/A.java:3: incompatible types: int cannot be converted to java.lang.String",11
                 ,"/A.java:3: A secret declaration for a field may not have arguments",11
-                //,"/A.java:3: A secret field must be a model field or in a secret datagroup",18
+                //,"/A.java:3: A secret field must be a model field or in a secret datagroup",18   // FIXME
         );
     }
     

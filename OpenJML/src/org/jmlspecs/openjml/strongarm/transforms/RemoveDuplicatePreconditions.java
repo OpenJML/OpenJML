@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -21,6 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 /**
  * Transformer that removes duplicate preconditions from NESTED specification cases. 
@@ -118,7 +120,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
         
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
                         
-            if(clauses.head.token != JmlToken.REQUIRES || filterSet.contains(clauses.head.toString())==false){
+            if(clauses.head.token != JmlTokenKind.REQUIRES || filterSet.contains(clauses.head.toString())==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
@@ -136,11 +138,11 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
 
         if (verbose) {
-            log.noticeWriter.println("===========<ACTIVE FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("===========<ACTIVE FILTERS>================");
             for(String s : getFilterStrings()){
-                log.noticeWriter.print(s + " ");
+                log.getWriter(WriterKind.NOTICE).print(s + " ");
             }
-            log.noticeWriter.println("\n===========</ACTIVE FILTERS>================");
+            log.getWriter(WriterKind.NOTICE).println("\n===========</ACTIVE FILTERS>================");
         }
 
         //
@@ -160,7 +162,7 @@ public class RemoveDuplicatePreconditions extends JmlTreeScanner {
                 JmlMethodClauseExpr clauseExpr = (JmlMethodClauseExpr)clauses.head;
                 
                 // we want to filter out all requires clauses. 
-                if(clauseExpr.token == JmlToken.REQUIRES){
+                if(clauseExpr.token == JmlTokenKind.REQUIRES){
                     addFilterAtBlock(tree, clauseExpr);
                 }
             }

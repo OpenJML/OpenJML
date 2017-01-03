@@ -94,18 +94,18 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableArray4() {
         helpTCF("A.java","public class A { int[] k; boolean b; Object[] o; \n//@ assignable k[true],k[true .. false], k[false ..], k[false .. *];\n void m() {} }"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",18
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",26
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",34
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",44
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",57
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",18
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",26
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",34
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",44
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",57
                 );
     }
 
     @Test
     public void testAssignableArray5() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[b];\n void m(boolean b) {} }"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",18
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",18
                 );
     }
 

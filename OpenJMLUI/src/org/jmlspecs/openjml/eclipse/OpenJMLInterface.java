@@ -48,7 +48,6 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Main.JmlCanceledException;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
-import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 
@@ -58,7 +57,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.TypeTags;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.tree.JCTree;
@@ -278,16 +277,16 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
            try {
                setMonitor(monitor);
                int ret = api.execute(null,args.toArray(new String[args.size()]));
-               if (ret == Main.EXIT_OK) {
+               if (ret == Main.Result.OK.exitCode) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed"); //$NON-NLS-1$
                }
                else if (ret == Main.EXIT_CANCELED) {
             	   throw new Main.JmlCanceledException(Utils.emptyString);
                }
-               else if (ret == Main.EXIT_ERROR) {
+               else if (ret == Main.Result.ERROR.exitCode) {
             	   if (verboseProgress) Log.log(Timer.timer.getTimeString() + " Completed with errors"); //$NON-NLS-1$
                }
-               else if (ret == Main.EXIT_CMDERR) {
+               else if (ret == Main.Result.CMDERR.exitCode) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
@@ -296,7 +295,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                    Log.errorlog("INVALID COMMAND LINE: return code = " + ret + "   Command: " + ss,null);  // FIXME - the reason for the bad command line is lost (it would be an internal error)  //$NON-NLS-1$//$NON-NLS-2$
                    Activator.utils().showMessageInUI(null,"Execution Failure","Invalid commandline - return code is " + ret + Strings.eol + ss);  //$NON-NLS-1$//$NON-NLS-2$
                }
-               else if (ret >= Main.EXIT_SYSERR) {
+               else if (ret >= Main.Result.SYSERR.exitCode) {
                    StringBuilder ss = new StringBuilder();
                    for (String r: args) {
                        ss.append(r);
@@ -467,9 +466,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             	}
                 try {
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
-                    if (ret == Main.EXIT_OK) Log.log(Timer.timer.getTimeString() + " Completed");
-                    else if (ret == Main.EXIT_ERROR) Log.log(Timer.timer.getTimeString() + " Completed with errors");
-                    else if (ret >= Main.EXIT_CMDERR) {
+                    if (ret == Main.Result.OK.exitCode) Log.log(Timer.timer.getTimeString() + " Completed");
+                    else if (ret == Main.Result.ERROR.exitCode) Log.log(Timer.timer.getTimeString() + " Completed with errors");
+                    else if (ret >= Main.Result.CMDERR.exitCode) {
                         StringBuilder ss = new StringBuilder();
                         for (String c: args) {
                             ss.append(c);
@@ -873,7 +872,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
           if (value != null) {
               if (text == null) out = out + value;
               else out = out + "Value " + node.type + " : " + value;
-              if (node.type.tag == TypeTags.CHAR) {
+              if (node.type.getTag() == TypeTag.CHAR) {
                   try {
                       out = out + " ('" + (char)Integer.parseInt(value) + "')"; 
                   } catch (NumberFormatException e) {
@@ -1141,6 +1140,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.COMMAND.optionName() +eq+ cmd);
         }
         {
+            opts.add(JmlOption.STRICT.optionName() +eq+ Options.isOption(Options.strictKey));
             opts.add(JmlOption.PURITYCHECK.optionName() +eq+ !Options.isOption(Options.noCheckPurityKey));
             opts.add(JmlOption.SHOW.optionName() +eq+ Options.isOption(Options.showKey));
         }
@@ -1169,7 +1169,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         opts.add(JmlOption.VERBOSENESS.optionName()+eq+Options.value(Options.verbosityKey));
         
         if (Options.isOption(Options.javaverboseKey)) {
-        	opts.add(com.sun.tools.javac.main.OptionName.VERBOSE.optionName);
+        	opts.add(com.sun.tools.javac.main.Option.VERBOSE.getText());
         }
         
         if (Options.isOption(Options.showNotImplementedKey)) opts.add(JmlOption.SHOW_NOT_IMPLEMENTED.optionName());
@@ -1194,11 +1194,11 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
 
         // The plug-in adds the internal specs (or asks the user for external specs)
         // So, openjml itself never needs to
-        opts.add("-no"+JmlOption.INTERNALSPECS.optionName());
+        opts.add("-no"+JmlOption.INTERNALSPECS.getText());
         opts.add(JmlOption.SPECS.optionName());
         opts.add(PathItem.getAbsolutePath(jproject,Env.specsKey));
 
-        opts.add(com.sun.tools.javac.main.OptionName.SOURCEPATH.optionName); 
+        opts.add(com.sun.tools.javac.main.Option.SOURCEPATH.getText()); 
         opts.add(PathItem.getAbsolutePath(jproject,Env.sourceKey));
 
         

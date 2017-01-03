@@ -24,7 +24,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testInvariant2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ invariant k;\n}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",15);
+                "/A.java:2: incompatible types: int cannot be converted to boolean",15);
     }
 
     /** Tests typechecking an invariant clause - OK from Boolean*/
@@ -57,7 +57,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testConstraint2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ constraint k;\n}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",16);
+                "/A.java:2: incompatible types: int cannot be converted to boolean",16);
     }
 
     /** Tests typechecking an constraint clause - OK from Boolean*/
@@ -75,9 +75,9 @@ public class typeclauses extends TCBase {
     /** Tests typechecking an constraint clause - OK from Boolean*/
     @Test
     public void testConstraint5() {
-        helpTC(" class A { void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
+        helpTC(" class A { public A(){} void m(int i) {} Boolean bb; \n//@ constraint bb for A(), m, m(int), m(Object);\n}"
                 ,"/TEST.java:2: Constructors are not allowed as methods in non-static constraint clauses",23
-                ,"/TEST.java:2: method m in class A cannot be applied to given types;\n  required: int\n  found: java.lang.Object\n  reason: actual argument java.lang.Object cannot be converted to int by method invocation conversion",39
+                ,"/TEST.java: error: incompatible types: java.lang.Object cannot be converted to int",-1 // 39  // FIXME - error in OpenJDK - or find another way to do the match
                 );
     }
 
@@ -172,7 +172,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testConstraintMA5() {
         helpTC(" class A { Boolean bb; \n//@ constraint bb for B.m(java.lang.Integer);\n} class B { void m(Integer i) {} }"
-                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25
+                ,"/TEST.java:2: non-static method m(java.lang.Integer) cannot be referenced from a static context",25  // FIXME - not sure this error is correct
                 ,"/TEST.java:2: The method must be a direct member of the class containing the constraint clause",23
                 );
     }
@@ -187,7 +187,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testAxiom2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ axiom k;\n}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",11);
+                "/A.java:2: incompatible types: int cannot be converted to boolean",11);
     }
 
     /** Tests typechecking an axiom clause - OK from Boolean*/
@@ -206,7 +206,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testInitially2() {
         helpTCF("A.java"," class A { int k; boolean b; Boolean bb; \n//@ initially k;\n}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",15);
+                "/A.java:2: incompatible types: int cannot be converted to boolean",15);
     }
 
     /** Tests typechecking an initially clause - OK from Boolean*/
@@ -233,21 +233,21 @@ public class typeclauses extends TCBase {
     @Test
     public void testRepresents() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i = true;\n}"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",34
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",34
                 );
     }
 
     @Test
     public void testRepresents1() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i <- true;\n}"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",35
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",35
                 );
     }
 
     @Test
     public void testRepresents2() {
         helpTCF("A.java","public class A {\n //@ model int i; represents i \\such_that 0;\n}"
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",43
+                ,"/A.java:2: incompatible types: int cannot be converted to boolean",43
                 );
     }
 
@@ -297,11 +297,10 @@ public class typeclauses extends TCBase {
                 );
     }
     
-    @Test
+    @Test  // FIXME - why is strict on here? isn't the default false
     public void testRepresents9() {
         helpTCF("A.java","public class A {\n //@ model int i; represents x[*] = 0\n}"
-                ,"/A.java:2: illegal start of expression",32
-                ,"/A.java:2: illegal start of expression",33
+                ,"/A.java:2: Strict JML does not allow the [*] syntax",32
                 ,"/A.java:2: The expression is invalid or not terminated by a semicolon",38
                 ,"/A.java:2: cannot find symbol"+eol+"  symbol:   variable x"+eol+"  location: class A",30
                 );
@@ -395,7 +394,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testMisc() {
         helpTCF("A.java","public class A {\n //@ ensures ((boolean)\\result);\n int m() { return 0; }}"
-                ,"/A.java:2: inconvertible types\n  required: boolean\n  found:    int",24
+                ,"/A.java:2: incompatible types: int cannot be converted to boolean",24
         );
     }
     
@@ -428,8 +427,8 @@ public class typeclauses extends TCBase {
     @Test
     public void testForall3() {
         helpTCF("A.java","public class A {\n //@ old int i=true; old boolean m=0; requires i == 0; \n public void m() {}}"
-                ,"/A.java:2: incompatible types\n  required: int\n  found:    boolean",16
-                ,"/A.java:2: incompatible types\n  required: boolean\n  found:    int",36
+                ,"/A.java:2: incompatible types: boolean cannot be converted to int",16
+                ,"/A.java:2: incompatible types: int cannot be converted to boolean",36
                 );
     }
     
@@ -495,7 +494,7 @@ public class typeclauses extends TCBase {
     @Test
     public void testSignals2() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(Object e) true; \n void m(){}}",
-                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.Object",12);
+                "/A.java:2: incompatible types: java.lang.Object cannot be converted to java.lang.Exception",12);
     }
 
     @Test
@@ -513,13 +512,13 @@ public class typeclauses extends TCBase {
     @Test
     public void testSignals5() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(java.io.IOException e) 2; \n void m(){}}",
-                "/A.java:2: incompatible types\n  required: boolean\n  found:    int",35);
+                "/A.java:2: incompatible types: int cannot be converted to boolean",35);
     }
 
     @Test
     public void testSignals6() { //Bad type
         helpTCF("A.java","public class A {\n//@signals(int e) true; \n void m(){}}",
-                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    int",12);
+                "/A.java:2: incompatible types: int cannot be converted to java.lang.Exception",12);
     }
 
     @Test
@@ -575,13 +574,13 @@ public class typeclauses extends TCBase {
     @Test
     public void testSignalsOnly8() {
         helpTCF("A.java","public class A {\n//@signals_only RuntimeException[];\nvoid m() {}}",
-                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    java.lang.RuntimeException[]",33);
+                "/A.java:2: incompatible types: java.lang.RuntimeException[] cannot be converted to java.lang.Exception",33);
     }
 
     @Test
     public void testSignalsOnly9() {
         helpTCF("A.java","public class A {\n//@signals_only int;\nvoid m() {}}",
-                "/A.java:2: incompatible types\n  required: java.lang.Exception\n  found:    int",17);
+                "/A.java:2: incompatible types: int cannot be converted to java.lang.Exception",17);
     }
 
     @Test

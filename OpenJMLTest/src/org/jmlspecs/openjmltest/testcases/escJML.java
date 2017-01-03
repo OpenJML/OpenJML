@@ -53,7 +53,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLint() {
-        main.addOptions("-show","-method=m");
+        //main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"
@@ -91,8 +91,7 @@ public class escJML extends EscBase {
     @Test
     public void testLBLdouble() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(!"cvc4".equals(solver));
-        main.addOptions("-logic=AUFNIRA");
+        main.addOptions("-logic=AUFLIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(double i) { \n"
@@ -106,8 +105,7 @@ public class escJML extends EscBase {
     @Test
     public void testLBLfloat() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(!"cvc4".equals(solver));
-        main.addOptions("-logic=AUFNIRA");
+        main.addOptions("-logic=AUFLIRA");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(float i) { \n"

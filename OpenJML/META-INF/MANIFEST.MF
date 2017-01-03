@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJML
 Bundle-SymbolicName: org.jmlspecs.openjml.OpenJML;singleton:=true
-Bundle-Version: 0.0.0
+Bundle-Version: 0.8.1.1
 Bundle-Vendor: David R. Cok
 Bundle-Localization: plugin
 Require-Bundle: org.jmlspecs.annotation;visibility:=reexport,
- org.eclipse.jdt.annotation;bundle-version="[1.1.0,2.0.0)";resolution:=optional;visibility:=reexport,
+ org.eclipse.jdt.annotation;bundle-version="2.0.0";resolution:=optional;visibility:=reexport,
  org.jmlspecs.openjml.OpenJDK;visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.sun.tools.javac.comp,
@@ -17,11 +17,10 @@ Export-Package: com.sun.tools.javac.comp,
  org.jmlspecs.openjml,
  org.jmlspecs.openjml.esc,
  org.jmlspecs.openjml.ext,
- org.jmlspecs.openjml.jmldoc,
  org.jmlspecs.openjml.proverinterface,
  org.jmlspecs.utils
 Bundle-ClassPath: bin/,
  bin-runtime/
-Import-Package: org.eclipse.core.runtime;version="3.4.0",
- org.jmlspecs.openjml.eclipse,
+Import-Package: com.sun.tools.javac.parser,
+ org.eclipse.core.runtime;version="3.4.0",
  org.osgi.framework

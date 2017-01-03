@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,7 +29,6 @@ package javax.lang.model.type;
 import java.util.List;
 
 import javax.lang.model.element.ExecutableElement;
-
 
 /**
  * Represents the type of an executable.  An <i>executable</i>
@@ -76,6 +75,25 @@ public interface ExecutableType extends TypeMirror {
      *          or an empty list if there are none
      */
     List<? extends TypeMirror> getParameterTypes();
+
+    /**
+     * Returns the receiver type of this executable,
+     * or {@link javax.lang.model.type.NoType NoType} with
+     * kind {@link javax.lang.model.type.TypeKind#NONE NONE}
+     * if the executable has no receiver type.
+     *
+     * An executable which is an instance method, or a constructor of an
+     * inner class, has a receiver type derived from the {@linkplain
+     * ExecutableElement#getEnclosingElement declaring type}.
+     *
+     * An executable which is a static method, or a constructor of a
+     * non-inner class, or an initializer (static or instance), has no
+     * receiver type.
+     *
+     * @return the receiver type of this executable
+     * @since 1.8
+     */
+    TypeMirror getReceiverType();
 
     /**
      * Returns the exceptions and other throwables listed in this

@@ -56,10 +56,12 @@ public class escfilesTrace extends EscBase {
     }
 
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+    	ignoreNotes = true;
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("-esc");
         args.add("-noPurityCheck");
+        args.add("-jmltesting");
         if (new File(sourceDirname).isDirectory()) args.add("-dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);
@@ -69,7 +71,7 @@ public class escfilesTrace extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	Assume.assumeTrue(false);
+ //   	Assert.fail();
     	escOnFiles(sourceDirname,outDir,opts);
     }
 

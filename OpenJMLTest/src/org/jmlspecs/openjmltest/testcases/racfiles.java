@@ -11,7 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjmltest.RacBase;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /** These tests check running RAC on files in the file system, comparing the
@@ -184,7 +186,7 @@ public class racfiles extends RacBase {
     public void racNoModel() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest");
+        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","-racMissingModelFieldRepSource=skip");
     }
 
     @Test
@@ -255,7 +257,7 @@ public class racfiles extends RacBase {
     	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
     			"test/hans",
     			null,
-    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",
+    			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/bin",
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
@@ -270,7 +272,7 @@ public class racfiles extends RacBase {
     	helpTCF("test/racHans2/account",
     			"test/racHans2",
     			"account.AllTests",
-    			"-cp","test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin;test/racHans2",
+    			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/bin"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"

@@ -70,7 +70,7 @@ public class Extensions {
      * @param token the extension token
      * @return an instance of a ExpressionExtension object, or null if unrecoverable error
      */
-    public @Nullable ExpressionExtension find(int pos, JmlToken token) {
+    public @Nullable ExpressionExtension find(int pos, JmlTokenKind token) {
         ExpressionExtension e = extensionInstances.get(token);
         if (e == null) {
             Class<? extends ExpressionExtension> c = extensionClasses.get(token);
@@ -95,8 +95,8 @@ public class Extensions {
     static Class<?>[] extensions = { Elemtype.class, Erasure.class };
 
     /** A map from token type to the extension class that implements the token */
-    static protected Map<JmlToken,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<JmlToken,Class<? extends ExpressionExtension>>();
-    protected Map<JmlToken,ExpressionExtension> extensionInstances = new HashMap<JmlToken,ExpressionExtension>();
+    static protected Map<JmlTokenKind,Class<? extends ExpressionExtension>> extensionClasses = new HashMap<JmlTokenKind,Class<? extends ExpressionExtension>>();
+    protected Map<JmlTokenKind,ExpressionExtension> extensionInstances = new HashMap<JmlTokenKind,ExpressionExtension>();
     
     // This static block runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 
@@ -143,11 +143,11 @@ public class Extensions {
         if (!ExpressionExtension.class.isAssignableFrom(cc)) return false;
         @SuppressWarnings("unchecked")
         Class<? extends ExpressionExtension> c = (Class<? extends ExpressionExtension>)cc;
-        JmlToken[] tokens;
+        JmlTokenKind[] tokens;
         try {
             Method m = c.getMethod("tokens");
-            tokens = (JmlToken[])m.invoke(null);
-            for (JmlToken t: tokens) {
+            tokens = (JmlTokenKind[])m.invoke(null);
+            for (JmlTokenKind t: tokens) {
                 extensionClasses.put(t, c);
             }
         } catch (Exception e) {

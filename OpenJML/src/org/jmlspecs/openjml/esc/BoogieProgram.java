@@ -13,7 +13,7 @@ import java.util.Map;
 
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.JmlPretty;
-import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -227,7 +227,7 @@ public class BoogieProgram extends BasicProgramParent<BoogieProgram.BoogieBlock>
 
         public void visitJmlStatementExpr(JmlStatementExpr that) {
             try { 
-                if (that.token == JmlToken.COMMENT) {
+                if (that.token == JmlTokenKind.COMMENT) {
                     // SKIP
                     //print("// ");
                     //print(((JCLiteral)that.expression).value); // FIXME - can the comment span more than one line?

@@ -1,6 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
 import org.jmlspecs.openjmltest.TCBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class namelookup extends TCBase {
@@ -20,8 +21,8 @@ public class namelookup extends TCBase {
                 "   //@ requires k;\n" +
                 "   void m(double k) {}\n" +
                 "}",
-        "/A.java:3: incompatible types\n  required: boolean\n  found:    double",17,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",18
+        "/A.java:3: incompatible types: double cannot be converted to boolean",17,
+        "/A.java:2: incompatible types: int cannot be converted to boolean",18
         );
     }
 
@@ -38,12 +39,12 @@ public class namelookup extends TCBase {
                 "        //@ assert \\old(d);\n" + 
                 "   }\n" +
                 "}",
-        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",20,
-        "/A.java:6: incompatible types\n  required: boolean\n  found:    double",20,
-        "/A.java:7: incompatible types\n  required: boolean\n  found:    int",24,
-        "/A.java:8: incompatible types\n  required: boolean\n  found:    double",24,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    int",23,
-        "/A.java:2: incompatible types\n  required: boolean\n  found:    float",43
+        "/A.java:4: incompatible types: int cannot be converted to boolean",20,
+        "/A.java:6: incompatible types: double cannot be converted to boolean",20,
+        "/A.java:7: incompatible types: int cannot be converted to boolean",24,
+        "/A.java:8: incompatible types: double cannot be converted to boolean",24,
+        "/A.java:2: incompatible types: int cannot be converted to boolean",23, // FIXME - should these be errors because the k, d in scope does not exist in the pre-state?
+        "/A.java:2: incompatible types: float cannot be converted to boolean",43
         );
     }
 
@@ -53,14 +54,16 @@ public class namelookup extends TCBase {
                 " public class A { int k; Object o; \n" +
                 "   void m() {\n" +
                 "      //@ ghost Object k;\n" +
-                "      boolean b = k == null;\n" +  // ERROR
-                "      //@ assert k == 1;\n" +  // Allowed by boxing
-                "      //@ assert k == null;\n" +
-                "      boolean bb = k == o;\n" +  // Allowed by boxing
+                "      boolean b = k == null;\n" +  // ERROR - k is Java variable with int type
+                "      //@ assert k == 1;\n" + // ERROR - k is Object
+                "      //@ assert k == null;\n" + // OK
+                "      boolean bb = k == o;\n" + // ERROR - k is int
                 "      boolean bbb = k == null;\n" +  // ERROR
                 "   }\n" +
                 "}",
         "/A.java:4: incomparable types: int and <nulltype>",21,
+        "/A.java:5: incomparable types: java.lang.Object and int",20,
+        "/A.java:7: incomparable types: int and java.lang.Object",22,
         "/A.java:8: incomparable types: int and <nulltype>",23);
     }
 
@@ -72,7 +75,6 @@ public class namelookup extends TCBase {
                 "   void m(double k) {}\n" +
                 "}",
         "/A.java:2: variable k is already defined in class A",21
-        ,"/A.java:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
         );
     }
 
@@ -87,7 +89,6 @@ public class namelookup extends TCBase {
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
-        ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",4
         ,"/$A/A.jml:2: This specification declaration of field k has the same name as a previous field declaration",11
         ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:2: ",16
         ,"/$A/A.jml:3: The specification of the method A.m(double) must not have a body",21
@@ -123,7 +124,7 @@ public class namelookup extends TCBase {
                         "   void m(double k) {}\n" +
                         "}"
         ,"/$A/A.jml:2: variable k is already defined in class A",21
-        ,"/$A/A.jml:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
+
         );
     }
 
@@ -133,9 +134,10 @@ public class namelookup extends TCBase {
                 " class A { int k;  \n" +
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
-                "}",
-                "/A.java:2: variable k is already defined in class A",21
-                ,"/A.java:2: The field k in the specification matches a Java field A.k but they have different types: double vs. int",14
+                "}"
+                //,"/A.java:2: This specification declaration of field k has the same name as a previous field declaration", 21
+                //,"/A.java:1: Associated declaration: /A.java:2: ", 16
+                ,"/A.java:2: variable k is already defined in class A",21
                 );
     }
 
@@ -172,7 +174,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",18);
     }
 
     @Test
@@ -186,7 +188,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   variable k\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",18);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",18);
     }
 
     @Test
@@ -200,7 +202,7 @@ public class namelookup extends TCBase {
                 "   }\n" +
                 "}",
         "/A.java:4: cannot find symbol\n  symbol:   method k()\n  location: class A", 20,
-        "/A.java:5: incompatible types\n  required: boolean\n  found:    double",19);
+        "/A.java:5: incompatible types: double cannot be converted to boolean",19);
     }
 
     @Test
@@ -212,9 +214,8 @@ public class namelookup extends TCBase {
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:2: method k() is already defined in class A",21
-        //,"/A.java:2: The return types of method A.k() are different in the specification and java files: double vs. int",14
-        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 21
+		        ,"/A.java:2: method k() is already defined in class A",21
+		        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 21
         );
     }
 
@@ -228,8 +229,8 @@ public class namelookup extends TCBase {
                 "   void m() {\n" +
                 "   }\n" +
                 "}",
-        "/A.java:3: incompatible types\n  required: boolean\n  found:    double", 18,
-        "/A.java:4: incompatible types\n  required: boolean\n  found:    int",18);
+        "/A.java:3: incompatible types: double cannot be converted to boolean", 18,
+        "/A.java:4: incompatible types: int cannot be converted to boolean",18);
     }
 
     @Test
@@ -246,10 +247,10 @@ public class namelookup extends TCBase {
                 "      }\n" +
                 "   }\n" +
                 "}"
-        ,"/A.java:4: incompatible types\n  required: boolean\n  found:    int", 20
-        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int", 24
-        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double", 22
-        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 21
+        ,"/A.java:4: incompatible types: int cannot be converted to boolean", 20
+        ,"/A.java:7: incompatible types: int cannot be converted to boolean", 24
+        ,"/A.java:8: incompatible types: double cannot be converted to boolean", 22
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -264,8 +265,8 @@ public class namelookup extends TCBase {
                 "         //@ assume k(0);\n" +
                 "      }\n" +
                 "}"
-        ,"/A.java:5: incompatible types\n  required: boolean\n  found:    double", 22
-        ,"/A.java:3: incompatible types\n  required: boolean\n  found:    double", 21
+        ,"/A.java:5: incompatible types: double cannot be converted to boolean", 22
+        ,"/A.java:3: incompatible types: double cannot be converted to boolean", 21
         );
     }
 
@@ -285,8 +286,8 @@ public class namelookup extends TCBase {
                 "}\n" +
                 " class B { static int i; }  \n" +
                 ""
-        ,"/A.java:7: incompatible types\n  required: boolean\n  found:    int",24 
-        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double",22
+        ,"/A.java:7: incompatible types: int cannot be converted to boolean",24 
+        ,"/A.java:8: incompatible types: double cannot be converted to boolean",22
         );
     }
  
@@ -307,7 +308,7 @@ public class namelookup extends TCBase {
                 ""
         ,"/A.java:4: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:7: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
-        ,"/A.java:8: incompatible types\n  required: boolean\n  found:    double",22
+        ,"/A.java:8: incompatible types: double cannot be converted to boolean",22
             );
     }
 
@@ -315,7 +316,7 @@ public class namelookup extends TCBase {
     public void testModelClass3() {
         addMockFile("$A/A.jml",
                 "public class A {   \n" +
-                "   static class AA {\n" +
+                "   static class AA { \n" +
                 "      //@ model static class B { static double i; }  \n" +
                 "      B b;\n" +
                 "      //@ ghost B bb;\n" +
@@ -335,25 +336,28 @@ public class namelookup extends TCBase {
         );
         helpTCF("A.java",
                 "public class A {   \n" +
-                "   static class AA {\n" +
-                "      B b;\n" +
+                "   static class AA { \n" +
+                "      B b;\n" + // ERROR - AA.B visible only in specs
                 "      void m() {\n" +
-                "         boolean kk = B.i;\n" +
-                "         //@ assert B.i;\n" +
+                "         boolean kk = B.i;\n" + // ERROR - AA.B visible only in specs
+                "         //@ assert B.i;\n" + // OK, but wrong type
                 "      }\n" +
                 "   }\n" +
-                "}\n" +
-                ""
-       ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
-       ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:16: ",8
+                "}\n"
+
+                // Change in output for Java8
+                ,"/$A/A.jml:16: duplicate class: A",1
+//       ,"/$A/A.jml:16: This specification declaration of type A has the same name as a previous JML type declaration",1
+//       ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:16: ",8
        ,"/$A/A.jml:17: This specification declaration of type B does not match any Java type declaration in /A.java",1
-       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
-       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
+       ,"/$A/A.jml:11: duplicate class: AA",11
+//       ,"/$A/A.jml:11: This specification declaration of type AA has the same name as a previous JML type declaration",11
+//       ,"/$A/A.jml:2: Associated declaration: /$A/A.jml:11: ",11
        ,"/$A/A.jml:13: This specification declaration of type BB does not match any Java type declaration in /A.java",11
-       // FIXME: Would prefer this: ,"/$A/A.jml:13: This specification declaration of type BB in A does not match any Java type declaration.",11
-        ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+       ,"/A.java:3: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
+ //      ,"/$A/A.jml:4: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
         ,"/A.java:5: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
-        ,"/A.java:6: incompatible types\n  required: boolean\n  found:    double",22
+        ,"/A.java:6: incompatible types: double cannot be converted to boolean",22
         );
     }
  
@@ -366,15 +370,23 @@ public class namelookup extends TCBase {
                 "//@ model class B {}\n" +
                 "//@ model class B {}\n" +
                 "/*@ model class C {}*/\n" +
-                "public class D {}"
+                " class D {}"
         );
         helpTCF("A.java",
                 "public class A {   \n" +
                 "}\n" +
                 ""
-        ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",8
-        ,"/$A/A.jml:3: duplicate class: A",11
-        ,"/$A/A.jml:5: duplicate class: B",11
+        // Java 8
+        ,"/$A/A.jml:3: duplicate class: A", 11
+        ,"/$A/A.jml:5: This specification declaration of type B has the same name as a previous JML type declaration", 11
+        ,"/$A/A.jml:4: Associated declaration: /$A/A.jml:5: ",11
+        ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",2
+
+        // Java 7
+//        ,"/$A/A.jml:7: This specification declaration of type D does not match any Java type declaration in /A.java",2
+//        ,"/$A/A.jml:3: This specification declaration of type A has the same name as a previous JML type declaration",11
+//        ,"/$A/A.jml:1: Associated declaration: /$A/A.jml:3: ",8
+//        ,"/$A/A.jml:5: duplicate class: B",11   // FIXME - OpenJML reports wrong location
 
         );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,16 +25,22 @@
 
 package com.sun.tools.doclets.formats.html;
 
-import java.util.*;
 import java.lang.reflect.Modifier;
+import java.util.*;
+
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.markup.*;
 import com.sun.tools.doclets.internal.toolkit.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
 import com.sun.tools.doclets.internal.toolkit.taglets.*;
+import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * The base class for member writers.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Robert Field
  * @author Atul M Dambalkar
@@ -43,15 +49,20 @@ import com.sun.tools.doclets.internal.toolkit.taglets.*;
  */
 public abstract class AbstractMemberWriter {
 
-    protected boolean printedSummaryHeader = false;
+    protected final ConfigurationImpl configuration;
     protected final SubWriterHolderWriter writer;
     protected final ClassDoc classdoc;
+    protected Map<String,Integer> typeMap = new LinkedHashMap<String,Integer>();
+    protected Set<MethodTypes> methodTypes = EnumSet.noneOf(MethodTypes.class);
+    private int methodTypesOr = 0;
     public final boolean nodepr;
 
-    public AbstractMemberWriter(SubWriterHolderWriter writer,
-                             ClassDoc classdoc) {
+    protected boolean printedSummaryHeader = false;
+
+    public AbstractMemberWriter(SubWriterHolderWriter writer, ClassDoc classdoc) {
+        this.configuration = writer.configuration;
         this.writer = writer;
-        this.nodepr = configuration().nodeprecated;
+        this.nodepr = configuration.nodeprecated;
         this.classdoc = classdoc;
     }
 
@@ -80,7 +91,7 @@ public abstract class AbstractMemberWriter {
      *
      * @return a string for the table caption
      */
-    public abstract String getCaption();
+    public abstract Content getCaption();
 
     /**
      * Get the summary table header for the member.
@@ -132,7 +143,7 @@ public abstract class AbstractMemberWriter {
      */
     protected void addSummaryLink(ClassDoc cd, ProgramElementDoc member,
             Content tdSummary) {
-        addSummaryLink(LinkInfoImpl.CONTEXT_MEMBER, cd, member, tdSummary);
+        addSummaryLink(LinkInfoImpl.Kind.MEMBER, cd, member, tdSummary);
     }
 
     /**
@@ -143,7 +154,7 @@ public abstract class AbstractMemberWriter {
      * @param member the member to be documented
      * @param tdSummary the content tree to which the summary link will be added
      */
-    protected abstract void addSummaryLink(int context,
+    protected abstract void addSummaryLink(LinkInfoImpl.Kind context,
             ClassDoc cd, ProgramElementDoc member, Content tdSummary);
 
     /**
@@ -181,32 +192,14 @@ public abstract class AbstractMemberWriter {
      */
     protected abstract void addNavDetailLink(boolean link, Content liNav);
 
-    /***  ***/
-
-    protected void print(String str) {
-        writer.print(str);
-        writer.displayLength += str.length();
-    }
-
-    protected void print(char ch) {
-        writer.print(ch);
-        writer.displayLength++;
-    }
-
-    protected void strong(String str) {
-        writer.strong(str);
-        writer.displayLength += str.length();
-    }
-
     /**
-     * Add the member name to the content tree and modifies the display length.
+     * Add the member name to the content tree.
      *
      * @param name the member name to be added to the content tree.
      * @param htmltree the content tree to which the name will be added.
      */
     protected void addName(String name, Content htmltree) {
         htmltree.addContent(name);
-        writer.displayLength += name.length();
     }
 
     /**
@@ -245,7 +238,14 @@ public abstract class AbstractMemberWriter {
         if ((member.isField() || member.isMethod()) &&
             writer instanceof ClassWriterImpl &&
             ((ClassWriterImpl) writer).getClassDoc().isInterface()) {
-            mod = Util.replaceText(mod, "public", "").trim();
+            // This check for isDefault() and the default modifier needs to be
+            // added for it to appear on the method details section. Once the
+            // default modifier is added to the Modifier list on DocEnv and once
+            // it is updated to use the javax.lang.model.element.Modifier, we
+            // will need to remove this.
+            mod = (member.isMethod() && ((MethodDoc)member).isDefault()) ?
+                    Util.replaceText(mod, "public", "default").trim() :
+                    Util.replaceText(mod, "public", "").trim();
         }
         if(mod.length() > 0) {
             htmltree.addContent(mod);
@@ -257,8 +257,8 @@ public abstract class AbstractMemberWriter {
         if (len <= 0) {
             return "";
         }
-        StringBuffer sb = new StringBuffer(len);
-        for(int i = 0; i < len; i++) {
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
             sb.append(' ');
     }
         return sb.toString();
@@ -285,40 +285,26 @@ public abstract class AbstractMemberWriter {
         } else {
             if (member instanceof ExecutableMemberDoc &&
                     ((ExecutableMemberDoc) member).typeParameters().length > 0) {
+                Content typeParameters = ((AbstractExecutableMemberWriter) this).getTypeParameters(
+                        (ExecutableMemberDoc) member);
+                    code.addContent(typeParameters);
                 //Code to avoid ugly wrapping in member summary table.
-                int displayLength = ((AbstractExecutableMemberWriter) this).addTypeParameters(
-                        (ExecutableMemberDoc) member, code);
-                if (displayLength > 10) {
+                if (typeParameters.charCount() > 10) {
                     code.addContent(new HtmlTree(HtmlTag.BR));
+                } else {
+                    code.addContent(writer.getSpace());
                 }
-                code.addContent(new RawHtml(
-                        writer.getLink(new LinkInfoImpl(
-                        LinkInfoImpl.CONTEXT_SUMMARY_RETURN_TYPE, type))));
+                code.addContent(
+                        writer.getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.SUMMARY_RETURN_TYPE, type)));
             } else {
-                code.addContent(new RawHtml(
-                        writer.getLink(new LinkInfoImpl(
-                        LinkInfoImpl.CONTEXT_SUMMARY_RETURN_TYPE, type))));
+                code.addContent(
+                        writer.getLink(new LinkInfoImpl(configuration,
+                        LinkInfoImpl.Kind.SUMMARY_RETURN_TYPE, type)));
             }
 
         }
         tdSummaryType.addContent(code);
-    }
-
-    protected void printModifier(ProgramElementDoc member) { // DRC - changed from private to protected
-        if (member.isProtected()) {
-            print("protected ");
-        } else if (member.isPrivate()) {
-            print("private ");
-        } else if (!member.isPublic()) { // Package private
-            writer.printText("doclet.Package_private");
-            print(" ");
-        }
-        if (member.isMethod() && ((MethodDoc)member).isAbstract()) {
-            print("abstract ");
-        }
-        if (member.isStatic()) {
-            print("static");
-        }
     }
 
     /**
@@ -333,11 +319,22 @@ public abstract class AbstractMemberWriter {
         } else if (member.isPrivate()) {
             code.addContent("private ");
         } else if (!member.isPublic()) { // Package private
-            code.addContent(configuration().getText("doclet.Package_private"));
+            code.addContent(configuration.getText("doclet.Package_private"));
             code.addContent(" ");
         }
-        if (member.isMethod() && ((MethodDoc)member).isAbstract()) {
-            code.addContent("abstract ");
+        if (member.isMethod()) {
+            if (!(member.containingClass().isInterface()) &&
+                    ((MethodDoc)member).isAbstract()) {
+                code.addContent("abstract ");
+            }
+            // This check for isDefault() and the default modifier needs to be
+            // added for it to appear on the "Modifier and Type" column in the
+            // method summary section. Once the default modifier is added
+            // to the Modifier list on DocEnv and once it is updated to use the
+            // javax.lang.model.element.Modifier, we will need to remove this.
+            if (((MethodDoc)member).isDefault()) {
+                code.addContent("default ");
+            }
         }
         if (member.isStatic()) {
             code.addContent("static ");
@@ -351,10 +348,10 @@ public abstract class AbstractMemberWriter {
      * @param contentTree the content tree to which the deprecated information will be added.
      */
     protected void addDeprecatedInfo(ProgramElementDoc member, Content contentTree) {
-        String output = (new DeprecatedTaglet()).getTagletOutput(member,
-            writer.getTagletWriterInstance(false)).toString().trim();
+        Content output = (new DeprecatedTaglet()).getTagletOutput(member,
+            writer.getTagletWriterInstance(false));
         if (!output.isEmpty()) {
-            Content deprecatedContent = new RawHtml(output);
+            Content deprecatedContent = output;
             Content div = HtmlTree.DIV(HtmlStyle.block, deprecatedContent);
             contentTree.addContent(div);
         }
@@ -364,7 +361,7 @@ public abstract class AbstractMemberWriter {
      * Add the comment for the given member.
      *
      * @param member the member being documented.
-     * @param contentTree the content tree to which the comment will be added.
+     * @param htmltree the content tree to which the comment will be added.
      */
     protected void addComment(ProgramElementDoc member, Content htmltree) {
         if (member.inlineTags().length > 0) {
@@ -383,7 +380,7 @@ public abstract class AbstractMemberWriter {
      * @return a header content for the section.
      */
     protected Content getHead(MemberDoc member) {
-        Content memberContent = new RawHtml(member.name());
+        Content memberContent = new StringContent(member.name());
         Content heading = HtmlTree.HEADING(HtmlConstants.MEMBER_HEADING, memberContent);
         return heading;
     }
@@ -416,8 +413,8 @@ public abstract class AbstractMemberWriter {
     protected void addDeprecatedAPI(List<Doc> deprmembers, String headingKey,
             String tableSummary, String[] tableHeader, Content contentTree) {
         if (deprmembers.size() > 0) {
-            Content table = HtmlTree.TABLE(0, 3, 0, tableSummary,
-                writer.getTableCaption(configuration().getText(headingKey)));
+            Content table = HtmlTree.TABLE(HtmlStyle.deprecatedSummary, 0, 3, 0, tableSummary,
+                writer.getTableCaption(configuration.getResource(headingKey)));
             table.addContent(writer.getSummaryTableHeader(tableHeader, "col"));
             Content tbody = new HtmlTree(HtmlTag.TBODY);
             for (int i = 0; i < deprmembers.size(); i++) {
@@ -449,14 +446,14 @@ public abstract class AbstractMemberWriter {
      * @param contentTree the content tree to which the use information will be added
      */
     protected void addUseInfo(List<? extends ProgramElementDoc> mems,
-            String heading, String tableSummary, Content contentTree) {
+            Content heading, String tableSummary, Content contentTree) {
         if (mems == null) {
             return;
         }
         List<? extends ProgramElementDoc> members = mems;
         boolean printedUseTableHeader = false;
         if (members.size() > 0) {
-            Content table = HtmlTree.TABLE(0, 3, 0, tableSummary,
+            Content table = HtmlTree.TABLE(HtmlStyle.useSummary, 0, 3, 0, tableSummary,
                     writer.getTableCaption(heading));
             Content tbody = new HtmlTree(HtmlTag.TBODY);
             Iterator<? extends ProgramElementDoc> it = members.iterator();
@@ -483,12 +480,12 @@ public abstract class AbstractMemberWriter {
                 if (cd != null && !(pgmdoc instanceof ConstructorDoc)
                         && !(pgmdoc instanceof ClassDoc)) {
                     HtmlTree name = new HtmlTree(HtmlTag.SPAN);
-                    name.addStyle(HtmlStyle.strong);
+                    name.addStyle(HtmlStyle.typeNameLabel);
                     name.addContent(cd.name() + ".");
                     tdLast.addContent(name);
                 }
                 addSummaryLink(pgmdoc instanceof ClassDoc ?
-                    LinkInfoImpl.CONTEXT_CLASS_USE : LinkInfoImpl.CONTEXT_MEMBER,
+                    LinkInfoImpl.Kind.CLASS_USE : LinkInfoImpl.Kind.MEMBER,
                     cd, pgmdoc, tdLast);
                 writer.addSummaryLinkComment(this, pgmdoc, tdLast);
                 tr.addContent(tdLast);
@@ -535,17 +532,13 @@ public abstract class AbstractMemberWriter {
     }
 
     protected void serialWarning(SourcePosition pos, String key, String a1, String a2) {
-        if (configuration().serialwarn) {
-            ConfigurationImpl.getInstance().getDocletSpecificMsg().warning(pos, key, a1, a2);
+        if (configuration.serialwarn) {
+            configuration.getDocletSpecificMsg().warning(pos, key, a1, a2);
         }
     }
 
     public ProgramElementDoc[] eligibleMembers(ProgramElementDoc[] members) {
         return nodepr? Util.excludeDeprecatedMembers(members): members;
-    }
-
-    public ConfigurationImpl configuration() {
-        return writer.configuration;
     }
 
     /**
@@ -554,11 +547,11 @@ public abstract class AbstractMemberWriter {
      * @param classDoc the class that is being documented
      * @param member the member being documented
      * @param firstSentenceTags the first sentence tags to be added to the summary
-     * @param tableTree the content tree to which the documentation will be added
-     * @param counter the counter for determing style for the table row
+     * @param tableContents the list of contents to which the documentation will be added
+     * @param counter the counter for determining id and style for the table row
      */
     public void addMemberSummary(ClassDoc classDoc, ProgramElementDoc member,
-            Tag[] firstSentenceTags, Content tableTree, int counter) {
+            Tag[] firstSentenceTags, List<Content> tableContents, int counter) {
         HtmlTree tdSummaryType = new HtmlTree(HtmlTag.TD);
         tdSummaryType.addStyle(HtmlStyle.colFirst);
         writer.addSummaryType(this, member, tdSummaryType);
@@ -568,11 +561,52 @@ public abstract class AbstractMemberWriter {
         writer.addSummaryLinkComment(this, member, firstSentenceTags, tdSummary);
         HtmlTree tr = HtmlTree.TR(tdSummaryType);
         tr.addContent(tdSummary);
+        if (member instanceof MethodDoc && !member.isAnnotationTypeElement()) {
+            int methodType = (member.isStatic()) ? MethodTypes.STATIC.value() :
+                    MethodTypes.INSTANCE.value();
+            if (member.containingClass().isInterface()) {
+                methodType = (((MethodDoc) member).isAbstract())
+                        ? methodType | MethodTypes.ABSTRACT.value()
+                        : methodType | MethodTypes.DEFAULT.value();
+            } else {
+                methodType = (((MethodDoc) member).isAbstract())
+                        ? methodType | MethodTypes.ABSTRACT.value()
+                        : methodType | MethodTypes.CONCRETE.value();
+            }
+            if (Util.isDeprecated(member) || Util.isDeprecated(classdoc)) {
+                methodType = methodType | MethodTypes.DEPRECATED.value();
+            }
+            methodTypesOr = methodTypesOr | methodType;
+            String tableId = "i" + counter;
+            typeMap.put(tableId, methodType);
+            tr.addAttr(HtmlAttr.ID, tableId);
+        }
         if (counter%2 == 0)
             tr.addStyle(HtmlStyle.altColor);
         else
             tr.addStyle(HtmlStyle.rowColor);
-        tableTree.addContent(tr);
+        tableContents.add(tr);
+    }
+
+    /**
+     * Generate the method types set and return true if the method summary table
+     * needs to show tabs.
+     *
+     * @return true if the table should show tabs
+     */
+    public boolean showTabs() {
+        int value;
+        for (MethodTypes type : EnumSet.allOf(MethodTypes.class)) {
+            value = type.value();
+            if ((value & methodTypesOr) == value) {
+                methodTypes.add(type);
+            }
+        }
+        boolean showTabs = methodTypes.size() > 1;
+        if (showTabs) {
+            methodTypes.add(MethodTypes.ALL);
+        }
+        return showTabs;
     }
 
     /**
@@ -625,10 +659,11 @@ public abstract class AbstractMemberWriter {
      * Get the summary table tree for the given class.
      *
      * @param classDoc the class for which the summary table is generated
+     * @param tableContents list of contents to be displayed in the summary table
      * @return a content tree for the summary table
      */
-    public Content getSummaryTableTree(ClassDoc classDoc) {
-        return writer.getSummaryTableTree(this, classDoc);
+    public Content getSummaryTableTree(ClassDoc classDoc, List<Content> tableContents) {
+        return writer.getSummaryTableTree(this, classDoc, tableContents, showTabs());
     }
 
     /**

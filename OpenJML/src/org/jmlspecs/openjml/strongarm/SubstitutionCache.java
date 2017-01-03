@@ -165,8 +165,9 @@ public class SubstitutionCache {
                 addSubstitutionAtBlock((JCIdent)e.args.head, e, block);
             }
             
-            else{
-                throw new UnsupportedOperationException("Didn't expect tree type of: " + stmt.getClass());
+            
+            else if(expr.label!=Label.CASECONDITION){
+                //throw new UnsupportedOperationException("Didn't expect tree type of: " + stmt.getClass());
             }
             
         }else if(stmt instanceof JmlVariableDecl){

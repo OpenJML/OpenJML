@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testcases;
 
+import static org.junit.Assert.fail;
+
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 

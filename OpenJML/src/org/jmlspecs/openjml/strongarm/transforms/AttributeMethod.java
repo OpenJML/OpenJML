@@ -17,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 
 public class AttributeMethod extends TreeScanner {
@@ -63,13 +64,13 @@ public class AttributeMethod extends TreeScanner {
         
         if(!inMethod){
             if(verbose){
-                log.noticeWriter.println("[AttributeMethod] Found local: " + tree.toString());
+                log.getWriter(WriterKind.NOTICE).println("[AttributeMethod] Found local: " + tree.toString());
             }
             // stash the local
             locals.add(tree.name);
         } else{
             if(verbose){
-                log.noticeWriter.println("[AttributeMethod] Found formal: " + tree.toString());
+                log.getWriter(WriterKind.NOTICE).println("[AttributeMethod] Found formal: " + tree.toString());
             }
             // stash the formal
             formals.add(tree.name);

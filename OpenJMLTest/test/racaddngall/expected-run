@@ -15,11 +15,14 @@ Skipped: constructor Add(2147483647, 2147483647)
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipped: sum()
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipped: x()
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
 Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull

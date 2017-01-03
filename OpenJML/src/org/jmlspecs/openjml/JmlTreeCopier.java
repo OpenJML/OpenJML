@@ -50,7 +50,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     protected JmlTree.Maker M;
     
     /** Creates a new copier, whose new nodes are generated from the given factory*/
-    protected JmlTreeCopier(Context context, JmlTree.Maker maker) {
+    public JmlTreeCopier(Context context, JmlTree.Maker maker) {
         super(maker);
         this.M = maker;
         this.context = context;
@@ -78,6 +78,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return lb;
     }
 
+    /** Deep copy of a list of nodes */
+    public <T extends JCTree> com.sun.tools.javac.util.List<T> copy(@Nullable com.sun.tools.javac.util.List<T> trees, Void p) {
+        if (trees == null)
+            return null;
+        ListBuffer<T> lb = new ListBuffer<T>();
+        for (T tree: trees)
+            lb.append(copy(tree, p));
+        return lb.toList();
+    }
+
 
     
     public void visitTree(JCTree that) {
@@ -91,8 +101,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.sourcefile = that.sourcefile;
         copy.specsCompilationUnit = that == that.specsCompilationUnit ? copy : copy(that.specsCompilationUnit);
         copy.mode = that.mode;
-        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
-        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
+//        copy.parsedTopLevelModelTypes = that.parsedTopLevelModelTypes; // FIXME - copy
+//        copy.specsTopLevelModelTypes = that.specsTopLevelModelTypes;// FIXME - copy
         copy.type = that.type;
         return copy;
     }
@@ -105,9 +115,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
         copy.toplevel = that.toplevel;
-        copy.specsDecls = that.specsDecls;// FIXME - copy
+        copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
-        copy.typeSpecsCombined = that.typeSpecsCombined;// FIXME - copy
         copy.type = that.type;
         return copy;
     }
@@ -143,6 +152,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         r.type = that.type;
         return r;
     }
+    
+    @Override
+    public JCTree visitJmlBlock(JmlBlock that, Void p) {
+        JmlBlock r = M.at(that.pos).Block(that.flags,copy(that.stats));
+        return r;
+    }
+
+
     
     @Override
     public JCTree visitJmlConstraintMethodSig(JmlMethodSig that,

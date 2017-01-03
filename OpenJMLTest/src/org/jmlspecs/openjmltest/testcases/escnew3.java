@@ -21,8 +21,8 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNonNullElements() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
+        Assume.assumeTrue(!"z3_4_3".equals(solver));
+        Assume.assumeTrue(!"cvc4".equals(solver));
         Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -395,8 +395,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast1real() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - cannot retrieve values for this logic
-        main.addOptions("-logic=AUFNIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -407,6 +406,18 @@ public class escnew3 extends EscBase {
                 +"    //@ assert 0 == (double)s;\n}"  
                 +"  }\n"
                                   
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
+                );
+    }
+    
+    @Test
+    public void testCast1realb() {
+        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
+        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
                 +"  //@ modifies \\everything;\n"
                 +"  public void m6() {\n"
                 +"    {/*@ nullable */ Float s = null;\n"
@@ -415,9 +426,7 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                                   
                 +"}"
-                ,"cvc4".equals(solver)? null :
-                    seq("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
-                    ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16)
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16
                 );
     }
     
@@ -461,7 +470,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -476,7 +485,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:5: warning: Associated declaration",10
                 );
     }
@@ -491,7 +500,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -506,7 +515,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",22
                 );
     }
@@ -521,7 +530,7 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  THIS.i",25
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
                 ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
@@ -529,7 +538,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -542,7 +551,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4e() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -555,7 +564,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4a() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true;\n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -568,7 +577,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor4ae() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true; assignable this.*; \n" // default assignable
                 +"  public TestJava() { i = 0; }\n"
@@ -580,8 +589,9 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor5() {
+    	//main.addOptions("-jmldebug");
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable state; \n"
                 +"  public TestJava() { i = 0; }\n"
@@ -594,7 +604,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor5s() {
         helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { //@ public model Object state;\n"
+                +"public class TestJava { //@ public nullable model Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ assignable this.state; \n"
                 +"  public TestJava() { i = 0; }\n"
@@ -745,7 +755,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs3() {
-        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"

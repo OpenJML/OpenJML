@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -43,11 +44,11 @@ public class PropsInSubtree extends JmlTreeScanner{
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         props++;
         
-        if(tree.token==JmlToken.ENSURES){
+        if(tree.token==JmlTokenKind.ENSURES){
             ensures++;
         }
         
-        if(tree.token==JmlToken.ASSIGNABLE){
+        if(tree.token==JmlTokenKind.ASSIGNABLE){
             assignable++;
         }
         

@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.strongarm.transforms;
 import java.util.Set;
 
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
@@ -12,6 +13,7 @@ import org.jmlspecs.openjml.strongarm.translators.SubstitutionEQProverSMT;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 public class RemoveDuplicatePreconditionsSMT extends RemoveDuplicatePreconditions {
 
@@ -49,7 +51,7 @@ public class RemoveDuplicatePreconditionsSMT extends RemoveDuplicatePrecondition
             // will be taken into account. For example, while a > 0 => a == 3 mahy not be generally true, it may be true
             // for the given method. A human would see this and not write it in the preconditions, thus we aim to 
             // filter this sort of thing out. 
-            if(!(clauses.head instanceof JmlMethodClauseExpr) || clauses.head.token != JmlToken.REQUIRES || new SubstitutionEQProverSMT(context).checkImplies(filterSet, (JmlMethodClauseExpr)clauses.head, currentMethod)==false){
+            if(!(clauses.head instanceof JmlMethodClauseExpr) || clauses.head.token != JmlTokenKind.REQUIRES || new SubstitutionEQProverSMT(context).checkImplies(filterSet, (JmlMethodClauseExpr)clauses.head, currentMethod)==false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{
@@ -57,12 +59,12 @@ public class RemoveDuplicatePreconditionsSMT extends RemoveDuplicatePrecondition
                 }
                 
                 if (verbose) {
-                    log.noticeWriter.println("Kept EXPR: " + clauses.head);
+                    log.getWriter(WriterKind.NOTICE).println("Kept EXPR: " + clauses.head);
                 }
                 
             }else{
                 if (verbose) {
-                    log.noticeWriter.println("Filtering EXPR: " + clauses.head);
+                    log.getWriter(WriterKind.NOTICE).println("Filtering EXPR: " + clauses.head);
                 }
             }            
         }

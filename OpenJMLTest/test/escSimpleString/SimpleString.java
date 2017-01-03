@@ -5,10 +5,10 @@
 
 package esc;
 
+
 /**
  * A trivial string class that supports initialization, 
  * concatenation and the substring operation.
- * 
  * @author Daniel M. Zimmerman
  * @author YOUR NAME HERE
  * @version 2013-11-04
@@ -24,10 +24,10 @@ public class SimpleString {
   /**
    * The character data of this SimpleString.
    */
-    private /*@ spec_public */ char[] my_chars;  
-    private /*@ spec_public */ int[] my_ints;  
-    private /*@ spec_public */ Object[] my_Objects;  
-    private /*@ spec_public */ Integer[] my_Integers;  
+    private /*@ spec_public nullable */ char[] my_chars;  
+    private /*@ spec_public nullable */ int[] my_ints;
+    private /*@ spec_public nullable */ Object[] my_Objects;  
+    private /*@ spec_public nullable */ Integer[] my_Integers;  
   
   // Constructors
   
@@ -41,17 +41,6 @@ public class SimpleString {
     public SimpleString(final /*@ non_null */ char[] the_array) {
         // @ assert the_array != null;
         my_chars = new char[the_array.length];
-        // @ assert the_array != null;
-        // @ assert my_chars != null;
-        // @ assert my_chars.length == the_array.length;
-        // @ assert (\typeof(the_array)) == \type(char[]);
-        // @ assert (\typeof(my_chars)) == \type(char[]);
-        // @ assert \erasure(\typeof(my_chars)) == \erasure(\type(char[]));
-        // @ assert \elemtype(\typeof(the_array)) == \type(char);
-        // @ assert \elemtype(\typeof(my_chars)) == \type(char);
-        // @ assert my_chars instanceof char[];
-        // @ assert the_array instanceof char[];
-        // @ assert true;
         System.arraycopy(the_array, 0, my_chars, 0, the_array.length);
     }
 

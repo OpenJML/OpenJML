@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,87 +29,88 @@ import java.io.*;
 import com.sun.javadoc.*;
 
 /**
- * The interface for writing field output.
+ * The interface for writing property output.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @author Bhavesh Patel (Modified)
- * @since 1.5
+ * @since 1.7
  */
 
 public interface PropertyWriter {
 
     /**
-     * Get the field details tree header.
+     * Get the property details tree header.
      *
      * @param classDoc the class being documented
      * @param memberDetailsTree the content tree representing member details
-     * @return content tree for the field details header
+     * @return content tree for the property details header
      */
-    public Content getFieldDetailsTreeHeader(ClassDoc classDoc,
+    public Content getPropertyDetailsTreeHeader(ClassDoc classDoc,
             Content memberDetailsTree);
 
     /**
-     * Get the field documentation tree header.
+     * Get the property documentation tree header.
      *
-     * @param field the constructor being documented
-     * @param fieldDetailsTree the content tree representing field details
-     * @return content tree for the field documentation header
+     * @param property the property being documented
+     * @param propertyDetailsTree the content tree representing property details
+     * @return content tree for the property documentation header
      */
-    public Content getFieldDocTreeHeader(MethodDoc field,
-            Content fieldDetailsTree);
+    public Content getPropertyDocTreeHeader(MethodDoc property,
+            Content propertyDetailsTree);
 
     /**
-     * Get the signature for the given field.
+     * Get the signature for the given property.
      *
-     * @param field the field being documented
-     * @return content tree for the field signature
+     * @param property the property being documented
+     * @return content tree for the property signature
      */
-    public Content getSignature(MethodDoc field);
+    public Content getSignature(MethodDoc property);
 
     /**
-     * Add the deprecated output for the given field.
+     * Add the deprecated output for the given property.
      *
-     * @param field the field being documented
-     * @param fieldDocTree content tree to which the deprecated information will be added
+     * @param property the property being documented
+     * @param propertyDocTree content tree to which the deprecated information will be added
      */
-    public void addDeprecated(MethodDoc field, Content fieldDocTree);
+    public void addDeprecated(MethodDoc property, Content propertyDocTree);
 
     /**
-     * Add the comments for the given field.
+     * Add the comments for the given property.
      *
-     * @param field the field being documented
-     * @param fieldDocTree the content tree to which the comments will be added
+     * @param property the property being documented
+     * @param propertyDocTree the content tree to which the comments will be added
      */
-    public void addComments(MethodDoc field, Content fieldDocTree);
+    public void addComments(MethodDoc property, Content propertyDocTree);
 
     /**
-     * Add the tags for the given field.
+     * Add the tags for the given property.
      *
-     * @param field the field being documented
-     * @param fieldDocTree the content tree to which the tags will be added
+     * @param property the property being documented
+     * @param propertyDocTree the content tree to which the tags will be added
      */
-    public void addTags(MethodDoc field, Content fieldDocTree);
+    public void addTags(MethodDoc property, Content propertyDocTree);
 
     /**
-     * Get the field details tree.
+     * Get the property details tree.
      *
      * @param memberDetailsTree the content tree representing member details
-     * @return content tree for the field details
+     * @return content tree for the property details
      */
-    public Content getFieldDetails(Content memberDetailsTree);
+    public Content getPropertyDetails(Content memberDetailsTree);
 
     /**
-     * Get the field documentation.
+     * Get the property documentation.
      *
-     * @param fieldDocTree the content tree representing field documentation
+     * @param propertyDocTree the content tree representing property documentation
      * @param isLastContent true if the content to be added is the last content
-     * @return content tree for the field documentation
+     * @return content tree for the property documentation
      */
-    public Content getFieldDoc(Content fieldDocTree, boolean isLastContent);
+    public Content getPropertyDoc(Content propertyDocTree, boolean isLastContent);
 
     /**
      * Close the writer.

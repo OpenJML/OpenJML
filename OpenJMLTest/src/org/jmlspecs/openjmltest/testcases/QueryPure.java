@@ -82,7 +82,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure //@ pure\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: duplicate annotation",11
+                ,"/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",11 // Changed location in Java8
         );
     }
 
@@ -92,7 +92,7 @@ public class QueryPure extends TCBase {
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Query //@ query\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: duplicate annotation",12
+                ,"/A.java:2: org.jmlspecs.annotation.Query is not a repeatable annotation type",12 // CHanged location in Java8
         );
     }
 
@@ -184,7 +184,7 @@ public class QueryPure extends TCBase {
                 "  @Query //@ query\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
-                ,"/A.java:3: duplicate annotation",14
+                ,"/A.java:3: org.jmlspecs.annotation.Query is not a repeatable annotation type",14
         );
     }
 
@@ -196,7 +196,7 @@ public class QueryPure extends TCBase {
                 "  @Pure //@ pure\n" +  // BAD
                 "  public void v() {}" +
                 "} \n"
-                ,"/A.java:3: duplicate annotation",13
+                ,"/A.java:3: org.jmlspecs.annotation.Pure is not a repeatable annotation type",13
         );
     }
 
@@ -292,6 +292,7 @@ public class QueryPure extends TCBase {
                 "  //@ secret model Integer cache = null; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
+                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache",28
                 ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value",27
         );
     }
@@ -301,13 +302,12 @@ public class QueryPure extends TCBase {
         helpTCF("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + // ERROR - value not found (implicitly defined by the Query) TODO - perhaps relax this restriction
+                "  @Secret Integer cache = null; //@ in value; \n" +
                 "  @Pure public int compute() { return 0; }\n" +
                 "  //@ ensures \\result == compute();\n" + 
                 "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
                 "  public int use() { return value(); }\n" +
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",40
         );
     }
 
@@ -433,9 +433,7 @@ public class QueryPure extends TCBase {
         );
     }
 
-    // TODO - fix use of forward references in 'in' and 'maps' clauses
-    
-    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 fails because it is 
+    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 used to fail because it is 
     // processed before the datagroup 'value' is created
     @Test
     public void testQuery8() {
@@ -451,7 +449,24 @@ public class QueryPure extends TCBase {
                 "  @Secret public Integer cache = null; //@ in value; \n" + 
                 "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
                 "} \n"
-                ,"/A.java:3: cannot find symbol\n  symbol:   variable value\n  location: class A",35 
+        );
+    }
+
+    @Test
+    public void testQuery8c() {
+        helpTCF("A.java",
+                "import org.jmlspecs.annotation.*;\n" +
+                "public class A { \n" +
+                "  @Secret public int q = 5; //@ in o;\n" +
+                "  @Pure public int compute() { return 0; }\n" +
+                "  //@ ensures \\result == compute();\n" +
+                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
+                "  public int use() { return value(); }\n" +
+                "  int f;\n" +
+                "  @Secret public Integer cache = null; //@ in value; \n" + 
+                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
+                "  //@ @Secret public model Object o; in value; \n " +
+                "} \n"
         );
     }
 
@@ -514,7 +529,7 @@ public class QueryPure extends TCBase {
                 "  //@ @Secret(\"v\") public invariant true;\n" + // ERROR - not found
                 "} \n"
                 ,"/A.java:11: A secret annotation on an invariant must have exactly one argument",22
-                ,"/A.java:12: incompatible types\n  required: java.lang.String\n  found:    int",15
+                ,"/A.java:12: incompatible types: int cannot be converted to java.lang.String",15
                 ,"/A.java:13: cannot find symbol\n  symbol:   variable org\n  location: class A",15
                 ,"/A.java:14: annotation values must be of the form 'name=value'",15
                 ,"/A.java:14: annotation values must be of the form 'name=value'",23

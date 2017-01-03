@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -61,7 +61,12 @@ import javax.lang.model.util.*;
  */
 public interface TypeElement extends Element, Parameterizable, QualifiedNameable {
     /**
-     * {@inheritDoc}
+     * Returns the fields, methods, constructors, and member types
+     * that are directly declared in this class or interface.
+     *
+     * This includes any (implicit) default constructor and
+     * the implicit {@code values} and {@code valueOf} methods of an
+     * enum type.
      *
      * <p> Note that as a particular instance of the {@linkplain
      * javax.lang.model.element general accuracy requirements} and the
@@ -75,6 +80,7 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      *
      * @return the enclosed elements in proper order, or an empty list if none
      */
+    @Override
     List<? extends Element> getEnclosedElements();
 
     /**
@@ -104,7 +110,6 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      * @jls 6.7 Fully Qualified Names and Canonical Names
      */
     Name getQualifiedName();
-
 
     /**
      * Returns the simple name of this type element.
@@ -145,7 +150,6 @@ public interface TypeElement extends Element, Parameterizable, QualifiedNameable
      * if there are none
      */
     List<? extends TypeParameterElement> getTypeParameters();
-
 
     /**
      * Returns the package of a top-level type and returns the

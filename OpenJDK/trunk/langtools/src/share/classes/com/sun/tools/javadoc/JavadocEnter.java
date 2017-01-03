@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,18 +25,25 @@
 
 package com.sun.tools.javadoc;
 
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.List;
+import javax.tools.JavaFileObject;
+
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.comp.Enter;
 import com.sun.tools.javac.tree.JCTree.*;
-import javax.tools.JavaFileObject;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.List;
 
 /**
  *  Javadoc's own enter phase does a few things above and beyond that
  *  done by javac.
+ *
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
+ *
  *  @author Neal Gafter
  */
 public class JavadocEnter extends Enter {
@@ -77,8 +84,7 @@ public class JavadocEnter extends Enter {
     public void visitTopLevel(JCCompilationUnit tree) {
         super.visitTopLevel(tree);
         if (tree.sourcefile.isNameCompatible("package-info", JavaFileObject.Kind.SOURCE)) {
-            String comment = tree.docComments.get(tree);
-            docenv.makePackageDoc(tree.packge, comment, tree);
+            docenv.makePackageDoc(tree.packge, docenv.getTreePath(tree));
         }
     }
 
@@ -87,9 +93,8 @@ public class JavadocEnter extends Enter {
         super.visitClassDef(tree);
         if (tree.sym == null) return;
         if (tree.sym.kind == Kinds.TYP || tree.sym.kind == Kinds.ERR) {
-            String comment = env.toplevel.docComments.get(tree);
             ClassSymbol c = tree.sym;
-            docenv.makeClassDoc(c, comment, tree, env.toplevel.lineMap);
+            docenv.makeClassDoc(c, docenv.getTreePath(env.toplevel, tree));
         }
     }
 

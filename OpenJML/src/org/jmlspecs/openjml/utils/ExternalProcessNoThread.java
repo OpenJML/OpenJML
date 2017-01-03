@@ -18,6 +18,7 @@ import org.jmlspecs.openjml.proverinterface.ProverException;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 public class ExternalProcessNoThread implements IExternalProcess {
 
@@ -68,7 +69,7 @@ public class ExternalProcessNoThread implements IExternalProcess {
             throw new ProverException("No path to the executable found; specify it using -Dopenjml.prover.cvc3");
         } else {
             java.io.File f = new java.io.File(app[0]);
-            if (!f.exists()) log.noticeWriter.println("Does not appear to exist: " + app()[0]);
+            if (!f.exists()) log.getWriter(WriterKind.NOTICE).println("Does not appear to exist: " + app()[0]);
             //if (!f.exists()) throw new ProverException("The specified executable does not appear to exist: " + app[0]);
         }
         try {
@@ -97,8 +98,8 @@ public class ExternalProcessNoThread implements IExternalProcess {
      */
     public void send(String s) throws ProverException {
         if (showCommunication >= 2) {
-            log.noticeWriter.print("SENDING ["+s.length()+ "]" + s); // ss has a newline so we only use print here
-            log.noticeWriter.flush();
+            log.getWriter(WriterKind.NOTICE).print("SENDING ["+s.length()+ "]" + s); // ss has a newline so we only use print here
+            log.getWriter(WriterKind.NOTICE).flush();
         }
         try {
             // The number 2000 here is arbitrary - it is just a significant
@@ -155,13 +156,13 @@ public class ExternalProcessNoThread implements IExternalProcess {
 //                    offset += n;
 //                }
 //                if (offset > 0) {
-//                    log.noticeWriter.println("ERROR: " + String.valueOf(cbuf,0,offset));
+//                    log.getWriter(WriterKind.NOTICE).println("ERROR: " + String.valueOf(cbuf,0,offset));
 //                }
 //                int truncated = 0;
 //                while (true) { // There is always a prompt to read, so it is OK to block
 //                        // until it is read.  That gives the prover process time to
 //                        // do its processing.
-//                    //log.noticeWriter.println(" ... LISTENING");
+//                    //log.getWriter(WriterKind.NOTICE).println(" ... LISTENING");
 //                    int n = fromProver.read(cbuf,offset,cbuf.length-offset);
 //                    if (n < 0) {
 //                        int off = 0;
@@ -172,7 +173,7 @@ public class ExternalProcessNoThread implements IExternalProcess {
 //                            off += nn;
 //                        }
 //                        String serr = String.valueOf(cbuf,0,off);
-//                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
+//                        if (!serr.startsWith("searching")) log.getWriter(WriterKind.NOTICE).println("ERROR STREAM ON DEATH: " + serr);
 //                        throw new ProverException("Prover died");
 //                    }
 //                    offset += n;
@@ -184,13 +185,13 @@ public class ExternalProcessNoThread implements IExternalProcess {
 //                            truncated += offset;
 //                        } else {
 //                            s = s + String.valueOf(cbuf,0,offset);
-//                            log.noticeWriter.println("BUFFER FULL " + s.length());
+//                            log.getWriter(WriterKind.NOTICE).println("BUFFER FULL " + s.length());
 //                        }
 //                        offset = 0;
 //                    }
 //                }
 //                if (truncated > 0) {
-//                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + truncated);
+//                    log.getWriter(WriterKind.NOTICE).println("OUTPUT LENGTH " + s.length() + truncated);
 //                    throw new ProverException("Excessive output: " + s.length() + truncated);
 //                }
 //                s = s + String.valueOf(cbuf,0,offset);
@@ -207,14 +208,14 @@ public class ExternalProcessNoThread implements IExternalProcess {
 //                        if (!errorString.startsWith("\nWARNING") &&
 //                                !errorString.startsWith("CVC3 (version") &&
 //                                !errorString.startsWith("searching")) {
-//                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+//                            if (showCommunication >= 1) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
 //                            throw new ProverException("Prover error message: " + errorString);
 //                        } else {
-//                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+//                            if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
 //                        }
 //                    }
 //                }
-//                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+//                if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD: " + s);
 //                return s;
 //            } else {
                 // In non-interactive mode, there may be no input at all
@@ -254,14 +255,14 @@ public class ExternalProcessNoThread implements IExternalProcess {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("CVC3 (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) Log.instance(context).noticeWriter.println("HEARD: " + s);
+                if (showCommunication >= 3) Log.instance(context).getWriter(WriterKind.NOTICE).println("HEARD: " + s);
 //            }
         } catch (IOException e) {
             throw new ProverException("IO Error on reading from prover: " + e);
@@ -288,13 +289,13 @@ public class ExternalProcessNoThread implements IExternalProcess {
                     offset += n;
                 }
                 if (offset > 0) {
-                    log.noticeWriter.println("ERROR: " + String.valueOf(cbuf,0,offset));
+                    log.getWriter(WriterKind.NOTICE).println("ERROR: " + String.valueOf(cbuf,0,offset));
                 }
                 int truncated = 0;
                 while (true) { // There is always a prompt to read, so it is OK to block
                         // until it is read.  That gives the prover process time to
                         // do its processing.
-                    //log.noticeWriter.println(" ... LISTENING");
+                    //log.getWriter(WriterKind.NOTICE).println(" ... LISTENING");
                     int n = fromProver.read(cbuf,offset,cbuf.length-offset);
                     if (n < 0) {
                         int off = 0;
@@ -305,7 +306,7 @@ public class ExternalProcessNoThread implements IExternalProcess {
                             off += nn;
                         }
                         String serr = String.valueOf(cbuf,0,off);
-                        if (!serr.startsWith("searching")) log.noticeWriter.println("ERROR STREAM ON DEATH: " + serr);
+                        if (!serr.startsWith("searching")) log.getWriter(WriterKind.NOTICE).println("ERROR STREAM ON DEATH: " + serr);
                         throw new ProverException("Prover died");
                     }
                     offset += n;
@@ -317,13 +318,13 @@ public class ExternalProcessNoThread implements IExternalProcess {
                             truncated += offset;
                         } else {
                             s = s + String.valueOf(cbuf,0,offset);
-                            log.noticeWriter.println("BUFFER FULL " + s.length());
+                            log.getWriter(WriterKind.NOTICE).println("BUFFER FULL " + s.length());
                         }
                         offset = 0;
                     }
                 }
                 if (truncated > 0) {
-                    log.noticeWriter.println("OUTPUT LENGTH " + s.length() + truncated);
+                    log.getWriter(WriterKind.NOTICE).println("OUTPUT LENGTH " + s.length() + truncated);
                     throw new ProverException("Excessive output: " + s.length() + truncated);
                 }
                 s = s + String.valueOf(cbuf,0,offset);
@@ -340,14 +341,14 @@ public class ExternalProcessNoThread implements IExternalProcess {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("CVC3 (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) log.noticeWriter.println("HEARD: " + s);
+                if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD: " + s);
                 return s;
             } else {
                 // In non-interactive mode, there may be no input at all
@@ -387,14 +388,14 @@ public class ExternalProcessNoThread implements IExternalProcess {
                         if (!errorString.startsWith("\nWARNING") &&
                                 !errorString.startsWith("CVC3 (version") &&
                                 !errorString.startsWith("searching")) {
-                            if (showCommunication >= 1) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 1) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                             throw new ProverException("Prover error message: " + errorString);
                         } else {
-                            if (showCommunication >= 3) log.noticeWriter.println("HEARD ERROR: " + errorString);
+                            if (showCommunication >= 3) log.getWriter(WriterKind.NOTICE).println("HEARD ERROR: " + errorString);
                         }
                     }
                 }
-                if (showCommunication >= 3) Log.instance(context).noticeWriter.println("HEARD: " + s);
+                if (showCommunication >= 3) Log.instance(context).getWriter(WriterKind.NOTICE).println("HEARD: " + s);
                 return s;
             }
         } catch (IOException e) {

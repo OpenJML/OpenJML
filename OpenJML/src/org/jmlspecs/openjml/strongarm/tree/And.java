@@ -66,7 +66,7 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
     }
     
     public JCExpression toTree(JmlTreeUtils treeutils){
-        return treeutils.makeBinary(0, JCTree.AND, p1.toTree(treeutils), p2.toTree(treeutils));
+        return treeutils.makeBinary(0, JCTree.Tag.AND, p1.toTree(treeutils), p2.toTree(treeutils));
     }
     
 }

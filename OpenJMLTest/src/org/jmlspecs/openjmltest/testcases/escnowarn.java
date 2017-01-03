@@ -159,6 +159,8 @@ public class escnowarn extends EscBase {
                 +"  }\n"
                 
                 +"}"
+                // Change (improvement) in output for Java8
+                //,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Initially) in method TestJava",21
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Initially) in method TestJava",13
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );

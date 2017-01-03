@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,86 +26,87 @@
 package com.sun.tools.doclets.internal.toolkit.builders;
 
 import java.util.*;
+
 import com.sun.tools.doclets.internal.toolkit.util.*;
 import com.sun.tools.doclets.internal.toolkit.*;
 import com.sun.javadoc.*;
 
 /**
- * Builds documentation for a field.
+ * Builds documentation for a property.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @author Bhavesh Patel (Modified)
- * @since 1.5
+ * @since 1.7
  */
 public class PropertyBuilder extends AbstractMemberBuilder {
 
     /**
-     * The class whose fields are being documented.
+     * The class whose properties are being documented.
      */
-    private ClassDoc classDoc;
+    private final ClassDoc classDoc;
 
     /**
-     * The visible fields for the given class.
+     * The visible properties for the given class.
      */
-    private VisibleMemberMap visibleMemberMap;
+    private final VisibleMemberMap visibleMemberMap;
 
     /**
-     * The writer to output the field documentation.
+     * The writer to output the property documentation.
      */
-    private PropertyWriter writer;
+    private final PropertyWriter writer;
 
     /**
-     * The list of fields being documented.
+     * The list of properties being documented.
      */
-    private List<ProgramElementDoc> fields;
+    private final List<ProgramElementDoc> properties;
 
     /**
-     * The index of the current field that is being documented at this point
+     * The index of the current property that is being documented at this point
      * in time.
      */
-    private int currentFieldIndex;
+    private int currentPropertyIndex;
 
     /**
-     * Construct a new FieldBuilder.
+     * Construct a new PropertyBuilder.
      *
-     * @param configuration the current configuration of the
-     *                      doclet.
-     */
-    private PropertyBuilder(Configuration configuration) {
-        super(configuration);
-    }
-
-    /**
-     * Construct a new FieldBuilder.
-     *
-     * @param configuration the current configuration of the doclet.
+     * @param context  the build context.
      * @param classDoc the class whoses members are being documented.
      * @param writer the doclet specific writer.
      */
-    public static PropertyBuilder getInstance(
-            Configuration configuration,
+    private PropertyBuilder(Context context,
             ClassDoc classDoc,
             PropertyWriter writer) {
-        PropertyBuilder builder = new PropertyBuilder(configuration);
-        builder.classDoc = classDoc;
-        builder.writer = writer;
-        builder.visibleMemberMap =
+        super(context);
+        this.classDoc = classDoc;
+        this.writer = writer;
+        visibleMemberMap =
                 new VisibleMemberMap(
                 classDoc,
                 VisibleMemberMap.PROPERTIES,
-                configuration.nodeprecated);
-        builder.fields = new ArrayList<ProgramElementDoc>(
-                              builder.visibleMemberMap.getMembersFor(classDoc));
+                configuration);
+        properties =
+                new ArrayList<ProgramElementDoc>(visibleMemberMap.getMembersFor(classDoc));
         if (configuration.getMemberComparator() != null) {
-            Collections.sort(
-                    builder.fields,
-                    configuration.getMemberComparator());
+            Collections.sort(properties, configuration.getMemberComparator());
         }
-        return builder;
+    }
+
+    /**
+     * Construct a new PropertyBuilder.
+     *
+     * @param context  the build context.
+     * @param classDoc the class whoses members are being documented.
+     * @param writer the doclet specific writer.
+     */
+    public static PropertyBuilder getInstance(Context context,
+            ClassDoc classDoc,
+            PropertyWriter writer) {
+        return new PropertyBuilder(context, classDoc, writer);
     }
 
     /**
@@ -116,21 +117,21 @@ public class PropertyBuilder extends AbstractMemberBuilder {
     }
 
     /**
-     * Returns a list of fields that will be documented for the given class.
+     * Returns a list of properties that will be documented for the given class.
      * This information can be used for doclet specific documentation
      * generation.
      *
      * @param classDoc the {@link ClassDoc} we want to check.
-     * @return a list of fields that will be documented.
+     * @return a list of properties that will be documented.
      */
     public List<ProgramElementDoc> members(ClassDoc classDoc) {
         return visibleMemberMap.getMembersFor(classDoc);
     }
 
     /**
-     * Returns the visible member map for the fields of this class.
+     * Returns the visible member map for the properties of this class.
      *
-     * @return the visible member map for the fields of this class.
+     * @return the visible member map for the properties of this class.
      */
     public VisibleMemberMap getVisibleMemberMap() {
         return visibleMemberMap;
@@ -140,11 +141,11 @@ public class PropertyBuilder extends AbstractMemberBuilder {
      * summaryOrder.size()
      */
     public boolean hasMembersToDocument() {
-        return fields.size() > 0;
+        return properties.size() > 0;
     }
 
     /**
-     * Build the field documentation.
+     * Build the property documentation.
      *
      * @param node the XML element that specifies which components to document
      * @param memberDetailsTree the content tree to which the documentation will be added
@@ -153,21 +154,21 @@ public class PropertyBuilder extends AbstractMemberBuilder {
         if (writer == null) {
             return;
         }
-        int size = fields.size();
+        int size = properties.size();
         if (size > 0) {
-            Content fieldDetailsTree = writer.getFieldDetailsTreeHeader(
+            Content propertyDetailsTree = writer.getPropertyDetailsTreeHeader(
                     classDoc, memberDetailsTree);
-            for (currentFieldIndex = 0; currentFieldIndex < size;
-                    currentFieldIndex++) {
-                Content fieldDocTree = writer.getFieldDocTreeHeader(
-                        (MethodDoc) fields.get(currentFieldIndex),
-                        fieldDetailsTree);
-                buildChildren(node, fieldDocTree);
-                fieldDetailsTree.addContent(writer.getFieldDoc(
-                        fieldDocTree, (currentFieldIndex == size - 1)));
+            for (currentPropertyIndex = 0; currentPropertyIndex < size;
+                    currentPropertyIndex++) {
+                Content propertyDocTree = writer.getPropertyDocTreeHeader(
+                        (MethodDoc) properties.get(currentPropertyIndex),
+                        propertyDetailsTree);
+                buildChildren(node, propertyDocTree);
+                propertyDetailsTree.addContent(writer.getPropertyDoc(
+                        propertyDocTree, (currentPropertyIndex == size - 1)));
             }
             memberDetailsTree.addContent(
-                    writer.getFieldDetails(fieldDetailsTree));
+                    writer.getPropertyDetails(propertyDetailsTree));
         }
     }
 
@@ -175,34 +176,34 @@ public class PropertyBuilder extends AbstractMemberBuilder {
      * Build the signature.
      *
      * @param node the XML element that specifies which components to document
-     * @param fieldDocTree the content tree to which the documentation will be added
+     * @param propertyDocTree the content tree to which the documentation will be added
      */
-    public void buildSignature(XMLNode node, Content fieldDocTree) {
-        fieldDocTree.addContent(
-                writer.getSignature((MethodDoc) fields.get(currentFieldIndex)));
+    public void buildSignature(XMLNode node, Content propertyDocTree) {
+        propertyDocTree.addContent(
+                writer.getSignature((MethodDoc) properties.get(currentPropertyIndex)));
     }
 
     /**
      * Build the deprecation information.
      *
      * @param node the XML element that specifies which components to document
-     * @param fieldDocTree the content tree to which the documentation will be added
+     * @param propertyDocTree the content tree to which the documentation will be added
      */
-    public void buildDeprecationInfo(XMLNode node, Content fieldDocTree) {
+    public void buildDeprecationInfo(XMLNode node, Content propertyDocTree) {
         writer.addDeprecated(
-                (MethodDoc) fields.get(currentFieldIndex), fieldDocTree);
+                (MethodDoc) properties.get(currentPropertyIndex), propertyDocTree);
     }
 
     /**
-     * Build the comments for the field.  Do nothing if
+     * Build the comments for the property.  Do nothing if
      * {@link Configuration#nocomment} is set to true.
      *
      * @param node the XML element that specifies which components to document
-     * @param fieldDocTree the content tree to which the documentation will be added
+     * @param propertyDocTree the content tree to which the documentation will be added
      */
-    public void buildPropertyComments(XMLNode node, Content fieldDocTree) {
+    public void buildPropertyComments(XMLNode node, Content propertyDocTree) {
         if (!configuration.nocomment) {
-            writer.addComments((MethodDoc) fields.get(currentFieldIndex), fieldDocTree);
+            writer.addComments((MethodDoc) properties.get(currentPropertyIndex), propertyDocTree);
         }
     }
 
@@ -210,16 +211,16 @@ public class PropertyBuilder extends AbstractMemberBuilder {
      * Build the tag information.
      *
      * @param node the XML element that specifies which components to document
-     * @param fieldDocTree the content tree to which the documentation will be added
+     * @param propertyDocTree the content tree to which the documentation will be added
      */
-    public void buildTagInfo(XMLNode node, Content fieldDocTree) {
-        writer.addTags((MethodDoc) fields.get(currentFieldIndex), fieldDocTree);
+    public void buildTagInfo(XMLNode node, Content propertyDocTree) {
+        writer.addTags((MethodDoc) properties.get(currentPropertyIndex), propertyDocTree);
     }
 
     /**
-     * Return the field writer for this builder.
+     * Return the property writer for this builder.
      *
-     * @return the field writer for this builder.
+     * @return the property writer for this builder.
      */
     public PropertyWriter getWriter() {
         return writer;

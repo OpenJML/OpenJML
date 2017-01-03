@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,17 +26,19 @@
 package com.sun.tools.doclets.internal.toolkit.builders;
 
 import java.util.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
-import com.sun.tools.doclets.internal.toolkit.*;
-import com.sun.javadoc.*;
 import java.text.MessageFormat;
+
+import com.sun.javadoc.*;
+import com.sun.tools.doclets.internal.toolkit.*;
+import com.sun.tools.doclets.internal.toolkit.util.*;
 
 /**
  * Builds the member summary.
  *
- * This code is not part of an API.
- * It is implementation that is subject to change.
- * Do not use it as an API
+ *  <p><b>This is NOT part of any supported API.
+ *  If you write code that depends on this, you do so at your own risk.
+ *  This code and its internal interfaces are subject to change or
+ *  deletion without notice.</b>
  *
  * @author Jamie Ho
  * @author Bhavesh Patel (Modified)
@@ -52,7 +54,7 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
     /**
      * The visible members for the given class.
      */
-    private VisibleMemberMap[] visibleMemberMaps;
+    private final VisibleMemberMap[] visibleMemberMaps;
 
     /**
      * The member summary writers for the given class.
@@ -62,10 +64,27 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
     /**
      * The type being documented.
      */
-    private ClassDoc classDoc;
+    private final ClassDoc classDoc;
 
-    protected MemberSummaryBuilder(Configuration configuration) { //Cok - from private to protected
-        super(configuration);
+    /**
+     * Construct a new MemberSummaryBuilder.
+     *
+     * @param classWriter   the writer for the class whose members are being
+     *                      summarized.
+     * @param context       the build context.
+     */
+    protected MemberSummaryBuilder(Context context, ClassDoc classDoc) { // DRC - from private to protected
+        super(context);
+        this.classDoc = classDoc;
+        visibleMemberMaps =
+                new VisibleMemberMap[VisibleMemberMap.NUM_MEMBER_TYPES];
+        for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {
+            visibleMemberMaps[i] =
+                    new VisibleMemberMap(
+                    classDoc,
+                    i,
+                    configuration);
+        }
     }
 
     /**
@@ -73,14 +92,22 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
      *
      * @param classWriter   the writer for the class whose members are being
      *                      summarized.
-     * @param configuration the current configuration of the doclet.
+     * @param context       the build context.
      */
     public static MemberSummaryBuilder getInstance(
-            ClassWriter classWriter, Configuration configuration)
+            ClassWriter classWriter, Context context)
             throws Exception {
-        MemberSummaryBuilder builder = new MemberSummaryBuilder(configuration);
-        builder.classDoc = classWriter.getClassDoc();
-        builder.init(classWriter);
+        MemberSummaryBuilder builder = new MemberSummaryBuilder(context,
+                classWriter.getClassDoc());
+        builder.memberSummaryWriters =
+                new MemberSummaryWriter[VisibleMemberMap.NUM_MEMBER_TYPES];
+        WriterFactory wf = context.configuration.getWriterFactory();
+        for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {
+                builder.memberSummaryWriters[i] =
+                    builder.visibleMemberMaps[i].noVisibleMembers() ?
+                        null :
+                        wf.getMemberSummaryWriter(classWriter, i);
+        }
         return builder;
     }
 
@@ -92,42 +119,21 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
      * @param configuration the current configuration of the doclet.
      */
     public static MemberSummaryBuilder getInstance(
-            AnnotationTypeWriter annotationTypeWriter, Configuration configuration)
+            AnnotationTypeWriter annotationTypeWriter, Context context)
             throws Exception {
-        MemberSummaryBuilder builder = new MemberSummaryBuilder(configuration);
-        builder.classDoc = annotationTypeWriter.getAnnotationTypeDoc();
-        builder.init(annotationTypeWriter);
-        return builder;
-    }
-
-    private void init(Object writer) throws Exception {
-        visibleMemberMaps =
-                new VisibleMemberMap[VisibleMemberMap.NUM_MEMBER_TYPES];
-        for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {
-            visibleMemberMaps[i] =
-                    new VisibleMemberMap(
-                    classDoc,
-                    i,
-                    configuration.nodeprecated);
-        }
-        memberSummaryWriters =
+        MemberSummaryBuilder builder = new MemberSummaryBuilder(context,
+                annotationTypeWriter.getAnnotationTypeDoc());
+        builder.memberSummaryWriters =
                 new MemberSummaryWriter[VisibleMemberMap.NUM_MEMBER_TYPES];
+        WriterFactory wf = context.configuration.getWriterFactory();
         for (int i = 0; i < VisibleMemberMap.NUM_MEMBER_TYPES; i++) {
-            if (classDoc.isAnnotationType()) {
-                memberSummaryWriters[i] =
-                    visibleMemberMaps[i].noVisibleMembers()?
+                builder.memberSummaryWriters[i] =
+                    builder.visibleMemberMaps[i].noVisibleMembers()?
                         null :
-                        configuration.getWriterFactory().getMemberSummaryWriter(
-                        (AnnotationTypeWriter) writer, i);
-            } else {
-                memberSummaryWriters[i] =
-                    visibleMemberMaps[i].noVisibleMembers()?
-                        null :
-                        configuration.getWriterFactory().getMemberSummaryWriter(
-                        (ClassWriter) writer, i);
-            }
+                        wf.getMemberSummaryWriter(
+                        annotationTypeWriter, i);
         }
-
+        return builder;
     }
 
     /**
@@ -166,7 +172,6 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
      * This information can be used for doclet specific documentation
      * generation.
      *
-     * @param classDoc the {@link ClassDoc} we want to check.
      * @param type the type of members to return.
      * @return a list of methods that will be documented.
      * @see VisibleMemberMap
@@ -204,6 +209,20 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
                 memberSummaryWriters[VisibleMemberMap.ENUM_CONSTANTS];
         VisibleMemberMap visibleMemberMap =
                 visibleMemberMaps[VisibleMemberMap.ENUM_CONSTANTS];
+        addSummary(writer, visibleMemberMap, false, memberSummaryTree);
+    }
+
+    /**
+     * Build the summary for fields.
+     *
+     * @param node the XML element that specifies which components to document
+     * @param memberSummaryTree the content tree to which the documentation will be added
+     */
+    public void buildAnnotationTypeFieldsSummary(XMLNode node, Content memberSummaryTree) {
+        MemberSummaryWriter writer =
+                memberSummaryWriters[VisibleMemberMap.ANNOTATION_TYPE_FIELDS];
+        VisibleMemberMap visibleMemberMap =
+                visibleMemberMaps[VisibleMemberMap.ANNOTATION_TYPE_FIELDS];
         addSummary(writer, visibleMemberMap, false, memberSummaryTree);
     }
 
@@ -315,7 +334,7 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
                 configuration));
         if (members.size() > 0) {
             Collections.sort(members);
-            Content tableTree = writer.getSummaryTableTree(classDoc);
+            List<Content> tableContents = new LinkedList<Content>();
             for (int i = 0; i < members.size(); i++) {
                 ProgramElementDoc member = members.get(i);
                 final ProgramElementDoc propertyDoc =
@@ -329,14 +348,15 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
                     //necessary.
                     DocFinder.Output inheritedDoc =
                             DocFinder.search(new DocFinder.Input((MethodDoc) member));
-                    if (inheritedDoc.holder != null &&
-                            inheritedDoc.holder.firstSentenceTags().length > 0) {
+                    if (inheritedDoc.holder != null
+                            && inheritedDoc.holder.firstSentenceTags().length > 0) {
                         firstSentenceTags = inheritedDoc.holder.firstSentenceTags();
                     }
                 }
-                writer.addMemberSummary(classDoc, member, firstSentenceTags, tableTree, i);
+                writer.addMemberSummary(classDoc, member, firstSentenceTags,
+                        tableContents, i);
             }
-            summaryTreeList.add(tableTree);
+            summaryTreeList.add(writer.getSummaryTableTree(classDoc, tableContents));
         }
     }
 
@@ -363,14 +383,14 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
             if (isSetter) {
                 commentTextBuilder.append(
                         MessageFormat.format(
-                                Util.RESOURCE_BUNDLE.getString("doclet.PropertySetterWithName"),
-                                Util.propertyNameFromMethodName(member.name())));
+                                configuration.getText("doclet.PropertySetterWithName"),
+                                Util.propertyNameFromMethodName(configuration, member.name())));
             }
             if (isGetter) {
                 commentTextBuilder.append(
                         MessageFormat.format(
-                                Util.RESOURCE_BUNDLE.getString("doclet.PropertyGetterWithName"),
-                                Util.propertyNameFromMethodName(member.name())));
+                                configuration.getText("doclet.PropertyGetterWithName"),
+                                Util.propertyNameFromMethodName(configuration, member.name())));
             }
             if (propertyDoc.commentText() != null
                         && !propertyDoc.commentText().isEmpty()) {
@@ -379,14 +399,20 @@ public class MemberSummaryBuilder extends AbstractMemberBuilder {
         }
         commentTextBuilder.append(propertyDoc.commentText());
 
-        Tag[] tags = propertyDoc.tags("@defaultValue");
-        if (tags != null) {
-            for (Tag tag: tags) {
-                commentTextBuilder.append("\n")
-                                  .append(tag.name())
-                                  .append(" ")
-                                  .append(tag.text());
+        // copy certain tags
+        List<Tag> allTags = new LinkedList<Tag>();
+        String[] tagNames = {"@defaultValue", "@since"};
+        for (String tagName: tagNames) {
+            Tag[] tags = propertyDoc.tags(tagName);
+            if (tags != null) {
+                allTags.addAll(Arrays.asList(tags));
             }
+        }
+        for (Tag tag: allTags) {
+            commentTextBuilder.append("\n")
+                                .append(tag.name())
+                                .append(" ")
+                                .append(tag.text());
         }
 
         //add @see tags

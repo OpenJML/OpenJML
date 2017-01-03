@@ -258,9 +258,13 @@ public class Utils {
 	 * @param shell
 	 *            the current shell
 	 */
-	public void checkSelection(@NonNull final ISelection selection,
+	public void checkSelection(@Nullable final ISelection selection,
 			@Nullable final IWorkbenchWindow window, @NonNull final Shell shell) {
 		if (!checkForDirtyEditors()) return;
+		if (selection == null) {
+			showMessage(shell, "JML Check", "Nothing selected to check");
+			return;
+		}
 		List<IResource> res = getSelectedResources(selection, window, shell);
 		if (res.size() == 0) {
 			showMessage(shell, "JML Check", "Nothing appropriate to check");
@@ -344,7 +348,7 @@ public class Utils {
 						final List<Object> res = list;
 						getInterface(jp).executeESCCommand(Cmd.ESC, res,
 								monitor);
-					} else {
+					} else if (ores.size() != 0){
 						getInterface(jp).executeESCCommand(Cmd.ESC, ores,
 								monitor);
 					}
@@ -1408,7 +1412,7 @@ public class Utils {
 	public List<IResource> getSelectedResources(@NonNull ISelection selection,
 			@Nullable IWorkbenchWindow window, @Nullable Shell shell) {
 		List<IResource> list = new LinkedList<IResource>();
-		if (!selection.isEmpty() && selection instanceof IStructuredSelection) {
+		if (selection instanceof IStructuredSelection && !selection.isEmpty() ) {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			for (Iterator<?> iter = structuredSelection.iterator(); iter
 					.hasNext();) {

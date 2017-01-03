@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlToken;
+import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -68,11 +69,11 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
         
         for(JmlMethodClause c : clauses){
             
-            if(c.token==JmlToken.ENSURES){
+            if(c.token==JmlTokenKind.ENSURES){
                 ensures++;
             }
             
-            if(c.token==JmlToken.ASSIGNABLE){
+            if(c.token==JmlTokenKind.ASSIGNABLE){
                 assignable++;
             }
         }

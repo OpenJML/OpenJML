@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -51,10 +51,13 @@ public abstract class Attribute {
     public static final String LineNumberTable          = "LineNumberTable";
     public static final String LocalVariableTable       = "LocalVariableTable";
     public static final String LocalVariableTypeTable   = "LocalVariableTypeTable";
+    public static final String MethodParameters         = "MethodParameters";
     public static final String RuntimeVisibleAnnotations = "RuntimeVisibleAnnotations";
     public static final String RuntimeInvisibleAnnotations = "RuntimeInvisibleAnnotations";
     public static final String RuntimeVisibleParameterAnnotations = "RuntimeVisibleParameterAnnotations";
     public static final String RuntimeInvisibleParameterAnnotations = "RuntimeInvisibleParameterAnnotations";
+    public static final String RuntimeVisibleTypeAnnotations = "RuntimeVisibleTypeAnnotations";
+    public static final String RuntimeInvisibleTypeAnnotations = "RuntimeInvisibleTypeAnnotations";
     public static final String Signature                = "Signature";
     public static final String SourceDebugExtension     = "SourceDebugExtension";
     public static final String SourceFile               = "SourceFile";
@@ -68,16 +71,14 @@ public abstract class Attribute {
             // defer init of standardAttributeClasses until after options set up
         }
 
-        public void setCompat(boolean compat) {
-            this.compat = compat;
-        }
-
         public Attribute createAttribute(ClassReader cr, int name_index, byte[] data)
                 throws IOException {
-            if (standardAttributes == null)
+            if (standardAttributes == null) {
                 init();
+            }
 
             ConstantPool cp = cr.getConstantPool();
+            String reasonForDefaultAttr;
             try {
                 String name = cp.getUTF8Value(name_index);
                 Class<? extends Attribute> attrClass = standardAttributes.get(name);
@@ -87,22 +88,27 @@ public abstract class Attribute {
                         Constructor<? extends Attribute> constr = attrClass.getDeclaredConstructor(constrArgTypes);
                         return constr.newInstance(new Object[] { cr, name_index, data.length });
                     } catch (Throwable t) {
+                        reasonForDefaultAttr = t.toString();
                         // fall through and use DefaultAttribute
                         // t.printStackTrace();
                     }
+                } else {
+                    reasonForDefaultAttr = "unknown attribute";
                 }
             } catch (ConstantPoolException e) {
+                reasonForDefaultAttr = e.toString();
                 // fall through and use DefaultAttribute
             }
-            return new DefaultAttribute(cr, name_index, data);
+            return new DefaultAttribute(cr, name_index, data, reasonForDefaultAttr);
         }
 
         protected void init() {
             standardAttributes = new HashMap<String,Class<? extends Attribute>>();
             standardAttributes.put(AnnotationDefault, AnnotationDefault_attribute.class);
-            standardAttributes.put(BootstrapMethods, BootstrapMethods_attribute.class);
+            standardAttributes.put(BootstrapMethods,  BootstrapMethods_attribute.class);
             standardAttributes.put(CharacterRangeTable, CharacterRangeTable_attribute.class);
             standardAttributes.put(Code,              Code_attribute.class);
+            standardAttributes.put(CompilationID,     CompilationID_attribute.class);
             standardAttributes.put(ConstantValue,     ConstantValue_attribute.class);
             standardAttributes.put(Deprecated,        Deprecated_attribute.class);
             standardAttributes.put(EnclosingMethod,   EnclosingMethod_attribute.class);
@@ -111,26 +117,23 @@ public abstract class Attribute {
             standardAttributes.put(LineNumberTable,   LineNumberTable_attribute.class);
             standardAttributes.put(LocalVariableTable, LocalVariableTable_attribute.class);
             standardAttributes.put(LocalVariableTypeTable, LocalVariableTypeTable_attribute.class);
-
-            if (!compat) { // old javap does not recognize recent attributes
-                standardAttributes.put(CompilationID, CompilationID_attribute.class);
-                standardAttributes.put(RuntimeInvisibleAnnotations, RuntimeInvisibleAnnotations_attribute.class);
-                standardAttributes.put(RuntimeInvisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations_attribute.class);
-                standardAttributes.put(RuntimeVisibleAnnotations, RuntimeVisibleAnnotations_attribute.class);
-                standardAttributes.put(RuntimeVisibleParameterAnnotations, RuntimeVisibleParameterAnnotations_attribute.class);
-                standardAttributes.put(Signature,     Signature_attribute.class);
-                standardAttributes.put(SourceID, SourceID_attribute.class);
-            }
-
+            standardAttributes.put(MethodParameters,  MethodParameters_attribute.class);
+            standardAttributes.put(RuntimeInvisibleAnnotations, RuntimeInvisibleAnnotations_attribute.class);
+            standardAttributes.put(RuntimeInvisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations_attribute.class);
+            standardAttributes.put(RuntimeVisibleAnnotations, RuntimeVisibleAnnotations_attribute.class);
+            standardAttributes.put(RuntimeVisibleParameterAnnotations, RuntimeVisibleParameterAnnotations_attribute.class);
+            standardAttributes.put(RuntimeVisibleTypeAnnotations, RuntimeVisibleTypeAnnotations_attribute.class);
+            standardAttributes.put(RuntimeInvisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations_attribute.class);
+            standardAttributes.put(Signature,         Signature_attribute.class);
             standardAttributes.put(SourceDebugExtension, SourceDebugExtension_attribute.class);
             standardAttributes.put(SourceFile,        SourceFile_attribute.class);
+            standardAttributes.put(SourceID,          SourceID_attribute.class);
             standardAttributes.put(StackMap,          StackMap_attribute.class);
             standardAttributes.put(StackMapTable,     StackMapTable_attribute.class);
             standardAttributes.put(Synthetic,         Synthetic_attribute.class);
         }
 
         private Map<String,Class<? extends Attribute>> standardAttributes;
-        private boolean compat; // don't support recent attrs in compatibility mode
     }
 
     public static Attribute read(ClassReader cr) throws IOException {
@@ -171,10 +174,13 @@ public abstract class Attribute {
         R visitLineNumberTable(LineNumberTable_attribute attr, P p);
         R visitLocalVariableTable(LocalVariableTable_attribute attr, P p);
         R visitLocalVariableTypeTable(LocalVariableTypeTable_attribute attr, P p);
+        R visitMethodParameters(MethodParameters_attribute attr, P p);
         R visitRuntimeVisibleAnnotations(RuntimeVisibleAnnotations_attribute attr, P p);
         R visitRuntimeInvisibleAnnotations(RuntimeInvisibleAnnotations_attribute attr, P p);
         R visitRuntimeVisibleParameterAnnotations(RuntimeVisibleParameterAnnotations_attribute attr, P p);
         R visitRuntimeInvisibleParameterAnnotations(RuntimeInvisibleParameterAnnotations_attribute attr, P p);
+        R visitRuntimeVisibleTypeAnnotations(RuntimeVisibleTypeAnnotations_attribute attr, P p);
+        R visitRuntimeInvisibleTypeAnnotations(RuntimeInvisibleTypeAnnotations_attribute attr, P p);
         R visitSignature(Signature_attribute attr, P p);
         R visitSourceDebugExtension(SourceDebugExtension_attribute attr, P p);
         R visitSourceFile(SourceFile_attribute attr, P p);

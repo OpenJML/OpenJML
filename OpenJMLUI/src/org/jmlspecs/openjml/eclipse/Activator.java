@@ -48,7 +48,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		
-		Log.log.setListener(new ConsoleLogger(Messages.OpenJMLUI_Activator_JmlConsoleTitle));
+		Log.log.setListener(new ConsoleLogger());
 		
 		utils = new Utils();
 		Options.init();

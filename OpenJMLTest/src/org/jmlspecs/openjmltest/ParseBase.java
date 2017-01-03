@@ -15,7 +15,7 @@ import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.ParserFactory;
 import com.sun.tools.javac.parser.ScannerFactory;
-import com.sun.tools.javac.parser.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
 
@@ -139,7 +139,7 @@ abstract public class ParseBase extends JmlTestCase {
                 ++k;
             }
             if ( i != expected.length) fail("Incorrect number of nodes listed");
-            if (parser.getScanner().token() != Token.EOF) fail("Not at end of input");
+            if (parser.getScanner().token().kind != TokenKind.EOF) fail("Not at end of input");
         } catch (AssertionError e) {
             if (!print) printTree(actual);
             if (!print) printDiagnostics();

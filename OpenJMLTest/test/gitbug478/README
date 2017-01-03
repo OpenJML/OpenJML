@@ -1,0 +1,1 @@
+This test had a bug that reported a recursive invariant, incorrectly.
