@@ -1,7 +1,9 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,24 +114,51 @@ public class Fix {
        
        List<String> jml = new ArrayList<String>();
        
-       StringBuffer output = new StringBuffer();
+       StringBuilder output = new StringBuilder();
+       int max = 100;
        
-       while ( ( line = reader.readLine()) != null) {
-           if(debug)
-               System.out.println(line);
        
-           output.append(line);
+       BufferedWriter bw = null;
+       FileWriter fw      = null;
+       try {
+           fw = new FileWriter("/Users/jls/Desktop/runs/run1.out");
+           bw = new BufferedWriter(fw);
            
-           if(line.contains(persistLine)){
-               String[] splits = line.split(":");
-               jml.add(splits[1].trim());
+           while ( ( line = reader.readLine()) != null) {
+               if(debug){
+                   //System.out.println(line);
+                   bw.write(line);
+                   bw.write("\n");
+               }
+               output.append(line);
+           
+               max--;
+               
+               if(max <= 0){
+                   output.setLength(0);
+                   max = 100;
+               }
+               
+               if(line.contains(persistLine)){
+                   String[] splits = line.split(":");
+                   jml.add(splits[1].trim());
+               }
+            }
+       }catch(Exception e){}
+       finally {
+           if(bw!=null){
+               bw.close();
            }
-        }
+           if(fw!=null){
+               fw.close();
+           }
+       }
        
        int exit = process.waitFor();
 
        if(exit!=0){
-           log.error(output.toString());
+           log.error("Failed, Please check logs.");
+           //log.error(output.toString());
        }
        
        
