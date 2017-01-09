@@ -4,3 +4,4 @@ OpenJML is a extended static checker for Java programs annotated with JML (Java 
 The consistency of the source code and the specifications is checked with back-end SMT solvers.
 More information is available on the wiki (https://github.com/OpenJML/OpenJML/wiki) and on the http://www.openjml.org website.
 This code repositoryworks together with the JMLAnnotations, Specs, OpenJMLDemo and OpenJML-UpdateSite repositories.
+--
