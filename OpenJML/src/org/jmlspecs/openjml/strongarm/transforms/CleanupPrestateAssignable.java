@@ -105,6 +105,10 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
         
+        if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().startsWith("this != null"))){
+            return true;
+        }
+        
         return false;
     }
     

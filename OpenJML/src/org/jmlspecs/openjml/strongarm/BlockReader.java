@@ -109,6 +109,9 @@ public class BlockReader {
     // compute some things we will need to do LCA analysis
     private void init(){
         
+        // these get generated 
+        UNDRs.add("!(THIS != null)");
+        
         // store all pre program text
         for(BasicBlock b : blocks){
             preProgramState.put(b,  b.toString());
@@ -281,7 +284,14 @@ public class BlockReader {
             
             trace.add(traceElement);
             
-            //writeTrace("/tmp/trace.csv");
+            //
+            // writeTrace("/tmp/trace.csv");
+            //
+            
+            {
+                scanForUNDR(block);
+            }
+
             
             for(JCStatement stmt : block.statements()){
                 
@@ -289,7 +299,7 @@ public class BlockReader {
     //                System.out.println("");
     //            }
     
-    
+                
                 //
                 // Used to pick up lexical mappings.
                 //
@@ -636,7 +646,48 @@ public class BlockReader {
             path.pop();
         }
     }
+
+
+    private List<String> UNDRs = new ArrayList<String>();
     
+    private void scanForUNDR(BasicBlock block) {
+
+        String nextUNDR = null;
+
+        for(JCStatement stmt : block.statements()){
+            //
+            // we don't YET know what the stmt will be
+            //
+            if(nextUNDR==null){
+                
+                if(stmt instanceof JmlStatementExpr){                    
+                    JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;                    
+                    
+                    if(stmtExpr.token == JmlTokenKind.COMMENT && (stmt.toString().contains("UndefinedNullDeReference") || stmt.toString().contains("PossiblyNullDeReference"))){
+                        nextUNDR = stmt.toString().replace("PossiblyNullDeReference assertion:", "").trim();
+                        nextUNDR = nextUNDR.toString().replace("UndefinedNullDeReference assertion:", "").trim();
+                        nextUNDR = nextUNDR.replace("//", "").trim();
+                    }
+                }
+            }else{
+                if(stmt instanceof JmlStatementExpr){
+                    
+                    JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;     
+                    
+                    if(stmtExpr.expression instanceof JCBinary){
+                        JCBinary jcBinary = (JCBinary)stmtExpr.expression;
+                    
+                        if(stmtExpr.token == JmlTokenKind.ASSUME && jcBinary.rhs.toString().contains(nextUNDR)){
+                            UNDRs.add(nextUNDR);
+                            nextUNDR = null;
+                        }
+                    }
+                }
+            }
+        }
+        
+    }
+
     private void pickupLexicalMappings(JCStatement stmt, BasicBlock block){
 
         if(stmt instanceof JmlStatementExpr){
@@ -820,13 +871,28 @@ public class BlockReader {
         }
         return false;
     }
-    
-    public boolean ignoreBranch(BasicBlock block ){
+    private boolean isUNDR(JmlStatementExpr e){
         
-//        if(1==1){
-//            return false;
-//        }
-//        
+        String es = e.expression.toString();
+        String esp = es.substring(2).substring(0,es.length()-3);
+        
+        for(String s : UNDRs){
+            
+            // there are two forms.
+            // either in the branch it's !(EXPR);
+            // or (expr);
+            // so we need to check both
+            
+            if(es.contains(s) || esp.contains(s) || s.contains(es) || s.contains(esp)){
+                return true;
+            }
+        }
+        
+        return false;
+        
+    }
+    public boolean ignoreBranch(BasicBlock block){
+        
         int validPropositions = 0;
         
         // we ignore branches on two conditions.
@@ -837,12 +903,22 @@ public class BlockReader {
         
         for(JCStatement stmt : block.statements()){
             
-            if(!didDefinePrecondition && stmt instanceof JmlStatementExpr && isPreconditionStmt((JmlStatementExpr)stmt)){
+            if(!didDefinePrecondition 
+                    && stmt instanceof JmlStatementExpr 
+                    && isPreconditionStmt((JmlStatementExpr)stmt))
+            {
                 didDefinePrecondition = true;
             }
             // a single var decl means we DON'T skip the then branch.
             if(!isVarDecl(stmt) && skip(stmt)){ continue; }
             
+            if(stmt instanceof JmlStatementExpr){
+                JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;
+                
+                if((stmtExpr.label == Label.BRANCHE) && isUNDR(stmtExpr)){
+                    continue; // don't count these when deciding to ignore.
+                }
+            }
             
             validPropositions++;
         }
@@ -852,7 +928,9 @@ public class BlockReader {
         }
         
         if(block.followers().size() > 1 && validPropositions==0){
-            // just in case, check the else target to see if it has useful information
+            // just in case, check the else target 
+            // to see if 
+            // it has useful information
             return ignoreBranch(block.followers().get(1));
         }else{
             return validPropositions == 0;            
@@ -883,9 +961,15 @@ public class BlockReader {
             return true;
         }
         
+        if(jmlStmt.label == Label.BRANCHT && jmlStmt.toString().contains("THIS != null")){
+            return true;
+        }
+        
+        
         // we only care about assignments (assumes)
         if(isAssignStmt(jmlStmt)){
             
+           
             if(jmlStmt.expression instanceof JmlBBFieldAssignment){
                 return false;
             }
@@ -1247,6 +1331,10 @@ public class BlockReader {
         for(BasicBlock b : blocks){
             
             String label = (traceBlockCache.contains(b)==false) ? b.id().toString() : preProgramState.get(b).replaceAll("\n", "\\\\l");
+            
+            if(tryToDetectCorrectFlow==false){
+                label = preProgramState.get(b).replaceAll("\n", "\\\\l");
+            }
             
             buff.append(String.format("%s [label=\"%s\", fontsize=\"9\", fontname=\"courier\"];\n", b.id().toString(), label));
         }

@@ -222,9 +222,9 @@ public class Strongarm
         }
         
         
-        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            BlockReader.showCFG(context, program.blocks(),basicBlocker);
-        }
+//        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+//            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+//        }
         
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
@@ -234,6 +234,10 @@ public class Strongarm
         if(reader==null){
             return; // no spec;
         }
+        
+        
+//       
+        
         
         
         //
@@ -312,10 +316,14 @@ public class Strongarm
         // Debugging of inference (Before Delivering PC)
         //
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        }
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
             reader.showCFG();
             BasicBlockExecutionDebugger.trace(newblock, savedProgram, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
         }
 
+       
         
         
         if (printContracts) {
@@ -445,7 +453,13 @@ public class Strongarm
         Timing t;
         
         
-        
+        if (verbose) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        }
+         
         
         t = Timing.start();
         RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
