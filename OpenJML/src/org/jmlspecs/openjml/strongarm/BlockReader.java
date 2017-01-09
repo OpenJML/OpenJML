@@ -667,6 +667,8 @@ public class BlockReader {
                         nextUNDR = stmt.toString().replace("PossiblyNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.toString().replace("UndefinedNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.replace("//", "").trim();
+                    }else if(stmtExpr.label == Label.IMPLICIT_ASSUME){
+                        UNDRs.add(stmtExpr.expression.toString());
                     }
                 }
             }else{
@@ -915,7 +917,7 @@ public class BlockReader {
             if(stmt instanceof JmlStatementExpr){
                 JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;
                 
-                if((stmtExpr.label == Label.BRANCHE) && isUNDR(stmtExpr)){
+                if((stmtExpr.label == Label.BRANCHE || false) && isUNDR(stmtExpr)){
                     continue; // don't count these when deciding to ignore.
                 }
             }
@@ -927,7 +929,7 @@ public class BlockReader {
             return true;
         }
         
-        if(block.followers().size() > 1 && validPropositions==0){
+        if(block.followers().size() > 1){ // && validPropositions==0){
             // just in case, check the else target 
             // to see if 
             // it has useful information
@@ -1335,6 +1337,8 @@ public class BlockReader {
             if(tryToDetectCorrectFlow==false){
                 label = preProgramState.get(b).replaceAll("\n", "\\\\l");
             }
+            
+            label = label.replaceAll("\"", "");
             
             buff.append(String.format("%s [label=\"%s\", fontsize=\"9\", fontname=\"courier\"];\n", b.id().toString(), label));
         }

@@ -17,144 +17,67 @@ public class S1 {
                         {|
                           {|
                             {|
-                              {|
-                                requires (month) == 1; 
-                                requires "January" != null; 
-                                ensures \result == "January"; 
-                              also
-                                requires (month) == 1; 
-                                requires !("January" != null); 
-                                ensures \result == "January"; 
-                              |}
+                              requires (month) == 1; 
+                              requires "January" != null; 
+                              ensures \result == "January"; 
                             also
-                              {|
-                                requires (month) == 2; 
-                                requires "February" != null; 
-                                ensures \result == "February"; 
-                              also
-                                requires (month) == 2; 
-                                requires !("February" != null); 
-                                ensures \result == "February"; 
-                              |}
+                              requires (month) == 2; 
+                              requires "February" != null; 
+                              ensures \result == "February"; 
                             |}
                           also
-                            {|
-                              requires (month) == 3; 
-                              requires "March" != null; 
-                              ensures \result == "March"; 
-                            also
-                              requires (month) == 3; 
-                              requires !("March" != null); 
-                              ensures \result == "March"; 
-                            |}
+                            requires (month) == 3; 
+                            requires "March" != null; 
+                            ensures \result == "March"; 
                           |}
                         also
-                          {|
-                            requires (month) == 4; 
-                            requires "April" != null; 
-                            ensures \result == "April"; 
-                          also
-                            requires (month) == 4; 
-                            requires !("April" != null); 
-                            ensures \result == "April"; 
-                          |}
+                          requires (month) == 4; 
+                          requires "April" != null; 
+                          ensures \result == "April"; 
                         |}
                       also
-                        {|
-                          requires (month) == 5; 
-                          requires "May" != null; 
-                          ensures \result == "May"; 
-                        also
-                          requires (month) == 5; 
-                          requires !("May" != null); 
-                          ensures \result == "May"; 
-                        |}
+                        requires (month) == 5; 
+                        requires "May" != null; 
+                        ensures \result == "May"; 
                       |}
                     also
-                      {|
-                        requires (month) == 6; 
-                        requires "June" != null; 
-                        ensures \result == "June"; 
-                      also
-                        requires (month) == 6; 
-                        requires !("June" != null); 
-                        ensures \result == "June"; 
-                      |}
+                      requires (month) == 6; 
+                      requires "June" != null; 
+                      ensures \result == "June"; 
                     |}
                   also
-                    {|
-                      requires (month) == 7; 
-                      requires "July" != null; 
-                      ensures \result == "July"; 
-                    also
-                      requires (month) == 7; 
-                      requires !("July" != null); 
-                      ensures \result == "July"; 
-                    |}
+                    requires (month) == 7; 
+                    requires "July" != null; 
+                    ensures \result == "July"; 
                   |}
                 also
-                  {|
-                    requires (month) == 8; 
-                    requires "August" != null; 
-                    ensures \result == "August"; 
-                  also
-                    requires (month) == 8; 
-                    requires !("August" != null); 
-                    ensures \result == "August"; 
-                  |}
+                  requires (month) == 8; 
+                  requires "August" != null; 
+                  ensures \result == "August"; 
                 |}
               also
-                {|
-                  requires (month) == 9; 
-                  requires "September" != null; 
-                  ensures \result == "September"; 
-                also
-                  requires (month) == 9; 
-                  requires !("September" != null); 
-                  ensures \result == "September"; 
-                |}
+                requires (month) == 9; 
+                requires "September" != null; 
+                ensures \result == "September"; 
               |}
             also
-              {|
-                requires (month) == 10; 
-                requires "October" != null; 
-                ensures \result == "October"; 
-              also
-                requires (month) == 10; 
-                requires !("October" != null); 
-                ensures \result == "October"; 
-              |}
+              requires (month) == 10; 
+              requires "October" != null; 
+              ensures \result == "October"; 
             |}
           also
-            {|
-              requires (month) == 11; 
-              requires "November" != null; 
-              ensures \result == "November"; 
-            also
-              requires (month) == 11; 
-              requires !("November" != null); 
-              ensures \result == "November"; 
-            |}
+            requires (month) == 11; 
+            requires "November" != null; 
+            ensures \result == "November"; 
           |}
         also
-          {|
-            requires (month) == 12; 
-            requires "December" != null; 
-            ensures \result == "December"; 
-          also
-            requires (month) == 12; 
-            requires !("December" != null); 
-            ensures \result == "December"; 
-          |}
+          requires (month) == 12; 
+          requires "December" != null; 
+          ensures \result == "December"; 
         |}
       also
-        {|
-          requires "Invalid month" != null; 
-          ensures \result == "Invalid month"; 
-        also
-          requires !("Invalid month" != null); 
-          ensures \result == "Invalid month"; 
-        |}
+        requires "Invalid month" != null; 
+        ensures \result == "Invalid month"; 
       |}
    */
 

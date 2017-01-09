@@ -10,7 +10,6 @@
 <mapEntry key="[debug]" value="org.eclipse.jdt.launching.localJavaApplication"/>
 <mapEntry key="[run]" value="org.eclipse.visualvm.launch.java"/>
 </mapAttribute>
-<stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="/Users/jls/Desktop/Next.out"/>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
@@ -20,5 +19,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-infer -infer-debug  -infer-persist -progress -verbose ${project_loc:OpenJMLTest}/test/strongarm/base/S1.java"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseSpecsProjectLocation=../../Specs -DSTRONGARM:DEBUG_BBE"/>
-<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${project_loc:OpenJML}"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${project_loc:OpenJMLTest}"/>
 </launchConfiguration>
