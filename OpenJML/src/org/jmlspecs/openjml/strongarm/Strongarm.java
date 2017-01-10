@@ -221,8 +221,8 @@ public class Strongarm
             return;
         }else{
             if(verbose){
-            log.getWriter(WriterKind.NOTICE).println("STARTING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
-            log.getWriter(WriterKind.NOTICE).println(String.format("STARTING WITH Depth of %d; max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println("STARTING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println(String.format("STARTING WITH Depth of %d; max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
             }
         }
         
@@ -466,33 +466,35 @@ public class Strongarm
         }
          
         
-        t = Timing.start();
-        RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
-       
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
-        }
-        
-        
-       if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
-        
-        t = Timing.start();         
-        RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
+        if(reader.blocks.size() <= 90){
+            t = Timing.start();
+            RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
+           
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
+            }
+            
+            
+           if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+            
+            t = Timing.start();         
+            RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+            }
         
         //
         // Perform substitutions on the underlying formula. 
