@@ -219,6 +219,11 @@ public class Strongarm
             }
             
             return;
+        }else{
+            if(verbose){
+            log.getWriter(WriterKind.NOTICE).println("STARTING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+            log.getWriter(WriterKind.NOTICE).println(String.format("STARTING WITH Depth of %d; max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
+            }
         }
         
         
