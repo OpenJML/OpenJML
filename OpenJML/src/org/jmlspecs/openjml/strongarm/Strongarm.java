@@ -293,6 +293,18 @@ public class Strongarm
     	String oldContract = methodDecl.toString();
     	
     	
+//    	if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+//          reader.showCFG();
+//    	}
+    	
+//    	if(1==1){
+//    	    System.exit(1);
+//    	}
+//    	
+//    	 if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+//             reader.showCFG();
+//         }
+    	
     	//ASTViewer.addView("PRE JavaCompiler.desugar", methodDecl, ASTViewer.ViewType.DIALOG);
         ///
         /// Perform cleanup
@@ -466,7 +478,7 @@ public class Strongarm
         }
          
         
-        if(reader.blocks.size() <= 90){
+        if(reader.blocks.size() <= 90 || true){
             t = Timing.start();
             RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
            

@@ -668,7 +668,14 @@ public class BlockReader {
                         nextUNDR = nextUNDR.toString().replace("UndefinedNullDeReference assertion:", "").trim();
                         nextUNDR = nextUNDR.replace("//", "").trim();
                     }else if(stmtExpr.label == Label.IMPLICIT_ASSUME){
-                        UNDRs.add(stmtExpr.expression.toString());
+                        String str = stmtExpr.expression.toString();
+                        
+                        UNDRs.add(str);
+                        UNDRs.add(str.replaceAll("==", "!="));
+                        
+                        UNDRs.add(str.replaceAll(".java.lang.Object_objectState.* == null", " == null"));
+                        UNDRs.add(str.replaceAll(".java.lang.Object_objectState.* == null", " != null"));
+
                     }
                 }
             }else{
@@ -918,6 +925,10 @@ public class BlockReader {
                 JmlStatementExpr stmtExpr = (JmlStatementExpr)stmt;
                 
                 if((stmtExpr.label == Label.BRANCHE || false) && isUNDR(stmtExpr)){
+                    continue; // don't count these when deciding to ignore.
+                }
+                
+                if((stmtExpr.label == Label.BRANCHE || false) && stmtExpr.toString().contains("PRE_")){
                     continue; // don't count these when deciding to ignore.
                 }
             }
