@@ -5736,7 +5736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (meth instanceof JCFieldAccess) {
                 JCFieldAccess fa = (JCFieldAccess)meth;
                 receiverType = fa.selected.type;
-                newTypeVarMapping = typevarMapping = typemapping(receiverType, null,null);
+                newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null);
                 JCExpression convertedReceiver = convertExpr(fa.selected);
                 if (!utils.isJMLStatic(fa.sym)) {
                     if (splitExpressions) {
@@ -12735,6 +12735,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     public Map<TypeSymbol,Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs, Type.MethodType methodType) {
         Map<TypeSymbol,Type> vars = new HashMap<TypeSymbol,Type>();
+        if (ct instanceof Type.ClassType){
+            Type ect = ct.getEnclosingType();
+            if (ect != null) vars = typemapping(ect, sym, typeargs, methodType);
+        }
         if (ct instanceof Type.ClassType &&
             !((Type.ClassType)ct).getTypeArguments().isEmpty()) {
             Iterator<Type> ity = ((Type.ClassType)ct).getTypeArguments().iterator();
