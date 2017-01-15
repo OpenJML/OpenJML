@@ -2333,7 +2333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     {
                                         if (contextIsStatic && !clauseIsStatic) break;
                                         if (isHelper) break;
-                                        if (isSuper) break;
+                                        if (isSuper && !isPost) break;
                                         boolean doit = false;
                                         if (!isConstructor || isPost) doit = true; // pre and postcondition case
                                         if (isConstructor && clauseIsStatic) doit = true;
@@ -6801,6 +6801,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id + " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
                         addInvariants(v,v.type,id,currentStatements,
                                 false,false,false,false,false,true,Label.INVARIANT_REENTER_CALLER, "(Parameter: " + v.sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                    }
+                }
+                
+                if (isSuperCall) {
+                    currentStatements.add(comment(that, "Assuming field invariants after super call: " + utils.qualifiedMethodSig(methodDecl.sym) + " after exiting the callee " + utils.qualifiedMethodSig(calleeMethodSym),null));
+                    for (Type parentType : parents(calleeMethodSym.owner.type, false)) {
+                        Scope s = parentType.tsym.members();
+                        for (Symbol sym: s.getElements()) {
+                            if (!(sym instanceof VarSymbol)) continue;
+                            if (sym.type.isPrimitive()) continue; // FIXME should be isJMLPrimitivie?
+                            DiagnosticPosition pos = that; // FIXME - is this a good position?
+                            JCExpression expr = treeutils.makeSelect(pos.getPreferredPosition(),currentThisExpr,sym);
+                            addInvariants(pos,sym.type,expr,currentStatements,
+                                    false,false,true,false,true,true,Label.INVARIANT_REENTER_CALLER, "(Field: " + sym + ", Caller: " + utils.qualifiedMethodSig(methodDecl.sym) + ", Callee: " + utils.qualifiedMethodSig(calleeMethodSym) + ")");
+                        }
                     }
                 }
                 

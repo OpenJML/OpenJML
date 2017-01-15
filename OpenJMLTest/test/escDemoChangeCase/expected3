@@ -1,0 +1,103 @@
+Proving methods in ChangeCase
+Skipping proof of ChangeCase.ChangeCase() (excluded by -method)
+Starting proof of ChangeCase.changeCase(char) with prover !!!!
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: warning: The prover cannot establish an assertion (Postcondition) in method changeCase
+		return result;
+		^
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6: warning: Associated declaration
+	//@   ensures \result >= 'a' && \result <= 'z';
+	      ^
+
+TRACE of ChangeCase.changeCase(char)
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+ 	//Assume parameter type, allocation, and nullness
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:13:  	assume ImplicitAssume 0 <= c && c <= 65535;
+			VALUE: 0	 === ???
+			VALUE: c_385	 === 'Z' (90)
+			VALUE: 0 <= c_385	 === ???
+			VALUE: 0 <= c_385 && c_385 <= 65535	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//Assume invariants for ChangeCase
+ 	//Assume Preconditions
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:5:  	requires c >= 'A' && c <= 'Z'; 
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'A'	 === 'A' (65)
+			VALUE: c >= 'A'	 === true
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === true
+			VALUE: c >= 'A' && c <= 'Z'	 === true
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:8:  	requires c >= 'a' && c <= 'z'; 
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: c >= 'a'	 === false
+			VALUE: c >= 'a' && c <= 'z'	 === false
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:11:  	requires !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z'); 
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'A'	 === 'A' (65)
+			VALUE: c >= 'A'	 === true
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c <= 'Z'	 === true
+			VALUE: c >= 'A' && c <= 'Z'	 === true
+			VALUE: (c >= 'A' && c <= 'Z')	 === true
+			VALUE: !(c >= 'A' && c <= 'Z')	 === false
+			VALUE: !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')	 === false
+ 	//try...
+ 	//Method Body
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:14:  	char result = ' '
+			VALUE: ' '	 === ' ' (32)
+			VALUE: result	 === ' ' (32)
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:15:  	if (c >= 'z') ...
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'z'	 === 'z' (122)
+			VALUE: c >= 'z'	 === false
+			VALUE: (c >= 'z')	 === false
+				Condition = false
+ 	//if...
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:17:  	if (c >= 'a') ...
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: c >= 'a'	 === false
+			VALUE: (c >= 'a')	 === false
+				Condition = false
+ 	//if...
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:19:  	if (c >= 'Z') ...
+			VALUE: c	 === 'Z' (90)
+			VALUE: 'Z'	 === 'Z' (90)
+			VALUE: c >= 'Z'	 === true
+			VALUE: (c >= 'Z')	 === true
+				Condition = true
+ 	//if...
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:20:  	result = c
+			VALUE: c	 === 'Z' (90)
+			VALUE: result = c	 === 'Z' (90)
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26:  	return result;
+			VALUE: result	 === 'Z' (90)
+ 	//Check Postconditions
+ 	//if...
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for ChangeCase
+ 	//Assert constraints for java.lang.Object
+ 	//Assert constraints for ChangeCase
+ 	//Asserting postconditions for ChangeCase.changeCase(char)
+ 	//if...
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:  	ensures \result >= 'a' && \result <= 'z'; 
+			VALUE: _JML___result	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: _JML___result >= 'a'	 === false
+			VALUE: _JML___result >= 'a' && _JML___result <= 'z'	 === false
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:  	Postcondition assertion: _JML___result >= 'a' && _JML___result <= 'z'
+			VALUE: _JML___result	 === 'Z' (90)
+			VALUE: 'a'	 === 'a' (97)
+			VALUE: _JML___result >= 'a'	 === false
+			VALUE: _JML___result >= 'a' && _JML___result <= 'z'	 === false
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26:  Invalid assertion (Postcondition)
+ Associated location
+
+Completed proof of ChangeCase.changeCase(char) with prover !!!! - with warnings
+Completed proving methods in ChangeCase
+2 warnings

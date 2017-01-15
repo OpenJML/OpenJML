@@ -438,8 +438,8 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#attachSpecs(JmlCompilationUnit,JmlCompilationUnit)
      */
     @Override
-    public void attachSpecs(JmlCompilationUnit javaSource, @Nullable JmlCompilationUnit specsSource) {
-        javaSource.specsCompilationUnit = specsSource;
+    public void attachSpecs(JmlCompilationUnit javaSource, JmlCompilationUnit specsSource) {
+        javaSource.specsCompilationUnit = specsSource == null ? javaSource: specsSource;
     }
     
 

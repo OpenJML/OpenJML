@@ -1,7 +1,7 @@
 test\escTrace2\trace.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
-test\escTrace2\trace.java:8: warning: Associated declaration: test\escTrace2\trace.java:10: 
+test\escTrace2\trace.java:8: warning: Associated declaration
     //@ ensures \result != 0;
         ^
 2 warnings

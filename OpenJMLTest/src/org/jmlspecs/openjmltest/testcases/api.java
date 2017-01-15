@@ -398,29 +398,29 @@ public class api extends JmlTestCase {
         }
     }
 
-    @Test
-    public void testAttach3() {
-        start(true);
-        try {
-            IAPI m = Factory.makeAPI("-no-purityCheck");
-            String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
-            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
-            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
-            int n = m.typecheck(ast1);
-            endCapture();
-            if (n != 0) {
-                System.out.println("Errors: " + n);
-                System.out.println(actualOut.toString());
-                System.out.println(actualErr.toString());
-                assertTrue(false);
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-            e.printStackTrace(System.out);
-            assertTrue(false);
-        }
-    }
+//    @Test
+//    public void testAttach3() {
+//        start(true);
+//        try {
+//            IAPI m = Factory.makeAPI("-no-purityCheck");
+//            String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
+//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+//            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
+//            int n = m.typecheck(ast1);
+//            endCapture();
+//            if (n != 0) {
+//                System.out.println("Errors: " + n);
+//                System.out.println(actualOut.toString());
+//                System.out.println(actualErr.toString());
+//                assertTrue(false);
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
     
 
     @Test
