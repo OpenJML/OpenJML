@@ -148,6 +148,16 @@ public class SubstitutionCache {
         
     }
     
+    public void addSubstitutionAtBlock(VarSymbol premap, JCTree sub, BasicBlock block){              
+        
+        if(ds.get(premap)==null){
+            ds.put(premap, new ArrayList<Pair<String, JCTree>>());
+        }
+        
+        ds.get(premap).add(new Pair<String, JCTree>(block.id().toString(), sub));
+        
+    }
+    
     
     public void addSubstitutionAtBlock(JCStatement stmt, BasicBlock block){
         

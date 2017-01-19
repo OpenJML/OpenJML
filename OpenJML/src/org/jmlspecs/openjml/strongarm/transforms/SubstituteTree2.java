@@ -97,6 +97,8 @@ public class SubstituteTree2 extends JmlTreeScanner{
             
             JCIdent with = (JCIdent)with();
             tree.name = with.name;
+            // also the symbol
+            tree.sym  = with.sym;
         }
     }
 
@@ -187,7 +189,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
     public void visitBinary(JCBinary tree) {
         
         
-        if(tree.lhs instanceof JCIdent){ // && tree.operator.toString().startsWith("==")==false){ 
+        if(tree.lhs instanceof JCIdent){ 
+            // 
+            // tree.operator.toString().startsWith("==")==false){
+            //
             JCIdent lhs = (JCIdent)tree.lhs;
 
             if(canReplace(lhs) && isRedundant(tree)==false){
@@ -201,6 +206,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         }
         
         if(tree.rhs instanceof JCIdent && isRedundant(tree)==false){ 
+
             JCIdent rhs = (JCIdent)tree.rhs;
 
             if(canReplace(rhs)){
@@ -249,6 +255,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             if(with() instanceof JCIdent){
                 JCIdent with = (JCIdent)with();
                 access.name = with.name;
+                access.sym  = with.sym;
             }
         }
         

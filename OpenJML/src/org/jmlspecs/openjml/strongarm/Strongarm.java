@@ -476,17 +476,16 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
-         
-        
-        if(reader.blocks.size() <= 90 || true){
-            t = Timing.start();
-            RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
-           
+                 
+        if(reader.blocks.size() <= 90 || true) {
             
+            t = Timing.start();
+            
+            RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
+                       
             if (verbose) {
                 log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
-            }
-            
+            }            
             
            if (verbose) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -506,7 +505,7 @@ public class Strongarm
                 log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
                 log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
             }
-            }
+        }
         
         //
         // Perform substitutions on the underlying formula. 
@@ -646,9 +645,17 @@ public class Strongarm
         // basic block format. 
         //
         {
+            reader.initPremaCache();
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(BlockReader._premapCache.toString());
+            }
+            
             t = Timing.start();
             
-            reader.postcondition.replace(reader.getBlockerMappings(), false);
+            //reader.postcondition.replace(reader.getBlockerMappings(), false);
+            reader.postcondition.replace(null, false);
+
         }
         
         

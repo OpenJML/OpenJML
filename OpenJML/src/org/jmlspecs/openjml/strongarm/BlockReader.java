@@ -148,6 +148,12 @@ public class BlockReader {
             }
         }
         
+        
+        
+    }
+    
+    public void initPremaCache(){
+        _premapCache = createNewBlockerMappings();
     }
     public List<TraceElement> getTrace(){
         return trace;
@@ -1133,7 +1139,8 @@ public class BlockReader {
     }
 
     public static SubstitutionCache _substitutionCache;
-    
+    public static SubstitutionCache _premapCache;
+
     public void addSubstitutionAtBlock(JCTree sub, Map<JCIdent, ArrayList<JCTree>> mappings, BasicBlock block){
         
         if(mappings.get(block.id())==null){
@@ -1168,6 +1175,41 @@ public class BlockReader {
         return debugMappings;
     }
 
+    private SubstitutionCache createNewBlockerMappings(){
+        
+        SubstitutionCache cache = new SubstitutionCache(basicBlocker.blockmaps, treeutils);        
+       
+        for(BasicBlock b : blocks){
+            
+            VarMap blockMap  = basicBlocker.blockmaps.get(b);
+            
+            Set<VarSymbol> syms2 = blockMap.keySet();
+
+            if(verbose){
+                log.getWriter(WriterKind.NOTICE).println("PREMAP BINDINGS @ BLOCK: " + b.id());
+                log.getWriter(WriterKind.NOTICE).println("--------------------------");
+            }
+            
+            for(VarSymbol s : syms2){
+
+                JCIdent replace = treeutils.makeIdent(0, blockMap.getName(s).toString(), s.type);
+                JCIdent with    = treeutils.makeIdent(0, s);
+                
+                JCBinary replacement = treeutils.makeBinary(0, JCTree.Tag.EQ, replace, with);
+                
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println(" --[transformed]--> " + replacement.toString() );
+                }
+                cache.addSubstitutionAtBlock(s, replacement, b);
+            }
+        
+            
+        }
+
+        
+       return cache;
+
+    }
     
     public Map<JCIdent, ArrayList<JCTree>> getBlockerMappings(){
         
@@ -1253,6 +1295,8 @@ public class BlockReader {
         _mappingsDone = false;
         setExitBlocks(new HashSet<BasicBlock>());
         path = new Stack<BasicBlock>();
+        path.add(startBlock);
+
     }
 
     public Set<BasicBlock> getExitBlocks() {

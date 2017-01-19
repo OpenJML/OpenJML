@@ -139,14 +139,61 @@ public class Prop<T extends JCExpression> implements Cloneable {
     }
    
     public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
-     replace2(mappings, limitDepth);   
+        replace2(mappings, limitDepth);   
     }
     
+    public void replace3(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+                
+        log("[SUBS ] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));        
+        
+        //
+        // Print path
+        //
+        logl("[PATH]");        
+        
+        for(BasicBlock b : path){
+            logl(b.id().toString() + ">>");
+        }
+        
+        if(p.toString().contains("b_207")){
+            System.out.println("");
+        }
+        
+        //
+        // a) baby fix point
+        //
+        String before;
+        int iteration = 1;
+        
+        //
+        // b) 
+        //
+        do {
+            log("\tInternal Fixpoint #" + iteration);
+
+            before = p.toString();
+
+            log("\t\tBefore: " + before);
+            doReplacement3();
+            log("\t\tAfter: " + p.toString());
+            
+            
+            iteration++;
+            
+        }while(before.equals(p.toString())==false);
+
+    }
 
     public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
         if(mappings!=null){
             replace1(mappings, limitDepth);
+            return;
+        }
+        
+        if(limitDepth==false){
+            replace3(mappings, limitDepth);
             return;
         }
                 
@@ -217,6 +264,46 @@ public class Prop<T extends JCExpression> implements Cloneable {
     }
     
 
+    
+    private void doReplacement3(){
+        
+        JCExpression tmpE = null;
+        
+        if(p instanceof JCBinary){
+
+            JCBinary b = (JCBinary)p;
+            
+            tmpE = SubstituteTree2.replace(BlockReader._premapCache, path, p);  
+            
+            if(tmpE!=null){
+                p = (T) tmpE;
+            }
+            
+            // replacements only need to happen on the RHS of an expression if 
+            // it's an assignment 
+//            if(label == Label.ASSIGNMENT){
+//                tmpE = SubstituteTree2.replace(BlockReader._premapCache, path, b.rhs); 
+//                
+//                if(tmpE!=null){
+//                   b.rhs = (T) tmpE;
+//                }
+//            }else{
+//                tmpE = SubstituteTree2.replace(BlockReader._premapCache, path, p);  
+//                
+//                if(tmpE!=null){
+//                    p = (T) tmpE;
+//                }
+//            }
+            
+        }else{
+             tmpE = SubstituteTree2.replace(BlockReader._premapCache, path, p);
+             
+             if(tmpE!=null){
+                 p = (T) tmpE;
+             }
+        }        
+    }
+    
 
     
     public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
