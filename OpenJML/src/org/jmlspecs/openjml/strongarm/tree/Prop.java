@@ -4,6 +4,7 @@ package org.jmlspecs.openjml.strongarm.tree;
 import sun.misc.Unsafe;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -160,6 +161,8 @@ public class Prop<T extends JCExpression> implements Cloneable {
             System.out.println("");
         }
         
+        String beforeFixpoint = p.toString();
+        
         //
         // a) baby fix point
         //
@@ -183,6 +186,9 @@ public class Prop<T extends JCExpression> implements Cloneable {
             
         }while(before.equals(p.toString())==false);
 
+        
+        String afterFixpoint = p.toString();
+      
     }
 
     public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
@@ -308,8 +314,13 @@ public class Prop<T extends JCExpression> implements Cloneable {
     
     public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
-                
-        log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        if(!Strongarm.freezer.containsKey(this) || !p.toString().equals(Strongarm.freezer.get(this))){
+            log("[SUBS PASS 2] SKIPPING Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+            return;
+        }
+        
+        log("[SUBS PASS 2] Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
+        
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path
         logl("[PATH]");        
@@ -489,6 +500,12 @@ public class Prop<T extends JCExpression> implements Cloneable {
         return false;
     }
 
+    public Map<Prop,String> freeze(Map<Prop,String> m){
+        m.put(this,  p.toString());        
+        return m;
+    }
+    
+    
     public static int count = 0;
     @Override 
     public Object clone(){

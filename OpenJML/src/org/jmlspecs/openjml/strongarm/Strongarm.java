@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.strongarm;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -463,7 +464,9 @@ public class Strongarm
     }
     
         
-
+    
+    public static Map<Prop,String> freezer;
+    
     public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition){
         
         boolean verbose        = infer.verbose;
@@ -477,7 +480,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
                  
-        if(reader.blocks.size() <= 90 || true) {
+        if(reader.blocks.size() <= 90 || true){
             
             t = Timing.start();
             
@@ -645,6 +648,8 @@ public class Strongarm
         // basic block format. 
         //
         {
+            freezer = reader.postcondition.freeze(new HashMap<Prop,String>());
+            
             reader.initPremaCache();
             
             if (verbose) {
@@ -654,7 +659,25 @@ public class Strongarm
             t = Timing.start();
             
             //reader.postcondition.replace(reader.getBlockerMappings(), false);
+            
+            // this is the "fast" replacement algorithm.
             reader.postcondition.replace(null, false);
+
+            if (verbose) {
+                
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING OPTIMIZED PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+            
+            t = Timing.start();
+            
+            
+            // due to symbol table problems, it fails in some edge cases. 
+            reader.postcondition.replace(reader.getBlockerMappings(), false);
+
 
         }
         
@@ -664,7 +687,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING ALL PREMAP BLOCK SUBSTITUTIONS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 

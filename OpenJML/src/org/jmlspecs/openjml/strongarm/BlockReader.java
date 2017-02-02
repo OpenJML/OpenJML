@@ -1201,6 +1201,8 @@ public class BlockReader {
                     log.getWriter(WriterKind.NOTICE).println(" --[transformed]--> " + replacement.toString() );
                 }
                 cache.addSubstitutionAtBlock(s, replacement, b);
+                //cache.addSubstitutionAtBlock((VarSymbol)replace.sym, replacement, b);
+                
             }
         
             

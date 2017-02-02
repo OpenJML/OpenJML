@@ -85,6 +85,14 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
         
     }
      
+    public Map<Prop,String> freeze(Map<Prop,String> m){
+        m = p1.freeze(m);
+        m = p2.freeze(m);
+        
+        return m;
+    }
+
+    
     public JCExpression toTree(JmlTreeUtils treeutils){
         return treeutils.makeBinary(0, JCTree.Tag.OR, p1.toTree(treeutils), p2.toTree(treeutils));
     }

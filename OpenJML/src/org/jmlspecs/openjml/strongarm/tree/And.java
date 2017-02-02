@@ -53,6 +53,14 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
         return cloned;
     }
     
+    public Map<Prop,String> freeze(Map<Prop,String> m){
+        m = p1.freeze(m);
+        m = p2.freeze(m);
+        
+        return m;
+    }
+    
+    
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){
 
         
