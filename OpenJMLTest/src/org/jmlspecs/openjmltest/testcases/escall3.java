@@ -1081,6 +1081,22 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // Checks boxing conversion on assignment to a field
+    @Test public void testBoxingOnAssignment() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int b;\n"
+                +"  public Integer bb;\n"
+
+                +"  public TestJava(Integer b, int bb) {\n"
+                +"    this.b = b;\n"
+                +"    this.bb = bb;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
     @Test public void testMethodWithConstructorNameBug() {
         main.addOptions("-no-internalSpecs");
         // If there are no internal specs, then the implicit super() call of the

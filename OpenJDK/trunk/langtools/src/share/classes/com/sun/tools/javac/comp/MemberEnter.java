@@ -82,7 +82,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     protected final TypeAnnotations typeAnnotations; // JLS - changed from private
 
     protected final Types types; // OpenJML - changed from private to protected
-    private final JCDiagnostic.Factory diags;
+    protected final JCDiagnostic.Factory diags; // OpenJML - changed from private to protected
     private final Source source;
     private final Target target;
     protected final DeferredLintHandler deferredLintHandler; // OpenJML - changed from private to protected
@@ -159,10 +159,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
                 JCDiagnostic msg = diags.fragment("fatal.err.no.java.lang");
                 throw new FatalError(msg);
-//            } else if (((PackageSymbol)tsym).fullname.toString().equals("org.jmlspecs.annotation")) {
-//                throw new FatalError("Fatal Error: Could not find package org.jmlspecs.annotation");
-//            } else if (((PackageSymbol)tsym).fullname.toString().equals("org.jmlspecs.lang")) {
-//                throw new FatalError("Fatal Error: Could not find package org.jmlspecs.lang");
             } else {
                 log.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
             }

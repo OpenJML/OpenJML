@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml.ext;
 
+import static org.jmlspecs.openjml.JmlTokenKind.ENDJMLCOMMENT;
+
 import org.jmlspecs.openjml.JmlTokenKind;
 
 import com.sun.tools.javac.code.Type;
@@ -39,8 +41,15 @@ public class ReachableStatement extends StatementExtension {
     static public JmlTokenKind[] tokens() { return new JmlTokenKind[]{
             JmlTokenKind.REACHABLE}; }
     
+    // allowed forms:
+    //   reachable ;
+    //   reachable <expr> ;
+    //   reachable <expr> : <expr> ; // The first <epxr> is a String literal, used as a message or identifier
+    // FIXME - string literal is not used
     public JCStatement parse(JmlParser parser) {
         init(parser);
+        int pp = parser.pos();
+        int pe = parser.endPos();
         JmlTokenKind jt = parser.jmlTokenKind();
         int p = scanner.currentPos();
         parser.nextToken();
@@ -53,8 +62,11 @@ public class ReachableStatement extends StatementExtension {
             if (parser.token().kind == TokenKind.COLON) {
                 opt = parser.parseExpression();
             }
-            if (parser.token().kind != TokenKind.SEMI) {
-                // ERROR
+            
+            if (parser.token().ikind == JmlTokenKind.ENDJMLCOMMENT) {
+                parser.jmlwarning(p-2, "jml.missing.semi", jt);
+            } else if (parser.token().kind != TokenKind.SEMI) {
+                parser.jmlerror(p, "jml.missing.semi", jt);
             }
             return jmlF.at(p).JmlExpressionStatement(jt,null,e);
         }

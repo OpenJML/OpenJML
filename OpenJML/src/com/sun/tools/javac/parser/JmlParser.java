@@ -762,7 +762,7 @@ public class JmlParser extends JavacParser {
                     }
                 }
             } else if (token.ikind == ENDJMLCOMMENT) {
-                log.warning(pos(), "jml.missing.semi", jtoken);
+                log.warning(pos()-2, "jml.missing.semi", jtoken);
             	
             } else if (token.kind != SEMI) {
                 jmlerror(pos(), endPos(), "jml.bad.construct", reason);
@@ -2766,28 +2766,30 @@ public class JmlParser extends JavacParser {
                         return te;
                     }
 
-                case BSELEMTYPE:
-                case BSERASURE:
-                case BSTYPEOF:
-                case BSPAST:
-                case BSOLD:
-                case BSPRE:
-                case BSNOWARN:
-                case BSNOWARNOP:
-                case BSWARN:
-                case BSWARNOP:
-                case BSBIGINT_MATH:
-                case BSSAFEMATH:
-                case BSJAVAMATH:
-                    ExpressionExtension ne = Extensions.instance(context).find(pos(),
-                            jt);
-                    if (ne == null) {
-                        jmlerror(p, endPos(), "jml.no.such.extension",
-                                jt.internedName());
-                        return jmlF.at(p).Erroneous();
-                    } else {
-                        return ne.parse(this, typeArgs);
-                    }
+//                case BSESC:
+//                case BSRAC:
+//                case BSELEMTYPE:
+//                case BSERASURE:
+//                case BSTYPEOF:
+//                case BSPAST:
+//                case BSOLD:
+//                case BSPRE:
+//                case BSNOWARN:
+//                case BSNOWARNOP:
+//                case BSWARN:
+//                case BSWARNOP:
+//                case BSBIGINT_MATH:
+//                case BSSAFEMATH:
+//                case BSJAVAMATH:
+//                    ExpressionExtension ne = Extensions.instance(context).find(pos(),
+//                            jt);
+//                    if (ne == null) {
+//                        jmlerror(p, endPos(), "jml.no.such.extension",
+//                                jt.internedName());
+//                        return jmlF.at(p).Erroneous();
+//                    } else {
+//                        return ne.parse(this, typeArgs);
+//                    }
 
                 case BSNOTMODIFIED:
                 case BSNOTASSIGNED:
@@ -2849,10 +2851,24 @@ public class JmlParser extends JavacParser {
                     return toP(jmlF.at(p).Erroneous());
 
                 default:
-                    jmlerror(p, endPos(), "jml.bad.type.expression",
-                            "( token " + jt.internedName()
-                                    + " in JmlParser.term3())");
-                    return toP(jmlF.at(p).Erroneous());
+                {
+                    ExpressionExtension ne = Extensions.instance(context).find(pos(),jt,false);
+                    if (ne == null) {
+                        jmlerror(p, endPos(), "jml.bad.type.expression",
+                                "( token " + jt.internedName()
+                                        + " in JmlParser.term3())");
+//                        jmlerror(p, endPos(), "jml.no.such.extension",
+//                                jt.internedName());
+                        return jmlF.at(p).Erroneous();
+                    } else {
+                        return ne.parse(this, typeArgs);
+                    }
+
+//                    jmlerror(p, endPos(), "jml.bad.type.expression",
+//                            "( token " + jt.internedName()
+//                                    + " in JmlParser.term3())");
+//                    return toP(jmlF.at(p).Erroneous());
+                }
             }
         }
         return toP(super.term3());
@@ -3312,6 +3328,11 @@ public class JmlParser extends JavacParser {
         log.error(new JmlTokenizer.DiagnosticPositionSE(pos, pos), key, args);
     }
 
+    /** Creates a warning message for which the source is a single character */
+    public void jmlwarning(int pos, String key, Object... args) {
+        log.warning(new JmlTokenizer.DiagnosticPositionSE(pos, pos), key, args);
+    }
+
     /**
      * Creates an error message for which the source is a range of characters,
      * from begin up to and not including end; the identified line is that of
@@ -3319,6 +3340,16 @@ public class JmlParser extends JavacParser {
      */
     public void jmlerror(int begin, int end, String key, Object... args) {
         log.error(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
+                args); // TODO - not unicode friendly
+    }
+
+    /**
+     * Creates a warning message for which the source is a range of characters,
+     * from begin up to and not including end; the identified line is that of
+     * the begin position.
+     */
+    public void jmlwarning(int begin, int end, String key, Object... args) {
+        log.warning(new JmlTokenizer.DiagnosticPositionSE(begin, end - 1), key,
                 args); // TODO - not unicode friendly
     }
 
@@ -3335,26 +3366,19 @@ public class JmlParser extends JavacParser {
                 key, args);// TODO - not unicode friendly
     }
     
-//    /** If next input token matches given token, skip it, otherwise report
-//     *  an error; this method is overridden in order to give a slightly better
-//     *  error message on misspelled JML tokens.
-//     */
-//    public void accept(Token token) {
-//        if (!inJmlDeclaration) {
-//            super.accept(token);
-//        } else {
-//            if (S.token() == token) {
-//                nextToken();
-//            } else if (S.token() == null) {
-//                setErrorEndPos(pos());
-//                reportSyntaxError(S.prevEndPos(), "expected, not a misspelled or unexpected JML token", token);
-//            } else {
-//                setErrorEndPos(pos());
-//                reportSyntaxError(S.prevEndPos(), "expected", token);
-//            }
-//        }
-//    }
-
+    /**
+     * Creates a warning message for which the source is a range of characters,
+     * from begin up to and not including end; it also specifies a preferred
+     * location to highlight if the output format can only identify a single
+     * location; the preferred location is also the line that is identified.
+     */
+    public void jmlwarning(int begin, int preferred, int end, String key,
+            Object... args) {
+        log.warning(
+                new JmlTokenizer.DiagnosticPositionSE(begin, preferred, end - 1),
+                key, args);// TODO - not unicode friendly
+    }
+    
 
 
     // FIXME - check the use of Token.CUSTOM vs. null

@@ -94,6 +94,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
 import com.sun.tools.javac.jvm.ClassReader;
+import com.sun.tools.javac.parser.ExpressionExtension;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -2067,6 +2068,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return (mods.flags & Flags.STATIC) != 0;
     }
     
+    public boolean isOnlyComment(JCBlock block) {
+        for (JCStatement st: block.stats) {
+            if (st instanceof JmlStatementExpr && ((JmlStatementExpr)st).token == JmlTokenKind.COMMENT) continue;
+            if (st instanceof JCBlock && isOnlyComment( (JCBlock)st )) continue;
+            return false;
+        }
+        return true;
+    }
+    
 
     /** Creates a try statement that wraps the given block and catches any
      * RuntimeException; the catch block prints the given message; esc just
@@ -2074,6 +2084,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     public JCStatement wrapRuntimeException(DiagnosticPosition pos, JCBlock block, String message, @Nullable JCBlock catchStats) {
         if (!rac) return block;
+        if (isOnlyComment(block)) return block;
         int p = pos.getPreferredPosition();
         Name n = names.fromString(Strings.runtimeException); // FIXME - this does not need to be repeated every time
         JCVariableDecl vd = treeutils.makeVarDef(syms.runtimeExceptionType, n, methodDecl.sym, p);
@@ -2092,7 +2103,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
         } else {
             JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id);
+            JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+            location = treeutils.makeNullLiteral(pos.getPreferredPosition()); // FIXME - really need to propagate the location of the call
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id,location);
             catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
         }
         JCCatch catcher2;
@@ -2101,7 +2114,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
         } else {
             JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id);
+            JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+            if (Utils.testingMode) location = treeutils.makeNullLiteral(pos.getPreferredPosition());
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id, location);
             catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
         }
         return M.at(pos).Try(block,List.<JCCatch>of(catcher,catcher1,catcher2),null);
@@ -3813,7 +3828,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
                 } else {
                     JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id);
+                    JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+                    location = treeutils.makeNullLiteral(pos.getPreferredPosition()); // FIXME - really need to propagate the location of the call
+                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id,location);
                     catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
                 }
                 JCCatch catcher2;
@@ -3822,12 +3839,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
                 } else {
                     JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id);
+                    JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+                    if (Utils.testingMode) location = treeutils.makeNullLiteral(pos.getPreferredPosition());
+                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id, location);
                     catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
                 }
                 if (!bl.stats.isEmpty()) {
-                    st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher,catcher1,catcher2),null);
-                    ensuresStats.add(st);
+                    if (isOnlyComment(bl)) {
+                        ensuresStats.add(bl);
+                    } else {
+                        st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher,catcher1,catcher2),null);
+                        ensuresStats.add(st);
+                    }
                 }
             }
             
@@ -3850,7 +3873,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
                 } else {
                     JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id);
+                    JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+                    location = treeutils.makeNullLiteral(pos.getPreferredPosition()); // FIXME - really need to propagate the location of the call
+                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id,location);
                     catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
                 }
                 JCCatch catcher2;
@@ -3859,12 +3884,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
                 } else {
                     JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id);
+                    JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+                    if (Utils.testingMode) location = treeutils.makeNullLiteral(pos.getPreferredPosition());
+                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id, location);
                     catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
                 }
                 if (!bl.stats.isEmpty()) {
-                    st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher,catcher1,catcher2),null);
-                    exsuresStats.add(st);
+                    if (isOnlyComment(bl)) {
+                        exsuresStats.add(bl);
+                    } else {
+                        st = M.at(methodDecl.pos).Try(bl,List.<JCCatch>of(catcher,catcher1,catcher2),null);
+                        exsuresStats.add(st);
+                    }
                 }
             
             }
@@ -4421,6 +4452,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression truepart = convertExpr(that.truepart);
             JCExpression falsepart = convertExpr(that.falsepart);
             result = eresult = M.at(that).Conditional(cond,truepart,falsepart).setType(that.type);
+        } else if (cond instanceof JCLiteral) {
+            Boolean v = (Boolean)((JCLiteral)cond).getValue();
+            if (v) {
+                result = eresult = convertExpr(that.truepart);
+            } else {
+                result = eresult = convertExpr(that.falsepart);
+            }
         } else if (!splitExpressions) {
             JCExpression prev = condition;
             try {
@@ -5826,7 +5864,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
              */
             boolean uma = useMethodAxioms
 //                  // FIXME - org.jmlspecs.JML has special functions - we want to inline them, not represent as methods; could do this test more efficiently
-                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("org.jmlspecs.lang.JML")
+                    && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.jmlSpecsPackage + ".JML")
                     && calleeMethodSym.params != null;
 //            // FIXME - Strings give lots of problems if used as functions with axioms - sort it out later
 //                    && !calleeMethodSym.owner.getQualifiedName().toString().equals("java.lang.String")
@@ -7693,6 +7731,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
             }
             JCExpression rhs = convertExpr(that.rhs);
+            rhs = addImplicitConversion(that,that.lhs.type, rhs);
             if (specs.isNonNull(fa.sym,methodDecl.sym.enclClass())) {
                 JCExpression e = treeutils.makeNeqObject(fa.pos, rhs, treeutils.nullLit);
                 // FIXME - location of nnonnull declaration?
@@ -8019,9 +8058,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (splitExpressions) result = eresult = newTemp(eresult);
         } else {
             JCExpression arg = convertExpr(that.getExpression());
-            JCExpression e = treeutils.makeUnary(that.pos,tag,that.getOperator(),arg);
-            if (splitExpressions) e = newTemp(e);
-            result = eresult = e;
+            if (tag == JCTree.Tag.NOT && arg instanceof JCLiteral) {
+                result = eresult = treeutils.makeBooleanLiteral(arg.pos, !((Boolean)((JCLiteral)arg).getValue()));
+                // FIXME - other constant folding?
+            } else {
+                JCExpression e = treeutils.makeUnary(that.pos,tag,that.getOperator(),arg);
+                if (splitExpressions) e = newTemp(e);
+                result = eresult = e;
+            }
         }
     }
 
@@ -8132,10 +8176,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression rhs = that.getRightOperand();
                         lhs = addImplicitConversion(lhs,syms.booleanType,lhs);
                         if (translatingJML) condition = treeutils.makeAnd(that.lhs.pos, condition, lhs);
-                        rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow the previous one
-                        rhs = addImplicitConversion(rhs,syms.booleanType,rhs);
-                        if (translatingJML) adjustWellDefinedConditions(lhs);
-                        result = eresult = makeBin(that,tag,that.getOperator(),lhs,rhs,maxJmlType);
+                        if (!(lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.FALSE))) {
+                            rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow the previous one
+                            rhs = addImplicitConversion(rhs,syms.booleanType,rhs);
+                            if (translatingJML) adjustWellDefinedConditions(lhs);
+                            result = eresult = makeBin(that,tag,that.getOperator(),lhs,rhs,maxJmlType);
+                        } else {
+                            result = eresult = lhs;
+                        }
                     }
                 } else if (tag == JCTree.Tag.OR) { 
                     if (splitExpressions) {
@@ -8148,10 +8196,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression rhs = that.getRightOperand();
                         lhs = addImplicitConversion(lhs,syms.booleanType,lhs);
                         if (translatingJML) condition = treeutils.makeAnd(that.lhs.pos, condition, treeutils.makeNot(that.lhs.pos,lhs));
-                        rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow the previous one
-                        rhs = addImplicitConversion(rhs,syms.booleanType,rhs);
-                        if (translatingJML) adjustWellDefinedConditions(treeutils.makeNot(that.lhs.pos,lhs));
-                        result = eresult = makeBin(that,tag,that.getOperator(),lhs,rhs,maxJmlType);
+                        if (!(lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.TRUE))) {
+                            rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow the previous one
+                            rhs = addImplicitConversion(rhs,syms.booleanType,rhs);
+                            if (translatingJML) adjustWellDefinedConditions(treeutils.makeNot(that.lhs.pos,lhs));
+                            result = eresult = makeBin(that,tag,that.getOperator(),lhs,rhs,maxJmlType);
+                        } else {
+                            result = eresult = lhs;
+                        }
                     }
                     // FIXME - add checks for numeric overflow - PLUS MINUS MUL
                 }
@@ -8837,7 +8889,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        return;
 //                    }
 //                }
-//                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
+//                if (s.name.toString().equals("erasure") && s instanceof MethodSymbol && utils.qualifiedName((MethodSymbol)s).equals(Strings.jmlSpecsPackage + ".JML.erasure")) {
 //                    
 //                    JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
 //                    result = eresult = m.meth;
@@ -8918,7 +8970,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            if (oldenv != null) {
 //                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
 //            }
-        } else if (s instanceof MethodSymbol && s.name.toString().equals("erasure") && utils.qualifiedName((MethodSymbol)s).equals("org.jmlspecs.lang.JML.erasure")) {
+        } else if (s instanceof MethodSymbol && s.name.toString().equals("erasure") && utils.qualifiedName((MethodSymbol)s).equals(Strings.jmlSpecsPackage + ".JML.erasure")) {
             JCMethodInvocation m = treeutils.makeUtilsMethodCall(that.pos,"erasure");
             result = eresult = m.meth;
         } else {
@@ -9282,7 +9334,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             switch (that.op) {
                 case IMPLIES: // P ==> Q is !P || Q
                     if (translatingJML) condition = treeutils.makeAnd(that.pos, condition, lhs);
-                    if (splitExpressions) {  // temp = true; if (P) { temp = Q; }
+                    if (lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.FALSE)) {
+                        eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
+                    } else if (splitExpressions) {  // temp = true; if (P) { temp = Q; }
                         JCIdent id = newTemp(treeutils.trueLit);
                         pushBlock();
                         try {
@@ -9307,7 +9361,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 case REVERSE_IMPLIES: // P <== Q is P || !Q 
                     t = treeutils.makeNot(lhs.pos, lhs);
                     if (translatingJML) condition = treeutils.makeAnd(that.pos, condition, t);
-                    if (splitExpressions) { // temp = true; if (not P) { temp = (not Q); }
+                    if (lhs instanceof JCLiteral && ((JCLiteral)lhs).getValue().equals(Boolean.TRUE)) {
+                        eresult = treeutils.makeBooleanLiteral(lhs.pos, true);
+                    } else if (splitExpressions) { // temp = true; if (not P) { temp = (not Q); }
                         JCIdent id = newTemp(treeutils.trueLit);
                         pushBlock();
                         try {
@@ -11158,6 +11214,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 break;
             }
 
+            case BSKEY:
+            {
+                ExpressionExtension ext = (ExpressionExtension)Extensions.instance(context).find(that.pos, that.token, true);
+                eresult = ext.assertion(this, that);
+                if (eresult == null) {
+                    Log.instance(context).error("esc.internal.error","Unimplemented token in JmlAssertionAdder (no ExpressionExtension.assertion method): " + that.token.internedName());
+                    result = null;
+                    throw new JmlNotImplementedException(that,that.token.internedName());
+                }
+                break;
+            }
+            
             case BSMAX :
             case BSREACH :
             case BSSPACE :
@@ -11223,7 +11291,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
         } else {
             JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id);
+            JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+            location = treeutils.makeNullLiteral(pos.getPreferredPosition()); // FIXME - really need to propagate the location of the call
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchMethod",id,location);
             catcher1 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
         }
         JCCatch catcher2;
@@ -11232,10 +11302,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>nil()));
         } else {
             JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(),vd.sym);
-            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id);
+            JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(), utils.locationString(pos, log.currentSourceFile()));
+            if (Utils.testingMode) location = treeutils.makeNullLiteral(pos.getPreferredPosition());
+            JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),"reportNoSuchField",id, location);
             catcher2 = M.at(pos).Catch(vd,  M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
         }
         JCTry st = M.at(arg.pos).Try(bl,List.<JCCatch>of(M.at(arg.pos).Catch(ex,cbl),catcher1,catcher2),null);
+        // FIXME - don't add try if isOnlyComment(bl) is true
         return st;
     }
 

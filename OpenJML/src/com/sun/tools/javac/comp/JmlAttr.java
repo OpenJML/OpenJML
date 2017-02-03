@@ -340,9 +340,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         utilsClassIdent.type = utilsClass.type;
         utilsClassIdent.sym = utilsClassIdent.type.tsym;
 
-        datagroupClass = createClass("org.jmlspecs.lang.JMLDataGroup");
-        JMLSetType = createClass("org.jmlspecs.lang.JMLSetType").type;
-        JMLValuesType = createClass("org.jmlspecs.lang.JMLList").type;
+        datagroupClass = createClass(Strings.jmlSpecsPackage + ".JMLDataGroup");
+        JMLSetType = createClass(Strings.jmlSpecsPackage + ".JMLSetType").type;
+        JMLValuesType = createClass(Strings.jmlSpecsPackage + ".JMLList").type;
         JMLIterType = createClass("java.util.Iterator").type;
         Lock = syms.objectType;
         LockSet = JMLSetType;
@@ -3290,13 +3290,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 
                 
 
-            case BSELEMTYPE :
-            case BSERASURE :
-                ExpressionExtension ext = Extensions.instance(context).find(tree.pos,token);
-                Type ttt = ext.typecheck(this,tree,localEnv);
-                result = check(tree, ttt, VAL, resultInfo);
-                break;
-
 
             case BSISINITIALIZED :
                 // The argument is a type that is a reference type; the result is boolean
@@ -3496,16 +3489,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = check(tree, t, VAL, resultInfo);
                 break;
                  
+            default:
+                ExpressionExtension ext = Extensions.instance(context).find(tree.pos,token,true);
+                Type ttt = ext.typecheck(this,tree,localEnv);
+                result = check(tree, ttt, VAL, resultInfo);
+                break;
+
             case BSONLYCALLED: // FIXME - needs implementation
             case BSONLYASSIGNED: // FIXME - needs implementation
             case BSONLYACCESSED: // FIXME - needs implementation
             case BSONLYCAPTURED: // FIXME - needs implementation
             case BSNOTASSIGNED: // FIXME - needs implementation
             case BSNOTMODIFIED: // FIXME - needs implementation
-            default:
                 log.error(tree.pos,"jml.unknown.construct",token.internedName(),"JmlAttr.visitApply");
                 result = tree.type = syms.errType;
                 break;
+                
+
                 
         }
     }
@@ -3801,9 +3801,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
                 
             default:
-                t = syms.errType;
-                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
+                ExpressionExtension ext = Extensions.instance(context).find(that.pos,jt,true);
+                Type ttt = ext.typecheck(this,that,env);
+                result = check(that, ttt, VAL, resultInfo);
                 break;
+
+//            default:
+//                t = syms.errType;
+//                log.error(that.pos,"jml.unknown.type.token",that.token.internedName(),"JmlAttr.visitJmlSingleton");
+//                break;
         }
         result = check(that, t, VAL, resultInfo);
     }
@@ -5184,7 +5190,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             MethodSpecs mspecs = specs.getSpecs(msym);
             if (mspecs == null) {
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
-                if (msym.toString().equals("size()") && msym.owner.toString().equals("org.jmlspecs.lang.JMLList")) return true;
+                if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
                 // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
                 continue;
             }

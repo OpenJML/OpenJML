@@ -10,7 +10,9 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.ext.Arithmetic.Safe;
 
 import com.sun.tools.javac.code.Symtab;
@@ -144,6 +146,22 @@ abstract public class ExpressionExtension {
         }
     }
     
+    public JCExpression parseNoArgs(JmlParser parser,
+            @Nullable List<JCExpression> typeArgs) {
+        // TODO Auto-generated method stub
+        this.parser = parser;
+        JmlTokenKind jt = parser.jmlTokenKind();
+        int p = parser.pos();
+        parser.nextToken();
+        if (parser.token().kind == TokenKind.LPAREN) {
+            return parser.syntaxError(p, null, "jml.no.args.allowed", jt.internedName());
+        } else if (typeArgs != null && !typeArgs.isEmpty()) {
+            return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
+        } else {
+            return parser.jmlF.at(p).JmlSingleton(jt);
+        }
+    }
+    
     abstract public void checkParse(JmlParser parser, JmlMethodInvocation e);
 
     public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
@@ -152,9 +170,20 @@ abstract public class ExpressionExtension {
         }
     }
 
+    public void checkNoArgs(JmlParser parser, JmlMethodInvocation e) {
+        if (e.args.size() != 0) {
+            parser.jmlerror(e.pos, parser.getEndPos(e), "jml.no.args.allowed", e.token.internedName());
+        }
+    }
+
     
     // TODO: document
     abstract public Type typecheck(JmlAttr attr, JCExpression expr, Env<AttrContext> env);
+
+    // TODO: document
+    public JCExpression assertion(JmlAssertionAdder adder, JCExpression that) {
+        return null;
+    }
 
     public static <T> T instance(Context context, Class<T> key) {
         T s = context.get(key);

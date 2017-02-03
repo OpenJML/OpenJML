@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Strings;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.OperatorSymbol;
@@ -36,7 +37,7 @@ public class JmlTypes extends Types {
     }
 
     /** The singleton instance for the \real JML type */
-    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,"org.jmlspecs.lang.Real");
+    final public JmlType REAL = new JmlType(JmlTokenKind.BSREAL,Strings.jmlSpecsPackage + ".Real");
     {
         jmltypes.put(JmlTokenKind.BSREAL, REAL);
     }

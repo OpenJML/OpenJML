@@ -338,8 +338,9 @@ public abstract class RacBase extends JmlTestCase {
                 if (timeout(p,10000)) { // 10 second timeout
                     fail("Process did not complete within the timeout period");
                 }
+                String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
-                String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
+                output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
                 if (print) System.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {

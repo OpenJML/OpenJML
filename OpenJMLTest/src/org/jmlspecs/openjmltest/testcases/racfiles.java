@@ -172,14 +172,14 @@ public class racfiles extends RacBase {
     public void racAddng() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddng;test/racaddng/jmlunitng.jar");
+        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddng;test/racaddng/jmlunitng.jar","-jmltesting");
     }
 
     @Test
     public void racAddngall() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddngall;test/racaddng;test/racaddng/jmlunitng.jar");
+        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddngall;test/racaddng;test/racaddng/jmlunitng.jar","-jmltesting");
     }
 
     @Test
@@ -279,10 +279,10 @@ public class racfiles extends RacBase {
     			);
     }
 
-    @Test
+    @Test // FIXME - make platform independent and remove use of -jmltesting - but also has added a stack trace
     public void racNoGhostField() {
         expectedRACExit = 0;
-        helpTCF("test/racNoGhostField","test/racNoGhostField","Magic");
+        helpTCF("test/racNoGhostField","test/racNoGhostField","Magic","-jmltesting");
     }
 
     @Test

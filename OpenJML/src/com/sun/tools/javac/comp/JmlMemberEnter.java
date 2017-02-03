@@ -50,6 +50,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.CompletionFailure;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
@@ -66,6 +67,9 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.FatalError;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -136,7 +140,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         this.resolve = JmlResolve.instance(context);
         this.enter = (JmlEnter)JmlEnter.instance(context);
         this.names = Names.instance(context);
-        this.org_jmlspecs_lang = names.fromString("org.jmlspecs.lang");
+        this.org_jmlspecs_lang = names.fromString(Strings.jmlSpecsPackage);
         this.jmlF = JmlTree.Maker.instance(context);
         this.syms = Symtab.instance(context);
         this.specs = JmlSpecs.instance(context);
@@ -185,7 +189,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if (specenv == null) specenv = env;
                 if (specenv != env) importAll(tree.pos, reader.enterPackage(names.java_lang), specenv);
                 super.memberEnter(specscu, specenv);
-                importAll(tree.pos, reader.enterPackage(names.fromString("org.jmlspecs.lang")), specenv);
+                importAll(tree.pos, reader.enterPackage(names.fromString(Strings.jmlSpecsPackage)), specenv);
             }
         }
     }
@@ -197,7 +201,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     @Override
     protected void finishClass(JCClassDecl tree, Env<AttrContext> env) {
-
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         JmlClassDecl jtree = (JmlClassDecl)tree;
         JavaFileObject prevSource = log.useSource(jtree.source());;
@@ -441,7 +444,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     
     protected void visitMethodDefHelper(JCMethodDecl tree, MethodSymbol m, Scope enclScope) {
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
-            if (!noEntering) enclScope.enter(m);
+            if (!noEntering) {
+                if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
+                    m.flags_field |= (Flags.ABSTRACT | Flags.DEFAULT);
+                    m.enclClass().flags_field |= Flags.DEFAULT;
+                }
+                enclScope.enter(m);
+            }
         }
     }
 
@@ -815,7 +824,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             VarSymbol vsym = vdecl.sym;
             
             JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl.pos,vdecl.sym.type));
-            JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,"org.jmlspecs.lang.NoModelFieldMethod"), List.<JCExpression>nil(), null));
+            JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,Strings.jmlSpecsPackage + ".NoModelFieldMethod"), List.<JCExpression>nil(), null));
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
@@ -859,7 +868,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
-        mr.mods.flags |= Flags.DEFAULT;
+        mr.mods.flags |= Flags.DEFAULT;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
         mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable())));
@@ -2064,10 +2073,25 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     protected void importHelper(JCCompilationUnit tree) {
         // Import-on-demand java.lang.
         importAll(tree.pos, reader.enterPackage(names.java_lang), env);
-        importAll(tree.pos, reader.enterPackage(names.fromString("org.jmlspecs.lang")), env);
+        importAll(tree.pos, reader.enterPackage(names.fromString(Strings.jmlSpecsPackage)), env);
 
         // Process all import clauses.
         memberEnter(tree.defs, env);
     }
+    
+    @Override
+    protected void importAll(int pos,
+            final TypeSymbol tsym,
+            Env<AttrContext> env) {
+        if (tsym.kind == PCK && tsym.members().elems == null && !tsym.exists()) {
+            // If we can't find org.jmlspecs.lang, exit immediately.
+            if (((PackageSymbol)tsym).fullname.toString().equals(Strings.jmlSpecsPackage)) {
+                JCDiagnostic msg = diags.fragment("fatal.err.no." + Strings.jmlSpecsPackage);
+                throw new FatalError(msg);
+            }
+        }
+        super.importAll(pos, tsym, env);
+    }
+
 
 }
