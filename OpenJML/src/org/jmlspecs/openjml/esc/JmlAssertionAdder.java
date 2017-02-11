@@ -7550,7 +7550,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 eresult = newTemp(mth);
             }
-        } else if (!newIsPrim && isPrim) {
+            isPrim = true;
+            expr = eresult;
+            if (types.isSameType(newtype,eresult.type)) return expr;
+        } 
+        if (!newIsPrim && isPrim) {
             // boxing: Integer = int and the like
             JCExpression id = createBoxingStatsAndExpr(expr,newtype);
             eresult = id;

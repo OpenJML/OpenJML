@@ -1630,48 +1630,114 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
             TypeTag tagr = tree.type.getTag();
             TypeTag tage = tree.expr.type.getTag();
-            if (tage == TypeTag.UNKNOWN || tagr == TypeTag.UNKNOWN) { 
-                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr == TypeTag.UNKNOWN && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                    // int to \bigint -- OK
+            if (tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) { 
+                if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                            // \bigint to \bigint -- OK
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                            // \real to \bigint
+                            result = F.fcn(F.symbol("to_int"), result);
+                        } else {
+                            // FIXME - error
+                        }
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                            // \bigint to \real
+                            result = F.fcn(F.symbol("to_real"), result);
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                            // \real to \real -- OK
+                        } else {
+                            // FIXME - error
+                        }
+                    } else {
+                        // FIXME - error
+                    }
+                    
+                } else if (treeutils.isIntegral(tage)) {
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // int to \bigint -- OK
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // int to \real
+                        result = F.fcn(F.symbol("to_real"), result);
+                    } else {
+                        // FIXME - error
+                    }
                 } else {
-                    // ????? FIXME
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // float/double to \bigint
+                        result = F.fcn(F.symbol("to_int"), result);
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // float/double to \real -- OK
+                    } else {
+                        // FIXME - error
+                    }
+                }
+            } else if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
+                if (treeutils.isIntegral(tagr)) {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // \bigint to int -- OK
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // \real to int -- FIXME
+                        result = F.fcn(F.symbol("to_int"), result);
+                    } else {
+                        // FIXME - error
+                    }
+                } else {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // \bigint to float/double -- FIXME
+                        result = F.fcn(F.symbol("to_real"), result);
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // \real to float/double -- OK
+                    } else {
+                        // FIXME - error
+                    }
                 }
             } else if (!tree.type.isPrimitive()) {
-                // If this is a cast from reference type to reference type, we can ignore it
+                // This is a cast from reference type to reference type, we can ignore it
             } else if (tree.expr instanceof JCLiteral) {
+                // Cast from one primitive literal to a another primitive type
+                // Note that in SMT there is only Int and Real types (or bit-value types)
+                // any restrictions on the range of a value must already be stated using assertions 
                 Object v = ((JCLiteral)tree.expr).getValue();
                 if (tage == tagr) {
-                    // OK
+                    // OK -- no change in type
                 } else if (treeutils.isIntegral(tage) == treeutils.isIntegral(tagr)) {
-                    // Both integral or both floating point
-                    // OK
+                    // Both are integral or both are floating point
+                    // OK -- no change in SMT type
                 } else if (treeutils.isIntegral(tage)) {
+                    // integral to real literal
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
                     result = makeRealValue(val.doubleValue());
-                } else if (tage.ordinal() > TypeTag.LONG.ordinal()) {
+                } else if (!treeutils.isIntegral(tage)) {
                     // FIXME - cast from double to integral
                 } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
-                    // Cast to real
+                    // Cast to real FIXME - already done?
                     Double d = new Double(v.toString());
                     result = makeRealValue(d.doubleValue());
                 }
             } else {
-                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr.ordinal() > TypeTag.LONG.ordinal()) {
+                // cast from primitive to primitive for an expression
+                boolean argIsInt = treeutils.isIntegral(tage);
+                boolean resultIsInt = treeutils.isIntegral(tagr);
+                if (argIsInt && !resultIsInt) {
+                    // Requires int and real logic
                     // integral to real
+                    result = F.fcn(F.symbol("to_real"), result);
+                } else if (!argIsInt && resultIsInt) {
+                    // Requires int and real logic
+                    // real to int
+                    result = F.fcn(F.symbol("to_int"), result);
                 } else {
-                    
+                    // no change in result
                 }
-            }
-            if (tree.expr instanceof JCLiteral) {
-                
-            } else {
-                result = convertExpr(tree.expr);
             }
         } else if (!tree.type.isPrimitive()) {
             // Cast from primitive to object
             log.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
             // unboxing cast from object to primitive
+            log.error(tree,"jml.internal","Do not expect casts from reference type in expressions: " + JmlPretty.write(tree));
             TypeTag tag = tree.type.getTag();
             switch (tag) {
                 case INT:
@@ -1682,6 +1748,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 case DOUBLE:
                 case FLOAT:
                 case BOOLEAN:
+                    // FIXME - should this ever happen?
                     break;
                 default:
                     log.error(tree,"jml.internal","Unknown type tag in translating an unboxing cast: " + tag + " " + JmlPretty.write(tree));

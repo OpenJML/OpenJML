@@ -1,8 +1,11 @@
 package org.jmlspecs.openjmltest.testcases;
+import java.util.concurrent.TimeUnit;
+
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.junit.runners.ParameterizedWithNames;
 
@@ -1083,6 +1086,7 @@ public class escall3 extends EscBase {
     
     // Checks boxing conversion on assignment to a field
     @Test public void testBoxingOnAssignment() {
+    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1090,6 +1094,41 @@ public class escall3 extends EscBase {
                 +"  public Integer bb;\n"
 
                 +"  public TestJava(Integer b, int bb) {\n"
+                +"    this.b = b;\n"
+                +"    this.bb = bb;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // Checks boxing conversion on assignment to a field
+    @Ignore  // times out
+    @Test public void testBoxingOnAssignment2() {
+    	main.addOptions("-logic=AUFLIRA","-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public double b;\n"
+
+                +"  public TestJava(Integer b) {\n"
+                +"    this.b = b;\n"
+                +"    //@ assert this.b == b;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // Checks boxing conversion on assignment to a field
+    @Ignore  // times out
+    @Test public void testBoxingOnAssignment3() {
+    	main.addOptions("-logic=AUFNIRA","-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public double b;\n"
+                +"  public Double bb;\n"
+
+                +"  public TestJava(Double b, double bb) {\n"
                 +"    this.b = b;\n"
                 +"    this.bb = bb;\n"
                 +"  }\n"
