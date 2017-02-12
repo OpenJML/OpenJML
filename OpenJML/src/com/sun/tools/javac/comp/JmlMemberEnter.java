@@ -892,28 +892,43 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         specs.putSpecs(mdecl.sym,mdecl.methodSpecsCombined);
     }
 
-    /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
+    /** Checks that the jml annotations match Java annotations for annotations not in org.jmlspecs.annotation
+     * and are a superset of the Java annotations for annotations in org.jmlspecs.annotation) */
     // MUST HAVE log.useSource set to specs file!
-    protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods) {
+    protected void checkSameAnnotations(Symbol sym, JCModifiers specsmods, JavaFileObject javaSource) {
         // FIXME - check for null in annotations?
         if (sym.isAnonymous()) return;
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (Compound a  : sym.getAnnotationMirrors()) {
-            if (a.type.tsym.owner.equals(p) && utils.findMod(specsmods,a.type.tsym) == null) {
-                // Only complain about mismatches of JML annotations
-                log.error(specsmods.pos,"jml.missing.annotation",a);
+            if (a.type.tsym.owner.equals(p)) {
+                if (utils.findMod(specsmods,a.type.tsym) == null) {
+                    JavaFileObject prev = log.useSource(javaSource);
+                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+                    log.useSource(prev);
+                }
+            } else {
+                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+                    log.error(specsmods.pos,"jml.missing.annotation",a);
+                }
             }
         }
     }
 
     /** Checks that the jml annotations are a superset of the Java annotations (for annotations in org.jmlspecs.annotation) */
     // MUST HAVE log.useSource set to specs file!
-    protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods) {
+    protected void checkSameAnnotations(JCModifiers javaMods, JCModifiers specsmods, JavaFileObject javaSource) { // FIXME - don't need last argument
         PackageSymbol p = ((JmlAttr)attr).annotationPackageSymbol;
         for (JCAnnotation a: javaMods.getAnnotations()) {
-            if (a.type.tsym.owner.equals(p) && utils.findMod(specsmods,a.type.tsym) == null) {
-                // Only complain about mismatches of JML annotations
-                log.error(specsmods.pos,"jml.missing.annotation",a);
+            if (a.type.tsym.owner.equals(p)) {
+                if (utils.findMod(specsmods,a.type.tsym) == null) {
+                    JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+                    log.error(specsmods.pos,"jml.java.annotation.superseded",a);
+                    log.useSource(prev);
+                }
+            } else {
+                if (utils.findMod(specsmods,a.type.tsym) == null && !a.toString().startsWith("@sun")) {
+                    log.error(specsmods.pos,"jml.missing.annotation",a);
+                }
             }
         }
     }
@@ -982,7 +997,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             attr.attribAnnotationTypes(specsClassDecl.mods.annotations, baseEnv(javaDecl,env));  // FIXME - this is done later; is it needed here?
 
             JavaFileObject prev = log.useSource(specsClassDecl.source());
-            checkSameAnnotations(javaDecl.mods,specsClassDecl.mods);
+            checkSameAnnotations(javaDecl.mods,specsClassDecl.mods,javaDecl.source());
             log.useSource(prev);
             // FIXME - check that both are Enum; check that both are Annotation
         }
@@ -1018,7 +1033,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 if (diffs != 0) log.error(specsClassDecl.pos(),"jml.mismatched.modifiers", specsClassDecl.name, javaClassSym.fullname, Flags.toString(diffs));  // FIXME - test this
             }
             // FIXME - check that both are Enum; check that both are Annotation
-            checkSameAnnotations(javaClassSym,specsClassDecl.mods);
+            checkSameAnnotations(javaClassSym,specsClassDecl.mods,prev); // FIXME - is prev the java source?
         }
         {
             List<Type> t = ((Type.ClassType)javaClassSym.type).getTypeArguments();
@@ -1398,13 +1413,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             }
 
             // FIXME - we do need to exclude some anonymous classes,  but all of them?
-            if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods);
+            if (!javaClassSymbol.isAnonymous()) checkSameAnnotations(match,specMethodDecl.mods,prev); // FIXME - is prev really the file object for Java
             Iterator<JCVariableDecl> jmliter = specMethodDecl.params.iterator();
             Iterator<Symbol.VarSymbol> javaiter = match.getParameters().iterator();
             while (javaiter.hasNext() && jmliter.hasNext()) {
                 Symbol.VarSymbol javaparam = javaiter.next();
                 JmlVariableDecl jmlparam = (JmlVariableDecl)jmliter.next();
-                checkSameAnnotations(javaparam,jmlparam.mods);
+                checkSameAnnotations(javaparam,jmlparam.mods,prev); // FIXME - is prev really the file object for Java
             }
 
 

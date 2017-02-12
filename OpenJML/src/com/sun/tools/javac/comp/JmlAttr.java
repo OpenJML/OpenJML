@@ -784,6 +784,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, TypeSpecs tspecs) {
         //System.out.println("Checking " + javaDecl.name + " in " + owner);
+        if (classSymbol.toString().endsWith("A")) Utils.stop();
         checkTypeMatch(classSymbol, tspecs.decl);
         Symbol owner = classSymbol.owner;
         JCModifiers specsModifiers = tspecs.modifiers;
@@ -822,11 +823,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribAnnotationTypes(specsModifiers.annotations,env); 
             JavaFileObject prev = log.useSource(tspecs.file);
             if (javaDecl != null) {
-                checkSameAnnotations(javaDecl.mods,specsModifiers); 
+                checkSameAnnotations(javaDecl.mods,specsModifiers,"class",classSymbol.toString()); 
             } else {
                 long flags = classSymbol.flags();
                 JCModifiers m = factory.Modifiers(flags, null); // FIXME - should check annotations
-                checkSameAnnotations(m,specsModifiers); 
+                checkSameAnnotations(m,specsModifiers,"class",classSymbol.toString()); 
             }
             log.useSource(prev);
         }
@@ -890,8 +891,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
-        // FIXME - this should be done in MemberEnter, not here
-    protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods) {
+        // FIXME - this should be done in MemberEnter, not here -- needed for JmlVariableDecl, checking class mods
+    protected boolean checkSameAnnotations(JCModifiers javaMods, JCModifiers specMods, String kind, String name) {
         //if (javaMods == specMods) return true;
         PackageSymbol p = annotationPackageSymbol;
         boolean r = false;
@@ -900,7 +901,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             TypeSymbol tsym = a.annotationType.type.tsym;
             if (((JmlTree.JmlAnnotation)a).sourcefile != null && tsym.owner.equals(p) && utils.findMod(specMods,tsym) == null) {
                 JavaFileObject prev = log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
-                log.error(a.pos,"jml.missing.annotation",a); 
+                log.warning(a.pos,"jml.java.annotation.superseded",kind,name,a); 
                 log.useSource(prev);
                 r = true;
             }
@@ -2062,16 +2063,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarMods(JmlVariableDecl tree) {
         if (tree.name == names.error || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
+        String kind = (tree.mods.flags & Flags.PARAMETER) != 0 ? "parameter" : "field";
         if (tree.specsDecl != null) {
             JCModifiers jmlmods = tree.specsDecl.mods;
             attribAnnotationTypes(jmlmods.annotations,env);
-            String kind = (tree.mods.flags & Flags.PARAMETER) != 0 ? "parameter" : "field";
-            for (JCAnnotation a: tree.mods.annotations) { // Iterating over annotations in .java file
-                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym); // CHeck if it is used in .jml file
-                if (aa == null) { // If not, report that it is ignored
-                    log.warning(a.pos(), "jml.java.annotation.superseded", kind , tree.name.toString(), a.toString());
-                }
-            }
+//            for (JCAnnotation a: tree.mods.annotations) { // Iterating over annotations in .java file
+//                JCAnnotation aa = utils.findMod(jmlmods, a.type.tsym); // CHeck if it is used in .jml file
+//                if (aa == null) { // If not, report that it is ignored
+//                    log.warning(a.pos(), "jml.java.annotation.superseded", kind , tree.name.toString(), a.toString());
+//                }
+//            }
             mods = tree.specsDecl.mods;
             log.useSource(tree.specsDecl.source());
         }
@@ -2116,14 +2117,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.specsDecl != null) {
                 JCModifiers jmlmods = tree.specsDecl.mods;
                 attribAnnotationTypes(jmlmods.annotations,env);
-                for (JCAnnotation a: tree.mods.annotations) {
-                    JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
-                    if (aa == null) { // FIXME _ check on sourcefile
-                        JavaFileObject psource = log.useSource(tree.source());
-                        log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
-                        log.useSource(psource);
-                    }
-                }
+                // Appropriate use of annotations is checked below.
+//                for (JCAnnotation a: tree.mods.annotations) {
+//                    JmlAnnotation aa = utils.findMod(jmlmods, a.type.tsym);
+//                    if (aa == null) { // FIXME _ check on sourcefile
+//                        JavaFileObject psource = log.useSource(tree.source());
+//                        log.warning(a.pos(), "jml.java.annotation.superseded", "parameter", tree.name.toString(), a.toString());
+//                        log.useSource(psource);
+//                    }
+//                }
+                kind = "parameter";
                 pmods = jmlmods;
             }
             if (tree.specsDecl != null) log.useSource(tree.specsDecl.source());
@@ -2132,7 +2135,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.specsDecl != null) log.useSource(tree.source());
             
         } else { // local declaration
-            allAllowed(tree.mods.annotations, allowedLocalVarModifiers, "local variable declaration");
+            kind = "local variable declaration";
+            allAllowed(tree.mods.annotations, allowedLocalVarModifiers, kind);
             if (inJML && !ghost  && !isInJmlDeclaration && !ownerInJML) {
                 utils.error(tree.source(),tree.pos,"jml.missing.ghost");
             } else if (!inJML && ghost) {
@@ -2143,7 +2147,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         if (tree.specsDecl != null) {
             JavaFileObject prev = log.useSource(tree.specsDecl.source());
-            checkSameAnnotations(tree.mods,tree.specsDecl.mods);
+            checkSameAnnotations(tree.mods,tree.specsDecl.mods,kind,tree.name.toString());
             log.useSource(prev);
         }
              
