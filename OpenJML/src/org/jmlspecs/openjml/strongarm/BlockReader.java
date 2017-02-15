@@ -701,6 +701,23 @@ public class BlockReader {
             }
         }
         
+        // also, we have all these useless statements generated
+        
+        for(JCStatement stmt : block.statements()){
+            if(stmt instanceof JmlStatementExpr){
+                JmlStatementExpr s = (JmlStatementExpr)stmt;
+                
+                if(s.label ==  Label.BRANCHE){
+                    String rep = s.toString();
+                    
+                    // we need to meet three conditions
+                    if(rep.contains("THIS") && rep.contains("!") && rep.contains("null")){
+                        UNDRs.add(rep);
+                    }
+                }
+            }
+        }
+        
     }
 
     private void pickupLexicalMappings(JCStatement stmt, BasicBlock block){
@@ -884,6 +901,8 @@ public class BlockReader {
                 return true;
             }
         }
+        
+        
         return false;
     }
     private boolean isUNDR(JmlStatementExpr e){
