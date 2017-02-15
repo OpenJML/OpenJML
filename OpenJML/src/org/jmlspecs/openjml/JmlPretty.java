@@ -249,6 +249,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitJmlMethodClauseGroup(JmlMethodClauseGroup that) {
         // Presumes already aligned; does not call println at end
         try {
+            if(that.cases==null){
+                return;
+            }
             if (that.cases.size() == 1) {
                 that.cases.get(0).accept(this);
             } else {
