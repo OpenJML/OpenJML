@@ -68,25 +68,26 @@ public class PruneUselessClauses extends JmlTreeScanner{
         
         List<JmlSpecificationCase> replacedCases = null;
         
-        for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail)
-        {
-            int props = PropsInSubtree.count(cases.head);
-            
-            if(props > 0){
-                if(replacedCases == null){
-                    replacedCases = List.of(cases.head);
-                }else{
-                    replacedCases = replacedCases.append(cases.head);
+        if(tree.cases!=null){
+            for(List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail)
+            {
+                int props = PropsInSubtree.count(cases.head);
+                
+                if(props > 0){
+                    if(replacedCases == null){
+                        replacedCases = List.of(cases.head);
+                    }else{
+                        replacedCases = replacedCases.append(cases.head);
+                    }
                 }
             }
+     
+            if(replacedCases == null){
+                replacedCases = List.nil();
+            }
+            
+            tree.cases = replacedCases;
         }
- 
-        if(replacedCases == null){
-            replacedCases = List.nil();
-        }
-        
-        tree.cases = replacedCases;
-        
         super.visitJmlMethodClauseGroup(tree);        
     }
      
