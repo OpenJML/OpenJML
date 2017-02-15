@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.source.tree.ExpressionStatementTree;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
@@ -246,7 +247,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         
         
-        if(canReplace((VarSymbol)access.sym, access.name)){
+        if(access.sym instanceof VarSymbol && canReplace((VarSymbol)access.sym, access.name)){
            
             if (verbose) {
                 log.getWriter(WriterKind.NOTICE).println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
@@ -353,7 +354,11 @@ public class SubstituteTree2 extends JmlTreeScanner{
     private Name tmpVar   = null;
     
     private boolean canReplace(JCIdent ident){
-        return canReplace((VarSymbol)ident.sym, ident.name);
+        try {
+            return canReplace((VarSymbol)ident.sym, ident.name);
+        }catch(ClassCastException e){
+            return false;
+        }
     }
     
     

@@ -676,7 +676,7 @@ public class Strongarm
             
             
             // due to symbol table problems, it fails in some edge cases. 
-            reader.postcondition.replace(reader.getBlockerMappings(), false);
+            //reader.postcondition.replace(reader.getBlockerMappings(), false);
 
 
         }
@@ -707,9 +707,6 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
-        
-        
-        
         
         
         t = Timing.start();
