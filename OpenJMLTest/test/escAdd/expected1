@@ -1,0 +1,25 @@
+test\escAdd\Add.java:5: error: Recursive attempt to assert or assume invariants - use pure helper methods: Add
+  //@ public invariant x() + y() > 0;
+                        ^
+test\escAdd\Add.java:5: error: Recursive attempt to assert or assume invariants - use pure helper methods: Add
+  //@ public invariant x() + y() > 0;
+                              ^
+Proving methods in Add
+Starting proof of Add.Add(int,int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Add.Add(int,int) with prover !!!! - no warnings
+Starting proof of Add.x() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Add.x() with prover !!!! - no warnings
+Starting proof of Add.y() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Add.y() with prover !!!! - no warnings
+Starting proof of Add.sum(int) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Add.sum(int) with prover !!!! - no warnings
+Completed proving methods in Add
+2 errors

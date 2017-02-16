@@ -1573,11 +1573,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JmlMethodClause clp = null;
             if (desugaringPure) {
                 if (decl.sym.isConstructor()) {
-                    JCIdent t = jmlMaker.Ident(names._this);
-                    t.type = decl.sym.owner.type;
-                    t.sym = decl.sym.owner;
+//                    JCIdent t = jmlMaker.Ident(names._this);
+//                    t.type = decl.sym.owner.type;
+//                    t.sym = decl.sym.owner;
+//                    clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
+//                            List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
                     clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,
-                            List.<JCExpression>of(jmlMaker.Select(t,(Name)null)));
+                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
                     
                 } else {
                     clp = jmlMaker.JmlMethodClauseStoreRef(JmlTokenKind.ASSIGNABLE,

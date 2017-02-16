@@ -399,8 +399,8 @@ public class escvisibility1 extends EscBase {
         helpTCX("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
                 "public A() { i = 0; } \n}"
-                ,"/tt/A.java:3: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-                ,"/tt/A.java:3: warning: Associated declaration",8
+//                ,"/tt/A.java:3: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
+//                ,"/tt/A.java:3: warning: Associated declaration",8
                 );
     }
 
@@ -410,8 +410,8 @@ public class escvisibility1 extends EscBase {
                 "int i; \n" +
                 "//@ requires true;\n" +
                 "public A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -421,8 +421,8 @@ public class escvisibility1 extends EscBase {
                 "int i; \n" +
                 "//@ assignable this.*;\n" +
                 "public A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -439,8 +439,8 @@ public class escvisibility1 extends EscBase {
         helpTCX("tt.A","package tt; public class A {\n private int i; \n" +
                 "//@ assignable this.*;\n" +
                 "public A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -449,8 +449,8 @@ public class escvisibility1 extends EscBase {
         helpTCX("tt.A","package tt; public class A {\n protected int i; \n" +
                 "//@ assignable this.*;\n" +
                 "public A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -492,8 +492,8 @@ public class escvisibility1 extends EscBase {
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
                 "//@ assignable this.*;\n" +
                 " A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",10
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",10
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -503,8 +503,8 @@ public class escvisibility1 extends EscBase {
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
                 "//@ assignable this.*;\n" +
                 "protected A() { i = 0; } \n}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",19
-                ,"/tt/A.java:3: warning: Associated declaration",5
+//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",19
+//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
