@@ -121,6 +121,8 @@ public abstract class RacBase extends JmlTestCase {
         super.tearDown();
         specs = null;
     }
+    
+    public static String macstring = "Exception in thread \"main\" ";
 
     
     /** This method does the running of a RAC test for tests that supply with body
@@ -158,7 +160,9 @@ public abstract class RacBase extends JmlTestCase {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }
-                assertEquals("Message " + i, list[k].toString(), noSource(collector.getDiagnostics().get(i)));
+                String s = noSource(collector.getDiagnostics().get(i));
+                if (s.startsWith(macstring)) s = s.substring(macstring.length());
+                assertEquals("Message " + i, list[k].toString(), s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
@@ -205,9 +209,11 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
+                	if (line.startsWith(macstring)) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
+                if (i < list.length && list[i].equals(macstring)) i++;
             }
 
             if (i != list.length && !print) { // if print, then we already printed
