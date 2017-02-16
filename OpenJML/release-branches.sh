@@ -58,7 +58,7 @@ git push --set-upstream origin "$REL"
 git checkout $REFBRANCH
 git push
 
-cd ../JmlOpenJMLDemo
+cd ../OpenJMLDemo
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
