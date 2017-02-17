@@ -96,8 +96,9 @@ public class escnewBoxing extends EscBase {
 
                 +"  { Integer j = null; int m = j; \n}\n"
 
-                +"}"
-                );   // FIXME - should generate warnings here
+                +"}",
+                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
+                );
     }
     
     @Test

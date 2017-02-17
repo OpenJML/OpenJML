@@ -20,6 +20,14 @@ public class escenums extends EscBase {
     @Test
     public void testBasicEnum() {
         helpTCX("tt.TestJava","package tt; \n"
+                +"public enum TestJava { AA \n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testBasicEnum2() {
+        helpTCX("tt.TestJava","package tt; \n"
                 +"public enum TestJava { AA, BB, CC \n"
                 +"}"
                 );

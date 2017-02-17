@@ -885,9 +885,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(classDecl,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(classDecl,currentThisExpr,classDecl.type));
 
                 JCExpression fa = M.at(methodDecl.pos).Select(currentThisExpr, allocSym);
-                fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, treeutils.makeIntLiteral(methodDecl,0));
+                fa = treeutils.makeBinary(methodDecl,JCTree.Tag.EQ, fa, 
+                        treeutils.makeIntLiteral(methodDecl, enclosingClass.isEnum() ? 0 : isConstructor ? ++allocCounter : 0));
                 addStat(treeutils.makeAssume(methodDecl, Label.IMPLICIT_ASSUME, fa ));
-
+                // FIXME - the above setting for enums very likely has to be fixed.
             }
             
             boolean callingSuper = false;
@@ -980,6 +981,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(initialStatements,preconditionAssumeCheck);
             }
             
+            if (esc && isConstructor) {
+                boolean pv = checkAccessEnabled;
+                checkAccessEnabled = false; // Not sure about this - all references are to instance fieldsd, no?
+                try {
+                    addInstanceInitialization();
+                } finally {
+                    checkAccessEnabled = pv;
+                }
+            }
+
             
             addStat( comment(methodDecl,"Method Body",null));
             if (methodDecl.body != null) {
@@ -992,7 +1003,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean pv = checkAccessEnabled;
                     checkAccessEnabled = false;
                     try {
-                        addInstanceInitialization();
+                        addInstanceInitializationPass2();
                     } finally {
                         checkAccessEnabled = pv;
                     }
@@ -2832,7 +2843,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected boolean addNullnessAllocationTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
         int p = pos.getPreferredPosition();
         boolean nnull = true;
-        if (sym.type.toString().equals("\\bigint")) Utils.stop();
         if (!jmltypes.isJmlType(sym.type) && !sym.type.isPrimitive()) {
             // e2 : id.isAlloc
             //JCExpression e2 = treeutils.makeSelect(p, convertCopy(id), isAllocSym);
@@ -3922,6 +3932,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected void addInstanceInitialization() {
         JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
         
+        addStat( comment(methodDecl,"Class fields for constructor",null));
+        // First pass sets everything to zero-equivalent
+        for (JCTree t: classDecl.defs) {
+            if (!(t instanceof JCVariableDecl)) continue;
+            JCVariableDecl vd = (JCVariableDecl)t;
+            if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
+            if (isModel(vd.sym)) continue;
+            JCExpression receiver;
+            receiver = treeutils.makeIdent(vd.pos, vd.sym);
+            receiver = convertJML(receiver);
+            JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
+            addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
+        }
+    }
+    
+    protected void addInstanceInitializationPass2() {
+        JmlSpecs.TypeSpecs tspecs = specs.get(classDecl.sym);
+        
         // If there is an initializer, use it
         if (tspecs != null) {
             for (JmlTypeClause tc: tspecs.clauses) {
@@ -3950,29 +3978,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
         }
-        addStat( comment(methodDecl,"Class fields for constructor",null));
-        // First pass sets everything to zero-equivalent
-        java.util.List<JCVariableDecl> redo = new LinkedList<JCVariableDecl>();
-        for (JCTree t: classDecl.defs) {
-            if (!(t instanceof JCVariableDecl)) continue;
-            JCVariableDecl vd = (JCVariableDecl)t;
-            if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
-            if (isModel(vd.sym)) continue;
-            JCExpression receiver;
-            receiver = treeutils.makeIdent(vd.pos, vd.sym);
-            receiver = convertJML(receiver);
-            JCExpression z = treeutils.makeZeroEquivalentLit(vd.pos,vd.type);
-            addStat(treeutils.makeAssignStat(vd.pos, receiver, z));
-            if (vd.init != null) redo.add(vd);
-        }
+        addStat( comment(methodDecl,"Initializing Class fields for constructors",null));
         // Second pass computes the initialized result
-        for (JCVariableDecl vd: redo) {
-            JCExpression receiver;
-            receiver = treeutils.makeIdent(vd.pos, vd.sym);
-            receiver = convertJML(receiver);
-            JCExpression e = convertExpr(vd.init);
-            e = addImplicitConversion(e, vd.type, e);
-            addStat(treeutils.makeAssignStat(vd.pos, receiver, e));
+        for (JCTree t: classDecl.defs) {
+            if (t instanceof JCVariableDecl) {
+                JCVariableDecl vd = (JCVariableDecl)t;
+                if (vd.init == null) continue;
+                if (utils.isJMLStatic(vd.sym)) continue; // FIXME - static fields have to be created sooner
+                if (isModel(vd.sym)) continue;
+                JCExpression receiver;
+                receiver = treeutils.makeIdent(vd.pos, vd.sym);
+                receiver = convertJML(receiver);
+                JCExpression e = convertExpr(vd.init);
+                e = addImplicitConversion(e, vd.type, e);
+                addStat(treeutils.makeAssignStat(vd.pos, receiver, e));
+            } else if (t instanceof JCBlock) {
+                if ( ((JCBlock)t).isStatic() ) continue;
+                convert(t);
+            }
         }
     }
     
@@ -5228,7 +5251,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (sym != null && !(sym instanceof VarSymbol)) return;
         recursiveCall = true;
         boolean noSpecCases = true;
-        for (JmlSpecificationCase c: specs.getDenestedSpecs(methodDecl.sym).cases) {
+        /*@ nullable */ JmlMethodSpecs mspecs = specs.getDenestedSpecs(methodDecl.sym);
+        // mspecs can be null if we are translating a initializer block
+        if (mspecs != null) for (JmlSpecificationCase c: mspecs.cases) {
             noSpecCases = false;
             JCExpression check = checkAccess(token,assignPosition, origlhs, lhs, c,baseThisExpr,targetThisExpr); // FIXME - not sure about the lhs,lhs
             if (!treeutils.isTrueLit(check)) {
@@ -5437,6 +5462,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             obj = storeref;
         }
         if (obj == null) return treeutils.falseLit;
+        if (enclosingMethod == null) return treeutils.trueLit; // initializer block 
         if (enclosingMethod.isConstructor() && obj instanceof JCIdent && ((JCIdent)obj).sym.toString().equals(Strings.thisName) ) return treeutils.trueLit; // Fields of an object being constructed are always assignable
 //        obj = convertJML(obj);  // FIXME - in some cases at least this is a second conversion
         if (true || !convertingAssignable) obj = newTemp(obj);

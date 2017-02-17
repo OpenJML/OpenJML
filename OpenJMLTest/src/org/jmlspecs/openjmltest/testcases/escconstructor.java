@@ -37,8 +37,6 @@ public class escconstructor extends EscBase {
 	public void setUp() throws Exception {
 		// noCollectDiagnostics = true;
 		super.setUp();
-		main.addOptions("-nullableByDefault"); // Because the tests were written
-												// this way
 		// main.addOptions("-trace");
 		// JmlEsc.escdebug = true;
 		// org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -99,5 +97,44 @@ public class escconstructor extends EscBase {
 				);
 	}
 
+	@Test
+	public void testCheckFields() {
+		helpTCX("tt.TestJava",
+						  "package tt; \n"
+						+ "public class TestJava { \n"
+						+ "   public int a;\n"
+						+ "   public int b = 0;\n"
+						+ "   public int c = 10;\n"
+						+ "   public int cc; { cc = 15; }\n"
+						+ "   //@ ghost public int d = 20;\n"
+						+ "   //@ initially a == 0 && b == 0 && c == 10 && cc == 15 && d == 20;"
+						+ "  //@ assignable \\nothing; \n"
+						+ "  //@ ensures a == 0 && b == 0 && c == 10 && cc == 15; \n"
+						+ "  public TestJava() {\n"
+						+ "    //@ assert a == 0; \n"
+						+ "    //@ assert b == 0; \n"
+						+ "    //@ assert c == 10; \n"
+						+ "  }\n" 
+						+ "}\n"
+				);
+	}
+	
+	@Test
+	public void testInvariants() {
+		helpTCX("tt.TestJava",
+						  "package tt; \n"
+						+ "public class TestJava { \n"
+						+ "   public int b = 10;\n"
+						+ "   //@ public invariant b == 10;\n"
+						+ "  //@ assignable \\nothing; \n"
+						+ "  public TestJava(TestJava arg) {\n"
+						+ "    //@ assert arg != this; \n"
+						+ "    //@ assert b == 10; \n"
+						+ "    //@ assert arg.b == 10; \n"
+						+ "  }\n" 
+						+ "}\n"
+				);
+	}
+	
 
 }
