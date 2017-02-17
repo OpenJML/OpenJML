@@ -1158,11 +1158,10 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testAnnotations1() {
-    	expectedExit = 0;
         addMockFile("$A/A.jml","  public class A {}");
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation @Pure", 8);
+                "/A.java:2: The specification must include all the annotations that the Java declaration declares: @Pure", 8);
     }
 
     // TODO - the next two could use better error messages

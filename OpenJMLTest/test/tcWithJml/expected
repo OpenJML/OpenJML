@@ -34,6 +34,9 @@ test\tcWithJml\TCWithJml.jml:21: error: This JML modifier is not allowed for a m
 test\tcWithJml\TCWithJml.java:20: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: field f1, annotation @NonNull
 	@NonNull Object f1;   // Warning - annotation ignored
 	^
+test\tcWithJml\TCWithJml.java:20: error: The specification must include all the annotations that the Java declaration declares: @NonNull
+	@NonNull Object f1;   // Warning - annotation ignored
+	^
 test\tcWithJml\TCWithJml.jml:26: error: A declaration may not be both non_null and nullable
     @Nullable @NonNull Object f2;  // Error - duplicate annotations
     ^
@@ -49,6 +52,12 @@ test\tcWithJml\TCWithJml.jml:29: error: This JML modifier is not allowed for a f
 test\tcWithJml\TCWithJml.java:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @Nullable
 	public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {  // Warning - annotation ignored
 	                       ^
+test\tcWithJml\TCWithJml.jml:27: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @Nullable
+    /*@ non_null nullable */ Object f2a;  // Error - duplicate annotations
+                      ^
+test\tcWithJml\TCWithJml.java:31: error: The specification must include all the annotations that the Java declaration declares: @Nullable
+	public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {  // Warning - annotation ignored
+	                       ^
 test\tcWithJml\TCWithJml.jml:36: error: A declaration may not be both non_null and nullable
     public static Object q(@NonNull @Nullable Integer j);    // Error - duplicate annotation
                                     ^
@@ -61,7 +70,7 @@ test\tcWithJml\TCWithJml.jml:37: error: A declaration may not be both non_null a
 test\tcWithJml\TCWithJml.jml:40: error: This JML modifier is not allowed for a formal parameter
     public static Object ra(/*@ pure */ Integer j);  // Error - annotation not allowed
                                 ^
-test\tcWithJml\TCWithJml.java:44: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class AA, annotation @Pure
+test\tcWithJml\TCWithJml.java:44: error: The specification must include all the annotations that the Java declaration declares: @Pure
 @Pure
 ^
 test\tcWithJml\TCWithJml.jml:48: error: The type BB in the specification matches a Java type BB with different modifiers: final
@@ -73,5 +82,5 @@ test\tcWithJml\TCWithJml.jml:52: error: A declaration may not be both non_null_b
 test\tcWithJml\TCWithJml.jml:54: error: This JML modifier is not allowed for a type declaration
 @SpecPublic class EE {}   // Error - annotation not allowed
 ^
-22 errors
+25 errors
 3 warnings
