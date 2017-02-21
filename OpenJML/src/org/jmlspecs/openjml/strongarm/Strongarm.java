@@ -56,6 +56,7 @@ import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.EDAConverter;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
+import org.jmlspecs.openjml.strongarm.tree.PropTreePrinter;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -899,10 +900,15 @@ public class Strongarm
         }
         
         
-        map.convert(eda);
+        //map.convert(eda);
         
         
+        new PropTreePrinter().scan(reader.postcondition);
         
+        
+        if(1==1){
+            System.out.println("TEST");
+        }
         
     }
 }

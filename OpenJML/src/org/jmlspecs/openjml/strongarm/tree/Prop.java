@@ -38,7 +38,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 
-public class Prop<T extends JCExpression> implements Cloneable {
+public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
 
     public T p;
     public BasicBlock def;
@@ -528,9 +528,14 @@ public class Prop<T extends JCExpression> implements Cloneable {
         clonedProp.path = path;
         
         //System.out.println("$$COUNT: " + count);
-        
+         
         return clonedProp;
-        
+         
+    }
+
+    @Override
+    public void accept(IPropElementVisitor visitor) {
+        visitor.visitProp(this);
     }
 }
 

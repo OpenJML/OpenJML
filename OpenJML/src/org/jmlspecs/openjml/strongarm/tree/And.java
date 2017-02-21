@@ -18,7 +18,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
-public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
+public class And<T extends JCExpression> extends Prop<T> implements Cloneable, IPropElement {
 
     public Prop<T> p1;
     public Prop<T> p2;
@@ -27,7 +27,7 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
         this.p1 = (Prop<T>)p1.clone();
         this.p2 = (Prop<T>)p2.clone();
     }
-  
+   
     public static <E extends JCExpression> And<E> of(Prop<E> p1, Prop<E> p2){
         return new And<E>(p1, p2);
     }
@@ -85,6 +85,11 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
     
     public JCExpression toTree(JmlTreeUtils treeutils){
         return treeutils.makeBinary(0, JCTree.Tag.AND, p1.toTree(treeutils), p2.toTree(treeutils));
+    }
+    
+    @Override
+    public void accept(IPropElementVisitor visitor) {        
+        visitor.visitAnd(this);
     }
     
 }

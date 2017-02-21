@@ -18,7 +18,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.List;
 
-public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
+public class Or<T extends JCExpression> extends Prop<T> implements Cloneable, IPropElement {
 
     public Prop<T> p1;
     public Prop<T> p2;
@@ -130,6 +130,11 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
             return o2.token.toString().compareTo(o1.token.toString());
         }
         
+    }
+    
+    @Override
+    public void accept(IPropElementVisitor visitor) {        
+        visitor.visitOr(this);
     }
     
 }
