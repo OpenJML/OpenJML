@@ -54,6 +54,7 @@ import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitution
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
+import org.jmlspecs.openjml.strongarm.tree.EDAConverter;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
@@ -92,6 +93,7 @@ public class Strongarm
     
     final protected JmlTree.Maker M;
     public static String Current;
+    public static int ___CURRENT_DEPTH;
     
     final protected static com.sun.tools.javac.util.List JDKList = com.sun.tools.javac.util.List.of(null);
     
@@ -225,12 +227,14 @@ public class Strongarm
                 log.getWriter(WriterKind.NOTICE).println("STARTING TO INFER CONTRACT OF of " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
                 log.getWriter(WriterKind.NOTICE).println(String.format("STARTING WITH Depth of %d; max depth of %d ", program.blocks().size(), maxDepth)); //$NON-NLS-1$
             }
+            
+            ___CURRENT_DEPTH = program.blocks().size();
         }
         
         
-//        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-//            BlockReader.showCFG(context, program.blocks(),basicBlocker);
-//        }
+        //if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            //BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        //}s
         
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
@@ -877,6 +881,26 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println("AFTER ADDING PURITY " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
+        
+        
+        // EDA Cleanup
+        EDAConverter map = new EDAConverter();
+        
+        String eda = reader.postcondition.toPyEDA(map);
+        
+        if (verbose) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("EDA OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(eda);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+
+        }
+        
+        
+        map.convert(eda);
+        
         
         
         

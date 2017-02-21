@@ -48,6 +48,18 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable {
     }
     
     
+    // # f = a & (b | (c & d))
+    public String toPyEDA(EDAConverter map){
+        
+        String s1 = p1.toPyEDA(map);
+        String s2 = p2.toPyEDA(map);
+        
+        
+        return String.format("(%s | %s)", s1, s2);
+        
+        
+    }
+    
     public static <E extends JCExpression> Or<E> of(Prop<E> p1, Prop<E> p2){
         return new Or<E>(p1, p2);
     }

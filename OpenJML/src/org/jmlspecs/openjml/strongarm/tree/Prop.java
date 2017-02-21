@@ -492,6 +492,16 @@ public class Prop<T extends JCExpression> implements Cloneable {
     }
     
     
+    // # f = a & (b | (c & d))
+    public String toPyEDA(EDAConverter map){
+        
+        String s = p.toString();
+        
+        return map.get(s);
+        
+    }
+    
+    
     public boolean isBranchStmt(){
         if(label == Label.BRANCHT || label == Label.BRANCHE || label == Label.BRANCHC || label == Label.CASECONDITION){
             return true;

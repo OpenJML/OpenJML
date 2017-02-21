@@ -60,6 +60,16 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable {
         return m;
     }
     
+    // # f = a & (b | (c & d))
+    public String toPyEDA(EDAConverter map){
+        
+        String s1 = p1.toPyEDA(map);
+        String s2 = p2.toPyEDA(map);
+        
+        
+        return String.format("(%s & %s)", s1, s2);
+    }
+
     
     public List<JmlMethodClause> getClauses(List<JmlMethodClause> clauses, JmlTreeUtils treeutils, JmlTree.Maker M){
 
