@@ -1,4 +1,9 @@
-package org.jmlspecs.openjml.strongarm.tree;
+package org.jmlspecs.openjml.strongarm.tree.analysis;
+
+import org.jmlspecs.openjml.strongarm.tree.And;
+import org.jmlspecs.openjml.strongarm.tree.Or;
+import org.jmlspecs.openjml.strongarm.tree.Prop;
+import org.jmlspecs.openjml.strongarm.tree.PropTreeScanner;
 
 public class PropTreePrinter extends PropTreeScanner {
 

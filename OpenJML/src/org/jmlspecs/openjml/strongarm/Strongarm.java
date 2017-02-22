@@ -56,7 +56,9 @@ import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.EDAConverter;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
-import org.jmlspecs.openjml.strongarm.tree.PropTreePrinter;
+import org.jmlspecs.openjml.strongarm.tree.analysis.CollectExpressionsAnalysis;
+import org.jmlspecs.openjml.strongarm.tree.analysis.FactorExpressionsAnalysis;
+import org.jmlspecs.openjml.strongarm.tree.analysis.PropTreePrinter;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -900,11 +902,11 @@ public class Strongarm
         }
         
         
-        //map.convert(eda);
+        Set<JCTree> expressions = CollectExpressionsAnalysis.analyze(contract);
+
         
-        
-        new PropTreePrinter().scan(reader.postcondition);
-        
+        FactorExpressionsAnalysis.analyze(contract);
+
         
         if(1==1){
             System.out.println("TEST");
