@@ -715,6 +715,7 @@ public class Utils {
         if (base == parent) return true; // Everything is visible in its own class
         if (base.isEnclosedBy((ClassSymbol)parent)) return true; // Everything is visible to inner classes
         if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
+        if (parent.isInterface()) return true; // everything in an interface is public and hence visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses

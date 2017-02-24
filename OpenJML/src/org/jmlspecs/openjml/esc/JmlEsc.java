@@ -223,6 +223,7 @@ public class JmlEsc extends JmlTreeScanner {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
         utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        log.resetRecord();
         
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
@@ -290,11 +291,35 @@ public class JmlEsc extends JmlTreeScanner {
         }
         String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
+        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
+        if (excludes != null) {
+            for (String exclude: excludes.split(";")) { //$NON-NLS-1$
+                if (fullyQualifiedName.equals(exclude) ||
+                        fullyQualifiedSig.equals(exclude) ||
+                        simpleName.equals(exclude)) {
+                    if (utils.jmlverbose > Utils.PROGRESS)
+                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                    return false;
+                }
+                try {
+                    if (Pattern.matches(exclude,fullyQualifiedName)) {
+                        if (utils.jmlverbose > Utils.PROGRESS)
+                            log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        return false;
+                    }
+                } catch(PatternSyntaxException e) {
+                    // The methodToDo can be a regular string and does not
+                    // need to be legal Pattern expression
+                    // skip
+                }
+            }
+        }
+
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
         if (methodsToDo != null) {
             match: {
                 if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
-                for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$  //FIXME - this does not work when the methods list contains signatures containing commas
+                for (String methodToDo: methodsToDo.split(";")) { //$NON-NLS-1$ 
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
                             fullyQualifiedSig.equals(methodToDo)) {
@@ -315,20 +340,6 @@ public class JmlEsc extends JmlTreeScanner {
             }
         }
         
-        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
-        if (excludes != null) {
-            for (String exclude: excludes.split(",")) { //$NON-NLS-1$
-                if (fullyQualifiedName.equals(exclude) ||
-                        fullyQualifiedSig.equals(exclude) ||
-                        simpleName.equals(exclude) ||
-                        Pattern.matches(exclude,fullyQualifiedName)) {
-                    if (utils.jmlverbose > Utils.PROGRESS)
-                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return false;
-                }
-            }
-        }
-
         return true;
     }
     

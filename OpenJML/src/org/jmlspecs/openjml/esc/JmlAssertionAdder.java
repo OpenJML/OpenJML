@@ -807,6 +807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             oldStatements = initialStatements;
             currentStatements = initialStatements;
             
+            initialize2(0L);
             { // Type relationships for generic type parameters and their bounds
                 for (JCTypeParameter tp: classDecl.getTypeParameters()) {
                     for (JCExpression bound: tp.getBounds()) {
@@ -853,7 +854,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 heapSym = d.sym;
                 initialStatements.add(d);
             }
-            initialize2(0L);
             if (allocSym == null) {
                 allocSym = treeutils.makeVarSymbol(0, names.fromString(Strings.allocName), syms.intType, classDecl.pos);
                 allocSym.owner = classDecl.sym;
@@ -909,7 +909,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-
 
             if (isConstructor && rac) {
                 pushBlock();
@@ -981,7 +980,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addStat(initialStatements,preconditionAssumeCheck);
             }
             
-            if (esc && isConstructor) {
+            if (esc && isConstructor && !callingThis) {
                 boolean pv = checkAccessEnabled;
                 checkAccessEnabled = false; // Not sure about this - all references are to instance fieldsd, no?
                 try {
@@ -6748,7 +6747,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                         }
                         if (useDefault && !translatingJML) {
-                            if (newclass == null) {
+                            if (isThisCall) {
+                                // default for this call is all local fields
+                                ListBuffer<JCExpression> fields = new ListBuffer<>();
+                                for (JCTree d: classDecl.defs) {
+                                    if (!(d instanceof JCVariableDecl)) continue;
+                                    JCExpression e = treeutils.makeIdent(d.pos,((JCVariableDecl)d).sym);
+                                    fields.add(e);
+                                }
+                                JCStatement havoc = M.at(cs.pos).JmlHavocStatement(fields.toList());
+                                addStat(havoc);
+                            } else if (newclass == null) {
                                 // default for non- constructor call is \everything
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
                                 addStat(havoc);

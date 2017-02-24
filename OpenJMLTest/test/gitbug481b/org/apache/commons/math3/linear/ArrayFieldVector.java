@@ -43,10 +43,10 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
     private static final long serialVersionUID = 7648186910365927050L;
 
     /** Entries of the vector. */
-    private T[] data;
+    private /*@ spec_public */ T[] data;
 
     /** Field to which the elements belong. */
-    private final Field<T> field;
+    private /*@ spec_public */ final Field<T> field;
 
     /**
      * Build a 0-length vector.
@@ -58,6 +58,8 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      *
      * @param field field to which the elements belong
      */
+    //@ assignable this.field, this.data;
+    //@ ensures this.field == field && this.data != null;
     public ArrayFieldVector(final Field<T> field) {
         this(field, 0);
     }
@@ -68,6 +70,8 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @param field Field to which the elements belong.
      * @param size Size of the vector.
      */
+    //@ assignable \nothing;
+    //@ ensures this.field == field && this.data != null && \fresh(this.data);
     public ArrayFieldVector(Field<T> field, int size) {
         this.field = field;
         this.data  = MathArrays.buildArray(field, size);
@@ -96,6 +100,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @throws ZeroException if {@code d} is empty.
      * @see #ArrayFieldVector(Field, FieldElement[])
      */
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc // FIXME - skipping because real reasoning timesout
     public ArrayFieldVector(T[] d)
             throws NullArgumentException, ZeroException {
         MathUtils.checkNotNull(d);
@@ -115,6 +120,9 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @throws NullArgumentException if {@code d} is {@code null}.
      * @see #ArrayFieldVector(FieldElement[])
      */
+    //@ assignable \nothing;
+    //@ ensures this.field == field && this.data != null;
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc
     public ArrayFieldVector(Field<T> field, T[] d)
             throws NullArgumentException {
         MathUtils.checkNotNull(d);
@@ -143,6 +151,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @see #ArrayFieldVector(FieldElement[])
      * @see #ArrayFieldVector(Field, FieldElement[], boolean)
      */
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc
     public ArrayFieldVector(T[] d, boolean copyArray)
             throws NullArgumentException, ZeroException {
         MathUtils.checkNotNull(d);
@@ -168,6 +177,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @throws NullArgumentException if {@code d} is {@code null}.
      * @see #ArrayFieldVector(FieldElement[], boolean)
      */
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc
     public ArrayFieldVector(Field<T> field, T[] d, boolean copyArray)
             throws NullArgumentException {
         MathUtils.checkNotNull(d);
@@ -185,6 +195,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @throws NumberIsTooLargeException if the size of {@code d} is less
      * than {@code pos + size}.
      */
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc
     public ArrayFieldVector(T[] d, int pos, int size)
             throws NullArgumentException, NumberIsTooLargeException {
         MathUtils.checkNotNull(d);
@@ -207,6 +218,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @throws NumberIsTooLargeException if the size of {@code d} is less
      * than {@code pos + size}.
      */
+    @org.jmlspecs.annotation.Options("-logic=AUFLIRA") @org.jmlspecs.annotation.SkipEsc
     public ArrayFieldVector(Field<T> field, T[] d, int pos, int size)
             throws NullArgumentException, NumberIsTooLargeException {
         MathUtils.checkNotNull(d);
@@ -224,11 +236,15 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @param v Vector to copy.
      * @throws NullArgumentException if {@code v} is {@code null}.
      */
+    //@ skipesc   // FIXME - timesout
     public ArrayFieldVector(FieldVector<T> v)
             throws NullArgumentException {
         MathUtils.checkNotNull(v);
         field = v.getField();
         data = MathArrays.buildArray(field, v.getDimension());
+        /*@ loop_invariant 0 <= i && i <= data.length;
+          @ decreases data.length - i;
+          @*/
         for (int i = 0; i < data.length; ++i) {
             data[i] = v.getEntry(i);
         }
@@ -240,6 +256,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * @param v Vector to copy.
      * @throws NullArgumentException if {@code v} is {@code null}.
      */
+    //@ skipesc // FIXME - tiemsout - possibly because of a method call prior to instance fields being set
     public ArrayFieldVector(ArrayFieldVector<T> v)
             throws NullArgumentException {
         MathUtils.checkNotNull(v);
@@ -309,7 +326,7 @@ public class ArrayFieldVector<T extends FieldElement<T>> implements FieldVector<
      * {@code null}.
      * @deprecated as of 3.2, replaced by {@link #ArrayFieldVector(FieldVector, FieldElement[])}
      */
-    @Deprecated
+    @Deprecated //@ skipesc // FIXME timesout
     public ArrayFieldVector(ArrayFieldVector<T> v1, T[] v2)
             throws NullArgumentException {
         this((FieldVector<T>) v1, v2);

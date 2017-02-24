@@ -404,6 +404,11 @@ public class Log extends AbstractLog {
         this.nerrors = other.nerrors;
         this.nwarnings = other.nwarnings;
     }
+    
+    // OPENJML = added to allow resetting the record of errors already issued
+    public void resetRecord() {
+        this.recorded.clear();
+    }
 
     /**
      * Replace the specified diagnostic handler with the

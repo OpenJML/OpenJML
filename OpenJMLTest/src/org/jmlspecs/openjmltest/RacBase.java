@@ -138,6 +138,7 @@ public abstract class RacBase extends JmlTestCase {
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
+        boolean isMac = System.getProperty("os.name").contains("Mac");
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
@@ -161,7 +162,7 @@ public abstract class RacBase extends JmlTestCase {
                     fail("More diagnostics than expected");
                 }
                 String s = noSource(collector.getDiagnostics().get(i));
-                if (s.startsWith(macstring)) s = s.substring(macstring.length());
+                if (s.startsWith(macstring) && isMac) s = s.substring(macstring.length());
                 assertEquals("Message " + i, list[k].toString(), s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
@@ -209,11 +210,11 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (line.startsWith(macstring)) line = line.substring(macstring.length());
+                	if (isMac && line.startsWith(macstring)) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
-                if (i < list.length && list[i].equals(macstring)) i++;
+                if (isMac && i < list.length && list[i].equals(macstring)) i++;
             }
 
             if (i != list.length && !print) { // if print, then we already printed
