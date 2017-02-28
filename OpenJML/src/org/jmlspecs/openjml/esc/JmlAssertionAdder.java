@@ -1414,6 +1414,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!translatingJML) {
                 currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(
                         methodDecl != null ? methodDecl.sym : classDecl.sym,true);
+                if (condition == null) condition = treeutils.trueLit;
             }
             this.isPostcondition = isPostcondition;
             this.condition = condition;
@@ -6094,7 +6095,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         MethodSymbol s = info.sym;
                         if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
                             JCExpression e = treeutils.makeMethodInvocation(that,null,s,convertCopy(trArgs));
-                            e = treeutils.makeImplies(condition.pos, condition, e);
+                            e = condition == null ? e : treeutils.makeImplies(condition.pos, condition, e);
                             if (assumingPureMethod) {
                                 addAssume(that,Label.UNDEFINED_PRECONDITION,e,
                                         info.pos,info.source);

@@ -1,4 +1,4 @@
-public class Relaxed {
+public class Relaxed { 
 	//@ ensures pat.length > 0 && a.length > 0 ==>  Relaxed.diffIndex(pat, a) == pat.length ==> \result == true;
 	 public static boolean isRelaxedPrefix(int[] pat, int[] a) {
 	    if (Relaxed.diffIndex(pat, a) == pat.length) return true;
@@ -7,8 +7,10 @@ public class Relaxed {
 	    return true;
 	}
 
-	public /*@ pure @*/ static int diffIndex(int[] pat, int[] a)
+	public /*@ pure  @*/ static int diffIndex(int[] pat, int[] a)
 	{
 		return 0;
 	}
 }
+
+// FIXME - This test is OK if diffIndex is declared @Function, but not otherwise -- why?

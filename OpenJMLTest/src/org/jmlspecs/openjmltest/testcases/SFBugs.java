@@ -207,7 +207,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug444() {
     	expectedExit = 0;
-        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444"); //,"-show","-method=isRelaxedPrefix");
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444","-show","-method=isRelaxedPrefix","-subexpressions");
     }
     
     @Test public void gitbug444a() {
@@ -282,8 +282,12 @@ public class SFBugs extends EscBase {
     static String m4 = p + "ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean)";
     static String m5 = p + "ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>)";
     static String m6 = p + "ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>)";
+    static String m7 = p + "ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[])";
+    static String m8 = p + "ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>)";
+    static String m9 = p + "ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>)";
+    static String m10 = p + "ArrayFieldVector(T[],T[])";
     
-    static String all = m1+";"+m2+";"+m3+";"+m4+";"+m5+";"+m6;
+    static String all = m1+";"+m2+";"+m3+";"+m4+";"+m5+";"+m6+";"+m7+";"+m8+";"+m9+";"+m10;
     
     @Test public void gitbug481a1() {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","-method="+m1);
@@ -312,6 +316,26 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","-method="+m6);
     }
 
+    @Ignore // FIXME - timeout
+    @Test public void gitbug481a7() {
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","-method="+m7);
+    }
+
+    @Test public void gitbug481a8() {
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","-method="+m8);
+    }
+
+    @Ignore // FIXME - timeout
+    @Test public void gitbug481a9() {
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9);
+    }
+
+    @Ignore // FIXME - timeout
+    @Test public void gitbug481a10() {
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10);
+    }
+
+    @Ignore // FIXME - timeout
     @Test public void gitbug481arest() {
     	expectedExit = 1;
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all);

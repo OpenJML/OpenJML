@@ -34,7 +34,7 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
+    @Rule public Timeout timeout = new Timeout(15, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
     
     protected static boolean runLongTests = false;
     

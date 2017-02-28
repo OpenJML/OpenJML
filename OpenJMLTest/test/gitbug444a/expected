@@ -4,16 +4,11 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Relaxed.Relaxed() with prover !!!! - no warnings
 Starting proof of Relaxed.isRelaxedPrefix(int[],int[]) with prover !!!!
-test\gitbug444a\Relaxed.java:24: warning: The prover cannot establish an assertion (Postcondition) in method isRelaxedPrefix
-	            else return false;
-	                 ^
-test\gitbug444a\Relaxed.java:6: warning: Associated declaration
-	//@ ensures pat.length > 0 && a.length > 0 ==>  Relaxed.diffIndex(pat, a) == pat.length ==> \result == true;
-	    ^
-Completed proof of Relaxed.isRelaxedPrefix(int[],int[]) with prover !!!! - with warnings
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Relaxed.isRelaxedPrefix(int[],int[]) with prover !!!! - no warnings
 Starting proof of Relaxed.diffIndex(int[],int[]) with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Relaxed.diffIndex(int[],int[]) with prover !!!! - no warnings
 Completed proving methods in Relaxed
-2 warnings
