@@ -222,7 +222,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnon() {
-    	//main.addOptions("-show","-method=m2");
+    	//main.addOptions("-show","-method=tt.TestJava.1.","-subexpressions");//,"-method=m2");
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

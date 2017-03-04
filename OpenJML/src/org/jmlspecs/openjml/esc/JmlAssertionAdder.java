@@ -10479,6 +10479,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Havoc all items that might be changed in the loop
         if (esc) {
             loopHelperHavoc(that.body,indexDecl,that.init,that.step,that.body,that.cond);
+            changeState();
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -12681,6 +12682,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Havoc all items that might be changed in the loop
         if (esc) {
             loopHelperHavoc(that.body,indexDecl,null,that.body,that.cond);
+            changeState();
         }
         
         loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that);
@@ -12695,6 +12697,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // invariant and breaks.
             loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
         }
+        if (esc) changeState(); // loop is different state than break block
         
         // Now in the loop, so check that the variants are non-negative
         loopHelperCheckNegative(decreasesIDs, that);
@@ -13144,8 +13147,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             
             // Construct axioms for the type of the result
-            if (msym.getReturnType().isPrimitive()) {
-                // FIXME - add any range restrictions
+            if (msym.getReturnType().isPrimitiveOrVoid()) {
+                // FIXME - add any range restrictions for primtiive types
             } else {
                 JCExpression fcn = treeutils.makeIdent(Position.NOPOS,newsym);
                 JCMethodInvocation call = M.at(Position.NOPOS).Apply(

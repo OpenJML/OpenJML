@@ -280,10 +280,10 @@ public abstract class RacBase extends JmlTestCase {
      * the number of expected diagnostics is set by 'expectedErrors'.
      * @param dirname The directory containing the test sources, a relative path
      * from the project folder
-     * @param classname The fully-qualified classname for the test class (where main is)
+     * @param mainClassname The fully-qualified classname for the test class (where main is)
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCF(String dirname, String outputdir, String classname, String ... opts) {
+    public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
@@ -335,7 +335,7 @@ public abstract class RacBase extends JmlTestCase {
 
             if (runrac) {
                 if (rac == null) rac = defrac;
-                rac[rac.length-1] = classname;
+                rac[rac.length-1] = mainClassname;
                 Process p = Runtime.getRuntime().exec(rac);
 
                 out = new StreamGobbler(p.getInputStream());
