@@ -1110,8 +1110,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.token == JmlTokenKind.ASSUME) {
-                        IExpr exx = convertExpr(s.expression);
-                        stack.push(exx);
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            JCExpression ex = s.expression;
+                            ex = ((JmlQuantifiedExpr)ex).value;
+                            JCExpression lhs = ((JCTree.JCBinary)ex).lhs;
+                            JCTree.JCMethodInvocation mcall = (JCTree.JCMethodInvocation)lhs;
+                            JCExpression nm = mcall.meth;
+                            JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
+                            addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                        } else {
+                            IExpr exx = convertExpr(s.expression);
+                            stack.push(exx);
+                        }
                     } else if (s.token == JmlTokenKind.ASSERT) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
@@ -1144,8 +1154,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.token == JmlTokenKind.ASSUME) {
-                        IExpr exx = stack.pop();
-                        tail = F.fcn(impliesSym, exx, tail);
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            // skip
+                        } else {
+                            IExpr exx = stack.pop();
+                            tail = F.fcn(impliesSym, exx, tail);
+                        }
                     } else if (s.token == JmlTokenKind.ASSERT) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
@@ -1354,6 +1368,26 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
+    protected void addFunctionDefinition(String newname, List<JCExpression> args, JCExpression expr) {
+        if (fcnsDefined.add(newname)) {
+            // Was not already present
+            ISymbol n = F.symbol(newname);
+            ISort resultSort = convertSort(expr.type);
+            List<IDeclaration> argDecls = new LinkedList<IDeclaration>();
+//            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
+//            if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {
+//                argSorts.add(refSort);
+//            }
+            for (JCExpression e: args) {
+                IDeclaration d = F.declaration(F.symbol(e.toString()),convertSort(e.type));
+                argDecls.add(d);
+            }
+            C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
+            commands.add(c);
+        }
+        
+    }
+    
     // FIXME - review this
     @Override
     public void visitApply(JCMethodInvocation tree) {
@@ -1366,7 +1400,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            result = F.fcn(F.symbol(newname),newargs);
+            if (newargs.isEmpty()) result = F.symbol(newname);
+            else result = F.fcn(F.symbol(newname),newargs);
             return;
 
         } else if (m == null) {

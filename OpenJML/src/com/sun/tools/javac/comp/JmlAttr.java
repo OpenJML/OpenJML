@@ -5223,6 +5223,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     }
     
+    public void addHelper(MethodSymbol symbol) {
+        MethodSpecs mspecs = specs.getSpecs(symbol);
+        if (mspecs == null) {
+            // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
+            return ;
+        }
+        // FIXME - what if mspecs.mods is null
+        Symbol ansym = tokenToAnnotationSymbol.get(JmlTokenKind.HELPER);
+        Attribute.Compound a = new Attribute.Compound(ansym.type,List.<Pair<MethodSymbol,Attribute>>nil());
+        JCAnnotation an = factory.Annotation(a);
+        an.type = ansym.type;
+        mspecs.mods.annotations = mspecs.mods.annotations.append(an);
+        return;
+    }
+    
     public boolean isFunction(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getSpecs(symbol);
         if (mspecs == null) {

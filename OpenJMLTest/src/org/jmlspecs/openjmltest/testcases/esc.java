@@ -2609,9 +2609,13 @@ public class esc extends EscBase {
 
 	@Test
 	public void testPureNoArguments() {
+	    //main.addOptions("-show","-method=m1");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ code_java_math*/ public class TestJava { \n" + "  public static int z;\n"
-				+ "  //@ ensures \\result == z+1;\n" + "  //@ pure \n" + "  public static int m() { return z+1; }\n"
+				+ "/*@ code_java_math*/ public class TestJava { \n" 
+		        + "  public static int z;\n"
+				+ "  //@ ensures \\result == z+1;\n" 
+				+ "  //@ pure \n" 
+				+ "  public static int m() { return z+1; }\n"
 				+ "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
 				+ "  public void m1a(int a, int b) { int k = z+2; /*@ assert k == m(); */ }\n"
 				+ "  public void m2(int a, int b) { int k = 2*z+2; /*@ assert k == m() + m(); */ }\n"

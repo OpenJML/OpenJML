@@ -782,8 +782,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 jmlF.Block(0,List.<JCStatement>nil()), 
                 null);
         m.specsDecl = m;
+        // Inner (non-static) classes may not have static members
+        long staticFlag = Flags.STATIC;
+        if (sym.getEnclosingElement() instanceof ClassSymbol && !sym.isStatic()) staticFlag = 0;
         JmlTree.JmlMethodDecl ms = jmlF.MethodDef(
-                jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC|Flags.SYNTHETIC),
+                jmlF.Modifiers(Flags.PUBLIC|staticFlag|Flags.SYNTHETIC),
                 names.fromString(org.jmlspecs.utils.Utils.staticinvariantMethodString),
                 vd,
                 List.<JCTypeParameter>nil(),
