@@ -1736,7 +1736,7 @@ public class JmlTree implements IJmlTree {
                 ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
             } else {
                 //System.out.println("A JmlLblExpression expects an IJmlVisitor, not a " + v.getClass());
-                body.accept(v);
+                v.visitLabelled(this);
             }
         }
     

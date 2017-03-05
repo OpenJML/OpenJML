@@ -384,6 +384,27 @@ public class racnew2 extends RacBase {
                 ,"END"
         );        
     }
+    
+    @Test public void testSimpleBreak() {
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+                                "  m(0);  m(2);  \n" +
+                                "  System.out.println(\"END\"); \n" +
+                                "  } \n" + 
+                                "  static void m(int i) { \n" +
+                                "       in: { \n" +
+                                "            System.out.print(i + \"A\");\n" +
+                                // Unlabelled breaks are not allowed for blocks
+                                "            if (i == 2) break in;\n" +
+                                "            System.out.print(\"B\");\n" +
+                                "           }\n" +
+                                "            System.out.println(\"C\");\n" +
+                                "        }\n" +
+                                "}"
+                                ,"0ABC"
+                                ,"2AC"
+                                ,"END"
+                        );        
+    }
 
     /** Tests switch statement */
     @Test public void testSwitch() {
