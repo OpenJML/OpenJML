@@ -17,7 +17,7 @@
 			failonerror="true"
 			osfamily="unix">
 		</exec>
-		<exec executable="bash" 
+		<exec executable="C:/cygwin/bin/bash.exe" 
 			failonerror="true"
 			osfamily="windows">
 			<arg value="${basedir}/buildRelease"/>
@@ -37,7 +37,7 @@
 			failonerror="true">
 			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
-		<exec executable="bash" 
+		<exec executable="C:/cygwin/bin/bash.exe" 
 			osfamily="windows"
 			failonerror="true">
 			<arg value="${basedir}/../OpenJMLTest/releaseTests/runTests"/>
@@ -75,7 +75,7 @@
     
     <target name="psf"
         description="Generates the svn_commands file">
-        <exec executable="bash" 
+        <exec executable="C:/cygwin/bin/bash.exe" 
             failonerror="true">
             <arg value="${basedir}/convert-psf"/>
             <arg value="OpenJML-projectSet.psf"/>
