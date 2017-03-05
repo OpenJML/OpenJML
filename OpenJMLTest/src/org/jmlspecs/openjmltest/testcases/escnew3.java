@@ -800,5 +800,73 @@ public class escnew3 extends EscBase {
                 );
     
     }
+    
+    @Test
+    public void testLabels() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava { \n"
+                + "  //@ requires i == 10;\n"
+                + "  public void m(int i) {\n"
+                + "     a:{};\n"
+                + "     i = 12;\n"
+                + "     b:{};\n"
+                + "     i = 14;\n"
+                + "     //@ assert \\old(i) == 10;\n"
+                + "     //@ assert \\old(i,a) == 10;\n"
+                + "     //@ assert \\old(i,b) == 12;\n"
+                + "     //@ assert i == 14;\n"
+                + "    }\n"
+                + "}"
+                 );
+        
+    }
+
+    @Test
+    public void testLabels2() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava { \n"
+                + "  public int k;\n"
+                + "  /*@ ensures \\result == k; */ public int mm() { return k; }\n"
+                + "  //@ requires k == 10;\n"
+                + "  public void m() {\n"
+                + "     a:{}\n"
+                + "     k = 12;\n"
+                + "     b:{}\n"
+                + "     k = 14;\n"
+                + "     //@ assert \\old(mm()) == 10;\n"
+                + "     //@ assert \\old(mm(),a) == 10;\n"
+                + "     //@ assert \\old(mm(),b) == 12;\n"
+                + "     //@ assert mm() == 14;\n"
+                + "    }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Ignore // FIXME - fix up label scoping
+    @Test
+    public void testBadLabel() {
+        helpTCX("tt.TestJava",
+                                "package tt; \n"
+                              + "public class TestJava { \n"
+                              + "  public int k;\n"
+                              + "  public void m() {\n"
+                              + "     //@ assert \\old(k,a) == 10;\n"
+                              + "     a:{}\n"
+                              + "     k = 12;\n"
+                              + "     while(k > 10) {  a:{} k--; }\n"
+                              + "     while(k > 6) {  b:{ b:{} } k--; }\n"
+                              + "     while(k > 5) {  b:{} b:{} k--; }\n"
+                              + "     while(k > 0) {  c:{} k--;}\n"
+                              + "     k = 14;\n"
+                              + "     //@ assert \\old(k,c) == 12;\n"
+                              + "    }\n"
+                              + "}"
+                               );
+                      
+        
+    }
 
 }

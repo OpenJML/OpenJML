@@ -52,6 +52,7 @@ import org.jmlspecs.openjml.JmlTree.JmlExpression;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
@@ -3901,6 +3902,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
         }
         result = check(that, result, VAL, resultInfo);
+    }
+    
+    /** 
+     */
+    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+        visitLabelled(that);
     }
     
     /** Attributes a LBL expression.  Note that OpenJML allows an arbitrary

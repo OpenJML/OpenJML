@@ -99,6 +99,7 @@ public class JmlTree implements IJmlTree {
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
         JmlImport JmlImport(JCTree qualid, boolean staticImport, boolean isModel);
+        JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement block);
         JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr);
         JmlMethodClauseGroup JmlMethodClauseGroup(List<JmlSpecificationCase> cases);
         JmlMethodClauseDecl JmlMethodClauseDecl(JmlTokenKind t, List<JCTree.JCVariableDecl> decls);
@@ -444,6 +445,16 @@ public class JmlTree implements IJmlTree {
             return new JmlSetComprehension(pos,type,varDecl,value);
         }
         
+        /** Creates a JML labeled statement */
+        @Override
+        public JmlLabeledStatement JmlLabeledStatement(Name label, ListBuffer<JCStatement> extra, JCStatement body) {
+            JmlLabeledStatement p = new JmlLabeledStatement(label,body);
+            p.pos = pos;
+            if (extra == null) extra = new ListBuffer<JCStatement>();
+            p.extraStatements = extra;
+            return p;
+        }
+
         /** Creates a JML labeled expression */
         @Override
         public JmlLblExpression JmlLblExpression(int labelPosition, JmlTokenKind token, Name label, JCTree.JCExpression expr) {
@@ -1711,6 +1722,34 @@ public class JmlTree implements IJmlTree {
         }
         
     }
+    
+    public static class JmlLabeledStatement extends JCTree.JCLabeledStatement {
+        public ListBuffer<JCStatement> extraStatements = new ListBuffer<>();
+        
+        protected JmlLabeledStatement(Name label, JCStatement body) {
+            super(label,body);
+        }
+
+        @Override
+        public void accept(Visitor v) {
+            if (v instanceof IJmlVisitor) {
+                ((IJmlVisitor)v).visitJmlLabeledStatement(this); 
+            } else {
+                //System.out.println("A JmlLblExpression expects an IJmlVisitor, not a " + v.getClass());
+                body.accept(v);
+            }
+        }
+    
+        @Override
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            if (v instanceof JmlTreeVisitor) {
+                return ((JmlTreeVisitor<R,D>)v).visitJmlLabeledStatement(this, d);
+            } else {
+                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                return null; // return super.accept(v,d);
+            }
+        }
+}
 
     /** This class represents JML LBL expressions */
     public static class JmlLblExpression extends JmlExpression {

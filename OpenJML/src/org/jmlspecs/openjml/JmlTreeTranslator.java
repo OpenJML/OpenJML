@@ -158,6 +158,12 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // not translating: isModel, staticImport
     }
 
+    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+        JmlLabeledStatement s = that;
+        // that.extraStatements = // FIXME
+        that.body = translate(that.body);
+    }
+    
     @Override
     public void visitJmlLblExpression(JmlLblExpression that) {
         JmlLblExpression r = that;

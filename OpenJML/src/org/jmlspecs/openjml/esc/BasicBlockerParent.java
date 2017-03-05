@@ -24,6 +24,7 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -1492,6 +1493,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // OK
     @Override
     public void visitLabelled(JCLabeledStatement that) {
+        shouldNotBeCalled(that);
+    }
+    
+    @Override 
+    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         T nextBlock = newBlockWithRest(AFTERLABEL,that.pos);
         follows(currentBlock,nextBlock);
         breakBlocks.put(that.label, nextBlock);

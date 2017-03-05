@@ -37,6 +37,7 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
@@ -834,7 +835,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-            JCLabeledStatement mark = M.Labelled(preLabel.name, M.Block(0L, List.<JCStatement>nil()));
+            JCLabeledStatement mark = M.JmlLabeledStatement(preLabel.name, null, M.Block(0L, List.<JCStatement>nil()));
             markLocation(preLabel.name,initialStatements,mark);
             
             if (isConstructor) {
@@ -3366,7 +3367,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (esc) {
             addStat(comment(methodDecl,"End of pre-state",null));
             JCBlock bl = M.Block(0L, List.<JCStatement>nil());
-            JCStatement st = M.Labelled(null, bl);
+            JCStatement st = M.JmlLabeledStatement(null, null, bl);
             addStat(initialStats,st);
         }
         heapCount = savedheapcount;
@@ -4315,6 +4316,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     Map<Name,ListBuffer<JCStatement>> labelActiveOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
     protected
     Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
+    protected
+    Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
 
     //OK
     @Override
@@ -4324,10 +4327,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Since declarations may not be labelled statements, there are no
         // declarations in the labelled statement that need to be in scope after
         // the labelled statement.
-        JCLabeledStatement stat = M.at(that).Labelled(that.label, null);
+        JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(that.label, null, null);
         markLocation(that.label,currentStatements,stat);
         treeMap.put(that, stat); // we store the mapping from old to new so that we can appropriately translate the targets of break and continue statements
         labelActiveOldLists.put(that.label, currentStatements);
+        labelStatements.put(that.label, stat);
         JCBlock block;
         try {
             block = convertIntoBlock(that,that.body);
@@ -4336,7 +4340,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             labelActiveOldLists.remove(that.label);
             labelOldLists.put(that.label,  currentStatements);
-            treeMap.remove(that);
+            treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
         }
     }
 
@@ -6186,13 +6190,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = M.at(that).Block(0L, List.<JCStatement>nil());
                 String label = "_JMLCALL_" + that.pos + "_" + (++count);
                 calllabel = names.fromString(label);
-                JCLabeledStatement stat = (M.at(that).Labelled(calllabel,bl));
+                JmlLabeledStatement stat = M.at(that).JmlLabeledStatement(calllabel,null,bl);
                 addStat(stat);
                 preLabel = M.at(that).Ident(calllabel);
                 
                 labelOldLists.put(calllabel,  currentStatements);
                 oldStatements = currentStatements;
                 defaultOldLabel = calllabel;
+                
+                labelStatements.put(calllabel, stat);
+                stat.extraStatements.addAll(currentStatements);
                 
                 markLocation(calllabel,currentStatements,stat);
             }
@@ -10283,7 +10290,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addTraceableComment(body,null,"Begin loop body");
         JCBlock bodyBlock = M.at(body).Block(0, null);
         Name label = names.fromString("loopBody_" + body.pos + "_" + (++count));
-        JCLabeledStatement lab = M.at(body).Labelled(label,bodyBlock);
+        JCLabeledStatement lab = M.at(body).JmlLabeledStatement(label,null,bodyBlock);
         continueStack.push(lab);
         addStat(lab);
 
@@ -10528,6 +10535,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitJmlImport(JmlImport that) {
         // FIXME - need to rewrite qualid - might have a *; might have a method name
         result = M.at(that).Import(that.qualid, that.staticImport).setType(that.type);
+    }
+    
+    @Override
+    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
+        visitLabelled(that);
     }
     
     int lblUnique = 0;
@@ -10914,15 +10926,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             popBlock();
         } else {
             // FIXME _ I don;'t beklieve the use of currentStsatements is correct here
-            ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
+            ListBuffer<JCStatement> list = labelActiveOldLists.get(label.name);
+            JmlLabeledStatement labelStat = labelStatements.get(label.name);
+            labelStat.extraStatements.add(stat);
             if (list != null) {
                 list.add(stat);
             } else {
-                ListBuffer<JCStatement> stlist = labelOldLists.get(label);
+                ListBuffer<JCStatement> stlist = labelOldLists.get(label.name);
                 ListBuffer<JCStatement> newlist = new ListBuffer<JCStatement>();
                 for (JCStatement st: stlist) {
-                    if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label)) {
-                        newlist.addAll(currentStatements);
+                    if (st instanceof JCLabeledStatement && ((JCLabeledStatement)st).label.equals(label.name)) {
+                        newlist.add(stat);
                     }
                     newlist.add(st);
                 }
@@ -11013,6 +11027,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // FIXME - what happens to simple \old
                                 if (that.args.size() == 2) {
                                     ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
+                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
@@ -11050,6 +11066,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (label != null) {
                                     //JCExpression e = that.args.get(1);
                                     ListBuffer<JCStatement> list = labelActiveOldLists.get(label);
+                                    JmlLabeledStatement labelStat = labelStatements.get(label);
+                                    labelStat.extraStatements.add(v);
                                     if (list != null) {
                                         list.add(v);
                                     } else {
@@ -11610,7 +11628,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 addStat(indexdef);
                                 st = M.at(that.pos).DoLoop(bl,comp);
                                 if (brStat != null) brStat.target = st;
-                                st = M.at(that.pos).Labelled(label,st);
+                                st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
 
                             } else if (bound.decl.type.getTag() == TypeTag.CLASS) {
@@ -11620,7 +11638,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                                 st = M.at(that.pos).ForeachLoop(indexdef,bound.lo,bl);
                                 if (brStat != null) brStat.target = st;
-                                st = M.at(that.pos).Labelled(label,st);
+                                st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
 
                             } else {
@@ -11642,7 +11660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                         treeutils.makeIdent(that.pos, indexdef.sym), hi);
                                 st = M.at(that.pos).WhileLoop(comp,bl);
                                 if (brStat != null) brStat.target = st;
-                                st = M.at(that.pos).Labelled(label,st);
+                                st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);
                             }
                         }
@@ -13610,6 +13628,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             return null;
         }
 
+        @Override
+        public @Nullable java.util.List<JmlStatementExpr> visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
+            return null;
+        }
+        
         @Override
         public @Nullable java.util.List<JmlStatementExpr> visitJmlLblExpression(JmlLblExpression that, Void p) {
             // TODO Auto-generated method stub

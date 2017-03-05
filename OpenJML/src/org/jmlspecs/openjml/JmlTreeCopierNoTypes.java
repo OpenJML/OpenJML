@@ -202,6 +202,14 @@ public class JmlTreeCopierNoTypes extends TreeCopier<Void> implements JmlTreeVis
     }
 
     @Override
+    public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
+        return M.at(that.pos).JmlLabeledStatement(
+                that.label,
+                copy(that.extraStatements,p),
+                copy(that.body,p));
+    }
+
+    @Override
     public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {
         return M.at(that.pos).JmlLblExpression(
                 that.labelPosition,
