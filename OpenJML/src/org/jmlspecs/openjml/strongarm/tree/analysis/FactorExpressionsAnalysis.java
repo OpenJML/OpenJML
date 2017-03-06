@@ -142,7 +142,98 @@ public class FactorExpressionsAnalysis extends JmlTreeAnalysis {
         } while (joins.values().stream().mapToInt(x -> x.size()).sum() != previousSize);
 
         printIntersectionMap();
+        
+        // step 4 "merging"
+        //
+        // the merge consists of two parts
+        //
+        // 1) for TOPLEVEL groups, we inspect the intersections. for each entry, 
+        //    if the expression isn't already there, we add it. This is the merged set. 
+        // 2) For each merged expression, in the child specifications we remove 
+        //    any of the merged expressions from the contract. 
+        for (Iterator<JmlMethodClauseGroup> iterator = R
+                .iterator(); iterator.hasNext();) {
 
+            JmlMethodClauseGroup G = iterator.next();
+            
+            merge(G);
+        }
+
+    }
+
+    // the merge consists of two parts
+    //
+    // 1) for TOPLEVEL groups, we inspect the intersections. for each entry, 
+    //    if the expression isn't already there, we add it. This is the merged set. 
+    // 2) For each merged expression, in the child specifications we remove 
+    //    any of the merged expressions from the contract.   
+    private void merge(JmlMethodClauseGroup tree) {
+          
+        // we only care about joins where the top level element can be merged.
+        if(!(tree.cases.head.clauses.head instanceof JmlMethodClauseExpr))
+        {
+            return;
+        }
+        
+        // this represents the set of expressions we need to merge
+        Set<JmlMethodClause> intersection = joins.get(tree);
+
+  
+        ArrayList<JmlMethodClause> toAdd = new ArrayList<JmlMethodClause>();
+        ArrayList<JmlMethodClause> exprs = new ArrayList<JmlMethodClause>();
+        
+        
+        
+        // first, add these expressions if they DO NOT already exist in the top 
+        // level set of expressions.
+        for (List<JmlMethodClause> es = tree.cases.head.clauses; es
+                .nonEmpty(); es = es.tail) {
+
+            //String exprString = es.head.toString();
+            
+            exprs.add(es.head);
+            
+        }    
+        
+        for(JmlMethodClause a : intersection){
+            
+            boolean exists = exprs.stream()
+                    .filter(x -> x.toString().equals(a.toString()))
+                    .findFirst()
+                    .isPresent();
+            
+
+            // if it doesn't exist, append
+            if(!exists){
+                tree.cases.head.clauses = tree.cases.head.clauses.append(a);
+            }
+            
+        }
+        
+        // next REMOVE any of the expressions in the child clauses 
+        if(tree.cases.tail!=null){
+            FilterExpressions.analyze(tree.cases.tail.head, intersection);
+        }
+        
+        
+        if(1==1){
+            System.out.println("");
+        }
+        
+        
+//        for (List<JmlSpecificationCase> cases = tree.cases; cases
+//                .nonEmpty(); cases = cases.tail) {
+//
+//            Set<JmlMethodClauseExpr> thisGroup = new HashSet<JmlMethodClauseExpr>();
+//
+//            
+//            if (cases.head.clauses.head instanceof JmlMethodClauseExpr) {
+//                
+//            }else{
+//                return;
+//            }
+//
+//        }        
     }
 
     private void bubble(JmlMethodClauseGroup tree) {
