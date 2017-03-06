@@ -887,30 +887,37 @@ public class Strongarm
         
         
         // EDA Cleanup
-        EDAConverter map = new EDAConverter();
+        //EDAConverter map = new EDAConverter();
         
-        String eda = reader.postcondition.toPyEDA(map);
+        //String eda = reader.postcondition.toPyEDA(map);
         
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("EDA OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(eda);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-
-        }
+//        if (verbose) {
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("EDA OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+//            log.getWriter(WriterKind.NOTICE).println(eda);
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//
+//        }
         
         
-        Set<JCTree> expressions = CollectExpressionsAnalysis.analyze(contract);
+        //Set<JCTree> expressions = CollectExpressionsAnalysis.analyze(contract);
 
         
         FactorExpressionsAnalysis.analyze(contract);
 
-        
-        if(1==1){
-            System.out.println("TEST");
+
+        if (verbose) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER FACTOR EXPRESSIONS ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
         }
+
+        
         
     }
 }
