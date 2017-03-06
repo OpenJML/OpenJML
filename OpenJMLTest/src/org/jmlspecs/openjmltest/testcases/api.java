@@ -98,8 +98,10 @@ public class api extends JmlTestCase {
         boolean cap = capture;
         endCapture();
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualErr = errorOutput();
-        String actualOut = output();
+        String actualErr = errorOutput().replace("\r","").replace('\\','/');
+        String actualOut = output().replace("\r","").replace('\\','/');
+        errOutput = errOutput == null ? null : errOutput.replace("\r","").replace('\\','/');
+        output = output == null ? null : output.replace("\r","").replace('\\','/');
         while (true) {
         	int k = actualOut.indexOf("Note:");
         	if (k < 0) break;
@@ -118,7 +120,7 @@ public class api extends JmlTestCase {
             throw ex;
         }
         if (cap && output != null) try {
-            compareStrings(output,actualOut);
+            compareStrings(output,actualOut.replace( "No such file or directory)","The system cannot find the file specified)"));
         } catch (AssertionError ex) {
             if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualOut);
             throw ex;

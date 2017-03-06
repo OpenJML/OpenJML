@@ -937,7 +937,7 @@ public class compiler {
     public void release_testRuntime2() throws Exception {
     	expectedFile = "releaseTests/testRuntime2/expected";
     	helper(new String[]
-    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin;../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
     			);
@@ -948,7 +948,7 @@ public class compiler {
     public void release_testRuntime3() throws Exception {
     	expectedFile = "releaseTests/testRuntime3/expected";
     	helper(new String[]
-    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src;../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
     			);

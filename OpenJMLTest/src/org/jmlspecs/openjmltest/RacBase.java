@@ -210,7 +210,7 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (isMac && line.startsWith(macstring)) line = line.substring(macstring.length());
+                	if (isMac && !line.equals(list[i]) && line.startsWith(macstring)) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
