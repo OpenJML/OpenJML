@@ -6,3 +6,5 @@ openjml.properties
 /log
 openjml-master-*
 openjml-*
+/temp/
+/releases/
