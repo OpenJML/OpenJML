@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.annotation.NonNull;
@@ -4425,7 +4426,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
                 pushBlock();
                 JCIdent id = treeutils.makeIdent(catcher.param, catcher.param.sym);
-                addRecInvariants(true,catcher.param,id);
+                Type ct = catcher.param.type;
+                JCExpression e = treeutils.falseLit;
+                if (ct.isUnion()) {
+                    Type.UnionClassType uct = ((Type.UnionClassType)ct);
+                    for (TypeMirror t: uct.getAlternatives()) {
+                        Type tt = (Type)t;
+                        e = treeutils.makeOrSimp(catcher.pos, e, treeutils.makeInstanceOf(catcher.param.pos,id,tt));
+                    }
+                } else {
+                    e = treeutils.makeInstanceOf(catcher.param.pos,id,ct);
+                }
+                addAssume(catcher.pos(),Label.IMPLICIT_ASSUME,e);
+                addRecInvariants(true,catcher.param,id); // This only adds invariants for the union type
                 JCBlock block = popBlock(0, catcher.param);
                 block.stats = block.stats.prepend(comment(catcher.getParameter(),"catch (" + catcher.param +") ...",null));
                 

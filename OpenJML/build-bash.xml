@@ -13,13 +13,25 @@
 		<loadproperties srcFile="openjml.properties"/>
 		<echo message="Building release using java.home = ${openjml.jdk}"/>
 		<chmod file="buildRelease" perm="ugo+x"/>
-		<exec executable="${basedir}/buildRelease" 
-			failonerror="true"
-			osfamily="unix">
-		</exec>
 		<exec executable="C:/cygwin/bin/bash.exe" 
 			failonerror="true"
 			osfamily="windows">
+			<arg value="${basedir}/buildRelease"/>
+            <env key="JAVA_HOME" value="${openjml.jdk}"/>
+            <env key="PATH" value="${openjml.env.path}"/>
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
+		<exec executable="/bin/bash" 
+			failonerror="true"
+			osfamily="mac">
+			<arg value="${basedir}/buildRelease"/>
+            <env key="JAVA_HOME" value="${openjml.jdk}"/>
+            <env key="PATH" value="${openjml.env.path}"/>
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
+		<exec executable="bash" 
+			failonerror="true"
+			osfamily="unix">
 			<arg value="${basedir}/buildRelease"/>
             <env key="JAVA_HOME" value="${openjml.jdk}"/>
             <env key="PATH" value="${openjml.env.path}"/>
@@ -35,6 +47,16 @@
 		<exec executable="${basedir}/../OpenJMLTest/releaseTests/runTests" 
 			osfamily="unix"
 			failonerror="true">
+            <env key="JAVA_HOME" value="${openjml.jdk}"/>
+        	<env key="PATH" value="${openjml.env.path}"/>
+			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
+		</exec>
+		<exec executable="/bin/bash" 
+			osfamily="mac"
+			failonerror="true">
+			<arg value="${basedir}/../OpenJMLTest/releaseTests/runTests"/>
+            <env key="JAVA_HOME" value="${openjml.jdk}"/>
+        	<env key="PATH" value="${openjml.env.path}"/>
 			<env key="LOCAL_SETUP" value="${openjml.localSetup}"/>
 		</exec>
 		<exec executable="C:/cygwin/bin/bash.exe" 
@@ -76,6 +98,7 @@
     <target name="psf"
         description="Generates the svn_commands file">
         <exec executable="C:/cygwin/bin/bash.exe" 
+			osfamily="windows"
             failonerror="true">
             <arg value="${basedir}/convert-psf"/>
             <arg value="OpenJML-projectSet.psf"/>

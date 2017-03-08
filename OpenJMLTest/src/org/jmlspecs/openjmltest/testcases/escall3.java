@@ -1036,6 +1036,92 @@ public class escall3 extends EscBase {
                 );
     }
     
+    @Test public void testMultiException() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void m() {}\n"
+                +"  public void mm() {\n"
+                +"  try {\n"
+                +"    m();\n"
+                +"  } catch (NullPointerException|ArithmeticException e) {\n"
+                +"     //@ assert e instanceof NullPointerException || e instanceof ArithmeticException;\n"
+                +"  }}\n"
+                
+                
+                +"}\n"
+                );
+    }
+    
+    @Test public void testExceptionTypeC() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void mm(int i) throws ClassNotFoundException, NoSuchMethodException {\n"
+                +"  try {\n"
+                +"    if (i == 0) throw new ClassNotFoundException();\n"
+                +"    if (i == 1) throw new NoSuchMethodException();\n"
+                +"  } catch (Exception e) {\n"
+                +"     throw e;\n"
+                +"  }}\n"
+                
+                
+                +"}\n"
+                );
+    }
+    
+    @Test public void testExceptionType() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+        		+"  //@ signals_only NullPointerException, ArithmeticException;\n"
+                +"  public void mm(int i) throws NullPointerException, ArithmeticException {\n"
+                +"  try {\n"
+                +"    if (i == 0) throw new NullPointerException();\n"
+                +"    if (i == 1) throw new ArithmeticException();\n"
+                +"  } catch (Exception e) {\n"
+                +"     throw e;\n"
+                +"  }}\n"
+                
+                
+                +"}\n"
+                );
+    }
+    
+    @Test public void testExceptionTypeB() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+        		+"  //@ signals_only NullPointerException;\n"
+                +"  public void mm(int i) throws NullPointerException {\n"
+                +"  try {\n"
+                +"    if (i == 0) throw new NullPointerException();\n"
+                +"    if (i == 1) throw new ArithmeticException();\n"
+                +"  } catch (Exception e) {\n"
+                +"     throw e;\n"
+                +"  }}\n"
+                
+                
+                +"}\n"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ExceptionList) in method mm",6
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
+    }
+    
+    @Test public void testExceptionType2() {
+    	expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void mm(int i) throws ClassNotFoundException {\n"
+                +"  try {\n"
+                +"    if (i == 0) throw new ClassNotFoundException();\n"
+                +"    if (i == 1) throw new NoSuchMethodException();\n"
+                +"  } catch (Exception e) {\n"
+                +"     throw e;\n"
+                +"  }}\n"
+                
+                
+                +"}\n"
+                ,"/tt/TestJava.java:8: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
+                );
+    }
+    
     @Test public void testMethodWithConstructorNameOK() {
     	main.addOptions("-verbose","-trace","-ce");
         helpTCX("tt.TestJava","package tt; \n"

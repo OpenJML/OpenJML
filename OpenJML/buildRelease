@@ -39,7 +39,6 @@ TEMPJAR=tempjars
 DATE=`date +%Y%m%d`
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ##BRANCH=`git branch | grep '*' | sed 's/* //'`
-BRANCH=0.8.8
 echo Branch = ${BRANCH}, Date = ${DATE}
 if [ "${BRANCH}" = "master" ]; then VERSION=$DATE ; else VERSION=${BRANCH}-${DATE}; fi
 
