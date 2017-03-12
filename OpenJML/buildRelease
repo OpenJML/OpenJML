@@ -11,9 +11,6 @@
 
 umask 022
 
-echo $PATH
-which jar
-
 ## If these variables are not set, we set them to what they will be in 
 ## a standard Eclipse project setup for OpenJML.
 

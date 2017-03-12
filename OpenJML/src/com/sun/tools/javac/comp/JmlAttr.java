@@ -2171,7 +2171,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                 tree.sym.type.tsym);
                         }
                         
-                    } else {
+                    } else if (!specType.toString().equals(tree.sym.type.toString())) {
                        utils.errorAndAssociatedDeclaration(tree.specsDecl.source(),tree.specsDecl.vartype.pos(),
                             tree.sourcefile, tree.pos(),
                             "jml.mismatched.field.types",tree.name,
