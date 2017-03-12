@@ -869,4 +869,60 @@ public class escnew3 extends EscBase {
         
     }
 
+    @Test
+    public void testIfNoBrace() {
+        helpTCX("tt.TestJava",
+                                "package tt; \n"
+                              + "public class TestJava { \n"
+                              + "  //@ requires i > -10 && i < 10;\n"
+                              + "  public void m(int i) {\n"
+                              + "     if (i < 0) \n"
+                              + "        //@ assert i < 0;\n" // OK
+                              + "        i = -i; \n"
+                              + "     //@ assert i >= 0;\n" // OK
+                              + "    }\n"
+                              + "}"
+                               );
+                      
+        
+    }
+
+    @Test @Ignore
+    public void testIfNoBrace2() {
+        helpTCX("tt.TestJava",
+                                "package tt; \n"
+                              + "public class TestJava { \n"
+                              + "  //@ requires i > -10 && i < 10;\n"
+                              + "  public void m(int i) {\n"
+                              + "     if (i < 0) \n"
+                              + "        i = -i; \n"
+                              + "        //@ assert i < 0;\n"  // false, since not in if
+                              + "     //@ assert i >= 0;\n"
+                              + "    }\n"
+                              + "}"
+                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
+                               );
+                      
+        
+    }
+
+    @Test
+    public void testIfNoBrace3() {
+        helpTCX("tt.TestJava",
+                                "package tt; \n"
+                              + "public class TestJava { \n"
+                              + "  //@ requires i > -10 && i < 10;\n"
+                              + "  public void m(int i) {\n"
+                              + "     if (i < 0) \n"
+                              + "        i = -i; \n"
+                              + "        //@ assert i > 0;\n"  // false, since not in if
+                              + "     //@ assert i >= 0;\n"
+                              + "    }\n"
+                              + "}"
+                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
+                               );
+                      
+        
+    }
+
 }

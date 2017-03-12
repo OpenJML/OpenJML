@@ -1209,6 +1209,20 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // A problem from MHuisman, with String initialization and invariants
+    @Test public void testStringInitialization() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public String x = new String();\n"
+
+                +"  public TestJava(String xx) {\n"
+                +"    this.x = xx;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
 
 
 }
