@@ -39,10 +39,10 @@ public abstract class EscBase extends JmlTestCase {
     protected static boolean runLongTests = false;
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-  //          "z3_4_3", 
+            "z3_4_3", 
  //           "z3_4_3_2", 
-          "z3_4_4", 
-            "cvc4",
+//          "z3_4_4", 
+//            "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 

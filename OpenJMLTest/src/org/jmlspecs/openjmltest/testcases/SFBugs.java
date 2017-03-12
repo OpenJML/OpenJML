@@ -240,6 +240,11 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test public void gitbug474() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
     @Test public void gitbug476() {
     	expectedExit = 0;
         helpTCG();
