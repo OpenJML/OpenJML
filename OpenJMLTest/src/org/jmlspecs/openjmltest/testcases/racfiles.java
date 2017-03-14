@@ -291,5 +291,19 @@ public class racfiles extends RacBase {
         helpTCF("test/sfbug413","test/sfbug413","Main");
     }
 
+    @Test
+    public void sfbug402() {
+        expectedRACExit = 0;
+        runrac = false;
+        helpTCF("test/sfbug402","test/sfbug402","Main");
+    }
+
+    @Test
+    public void sfbug396() {
+        expectedRACExit = 0;
+        runrac = false;
+        helpTCF("test/sfbug396","test/sfbug396","Main");
+    }
+
 
 }

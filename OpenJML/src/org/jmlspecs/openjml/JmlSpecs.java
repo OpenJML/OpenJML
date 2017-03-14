@@ -908,9 +908,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-//        if (m.owner.flatName().toString().equals("java.lang.Object")) {
-//            if (m.toString().equals("Object()")) Utils.stop();
-//        }
+        if (m.toString().equals("JMLValueSequence()")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }

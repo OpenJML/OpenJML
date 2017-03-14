@@ -1,0 +1,8 @@
+Proving methods in TestException
+Starting proof of TestException.TestException(java.lang.Throwable) with prover !!!!
+test\gitbug457\TestException.java:2: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method TestException
+    //@ requires cause.getMessage()!=null;
+                      ^
+Completed proof of TestException.TestException(java.lang.Throwable) with prover !!!! - with warnings
+Completed proving methods in TestException
+1 warning

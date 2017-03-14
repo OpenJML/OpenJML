@@ -1,5 +1,5 @@
 // This test case corresponds to Git issue #450
-
+// Produces different results with -minQuant and -no-minQuant
 import java.util.ArrayList;
 
 public class ArrList {

@@ -96,7 +96,7 @@ public class SFBugs extends EscBase {
     	expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5");
     }
-    @Ignore // Can be very long running
+    @Ignore // Can be very long running because it uses floating point
     @Test public void gitbug257() {
     	expectedExit = 0;
         helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "-esc", "-progress", "-logic=AUFNIRA");
@@ -128,6 +128,16 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug454","test/gitbug454", "-cp", "test/gitbug454", "-esc");
     }
     
+    @Test public void gitbug457() {
+    	expectedExit = 0;
+        helpTCG("-nullableByDefault");
+    }
+    
+    @Test public void gitbug457a() {
+    	expectedExit = 0;
+        helpTCG("-nonnullByDefault");
+    }
+    
     @Test public void gitbug458() {
     	expectedExit = 0;
         helpTCF("test/gitbug458","test/gitbug458", "-cp", "test/gitbug458", "-esc");
@@ -146,6 +156,12 @@ public class SFBugs extends EscBase {
     @Test public void gitbug459() {
     	expectedExit = 0;
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "-esc");
+    }
+    
+    @Ignore // FIXME - needs all the model classes - and they need cleaning up
+    @Test public void gitbug461() {
+    	expectedExit = 0;
+        helpTCG("-show","-method=makeSequence");
     }
     
     @Test public void gitbug462() {
@@ -189,10 +205,14 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
     }
     
-    // FIXME - generics
     @Test public void gitbug445() {
     	expectedExit = 1;
-        helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
+        helpTCG();
+    }
+    
+    @Ignore // FIXME - model specs
+    @Test public void gitbug445a() {
+        helpTCG();
     }
     
     @Test public void gitbug463() {
