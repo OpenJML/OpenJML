@@ -273,16 +273,16 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         			tiii.setExpanded(true);
         		}
         	} else if (k == IProverResult.UNSAT) {
-        		tiii.setText("[VALID]   " + text + info);
+        		tiii.setText("[VALID]    " + text + info);
             	tiii.setBackground(green);
         	} else if (k == IProverResult.ERROR) {
-        		tiii.setText("[ERROR]   " + text + info);
+        		tiii.setText("[ERROR]    " + text + info);
             	tiii.setBackground(red);
         	} else if (k == IProverResult.TIMEOUT) {
-        		tiii.setText("[TIMEOUT]   " + text + info);
+        		tiii.setText("[TIMEOUT] " + text + info);
             	tiii.setBackground(yellow);
         	} else if (k == IProverResult.UNKNOWN) {
-        		tiii.setText("[UNKNOWN]   " + text + info);
+        		tiii.setText("[UNKNOWN] " + text + info);
             	tiii.setBackground(red);
         	} else if (k == IProverResult.INFEASIBLE) {
         		tiii.setText("[INFEASIBLE] " + text + info);

@@ -398,9 +398,10 @@ public class MethodProverSMT {
                             solverResponse = solver.check_sat();
                         }
                         String description = stat.description; // + " " + stat;
-                        String loc = utils.locationString(stat.pos,stat.source());
+                        String loc = utils.qualifiedName(methodDecl.sym);
+                        // FIXME - get rid of the next line some time when we can change the test results
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
-                        utils.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
+                        utils.progress(0,1,loc + "Feasibility check #" + k + " - " + description + " : " +
                                 (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
                         if (solverResponse.equals(unsatResponse)) {
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {

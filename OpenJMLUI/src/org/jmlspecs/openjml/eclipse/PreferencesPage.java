@@ -179,7 +179,7 @@ IWorkbenchPreferencePage {
                 getFieldEditorParent()));
         addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
         		new String[][]{ 
-        			{"All", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
+        			{"all", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
         			{"1","1"},   //$NON-NLS-1$ //$NON-NLS-2$
         			{"2","2"},   //$NON-NLS-1$ //$NON-NLS-2$
         			{"3","3"},   //$NON-NLS-1$ //$NON-NLS-2$

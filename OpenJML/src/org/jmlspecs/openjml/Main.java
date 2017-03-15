@@ -131,6 +131,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      * the most recent value of the context, and is used that way in testing. */
     protected Context context;
     
+    public boolean canceled = false;
+    
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
@@ -550,10 +552,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
+        canceled = false;
         Main.Result exit = super.compile(args,context,fileObjects,processors);
 //        if (Options.instance(context).get(helpOption) != null) {
 //            helpJML(out);
 //        }
+        if (canceled) exit = Result.CANCELLED;
         return exit;
     }
     

@@ -107,6 +107,10 @@ public class JmlEsc extends JmlTreeScanner {
         	assertionAdder.convert(tree); // get at the converted tree through the map
         	proverToUse = pickProver();
         	tree.accept(this);
+        } catch (PropagatedException e) {
+        	// Canceled
+    		Main.instance(context).canceled = true;
+    		throw e;
         } catch (Exception e) {
         	// No further error messages needed - FIXME - is this true?
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check");
@@ -194,7 +198,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(2,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -261,6 +265,13 @@ public class JmlEsc extends JmlTreeScanner {
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
                     );
+        } catch (Main.JmlCanceledException | PropagatedException e) {
+            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            + " - exception"
+            );
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
+            throw e;
         } catch (Exception e) {
             log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 

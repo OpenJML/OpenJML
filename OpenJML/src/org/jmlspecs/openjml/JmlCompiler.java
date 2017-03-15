@@ -47,6 +47,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
+import com.sun.tools.javac.util.PropagatedException;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -118,7 +119,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -373,18 +374,22 @@ public class JmlCompiler extends JavaCompiler {
 
         if (utils.check || utils.doc) {
             // Stop here
-            return results; // Empty list - do nothng more
+            return results; // Empty list - do nothing more
         } else if (utils.esc) {
-            for (Env<AttrContext> env: envs)
-                esc(env);
-            return results; // Empty list - Do nothing more
+        	try {
+        	for (Env<AttrContext> env: envs)
+        		esc(env);
+        	} catch (PropagatedException e) {
+        		// cancelation
+        	}
+    		return results; // Empty list - Do nothing more
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
                 env = rac(env);
                 if (env == null) continue; // FIXME - error? just keep oroginal env?
                 
-                if (utils.jmlverbose >= Utils.PROGRESS) 
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) 
                     context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
                         (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                             t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));

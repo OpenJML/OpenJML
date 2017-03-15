@@ -100,7 +100,8 @@ public class Main {
         ERROR(1),     // Completed but reported errors.
         CMDERR(2),    // Bad command-line arguments
         SYSERR(3),    // System error or resource exhaustion.
-        ABNORMAL(4);  // Compiler terminated abnormally
+        ABNORMAL(4),  // Compiler terminated abnormally
+        CANCELLED(5); // Compiler was manually cancelled
 
         Result(int exitCode) {
             this.exitCode = exitCode;

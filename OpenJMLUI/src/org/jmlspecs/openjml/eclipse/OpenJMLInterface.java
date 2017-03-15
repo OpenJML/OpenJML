@@ -455,7 +455,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             
             if (monitor != null) {
-            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
+            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  2*count); // ticks at begin and end of check
             	monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
@@ -467,6 +467,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                 try {
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
                     if (ret == Main.Result.OK.exitCode) Log.log(Timer.timer.getTimeString() + " Completed");
+                    if (ret == Main.Result.CANCELLED.exitCode) Log.log(Timer.timer.getTimeString() + " Cancelled");
                     else if (ret == Main.Result.ERROR.exitCode) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                     else if (ret >= Main.Result.CMDERR.exitCode) {
                         StringBuilder ss = new StringBuilder();
@@ -1049,14 +1050,18 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             d.asyncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	monitor.subTask(message);
+                    	if (level <= 1) monitor.subTask(message);
                     	monitor.worked(ticks);
                     }
-                    if (level <= 1) Log.log(message);
+                    Log.log(message);
                 }
             });
             boolean cancel = monitor != null && monitor.isCanceled();
-            if (cancel) throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
+//            if (cancel) {
+//            	cancel = true;
+//            	//throw new Main.JmlCanceledException("Operation cancelled"); //$NON-NLS-1$
+//            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
+//            }
             return cancel;
         }
         
@@ -1075,6 +1080,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     protected String keyForSym(Symbol sym) {
     	if (sym instanceof MethodSymbol) {
         	return sym.owner.getQualifiedName().toString() + Strings.dot + sym.toString();
+    	} else if (sym.name.isEmpty()) {
+    		return ((ClassSymbol)sym).flatname.toString(); // for anonymous types
     	} else {
     		return sym.getQualifiedName().toString();
     	}

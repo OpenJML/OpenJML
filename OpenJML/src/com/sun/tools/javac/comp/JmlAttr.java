@@ -396,7 +396,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing specs for " + c + " " + level);
         level++;
         if (c != syms.predefClass) {
-            if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"typechecking " + c);
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"typechecking " + c);
         }
 
         // classSpecs.file is only useful for the modifiers/annotations
@@ -454,7 +454,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (prev != null) log.useSource(prev);
             level--;
             if (c != syms.predefClass) {
-                if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"typechecked " + c);
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"typechecked " + c);
             }
             if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-complete " + c.fullname + " " + level);
             if (level == 0) completeTodo();
