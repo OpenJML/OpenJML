@@ -228,7 +228,10 @@ public class JmlEsc extends JmlTreeScanner {
         }
         utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         log.resetRecord();
-        
+
+        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
+
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
         
@@ -283,7 +286,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         
         //proverResults.put(methodDecl.sym,res);
-        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
+        //IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         return res;
     }

@@ -290,6 +290,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         	} else if (k == IProverResult.SKIPPED) {
         		tiii.setText("[SKIPPED] " + text + info);
             	tiii.setBackground(blue);
+        	} else if (k == IProverResult.RUNNING) {
+        		tiii.setText("[RUNNING] " + text + info);
+            	tiii.setBackground(white);
         	} else if (k == null) {
         		tiii.setText(text);
             	tiii.setBackground(white);
