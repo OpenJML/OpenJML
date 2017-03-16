@@ -365,11 +365,11 @@ public class JmlTree implements IJmlTree {
         @Override
         public JmlVariableDecl VarDef(JCModifiers mods,
                 Name name,
-                JCExpression vartype,
+                /*@ nullable */ JCExpression vartype, // null if we are in a lambda expression
                 JCExpression init) {
             JmlVariableDecl tree =  new JmlVariableDecl(mods,name,vartype,init,null);
             tree.pos = pos;
-            tree.type = vartype.type; // attribute if the type is known
+            if (vartype != null) tree.type = vartype.type; // attribute if the type is known
             tree.sourcefile = Log.instance(context).currentSourceFile();
             // Not filled in: symbol, docComment, fieldSpecs, fieldSpecsCombined, specsDecl
             return tree;
@@ -1250,7 +1250,7 @@ public class JmlTree implements IJmlTree {
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlVariableDecl(JCModifiers mods, Name name,
-                JCExpression vartype, JCExpression init, VarSymbol sym) {
+                /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym) {
             super(mods, name, vartype, init, sym);
             specsDecl = null;
             fieldSpecs = null;

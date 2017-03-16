@@ -884,7 +884,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
           else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
           return out;
       }
-      return "No counterexample information available";
+      return null;
+      //return "No counterexample information available";
       
     }
 
