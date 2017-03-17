@@ -1223,6 +1223,363 @@ public class escall3 extends EscBase {
                 );
     }
     
-
+    @Test public void testTryResources() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR r = new RR()){\n"
+                +"       flag = 2; \n"
+                +"       //@ assert TestJava.flag == 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 1;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // If close throws an exception, then flag is not specified as set, and the assertion cannot be proved
+    @Test public void testTryResources1() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR r = new RR()){\n"
+                +"       flag = 2; \n"
+                +"       //@ assert TestJava.flag == 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 1;\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method mmm",9
+                );
+    }
+    
+    @Test public void testTryResources1a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR r = new RR()){\n"
+                +"       flag = 2; \n"
+                +"       //@ assert TestJava.flag == 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 1;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources2() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 2;\n"
+                +"       public void close() { TestJava.flag = 2; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources2b() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+        		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+        		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE1;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; throw new EE1(); }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE2;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 2;\n"
+                +"       public void close() { TestJava.flag = 2; throw new EE2(); }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"  // Line 24
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try {\n"
+                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"       throw new EE3();\n"
+                +"      }\n"
+                +"      //@ assert TestJava.flag == 2;\n" // not feasible
+                +"    } catch (EE1 | EE2 | EE3 e) {\n"
+                +"       //@ assert e instanceof EE3 ;\n" // Line 34
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources2a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+        		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE1;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; throw new EE1(); }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE2;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 2;\n"
+                +"       public void close() { TestJava.flag = 2; throw new EE2(); }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n" // Line 21
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"  // Line 23
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try {\n"
+                +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"      }\n"
+                +"      //@ assert TestJava.flag == 2;\n"
+                +"    } catch (EE e) {\n"
+                +"       //@ assert e instanceof EE1;\n"  // Line 32
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"    } finally {\n"
+                +"      flag = 2;"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources4() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    boolean normal = true;\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"    } catch (Exception e) {\n"
+                +"      flag = 2;"
+                +"      normal = false;"
+                +"    }\n"
+                +"    //@ assert normal ==> flag == 1;\n"
+                +"    //@ assert !normal ==> flag == 2;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources4a() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"       throw new Exception();\n"
+                +"    } catch (Exception e) {\n"
+                +"      flag = 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - flag should not be able to be 1
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources4b() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"       throw new Exception();\n"
+                +"    } catch (Exception e) {\n"
+                +"      flag = 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - flag should not be able to be 1
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources4c() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try {\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"       throw new Exception();\n"
+                +"    } catch (Exception e) {\n"
+                +"      flag = 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2; \n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    @Test public void testTryResources5() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"    } catch (Exception e) {\n"
+                +"      flag = 2;"
+                +"    } finally {\n"
+                +"      flag = 5;"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 5;\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // FIXME - test all these try tests in a constructor
 
 }

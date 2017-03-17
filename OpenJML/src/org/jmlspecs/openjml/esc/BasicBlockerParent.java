@@ -973,8 +973,18 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(noCatchBlock,finallyBlock);
         blocks.add(noCatchBlock);
     
+        // Need to save the current global exception
+        JCVariableDecl savedException = treeutils.makeVarDef(syms.exceptionType, names.fromString("__JMLsavedException_" + that.pos), null, that.pos); // FIXME - may need to have a non-null owner
+        JCAssign saveAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, savedException.sym), treeutils.makeIdent(that.pos,exceptionSym));
+        finallyBlock.statements.add(M.at(that.pos).Exec(saveAssignment));
+        
         JCBlock finallyStat = that.getFinallyBlock();
         if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the statements of the finally statement
+        
+        // Restore the global exception
+        JCAssign restoreAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, exceptionSym), treeutils.makeIdent(that.pos,savedException.sym));
+        finallyBlock.statements.add(M.at(that.pos).Exec(restoreAssignment));
+        
         
         // And lastly, the blocks for out-of-band exits from the finally block
         // The normal ending block is for when there is no pending exception or return;

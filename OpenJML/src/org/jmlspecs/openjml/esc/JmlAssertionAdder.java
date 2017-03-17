@@ -4411,11 +4411,97 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = addStat(M.at(that).Synchronized(lock, block).setType(that.type));
         // FIXME - need to add concurrency checks
     }
+    
+    protected Name closeName; 
+    
+    // This translation follows https://docs.oracle.com/javase/specs/jls/se8/html/jls-14.html#jls-ResourceList
+    protected void transformTryWithResources(JCTry that) {
+        if (that.resources == null || that.resources.isEmpty()) return;
+        if (closeName == null) closeName = names.fromString("close");
+        
+        
+        JCTree resource = that.resources.head;
+        List<JCTree> resourceRest = that.resources.tail;
+        int pos = resource.pos;
+        JCVariableDecl decl = (JCVariableDecl)resource;
+        decl.mods.flags |= Flags.FINAL; // implicitly final
+
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+        stats.add((JCStatement)resource);
+        
+        Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
+        JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        stats.add(throwableDecl);
+        
+        Name catchName = names.fromString("__JMLthrowableCatch_" + resource.pos);
+        JCVariableDecl catchDecl = treeutils.makeVarDef(syms.throwableType, catchName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+
+        JCExpression exAssign = M.Assign(treeutils.makeIdent(pos,throwableDecl.sym), treeutils.makeIdent(pos,catchDecl.sym));
+        exAssign.pos = pos;
+        
+        JCStatement exStat = M.at(pos).Exec(exAssign);
+        
+        JCStatement exThrow = M.Throw(treeutils.makeIdent(pos, throwableDecl.sym));
+        exThrow.pos = pos;
+        
+        JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat,exThrow)));
+
+        JCIdent id = treeutils.makeIdent(pos,decl.sym);
+        MethodSymbol msym = null;
+        for (Symbol sym: ((ClassSymbol)resource.type.tsym).members().getElementsByName(closeName)) {
+            if (sym instanceof MethodSymbol) {
+                MethodSymbol m = (MethodSymbol)sym;
+                if (m.getParameters().isEmpty()) {
+                    msym = m;
+                    break;
+                }
+            }
+        }
+        M.at(pos);
+        JCExpression fcn1 = M.Select(id, msym);
+        fcn1.type = msym.type;
+        JCMethodInvocation closeCallExpr1 = M.Apply(List.<JCExpression>nil(),fcn1,List.<JCExpression>nil());
+        closeCallExpr1.type = syms.voidType;
+        JCExpressionStatement closeCall1 = M.Exec(closeCallExpr1);
+        JCExpression fcn2 = M.Select(id, msym);
+        fcn2.type = msym.type;
+        JCMethodInvocation closeCallExpr2 = M.Apply(List.<JCExpression>nil(),fcn2,List.<JCExpression>nil());
+        closeCallExpr2.type = syms.voidType;
+        JCExpressionStatement closeCall2 = M.Exec(closeCallExpr2);
+
+        Name closeCatchName = names.fromString("__JMLcloseCatch_" + resource.pos);
+        JCVariableDecl closeCatchDecl = treeutils.makeVarDef(syms.throwableType, closeCatchName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        JCCatch resourceCloseCatch = M.at(pos).Catch(closeCatchDecl, M.at(pos).Block(0L, List.<JCStatement>nil())); // FIXME - should save the suppressed exception
+        JCTry closetry = M.at(pos).Try(List.<JCTree>nil(), M.at(pos).Block(0L, List.<JCStatement>of(closeCall1)), List.<JCCatch>of(resourceCloseCatch), null);
+
+        JCExpression comp = treeutils.makeNotNull(pos, treeutils.makeIdent(pos, throwableDecl.sym));
+        JCStatement thenpart = M.at(pos).Block(0L, List.<JCStatement>of(M.If(comp, 
+                M.at(pos).Block(0L, List.<JCStatement>of(closetry)), 
+                closeCall2).setType(syms.booleanType)));
+        
+        comp = treeutils.makeNotNull(pos, treeutils.makeIdent(pos, decl.sym));
+        JCBlock finalBlock = M.at(pos).Block(0L, 
+                List.<JCStatement>of(
+                        M.at(pos).If(comp, thenpart, null).setType(syms.booleanType)));
+
+        JCTry newtry = M.at(pos).Try(resourceRest, that.body, List.<JCCatch>of(newCatch), finalBlock);
+        stats.add(newtry);
+        
+        that.resources = List.<JCTree>nil();
+        that.body = M.at(pos).Block(0L, stats.toList());
+        
+        if (that.catchers.isEmpty() && that.finalizer == null) that.finalizer = M.at(pos).Block(0L,  List.<JCStatement>nil());
+        
+        // FIXME - if the original try does not have catchers or finally, it can be converted to just a block
+        // FIXME - what about finallyCanCompleteNormally in all of the above
+        // FIXME - add position, types, symbols
+    }
 
     // OK
     // FIXME - review and cleanup for both esc and rac
     @Override
     public void visitTry(JCTry that) {
+        if (that.resources != null && !that.resources.isEmpty()) transformTryWithResources(that);
         if (!pureCopy) addStat(comment(that,"try ...",null)); // Don't need to trace the try keyword
         JCBlock body = convertBlock(that.body);
 
