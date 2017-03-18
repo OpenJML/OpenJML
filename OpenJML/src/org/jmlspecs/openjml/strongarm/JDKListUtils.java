@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -32,6 +33,22 @@ public class JDKListUtils {
         return newList;
     }
     
+    
+
+    static public <T> List<T> toList(Collection<T> l){
+        
+        List<T> newList = null;
+        
+        for(T e : l){
+            if(newList==null){
+                newList = List.of(e);
+            }else{
+                newList = newList.append(e);
+            }
+        }
+        
+        return newList;
+    }
     
     
     public static <T> boolean contains(List<T> theClauses, T clause, Comparator<T> c){
