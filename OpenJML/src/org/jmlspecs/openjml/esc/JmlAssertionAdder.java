@@ -85,6 +85,7 @@ import org.jmlspecs.openjml.ext.Arithmetic;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -4430,11 +4431,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         stats.add((JCStatement)resource);
         
         Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
-        JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName, methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        Type atype = attr.nullableAnnotationSymbol.type;
+        throwableDecl.mods.annotations = throwableDecl.mods.annotations.append(M.Annotation(M.Type(atype),List.<JCExpression>nil()));
+        List<com.sun.tools.javac.util.Pair<Symbol.MethodSymbol,Attribute>>nlist = List.<com.sun.tools.javac.util.Pair<MethodSymbol,Attribute>>nil();
+        Compound c = new Attribute.Compound(atype,nlist);
+        throwableDecl.sym.appendAttributes(List.<Compound>of(c)); 
+        throwableDecl.init = treeutils.nullLit;
         stats.add(throwableDecl);
         
         Name catchName = names.fromString("__JMLthrowableCatch_" + resource.pos);
-        JCVariableDecl catchDecl = treeutils.makeVarDef(syms.throwableType, catchName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        JCVariableDecl catchDecl = treeutils.makeVarDef(syms.throwableType, catchName, methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
 
         JCExpression exAssign = M.Assign(treeutils.makeIdent(pos,throwableDecl.sym), treeutils.makeIdent(pos,catchDecl.sym));
         exAssign.pos = pos;

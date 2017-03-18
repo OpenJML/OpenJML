@@ -74,7 +74,6 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        //main.addOptions("-method=m1bad","-show");
         main.addOptions("-checkFeasibility=none");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
@@ -898,7 +897,6 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
-        //main.addOptions("-show","-method=B");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1123,7 +1121,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
-    	main.addOptions("-verbose","-trace","-ce");
+    	//main.addOptions("-verbose","-trace","-ce");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1223,6 +1221,7 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1248,7 +1247,8 @@ public class escall3 extends EscBase {
                 );
     }
     
-    // If close throws an exception, then flag is not specified as set, and the assertion cannot be proved
+    // If RR() throws an exception, mmm exits exceptionally
+    // If close throws an exception, then mmm exits exceptionally and flag is not tested
     @Test public void testTryResources1() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1270,10 +1270,42 @@ public class escall3 extends EscBase {
                 +"    //@ assert TestJava.flag == 1;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method mmm",9
                 );
     }
     
+    // If RR() throws an exception, flag == 0
+    // If close exits normally, flag == 1
+    // If close throws an exception, flag == 10
+    @Test public void testTryResources1x() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       /*@ pure */ public RR(){}\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 10;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try {\n"
+                +"    try (RR r = new RR()){\n"
+                +"       flag = 2; \n"
+                +"       //@ assert TestJava.flag == 2;\n"
+                +"    }\n"
+                +"    } catch (Exception eee) { \n"
+                +"    //@ assert (\\lbl FLAG TestJava.flag) == 0 || TestJava.flag == 1|| TestJava.flag == 10;\n"
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources1a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1299,6 +1331,7 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1330,7 +1363,54 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+        		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+        		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE1;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 1;\n"
+                +"       public void close() throws EE { TestJava.flag = 1; throw new EE1(); }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
+                +"       //@ public exceptional_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ signals_only EE2;\n"
+                +"       //@ signals (Exception e) TestJava.flag == 2;\n"
+                +"       public void close() throws EE { TestJava.flag = 2; throw new EE2(); }\n"
+                +"    }\n"
+                
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public void mmm() {\n"  // Line 26
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try {\n"
+                +"      try (RR rr = new RR()){\n"
+                +"       flag = 3; \n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"       throw new EE3();\n"
+                +"      }\n"
+                +"      //@ assert TestJava.flag == 1;\n" // not feasible
+                +"    } catch (EE e) {\n"
+                +"      //@ assert TestJava.flag == 1;\n" 
+                +"       //@ assert e instanceof EE3 ;\n" // Line 37
+                +"    }\n"
+                +"  }\n"
+                +"}"
+                );
+    }
+    
+    // Checks the class of the resulting exception when try body and close calls throw exceptions
+    @Test public void testTryResources2c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1339,6 +1419,7 @@ public class escall3 extends EscBase {
         		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
                 +"       //@ public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE1;\n"
@@ -1346,6 +1427,7 @@ public class escall3 extends EscBase {
                 +"       public void close() { TestJava.flag = 1; throw new EE1(); }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
                 +"       //@ public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE2;\n"
@@ -1355,7 +1437,7 @@ public class escall3 extends EscBase {
                 
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 24
+                +"  public void mmm() {\n"  // Line 26
                 +"    //@ assert TestJava.flag == 0;\n"
                 +"    try {\n"
                 +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
@@ -1365,53 +1447,58 @@ public class escall3 extends EscBase {
                 +"      }\n"
                 +"      //@ assert TestJava.flag == 2;\n" // not feasible
                 +"    } catch (EE1 | EE2 | EE3 e) {\n"
-                +"       //@ assert e instanceof EE3 ;\n" // Line 34
+                +"       //@ assert e instanceof EE3 ;\n" // Line 36
                 +"    }\n"
                 +"  }\n"
                 +"}"
                 );
     }
     
+    // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-        		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+        		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
         		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
         		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR() {}\n"
                 +"       //@ public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE1;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
-                +"       public void close() { TestJava.flag = 1; throw new EE1(); }\n"
+                +"       public void close() throws EE1 { TestJava.flag = 1; throw new EE1(); }\n"
                 +"    }\n"
                 +"    public static class RR2 implements AutoCloseable {\n"
+                +"       /*@ public normal_behavior ensures true; */ public RR2() {}\n"
                 +"       //@ public exceptional_behavior\n"
                 +"       //@ assignable TestJava.flag;\n"
                 +"       //@ signals_only EE2;\n"
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
-                +"       public void close() { TestJava.flag = 2; throw new EE2(); }\n"
+                +"       public void close() throws EE2 { TestJava.flag = 2; throw new EE2(); }\n"
                 +"    }\n"
                 
-                +"  //@ requires flag == 0;\n" // Line 21
+                +"  //@ requires flag == 0;\n" // Line 23
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() {\n"  // Line 23
-                +"    //@ assert TestJava.flag == 0;\n"
+                +"  public void mmm() throws EE {\n"  // Line 25
+                +"    //@ assert TestJava.flag == 0;  \n"
                 +"    try {\n"
                 +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"      }\n"
-                +"      //@ assert TestJava.flag == 2;\n"
+                +"      //@ assert TestJava.flag == 2;\n"  // Not feasible
                 +"    } catch (EE e) {\n"
-                +"       //@ assert e instanceof EE1;\n"  // Line 32
+                +"       //@ assert TestJava.flag == 2;\n"  // Line 34 // SHould be OK
+                +"       //@ assert e instanceof EE1;\n"  // Line 35 // Should be OK
                 +"    }\n"
                 +"  }\n"
                 +"}"
                 );
     }
     
+    // Check that finally block of try encloses declarations and calls to close
     @Test public void testTryResources3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1439,6 +1526,7 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // If RR() throws an exception, then catch block will execute
     @Test public void testTryResources4() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1491,7 +1579,7 @@ public class escall3 extends EscBase {
                 +"    } catch (Exception e) {\n"
                 +"      flag = 2;\n"
                 +"    }\n"
-                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - flag should not be able to be 1
+                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - should not be able to skip the catch block
                 +"  }\n"
                 +"}"
                 );
@@ -1518,12 +1606,13 @@ public class escall3 extends EscBase {
                 +"    } catch (Exception e) {\n"
                 +"      flag = 2;\n"
                 +"    }\n"
-                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - flag should not be able to be 1
+                +"    //@ assert TestJava.flag == 2;\n"  // FIXME - should not be able to skip the catch block
                 +"  }\n"
                 +"}"
                 );
     }
     
+    // No resource - executes the catch block
     @Test public void testTryResources4c() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -1552,6 +1641,7 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // Checks that the outer finally block is last to execute
     @Test public void testTryResources5() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

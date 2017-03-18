@@ -954,10 +954,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             catchBlock.statements.addAll(assumptions);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
-            JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, null);
+            JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;
-                d.init = ex;
-                catchBlock.statements.add(d);
+            catchBlock.statements.add(d);
             JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
             catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nullLit)); // FIXME - seems to duplicate an item in catcher.body.stats
             JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
@@ -1140,12 +1139,16 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // outer try-finally block
     public void visitReturn(JCReturn that) {
         if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos,
-                    "esc.internal.error", //$NON-NLS-1$
-                    "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
-            remainingStatements.clear();
+            JCStatement stat = remainingStatements.get(0);
+            if (stat.toString().contains("JMLsavedException")) remainingStatements.remove(0);
+            if (!remainingStatements.isEmpty()) {
+                // Not fatal, but does indicate a problem with the original
+                // program, which the compiler may have already identified
+                log.warning(remainingStatements.get(0).pos,
+                        "esc.internal.error", //$NON-NLS-1$
+                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
+                remainingStatements.clear();
+            }
         }
         
         // There are no remaining statements, so this new block is empty.
@@ -1176,12 +1179,16 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     public void visitThrow(JCThrow that) { 
         
         if (!remainingStatements.isEmpty()) {
-            // Not fatal, but does indicate a problem with the original
-            // program, which the compiler may have already identified
-            log.warning(remainingStatements.get(0).pos,
-                    "esc.internal.error",
-                    "Unexpected statements following a throw statement");
-            remainingStatements.clear();
+            JCStatement stat = remainingStatements.get(0);
+            if (stat.toString().contains("JMLsavedException")) remainingStatements.remove(0);
+            if (!remainingStatements.isEmpty()) {
+                // Not fatal, but does indicate a problem with the original
+                // program, which the compiler may have already identified
+                log.warning(remainingStatements.get(0).pos,
+                        "esc.internal.error",
+                        "Unexpected statements following a throw statement");
+                remainingStatements.clear();
+            }
         }
         
         // There are no remaining statements, so this new block is empty.
