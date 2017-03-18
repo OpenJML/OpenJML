@@ -913,39 +913,48 @@ public class Strongarm
         
        //FactorExpressionsAnalysis.analyze(contract);
 
+//
+//        if (verbose) {
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("AFTER FACTOR EXPRESSIONS ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+//            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//        }
+//        
+        
+        
+        //DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
+        
+        DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
+        
+        
+        // swap it out
+        newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M);
+        
+        cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract));
 
+        methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+        methodDecl.cases.decl = methodDecl;
+        methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+        
+        methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+        methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+        
+        // SWAP
+        contract = cases;
+        
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER FACTOR EXPRESSIONS ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println("AFTER REDUCTION ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
         }
-        
-        
-        
-        DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
-        
-        //DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
-        
-        
-//        
-//        G.dfs(new Action<SpecBlockVertex>(){
-//
-//            @Override
-//            public void action(SpecBlockVertex t) {
-//                System.out.println("Entering: " + t.basedOn.toString());
-//            }
-//            
-//        }, new Action<SpecBlockVertex>(){
-//
-//            @Override
-//            public void action(SpecBlockVertex t) {
-//                System.out.println("Exiting: " + t.basedOn.toString());
-//            }
-//        }
-//        );
+      
+
         
         if(1==1){
             System.out.println("test");
