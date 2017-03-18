@@ -59,6 +59,9 @@ import org.jmlspecs.openjml.strongarm.tree.Prop;
 import org.jmlspecs.openjml.strongarm.tree.analysis.CollectExpressionsAnalysis;
 import org.jmlspecs.openjml.strongarm.tree.analysis.FactorExpressionsAnalysis;
 import org.jmlspecs.openjml.strongarm.tree.analysis.PropTreePrinter;
+import org.jmlspecs.openjml.strongarm.tree.analysis.SpecBlockVertex;
+import org.jmlspecs.openjml.strongarm.tree.analysis.ToDiGraphAnalysis;
+import org.jmlspecs.openjml.strongarm.tree.analysis.ToReductionGraph;
 import org.jmlspecs.openjml.utils.ui.ASTViewer;
 import org.jmlspecs.openjml.esc.Label;
 
@@ -78,6 +81,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Pair;
+
+import jpaul.Graphs.DiGraph;
+import jpaul.Misc.Action;
 
 public class Strongarm  
  {
@@ -340,9 +346,9 @@ public class Strongarm
         //
         // Debugging of inference (Before Delivering PC)
         //
-        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            BlockReader.showCFG(context, program.blocks(),basicBlocker);
-        }
+//        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+//            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+//        }
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
             reader.showCFG();
             BasicBlockExecutionDebugger.trace(newblock, savedProgram, program.blocks(), reader.getTrace(), methodDecl.cases, oldContract, reader.getDebugMappings(), reader.getLexicalMappings());
@@ -905,7 +911,7 @@ public class Strongarm
         //Set<JCTree> expressions = CollectExpressionsAnalysis.analyze(contract);
 
         
-        FactorExpressionsAnalysis.analyze(contract);
+       //FactorExpressionsAnalysis.analyze(contract);
 
 
         if (verbose) {
@@ -915,6 +921,34 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println("AFTER FACTOR EXPRESSIONS ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+        }
+        
+        
+        
+        //DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
+        
+        DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
+        
+        
+//        
+//        G.dfs(new Action<SpecBlockVertex>(){
+//
+//            @Override
+//            public void action(SpecBlockVertex t) {
+//                System.out.println("Entering: " + t.basedOn.toString());
+//            }
+//            
+//        }, new Action<SpecBlockVertex>(){
+//
+//            @Override
+//            public void action(SpecBlockVertex t) {
+//                System.out.println("Exiting: " + t.basedOn.toString());
+//            }
+//        }
+//        );
+        
+        if(1==1){
+            System.out.println("test");
         }
 
         
