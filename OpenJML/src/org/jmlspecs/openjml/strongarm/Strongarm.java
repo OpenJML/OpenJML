@@ -925,9 +925,9 @@ public class Strongarm
         
         
         
-        //DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
+        DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
         
-        DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
+        //DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
         
         
 //        

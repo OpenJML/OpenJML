@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm.tree.analysis;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,11 +21,20 @@ public class SpecBlockVertex  {
     public ArrayList<JmlMethodClause>  clauses = new ArrayList<JmlMethodClause>();
     public Map<String,JmlMethodClause> cache     = new HashMap<String,JmlMethodClause>();
     public JmlSpecificationCase basedOn;
+    private boolean conjunction;
     public SpecBlockVertex(JmlSpecificationCase basedOn){
         this.basedOn = basedOn;        
         this.buildCache();
     }
     
+    
+    public SpecBlockVertex(boolean isConjunction){
+        this.conjunction = isConjunction;
+    }
+    
+    public boolean isConjunction(){
+        return conjunction;
+    }
         
     private void buildCache(){
     
@@ -43,6 +53,18 @@ public class SpecBlockVertex  {
     public void add(JmlMethodClause m){
         cache.put(m.toString(), m);
         clauses.add(m);
+    }
+    
+    public void removeAll(Collection<JmlMethodClause> cs){
+        for(JmlMethodClause c : cs){
+            remove(c);
+        }
+    }
+    
+    public void addAll(Collection<JmlMethodClause> cs){
+        for(JmlMethodClause c : cs){
+            add(c);
+        }
     }
     
     public void remove(JmlMethodClause m){
@@ -94,13 +116,23 @@ public class SpecBlockVertex  {
        
         StringBuffer sb = new StringBuffer();        
         
-        for(List<JmlMethodClause> clauses = basedOn.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-            
-            if(clauses.head instanceof JmlMethodClauseExpr ||  clauses.head instanceof JmlMethodClauseStoreRef){
-                sb.append(clauses.head.toString() + "\n");
-            }
-            
+        if(isConjunction()){
+            sb.append("^\n");
         }
+        
+        for(JmlMethodClause c : clauses){
+            if(c instanceof JmlMethodClauseExpr ||  c instanceof JmlMethodClauseStoreRef){
+                sb.append(c.toString() + "\n");
+            }        
+        }
+        
+//        for(List<JmlMethodClause> clauses = basedOn.clauses; clauses.nonEmpty(); clauses = clauses.tail){
+//            
+//            if(clauses.head instanceof JmlMethodClauseExpr ||  clauses.head instanceof JmlMethodClauseStoreRef){
+//                sb.append(clauses.head.toString() + "\n");
+//            }
+//            
+//        }
         return sb.toString();
     }
     

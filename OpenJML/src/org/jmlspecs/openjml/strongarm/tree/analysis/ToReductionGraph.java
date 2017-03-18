@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,11 +33,17 @@ import jpaul.Graphs.SCComponent;
 public class ToReductionGraph extends JmlTreeAnalysis {
     
     private Collection<SpecBlockVertex> vertexes;    
+    private Collection<Pair<SpecBlockVertex,SpecBlockVertex>> residualEdges;
+    private Collection<SpecBlockVertex> residualVertexes;    
+    private SpecBlockVertex residualRoot;
     
     public ToReductionGraph(Context context) {
         super(context);
         
         vertexes = new ArrayList<SpecBlockVertex>();        
+        residualEdges = new LinkedHashSet<Pair<SpecBlockVertex,SpecBlockVertex>>();
+        residualVertexes = new HashSet<SpecBlockVertex>();
+        residualRoot = new SpecBlockVertex(true);
     }
     
     public void printGraph(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){        
@@ -53,8 +61,8 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         // vertexes       
         for(Pair<SpecBlockVertex,SpecBlockVertex> p : arcs){
             
-            String labelLeft = p.left.basedOn.toString();
-            String labelRight = p.right.basedOn.toString();
+            String labelLeft = p.left.toString();
+            String labelRight = p.right.toString();
             
             labelLeft  = labelLeft.replaceAll("\"", "\\\"");
             labelRight = labelRight.replaceAll("\"", "\\\"");
@@ -68,8 +76,12 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         }
         
         // edges
-        for(Pair<SpecBlockVertex,SpecBlockVertex> p : arcs){        
-            buff.append(String.format("%d -> %d [label=\"%d\", fontsize=\"9\", fontname=\"courier\", fontcolor=\"red\"];\n", p.left.hashCode(), p.right.hashCode(), weights.weight(p.left, p.right)));
+        for(Pair<SpecBlockVertex,SpecBlockVertex> p : arcs){   
+            if(weights!=null){
+                buff.append(String.format("%d -> %d [label=\"%d\", fontsize=\"9\", fontname=\"courier\", fontcolor=\"red\"];\n", p.left.hashCode(), p.right.hashCode(), weights.weight(p.left, p.right)));
+            }else{
+                buff.append(String.format("%d -> %d [label=\"\", fontsize=\"9\", fontname=\"courier\", fontcolor=\"red\"];\n", p.left.hashCode(), p.right.hashCode()));                
+            }
         }      
                
         buff.append("\n}");
@@ -113,6 +125,14 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         return this.vertexes;
     }
     
+    private SpecBlockVertex getResidualRoot(){
+        return residualRoot;
+    }
+    
+    private Collection<SpecBlockVertex> getResidualVertexes() {
+        return residualVertexes;
+    }
+
     public Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> toDiGraph(Collection<SpecBlockVertex> vs){
         
         Collection<Pair<SpecBlockVertex,SpecBlockVertex>> edges = new LinkedHashSet<Pair<SpecBlockVertex,SpecBlockVertex>>();
@@ -145,21 +165,110 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     
 
     
+    public void mergeSCC(DiGraph<SpecBlockVertex> G, AdjacencyMatrix<SpecBlockVertex> W, Set<SCComponent<SpecBlockVertex>> scc){
+
+        Iterator<SCComponent<SpecBlockVertex>> it = scc.iterator();
+        
+        SpecBlockVertex maxLeft;
+        SpecBlockVertex maxRight;
+
+        
+        // for each connected component, perform the merge procedure.
+        while(it.hasNext())
+        {
+            SCComponent<SpecBlockVertex> component = it.next();
+            
+            // step 1 -- find the node with the largest weight if all weights are zero, remove 
+            //           this edge and continue 
+            maxLeft  = null;
+            maxRight = null;
+            int maxWeight = -1;
+            
+            for(SpecBlockVertex v1 : component.vertices()){
+                for(SpecBlockVertex v2 : component.vertices()){
+                    if(v1==v2){
+                        continue;
+                    }
+                    
+                    int weight = W.weight(v1, v2);
+                    
+                    if(maxWeight==-1){
+                        maxLeft = v1;
+                        maxRight = v2;
+                        maxWeight = weight;
+                    }else if(weight > maxWeight){
+                        maxLeft = v1;
+                        maxRight = v2;
+                        maxWeight = weight;                        
+                    }
+                }
+            }
+            if(maxWeight == 0){
+                it.remove();
+                continue;
+            }
+            
+            
+            // step 2 -- merge the two vertexes with the highest weight
+            Set<JmlMethodClause> intersection = maxLeft.intersection(maxRight);
+            maxLeft.removeAll(intersection);
+            maxRight.removeAll(intersection);
+            
+            // step 3 -- in the residual graph, create a conjunction node, with edges to the two merged nodes
+            SpecBlockVertex root = new SpecBlockVertex(true);
+            root.addAll(intersection);
+            residualEdges.add(new Pair<SpecBlockVertex,SpecBlockVertex>(root, maxLeft));
+            residualEdges.add(new Pair<SpecBlockVertex,SpecBlockVertex>(root, maxRight));
+            
+            // connect it to the root 
+            residualEdges.add(new Pair<SpecBlockVertex,SpecBlockVertex>(residualRoot, root));
+                        
+            getResidualVertexes().add(maxLeft);
+            getResidualVertexes().add(maxRight);
+            
+        }
+        
+    }
+    
     
     public static DiGraph<SpecBlockVertex> analyze(JCTree tree) {
 
         ToReductionGraph analysis = new ToReductionGraph(Strongarm._context);
         analysis.doAnalysis(tree);
         
-        // step 1 -- convert to a graph
-        Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> pair = analysis.toDiGraph(analysis.getVertexes());
         
-        DiGraph<SpecBlockVertex>         G = pair.left;
-        AdjacencyMatrix<SpecBlockVertex> W = pair.right;
-
-        // step 2 -- find connected components.
-        Set<SCComponent<SpecBlockVertex>> scc = SCComponent.buildScc(G);
+        Set<SCComponent<SpecBlockVertex>> scc;
         
+        
+        do {
+            // step 1 -- convert to a graph
+            Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> pair = analysis.toDiGraph(analysis.getVertexes());
+            
+            DiGraph<SpecBlockVertex>         G = pair.left;
+            AdjacencyMatrix<SpecBlockVertex> W = pair.right;
+    
+            // step 2 -- find connected components.
+            scc = SCComponent.buildScc(G);
+            
+            analysis.mergeSCC(G, W, scc);
+                        
+        }while(scc.size() > 0);        
+        
+        // step 3 -- at this point, we have a disjoint forest in the initial graph, add the remaining 
+        //           disjoint nodes to the residual graph
+        for(SpecBlockVertex v : analysis.getVertexes()){
+            if(analysis.getResidualVertexes().contains(v)==false){
+                
+                // it's not in the residual graph, so add it here
+                analysis.residualEdges.add(new Pair<SpecBlockVertex, SpecBlockVertex>(analysis.getResidualRoot(), v));
+                analysis.getResidualVertexes().add(v);
+                
+            }
+        }
+        
+        if(verbose){
+            analysis.printGraph(analysis.residualEdges, null);
+        }
         
         
         return null;
@@ -171,8 +280,5 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         scan(tree);
         
     }
-    
-    
-    
-    
+
 }
