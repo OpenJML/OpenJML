@@ -116,8 +116,10 @@ public class SpecBlockVertex  {
        
         StringBuffer sb = new StringBuffer();        
         
-        if(isConjunction()){
+        if(isConjunction() && clauses.size() > 0){
             sb.append("^\n");
+        }else{
+            sb.append("v\n");
         }
         
         for(JmlMethodClause c : clauses){
