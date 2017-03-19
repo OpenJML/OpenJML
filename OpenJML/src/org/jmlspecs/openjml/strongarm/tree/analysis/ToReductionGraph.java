@@ -11,12 +11,18 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
+import org.jmlspecs.openjml.JmlTokenKind;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 
@@ -28,7 +34,9 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import jpaul.DataStructs.Pair;
 import jpaul.Graphs.ArcBasedDiGraph;
 import jpaul.Graphs.DiGraph;
+import jpaul.Graphs.ForwardNavigator;
 import jpaul.Graphs.SCComponent;
+import jpaul.Misc.Action;
 
 public class ToReductionGraph extends JmlTreeAnalysis {
     
@@ -270,12 +278,84 @@ public class ToReductionGraph extends JmlTreeAnalysis {
             analysis.printGraph(analysis.residualEdges, null);
         }
         
+        DiGraph<SpecBlockVertex> dg = new ArcBasedDiGraph<SpecBlockVertex>(analysis.residualEdges);
+
         
-        return null;
+        return dg;
         
     }
 
+    
+    public static List<JmlMethodClause> processChild(ForwardNavigator<SpecBlockVertex> it , SpecBlockVertex child, List<JmlMethodClause> contract, JmlTreeUtils treeutils, JmlTree.Maker M){
+        
+        // base case -- nothing else to look at
+        if(it.next(child)==null || it.next(child).size()==0){
+            return JDKListUtils.toList(child.clauses);
 
+        }
+        
+        // the root node (and some other nodes) never has it's own clauses
+        
+        
+        // the current vertex is an AND
+        List<JmlMethodClause> rootClauses = null;
+        if(child.isConjunction()){
+            rootClauses = JDKListUtils.toList(child.getClauses());
+        }
+        
+        
+        // any children are or'd together 
+        
+        // step 1 - convert to specification cases
+        Collection<JmlSpecificationCase> cases = it.next(child)
+        .stream()
+        .map(v -> {
+            List<JmlMethodClause> hs = processChild(it, v, contract,  treeutils,  M);
+            return M.JmlSpecificationCase(null, false, null, null, hs);
+        }).collect(Collectors.toList());
+        
+        // step 2 - convert to a list-based representation 
+        List<JmlSpecificationCase> listCases = JDKListUtils.toList(cases);
+        
+        // step 3 - create the group
+        JmlMethodClauseGroup group = M.JmlMethodClauseGroup(listCases);
+        
+        // step 4 - prepend the specification case from the root
+        
+        if(contract==null){
+            if(rootClauses!=null){
+                return rootClauses.append(group);
+            }else{
+                return List.of((JmlMethodClause)group);
+            }
+        }
+        
+        if(rootClauses!=null){            
+            return JDKListUtils.appendAll(contract, rootClauses).append(group);
+        }else{
+            return contract.append(group);
+        }
+        
+    }
+    
+    public static List<JmlMethodClause> toContract(JmlMethodDecl methodDecl, JCTree contract, DiGraph<SpecBlockVertex> G, JmlTreeUtils treeutils, JmlTree.Maker M)
+    {
+          
+        ForwardNavigator<SpecBlockVertex> it = G.getForwardNavigator();
+        
+        // Each spec has one universal root
+        SpecBlockVertex root = G.getRoots()
+                .stream()
+                .filter(v -> v.isConjunction() && v.clauses.size()==0)
+                .findFirst()
+                .get();
+        
+        // Convert to the contract form
+        List<JmlMethodClause> newContract = processChild(it, root, null, treeutils, M);
+        
+        return newContract;
+    }
+    
     private void doAnalysis(JCTree tree) {
         scan(tree);
         

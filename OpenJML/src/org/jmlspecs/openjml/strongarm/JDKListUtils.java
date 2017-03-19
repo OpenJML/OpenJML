@@ -33,7 +33,15 @@ public class JDKListUtils {
         return newList;
     }
     
-    
+    static public <T> List<T> appendAll(List<T> to, List<T> from){
+        
+        
+        for(List<T> e = from; e.nonEmpty(); e = e.tail){
+            to = to.append(e.head);
+        }
+
+        return to;
+    }
 
     static public <T> List<T> toList(Collection<T> l){
         
