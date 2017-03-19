@@ -344,7 +344,7 @@ public class MethodProverSMT {
                     int k = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         ++k;
-//                        if (k < 98) continue;
+//                        if (k < 290) continue;
 //                        if (k > 100) break;
                         if (!usePushPop) {
                             ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);

@@ -1365,6 +1365,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
+    //	main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1399,18 +1400,20 @@ public class escall3 extends EscBase {
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"       throw new EE3();\n"
                 +"      }\n"
-                +"      //@ assert TestJava.flag == 1;\n" // not feasible
+                +"      //@ assert TestJava.flag == 1;\n" // not feasible line 34
                 +"    } catch (EE e) {\n"
                 +"      //@ assert TestJava.flag == 1;\n" 
                 +"       //@ assert e instanceof EE3 ;\n" // Line 37
                 +"    }\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
                 );
     }
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
+    	//main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1451,6 +1454,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
                 );
     }
     
@@ -1495,6 +1499,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:32: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
                 );
     }
     

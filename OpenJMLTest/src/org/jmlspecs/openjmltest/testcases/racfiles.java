@@ -299,6 +299,12 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void sfbug420() {
+        expectedRACExit = 0;
+        helpTCF("test/sfbug420","test/sfbug420","stack.StackImpl","-show");
+    }
+
+    @Test
     public void sfbug396() {
         expectedRACExit = 0;
         runrac = false;

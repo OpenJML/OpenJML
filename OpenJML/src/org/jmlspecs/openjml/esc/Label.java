@@ -242,6 +242,9 @@ public class Label {
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_VALUE = new Label("PossiblyNullValue");
     
+    /** Used to designate a possible exception because of a potential null reference */
+    /*@ non_null*/ public final static Label POSSIBLY_NULL_FIELD = new Label("PossiblyNullField");
+    
     /** Used to designate a possible exception because of a potential null assignment to non_null */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_ASSIGNMENT = new Label("PossiblyNullAssignment");
     

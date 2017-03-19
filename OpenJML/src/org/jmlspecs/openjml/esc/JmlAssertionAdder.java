@@ -1706,7 +1706,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
-        JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? classDecl.sym : methodDecl.sym,translatedExpr);
+        JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
         assertDecl.mods.flags |= Flags.FINAL;
         assertDecl.sym.flags_field |= Flags.FINAL;
         if (esc) {
@@ -2197,10 +2197,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e = treeutils.makeImplies(pos.getPreferredPosition(), e1, e2);
                     }
-                    if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
+                    if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
                             e,
                             null,null); // FIXME - no associated position?
-                    else addAssert(pos,Label.POSSIBLY_NULL_VALUE,
+                    else addAssert(pos,Label.POSSIBLY_NULL_FIELD,
                             e,
                             null,null); // FIXME - no associated position?
 
@@ -2329,10 +2329,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (!vartype.isPrimitive()) {
                                     JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
                                     if (specs.isNonNull(v)) {
-                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
+                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
                                                 e,
                                                 null,null); // FIXME - no associated position?
-                                        else  addAssert(pos,Label.POSSIBLY_NULL_VALUE,
+                                        else  addAssert(pos,Label.POSSIBLY_NULL_FIELD,
                                                 e,
                                                 null,null); // FIXME - no associated position?
                                     }
@@ -4538,6 +4538,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = convertBlock(catcher.getBlock());
                 //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
                 block.stats = block.stats.append(bl);
+                
+                // These assignments must be here (and not in BasicBlocker...) because they are needed by RAC
                 
                 // EXCEPTION = NULL
                 int sp = catcher.getParameter().getStartPosition();
