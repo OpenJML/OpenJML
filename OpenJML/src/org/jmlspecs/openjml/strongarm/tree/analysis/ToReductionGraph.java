@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -52,6 +53,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         residualEdges = new LinkedHashSet<Pair<SpecBlockVertex,SpecBlockVertex>>();
         residualVertexes = new HashSet<SpecBlockVertex>();
         residualRoot = new SpecBlockVertex(true);
+        
     }
     
     public void printGraph(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){        
@@ -285,11 +287,14 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         
     }
 
+    public static List<JmlMethodClause> minimizeClauses(Collection<JmlMethodClause> clauses){
+        return JDKListUtils.toList(clauses);
+    }
     
-    public static List<JmlMethodClause> processChild(ForwardNavigator<SpecBlockVertex> it , SpecBlockVertex child, List<JmlMethodClause> contract, JmlTreeUtils treeutils, JmlTree.Maker M){
+    public static List<JmlMethodClause> processChild(ForwardNavigator<SpecBlockVertex> it , SpecBlockVertex child, List<JmlMethodClause> contract, JmlTreeUtils treeutils, JmlTree.Maker M, boolean minimizeExpressions){
         
         // base case -- nothing else to look at
-        if(it.next(child)==null || it.next(child).size()==0){
+        if(it.next(child)==null || it.next(child).size()==0){            
             return JDKListUtils.toList(child.clauses);
 
         }
@@ -300,7 +305,11 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         // the current vertex is an AND
         List<JmlMethodClause> rootClauses = null;
         if(child.isConjunction()){
-            rootClauses = JDKListUtils.toList(child.getClauses());
+            if(minimizeExpressions){
+                rootClauses = minimizeClauses(child.getClauses());      
+            }else{
+                rootClauses = JDKListUtils.toList(child.getClauses());
+            }
         }
         
         
@@ -310,7 +319,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         Collection<JmlSpecificationCase> cases = it.next(child)
         .stream()
         .map(v -> {
-            List<JmlMethodClause> hs = processChild(it, v, contract,  treeutils,  M);
+            List<JmlMethodClause> hs = processChild(it, v, contract,  treeutils,  M, minimizeExpressions);
             return M.JmlSpecificationCase(null, false, null, null, hs);
         }).collect(Collectors.toList());
         
@@ -338,7 +347,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         
     }
     
-    public static List<JmlMethodClause> toContract(JmlMethodDecl methodDecl, JCTree contract, DiGraph<SpecBlockVertex> G, JmlTreeUtils treeutils, JmlTree.Maker M)
+    public static List<JmlMethodClause> toContract(JmlMethodDecl methodDecl, JCTree contract, DiGraph<SpecBlockVertex> G, JmlTreeUtils treeutils, JmlTree.Maker M, boolean minimizeExpressions)
     {
           
         ForwardNavigator<SpecBlockVertex> it = G.getForwardNavigator();
@@ -351,7 +360,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
                 .get();
         
         // Convert to the contract form
-        List<JmlMethodClause> newContract = processChild(it, root, null, treeutils, M);
+        List<JmlMethodClause> newContract = processChild(it, root, null, treeutils, M, minimizeExpressions);
         
         return newContract;
     }

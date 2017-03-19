@@ -931,7 +931,7 @@ public class Strongarm
         
         
         // swap it out
-        newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M);
+        newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
         
         cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract));
 
