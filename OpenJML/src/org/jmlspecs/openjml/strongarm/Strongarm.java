@@ -497,7 +497,7 @@ public class Strongarm
             
             t = Timing.start();
             
-            RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
+            //RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
                        
             if (verbose) {
                 log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
@@ -777,17 +777,17 @@ public class Strongarm
         //
         // Remove Duplicate Preconditions
         //
-        t = Timing.start();
-        
-        RemoveDuplicatePreconditions.simplify(contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
+//        t = Timing.start();
+//        
+//        RemoveDuplicatePreconditions.simplify(contract);
+//        
+//        if (verbose) {
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (LEXICAL) OF " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+//            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+//        }
         
         
         //
@@ -933,7 +933,7 @@ public class Strongarm
         // swap it out
         newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
         
-        cases = M.JmlSpecificationCase(null, false, null, null, JDKList.of(precondition).appendList(newContract));
+        cases = M.JmlSpecificationCase(null, false, null, null, newContract);
 
         methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
         methodDecl.cases.decl = methodDecl;
@@ -953,14 +953,6 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
         }
-      
-
-        
-        if(1==1){
-            System.out.println("test");
-        }
-
-        
         
     }
 }
