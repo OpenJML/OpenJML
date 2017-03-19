@@ -4,25 +4,20 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
@@ -30,14 +25,12 @@ import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurati
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log.WriterKind;
 
 import jpaul.DataStructs.Pair;
 import jpaul.Graphs.ArcBasedDiGraph;
 import jpaul.Graphs.DiGraph;
 import jpaul.Graphs.ForwardNavigator;
 import jpaul.Graphs.SCComponent;
-import jpaul.Misc.Action;
 
 public class ToReductionGraph extends JmlTreeAnalysis {
     
@@ -58,7 +51,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     
     public void printGraph(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){        
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-            toDOTAnalysis(arcs, weights);
+           toDOTAnalysis(arcs, weights);
         }
     }
     
@@ -96,7 +89,6 @@ public class ToReductionGraph extends JmlTreeAnalysis {
                
         buff.append("\n}");
         
-        System.out.println(buff.toString());
         
         try {
             File f = File.createTempFile("sample", ".dot");
@@ -109,8 +101,6 @@ public class ToReductionGraph extends JmlTreeAnalysis {
             
             Runtime r = Runtime.getRuntime();
             
-            
-            System.out.println(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath()));
             r.exec(String.format("/usr/local/bin/dot -Tpdf %s -o %s", f.getAbsolutePath(), t.getAbsolutePath())).waitFor();
             r.exec(String.format("/usr/bin/open %s", t.getAbsolutePath()));
            
@@ -125,7 +115,17 @@ public class ToReductionGraph extends JmlTreeAnalysis {
 
         if(block.clauses!=null && ((block.clauses.head instanceof JmlMethodClauseExpr) || (block.clauses.head instanceof JmlMethodClauseStoreRef))){
             
-            vertexes.add(new SpecBlockVertex(block));
+            // remove any trivial unsat cases
+            SpecBlockVertex vertex = new SpecBlockVertex(block);
+            if(vertex.contains("requires false;")
+                    || vertex.contains("requires (false);")
+                    || vertex.contains("ensures (false);")
+                    || vertex.contains("ensures false;")
+                    ){
+                
+            }else{
+                vertexes.add(vertex);
+            }
         }        
 
         super.visitJmlSpecificationCase(block);
@@ -236,6 +236,10 @@ public class ToReductionGraph extends JmlTreeAnalysis {
             getResidualVertexes().add(maxLeft);
             getResidualVertexes().add(maxRight);
             
+            // remove the merged nodes
+            getVertexes().remove(maxLeft);
+            getVertexes().remove(maxRight);
+            
         }
         
     }
@@ -318,10 +322,10 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         // step 1 - convert to specification cases
         Collection<JmlSpecificationCase> cases = it.next(child)
         .stream()
-        .map(v -> {
-            List<JmlMethodClause> hs = processChild(it, v, contract,  treeutils,  M, minimizeExpressions);
-            return M.JmlSpecificationCase(null, false, null, null, hs);
-        }).collect(Collectors.toList());
+        .map(v -> processChild(it, v, contract,  treeutils,  M, minimizeExpressions))
+        .filter(clauses -> clauses!=null && clauses.size() > 0)
+        .map(v -> M.JmlSpecificationCase(null, false, null, null, v))
+        .collect(Collectors.toList());
         
         // step 2 - convert to a list-based representation 
         List<JmlSpecificationCase> listCases = JDKListUtils.toList(cases);

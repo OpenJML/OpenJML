@@ -45,13 +45,17 @@ public class SpecBlockVertex  {
         // rebuild the cache
         for(List<JmlMethodClause> clause = basedOn.clauses; clause.nonEmpty(); clause = clause.tail){
             if(clause.head!=null && ((clause.head instanceof JmlMethodClauseExpr) || (clause.head instanceof JmlMethodClauseStoreRef))){
-                add(clause.head);
+                String stringRep = clause.head.toString();
+                
+                if(!stringRep.contains("requires !(false)") && !stringRep.contains("requires !false")){                
+                    add(clause.head);
+                }
             }
         }
     }
     
     public void add(JmlMethodClause m){
-        cache.put(m.toString(), m);
+        cache.put(m.toString().trim(), m);
         clauses.add(m);
     }
     
@@ -82,11 +86,11 @@ public class SpecBlockVertex  {
     }
     
     public boolean contains(String m){
-        return cache.containsKey(m);
+        return cache.containsKey(m.trim());
     }
     
     public boolean contains(JmlMethodClause m){
-        return contains(m.toString());
+        return contains(m.toString().trim());
     }
     
     public boolean containsClauseByRef(JmlMethodClause m){
@@ -105,6 +109,10 @@ public class SpecBlockVertex  {
             if(c.token == JmlTokenKind.REQUIRES && v.contains(c)){
                 theIntersection.add(c);
             }
+//            
+//            if(v.contains(c)){
+//                theIntersection.add(c);
+//            }
         }
         
         

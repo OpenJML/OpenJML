@@ -954,5 +954,21 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
         }
         
+        // do one final cleanup to remove false/true
+        t = Timing.start();         
+        //RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+        
+        if (verbose) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        }
+        
+        
+        /// remove !falses
+        /// allow ensures clauses to be included 
+        
     }
 }
