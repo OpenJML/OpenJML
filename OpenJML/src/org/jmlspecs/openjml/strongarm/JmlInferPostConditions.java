@@ -1,5 +1,11 @@
 package org.jmlspecs.openjml.strongarm;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -56,6 +62,19 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
         return key;
     }
 
+    synchronized private void emitStrongarmFatalError(String method, Exception e){
+        File file = new File("strongarm-error.log");
+        try {
+            PrintStream ps = new PrintStream(new FileOutputStream(file, true));
+            ps.println(String.format("====STRONGARM FATAL ERROR====\nMethod: %s\nDate %s", method, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"))));
+            e.printStackTrace(ps);
+            ps.flush();
+            ps.close();
+        } catch (FileNotFoundException e1) {            
+            e1.printStackTrace();
+        }
+    }
+    
     @Override
     public void inferContract(JmlMethodDecl methodDecl) {  
         
@@ -79,6 +98,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                     
                 } catch (Exception e) {
 
+                    emitStrongarmFatalError(utils.qualifiedMethodSig(methodDecl.sym), e);
                     e.printStackTrace();
                     log.error("jml.internal","Inference aborted with exception: " + e.getMessage());
                     
