@@ -507,21 +507,22 @@ public class BlockReader {
                 
                 BasicBlock left  = block.followers().get(0);
                 BasicBlock right = block.followers().get(1);
-                
-                if(verbose){
-                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...");
-                }
     
                 BasicBlock lca = null;
                 
-                if(blocks.size() < 300){
-                    lca = lca(left, right); // this must ALWAYS be true.                         
-                }
-                
-                if(verbose){
-                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...DONE");
-                }
-    
+//                if(verbose){
+//                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...");
+//                }
+//    
+//                
+//                if(blocks.size() < 300){
+//                    lca = lca(left, right); // this must ALWAYS be true.                         
+//                }
+//                
+//                if(verbose){
+//                    log.getWriter(WriterKind.NOTICE).println("[STRONGARM] Finding LCA...DONE");
+//                }
+//    
                 if(lca==null){
                     
                     //TODO - need to investigate what conditions LCA can't be 

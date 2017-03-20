@@ -493,7 +493,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
                  
-        if(reader.blocks.size() <= 90 || true){
+        if(reader.blocks.size() <= 50){
             
             t = Timing.start();
             
