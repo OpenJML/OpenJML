@@ -783,6 +783,46 @@
     </type>
   </extension>
 
+ <!-- extensions for strongarm -->
+ <!--<extension
+       id="mymarker"
+       name="My Problem"
+       point="org.eclipse.core.resources.markers">
+    <super
+          type="org.eclipse.jdt.core.problem">
+    </super>
+    <super
+          type="org.eclipse.core.resources.problemmarker">
+    </super>
+    <super
+          type="org.eclipse.core.resources.textmarker">
+    </super>
+    <persistent
+          value="true">
+    </persistent>
+ </extension>-->
+
+
+<!-- <extension
+ id="StrongarmMarker"
+ point="org.eclipse.core.resources.markers"
+ name="StrongarmMarker">
+ <super type="org.eclipse.core.resources.textmarker" />
+ <persistent value="false" />
+</extension>
+ 
+<extension point="org.eclipse.ui.editors.annotationTypes">
+ <type
+ super="org.eclipse.ui.workbench.texteditor.warning"
+ markerType="org.jmlspecs.openjml.StrongarmMarker"
+ name="org.jmlspecs.openjml.StrongarmMarkerAnnotation"/>
+</extension>-->
+ 
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+ <specification
+ annotationType="org.jmlspecs.openjml.StrongarmMarkerAnnotation"
+ icon="icons/strongarm_infer.png" />
+</extension>
 
   <!-- Provides the image for the annotations  -->
   <!-- NOTE: the annotationType must match the name, not the id, of the
