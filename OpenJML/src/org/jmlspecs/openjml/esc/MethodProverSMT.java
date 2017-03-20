@@ -848,7 +848,7 @@ public class MethodProverSMT {
                     }
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
-                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos); 
+                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
                     JCExpression optional = assertStat.optionalExpression;

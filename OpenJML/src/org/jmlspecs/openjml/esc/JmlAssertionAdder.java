@@ -843,8 +843,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isConstructor) {
 //                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,
 //                        treeutils.makeZeroEquivalentLit(methodDecl.pos,classDecl.type));
-                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,
-                        currentThisExpr);
+                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,methodDecl.pos);
+                d.init = currentThisExpr;
                 resultSym = d.sym;
                 initialStatements.add(d);
             } else if (methodDecl.restype.type.getTag() != TypeTag.VOID) {

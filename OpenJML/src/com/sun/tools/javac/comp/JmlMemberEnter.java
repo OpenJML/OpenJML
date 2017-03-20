@@ -953,7 +953,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         // check for no initializer
         if (specField.getInitializer() != null && specField != javaField &&
-                !utils.isJML(specField.mods)) {
+                !utils.isJML(specField.mods) && !specField.sym.owner.isEnum()) {
             log.error(specField.getInitializer().pos(),"jml.no.initializer.in.specs",javaSym.enclClass().getQualifiedName()+"."+javaSym.name);
         }
         

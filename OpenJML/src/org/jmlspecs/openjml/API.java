@@ -794,12 +794,19 @@ public class API implements IAPI {
         	}
         };
         IProofResultListener p = proofResultListener;
-        L l;
-        main().proofResultListener = l = new L(p);
-        main().context().put(IAPI.IProofResultListener.class, l);
+        L l = new L(p);
+        setProofResultListener(l);
+//        L l;
+//        if (!(p instanceof L)) {
+//        	main().proofResultListener = l = new L(p);
+//        	main().context().put(IAPI.IProofResultListener.class, l);
+//        } else {
+//        	l = (L)p;
+//        }
         esc.check(decl);
-        main().context().put(IAPI.IProofResultListener.class, p);
-        main().proofResultListener = p;
+        setProofResultListener(p);
+//        main().context().put(IAPI.IProofResultListener.class, p);
+//        main().proofResultListener = p;
         return l.result; 
     }
     
