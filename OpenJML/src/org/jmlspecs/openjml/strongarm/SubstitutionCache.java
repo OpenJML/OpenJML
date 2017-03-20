@@ -139,6 +139,10 @@ public class SubstitutionCache {
         
         VarSymbol premap =  getPremapIdent(premapIdent, block);
        
+        if(premap==null){
+            return;
+        }
+        
         
         if(ds.get(premap)==null){
             ds.put(premap, new ArrayList<Pair<String, JCTree>>());
@@ -148,7 +152,12 @@ public class SubstitutionCache {
         
     }
     
-    public void addSubstitutionAtBlock(VarSymbol premap, JCTree sub, BasicBlock block){              
+    public void addSubstitutionAtBlock(VarSymbol premap, JCTree sub, BasicBlock block){
+        
+        if(premap==null){
+            return;
+        }
+
         
         if(ds.get(premap)==null){
             ds.put(premap, new ArrayList<Pair<String, JCTree>>());

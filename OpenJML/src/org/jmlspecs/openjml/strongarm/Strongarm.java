@@ -933,42 +933,40 @@ public class Strongarm
         // swap it out
         newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
         
-        cases = M.JmlSpecificationCase(null, false, null, null, newContract);
-
-        methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
-        methodDecl.cases.decl = methodDecl;
-        methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
-        
-        methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-        methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
-        
-        // SWAP
-        contract = cases;
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REDUCTION ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-        }
-        
-        // do one final cleanup to remove false/true
-        t = Timing.start();         
-        //RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
-        
-        
-        /// remove !falses
-        /// allow ensures clauses to be included 
-        
+        if(newContract!=null){
+            cases = M.JmlSpecificationCase(null, false, null, null, newContract);
+    
+            methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+            methodDecl.cases.decl = methodDecl;
+            methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+            
+            methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+            methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+            
+            // SWAP
+            contract = cases;
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REDUCTION ANALYSIS " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            }
+            
+            // do one final cleanup to remove false/true
+            t = Timing.start();         
+            //RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+            
+        }        
     }
 }

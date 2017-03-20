@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -357,16 +358,20 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         ForwardNavigator<SpecBlockVertex> it = G.getForwardNavigator();
         
         // Each spec has one universal root
-        SpecBlockVertex root = G.getRoots()
+        Optional<SpecBlockVertex> root = G.getRoots()
                 .stream()
                 .filter(v -> v.isConjunction() && v.clauses.size()==0)
-                .findFirst()
-                .get();
+                .findFirst();
         
-        // Convert to the contract form
-        List<JmlMethodClause> newContract = processChild(it, root, null, treeutils, M, minimizeExpressions);
+        // if there IS no root, we can't perform the transformation. 
+        if(root.isPresent()){            
+            // Convert to the contract form
+            List<JmlMethodClause> newContract = processChild(it, root.get(), null, treeutils, M, minimizeExpressions);
+            
+            return newContract;
+        }
         
-        return newContract;
+        return null;
     }
     
     private void doAnalysis(JCTree tree) {
