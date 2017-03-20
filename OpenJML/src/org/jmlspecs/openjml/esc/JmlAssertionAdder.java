@@ -9226,6 +9226,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(eresult, that);
             return;
         }
+        
+        if (utils.rac && inOldEnv && utils.isExprLocal(that.sym.flags())) {
+            String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
+            throw new JmlNotImplementedException(that,message);
+        }
+
         Symbol sym = convertSymbol(that.sym);
         if (!translatingLHS) checkRW(JmlTokenKind.READABLE,that.sym,currentThisExpr,that);
 

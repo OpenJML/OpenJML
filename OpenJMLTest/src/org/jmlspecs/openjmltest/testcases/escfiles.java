@@ -475,6 +475,11 @@ public class escfiles extends EscBase {
         helpTF("escDup");
     }
 
+    @Test
+    public void testEscSF420() {
+        helpTF("sfbug420");
+    }
+
 
 
 }
