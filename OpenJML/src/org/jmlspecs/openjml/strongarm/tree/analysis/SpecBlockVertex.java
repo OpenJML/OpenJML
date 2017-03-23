@@ -22,20 +22,37 @@ public class SpecBlockVertex  {
     public Map<String,JmlMethodClause> cache     = new HashMap<String,JmlMethodClause>();
     public JmlSpecificationCase basedOn;
     private boolean conjunction;
+    private boolean allowAnyOrder;
+    
     public SpecBlockVertex(JmlSpecificationCase basedOn){
+        this(basedOn, true);
+        
+    }
+
+    public SpecBlockVertex(JmlSpecificationCase basedOn, boolean allowAnyOrder){
         this.basedOn = basedOn;        
+        this.allowAnyOrder = allowAnyOrder;
         this.buildCache();
     }
-    
+
     
     public SpecBlockVertex(boolean isConjunction){
+        this(isConjunction, true);
+    }
+    
+    public SpecBlockVertex(boolean isConjunction, boolean allowAnyOrder){
         this.conjunction = isConjunction;
+        this.allowAnyOrder = allowAnyOrder;
     }
     
     public boolean isConjunction(){
         return conjunction;
     }
-        
+    
+    public boolean isAllowAnyOrder(){
+        return allowAnyOrder;
+    }
+    
     private void buildCache(){
     
         cache.clear();
@@ -106,13 +123,18 @@ public class SpecBlockVertex  {
         
         
         for(JmlMethodClause c : getClauses()){
-            if(c.token == JmlTokenKind.REQUIRES && v.contains(c)){
-                theIntersection.add(c);
+            
+            // there are two ways to do it
+            
+            if(isAllowAnyOrder()==false){
+                if(c.token == JmlTokenKind.REQUIRES && v.contains(c)){
+                    theIntersection.add(c);
+                }
+            }else{    
+                if(v.contains(c)){
+                    theIntersection.add(c);
+                }
             }
-//            
-//            if(v.contains(c)){
-//                theIntersection.add(c);
-//            }
         }
         
         

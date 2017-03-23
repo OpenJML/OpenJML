@@ -22,6 +22,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
+import org.jmlspecs.openjml.strongarm.tree.ContractComparator;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
@@ -315,6 +316,11 @@ public class ToReductionGraph extends JmlTreeAnalysis {
             }else{
                 rootClauses = JDKListUtils.toList(child.getClauses());
             }
+            
+            if(rootClauses!=null){
+                rootClauses = JDKListUtils.sort(rootClauses, new ContractComparator());
+            }
+
         }
         
         

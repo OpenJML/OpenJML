@@ -364,7 +364,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                 log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("STARTING INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym)); //$NON-NLS-1$
+                log.getWriter(WriterKind.NOTICE).println("STARTING INFERENCE OF " + utils.qualifiedMethodSig(methodDecl.sym) + " (" +  JDKListUtils.countLOC(methodDecl.body) + " LOC)"); //$NON-NLS-1$
                 log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.body));
             }
                         

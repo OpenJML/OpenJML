@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.IInJML;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
@@ -800,6 +801,20 @@ public class Utils {
     public JmlClassDecl getOwner(JmlMethodDecl methodDecl) {
         return (JmlClassDecl)JmlEnter.instance(context).getEnv((ClassSymbol)methodDecl.sym.owner).tree;
     }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(JDKListUtils.countLOC(methodDecl.cases));
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
+
     
     /** Returns a method signature with a fully-qualified method name */
     public String qualifiedMethodSig(MethodSymbol sym) {

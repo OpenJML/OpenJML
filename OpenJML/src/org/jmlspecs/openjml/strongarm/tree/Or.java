@@ -109,28 +109,7 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable, IP
         return treeutils.makeBinary(0, JCTree.Tag.OR, p1.toTree(treeutils), p2.toTree(treeutils));
     }
     
-    class ContractComparator implements Comparator<JmlMethodClause> {
-
-        // ordering is requires, ensures, modifies (otherwise lexical)
-        @Override
-        public int compare(JmlMethodClause o1, JmlMethodClause o2) {
-            
-            if(o1.token == o2.token){
-                return 0;
-            }
-            
-            if(o1.token == JmlTokenKind.REQUIRES && o2.token == JmlTokenKind.ENSURES){
-                return -1;
-            }
-            
-            if(o2.token == JmlTokenKind.REQUIRES && o1.token == JmlTokenKind.ENSURES){
-                return 1;
-            }
-            
-            return o2.token.toString().compareTo(o1.token.toString());
-        }
-        
-    }
+    
     
     @Override
     public void accept(IPropElementVisitor visitor) {        

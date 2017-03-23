@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
+import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.List;
 
 public class JDKListUtils {
@@ -70,6 +72,13 @@ public class JDKListUtils {
         }
       
         return false;
+    }
+    
+    public static int countLOC(String s){
+        return s.split("\n").length;
+    }
+    public static int countLOC(JCTree t){
+        return countLOC(JmlPretty.write(t)); 
     }
 
 }

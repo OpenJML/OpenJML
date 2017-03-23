@@ -18,6 +18,7 @@ Export-Package: com.sun.tools.javac.comp,
  org.jmlspecs.openjml.esc,
  org.jmlspecs.openjml.ext,
  org.jmlspecs.openjml.proverinterface,
+ org.jmlspecs.openjml.strongarm.tree,
  org.jmlspecs.utils
 Bundle-ClassPath: bin/,
  bin-runtime/

@@ -212,14 +212,17 @@ public class SubstitutionCache {
         sb.append(String.format("%20s %140s %30s\n", "VarSym", "Substitution", "@ Block"));
         
         Set<VarSymbol> keys = ds.keySet();
-        
-        for(VarSymbol s : keys){
-            List<Pair<String,JCTree>> v = ds.get(s);
-            
-            for(Pair<String,JCTree> vv : v){
-                sb.append(String.format("%20s %140s %30s\n", s.toString(), vv.snd.toString(), vv.fst));
+        try {
+            for(VarSymbol s : keys){
+                List<Pair<String,JCTree>> v = ds.get(s);
+                
+                for(Pair<String,JCTree> vv : v){
+                    sb.append(String.format("%20s %140s %30s\n", s.toString(), vv.snd.toString(), vv.fst));
+                }
+                sb.append("=======================================================================================================================================================\n");
             }
-            sb.append("=======================================================================================================================================================\n");
+        }catch(Exception e){
+            sb.append("Encountered an error while processing the substitution cache. Table may be incomplete.");
         }
         
         
