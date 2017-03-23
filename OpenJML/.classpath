@@ -11,5 +11,6 @@
 	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/src"/>
 	<classpathentry kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="otherlibs/jpaul-2.5.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

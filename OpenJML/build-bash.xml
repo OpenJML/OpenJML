@@ -13,7 +13,7 @@
 		<loadproperties srcFile="openjml.properties"/>
 		<echo message="Building release using java.home = ${openjml.jdk}"/>
 		<chmod file="buildRelease" perm="ugo+x"/>
-		<exec executable="${basedir}/buildRelease" 
+		<exec executable="${basedir}/buildRelease.sh" 
 			failonerror="true"
 			osfamily="unix">
 		</exec>
