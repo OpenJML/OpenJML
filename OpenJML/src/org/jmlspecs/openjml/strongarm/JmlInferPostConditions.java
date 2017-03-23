@@ -97,6 +97,9 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                     return elapsed;
                     
                 } catch (Exception e) {
+                    
+                    methodDecl.cases = null;
+                    methodDecl.methodSpecsCombined = null;
 
                     emitStrongarmFatalError(utils.qualifiedMethodSig(methodDecl.sym), e);
                     e.printStackTrace();
@@ -121,6 +124,12 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
             // timeout
             log.getWriter(WriterKind.NOTICE).println(String.format("ABORTED INFERENCE OF %s. MAXIMUM INFERENCE TIME OF %d SECONDS EXCEEDED.",  utils.qualifiedMethodSig(methodDecl.sym), timeout)); //$NON-NLS-1$
 
+            
+            // wipe out the contract. 
+            methodDecl.cases = null;
+            methodDecl.methodSpecsCombined = null;
+
+            
         } 
         
         
