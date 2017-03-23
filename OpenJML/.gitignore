@@ -6,3 +6,5 @@
 /log
 openjml-master-*
 openjml-*
+kernel*.json
+/strongarm-error.log
