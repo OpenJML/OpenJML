@@ -195,7 +195,7 @@ if not len(methods)-len(completed) == 0:
 import datetime
 
 
-file_tag = datetime.datetime.now().isoformat()
+file_tag = "data" #datetime.datetime.now().isoformat()
 
 finished = list(map(lambda m : m[0], completed))
 times    = dict(completed)
