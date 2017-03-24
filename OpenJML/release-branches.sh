@@ -33,7 +33,11 @@ git checkout -B "$REL"
 cd ../OpenJML/OpenJML
 
 ## FIXME - make platform independent - Eclipse does not set path
-C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
+if [ -e ~/apps/ant ]; then
+  ~/apps/ant -f build-bash.xml release
+else
+  C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
+fi
 
 ## Starting in .../OpenJML/OpenJML
 ## Should be in the release branch
@@ -66,9 +70,9 @@ git checkout $REFBRANCH
 git push
 
 cd ../OpenJML-UpdateSite
-git add .
-git commit -a -m "$REL"
-git push --set-upstream origin "$REL"
+#git add .
+#git commit -a -m "$REL"
+#git push --set-upstream origin "$REL"
 
 echo Push to plugin site
 chmod ugo+x web/toSF web/publish

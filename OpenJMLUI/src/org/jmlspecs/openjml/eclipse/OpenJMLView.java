@@ -300,9 +300,11 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
         		tiii.setText("[?????] " + text + info);
         		tiii.setBackground(red);
         	}
-            treeroot.setExpanded(true);
-    		ti.setExpanded(true);
-    		tii.setExpanded(true);
+//          treeroot.setExpanded(true);
+//    		ti.setExpanded(true);
+//    		tii.setExpanded(true);
+    		
+    		treeroot.getParent().showItem(tiii);
     }
     
     private boolean getCurrentFileData() {

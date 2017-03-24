@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 
 import java.io.File;
@@ -279,10 +280,14 @@ public class Utils {
         // If the owner of the field is an interface, it
         // is by default static. However, it might be a
         // JML field marked as instance.
-        if (!sym.isStatic()) return false;
+        if (sym.owner == null) {
+            if ((sym.flags() & STATIC) == 0) return false;
+        } else {
+            if (!sym.isStatic()) return false;
+        }
         if (isJML(sym.flags())) {
             Symbol csym = sym.owner;
-            if ((csym.flags() & Flags.INTERFACE) != 0) {
+            if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
                 if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 

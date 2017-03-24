@@ -344,7 +344,7 @@ public class MethodProverSMT {
                     int k = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         ++k;
-//                        if (k < 98) continue;
+//                        if (k < 290) continue;
 //                        if (k > 100) break;
                         if (!usePushPop) {
                             ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
@@ -757,6 +757,8 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                         break ifstat;
+//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+//                        break ifstat;
                     } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSUME) {
                         toTrace = ((JmlStatementExpr)stat).expression;
 //                    } else if (comment.startsWith("AssumeCheck assertion")) {
@@ -846,7 +848,7 @@ public class MethodProverSMT {
                     }
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
-                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos); 
+                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
                     JCExpression optional = assertStat.optionalExpression;

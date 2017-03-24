@@ -460,7 +460,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
 
         	Timer.timer.markTime();
-            if (!args.isEmpty()) {
+            if (args.size() != oldArgsSize) {
             	if (Options.uiverboseness) {
             		Log.log(Timer.timer.getTimeString() + " Executing static checks");
             	}
@@ -847,6 +847,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
         JmlMethodDecl parentMethod = finder.parentMethod;
         JCTree node = finder.found;
+        if (parentMethod == null) return  "No containing method found";
 //      if (parentMethod.sym != mostRecentProofMethod) {
 //          return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
 //      }

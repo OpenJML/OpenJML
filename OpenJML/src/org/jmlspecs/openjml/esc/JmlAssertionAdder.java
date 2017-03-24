@@ -85,6 +85,7 @@ import org.jmlspecs.openjml.ext.Arithmetic;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -842,8 +843,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (isConstructor) {
 //                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,
 //                        treeutils.makeZeroEquivalentLit(methodDecl.pos,classDecl.type));
-                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,
-                        currentThisExpr);
+                JCVariableDecl d = treeutils.makeVarDef(classDecl.type,resultName,methodDecl.sym,methodDecl.pos);
+                d.init = currentThisExpr;
                 resultSym = d.sym;
                 initialStatements.add(d);
             } else if (methodDecl.restype.type.getTag() != TypeTag.VOID) {
@@ -1705,7 +1706,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
-        JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? classDecl.sym : methodDecl.sym,translatedExpr);
+        JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType,assertname,methodDecl == null? (classDecl == null ? null : classDecl.sym) : methodDecl.sym,translatedExpr);
         assertDecl.mods.flags |= Flags.FINAL;
         assertDecl.sym.flags_field |= Flags.FINAL;
         if (esc) {
@@ -2196,10 +2197,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e = treeutils.makeImplies(pos.getPreferredPosition(), e1, e2);
                     }
-                    if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
+                    if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
                             e,
                             null,null); // FIXME - no associated position?
-                    else addAssert(pos,Label.POSSIBLY_NULL_VALUE,
+                    else addAssert(pos,Label.POSSIBLY_NULL_FIELD,
                             e,
                             null,null); // FIXME - no associated position?
 
@@ -2328,10 +2329,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 if (!vartype.isPrimitive()) {
                                     JCExpression e = treeutils.makeNotNull(pos.getStartPosition(),field); // FIXME - position not right
                                     if (specs.isNonNull(v)) {
-                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_VALUE,
+                                        if (assume) addAssume(pos,Label.POSSIBLY_NULL_FIELD,
                                                 e,
                                                 null,null); // FIXME - no associated position?
-                                        else  addAssert(pos,Label.POSSIBLY_NULL_VALUE,
+                                        else  addAssert(pos,Label.POSSIBLY_NULL_FIELD,
                                                 e,
                                                 null,null); // FIXME - no associated position?
                                     }
@@ -4411,11 +4412,103 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = addStat(M.at(that).Synchronized(lock, block).setType(that.type));
         // FIXME - need to add concurrency checks
     }
+    
+    protected Name closeName; 
+    
+    // This translation follows https://docs.oracle.com/javase/specs/jls/se8/html/jls-14.html#jls-ResourceList
+    protected void transformTryWithResources(JCTry that) {
+        if (that.resources == null || that.resources.isEmpty()) return;
+        if (closeName == null) closeName = names.fromString("close");
+        
+        
+        JCTree resource = that.resources.head;
+        List<JCTree> resourceRest = that.resources.tail;
+        int pos = resource.pos;
+        JCVariableDecl decl = (JCVariableDecl)resource;
+        decl.mods.flags |= Flags.FINAL; // implicitly final
+
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+        stats.add((JCStatement)resource);
+        
+        Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
+        JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName, methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        Type atype = attr.nullableAnnotationSymbol.type;
+        throwableDecl.mods.annotations = throwableDecl.mods.annotations.append(M.Annotation(M.Type(atype),List.<JCExpression>nil()));
+        List<com.sun.tools.javac.util.Pair<Symbol.MethodSymbol,Attribute>>nlist = List.<com.sun.tools.javac.util.Pair<MethodSymbol,Attribute>>nil();
+        Compound c = new Attribute.Compound(atype,nlist);
+        throwableDecl.sym.appendAttributes(List.<Compound>of(c)); 
+        throwableDecl.init = treeutils.nullLit;
+        stats.add(throwableDecl);
+        
+        Name catchName = names.fromString("__JMLthrowableCatch_" + resource.pos);
+        JCVariableDecl catchDecl = treeutils.makeVarDef(syms.throwableType, catchName, methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+
+        JCExpression exAssign = M.Assign(treeutils.makeIdent(pos,throwableDecl.sym), treeutils.makeIdent(pos,catchDecl.sym));
+        exAssign.pos = pos;
+        
+        JCStatement exStat = M.at(pos).Exec(exAssign);
+        
+        JCStatement exThrow = M.Throw(treeutils.makeIdent(pos, throwableDecl.sym));
+        exThrow.pos = pos;
+        
+        JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat,exThrow)));
+
+        JCIdent id = treeutils.makeIdent(pos,decl.sym);
+        MethodSymbol msym = null;
+        for (Symbol sym: ((ClassSymbol)resource.type.tsym).members().getElementsByName(closeName)) {
+            if (sym instanceof MethodSymbol) {
+                MethodSymbol m = (MethodSymbol)sym;
+                if (m.getParameters().isEmpty()) {
+                    msym = m;
+                    break;
+                }
+            }
+        }
+        M.at(pos);
+        JCExpression fcn1 = M.Select(id, msym);
+        fcn1.type = msym.type;
+        JCMethodInvocation closeCallExpr1 = M.Apply(List.<JCExpression>nil(),fcn1,List.<JCExpression>nil());
+        closeCallExpr1.type = syms.voidType;
+        JCExpressionStatement closeCall1 = M.Exec(closeCallExpr1);
+        JCExpression fcn2 = M.Select(id, msym);
+        fcn2.type = msym.type;
+        JCMethodInvocation closeCallExpr2 = M.Apply(List.<JCExpression>nil(),fcn2,List.<JCExpression>nil());
+        closeCallExpr2.type = syms.voidType;
+        JCExpressionStatement closeCall2 = M.Exec(closeCallExpr2);
+
+        Name closeCatchName = names.fromString("__JMLcloseCatch_" + resource.pos);
+        JCVariableDecl closeCatchDecl = treeutils.makeVarDef(syms.throwableType, closeCatchName, esc ? null: methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
+        JCCatch resourceCloseCatch = M.at(pos).Catch(closeCatchDecl, M.at(pos).Block(0L, List.<JCStatement>nil())); // FIXME - should save the suppressed exception
+        JCTry closetry = M.at(pos).Try(List.<JCTree>nil(), M.at(pos).Block(0L, List.<JCStatement>of(closeCall1)), List.<JCCatch>of(resourceCloseCatch), null);
+
+        JCExpression comp = treeutils.makeNotNull(pos, treeutils.makeIdent(pos, throwableDecl.sym));
+        JCStatement thenpart = M.at(pos).Block(0L, List.<JCStatement>of(M.If(comp, 
+                M.at(pos).Block(0L, List.<JCStatement>of(closetry)), 
+                closeCall2).setType(syms.booleanType)));
+        
+        comp = treeutils.makeNotNull(pos, treeutils.makeIdent(pos, decl.sym));
+        JCBlock finalBlock = M.at(pos).Block(0L, 
+                List.<JCStatement>of(
+                        M.at(pos).If(comp, thenpart, null).setType(syms.booleanType)));
+
+        JCTry newtry = M.at(pos).Try(resourceRest, that.body, List.<JCCatch>of(newCatch), finalBlock);
+        stats.add(newtry);
+        
+        that.resources = List.<JCTree>nil();
+        that.body = M.at(pos).Block(0L, stats.toList());
+        
+        if (that.catchers.isEmpty() && that.finalizer == null) that.finalizer = M.at(pos).Block(0L,  List.<JCStatement>nil());
+        
+        // FIXME - if the original try does not have catchers or finally, it can be converted to just a block
+        // FIXME - what about finallyCanCompleteNormally in all of the above
+        // FIXME - add position, types, symbols
+    }
 
     // OK
     // FIXME - review and cleanup for both esc and rac
     @Override
     public void visitTry(JCTry that) {
+        if (that.resources != null && !that.resources.isEmpty()) transformTryWithResources(that);
         if (!pureCopy) addStat(comment(that,"try ...",null)); // Don't need to trace the try keyword
         JCBlock body = convertBlock(that.body);
 
@@ -4445,6 +4538,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCBlock bl = convertBlock(catcher.getBlock());
                 //block.stats = block.stats.prepend(traceableComment(catcher.getParameter(),catcher.getParameter(),"catch (" + catcher.param +") ..."));
                 block.stats = block.stats.append(bl);
+                
+                // These assignments must be here (and not in BasicBlocker...) because they are needed by RAC
                 
                 // EXCEPTION = NULL
                 int sp = catcher.getParameter().getStartPosition();
@@ -9131,6 +9226,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             treeutils.copyEndPosition(eresult, that);
             return;
         }
+        
+        if (utils.rac && inOldEnv && utils.isExprLocal(that.sym.flags())) {
+            String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
+            throw new JmlNotImplementedException(that,message);
+        }
+
         Symbol sym = convertSymbol(that.sym);
         if (!translatingLHS) checkRW(JmlTokenKind.READABLE,that.sym,currentThisExpr,that);
 
