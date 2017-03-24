@@ -53,7 +53,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     
     public void printGraph(Collection<Pair<SpecBlockVertex,SpecBlockVertex>> arcs, AdjacencyMatrix<SpecBlockVertex> weights){        
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-           toDOTAnalysis(arcs, weights);
+           //toDOTAnalysis(arcs, weights);
         }
     }
     

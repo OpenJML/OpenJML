@@ -1,0 +1,9 @@
+AFTER
+STARTING
+Completed
+CFG
+Skipping
+REFUSING
+ABORTED
+Inference
+BEGIN

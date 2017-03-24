@@ -248,6 +248,13 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
                 
                 if(tmpE!=null){
                    b.rhs = (T) tmpE;
+                   
+                   JCBinary theReplacement = (JCBinary)SubstituteTree2.instance.currentReplacement;
+                   if(theReplacement.lhs instanceof JCIdent && theReplacement.lhs.toString().startsWith("_JML__tmp")){
+                       // make sure the operators match
+                       b.operator = theReplacement.operator;
+                       b.opcode   = theReplacement.opcode;
+                   }
                 }
             }else{
                 tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);  

@@ -1768,7 +1768,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
      * A binary operation.
      */
     public static class JCBinary extends JCExpression implements BinaryTree {
-        private Tag opcode;
+        public Tag opcode; // changed by JLS
         public JCExpression lhs;
         public JCExpression rhs;
         public Symbol operator;

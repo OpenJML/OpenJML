@@ -76,6 +76,39 @@ public class RemoveLocals extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr){
             JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
             
+            
+            if(mExpr.expression instanceof JCIdent){
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove this clause because it has no effect. " + clause.toString());
+                }
+                
+                return true;
+
+            }
+            
+            if(mExpr.expression.toString().contains("_JML___NEWOBJECT_7181")){
+             
+                
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove this clause because it references \\fresh variables (which are not implemented). " + clause.toString());
+                }
+                
+                return true;
+
+            }
+
+            if(mExpr.expression.toString().contains("TRUE != null") || mExpr.expression.toString().contains("FALSE != null")){
+                
+                
+                
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove this clause because it checks internal boolean properties. " + clause.toString());
+                }
+                
+                return true;
+            }
+            
+            
             if(mExpr.expression instanceof JCIdent){
                 JCIdent ident = (JCIdent)mExpr.expression;
                 

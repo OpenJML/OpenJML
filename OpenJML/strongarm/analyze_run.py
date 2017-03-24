@@ -9,8 +9,14 @@ import subprocess
 import sys 
 import pandas as pd
 # first argument should be the log file from strongarm
-#file = sys.argv[1]
-file = "run.out"
+f = "run.out" #sys.argv[1]
+
+
+out = subprocess.check_output("cat {0} | grep -F -f patterns.txt > run.out.compact".format(f), shell=True)
+
+
+
+file = "run.out.compact"
 # everything we ATTEMPTED
 skip_string = "Skipping contract inference of"
 start_string = "STARTING INFERENCE OF"
