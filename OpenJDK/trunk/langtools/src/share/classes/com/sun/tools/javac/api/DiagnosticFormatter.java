@@ -56,7 +56,7 @@ public interface DiagnosticFormatter<D extends Diagnostic<?>> {
      * @return a string representing the diagnostic
      */
     public String format(D diag, Locale l);
-    public String format(D diag, Locale l, String format); // DRC
+    public String format(D diag, Locale l, String format); // OPENJML - added additional interface
 
     /**
      * Controls the way in which a diagnostic message is displayed.

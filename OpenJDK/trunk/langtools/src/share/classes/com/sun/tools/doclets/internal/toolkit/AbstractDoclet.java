@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -56,7 +56,7 @@ public abstract class AbstractDoclet {
      * Verify that the only doclet that is using this toolkit is
      * {@value #TOOLKIT_DOCLET_NAME}.
      */
-    protected boolean isValidDoclet(AbstractDoclet doclet) { // DRC - changed from private to protected
+    private boolean isValidDoclet(AbstractDoclet doclet) {
         if (! doclet.getClass().getName().equals(TOOLKIT_DOCLET_NAME)) {
             configuration.message.error("doclet.Toolkit_Usage_Violation",
                 TOOLKIT_DOCLET_NAME);
@@ -80,10 +80,10 @@ public abstract class AbstractDoclet {
         }
         try {
             doclet.startGeneration(root);
-        } catch (com.sun.tools.javadoc.Messager.ExitJavadoc exc) { // DRC - added this to have a quiet exit when intended
-            return false;
         } catch (Configuration.Fault f) {
             root.printError(f.getMessage());
+            return false;
+        } catch (FatalError fe) {
             return false;
         } catch (DocletAbortException e) {
             Throwable cause = e.getCause();
@@ -125,7 +125,7 @@ public abstract class AbstractDoclet {
      *
      * @see com.sun.javadoc.RootDoc
      */
-    protected void startGeneration(RootDoc root) throws Exception { // DRC - changed from private to protected
+    private void startGeneration(RootDoc root) throws Configuration.Fault, Exception {
         if (root.classes().length == 0) {
             configuration.message.
                 error("doclet.No_Public_Classes_To_Document");

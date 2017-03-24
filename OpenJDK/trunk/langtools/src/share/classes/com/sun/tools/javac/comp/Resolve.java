@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2014, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,7 +25,6 @@
 
 package com.sun.tools.javac.comp;
 
-import com.sun.javafx.scene.control.skin.Utils;
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
 import com.sun.tools.javac.api.Formattable.LocalizedString;
 import com.sun.tools.javac.code.*;
@@ -60,7 +59,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.lang.model.element.ElementVisitor;
 
@@ -720,7 +718,8 @@ public class Resolve {
                                     Warner warn) {
             //should we expand formals?
             boolean useVarargs = deferredAttrContext.phase.isVarargsRequired();
-            List<JCExpression> trees = TreeInfo.args(env.tree);
+            JCTree callTree = treeForDiagnostics(env);
+            List<JCExpression> trees = TreeInfo.args(callTree);
 
             //inference context used during this method check
             InferenceContext inferenceContext = deferredAttrContext.inferenceContext;
@@ -729,7 +728,7 @@ public class Resolve {
 
             if (varargsFormal == null &&
                     argtypes.size() != formals.size()) {
-                reportMC(env.tree, MethodCheckDiag.ARITY_MISMATCH, inferenceContext); // not enough args
+                reportMC(callTree, MethodCheckDiag.ARITY_MISMATCH, inferenceContext); // not enough args
             }
 
             while (argtypes.nonEmpty() && formals.head != varargsFormal) {
@@ -741,7 +740,7 @@ public class Resolve {
             }
 
             if (formals.head != varargsFormal) {
-                reportMC(env.tree, MethodCheckDiag.ARITY_MISMATCH, inferenceContext); // not enough args
+                reportMC(callTree, MethodCheckDiag.ARITY_MISMATCH, inferenceContext); // not enough args
             }
 
             if (useVarargs) {
@@ -756,6 +755,11 @@ public class Resolve {
                 }
             }
         }
+
+            // where
+            private JCTree treeForDiagnostics(Env<AttrContext> env) {
+                return env.info.preferredTreeForDiagnostics != null ? env.info.preferredTreeForDiagnostics : env.tree;
+            }
 
         /**
          * Does the actual argument conforms to the corresponding formal?
@@ -1004,7 +1008,7 @@ public class Resolve {
                 DeferredType dt = (DeferredType)found;
                 return dt.check(this);
             } else {
-                Type uResult = U(found.baseType());
+                Type uResult = U(found);
                 Type capturedType = pos == null || pos.getTree() == null ?
                         types.capture(uResult) :
                         checkContext.inferenceContext()
@@ -1399,7 +1403,7 @@ public class Resolve {
                 else if (bestSoFar.kind >= VAR) {
                     origin = e.getOrigin().owner;
                     bestSoFar = isAccessible(env, origin.type, sym)
-                            ? sym : new AccessError(env, origin.type, sym);
+                        ? sym : new AccessError(env, origin.type, sym);
                 }
             }
             if (bestSoFar.exists()) break;
@@ -1712,30 +1716,6 @@ public class Resolve {
             }
         }
 
-        // FIXME - old with DRC changes
-//        for (Type ct = intype; ct.hasTag(CLASS) || ct.hasTag(TYPEVAR); ct = types.supertype(ct)) {
-//            while (ct.hasTag(TYPEVAR))
-//                ct = ct.getUpperBound();
-//            ClassSymbol c = (ClassSymbol)ct.tsym;
-//            if (!seen.add(c)) return bestSoFar;
-//            if (!abstractOK(c)) // DRC - changed to allow overriding in subclasses
-//                abstractok = false;
-//            for (Scope.Entry e = c.members().lookup(name);
-//                 e.scope != null;
-//                 e = e.next()) {
-//                //- System.out.println(" e " + e.sym);
-//                if (e.sym.kind == MTH &&
-//                    (e.sym.flags_field & SYNTHETIC) == 0 &&
-//                            symbolOK(e)) {  // DRC - changed to allow overriding in subclasses
-//                    bestSoFar = selectBest(env, site, argtypes, typeargtypes,
-//                                           e.sym, bestSoFar,
-//                                           allowBoxing,
-//                                           useVarargs,
-//                                           operator);
-//                }
-//            }
-//        }
-
         Symbol concrete = bestSoFar.kind < ERR &&
                 (bestSoFar.flags() & ABSTRACT) == 0 ?
                 bestSoFar : methodNotFound;
@@ -1862,17 +1842,23 @@ public class Resolve {
         boolean staticOnly = false;
         while (env1.outer != null) {
             if (isStatic(env1)) staticOnly = true;
-            sym = findMethod(
-                env1, env1.enclClass.sym.type, name, argtypes, typeargtypes,
-                allowBoxing, useVarargs, false);
-            if (sym.exists()) {
-                if (staticOnly &&
-                    sym.kind == MTH &&
-                    sym.owner.kind == TYP &&
-                    (sym.flags() & STATIC) == 0) return new StaticError(sym);
-                else return sym;
-            } else if (sym.kind < bestSoFar.kind) {
-                bestSoFar = sym;
+            Assert.check(env1.info.preferredTreeForDiagnostics == null);
+            env1.info.preferredTreeForDiagnostics = env.tree;
+            try {
+                sym = findMethod(
+                    env1, env1.enclClass.sym.type, name, argtypes, typeargtypes,
+                    allowBoxing, useVarargs, false);
+                if (sym.exists()) {
+                    if (staticOnly &&
+                        sym.kind == MTH &&
+                        sym.owner.kind == TYP &&
+                        (sym.flags() & STATIC) == 0) return new StaticError(sym);
+                    else return sym;
+                } else if (sym.kind < bestSoFar.kind) {
+                    bestSoFar = sym;
+                }
+            } finally {
+                env1.info.preferredTreeForDiagnostics = null;
             }
             if ((env1.enclClass.sym.flags() & STATIC) != 0) staticOnly = true;
             env1 = env1.outer;
@@ -2081,16 +2067,6 @@ public class Resolve {
                     (tyvar.kind == TYP && tyvar.exists() &&
                      tyvar.owner.kind == MTH))
                     return tyvar;
-//            for (Scope.Entry e = env1.info.scope.lookup(name);
-//                 e.scope != null;
-//                 e = e.next()) {
-//                if (e.sym.kind == TYP) {
-//                    if (!symbolOK(e)) continue; // DRCok added for OpenJML
-//                    if (staticOnly &&
-//                        e.sym.type.hasTag(TYPEVAR) &&
-//                        e.sym.owner.kind == TYP) return new StaticError(e.sym);
-//                    return e.sym;
-//                }
             }
 
             // If the environment is a class def, finish up,
@@ -2518,7 +2494,9 @@ public class Resolve {
                 return spMethod;
             }
         };
-        polymorphicSignatureScope.enter(msym);
+        if (!mtype.isErroneous()) { // Cache only if kosher.
+            polymorphicSignatureScope.enter(msym);
+        }
         return msym;
     }
 
@@ -2563,7 +2541,7 @@ public class Resolve {
         return resolveConstructor(new MethodResolutionContext(), pos, env, site, argtypes, typeargtypes);
     }
 
-    private Symbol resolveConstructor(MethodResolutionContext resolveContext, // OPENJML - switch to protected - FIXME  - change notneeded
+    private Symbol resolveConstructor(MethodResolutionContext resolveContext,
                               final DiagnosticPosition pos,
                               Env<AttrContext> env,
                               Type site,
@@ -4266,7 +4244,11 @@ public class Resolve {
                         DiagnosticPosition preferedPos, DiagnosticSource preferredSource,
                         DiagnosticType preferredKind, JCDiagnostic d) {
                     JCDiagnostic cause = (JCDiagnostic)d.getArgs()[0];
-                    return diags.create(preferredKind, preferredSource, d.getDiagnosticPosition(),
+                    DiagnosticPosition pos = d.getDiagnosticPosition();
+                    if (pos == null) {
+                        pos = preferedPos;
+                    }
+                    return diags.create(preferredKind, preferredSource, pos,
                             "prob.found.req", cause);
                 }
             });

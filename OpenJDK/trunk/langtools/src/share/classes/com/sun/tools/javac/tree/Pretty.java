@@ -25,7 +25,6 @@
 
 package com.sun.tools.javac.tree;
 
-// FIXME - a JCExpressionStatement does not print with a ; - so we cannot just visit it - where else is it used, besides directly as a statement?
 import java.io.*;
 
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
@@ -33,12 +32,6 @@ import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.code.*;
-
-import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.tree.JCTree.*;
-
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Flags.ANNOTATION;
 import static com.sun.tools.javac.tree.JCTree.Tag.*;

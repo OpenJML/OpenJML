@@ -353,6 +353,7 @@ public class DeferredAttr extends JCTree.Visitor {
         CHECK;
     }
     
+    // OPENJML - added this method to generally avoid using the constructor everywhere
     protected TreeCopier makeCopier(TreeMaker make) {
         return new TreeCopier<Object>(make);
     }

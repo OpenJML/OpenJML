@@ -27,8 +27,7 @@ package com.sun.tools.javac.tree;
 
 
 
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.*;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.comp.AttrContext;
@@ -524,7 +523,7 @@ public class TreeInfo {
         if (mapPos != Position.NOPOS)
             return mapPos;
 
-        if (tree.getTag() == null) return Position.NOPOS; // FIXME: DO better at setting positions
+        if (tree.getTag() == null) return Position.NOPOS; // OPENJML - FIXME: DO better at setting positions
         switch(tree.getTag()) {
             case BITOR_ASG: case BITXOR_ASG: case BITAND_ASG:
             case SL_ASG: case SR_ASG: case USR_ASG:

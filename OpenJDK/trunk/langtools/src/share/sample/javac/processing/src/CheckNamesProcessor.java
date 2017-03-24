@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
-=======
  * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
->>>>>>> 0a6b73822659bf734399a27c4989b31b8cf92935
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -142,11 +138,7 @@ public class CheckNamesProcessor extends AbstractProcessor {
     public SourceVersion getSupportedSourceVersion() {
         /*
          * Return latest source version instead of a fixed version
-<<<<<<< HEAD
-         * like RELEASE_7.  To return a fixed version, this class
-=======
          * like RELEASE_8.  To return a fixed version, this class
->>>>>>> 0a6b73822659bf734399a27c4989b31b8cf92935
          * could be annotated with a SupportedSourceVersion
          * annotation.
          *
@@ -200,11 +192,7 @@ public class CheckNamesProcessor extends AbstractProcessor {
         /**
          * Visitor to implement name checks.
          */
-<<<<<<< HEAD
-        private class NameCheckScanner extends ElementScanner7<Void, Void> {
-=======
         private class NameCheckScanner extends ElementScanner8<Void, Void> {
->>>>>>> 0a6b73822659bf734399a27c4989b31b8cf92935
             // The visitor could be enhanced to return true/false if
             // there were warnings reported or a count of the number
             // of warnings.  This could be facilitated by using

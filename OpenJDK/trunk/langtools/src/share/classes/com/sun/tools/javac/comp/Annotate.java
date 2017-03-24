@@ -99,9 +99,6 @@ public class Annotate {
     }
 
     public void normal(Worker a) {
-//        if (a.toString().contains("Query")) {
-//            System.out.println();
-//        }
         q.append(a);
     }
 
@@ -118,9 +115,6 @@ public class Annotate {
     }
 
     public void validate(Worker a) {
-//        if (a instanceof MemberEnter  && ((MemberEnter)a).annotationType.toString().equals("NonNull")) {
-//            System.out.println();
-//        }
         validateQ.append(a);
     }
 
@@ -491,7 +485,7 @@ public class Annotate {
 
             // Only report errors if this isn't the first occurrence I.E. count > 1
             boolean reportError = count > 1;
-            Type currentContainerType = getContainingType(currentAnno, lookup(ctx,currentAnno), reportError);
+            Type currentContainerType = getContainingType(currentAnno, ctx.pos.get(currentAnno), reportError);
             if (currentContainerType == null) {
                 continue;
             }
@@ -558,7 +552,7 @@ public class Annotate {
         }
     }
     
-    // OPENJML - revised this implementation to avoid a bug
+    // OPENJML - revised this implementation to avoid a bug // FIXME - is this still used
     protected <T extends Attribute.Compound> JCDiagnostic.DiagnosticPosition lookup(AnnotateRepeatedContext<T> ctx, Attribute.Compound currentAnno) {
         JCDiagnostic.DiagnosticPosition d = null;
         for (T t: ctx.pos.keySet()) {

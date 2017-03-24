@@ -25,6 +25,7 @@
 
 package com.sun.tools.javac.comp;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.code.*;
 
@@ -80,6 +81,13 @@ public class AttrContext {
      */
     Type defaultSuperCallSite = null;
 
+    /** Tree that when non null, is to be preferentially used in diagnostics.
+     *  Usually Env<AttrContext>.tree is the tree to be referred to in messages,
+     *  but this may not be true during the window a method is looked up in enclosing
+     *  contexts (JDK-8145466)
+     */
+    JCTree preferredTreeForDiagnostics;
+
     /** Duplicate this context, replacing scope field and copying all others.
      */
     AttrContext dup(Scope scope) {
@@ -94,12 +102,13 @@ public class AttrContext {
         info.returnResult = returnResult;
         info.defaultSuperCallSite = defaultSuperCallSite;
         info.isSerializable = isSerializable;
+        info.preferredTreeForDiagnostics = preferredTreeForDiagnostics;
         return info;
     }
 
     /** Duplicate this context, copying all fields.
      */
-    public AttrContext dup() { // DRC - changed from default to public visibility
+    public AttrContext dup() { //  DRC - changed from default to public visibility
         return dup(scope);
     }
 
