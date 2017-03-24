@@ -416,7 +416,7 @@ public class Main {
                           List<JavaFileObject> fileObjects,
                           Iterable<? extends Processor> processors)
     {
-        // FIXME - perhaps not these next two lines?
+        // OPENJML - FIXME - perhaps not these next two lines?
         context.put(Log.outKey, out);
         log = Log.instance(context);
 

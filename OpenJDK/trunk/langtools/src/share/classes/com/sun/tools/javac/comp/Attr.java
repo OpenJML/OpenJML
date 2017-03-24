@@ -963,7 +963,7 @@ public class Attr extends JCTree.Visitor {
                 // Empty bodies are only allowed for
                 // abstract, native, or interface methods, or for methods
                 // in a retrofit signature class.
-                if (isDefaultMethod || (tree.sym.flags() & (ABSTRACT | NATIVE)) == 0 &&
+                if ((isDefaultMethod || (tree.sym.flags() & (ABSTRACT | NATIVE)) == 0) && // OPENJML - corrected error ?
                     !relax)
                     log.error(tree.pos(), "missing.meth.body.or.decl.abstract");
                 if (tree.defaultValue != null) {

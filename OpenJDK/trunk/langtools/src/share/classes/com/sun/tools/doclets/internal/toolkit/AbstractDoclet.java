@@ -56,7 +56,7 @@ public abstract class AbstractDoclet {
      * Verify that the only doclet that is using this toolkit is
      * {@value #TOOLKIT_DOCLET_NAME}.
      */
-    private boolean isValidDoclet(AbstractDoclet doclet) {
+    protected boolean isValidDoclet(AbstractDoclet doclet) { // DRC - changed from private to protected
         if (! doclet.getClass().getName().equals(TOOLKIT_DOCLET_NAME)) {
             configuration.message.error("doclet.Toolkit_Usage_Violation",
                 TOOLKIT_DOCLET_NAME);
@@ -80,6 +80,8 @@ public abstract class AbstractDoclet {
         }
         try {
             doclet.startGeneration(root);
+        } catch (com.sun.tools.javadoc.Messager.ExitJavadoc exc) { // DRC - added this to have a quiet exit when intended
+            return false;
         } catch (Configuration.Fault f) {
             root.printError(f.getMessage());
             return false;
@@ -125,7 +127,7 @@ public abstract class AbstractDoclet {
      *
      * @see com.sun.javadoc.RootDoc
      */
-    private void startGeneration(RootDoc root) throws Configuration.Fault, Exception {
+    protected void startGeneration(RootDoc root) throws Exception { // DRC - changed from private to protected
         if (root.classes().length == 0) {
             configuration.message.
                 error("doclet.No_Public_Classes_To_Document");

@@ -108,7 +108,7 @@ public class AttrContext {
 
     /** Duplicate this context, copying all fields.
      */
-    public AttrContext dup() { //  DRC - changed from default to public visibility
+    public AttrContext dup() { // DRC - changed from default to public visibility
         return dup(scope);
     }
 

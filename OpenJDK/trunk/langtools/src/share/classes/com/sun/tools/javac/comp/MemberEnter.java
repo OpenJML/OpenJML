@@ -522,7 +522,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         Lint prevLint = chk.setLint(lint);
 
         try {
-            importHelper(tree);
+            importHelper(tree);  // OPENJML -- added to be able to override
 //            // Import-on-demand java.lang.
 //            importAll(tree.pos, reader.enterPackage(names.java_lang), env);
 //
