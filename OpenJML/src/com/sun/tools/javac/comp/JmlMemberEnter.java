@@ -69,7 +69,6 @@ import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.FatalError;
 import com.sun.tools.javac.util.JCDiagnostic;
-import com.sun.tools.javac.util.JCDiagnostic.DiagnosticFlag;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -446,8 +445,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         if (chk.checkUnique(tree.pos(), m, enclScope)) {
             if (!noEntering) {
                 if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
-                    m.flags_field |= (Flags.ABSTRACT | Flags.DEFAULT);
-                    m.enclClass().flags_field |= Flags.DEFAULT;
+                    m.flags_field |= (Flags.ABSTRACT | Utils.JMLADDED);
+                    m.enclClass().flags_field |= Utils.JMLADDED;
                 }
                 enclScope.enter(m);
             }
@@ -850,7 +849,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
                 returnStatement.expr = rep.expression;
                 mr.body.stats = List.<JCStatement>of(returnStatement);
-                mr.mods.flags &= ~Flags.DEFAULT;
+                mr.mods.flags &= ~Utils.JMLADDED;
                 found = rep;
             }
         }
@@ -871,7 +870,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
-        mr.mods.flags |= Flags.DEFAULT;   // FIXME - why?
+        mr.mods.flags |= Utils.JMLADDED;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
         mr.mods.annotations = List.<JCAnnotation>of(utils.tokenToAnnotationAST(JmlTokenKind.MODEL,modelVarDecl.pos,modelVarDecl.getEndPosition(log.getSource(modelVarDecl.sourcefile).getEndPosTable())));

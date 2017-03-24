@@ -9711,7 +9711,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JmlMethodDecl jdef = (JmlMethodDecl)def;
                     String nm = jdef.name.toString();
                     if (attr.isModel(jdef.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-                        if ((jdef.mods.flags & Flags.DEFAULT) != 0) {
+                        if ((jdef.mods.flags & Utils.JMLADDED) != 0) {
                             // We are presuming that all represents clauses are processed
                             // (as part of scanning the specs defs in visitJmlClassDecl)
                             // before we handle all the model field methods.

@@ -150,17 +150,19 @@ public class Utils {
     public Set<String> commentKeys = new HashSet<String>();
 
     /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
-    final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBIT = 1L << 60; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a declaration was declared somewhere within a JML annotation, but not nested within a class or method body that is also in the JML annotation */
-    final public static long JMLBITTOP = 1L << 53; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBITTOP = 1L << 59; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
-    final public static long JMLINSTRUMENTED = 1L << 51; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLINSTRUMENTED = 1L << 61; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a variable is local to an expression */
-    final public static long JMLEXPRLOCAL = 1L << 52; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLEXPRLOCAL = 1L << 62; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
+    // FIXME - describe  - used to be the DEFAULT flag
+    final public static long JMLADDED = 1L << 58;
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test

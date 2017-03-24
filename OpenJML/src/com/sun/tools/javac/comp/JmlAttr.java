@@ -3231,7 +3231,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Expect one argument of type JMLSetType, result type Lock
                 // FIXME - this should be one argument of type JMLObjectSet, result type is Object
                 // The argument expression may contain JML constructs
-                attribArgs(tree.args, localEnv, argtypesBuf);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3250,7 +3250,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSTYPEOF :
                 // Expect one argument of any type, result type \TYPE
                 // The argument expression may contain JML constructs
-                attribArgs(tree.args, localEnv, argtypesBuf);
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3345,7 +3345,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Case 1) All types are reference types
                 // Case 2) Some or all are primitive - all must be convertible to
                 // a common primitive type, including through unboxing
-                attribArgs(tree.args, localEnv, argtypesBuf); 
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
                 //attribTypes(tree.typeargs, localEnv);
                 boolean anyPrimitive = false;
                 Type maxPrimitiveType = null;
@@ -3388,7 +3388,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSFRESH :
                 // The arguments can be JML spec-expressions
                 // The arguments can be any reference type; the result is boolean
-                attribArgs(tree.args, localEnv, argtypesBuf); 
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
                 //attribTypes(tree.typeargs, localEnv);
                 for (int i=0; i<tree.args.size(); i++) {
                     JCExpression arg = tree.args.get(i);
@@ -3407,7 +3407,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSREACH :
                 // The argument can be a JML spec-expressions
                 // Expects one argument of reference type; result is of type JMLObjectSet
-                attribArgs(tree.args, localEnv, argtypesBuf);
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3450,7 +3450,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Note: The JML reference manual puts constraints on the form of the expression; those seem to be unneeded
                 // Note also: the argument is not actually evaluated (but needs to be evaluatable), 
                 //   thus it may only contain Java constructs  (FIXME - there is no check on that)
-                attribArgs(tree.args, localEnv, argtypesBuf); 
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf); 
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3462,7 +3462,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case BSSPACE :
                 // The argument may be a JML spec-expression
                 // Expects one argument of reference type; result is of type long
-                attribArgs(tree.args, localEnv, argtypesBuf);
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -3482,7 +3482,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // Expects one expression argument of any type; result is of the same type
                 // FIXME - does this allow any JML spec-expression?
                 // FIXME - the JMLb rules will require some numeric type promotions
-                attribArgs(tree.args, localEnv, argtypesBuf);
+                attribArgs(VAL, tree.args, localEnv, argtypesBuf);
                 //attribTypes(tree.typeargs, localEnv);
                 n = tree.args.size();
                 if (n != 1) {
@@ -5892,9 +5892,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Attribute the arguments in a method call, returning a list of types;
      * the arguments themselves have their types recorded.
      */
-    @Override 
+    @Override   // FIXME _ why is this needed?
+    public int attribArgs(int initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
+        return super.attribArgs(initialKind, trees, env, argtypes);
+    }
+    
     public int attribArgs(List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
-        return super.attribArgs(trees,env,argtypes);
+        return super.attribArgs(Kinds.VAL, trees, env, argtypes);
     }
     
     /** Attribute the elements of a type argument list, returning a list of types;

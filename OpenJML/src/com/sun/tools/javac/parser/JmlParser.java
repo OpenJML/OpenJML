@@ -2518,7 +2518,7 @@ public class JmlParser extends JavacParser {
     }
     
     @Override
-    protected Name ident() {
+    public Name ident() {
         if (token.kind == CUSTOM) {
             jmlerror(pos(),endPos(),"jml.keyword.instead.of.ident",jmlTokenKind().internedName());
             nextToken();
@@ -2686,13 +2686,13 @@ public class JmlParser extends JavacParser {
                     if (token.kind == LPAREN) {
                         JCExpression res = syntaxError(pos(), null,
                                 "jml.no.args.allowed", jt.internedName());
-                        primarySuffix(t, typeArgs); // Parse arguments and
+                        primaryTrailers(t, typeArgs); // Parse arguments and
                         // ignore, both to do as much
                         // type checking as possible and to skip valid
                         // constructs to avoid extra errors
                         return res;
                     } else {
-                        return primarySuffix(t, typeArgs);
+                        return primaryTrailers(t, typeArgs);
                     }
 
                 case BSSAME:
@@ -2732,7 +2732,7 @@ public class JmlParser extends JavacParser {
                         // FIXME - this should be a type literal
                         e = toP(jmlF.at(p).JmlMethodInvocation(jt, List.of(e)));
                         ((JmlMethodInvocation)e).startpos = start;
-                        return primarySuffix(e, null);
+                        return primaryTrailers(e, null);
                     }
 
                 case BSNONNULLELEMENTS:
@@ -3241,10 +3241,7 @@ public class JmlParser extends JavacParser {
         t = odStack[0];
 
         if (t.hasTag(JCTree.Tag.PLUS)) {
-            StringBuilder buf = foldStrings(t);
-            if (buf != null) {
-                t = toP(F.at(startPos).Literal(TypeTag.CLASS, buf.toString()));
-            }
+            t = foldStrings(t);
         }
 
         odStackSupply.add(odStack);
