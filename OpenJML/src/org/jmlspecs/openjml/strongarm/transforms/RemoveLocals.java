@@ -97,7 +97,7 @@ public class RemoveLocals extends JmlTreeScanner {
 
             }
 
-            if(mExpr.expression.toString().contains("TRUE != null") || mExpr.expression.toString().contains("FALSE != null")){
+            if(mExpr.expression.toString().contains("null != null") || mExpr.expression.toString().contains("TRUE != null") || mExpr.expression.toString().contains("FALSE != null")){
                 
                 
                 
