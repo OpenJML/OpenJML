@@ -489,12 +489,15 @@ public class Strongarm
         boolean verbose        = infer.verbose;
         Timing t;
         
-        
+        t = Timing.start();
+                
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            log.getWriter(WriterKind.NOTICE).println("INITIAL CONTRACT LENGTH " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+
         }
                  
         if(reader.blocks.size() <= 50){
@@ -554,7 +557,7 @@ public class Strongarm
 //
 //            }
 //            
-        }
+        } 
         
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -876,7 +879,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
 
