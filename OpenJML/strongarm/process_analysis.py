@@ -4,7 +4,14 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 import pandas as pd 
+import os
+import subprocess
+import sys 
 
+eval_name = "Commons-CSV" #sys.argv[1]
+
+#eval_name = "JSON-Java" #sys.argv[1]
+figures_path = "figures/{0}".format(eval_name)
 
 
 def get_summary(d):
@@ -32,15 +39,15 @@ print("Min: {0}\nMax: {1}\nMean: {2}\nSTD: {3}".format(tmin, tmax, tmean, tstd))
 
 plt.scatter(inferred_df['loc'],inferred_df['time'], marker='x', c='black')
 #plt.title(r"""\Huge{Big title !} \newline \tiny{Small subtitle !}""")
-plt.title("Inference Time vs Lines of Code\n(JSON-Java)")
+plt.title("Inference Time vs Lines of Code\n{0}".format(eval_name))
 #plt.subtitle("test")
 plt.xlabel('Lines of Code (LOC)')
 plt.ylabel('Time (ms)')
 plt.ylim([0,3000])
 
-plt.savefig('figures/time-vs-loc.png')
-plt.savefig('figures/time-vs-loc.pdf')
-plt.savefig('figures/time-vs-loc.eps')
+plt.savefig(figures_path + '/time-vs-loc.png')
+plt.savefig(figures_path + '/time-vs-loc.pdf')
+plt.savefig(figures_path + '/time-vs-loc.eps')
 
 plt.show()
 
@@ -51,7 +58,7 @@ x = inferred_df['cfg_depth']
 y = inferred_df['time']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Inference Time vs CFG Complexity\n(JSON-Java)")
+plt.title("Inference Time vs CFG Complexity\n{0}".format(eval_name))
 plt.xlabel('Control Flow Graph Complexity (Nodes)')
 plt.ylabel('Time (ms)')
 
@@ -59,9 +66,9 @@ plt.ylabel('Time (ms)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black', lw=.5, ls="dashed", aa=True)
-plt.savefig('figures/time-vs-cfg-depth.png')
-plt.savefig('figures/time-vs-cfg-depth.pdf')
-plt.savefig('figures/time-vs-cfg-depth.eps')
+plt.savefig(figures_path + '/time-vs-cfg-depth.png')
+plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
+plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
 
 plt.show()
 
@@ -72,15 +79,15 @@ x = ndf['loc']
 y = ndf['cfg_depth']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("CFG Complexity vs LOC\n(JSON-Java)")
+plt.title("CFG Complexity vs LOC\n{0}".format(eval_name))
 plt.xlabel('Lines of Code (LOC)')
 plt.ylabel('CFG Complexity (Nodes)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
-plt.savefig('figures/cfg-depth-vs-loc.png')
-plt.savefig('figures/cfg-depth-vs-loc.pdf')
-plt.savefig('figures/cfg-depth-vs-loc.eps')
+plt.savefig(figures_path + '/cfg-depth-vs-loc.png')
+plt.savefig(figures_path + '/cfg-depth-vs-loc.pdf')
+plt.savefig(figures_path + '/cfg-depth-vs-loc.eps')
 
 plt.show()
 
@@ -124,9 +131,9 @@ plt.title('Simplification Utilization by Pipeline Step')
 
 
 
-plt.savefig('figures/pipeline-step-utilization.pdf')
-plt.savefig('figures/pipeline-step-utilization.png')
-plt.savefig('figures/pipeline-step-utilization.eps')
+plt.savefig(figures_path + '/pipeline-step-utilization.pdf')
+plt.savefig(figures_path + '/pipeline-step-utilization.png')
+plt.savefig(figures_path + '/pipeline-step-utilization.eps')
 
 #%%
 
@@ -280,14 +287,14 @@ ax.barh(ind + width, df_overall["mean"][::-1], width, color='silver', edgecolor=
 
 ax.set(yticks=ind + width, yticklabels=labels[::-1], xlim=[-75,23]) # ylim=[2*width - 1, len(df_overall)])
 ax.legend()
-plt.title("Change in Specification LOC vs Pipeline Step\n(JSON-Java)")
+plt.title("Change in Specification LOC vs Pipeline Step\n{0}".format(eval_name))
 plt.xlabel("Percent Reduction (LOC)")
 plt.ylabel("Pipeline Step")
 
 
-plt.savefig('figures/pct-reduction-of-pipeline-steps.png')
-plt.savefig('figures/pct-reduction-of-pipeline-steps.pdf')
-plt.savefig('figures/pct-reduction-of-pipeline-steps.eps')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.png')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps')
 
 
 plt.show()
@@ -307,15 +314,15 @@ y = ndf['loc']
 x = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Method Length (LOC) vs Final Specification Length (LOC)\n(JSON-Java)")
+plt.title("Method Length (LOC) vs Final Specification Length (LOC)\n{0}".format(eval_name))
 plt.xlabel('Final Contract Length (LOC)')
 plt.ylabel('Method Length (LOC)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
-plt.savefig('figures/code-loc-vs-final-contract-loc.png')
-plt.savefig('figures/code-loc-vs-final-contract-loc.pdf')
-plt.savefig('figures/code-loc-vs-final-contract-loc.eps')
+plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.png')
+plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.pdf')
+plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.eps')
 
 plt.show()
 
@@ -327,15 +334,15 @@ y = ndf['cfg_depth']
 x = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("CFG Size (Nodes) vs Final Specification Length (LOC)\n(JSON-Java)")
+plt.title("CFG Size (Nodes) vs Final Specification Length (LOC)\n{0}".format(eval_name))
 plt.xlabel('Final Contract Length (LOC)')
 plt.ylabel('CFG Size (Nodes)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
-plt.savefig('figures/code-cfg-size-vs-final-contract-loc.png')
-plt.savefig('figures/code-cfg-size-vs-final-contract-loc.pdf')
-plt.savefig('figures/code-cfg-size-vs-final-contract-loc.eps')
+plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.png')
+plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.pdf')
+plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.eps')
 
 plt.show()
 
@@ -347,7 +354,7 @@ y = ndf['initial_contract_loc']
 x = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Initial Contract Length (LOC) vs Final Specification Length (LOC)\n(JSON-Java)")
+plt.title("Initial Contract Length (LOC) vs Final Specification Length (LOC)\n{0}".format(eval_name))
 plt.xlabel('Final Contract Length (LOC)')
 plt.ylabel('Initial Contract Length (LOC)')
 #plt.yscale('log')
@@ -359,9 +366,9 @@ plt.plot(x,p(x), c="black")
 
 #plt.yscale('log')
 
-plt.savefig('figures/initial-contract-size-vs-final-contract-loc.png')
-plt.savefig('figures/initial-contract-size-vs-final-contract-loc.pdf')
-plt.savefig('figures/initial-contract-size-vs-final-contract-loc.eps')
+plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.png')
+plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.pdf')
+plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.eps')
 
 plt.show()
 
@@ -379,7 +386,7 @@ n, bins, patches = plt.hist(reductions, 20, normed=1, facecolor='silver', alpha=
 
 plt.xlabel('Percent Reduction of Inferred Specification to Final Specification')
 plt.ylabel('Frequency')
-plt.title("Relative Frequency of Specification Reduction\n(JSON-Java)")
+plt.title("Relative Frequency of Specification Reduction\n{0}".format(eval_name))
 #plt.axis([40, 160, 0, 0.03])
 #plt.grid(True)
 
@@ -387,10 +394,55 @@ plt.title("Relative Frequency of Specification Reduction\n(JSON-Java)")
 #l = plt.plot(bins, y, 'r--', linewidth=1)
 
 
-plt.savefig('figures/percent-reduction-histogram.png')
-plt.savefig('figures/percent-reduction-histogram.pdf')
-plt.savefig('figures/percent-reduction-histogram.eps')
+plt.savefig(figures_path + '/percent-reduction-histogram.png')
+plt.savefig(figures_path + '/percent-reduction-histogram.pdf')
+plt.savefig(figures_path + '/percent-reduction-histogram.eps')
 
 
 plt.show()
 
+#%% times smaller 
+
+reductions = (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
+
+#reductions = list(filter(lambda x : x > 10, reductions))
+
+reductions
+#%% 
+
+# the histogram of the data
+n, bins, patches = plt.hist(reductions, 8, normed=1, facecolor='silver', alpha=0.75, hatch="//", edgecolor="black")
+
+plt.xlabel('Specification Size as a Percentage of Initial Specification Size')
+plt.ylabel('Frequency')
+plt.title("Final Specification Size as a Percentage of Initial Specification Size\n{0}".format(eval_name))
+#plt.axis([40, 160, 0, 0.03])
+#plt.xscale('log')
+#plt.grid(True)
+
+# add a 'best fit' line
+#l = plt.plot(bins, y, 'r--', linewidth=1)
+
+rects = patches
+
+# Now make some labels
+labels = ["label%d" % i for i in range(len(rects))]
+for rect, label in zip(rects, labels):
+    height = rect.get_height()
+    ax = plt.gca()
+    #ax.text(rect.get_x() + rect.get_width()/2, height, label, ha='center', va='bottom')
+
+ax = plt.gca()
+#ax.text(patches[0].get_x(),0.0008931602042757867, "fuck")    
+#ax.text(patches[0].get_x() + patches[0].get_width() /2,patches[0].get_height(), "fuck")    
+
+plt.savefig(figures_path + '/times-reduction-histogram.png')
+plt.savefig(figures_path + '/times-reduction-histogram.pdf')
+plt.savefig(figures_path + '/times-reduction-histogram.eps')
+
+
+plt.show()
+
+#%% 
+
+print(patches[0].get_height())
