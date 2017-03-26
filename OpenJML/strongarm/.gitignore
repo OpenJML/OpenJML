@@ -2,3 +2,4 @@ kernel*.json
 /strongarm-pipeline-steps.csv
 /strongarm-summary.csv
 *.out
+*.out.compact

@@ -12,8 +12,9 @@ import pandas as pd
 f = "run.out" #sys.argv[1]
 
 
-out = subprocess.check_output("cat {0} | grep -F -f patterns.txt > run.out.compact".format(f), shell=True)
+#out = subprocess.check_output("grep -F -f patterns.txt {0} > run.out.compact".format(f), shell=True)
 
+print("Finished Creating Compact file...")
 
 
 file = "run.out.compact"
@@ -23,6 +24,7 @@ start_string = "STARTING INFERENCE OF"
 timeout = "ABORTED INFERENCE OF"
 exception = "Inference ABORTED"
 initial_contract = "BEGIN CONTRACT CLEANUP of"
+final_contract   = "FINISHED INFERENCE OF"
 
 pipeline_steps = [
     
@@ -44,7 +46,7 @@ pipeline_steps = [
     "AFTER FIXING RESULTS",
     "AFTER CLEANING PRESTATE ASSIGNABLES",
     "AFTER REMOVING USELESS POSTCONDITIONS",
-    "AFTER PRUNING USELESS CLAUSES OF",
+    "AFTER PRUNING USELESS CLAUSES II OF",
     "AFTER ADDING PURITY",
     "AFTER REDUCTION ANALYSIS",
    
@@ -208,6 +210,15 @@ times    = dict(completed)
 mloc_table     = dict(mloc)
 cfg_table     = dict(cfg)
 
+ms, locs, ts = extract_method_name_and_loc_and_timing("INITIAL CONTRACT LENGTH")
+
+initial_locs_table = dict(locs)
+
+
+ms, locs = extract_method_name_and_loc(final_contract)
+
+final_locs_table = dict(locs)
+
 
 data = {
     'method'   : methods,
@@ -218,11 +229,14 @@ data = {
     'refused'  : list(map(lambda m : m in refused, methods)), 
     'time'     : list(map(lambda m : -1 if not m in times else times[m], methods)),
     'error'    : list(map(lambda m : not m in timeouts and m not in finished, methods)),
-    'timeout'  : list(map(lambda m : m in timeouts, methods))
-
+    'timeout'  : list(map(lambda m : m in timeouts, methods)),
+    'initial_contract_loc' : list(map(lambda m : -1 if not m in initial_locs_table else initial_locs_table[m]
+    , methods)),
+    'final_contract_loc' : list(map(lambda m : -1 if not m in final_locs_table else final_locs_table[m]
+    , methods))
 }
 
-df = pd.DataFrame(data, columns=["method", "loc", "cfg_depth", "inferred", "skipped", "refused", "time", "error", "timeout"])
+df = pd.DataFrame(data, columns=["method", "loc", "cfg_depth", "inferred", "skipped", "refused", "time", "error", "timeout", "initial_contract_loc", "final_contract_loc"])
 
 print(df)
 
@@ -240,6 +254,7 @@ data = {
 
 
 for step in pipeline_steps:
+    print("Processing Pipeline Step: {0}".format(step))
     step_name = step.replace("AFTER ", "").replace(" ", "_")
 
     ms, locs, ts = extract_method_name_and_loc_and_timing(step)

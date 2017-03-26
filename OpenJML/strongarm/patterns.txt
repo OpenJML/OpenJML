@@ -5,5 +5,5 @@ CFG
 Skipping
 REFUSING
 ABORTED
-Inference
 BEGIN
+INITIAL
