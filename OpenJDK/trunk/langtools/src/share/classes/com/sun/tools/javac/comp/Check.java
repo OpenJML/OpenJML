@@ -133,7 +133,7 @@ public class Check {
         complexInference = options.isSet("complexinference");
         warnOnSyntheticConflicts = options.isSet("warnOnSyntheticConflicts");
         suppressAbortOnBadClassFile = options.isSet("suppressAbortOnBadClassFile");
-        enableSunApiLintControl = options.isSet("enableSunApiLintControl");
+        enableSunApiLintControl = options.isSet("enableSunApiLintControl") || true;  // OPENJML - hard code this entry
         warnOnAccessToSensitiveMembers = options.isSet("warnOnAccessToSensitiveMembers");
 
         Target target = Target.instance(context);

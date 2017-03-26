@@ -452,7 +452,7 @@ public class JavacParser implements Parser {
      * Report a syntax error using the given DiagnosticPosition object and
      * arguments, unless one was already reported at the same position.
      */
-    private void reportSyntaxError(JCDiagnostic.DiagnosticPosition diagPos, String key, Object... args) {
+    protected void reportSyntaxError(JCDiagnostic.DiagnosticPosition diagPos, String key, Object... args) { // OPENJML -s changed private to protected
         int pos = diagPos.getPreferredPosition();
         if (pos > S.errPos() || pos == Position.NOPOS) {
             if (token.kind == EOF) {
@@ -3885,7 +3885,7 @@ public class JavacParser implements Parser {
      * first parses the type {@code String @A []} then inserts
      * a new array level with {@code @B} annotation.
      */
-    private JCExpression insertAnnotationsToMostInner(
+    protected JCExpression insertAnnotationsToMostInner(  // OPENJML - changed private to protected
             JCExpression type, List<JCAnnotation> annos,
             boolean createNewLevel) {
         int origEndPos = getEndPos(type);

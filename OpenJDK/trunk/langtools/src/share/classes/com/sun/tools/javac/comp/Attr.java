@@ -874,7 +874,7 @@ public class Attr extends JCTree.Visitor {
 
     public void visitMethodDef(JCMethodDecl tree) {
         MethodSymbol m = tree.sym;
-        boolean isDefaultMethod = (m.flags() & DEFAULT) != 0;
+        boolean isDefaultMethod = (m.flags() & DEFAULT) != 0 || (tree.mods.flags & DEFAULT) != 0; // OPENJML - FIXME - added the second disjunct, but should figure out shy it is needed
 
         Lint lint = env.info.lint.augment(m);
         Lint prevLint = chk.setLint(lint);

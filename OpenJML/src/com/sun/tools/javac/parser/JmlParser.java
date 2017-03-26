@@ -2946,6 +2946,8 @@ public class JmlParser extends JavacParser {
     // MAINTENANCE ISSUE:
     // This is a copy from JavacParser, so we can add in parseSetComprehension
     JCExpression creator(int newpos, List<JCExpression> typeArgs) {
+    	List<JCAnnotation> newAnnotations = typeAnnotationsOpt();
+    	
         switch ((TokenKind)token.kind) {
             case BYTE:
             case SHORT:
@@ -2955,30 +2957,60 @@ public class JmlParser extends JavacParser {
             case FLOAT:
             case DOUBLE:
             case BOOLEAN:
-                if (typeArgs == null)
-                    return arrayCreatorRest(newpos, basicType());
+                if (typeArgs == null) {
+                	if (newAnnotations.isEmpty()) {
+                		return arrayCreatorRest(newpos, basicType());
+                	} else {
+                		return arrayCreatorRest(newpos, toP(F.at(newAnnotations.head.pos).AnnotatedType(newAnnotations, basicType())));
+                	}
+                }
                 break;
             default:
         }
         JCExpression t = qualident(true);
         int oldmode = mode;
         mode = TYPE;
+        boolean diamondFound = false;
+        int lastTypeargsPos = -1;
         if (token.kind == LT) {
             checkGenerics();
-            t = typeArguments(t,false); // FIXME - true or false:
+            lastTypeargsPos = token.pos;
+            t = typeArguments(t,true);
+            diamondFound = (mode & DIAMOND) != 0;
         }
         while (token.kind == DOT) {
-            int pos = pos();
+        	if (diamondFound) {
+        		// cannot select after diamond
+        		illegal();
+        	}
+            int pos = token.pos;
             nextToken();
+            List<JCAnnotation> tyannos = typeAnnotationsOpt();
             t = toP(F.at(pos).Select(t, ident()));
+            
+            if (tyannos != null && tyannos.nonEmpty()) {
+            	t = toP(F.at(tyannos.head.pos).AnnotatedType(tyannos, t));
+            }
+            
             if (token.kind == LT) {
                 checkGenerics();
-                t = typeArguments(t,false); // FIXME - true or false:
+                lastTypeargsPos = token.pos;
+                t = typeArguments(t,true);
+                diamondFound = (mode & DIAMOND) != 0;
             }
         }
         mode = oldmode;
-        if (token.kind == LBRACKET) {
+        if (token.kind == LBRACKET || token.kind == MONKEYS_AT) {
+            // handle type annotations for non primitive arrays
+            if (newAnnotations.nonEmpty()) {
+            	t = insertAnnotationsToMostInner(t, newAnnotations, false);
+            }
+            
             JCExpression e = arrayCreatorRest(newpos, t);
+            if (diamondFound) {
+            	reportSyntaxError(lastTypeargsPos, "cannot.create.array.with.diamond");
+            	return toP(F.at(newpos).Erroneous(List.of(e)));
+            }
             if (typeArgs != null) {
                 int pos = newpos;
                 if (!typeArgs.isEmpty() && typeArgs.head.pos != Position.NOPOS) {
@@ -2987,24 +3019,34 @@ public class JmlParser extends JavacParser {
                     // modified to improve error recovery.
                     pos = typeArgs.head.pos;
                 }
-                syntaxError(pos, null,
-                        "cannot.create.array.with.type.arguments");
-                return toP(F.at(newpos).Erroneous(typeArgs.prepend(e)));
+                setErrorEndPos(S.prevToken().endPos);
+                JCErroneous err = F.at(newpos).Erroneous(typeArgs.prepend(e));
+                reportSyntaxError(err, "cannot.create.array.with.type.arguments");
+                return toP(err);
             }
             return e;
         } else if (token.kind == LPAREN) {
-            boolean prev = inLocalOrAnonClass;
-            try {
-                inLocalOrAnonClass = true;
-                JCNewClass anon = classCreatorRest(newpos, null, typeArgs, t);
-//                if (anon.def != null) {
-//                    filterTypeBodyDeclarations((JmlClassDecl) anon.def, context,
-//                            jmlF);
-//                }
-                return anon;
-            } finally {
-                inLocalOrAnonClass = prev;
+          boolean prev = inLocalOrAnonClass;
+          inLocalOrAnonClass = true;
+          try {
+            JCNewClass newClass = classCreatorRest(newpos, null, typeArgs, t);
+            if (newClass.def != null) {
+            	assert newClass.def.mods.annotations.isEmpty();
+            	if (newAnnotations.nonEmpty()) {
+            		newClass.def.mods.pos = earlier(newClass.def.mods.pos, newAnnotations.head.pos);
+            		newClass.def.mods.annotations = newAnnotations;
+            	}
+            } else {
+            	// handle type annotations for instantiations
+            	if (newAnnotations.nonEmpty()) {
+            		t = insertAnnotationsToMostInner(t, newAnnotations, false);
+            		newClass.clazz = t;
+            	}
             }
+            return newClass;
+          } finally {
+                inLocalOrAnonClass = prev;
+          }
         } else if (token.kind == LBRACE) {
             return parseSetComprehension(t);
         } else {
@@ -3014,6 +3056,12 @@ public class JmlParser extends JavacParser {
             return toP(F.at(newpos).Erroneous(List.<JCTree> of(t)));
         }
     }
+    
+//    protected JCExpression moreCreator(TokenKind token, int newpos, JCExpression t, List<JCExpression> typeArgs) {
+//    	if (token.kind == LBRACE) {
+//    		return parseSetComprehension(t);
+//    	}
+//    }
     
     protected boolean inLocalOrAnonClass = false;
 

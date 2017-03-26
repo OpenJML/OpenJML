@@ -438,7 +438,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 //                }
                 
                 if (e.tree != null && e.tree instanceof JmlClassDecl) {
-                    ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thisSym(e.tree.pos(),e);
+                    Symbol thissym = thisSym(e.tree.pos(),e);
+                    if (thissym instanceof VarSymbol) ((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)thissym;
 //                    //((JmlClassDecl)e.tree).thisSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._this);
 //                    if (!((JmlClassDecl)e.tree).sym.isInterface() && c != syms.objectType.tsym) ((JmlClassDecl)e.tree).superSymbol = (VarSymbol)rs.resolveSelf(e.tree.pos(),e,c,names._super);
                 }
