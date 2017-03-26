@@ -8,8 +8,9 @@ import os
 import subprocess
 import sys 
 import pandas as pd
+import re
 # first argument should be the log file from strongarm
-f = "run.out" #sys.argv[1]
+f = "run.out.commons-csv" #sys.argv[1]
 
 
 #out = subprocess.check_output("grep -F -f patterns.txt {0} > run.out.compact".format(f), shell=True)
@@ -62,10 +63,11 @@ def extract_method_name_and_loc_and_timing(tag):
         locs    = []
         ts      = []
         for line in out:
-            parts = line.replace(the_tag, "").split(" ")
+            parts = line.replace(the_tag, "")
+            parts = re.findall(r"(.*) \((\d+) LOC\) \((\d+) ms\)", parts)[0]
             method = parts[0]
-            loc    = parts[1][1:]
-            timing = parts[3][1:]
+            loc    = int(parts[1])
+            timing = int(parts[2])
 
             methods.append(method)
             locs.append((method,loc))
@@ -83,9 +85,10 @@ def extract_method_name_and_loc(tag):
     methods = []
     locs    = []
     for line in out:
-        parts = line.replace(the_tag, "").split(" ")
+        parts = line.replace(the_tag, "")
+        parts = re.findall(r"(.*) \((\d+) LOC\)", parts)[0]
         method = parts[0]
-        loc    = parts[1][1:]
+        loc    = int(parts[1])
 
         methods.append(method)
         locs.append((method,loc))
@@ -106,10 +109,11 @@ completed = []
 
 for line in out:
     method = line.replace("Completed inference of ", "")
-    parts = method.split(" ")
+    
+    matches = re.findall(r"(.*) \((\d+) ms\)", method)[0]
 
-    method_name = parts[0]
-    ts          = int(parts[1].replace("(", ""))
+    method_name = matches[0]
+    ts          = int(matches[1])
     completed.append((method_name, ts))
 
     print("{0} was inferred in {1} ms".format(method_name, ts))
@@ -129,10 +133,12 @@ cfg = []
 for line in out:
     print(line)
     method = line.replace("CFG DEPTH OF ", "")
-    parts = method.split(" ")
 
-    method_name = parts[0]
-    depth       = int(parts[1][1:-1])
+    matches = re.findall(r"(.*) \((\d+)\)", method)[0]
+
+    method_name = matches[0]
+    depth          = int(matches[1])
+
     cfg.append((method_name, depth))
 
 ###
@@ -148,6 +154,10 @@ try:
         method = line.replace("[STRONGARM] Skipping inference for ", "")
         parts = method.split(" ")
 
+        matches = re.findall(r"(.*\)).*", method)
+
+        method_name = matches[0]
+    
         method_name = parts[0]
         skipped.append(method_name)
         print("{0} was skipped".format(method_name))
@@ -166,9 +176,8 @@ try:
     
     for line in out:
         method = line.replace("REFUSING TO INFER CONTRACT OF ", "")
-        parts = method.split(" ")
-
-        method_name = parts[0]
+        
+        method_name = method
         refused.append(method_name)
         print("{0} was refused".format(method_name))
         
@@ -188,9 +197,11 @@ if not len(methods)-len(completed) == 0:
     out = subprocess.check_output("cat {0} | grep '{1}'".format(file, timeout), shell=True).decode('utf-8').splitlines()
 
     for line in out:
-        parts = line.split(" ")
 
-        method_name = parts[3][0:-1]
+        method = line.replace("ABORTED INFERENCE OF ", "")
+        matches = re.findall(r"(.*\)).*", method)
+
+        method_name = matches[0]
         timeouts.append(method_name)
         print("{0} was ABORTED becase it timed out during inference.".format(method_name))
         
