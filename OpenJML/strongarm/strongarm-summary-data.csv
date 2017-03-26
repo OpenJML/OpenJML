@@ -1,5 +1,5 @@
 ,method,loc,cfg_depth,inferred,skipped,refused,time,error,timeout,initial_contract_loc,final_contract_loc
-0,org.apache.commons.csv.Assertions.Assertions(),3,33,True,False,False,37,False,False,-1,-1
+0,org.apache.commons.csv.Assertions.Assertions(),3,33,False,True,False,37,False,False,-1,-1
 1,"org.apache.commons.csv.Assertions.notNull(java.lang.Object,java.lang.String)",5,335,False,False,True,33,False,False,-1,-1
 2,org.apache.commons.csv.Constants.Constants(),3,303,False,False,True,58,False,False,-1,-1
 3,org.apache.commons.csv.CSVFormat.Predefined.Predefined(org.apache.commons.csv.CSVFormat),4,33,False,True,False,45,False,False,-1,-1
@@ -75,9 +75,9 @@
 73,org.apache.commons.csv.CSVFormat.withTrailingDelimiter(boolean),3,1432,False,False,True,127,False,False,-1,-1
 74,org.apache.commons.csv.CSVFormat.withTrim(),3,1420,False,False,True,133,False,False,-1,-1
 75,org.apache.commons.csv.CSVFormat.withTrim(boolean),3,1432,False,False,True,125,False,False,-1,-1
-76,org.apache.commons.csv.QuoteMode.QuoteMode(),3,21,True,False,False,8,False,False,-1,-1
-77,org.apache.commons.csv.Token.Token(),3,101,True,False,False,11,False,False,-1,-1
-78,org.apache.commons.csv.Token.Type.Type(),3,21,True,False,False,25,False,False,-1,-1
+76,org.apache.commons.csv.QuoteMode.QuoteMode(),3,21,False,True,False,8,False,False,-1,-1
+77,org.apache.commons.csv.Token.Token(),3,101,False,True,False,11,False,False,-1,-1
+78,org.apache.commons.csv.Token.Type.Type(),3,21,False,True,False,25,False,False,-1,-1
 79,org.apache.commons.csv.Token.reset(),5,117,False,True,False,9,False,False,-1,-1
 80,org.apache.commons.csv.Token.toString(),3,585,False,False,True,19,False,False,-1,-1
 81,"org.apache.commons.csv.CSVParser.parse(java.io.File,java.nio.charset.Charset,org.apache.commons.csv.CSVFormat)",5,891,False,False,True,52,False,False,-1,-1
@@ -93,7 +93,7 @@
 91,org.apache.commons.csv.CSVParser.getRecords(),11,385,False,False,True,37,False,False,-1,-1
 92,org.apache.commons.csv.CSVParser.initializeHeader(),36,973,False,False,True,100,False,False,-1,-1
 93,org.apache.commons.csv.CSVParser.isClosed(),3,79,True,False,False,133,False,False,33,4
-94,org.apache.commons.csv.CSVParser.1.(),3,45,True,False,False,8,False,False,-1,-1
+94,org.apache.commons.csv.CSVParser.1.(),3,45,False,True,False,8,False,False,-1,-1
 95,org.apache.commons.csv.CSVParser.1.getNextRecord(),8,180,True,False,False,257,False,False,9,5
 96,org.apache.commons.csv.CSVParser.1.hasNext(),9,97,True,False,False,230,False,False,58,18
 97,org.apache.commons.csv.CSVParser.1.next(),15,237,False,True,False,16,False,False,-1,-1

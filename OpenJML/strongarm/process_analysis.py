@@ -26,12 +26,14 @@ df = pd.read_csv(summary)
 
 # extract all the cases where we inferred something 
 
-inferred_df = df[(df['inferred']==True) & (df['cfg_depth'] > 0) ]
+inferred_df = df[(df['inferred']==True) & (df['cfg_depth'] > 0) & (df['initial_contract_loc'] > -1) & (df['final_contract_loc'] > -1) ]
 
 (tmin, tmax, tmean, tstd) = get_summary(inferred_df["time"])
 
 print("Min: {0}\nMax: {1}\nMean: {2}\nSTD: {3}".format(tmin, tmax, tmean, tstd))
 
+#%%
+inferred_df
 
 #%% 
 
@@ -157,6 +159,11 @@ for m in pdf["method"]:
     method_locs.append(mm)
 
 pdf['method_loc'] = method_locs
+
+
+#%%
+
+pdf["method_loc"]
 
 #%% 
 # v2 - v1 / v1
@@ -444,5 +451,6 @@ plt.savefig(figures_path + '/times-reduction-histogram.eps')
 plt.show()
 
 #%% 
-
-print(patches[0].get_height())
+nn = ndf[["initial_contract_loc", "final_contract_loc"]]
+nn["reduction"] = reductions
+nn

@@ -106,3 +106,24 @@ def extract_method_name(file, tag):
         data = []
 
     return data
+
+
+def extract_method_name_skipped(file, tag):
+        
+    the_tag = tag + " "
+    
+    data = []
+    try:
+        out = subprocess.check_output("cat {0} | grep -F '{1}'".format(file, the_tag), shell=True).decode('utf-8').splitlines()
+
+        
+        for line in out:
+            method = line.replace(the_tag, "")            
+            matches = re.findall(r"(.*\)).*\(SKIPPING\)", method)
+            method_name = matches[0]
+            data.append(method_name)
+            
+    except subprocess.CalledProcessError:
+        data = []
+
+    return data

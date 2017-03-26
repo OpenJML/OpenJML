@@ -27,6 +27,7 @@ exception_tag = "Inference ABORTED"
 complete_tag = "Completed inference of"
 cfg_depth_tag = "CFG DEPTH OF"
 skipped_tag="[STRONGARM] Skipping inference for"
+skipped_tag2="DID NOT INFER POSTCONDITION"
 refused_tag="REFUSING TO INFER CONTRACT OF"
 initial_tag = "INITIAL CONTRACT LENGTH"
 final_contract_tag   = "FINISHED INFERENCE OF"
@@ -80,6 +81,9 @@ cfg = util.extract_method_name_and_metric(file, cfg_depth_tag)
 # step 4 - skipped methods 
 
 skipped = util.extract_method_name(file, skipped_tag)
+skipped2 = util.extract_method_name_skipped(file, skipped_tag2)
+ 
+skipped = skipped + skipped2
 
 for m in skipped:
     print("{0} was skipped".format(m))
