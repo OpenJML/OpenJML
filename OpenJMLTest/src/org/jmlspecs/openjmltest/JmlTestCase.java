@@ -447,11 +447,10 @@ public abstract class JmlTestCase {
     }
     
     public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
-        String outputdir = "test/escTrace";
         String diffs = "";
         for (String f: new File(dir).list()) {
             if (!f.contains(root)) continue;
-            diffs = compareFiles(outputdir + "/" + f, actualFile);
+            diffs = compareFiles(dir + "/" + f, actualFile);
             if (diffs == null) break;
         }
         if (diffs != null) {

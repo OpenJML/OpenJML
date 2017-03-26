@@ -865,7 +865,7 @@ public class compiler {
 
     @Test
     public void release_testJmlBad_A() throws Exception {
-    	expectedFile = "releaseTests/testJmlBad/expected";
+    	expectedFile = "releaseTests/testJmlBadA/expected";
     	helper(new String[]
                 { "-verboseness"
                 },2,0
@@ -895,7 +895,7 @@ public class compiler {
 
     @Test
     public void release_testJmlBad3() throws Exception {
-    	expectedFile = "releaseTests/testJmlBad/expected";
+    	expectedFile = "releaseTests/testJmlBad3/expected";
     	helper(new String[]
                 { "-check","-java"
                 },2,0
