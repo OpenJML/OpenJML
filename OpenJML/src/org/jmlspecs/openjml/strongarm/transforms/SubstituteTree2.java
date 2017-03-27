@@ -97,6 +97,9 @@ public class SubstituteTree2 extends JmlTreeScanner{
             }
             
             JCIdent with = (JCIdent)with();
+            if(with==null || with.name==null){
+                return;
+            }
             tree.name = with.name;
             // also the symbol
             tree.sym  = with.sym;
@@ -196,7 +199,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
             //
             JCIdent lhs = (JCIdent)tree.lhs;
 
-            if(canReplace(lhs) && isRedundant(tree)==false){
+            if(canReplace(lhs) && isRedundant(tree)==false && replace()!=null && with()!=null){
                 
                 if (verbose) {
                     log.getWriter(WriterKind.NOTICE).println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
