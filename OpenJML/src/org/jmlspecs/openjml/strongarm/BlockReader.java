@@ -1049,7 +1049,7 @@ public class BlockReader {
             return false; //JCUnary
         }
         if(isBranchStmt(jmlStmt)){
-            if(jmlStmt.expression instanceof JCBinary && ((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){
+            if(jmlStmt.expression instanceof JCBinary && (((JCBinary)jmlStmt.expression).lhs) instanceof JCIdent &&  ((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith("_JML___")){
                 return true;
             }
             

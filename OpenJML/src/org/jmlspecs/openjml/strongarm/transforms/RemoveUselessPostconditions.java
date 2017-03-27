@@ -94,6 +94,11 @@ public class RemoveUselessPostconditions extends JmlTreeScanner {
             
             //TODO - it's possible no cases will be feasible -- make sure 
             // to add some code to handle this edge case.
+            
+            if(cases.head == null || cases.head.clauses==null || cases.head.clauses.head==null){
+                continue;
+            }
+            
             if(cases.head.clauses.head instanceof JmlMethodClauseExpr){
                 if(isUseful(cases.head.clauses)){
                     if(replacedCases == null){
