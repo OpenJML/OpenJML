@@ -52,7 +52,7 @@ plt.savefig(figures_path + '/time-vs-loc.png')
 plt.savefig(figures_path + '/time-vs-loc.pdf')
 plt.savefig(figures_path + '/time-vs-loc.eps')
 
-plt.show()
+plt.clf()
 
 
 #%% 
@@ -73,7 +73,7 @@ plt.savefig(figures_path + '/time-vs-cfg-depth.png')
 plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
 plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
 
-plt.show()
+plt.clf()
 
 
 #%% 
@@ -92,7 +92,7 @@ plt.savefig(figures_path + '/cfg-depth-vs-loc.png')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.pdf')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.eps')
 
-plt.show()
+plt.clf()
 
 #%% 
 
@@ -305,7 +305,7 @@ plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf')
 plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps')
 
 
-plt.show()
+plt.clf()
 
 #%%
 
@@ -332,7 +332,7 @@ plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.eps')
 
-plt.show()
+plt.clf()
 
 
 # Same but for CFG
@@ -352,7 +352,7 @@ plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.eps')
 
-plt.show()
+plt.clf()
 
 
 #%% Initial Inferred spec vs Final Size (How good is our reduction?)
@@ -378,7 +378,7 @@ plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.eps')
 
-plt.show()
+plt.clf()
 
 #%%
 
@@ -407,7 +407,7 @@ plt.savefig(figures_path + '/percent-reduction-histogram.pdf')
 plt.savefig(figures_path + '/percent-reduction-histogram.eps')
 
 
-plt.show()
+plt.clf()
 
 #%% times smaller 
 
@@ -449,7 +449,7 @@ plt.savefig(figures_path + '/times-reduction-histogram.pdf')
 plt.savefig(figures_path + '/times-reduction-histogram.eps')
 
 
-plt.show()
+plt.clf()
 
 #%% 
 #nn = ndf[["initial_contract_loc", "final_contract_loc"]]
@@ -489,7 +489,7 @@ plt.savefig(figures_path + '/percent-reduction-pie.pdf')
 plt.savefig(figures_path + '/percent-reduction-pie.eps')
 
 
-plt.show()
+plt.clf()
 
 #%%
 list(map(lambda x : x, range(10,100,10)))

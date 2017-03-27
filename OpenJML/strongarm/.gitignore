@@ -5,3 +5,5 @@ kernel*.json
 *.out.compact
 /run.out.commons-csv
 /run.out.compact.json-java
+run.out*
+*.csv
