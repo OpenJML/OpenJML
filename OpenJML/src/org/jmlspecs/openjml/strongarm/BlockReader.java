@@ -251,17 +251,17 @@ public class BlockReader {
             return null; // TODO - do something else here? can we do something else?
         }
 
+        initSp();
+        
         //
         // begin execution
         //
         // normal execution skips the bodyBegin block
         if(startBlock.followers().get(0).id().getName().toString().contains("bodyBegin")){
-            return sp(pre, startBlock.followers().get(0).followers().get(0));            
+            postcondition =  sp(pre, startBlock.followers().get(0).followers().get(0));            
+        }else{        
+            postcondition = sp(precondition, startBlock.followers().get(0));
         }
-        
-        initSp();
-        
-        postcondition = sp(precondition, startBlock.followers().get(0));
         
         
         return postcondition;

@@ -117,6 +117,11 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         
         JCExpression e = null;
         
+        if(def==null){
+            log("[SUBS] Skipping synthetic precondition (nothing to substitute)");
+            return;
+        }
+
         log("Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         // build a list of substitutions by following the mapping backwards.
         
@@ -145,6 +150,12 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
     
     public void replace3(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
                 
+        if(def==null){
+            log("[SUBS] Skipping synthetic precondition (nothing to substitute)");
+            return;
+        }
+
+        
         log("[SUBS ] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));        
         
@@ -202,7 +213,11 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             replace3(mappings, limitDepth);
             return;
         }
-                
+
+        if(def==null){
+            log("[SUBS] Skipping synthetic precondition (nothing to substitute)");
+            return;
+        }
         log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path

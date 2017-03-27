@@ -60,6 +60,29 @@ public class PropagateResults extends JmlTreeScanner {
             
     }
     
+    public boolean shouldConvert(JmlMethodClause clause){
+        if(clause instanceof JmlMethodClauseExpr){
+            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+            
+            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
+                JCBinary expr = (JCBinary)mExpr.expression;
+                
+                if(expr.lhs.toString().equals("\\result") 
+                        && expr.rhs.toString().startsWith(Strings.newObjectVarString)
+                        
+                        ){
+                    
+                    if(verbose){
+                        log.getWriter(WriterKind.NOTICE).println("[PropagateResults] Will convert the clause " + clause.toString());
+                    }
+                    
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
     
     /**
      * Locals removed if they are a formal and primative OR if they are just local. Fields stay.  
@@ -107,6 +130,18 @@ public class PropagateResults extends JmlTreeScanner {
         return false;
     }
     
+    public JmlMethodClause convert(JmlMethodClause clause){
+        
+        if(clause instanceof JmlMethodClauseExpr){
+            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+            
+            mExpr.expression = treeutils.makeIdent(0, "\\fresh(\\result)", syms.objectType);
+            
+            
+        }
+        return clause;
+    }
+    
     public void filterBlock(JmlSpecificationCase block){
         
         List<JmlMethodClause> replacedClauses = null;
@@ -116,8 +151,15 @@ public class PropagateResults extends JmlTreeScanner {
             
         }
         for(List<JmlMethodClause> clauses = block.clauses; clauses.nonEmpty(); clauses = clauses.tail){
-                        
-            if(shouldRemove(clauses.head) == false){
+            if(shouldConvert(clauses.head)){               
+            
+                if(replacedClauses == null){
+                    replacedClauses = List.of(convert(clauses.head));
+                }else{
+                    replacedClauses = replacedClauses.append(convert(clauses.head));
+                }
+            
+            }else if(shouldRemove(clauses.head) == false){
                 if(replacedClauses == null){
                     replacedClauses = List.of(clauses.head);
                 }else{

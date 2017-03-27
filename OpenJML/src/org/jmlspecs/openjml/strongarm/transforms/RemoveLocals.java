@@ -86,16 +86,16 @@ public class RemoveLocals extends JmlTreeScanner {
 
             }
             
-            if(mExpr.expression.toString().contains("_JML___NEWOBJECT_7181")){
-             
-                
-                if(verbose){
-                    log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove this clause because it references \\fresh variables (which are not implemented). " + clause.toString());
-                }
-                
-                return true;
-
-            }
+//            if(mExpr.expression.toString().contains("_JML___NEWOBJECT")){
+//             
+//                
+//                if(verbose){
+//                    log.getWriter(WriterKind.NOTICE).println("[RemoveLocals] Will remove this clause because it references \\fresh variables (which are not implemented). " + clause.toString());
+//                }
+//                
+//                return true;
+//
+//            }
 
             if(mExpr.expression.toString().contains("null != null") || mExpr.expression.toString().contains("TRUE != null") || mExpr.expression.toString().contains("FALSE != null")){
                 

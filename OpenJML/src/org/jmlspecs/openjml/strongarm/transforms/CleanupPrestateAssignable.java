@@ -78,6 +78,15 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
                     return true;
             }
             
+            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable \\result")){
+                return true;
+            }
+        
+            if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable true")){
+                return true;
+            }
+        
+            
             if(mExpr.token == JmlTokenKind.ASSIGNABLE && mExpr.toString().startsWith("assignable " + Strings.newArrayVarString)){
                 return true;
             }
@@ -94,6 +103,14 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         }
         
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().equals("true"))){
+            return true;
+        }
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("!true"))){
+            return true;
+        }
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().equals("true == true"))){
             return true;
         }
         
