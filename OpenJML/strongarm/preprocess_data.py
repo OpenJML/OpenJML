@@ -10,14 +10,17 @@ import re
 import utils as util
 
 # first argument should be the log file from strongarm
-f = "run.out.commons-csv" #sys.argv[1]
+#f = "run.out.json-java" 
+#test_case_name = "Commons-CSV"
 
+f = sys.argv[1]
+test_case_name = sys.argv[2]
+file = f + ".compact"
 
-out = subprocess.check_output("grep -F -f patterns.txt {0} > run.out.compact".format(f), shell=True)
+out = subprocess.check_output("grep -F -f patterns.txt {0} > {1}".format(f, file), shell=True)
 
 
 print("Finished Creating Compact file...")
-file = "run.out.compact"
 
 
 # everything we ATTEMPTED
@@ -120,7 +123,7 @@ _, initial_locs, _ = util.extract_method_name_and_loc_and_timing(file, initial_t
 _, final_locs      = util.extract_method_name_and_loc(file, final_contract_tag)
 
 
-file_tag = "data" #datetime.datetime.now().isoformat()
+file_tag = test_case_name #datetime.datetime.now().isoformat()
 
 #%%
 skipped

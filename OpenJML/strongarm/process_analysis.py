@@ -8,7 +8,8 @@ import os
 import subprocess
 import sys 
 
-eval_name = "Commons-CSV" #sys.argv[1]
+eval_name = sys.argv[1]
+#eval_name = "Commons-CSV" #sys.argv[1]
 
 #eval_name = "JSON-Java" #sys.argv[1]
 figures_path = "figures/{0}".format(eval_name)
@@ -20,7 +21,7 @@ def get_summary(d):
 
 #plt.rcParams['figure.figsize'] = (15, 10)
 
-summary = "strongarm-summary-data.csv"
+summary = "strongarm-summary-{0}.csv".format(eval_name)
 
 df = pd.read_csv(summary)
 
@@ -95,7 +96,7 @@ plt.show()
 
 #%% 
 
-pipeline = "strongarm-pipeline-steps-data.csv"
+pipeline = "strongarm-pipeline-steps-{0}.csv".format(eval_name)
 
 pdf = pd.read_csv(pipeline)
 

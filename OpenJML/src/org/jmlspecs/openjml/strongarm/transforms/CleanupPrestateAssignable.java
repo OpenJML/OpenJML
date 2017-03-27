@@ -126,6 +126,14 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
         
+        if(clause.toString().contains(Strings.newObjectVarString)){
+            return true;
+        }
+        
+        if(clause.toString().contains("\"null\" != null;") || clause.toString().contains("\"\" != null;")){
+            return true;
+        }
+        
         return false;
     }
     
