@@ -77,8 +77,9 @@ public class RemoveDuplicateAssignments extends JmlTreeScanner {
         JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
         
         // see if it's an assignment statement. 
-        if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).operator.toString().startsWith("==")){
+        if(mExpr.expression instanceof JCBinary && ((JCBinary)mExpr.expression).lhs !=null && ((JCBinary)mExpr.expression).operator.toString().startsWith("==")){
 
+            
             String ident = ((JCBinary)mExpr.expression).lhs.toString();
             
             for(; clauses.nonEmpty(); clauses = clauses.tail){

@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.strongarm;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,10 +97,12 @@ public class SubstitutionCache {
         
         ArrayList<JCTree> subs = new ArrayList<JCTree>();
         
-        if(possibleMatches!=null){
-        
+        if(possibleMatches!=null){        
             // get possible substitutions along this path
-            for(Pair<String,JCTree> p : possibleMatches ){
+            Iterator<Pair<String,JCTree>> it = possibleMatches.iterator();
+            
+            while(it.hasNext()){
+                Pair<String,JCTree> p = it.next();
                 if(path.contains(p.fst)){
                     subs.add(p.snd);
                 }

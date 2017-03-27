@@ -90,7 +90,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
     public void visitIdent(JCIdent tree){
         if(tree==null) return;
         
-        if(canReplace(tree) && with() instanceof JCIdent){
+        if(canReplace(tree) && with() instanceof JCIdent && with()!=null && replace()!=null){
             
             if(verbose){
                 log.getWriter(WriterKind.NOTICE).println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
@@ -238,7 +238,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(access.selected instanceof JCIdent){
             JCIdent selected = (JCIdent)access.selected;
             
-            if(canReplace(selected)){
+            if(canReplace(selected) && with()!=null && replace()!=null){
 
                 if (verbose) {
                     log.getWriter(WriterKind.NOTICE).println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
