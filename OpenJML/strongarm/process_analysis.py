@@ -452,9 +452,9 @@ plt.savefig(figures_path + '/times-reduction-histogram.eps')
 plt.show()
 
 #%% 
-nn = ndf[["initial_contract_loc", "final_contract_loc"]]
-nn["reduction"] = reductions
-nn
+#nn = ndf[["initial_contract_loc", "final_contract_loc"]]
+#nn["reduction"] = reductions
+#nn
 
 #%% 
 
