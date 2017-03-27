@@ -13,7 +13,7 @@ import utils as util
 f = "run.out.commons-csv" #sys.argv[1]
 
 
-#out = subprocess.check_output("grep -F -f patterns.txt {0} > run.out.compact".format(f), shell=True)
+out = subprocess.check_output("grep -F -f patterns.txt {0} > run.out.compact".format(f), shell=True)
 
 
 print("Finished Creating Compact file...")

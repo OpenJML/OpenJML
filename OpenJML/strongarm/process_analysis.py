@@ -454,3 +454,41 @@ plt.show()
 nn = ndf[["initial_contract_loc", "final_contract_loc"]]
 nn["reduction"] = reductions
 nn
+
+#%% 
+
+reductions = (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
+
+# as a pie chart
+
+labels = '0-20%', '20-40%', '40-60%', '60-80%', "80-100%"
+
+def filter_between(low, high):
+    return list(filter(lambda x : x >= low and x < high, reductions))
+
+fb = filter_between
+
+values = np.array([fb(0,20), fb(20,40), fb(40,60), fb(60,80), fb(80,100)])
+
+buckets = list(map(lambda x : len(x), values))
+
+sizes = buckets
+#sizes = [15, 30, 45, 10]
+
+cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,10)))
+
+fig1, ax1 = plt.subplots()
+ax1.pie(sizes, labels=labels, autopct='%1.1f%%',startangle=90, colors=cls)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
+plt.title("Percent Reduction of Final Contract as Percentage of Initial\n{0}".format(eval_name))
+
+
+plt.savefig(figures_path + '/percent-reduction-pie.png')
+plt.savefig(figures_path + '/percent-reduction-pie.pdf')
+plt.savefig(figures_path + '/percent-reduction-pie.eps')
+
+
+plt.show()
+
+#%%
+list(map(lambda x : x, range(10,100,10)))
