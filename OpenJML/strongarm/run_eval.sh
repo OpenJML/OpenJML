@@ -5,7 +5,7 @@ MAX_DEPTH=300
 JVM_OPTS="-Xmx10G -Xms1G"
 JAVA=/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/bin/java 
 
-EVALS=( "json-java" "commons-csv" "commons-cli" )
+EVALS=( "json-java" "commons-csv" "commons-cli" "junit4" )
 
 
 for e in "${EVALS[@]}"
