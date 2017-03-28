@@ -1,0 +1,28 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-64
+bokeh=0.12.4=py36_0
+jinja2=2.9.5=py36_0
+markupsafe=0.23=py36_2
+mkl=2017.0.1=0
+mpmath=0.19=py36_1
+numpy=1.12.0=py36_0
+openssl=1.0.2k=0
+pandas=0.19.2=np112py36_1
+pip=9.0.1=py36_1
+python=3.6.0=0
+python-dateutil=2.6.0=py36_0
+pytz=2016.10=py36_0
+pyyaml=3.12=py36_0
+readline=6.2=2
+requests=2.13.0=py36_0
+setuptools=27.2.0=py36_0
+six=1.10.0=py36_0
+sqlite=3.13.0=0
+sympy=1.0=py36_0
+tk=8.5.18=0
+tornado=4.4.2=py36_0
+wheel=0.29.0=py36_0
+xz=5.2.2=1
+yaml=0.1.6=0
+zlib=1.2.8=3

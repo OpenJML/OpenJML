@@ -77,6 +77,11 @@ public class RemoveContradictions extends JmlTreeScanner {
 
     protected boolean isFeasible(List<JmlMethodClause> clauses) {
 
+        Set<String> maybeUnaryNot = new HashSet<String>();
+        Set<String> maybeUnary = new HashSet<String>();
+        
+        Set<String> maybeNE = new HashSet<String>();
+        
         for (JmlMethodClause c : clauses) {
             
             if(c instanceof JmlMethodClauseGroup){
@@ -89,6 +94,51 @@ public class RemoveContradictions extends JmlTreeScanner {
                         || expr.expression.toString().equals("!(true)")) {
                     return false;
                 }
+                
+                JCExpression e = expr.expression;
+
+                // put it in the right bucket
+                if(e.toString().startsWith("!")){
+                    String s = e.toString();
+                    maybeUnaryNot.add(s);
+                }else{
+                    String s = e.toString();
+                    maybeUnary.add(s);
+                }
+                
+                // check the OTHER list.
+                if(e.toString().startsWith("!")){
+                    String s = e.toString();
+                    s = s.substring(2).substring(0, s.length()-4) + ";";
+                    
+                    if(maybeUnary.contains(s)){
+                        return false;
+                    }
+                }else{
+                    String s = e.toString();
+                    
+                    s = "!(" + s.substring(0, s.length()-1) + ");";
+
+                    if(maybeUnaryNot.contains(s)){
+                        return false;
+                    }
+                    
+                }
+                
+                
+                String s = expr.toString();
+                              
+                
+                if(s.contains("!=") && maybeNE.contains(s.replaceAll("!=", "=="))){
+                    return false;
+                }
+                
+                if(s.contains("==")){
+                    maybeNE.add(s);
+                }
+            
+                
+            
             }
         }
 

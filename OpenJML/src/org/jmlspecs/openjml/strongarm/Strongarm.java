@@ -500,7 +500,7 @@ public class Strongarm
 
         }
                  
-        if(reader.blocks.size() <= 50){
+        if(reader.blocks.size() <= 300){
             
             t = Timing.start();
             
@@ -832,6 +832,19 @@ public class Strongarm
         }
         
         
+        
+        
+        t = Timing.start();
+        
+        RemoveContradictions.simplify(contract);
+
+        if (verbose) {
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        }
         
         
         //
