@@ -191,7 +191,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
            
             com.sun.tools.javac.util.List JDKList;
 
-            
+            if(lastClass==null){ return; }
             utils.progress(1,1,"[STRONGARM] Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
             Path writeTo = filenameForSource(source);
