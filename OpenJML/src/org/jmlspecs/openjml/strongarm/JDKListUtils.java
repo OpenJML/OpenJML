@@ -75,7 +75,17 @@ public class JDKListUtils {
     }
     
     public static int countLOC(String s){
-        return s.split("\n").length;
+        int count = 0;
+        for(String part : s.split("\n")){
+            if(part.length()==0){
+                continue;
+            }
+            String p = part.trim();
+            if(p.length() > 0 && !p.startsWith("/*@") && !p.startsWith("*/") && !p.startsWith("public normal_behavior")){
+                count++;
+            }
+        }
+        return count;
     }
     public static int countLOC(JCTree t){
         return countLOC(JmlPretty.write(t)); 

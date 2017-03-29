@@ -62,7 +62,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
         return key;
     }
 
-    synchronized private void emitStrongarmFatalError(String method, Exception e){
+    synchronized static public void emitStrongarmFatalError(String method, Exception e){
         File file = new File("strongarm-error.log");
         try {
             PrintStream ps = new PrintStream(new FileOutputStream(file, true));
@@ -96,14 +96,29 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                   
                     return elapsed;
                     
-                } catch (Exception e) {
+                }
+                catch (StackOverflowError so) {
+                    
+                    methodDecl.cases = null;
+                    methodDecl.methodSpecsCombined = null;
+
+                    Exception e = new Exception("Stackoverflow error during inference.");
+                    
+                    emitStrongarmFatalError(utils.qualifiedMethodSig(methodDecl.sym), e);
+                    e.printStackTrace();
+                    
+                    utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
+                            + " - exception"
+                            );
+                    return -1L;
+                } 
+                catch (Exception e) {
                     
                     methodDecl.cases = null;
                     methodDecl.methodSpecsCombined = null;
 
                     emitStrongarmFatalError(utils.qualifiedMethodSig(methodDecl.sym), e);
                     e.printStackTrace();
-                    log.error("jml.internal","Inference aborted with exception: " + e.getMessage());
                     
                     utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
                             + " - exception"

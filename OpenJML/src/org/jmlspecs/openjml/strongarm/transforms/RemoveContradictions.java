@@ -153,6 +153,7 @@ public class RemoveContradictions extends JmlTreeScanner {
 
         List<JmlSpecificationCase> replacedCases = null;
 
+        if(tree!=null && tree.cases!=null && tree.cases.head!=null && tree.cases.head.clauses!=null && tree.cases.head.clauses.head!=null){
         if (tree.cases.head.clauses.head instanceof JmlMethodClauseExpr) {
 
             for (List<JmlSpecificationCase> cases = tree.cases; cases.nonEmpty(); cases = cases.tail) {
@@ -173,6 +174,9 @@ public class RemoveContradictions extends JmlTreeScanner {
             tree.cases = replacedCases;
         } else {
             super.visitJmlMethodClauseGroup(tree);
+        }
+        }else{
+            super.visitJmlMethodClauseGroup(tree);            
         }
     }
 

@@ -132,7 +132,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         StringWriter sw = new StringWriter();
         JmlPretty p = new JmlPretty(sw,source);
         p.width = 2;
-        tree.accept(p);
+        if(tree!=null)
+            tree.accept(p);
         return sw.toString();
     }
     

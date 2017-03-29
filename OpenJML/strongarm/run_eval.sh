@@ -1,15 +1,30 @@
 #!/usr/local/bin/bash
 
 TIMEOUT=300
-MAX_DEPTH=300
-JVM_OPTS="-Xmx10G -Xms1G"
-JAVA=/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/bin/java 
+MAX_DEPTH=1000
+JVM_OPTS="-Xmx30G -Xms10G -XX:+UseParallelGC -XX:+AggressiveHeap"
+JAVA=java
+#/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/bin/java 
 
-EVALS=( "json-java" "commons-csv" "commons-cli" "junit4" )
+killall -9 tail 
+
+EVALS=("junit4" "json-java" "commons-csv" "commons-cli"  )
+
+if [ $# -eq 1 ]; then
+    echo "Overriding test suite with parameter: $1"
+    EVALS=( $1 )
+fi
+
 
 
 for e in "${EVALS[@]}"
 do
+
+    if [ ! -f strongarm/evals.conf.d/$e.conf ]; then
+        echo "Configuration File strongarm/evals.conf.d/$e.conf not found."
+        exit 
+    fi
+
     source strongarm/evals.conf.d/$e.conf
 
     echo -e "\e[4mEvaluating $EVAL_NAME...\e[0m"

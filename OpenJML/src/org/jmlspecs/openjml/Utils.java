@@ -814,6 +814,19 @@ public class Utils {
 
         return sb.toString();
     }
+    
+    public String qualifiedMethodSigWithContractLOC(JmlMethodDecl methodDecl, int loc) {
+        
+        
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(qualifiedMethodSig(methodDecl.sym));
+        sb.append(" (");
+        sb.append(loc);
+        sb.append(" LOC)");
+
+        return sb.toString();
+    }
 
     
     /** Returns a method signature with a fully-qualified method name */

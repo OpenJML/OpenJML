@@ -8,8 +8,8 @@ import os
 import subprocess
 import sys 
 
-eval_name = sys.argv[1]
-#eval_name = "Commons-CSV" #sys.argv[1]
+#eval_name = sys.argv[1]
+eval_name = "JSON-Java" #sys.argv[1]
 
 #eval_name = "JSON-Java" #sys.argv[1]
 figures_path = "figures/{0}".format(eval_name)
@@ -52,8 +52,8 @@ plt.savefig(figures_path + '/time-vs-loc.png')
 plt.savefig(figures_path + '/time-vs-loc.pdf')
 plt.savefig(figures_path + '/time-vs-loc.eps')
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 
 #%% 
 
@@ -73,8 +73,8 @@ plt.savefig(figures_path + '/time-vs-cfg-depth.png')
 plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
 plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 
 #%% 
 ndf = df[(df['loc'] > 0) & (df['cfg_depth'] > 0)]
@@ -92,8 +92,8 @@ plt.savefig(figures_path + '/cfg-depth-vs-loc.png')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.pdf')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.eps')
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 #%% 
 
 pipeline = "strongarm-pipeline-steps-{0}.csv".format(eval_name)
@@ -305,8 +305,8 @@ plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf')
 plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps')
 
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 #%%
 
 ndf = inferred_df[inferred_df["initial_contract_loc"] > -1]
@@ -332,19 +332,19 @@ plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.eps')
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 
 # Same but for CFG
 
 
-y = ndf['cfg_depth']
-x = ndf['final_contract_loc']
+x = ndf['cfg_depth']
+y = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("CFG Size (Nodes) vs Final Specification Length (LOC)\n{0}".format(eval_name))
-plt.xlabel('Final Contract Length (LOC)')
-plt.ylabel('CFG Size (Nodes)')
+plt.title("Final Specification Length (LOC) vs CFG Size (Nodes)\n{0}".format(eval_name))
+plt.ylabel('Final Contract Length (LOC)')
+plt.xlabel('CFG Size (Nodes)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
@@ -352,19 +352,19 @@ plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.eps')
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 
 #%% Initial Inferred spec vs Final Size (How good is our reduction?)
 
 
-y = ndf['initial_contract_loc']
-x = ndf['final_contract_loc']
+x = ndf['initial_contract_loc']
+y = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Initial Contract Length (LOC) vs Final Specification Length (LOC)\n{0}".format(eval_name))
-plt.xlabel('Final Contract Length (LOC)')
-plt.ylabel('Initial Contract Length (LOC)')
+plt.title("Final Specification Length (LOC) vs Initial Contract Length (LOC)\n{0}".format(eval_name))
+plt.ylabel('Final Contract Length (LOC)')
+plt.xlabel('Initial Contract Length (LOC)')
 #plt.yscale('log')
 plt.ylim([0,3000])
 
@@ -378,7 +378,8 @@ plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.eps')
 
-plt.clf()
+#plt.clf()
+plt.show()
 
 #%%
 
@@ -407,8 +408,8 @@ plt.savefig(figures_path + '/percent-reduction-histogram.pdf')
 plt.savefig(figures_path + '/percent-reduction-histogram.eps')
 
 
-plt.clf()
-
+#plt.clf()
+plt.show() 
 #%% times smaller 
 
 reductions = (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
@@ -449,8 +450,8 @@ plt.savefig(figures_path + '/times-reduction-histogram.pdf')
 plt.savefig(figures_path + '/times-reduction-histogram.eps')
 
 
-plt.clf()
-
+#plt.clf()
+plt.show()
 #%% 
 #nn = ndf[["initial_contract_loc", "final_contract_loc"]]
 #nn["reduction"] = reductions
@@ -458,7 +459,7 @@ plt.clf()
 
 #%% 
 
-reductions = (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
+reductions = 100 - (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
 
 # as a pie chart
 
@@ -477,6 +478,7 @@ sizes = buckets
 #sizes = [15, 30, 45, 10]
 
 cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,10)))
+cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,50)))
 
 fig1, ax1 = plt.subplots()
 ax1.pie(sizes, labels=labels, autopct='%1.1f%%',startangle=90, colors=cls)
@@ -489,7 +491,48 @@ plt.savefig(figures_path + '/percent-reduction-pie.pdf')
 plt.savefig(figures_path + '/percent-reduction-pie.eps')
 
 
-plt.clf()
-
+#plt.clf()
+plt.show() 
 #%%
 list(map(lambda x : x, range(10,100,10)))
+
+
+#%%
+
+# breakdown of method results 
+
+summary = "strongarm-summary-{0}.csv".format(eval_name)
+
+df = pd.read_csv(summary)
+#%%
+# categories 
+
+labels = 'Inferred', 'Timeout', 'Refused', 'Error', 'Skipped'
+
+def fb(xx):
+    return len(df[df[xx]==True])
+
+
+values = np.array([fb('inferred'), fb('skipped'), fb('refused'), fb('error'), fb('timeout')]) 
+
+buckets = values
+
+sizes = buckets
+#sizes = [15, 30, 45, 10]
+
+cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,50)))
+
+fig1, ax1 = plt.subplots()
+patches = ax1.pie(sizes, labels=labels, autopct='%1.1f%%',startangle=90, colors=cls)[0]
+
+#patches[0].set_hatch('//') 
+#patches[1].set_hatch('+') 
+#patches[2].set_hatch('o') 
+
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
+plt.title("Breakdown of Inference Outcomes\n{0}".format(eval_name))
+
+
+plt.savefig(figures_path + '/inference-breakdown-pie.png')
+plt.savefig(figures_path + '/inference-breakdown-pie.pdf')
+plt.savefig(figures_path + '/inference-breakdown-pie.eps')

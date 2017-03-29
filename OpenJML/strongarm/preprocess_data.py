@@ -70,7 +70,7 @@ for m in methods:
 print("[INFO] Strongarm attempted to infer {0} Methods.".format(len(methods))) 
 
 # step 2 - ok find out which ones we actually inferred. 
-methods, completed = util.extract_method_name_and_ts(file, complete_tag)
+_, completed = util.extract_method_name_and_ts(file, complete_tag)
 
 for method_name,ts in completed:
     print("{0} was inferred in {1} ms".format(method_name, ts))

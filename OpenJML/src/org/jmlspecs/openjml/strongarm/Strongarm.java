@@ -156,8 +156,11 @@ public class Strongarm
     public void infer(JmlMethodDecl methodDecl) {
 
         // first, we translate the method to the basic block format
-        boolean printContracts = infer.printContracts;
-        boolean verbose        = infer.verbose;
+        boolean printContracts    = infer.printContracts;
+        boolean verbose           = infer.verbose;
+        int initialContractLength = JDKListUtils.countLOC(methodDecl.cases);
+        
+        
 
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
 
@@ -377,7 +380,16 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl)); //$NON-NLS-1$
+            
+            
+            if(JDKListUtils.countLOC(methodDecl.cases) ==  initialContractLength){
+                // we didn't contribute anything.
+                log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl,0)); //$NON-NLS-1$
+
+            }else{
+                log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl)); //$NON-NLS-1$
+            }
+            
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
         }
         
@@ -408,7 +420,8 @@ public class Strongarm
             
             return null;
         }
-        
+       
+       
         
         BlockReader reader = new BlockReader(context, program.blocks(), basicBlocker);
         

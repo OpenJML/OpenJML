@@ -135,6 +135,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** Initializes assertionAdder **/
         public boolean check(JCTree tree) {
             this.assertionAdder = new JmlAssertionAdder(context, true, false);
+            this._JML_ERROR = false;
             try {
                 
                 if(tree instanceof JmlClassDecl){
@@ -149,13 +150,34 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 assertionAdder.convert(tree); // get at the converted tree through the map
                 tree.accept(this);
                 return true;
-            } catch (Exception e) {
-                log.error("jml.internal","Should not be catching an exception in JmlInfer.check");
+            } 
+            catch(StackOverflowError so){
+                Exception e = new Exception("Stack Overflow in OpenJML");
+                if(tree instanceof JmlClassDecl){
+                    JmlClassDecl cd = (JmlClassDecl)tree;
+
+                    JmlInferPostConditions.emitStrongarmFatalError(cd.sourcefile.toString(), e);
+                    this._JML_ERROR = true;
+                    tree.accept(this);
+
+                }else{
+                    JmlInferPostConditions.emitStrongarmFatalError(tree.toString(), e);
+                    this._JML_ERROR = true;
+                    tree.accept(this);
+
+                    
+                }
+            }
+            catch (Exception e) {
+                JmlInferPostConditions.emitStrongarmFatalError(tree.toString(), e);
+                ///log.error("jml.internal","Should not be catching an exception in JmlInfer.check");
             }
             
             return false;
             
         }
+        
+        private boolean _JML_ERROR = false;
         
         /** Visit a class definition */
         @Override
@@ -358,6 +380,20 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 //                markMethodSkipped(methodDecl," (because postcondition was already available annotation)");
 //                return;                
 //            }
+            
+            
+            try{
+                // also, let's not try to infer synthentic methods. 
+                   {
+                       if(methodDecl.toString().contains("public <init>")){
+                          return;                        
+                       }
+                   }
+                    
+            }catch(Exception e){}
+               
+            
+            
             utils.progress(1,1,"Starting " + inferenceType() + " inference of " + utils.qualifiedMethodSig(methodDecl.sym));
             
             if (verbose) {
@@ -368,6 +404,32 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.body));
             }
                         
+            
+            //
+            //
+            // We need to be able to tell the difference between a OpenJML error and a Strongarm error. For this reason we 
+            // will say we "start" the inference, but abort because of an error. 
+            //
+            //
+            if(this._JML_ERROR){
+            
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); //$NON-NLS-1$
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("Inference ABORTED (OPENJML ERROR) " + utils.qualifiedMethodSig(methodDecl.sym) + " (" +  JDKListUtils.countLOC(methodDecl.body) + " LOC)"); //$NON-NLS-1$
+                    log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl.body));
+                }
+                
+                
+                
+                
+                
+                return;
+            }
+            
+            
+            
             inferContract(methodDecl);
         }
             
