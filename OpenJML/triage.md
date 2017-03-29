@@ -1,5 +1,18 @@
 # Bug Triage 
 
+```
+at com.sun.tools.javac.util.List.get(List.java:475)
+at java.lang.String.substring(String.java:1967)
+at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901)
+at org.jmlspecs.openjml.strongarm.transforms.PropagateResults.shouldConvert(PropagateResults.java:71)
+at org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments.shouldRemove(RemoveDuplicateAssignments.java:92)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.handleField(SubstituteTree2.java:256)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.nameAssignmentIsntRedundant(SubstituteTree2.java:373)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitBinary(SubstituteTree2.java:205)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitIdent(SubstituteTree2.java:96)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitParens(SubstituteTree2.java:141)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitUnary(SubstituteTree2.java:117)
+```
 
 
 # Translation Issues

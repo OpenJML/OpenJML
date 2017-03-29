@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -101,11 +102,19 @@ public class SubstitutionCache {
             // get possible substitutions along this path
             Iterator<Pair<String,JCTree>> it = possibleMatches.iterator();
             
+            try {
             while(it.hasNext()){
                 Pair<String,JCTree> p = it.next();
+                
                 if(path.contains(p.fst)){
                     subs.add(p.snd);
                 }
+                
+            }
+            // this happens under stress -- not sure why. 
+            // TODO - refactor this. 
+            }catch(ConcurrentModificationException e){
+                return subs;
             }
         
         }
