@@ -377,6 +377,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void attribClass(ClassSymbol c) throws CompletionFailure {
+    	if (c.type instanceof Type.IntersectionClassType) {
+    		// FIXME - what should we do in this case?
+    		super.attribClass(c);
+    		return;
+    	}
         boolean isUnattributed =  (c.flags_field & UNATTRIBUTED) != 0;
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Attributing-requested " + c + " specs="+(specs.get(c)!=null) + " env="+(enter.getEnv(c)!=null));
         
@@ -620,6 +625,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
 
                 this.env = prevEnv;
+            } else if (c.type instanceof Type.IntersectionClassType){
+            	// FIXME - what should really be done here
             } else {
                 log.warning("jml.internal.notsobad","Unexpected lack of class specs structure for " + c);
             }
