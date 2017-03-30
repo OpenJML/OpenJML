@@ -108,7 +108,7 @@ public class JmlCheck extends Check {
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (sym.kind == Kinds.ERR) return flags;
         if (staticOldEnv) flags &= ~Flags.STATIC;
-        long k = super.checkFlags(pos,flags&~Flags.DEFAULT,sym,tree);
+        long k = super.checkFlags(pos,flags,sym,tree);
         if (staticOldEnv) { k |= Flags.STATIC; }
         if (tree instanceof JCTree.JCVariableDecl) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
