@@ -234,7 +234,7 @@ public class JmlEsc extends JmlTreeScanner {
         }
         utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         log.resetRecord();
-        int prevErrors = log.nerrors;
+//        int prevErrors = log.nerrors;
 
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
         if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
@@ -275,24 +275,25 @@ public class JmlEsc extends JmlTreeScanner {
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
                     );
-            if (log.nerrors != prevErrors) {
-                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
-            }
+//            if (log.nerrors != prevErrors) {
+//                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
+//            }
 
         } catch (Main.JmlCanceledException | PropagatedException e) {
+            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
+           // FIXME - the following will through an exception because progress checks whether the operation is cancelled
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
-            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
             throw e;
         } catch (Exception e) {
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
             log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"
                     );
-            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
             // FIXME - add a message? use a factory?
         } finally {
         	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);

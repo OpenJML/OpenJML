@@ -4349,6 +4349,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     @Override
     public void visitLambda(JCLambda that) {
+        notImplemented(that,"cannot translate methods containing lambdas, yet");
         // FIXME - do something with lambdas
         result = eresult = that;
     }

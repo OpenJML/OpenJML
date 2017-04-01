@@ -560,7 +560,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         	utils.deleteHighlights(je.getResource(), null);
         	return;
     	}
-    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
+//    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
     	if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
     		utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
     	}

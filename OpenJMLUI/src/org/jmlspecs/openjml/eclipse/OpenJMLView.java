@@ -440,12 +440,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 					Kind k = pr.result();
 					String desc = k == IProverResult.UNSAT ? "consistent" 
 							: k == IProverResult.SAT ? "inconsistent"
-									: k == IProverResult.SKIPPED ? " skipped"
-											: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
-													: k == IProverResult.INFEASIBLE ? "infeasible"
-															: k == IProverResult.UNKNOWN ? "unknown" : "???";
-					Activator.utils().setTraceViewUI(null, info.signature,"Method and its specifications are " + desc + ": " 
-							+ info.key);
+							: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
+							: k.toString().toLowerCase();
+					Activator.utils().setTraceViewUI(null, info.signature,
+							(k == IProverResult.ERROR ? "Error occurred while checking method: "
+							                         : "Method and its specifications are " + desc + ": ") 
+							      + info.key);
 				}
 			}
 		}
@@ -456,7 +456,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		widgetSelected(e);
 	}
 
-	/** Launches a Java editor for the merthod or class that was clicked */
+	/** Launches a Java editor for the method or class that was clicked */
 	@Override
 	public void mouseDoubleClick(MouseEvent e) {
 		// Presumes a selection happened as part of the double click

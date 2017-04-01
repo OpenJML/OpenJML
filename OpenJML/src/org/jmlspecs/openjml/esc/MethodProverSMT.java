@@ -199,6 +199,7 @@ public class MethodProverSMT {
         boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
         log.useSource(methodDecl.sourcefile);
+        int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
         boolean printPrograms = jmlesc.verbose || JmlOption.isOption(context, JmlOption.SHOW);
@@ -346,6 +347,7 @@ public class MethodProverSMT {
                         ++k;
 //                        if (k < 290) continue;
 //                        if (k > 100) break;
+                        if (prevErrors != log.nerrors) break;
                         if (!usePushPop) {
                             ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
                             if (JmlAssertionAdder.useAssertCount) {
@@ -427,7 +429,7 @@ public class MethodProverSMT {
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
-                while (true) {
+                while (prevErrors == log.nerrors) {
 
                     if (solverResponse.isError()) {
                         solver.exit();
@@ -552,6 +554,7 @@ public class MethodProverSMT {
         smt.smtConfig.logfile = null;
 //        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
+        if (prevErrors != log.nerrors) return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         return proofResult;
         
     }

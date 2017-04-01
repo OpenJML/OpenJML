@@ -257,6 +257,9 @@ IWorkbenchPreferencePage {
         		    {Messages.OpenJMLUI_PreferencesPage_debug, Integer.toString(Utils.DEBUG)}},
                 getFieldEditorParent()));
         
+        addField(new BooleanFieldEditor(Options.showErrorPopupsKey, Messages.OpenJMLUI_PreferencesPage_ShowErrorPopups,
+                getFieldEditorParent()));
+        
         addField(new BooleanFieldEditor(Options.uiverbosityKey, Messages.OpenJMLUI_PreferencesPage_UIVerbose,
                 getFieldEditorParent()));
         
