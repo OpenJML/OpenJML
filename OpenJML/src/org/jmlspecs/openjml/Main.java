@@ -902,8 +902,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
 
-        if (JmlOption.isOption(context,JmlOption.SHOW_OPTIONS)) {
-            JmlOption.listOptions(context);
+        String showOptions = JmlOption.value(context,JmlOption.SHOW_OPTIONS);
+        if (!showOptions.equals("none")) {
+            JmlOption.listOptions(context, showOptions.equals("all"));
         }
         return files;
     }

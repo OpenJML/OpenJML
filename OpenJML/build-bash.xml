@@ -13,7 +13,7 @@
 	</condition>
 	
 	<target name="props1" if="isWindows">
-	  <property name="openjml.jdk" value="C:/Program Files/Java/jdk1.8.0_40/"/>
+	  <property name="openjml.jdk" value="C:/Program Files/Java/jdk1.8.0_101/jre"/>
 	  <property name="openjml.env.path" value="/usr/bin;${openjml.jdk}/../bin;/usr/bin"/>
 	</target>
 		
