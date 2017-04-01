@@ -126,6 +126,7 @@ import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCLambda;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
@@ -4344,6 +4345,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             labelOldLists.put(that.label,  currentStatements);
             treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
         }
+    }
+    
+    @Override
+    public void visitLambda(JCLambda that) {
+        // FIXME - do something with lambdas
+        result = eresult = that;
     }
 
     //OK

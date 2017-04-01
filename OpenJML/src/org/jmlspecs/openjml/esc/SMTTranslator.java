@@ -236,6 +236,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The SMTLIB script as it is being constructed */
     protected IScript script;
     
+    /** Identification of the source material, such as the method being translated, for error messages */
+    protected String source;
+    
     /** An alias to script.commands() */
     protected List<ICommand> commands;
     
@@ -266,8 +269,9 @@ public class SMTTranslator extends JmlTreeScanner {
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     /** The constructor - create a new instance for each Basic Program to be translated */
-    public SMTTranslator(Context context) {
+    public SMTTranslator(Context context, String source) {
         this.context = context;
+        this.source = source;
         // OpenJDK tools
         log = Log.instance(context);
         syms = Symtab.instance(context);

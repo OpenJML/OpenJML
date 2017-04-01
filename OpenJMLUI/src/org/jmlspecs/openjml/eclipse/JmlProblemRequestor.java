@@ -26,6 +26,9 @@ import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.SpecPublic;
+import org.jmlspecs.openjml.Strings;
+
+import com.sun.tools.javac.code.Symbol;
 
 // TODO - The plugin tool reports problems by directly calling an instance
 // of this IProblemRequestor.  The Eclipse framework actually uses
@@ -120,6 +123,8 @@ public class JmlProblemRequestor implements IProblemRequestor {
 				f = project != null ? project : root;
 			}
 			
+			Symbol sym = ((JmlEclipseProblem)p).sourceSymbol;
+			
 			// Use the following if you want problems printed to the console
 			// as well as producing markers and annotations
 			if (Options.uiverboseness) {
@@ -134,7 +139,9 @@ public class JmlProblemRequestor implements IProblemRequestor {
 			// and lineStart are 1-based which would make this computation off by one
 			final int finalOffset = p.getSourceStart() + jmlproblem.lineStart;
 			final int finalEnd = p.getSourceEnd() + 1 + jmlproblem.lineStart;
-			final String finalErrorMessage = p.getMessage();
+			String source = null;
+			if (sym != null) source = sym.owner.toString() + "." + sym.toString();
+			final String finalErrorMessage = source + ": " + Strings.eol + Strings.eol + p.getMessage();
 			int severity = jmlproblem.severity;
 			
 			if (jmlproblem.lineStart < 0) {

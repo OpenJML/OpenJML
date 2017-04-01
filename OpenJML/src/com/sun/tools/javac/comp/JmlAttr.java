@@ -4940,9 +4940,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            int i = 0;
 //        }
         if (tree.name != null) {
-            if (!tree.toString().startsWith("java")  && !tree.toString().startsWith("org.")) {
-                if (tree.toString().endsWith(".buf")) Utils.stop();
-            }
+//            if (!tree.toString().startsWith("java")  && !tree.toString().startsWith("org.")) {
+//                if (tree.toString().endsWith(".buf")) Utils.stop();
+//            }
             super.visitSelect(tree);
 //            if (tree.sym instanceof ClassSymbol) ((JmlCompiler)JmlCompiler.instance(context)).loadSpecsForBinary(null,(ClassSymbol)tree.sym);
             // The super call does not always call check... (which assigns the

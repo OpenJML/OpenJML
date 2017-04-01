@@ -50,6 +50,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -855,9 +856,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
       if (node instanceof JmlVariableDecl) {
           // This happens when we have selected a method parameter or the variable within a declaration
           // continue
-          out = text == null ? null : ("Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n");
-          node = ((JmlVariableDecl)node).ident;
-          if (text == null) out = "Declaration " + node.toString() + " <B>is</B> ";
+    	  String name = ((JmlVariableDecl)node).name.toString();
+          out = text == null ? null : ("Found declaration: " + name + "\n");
+          //node = ((JmlVariableDecl)node).ident;
+          if (text == null) out = "Declaration " + name + " <B>is</B> ";
       } else if (!(node instanceof JCTree.JCExpression)) {
           return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
       } else {
@@ -1001,6 +1003,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         (int)startPosition, (int)endPosition, (int)line, 
                         text,
                         (int)lineStart, (int)lineEnd);
+                problem.sourceSymbol = currentMethod;
                 preq.acceptProblem(problem);
                 // Log it as well
                 if (Options.uiverboseness) {
@@ -1091,12 +1094,22 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     
     @Override
     public void reportProofResult(MethodSymbol msym, IProverResult result) {
+    	if (result.result() == IProverResult.RUNNING) {
+    		currentMethod = msym;
+    	}
+    	if (result.result() == IProverResult.COMPLETED) {
+    		currentMethod = null;
+    		return;
+    	}
     	String key = keyForSym(msym);
     	proofResults.put(key,result);
     	IMethod m = convertMethod(msym);
     	methodResults.put(m, key);
     	utils.refreshView(key);
     }
+    
+    static MethodSymbol currentMethod;
+    
     
     public @Nullable IProverResult getProofResult(MethodSymbol msym) {
     	return proofResults.get(keyForSym(msym));
