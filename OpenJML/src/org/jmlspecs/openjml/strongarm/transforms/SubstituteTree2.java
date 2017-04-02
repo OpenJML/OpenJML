@@ -186,7 +186,7 @@ public class SubstituteTree2 extends JmlTreeScanner{
 //            }
 //            
 //        }
-//        super.visitIndexed(tree);
+      super.visitIndexed(tree);
     }
     
     @Override
