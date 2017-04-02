@@ -191,9 +191,14 @@ public class BlockReader {
         
         for(int b=0; b < blocks.size() && precondition==null; b++){
             
-            startBlock = blocks.get(b);
+            BasicBlock block = blocks.get(b);
             
-            for(JCStatement stmt : startBlock.statements()){
+            if(block.id().toString().contains("bodyBegin")){
+                startBlock = block;
+                path.push(startBlock);
+            }
+            
+            for(JCStatement stmt : block.statements()){
                 
                 //if(skip(stmt)){ continue; }
                 
@@ -201,8 +206,8 @@ public class BlockReader {
                     JmlStatementExpr jmlStmt = (JmlStatementExpr)stmt;
                     
                     if(isPreconditionStmt(jmlStmt)){
-                        path.push(startBlock);
-                        precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, startBlock).fix(path);
+                        //path.push(startBlock);
+                        precondition = new Prop<JCExpression>((JCExpression)jmlStmt.expression, block).fix(path);
                     }
                 }
                 

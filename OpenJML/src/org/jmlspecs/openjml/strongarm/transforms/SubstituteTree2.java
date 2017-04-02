@@ -387,6 +387,24 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         return true;
     }
+    
+    private boolean isCircular(Name name, JCTree sub){
+        
+        if(sub instanceof JCBinary){
+            JCBinary e = (JCBinary)sub;
+            
+            if(e.rhs.toString().equals(name.toString())){
+                return true;
+            }
+            
+        }   
+        
+        return false;
+    }
+    
+    
+    
+    // IF IT is an EQUALITY
     private boolean canReplace(VarSymbol sym, Name name){
 
         _subs = substitutionCache.getSubstitutionsAlongPath(sym, path);
@@ -429,6 +447,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
                 if(nameAssignmentIsntRedundant(name,instance.currentReplacement)==false){
                     isTmpVar = false;
                     tmpVar = null;
+                }
+                
+                if(isCircular(name, instance.currentReplacement)){
+                    return false;
                 }
             }
             
