@@ -541,14 +541,14 @@ public class Strongarm
 //            
         } 
         
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }   
-        
+//        if (verbose) {
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+//            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+//            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+//        }   
+//        
         
         com.sun.tools.javac.util.List<JmlMethodClause> newContract = reader.postcondition.getClauses(null, treeutils, M);
         
@@ -566,7 +566,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS II " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+            log.getWriter(WriterKind.NOTICE).println("AFTER PERFORMING LEXICAL SUBSTITUTIONS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(cases));
         }
 
