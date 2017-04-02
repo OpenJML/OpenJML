@@ -2387,7 +2387,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } finally {
                         currentStatements = instanceStats;
                         JCBlock bl = popBlock(0,pos,check);
-                        if (!onlyComments(bl.stats)) {
+                        if (!onlyComments(bl.stats) && !infer) {
                             if (contextIsStatic) {
                                 staticStats.add(bl);
                             } else {
