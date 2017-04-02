@@ -402,13 +402,16 @@ public abstract class JmlTestCase {
             while (true) {
                 line++;
                 String sexp = exp.readLine();
+                if (sexp != null) sexp = sexp.replace("\r\n", "\n");
                 String sact = act.readLine();
+                if (sact != null) sact = sact.replace("\r\n", "\n");
                 while (ignoreNotes && sact != null && sact.startsWith("Note: ")) {
                 	sact = act.readLine();
                 }
                 if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
             	while (ignoreNotes && sexp != null && sexp.startsWith("Note: ")) {
             		sexp = exp.readLine();
+                    if (sexp != null) sexp = sexp.replace("\r\n", "\n");
             	}
                 if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                 if (sexp != null && sact == null) {

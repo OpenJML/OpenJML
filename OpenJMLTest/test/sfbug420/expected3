@@ -57,14 +57,14 @@ test\sfbug420\StackImpl.java:54: warning: The prover cannot establish an asserti
 test\sfbug420\Stack.java:16: warning: Associated declaration
 	//@ requires i>=1 && i<=count();
 	    ^
-test\sfbug420\StackImpl.java:55: warning: The prover cannot establish an assertion (Precondition) in method main
-		System.out.println(s.itemAt(2));
+test\sfbug420\StackImpl.java:56: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(3));
 		                           ^
 test\sfbug420\Stack.java:16: warning: Associated declaration
 	//@ requires i>=1 && i<=count();
 	    ^
-test\sfbug420\StackImpl.java:56: warning: The prover cannot establish an assertion (Precondition) in method main
-		System.out.println(s.itemAt(3));
+test\sfbug420\StackImpl.java:55: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(2));
 		                           ^
 test\sfbug420\Stack.java:16: warning: Associated declaration
 	//@ requires i>=1 && i<=count();

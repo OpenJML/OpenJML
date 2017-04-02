@@ -813,7 +813,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             progressDelegate.setDelegate(null);
         }
         
-        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
+        boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
+        if (b) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         

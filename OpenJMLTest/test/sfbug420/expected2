@@ -39,10 +39,10 @@ test\sfbug420\Stack.java:27: warning: Associated declaration
 	    ^
 Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings
 Starting proof of stack.StackImpl.top() with prover !!!!
-test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
+test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
-test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
+test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
 Completed proof of stack.StackImpl.top() with prover !!!! - with warnings

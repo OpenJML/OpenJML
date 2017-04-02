@@ -207,7 +207,8 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, JmlOption option) {
-        return Options.instance(context).get(option.name) != null;
+        String val = Options.instance(context).get(option.name);
+        return val != null && !"false".equals(val);
     }
     
     /** Return whether an option is enabled in the given context
