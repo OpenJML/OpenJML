@@ -6,7 +6,7 @@ if [ $# -gt 1 ]; then
   echo 'Expected at most one argument'
   exit 1
 elif [ $# -ne 1 ]; then
-  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '"' | tr -d ' ' | tr -d '\t'`
+  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '" \r\n\t'`
   echo 'Current version is' $REL
 else
   REL=$1
