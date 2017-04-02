@@ -110,6 +110,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                     utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
                             + " - exception"
                             );
+                    //System.exit(1);
                     return -1L;
                 } 
                 catch (Exception e) {

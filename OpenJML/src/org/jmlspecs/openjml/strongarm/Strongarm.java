@@ -1,40 +1,26 @@
 package org.jmlspecs.openjml.strongarm;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
-import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
-import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
-import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicProgram;
-import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
-import org.jmlspecs.openjml.strongarm.transforms.AttributeMethod;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupVariableNames;
 import org.jmlspecs.openjml.strongarm.transforms.PropagateResults;
@@ -54,36 +40,19 @@ import org.jmlspecs.openjml.strongarm.transforms.SimplicyViaInternalSubstitution
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
-import org.jmlspecs.openjml.strongarm.tree.EDAConverter;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
-import org.jmlspecs.openjml.strongarm.tree.analysis.CollectExpressionsAnalysis;
-import org.jmlspecs.openjml.strongarm.tree.analysis.FactorExpressionsAnalysis;
-import org.jmlspecs.openjml.strongarm.tree.analysis.PropTreePrinter;
 import org.jmlspecs.openjml.strongarm.tree.analysis.SpecBlockVertex;
-import org.jmlspecs.openjml.strongarm.tree.analysis.ToDiGraphAnalysis;
 import org.jmlspecs.openjml.strongarm.tree.analysis.ToReductionGraph;
-import org.jmlspecs.openjml.utils.ui.ASTViewer;
-import org.jmlspecs.openjml.esc.Label;
 
-import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
-import com.sun.tools.javac.util.Pair;
 
 import jpaul.Graphs.DiGraph;
-import jpaul.Misc.Action;
 
 public class Strongarm  
  {
@@ -248,9 +217,9 @@ public class Strongarm
         }
         
         
-//        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
-//            BlockReader.showCFG(context, program.blocks(),basicBlocker);
-//        }
+        if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
+            BlockReader.showCFG(context, program.blocks(),basicBlocker);
+        }
         
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
@@ -502,7 +471,7 @@ public class Strongarm
         boolean verbose        = infer.verbose;
         Timing t;
         
-        t = Timing.start();
+        t = Timing.start(); 
                 
         if (verbose) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -513,7 +482,7 @@ public class Strongarm
 
         }
                  
-        if(reader.blocks.size() <= 300){
+        if(reader.blocks.size() <= 5){
             
             t = Timing.start();
             
@@ -691,6 +660,7 @@ public class Strongarm
             
             t = Timing.start();
             
+            //slow (but more accurate)
             //reader.postcondition.replace(reader.getBlockerMappings(), false);
             
             // this is the "fast" replacement algorithm.

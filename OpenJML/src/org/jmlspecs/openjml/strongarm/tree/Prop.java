@@ -338,6 +338,10 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
     
     public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
         
+        if(def==null){
+            return;
+        }
+        
         if(!Strongarm.freezer.containsKey(this) || !p.toString().equals(Strongarm.freezer.get(this))){
             log("[SUBS PASS 2] SKIPPING Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
             return;

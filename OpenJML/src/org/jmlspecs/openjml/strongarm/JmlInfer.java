@@ -134,7 +134,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 
         /** Initializes assertionAdder **/
         public boolean check(JCTree tree) {
-            this.assertionAdder = new JmlAssertionAdder(context, true, false);
+            this.assertionAdder = new JmlAssertionAdder(context, false, false, true);
             this._JML_ERROR = false;
             try {
                 

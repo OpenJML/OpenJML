@@ -126,7 +126,7 @@ public class Fix {
            
            while ( ( line = reader.readLine()) != null) {
                if(debug){
-                   //System.out.println(line);
+                   System.out.println(line);
                    bw.write(line);
                    bw.write("\n");
                }
