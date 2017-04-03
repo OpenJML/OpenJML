@@ -159,6 +159,10 @@ public class SubstitutionCache {
         if(ds.get(premap)==null){
             ds.put(premap, new ArrayList<Pair<String, JCTree>>());
         }
+
+        if(block==null || block.id() == null){
+            return;
+        }
         
         ds.get(premap).add(new Pair<String, JCTree>(block.id().toString(), sub));
         

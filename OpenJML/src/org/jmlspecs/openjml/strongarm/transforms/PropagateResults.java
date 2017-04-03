@@ -66,6 +66,10 @@ public class PropagateResults extends JmlTreeScanner {
             
             if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
+
+                if(expr == null || expr.lhs == null || expr.rhs==null){
+                    return false;
+                }
                 
                 if(expr.lhs.toString().equals("\\result") 
                         && expr.rhs.toString().startsWith(Strings.newObjectVarString)
@@ -94,6 +98,10 @@ public class PropagateResults extends JmlTreeScanner {
             
             if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary ){
                 JCBinary expr = (JCBinary)mExpr.expression;
+                
+                if(expr == null || expr.lhs == null || expr.rhs==null){
+                    return true;
+                }
                 
                 if(expr.lhs.toString().equals("\\result") 
                         && (expr.rhs.toString().startsWith(Strings.newObjectVarString)

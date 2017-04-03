@@ -91,18 +91,19 @@ public class SubstituteTree2 extends JmlTreeScanner{
         if(tree==null) return;
         
         if(canReplace(tree) && with() instanceof JCIdent && with()!=null && replace()!=null && tree.getName()!=null && with() instanceof JCIdent){
-            
-            if(verbose){
-                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
-            }
-            
-            JCIdent with = (JCIdent)with();
-            if(with==null || with.name==null){
-                return;
-            }
-            tree.name = with.name;
-            // also the symbol
-            tree.sym  = with.sym;
+            try {
+                if(verbose){
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing IDENT: " + tree.getName().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                }
+                
+                JCIdent with = (JCIdent)with();
+                if(with==null || with.name==null){
+                    return;
+                }
+                tree.name = with.name;
+                // also the symbol
+                tree.sym  = with.sym;
+            }catch(NullPointerException e){}
         }
     }
 
@@ -112,11 +113,12 @@ public class SubstituteTree2 extends JmlTreeScanner{
             JCIdent arg = (JCIdent)tree.arg;
             
             if(canReplace(arg)){
-
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
-                }                
-                tree.arg = with();
+                try {
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println("\t\tReplacing ARG: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    }                
+                    tree.arg = with();
+                }catch(NullPointerException e){}
             }            
         }
         super.visitUnary(tree);
@@ -137,10 +139,12 @@ public class SubstituteTree2 extends JmlTreeScanner{
             JCIdent expr = (JCIdent)tree.expr;
             
             if(canReplace(expr)){
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
-                }
-                tree.expr = with();
+                try {
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println("\t\tReplacing PARENS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    }
+                    tree.expr = with();
+                }catch(NullPointerException e){}
             }    
         }
         super.visitParens(tree);
@@ -201,11 +205,13 @@ public class SubstituteTree2 extends JmlTreeScanner{
 
             if(canReplace(lhs) && isRedundant(tree)==false && replace()!=null && with()!=null){
                 
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
-                }
-                
-                tree.lhs = with();
+                try {
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println("\t\tReplacing LHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    }
+                    
+                    tree.lhs = with();
+                }catch(NullPointerException e){}
             }
         }
         
@@ -215,11 +221,13 @@ public class SubstituteTree2 extends JmlTreeScanner{
 
             if(canReplace(rhs)){
 
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
-                }
-
-                tree.rhs = with();
+                try {
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println("\t\tReplacing RHS: " + replace().toString() + " -> " + with().toString() + " in: " + tree.toString());
+                    }
+    
+                    tree.rhs = with();
+                }catch(NullPointerException e){}
             }
         }
         
@@ -240,11 +248,13 @@ public class SubstituteTree2 extends JmlTreeScanner{
             
             if(canReplace(selected) && with()!=null && replace()!=null){
 
-                if (verbose) {
-                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
-                }
-
-                access.selected = with();
+                try {
+                    if (verbose) {
+                        log.getWriter(WriterKind.NOTICE).println("\t\tReplacing SELECTED: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                    }
+    
+                    access.selected = with();
+                }catch(NullPointerException e){}
             }
         }
         
@@ -252,15 +262,17 @@ public class SubstituteTree2 extends JmlTreeScanner{
         
         if(access.sym instanceof VarSymbol && canReplace((VarSymbol)access.sym, access.name)){
            
-            if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
-            }
-
-            if(with() instanceof JCIdent){
-                JCIdent with = (JCIdent)with();
-                access.name = with.name;
-                access.sym  = with.sym;
-            }
+            try {
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
+                }
+    
+                if(with() instanceof JCIdent){
+                    JCIdent with = (JCIdent)with();
+                    access.name = with.name;
+                    access.sym  = with.sym;
+                }
+            }catch(NullPointerException e){}
         }
         
         if(access.selected instanceof JCFieldAccess){
