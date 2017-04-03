@@ -1,5 +1,56 @@
 # Bug Triage 
 
+# Bugs 
+
+```
+at org.jmlspecs.openjml.esc.JmlAssertionAdder.visitIdent(JmlAssertionAdder.java:9040)
+at org.jmlspecs.openjml.strongarm.SubstitutionCache.addSubstitutionAtBlock(SubstitutionCache.java:163)
+at org.jmlspecs.openjml.strongarm.transforms.PropagateResults.shouldConvert(PropagateResults.java:70)
+at org.jmlspecs.openjml.strongarm.transforms.PropagateResults.shouldConvert(PropagateResults.java:71)
+at org.jmlspecs.openjml.strongarm.transforms.PropagateResults.shouldRemove(PropagateResults.java:114)
+at org.jmlspecs.openjml.strongarm.transforms.RemoveDuplicateAssignments.shouldRemove(RemoveDuplicateAssignments.java:92)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.handleField(SubstituteTree2.java:244)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.handleField(SubstituteTree2.java:256)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitBinary(SubstituteTree2.java:205)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitBinary(SubstituteTree2.java:219)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitIdent(SubstituteTree2.java:96)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitParens(SubstituteTree2.java:141)
+at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitUnary(SubstituteTree2.java:117)
+```
+
+# Translation Issues
+
+```
+MissingArgumentException.jml
+
+option_1285
+
+Option.jml --> type_2740_2740___21, numberOfArgs_2653_2653___19
+
+
+(java.lang.Class<<captured wildcard>>
+
+OptionBuilder.jml 
+
+        ensures type_1803_2539___11 == (java.lang.Class<?>)\type(String); 
+
+
+Parser.jml ---> requiredOptions_1508
+
+PosixParser: requires !/*missing*/; 
+
+
+TypeHandler -->         requires !(FILE_VALUE == (java.lang.Class<java.io.File>)clazz); 
+
+
+\requires !(/*missing*/); 
+
+
+```
+
+
+# Bugs - CLOSED
+
 ```
 at com.sun.tools.javac.util.List.get(List.java:475)
 at java.lang.String.substring(String.java:1967)
@@ -15,7 +66,7 @@ at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitUnary(Substitu
 ```
 
 
-# Translation Issues
+# Translation Issues - CLOSED
 
 ```java
 _JML___NEWOBJECT_7181
