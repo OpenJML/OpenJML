@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -136,10 +137,10 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                 future.get(timeout, TimeUnit.SECONDS);
             }
         }
-        catch(TimeoutException | InterruptedException | ExecutionException e) {
+        catch(CancellationException | TimeoutException | InterruptedException | ExecutionException e) {
             // timeout
             log.getWriter(WriterKind.NOTICE).println(String.format("ABORTED INFERENCE OF %s. MAXIMUM INFERENCE TIME OF %d SECONDS EXCEEDED.",  utils.qualifiedMethodSig(methodDecl.sym), timeout)); //$NON-NLS-1$
-
+            future.cancel(true); 
             
             // wipe out the contract. 
             methodDecl.cases = null;

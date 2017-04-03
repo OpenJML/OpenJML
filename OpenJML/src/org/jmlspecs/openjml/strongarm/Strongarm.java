@@ -482,7 +482,7 @@ public class Strongarm
 
         }
                  
-        if(reader.blocks.size() <= 5){
+        if(reader.blocks.size() <= 10){
             
             t = Timing.start();
             
