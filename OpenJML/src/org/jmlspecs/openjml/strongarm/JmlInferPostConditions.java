@@ -36,6 +36,8 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
     protected static final Context.Key<JmlInferPostConditions> key = new Context.Key<JmlInferPostConditions>();
     private static final String INFER_KIND = InferenceType.POSTCONDITIONS.toString();
     private int timeout;
+    private ExecutorService service = Executors.newSingleThreadExecutor();
+
     public JmlInferPostConditions(Context context) {
         super(context);
         
@@ -82,7 +84,6 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
         JmlInferPostConditions inferenceRoot = this;
         
         
-        ExecutorService service = Executors.newSingleThreadExecutor();
         Future<Long> future = service.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
@@ -147,12 +148,8 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
             methodDecl.methodSpecsCombined = null;
 
             
-        } finally {
-            service.shutdownNow();
-        }
+        } 
         
-        
-                
     }
 
     @Override
