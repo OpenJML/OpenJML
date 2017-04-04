@@ -36,8 +36,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
     protected static final Context.Key<JmlInferPostConditions> key = new Context.Key<JmlInferPostConditions>();
     private static final String INFER_KIND = InferenceType.POSTCONDITIONS.toString();
     private int timeout;
-    private ExecutorService service = Executors.newSingleThreadExecutor();
-
+    
     public JmlInferPostConditions(Context context) {
         super(context);
         
@@ -83,20 +82,16 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
         
         JmlInferPostConditions inferenceRoot = this;
         
-        
-        Future<Long> future = service.submit(new Callable<Long>() {
+        Runnable runnable = new Runnable(){
+
             @Override
-            public Long call() throws Exception {
+            public void run() {
                 try{
                     Timing t = Timing.start();
                     new Strongarm(inferenceRoot).infer(methodDecl); 
                     long elapsed = t.stop();
                     
                     utils.progress(1,1,"Completed inference of " + utils.qualifiedMethodSig(methodDecl.sym) + t.tell());
-                    
-                    
-                  
-                    return elapsed;
                     
                 }
                 catch (StackOverflowError so) {
@@ -112,9 +107,11 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                     utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
                             + " - exception"
                             );
-                    //System.exit(1);
-                    return -1L;
                 } 
+                catch(InferenceAbortedException e){
+                    // time to exit.
+                    utils.progress(1,1,"Terminating thread for " + utils.qualifiedMethodSig(methodDecl.sym));
+                }
                 catch (Exception e) {
                     
                     methodDecl.cases = null;
@@ -126,29 +123,50 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
                     utils.progress(1,1,"Inference ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)
                             + " - exception"
                             );
-                    return -1L;
                 }
+                
             }
-        });
+            
+        };
+        
+        
+        long startTime = System.currentTimeMillis();
+        long timeoutMs = timeout * 1000L;
+        
+        
+        Thread t = new Thread(runnable);
+        t.start();
 
         try {
-            if(timeout==-1){
-                future.get();
-            }else{
-                future.get(timeout, TimeUnit.SECONDS);
-            }
-        }
-        catch(CancellationException | TimeoutException | InterruptedException | ExecutionException e) {
-            // timeout
-            log.getWriter(WriterKind.NOTICE).println(String.format("ABORTED INFERENCE OF %s. MAXIMUM INFERENCE TIME OF %d SECONDS EXCEEDED.",  utils.qualifiedMethodSig(methodDecl.sym), timeout)); //$NON-NLS-1$
-            future.cancel(true); 
+            if(timeout!=-1){
+                while (t.isAlive()) {
+                    t.join(1000);
+                    if (((System.currentTimeMillis() - startTime) > timeoutMs)
+                          && t.isAlive()) {
+                        t.interrupt();
+                        t.join();
+                        
+                        log.getWriter(WriterKind.NOTICE).println(String.format("ABORTED INFERENCE OF %s. MAXIMUM INFERENCE TIME OF %d SECONDS EXCEEDED.",  utils.qualifiedMethodSig(methodDecl.sym), timeout)); //$NON-NLS-1$
+                        // wipe out the contract. 
+                        methodDecl.cases = null;
+                        methodDecl.methodSpecsCombined = null;
+                    }
+                }
             
+            }else{
+                t.join();
+            }
+        }catch(InterruptedException e){
+            log.getWriter(WriterKind.NOTICE).println(String.format("ABORTED INFERENCE OF %s. MAXIMUM INFERENCE TIME OF %d SECONDS EXCEEDED.",  utils.qualifiedMethodSig(methodDecl.sym), timeout)); //$NON-NLS-1$
             // wipe out the contract. 
             methodDecl.cases = null;
-            methodDecl.methodSpecsCombined = null;
-
-            
-        } 
+            methodDecl.methodSpecsCombined = null;            
+        }
+        
+        if(1==1){
+            System.out.println("test");
+        }
+        
         
     }
 

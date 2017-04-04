@@ -122,14 +122,15 @@ public class Strongarm
         }
     }
     
-    public void infer(JmlMethodDecl methodDecl) {
+    public void infer(JmlMethodDecl methodDecl) throws InferenceAbortedException {
 
+       
+        
         // first, we translate the method to the basic block format
         boolean printContracts    = infer.printContracts;
         boolean verbose           = infer.verbose;
         int initialContractLength = JDKListUtils.countLOC(methodDecl.cases);
-        
-        
+                
 
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
 
@@ -220,9 +221,12 @@ public class Strongarm
         if(BasicBlockExecutionDebuggerConfigurationUtil.debugBasicBlockExecution()){
             BlockReader.showCFG(context, program.blocks(),basicBlocker);
         }
+        dieIfNeeded();
         
         BlockReader reader = infer(methodDecl, program, basicBlocker);
 
+        dieIfNeeded();
+        
         //
         // 
         //
@@ -363,18 +367,26 @@ public class Strongarm
         }
         
     }
+    
+    public static void dieIfNeeded() throws InferenceAbortedException  {
+        
+        if(Thread.interrupted()){
+            throw new InferenceAbortedException();
+        }
+    }
     /**
      * Entry point into the inference 
      * 
      * @param program
      * @return
      */
-    public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program, BasicBlocker2 basicBlocker){
+    public BlockReader infer(JmlMethodDecl methodDecl, BasicProgram program, BasicBlocker2 basicBlocker) throws InferenceAbortedException {
         boolean verbose        = infer.verbose; 
 
         //
         // First, check if there is an existing postcondition 
         //
+       
        if(TreeContains.analyze(context, methodDecl.cases).atLeastOneEnsuresClause()){
             
             
@@ -466,7 +478,11 @@ public class Strongarm
     
     public static Map<Prop,String> freezer;
     
-    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition){
+    public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition) throws InferenceAbortedException{
+        
+        
+        dieIfNeeded();
+        
         
         boolean verbose        = infer.verbose;
         Timing t;
@@ -512,6 +528,9 @@ public class Strongarm
             }
         }
         
+        dieIfNeeded();
+        
+        
         //
         // Perform substitutions on the underlying formula. 
         //
@@ -529,6 +548,9 @@ public class Strongarm
 
             
         }
+        
+        dieIfNeeded();
+        
         //t.tellFile(utils.qualifiedMethodSig(methodDecl.sym), "/tmp/new.csv");
         
         {
@@ -584,6 +606,8 @@ public class Strongarm
         //
         // Perform logical simplification
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
         RemoveTautologies.simplify(contract);
@@ -595,6 +619,8 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
+        
+        dieIfNeeded();
         
         t = Timing.start();
         
@@ -612,6 +638,8 @@ public class Strongarm
         // These last two tend to tear up contracts a bit so we do an intermediate cleanup here
         // to simplify the next few 
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
         PruneUselessClauses.simplify(contract);
@@ -630,6 +658,8 @@ public class Strongarm
         //
         // Remove dead assignments 
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
        RemoveDeadAssignments.simplify(reader.getBlockerMappings(), contract);
@@ -642,6 +672,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
        
+        dieIfNeeded();
         
         
         //
@@ -684,6 +715,7 @@ public class Strongarm
 
         }
         
+        dieIfNeeded();
         
         if (verbose) {
             
@@ -699,6 +731,8 @@ public class Strongarm
         //
         // Remove local variables
         //
+        dieIfNeeded();
+        
         t = Timing.start();
                 
        RemoveLocals.simplify(methodDecl, contract);
@@ -711,6 +745,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
+        dieIfNeeded();
         
         t = Timing.start();
         
@@ -731,6 +766,8 @@ public class Strongarm
         // This is a very specific optimization that comes into play when we 
         // try to extract a little more information out of loops. 
         //
+        dieIfNeeded();
+         
         t = Timing.start();
         
         SimplicyViaInternalSubstitutions.simplify(methodDecl, contract);
@@ -751,6 +788,8 @@ public class Strongarm
         //
         // Simplify labels -- TODO: Remove
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
        CleanupVariableNames.simplify(contract);
@@ -783,6 +822,8 @@ public class Strongarm
         //
         // Remove duplicate assignments 
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
        RemoveDuplicateAssignments.simplify(contract);
@@ -801,6 +842,8 @@ public class Strongarm
         // Fix up results... 
         //
        {
+           dieIfNeeded();
+           
            t = Timing.start();
            
            reader.postcondition.replace(PropagateResults.simplify(context, contract));
@@ -815,6 +858,7 @@ public class Strongarm
         }
         
         
+        dieIfNeeded();
         
         
         t = Timing.start();
@@ -833,6 +877,8 @@ public class Strongarm
         //
         // Clean up assignables
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
         CleanupPrestateAssignable.simplify(contract);
@@ -853,6 +899,8 @@ public class Strongarm
         //
         // Clean up clauses lacking useful postconditions
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
         RemoveUselessPostconditions.simplify(contract);
@@ -867,6 +915,8 @@ public class Strongarm
         
         
        // we do this one last time to clean up
+        dieIfNeeded();
+        
         t = Timing.start();
         
        PruneUselessClauses.simplify(contract);
@@ -882,6 +932,8 @@ public class Strongarm
         //
         // PURITY
         //
+        dieIfNeeded();
+        
         t = Timing.start();
         
         Purifier.simplify(contract, methodDecl);
@@ -929,6 +981,7 @@ public class Strongarm
         
         
         //DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
+        dieIfNeeded();
         
         t = Timing.start();
         

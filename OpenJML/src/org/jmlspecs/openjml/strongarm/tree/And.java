@@ -12,6 +12,7 @@ import java.util.Stack;
 import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -32,12 +33,12 @@ public class And<T extends JCExpression> extends Prop<T> implements Cloneable, I
         return new And<E>(p1, p2);
     }
     
-    public void replace(ArrayList<JCTree> mappings){
+    public void replace(ArrayList<JCTree> mappings) throws InferenceAbortedException{
         p1.replace(mappings);
         p2.replace(mappings);        
     }
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
         p1.replace(mappings, limitDepth);
         p2.replace(mappings, limitDepth);
     }

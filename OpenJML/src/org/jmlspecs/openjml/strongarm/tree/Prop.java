@@ -22,6 +22,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeCopier;
 import org.jmlspecs.openjml.strongarm.BlockReader;
+import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
@@ -113,7 +114,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         }
     }
     
-    public void replace(ArrayList<JCTree> subs){
+    public void replace(ArrayList<JCTree> subs) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         JCExpression e = null;
         
@@ -144,12 +147,17 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         }
     }
    
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
+        
         replace2(mappings, limitDepth);   
     }
     
-    public void replace3(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
-                
+    public void replace3(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
+        
         if(def==null){
             log("[SUBS] Skipping synthetic precondition (nothing to substitute)");
             return;
@@ -184,6 +192,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         // b) 
         //
         do {
+            Strongarm.dieIfNeeded();
             log("\tInternal Fixpoint #" + iteration);
 
             before = p.toString();
@@ -202,7 +211,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
       
     }
 
-    public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+    public void replace2(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         if(mappings!=null){
             replace1(mappings, limitDepth);
@@ -233,6 +244,8 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         
                 
         do {
+            Strongarm.dieIfNeeded();
+            
             log("\tInternal Fixpoint #" + iteration);
 
             before = p.toString();
@@ -248,7 +261,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         
     }
     
-    private void doReplacement2(){
+    private void doReplacement2() throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         JCExpression tmpE = null;
         
@@ -295,7 +310,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
     
 
     
-    private void doReplacement3(){
+    private void doReplacement3() throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         JCExpression tmpE = null;
         
@@ -336,7 +353,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
     
 
     
-    public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+    public void replace1(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         if(def==null){
             return;
@@ -413,7 +432,9 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         
     }
     
-    private void doReplacement(ArrayList<JCTree> subs){
+    private void doReplacement(ArrayList<JCTree> subs) throws InferenceAbortedException{
+        
+        Strongarm.dieIfNeeded();
         
         JCExpression e = null;
 

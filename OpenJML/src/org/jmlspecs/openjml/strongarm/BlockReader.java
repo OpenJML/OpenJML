@@ -241,7 +241,7 @@ public class BlockReader {
     private int loopDepth;
     private Stack<BasicBlock> path;
     
-    public Prop<JCExpression> sp(){
+    public Prop<JCExpression> sp() throws InferenceAbortedException{
         
         
         Prop<JCExpression> pre = pc();
@@ -271,8 +271,10 @@ public class BlockReader {
         
         return postcondition;
     }
-    private Prop<JCExpression> sp(Prop<JCExpression> p, BasicBlock block){
+    private Prop<JCExpression> sp(Prop<JCExpression> p, BasicBlock block) throws InferenceAbortedException{
 
+        Strongarm.dieIfNeeded();
+        
         try {
             TraceElement traceElement = new TraceElement(block);
             

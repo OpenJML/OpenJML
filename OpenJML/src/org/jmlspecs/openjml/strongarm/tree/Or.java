@@ -11,6 +11,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseGroup;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
+import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -28,12 +29,12 @@ public class Or<T extends JCExpression> extends Prop<T> implements Cloneable, IP
         this.p2 = (Prop<T>) p2.clone();
     }
     
-    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth){
+    public void replace(Map<JCIdent, ArrayList<JCTree>> mappings, boolean limitDepth) throws InferenceAbortedException{
         p1.replace(mappings, limitDepth);
         p2.replace(mappings, limitDepth);
     }
     
-    public void replace(ArrayList<JCTree> mappings){
+    public void replace(ArrayList<JCTree> mappings) throws InferenceAbortedException{
         p1.replace(mappings);
         p2.replace(mappings);        
     }
