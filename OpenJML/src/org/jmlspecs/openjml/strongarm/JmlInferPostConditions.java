@@ -163,11 +163,6 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
             methodDecl.methodSpecsCombined = null;            
         }
         
-        if(1==1){
-            System.out.println("test");
-        }
-        
-        
     }
 
     @Override
