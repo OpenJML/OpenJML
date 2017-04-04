@@ -147,7 +147,9 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
             methodDecl.methodSpecsCombined = null;
 
             
-        } 
+        } finally {
+            service.shutdownNow();
+        }
         
         
                 
