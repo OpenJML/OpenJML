@@ -9,7 +9,7 @@ OUTDIR=strongarm/runs/$EXPERIMENT-$DATE/
 echo "Creating Experiment Output Directory: $OUTDIR"
 mkdir -p $OUTDIR
 
-FIXPOINTS=(1 2 3 4)
+FIXPOINTS=(0 1 2 3)
 
 EVALS=( "junit4" "json-java" "commons-csv" "commons-cli"  )
 
@@ -29,7 +29,7 @@ do
         echo "Fixpoint $F for Eval: $E..."
 
         # run the eval
-        ./strongarm/run_eval.sh $E 
+        #./strongarm/run_eval.sh $E 
 
         # after it's done, move it's generated csv files 
         FILES=`ls strongarm/strongarm*$EVAL_NAME.csv`
