@@ -102,7 +102,7 @@ pipeline = "{0}strongarm-pipeline-steps-{1}.csv".format(data_dir, eval_name)
 
 pdf = pd.read_csv(pipeline)
 
-pdf = pdf[pdf["method"] != "org.json.JSONTokener.syntaxError(java.lang.String)"]
+#pdf = pdf[pdf["method"] != "org.json.JSONTokener.syntaxError(java.lang.String)"]
 # filter org.json.JSONTokener.syntaxError(java.lang.String)
 
 row_count = pdf.count()["method"]
@@ -175,11 +175,9 @@ applied_steps = pdf[pdf['method_loc'] > 0]
 applied_steps
 #%%
 
-inferred_df[inferred_df["method"]=="junit.textui.ResultPrinter.print(junit.framework.TestResult,long)"]
 
 #%%
 
-applied_steps["REMOVING_DUPLICATE_PRECONDITIONS_(VIA_SMT)_LOC"] - applied_steps["REMOVING_IMPOSSIBLE_SPECIFICATION_CASES_(VIA_SMT)_LOC"]
 
 
 data = {
@@ -207,7 +205,8 @@ for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
     
     #sprint(last_loc)
     for col in cols:
-        if row[col].iloc[0] == -1 or last_loc==0:
+        #print("ROW: {0}".format(row[col]))
+        if last_loc==0 or row[col].iloc[0] == -1 :
             data[col].append(np.nan)
             data[col + "_overall"].append(np.nan)
         else:

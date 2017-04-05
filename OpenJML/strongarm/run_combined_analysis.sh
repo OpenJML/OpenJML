@@ -12,7 +12,7 @@ do
     echo -e "\e[32m[Adding] \e[0m$f..."    
 
     if [ $COUNT -eq 0 ]; then
-        cat $f > $1.strongarm-summary-Combined.csv
+        cat $f > $1/strongarm-summary-Combined.csv
     else 
         tail -n +2 $f >> $1/strongarm-summary-Combined.csv
     fi

@@ -49,10 +49,11 @@ done
 echo -e "\e[32m[Combined Analysis] \e[0mAnalyzing Results..."    
 
 
+mkdir runs/$RUN_NAME/figures/Combined
 
-#rm runs/$RUN_NAME/strongarm-summary-Combined.csv 2>/dev/null 
-#rm runs/$RUN_NAME/strongarm-pipeline-steps-Combined.csv 2>/dev/null
+rm runs/$RUN_NAME/strongarm-summary-Combined.csv 2>/dev/null 
+rm runs/$RUN_NAME/strongarm-pipeline-steps-Combined.csv 2>/dev/null
 
 
-#./run_combined_analysis.sh runs/$RUN_NAME/
-#python.app process_analysis.py Combined $RUN_NAME  2>/dev/null
+./run_combined_analysis.sh runs/$RUN_NAME/
+python.app process_analysis.py Combined $RUN_NAME  
