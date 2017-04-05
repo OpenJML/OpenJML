@@ -4,7 +4,7 @@
 
 echo "Combining Summary Files..."
 
-FILES=strongarm-summary*.csv
+FILES=$1/strongarm-summary*.csv
 COUNT=0
 
 for f in $FILES
@@ -12,9 +12,9 @@ do
     echo -e "\e[32m[Adding] \e[0m$f..."    
 
     if [ $COUNT -eq 0 ]; then
-        cat $f > strongarm-summary-Combined.csv
+        cat $f > $1.strongarm-summary-Combined.csv
     else 
-        tail -n +2 $f >> strongarm-summary-Combined.csv
+        tail -n +2 $f >> $1/strongarm-summary-Combined.csv
     fi
     
     ((COUNT++))
@@ -25,7 +25,7 @@ echo "Combining Pipeline Files..."
 
 
 
-FILES=strongarm-pipeline*.csv
+FILES=$1/strongarm-pipeline*.csv
 COUNT=0
 
 for f in $FILES
@@ -33,9 +33,9 @@ do
     echo -e "\e[32m[Adding] \e[0m$f..."    
 
     if [ $COUNT -eq 0 ]; then
-        cat $f > strongarm-pipeline-steps-Combined.csv
+        cat $f > $1/strongarm-pipeline-steps-Combined.csv
     else 
-        tail -n +2 $f >> strongarm-pipeline-steps-Combined.csv
+        tail -n +2 $f >> $1/strongarm-pipeline-steps-Combined.csv
     fi
     
     ((COUNT++))

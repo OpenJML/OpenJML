@@ -40,7 +40,7 @@ pipeline_steps = [
     "AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT)",
     "AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT)",
     "AFTER PERFORMING LEXICAL SUBSTITUTIONS",
-    "AFTER PERFORMING LEXICAL SUBSTITUTIONS II",
+#    "AFTER PERFORMING LEXICAL SUBSTITUTIONS II",
     "AFTER REMOVING TAUTOLOGIES OF",
     "AFTER REMOVING CONTRADICTIONS OF",
     "AFTER PRUNING USELESS CLAUSES OF",
@@ -122,7 +122,7 @@ print("[INFO] A total of {0} methods could not be inferred because they timed ou
 
 _, initial_locs, _ = util.extract_method_name_and_loc_and_timing(file, initial_tag)
 _, final_locs      = util.extract_method_name_and_loc(file, final_contract_tag)
-
+#final_locs = []
 
 file_tag = test_case_name #datetime.datetime.now().isoformat()
 

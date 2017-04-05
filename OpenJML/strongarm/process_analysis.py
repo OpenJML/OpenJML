@@ -8,12 +8,14 @@ import os
 import subprocess
 import sys 
 
-#eval_name = sys.argv[1]
-eval_name = "JSON-Java" #sys.argv[1]
+eval_name = sys.argv[1]
+run_id = sys.argv[2]
+
+#eval_name = "JUnit4" #sys.argv[1]
 
 #eval_name = "JSON-Java" #sys.argv[1]
-figures_path = "figures/{0}".format(eval_name)
-
+figures_path = "runs/{0}/figures/{1}".format(run_id, eval_name)
+data_dir     = "runs/{0}/".format(run_id)
 
 def get_summary(d):
     return (np.min(d), np.max(d), np.mean(d), np.std(d))
@@ -21,7 +23,7 @@ def get_summary(d):
 
 #plt.rcParams['figure.figsize'] = (15, 10)
 
-summary = "strongarm-summary-{0}.csv".format(eval_name)
+summary = "{0}strongarm-summary-{1}.csv".format(data_dir, eval_name)
 
 df = pd.read_csv(summary)
 
@@ -52,8 +54,8 @@ plt.savefig(figures_path + '/time-vs-loc.png')
 plt.savefig(figures_path + '/time-vs-loc.pdf')
 plt.savefig(figures_path + '/time-vs-loc.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 
 #%% 
 
@@ -73,8 +75,8 @@ plt.savefig(figures_path + '/time-vs-cfg-depth.png')
 plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
 plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 
 #%% 
 ndf = df[(df['loc'] > 0) & (df['cfg_depth'] > 0)]
@@ -92,11 +94,11 @@ plt.savefig(figures_path + '/cfg-depth-vs-loc.png')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.pdf')
 plt.savefig(figures_path + '/cfg-depth-vs-loc.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 #%% 
 
-pipeline = "strongarm-pipeline-steps-{0}.csv".format(eval_name)
+pipeline = "{0}strongarm-pipeline-steps-{1}.csv".format(data_dir, eval_name)
 
 pdf = pd.read_csv(pipeline)
 
@@ -167,23 +169,25 @@ pdf['method_loc'] = method_locs
 pdf["method_loc"]
 
 #%% 
-# v2 - v1 / v1
-#loc_columns    = pdf.filter(regex=('.*_LOC$'))
 
 applied_steps = pdf[pdf['method_loc'] > 0]
-applied_steps[["method", "REMOVING_CONTRADICTIONS_OF_LOC", "PRUNING_USELESS_CLAUSES_OF_LOC", "PRUNING_USELESS_CLAUSES_II_OF_LOC", "REMOVING_DEAD_ASSIGNMENTS_OF_LOC", "PERFORMING_OPTIMIZED_PREMAP_BLOCK_SUBSTITUTIONS_LOC"]]
-#list(applied_steps)
+
+applied_steps
+#%%
+
+inferred_df[inferred_df["method"]=="junit.textui.ResultPrinter.print(junit.framework.TestResult,long)"]
+
 #%%
 
 applied_steps["REMOVING_DUPLICATE_PRECONDITIONS_(VIA_SMT)_LOC"] - applied_steps["REMOVING_IMPOSSIBLE_SPECIFICATION_CASES_(VIA_SMT)_LOC"]
 
 
 data = {
-    'method' : list(applied_steps["method"])
+    'method' : list(inferred_df["method"])
 }
 
 cols = list(loc_columns)
-methods = data["method"]
+methods = inferred_df["method"] #data["method"]
 all_cols = []
 for col in cols:
     data[col] = []
@@ -196,17 +200,20 @@ for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
     row = applied_steps[applied_steps["method"] == method]
 
     # this is what we started with
+    #print(method)
+    #print(inferred_df[inferred_df["method"]==method])
     last_loc = inferred_df[inferred_df["method"]==method]["initial_contract_loc"].iloc[0]
     initial_loc = inferred_df[inferred_df["method"]==method]["initial_contract_loc"].iloc[0]
     
     #sprint(last_loc)
     for col in cols:
-        if row[col].iloc[0] == -1:
+        if row[col].iloc[0] == -1 or last_loc==0:
             data[col].append(np.nan)
             data[col + "_overall"].append(np.nan)
         else:
             # percent change from previous step
             tmp_loc = last_loc
+            #print("Row={0}, last_loc={1}".format(row[col], last_loc))
             pct_change = (row[col].iloc[0] - last_loc) / last_loc
             last_loc = row[col].iloc[0]
             data[col].append(pct_change*100.0)
@@ -218,6 +225,10 @@ for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
 
 
 
+#for c in all_cols:
+#    print("Col={0}, length={1}".format(c, len(data[c])))
+
+#print("Col={0}, length={1}".format("method", len(data["method"])))
 
 df = pd.DataFrame(data, columns=["method"] + all_cols)
 df
@@ -305,8 +316,8 @@ plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf')
 plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps')
 
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 #%%
 
 ndf = inferred_df[inferred_df["initial_contract_loc"] > -1]
@@ -332,8 +343,8 @@ plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-loc-vs-final-contract-loc.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 
 # Same but for CFG
 
@@ -352,8 +363,8 @@ plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/code-cfg-size-vs-final-contract-loc.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 
 #%% Initial Inferred spec vs Final Size (How good is our reduction?)
 
@@ -378,8 +389,8 @@ plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.png')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.pdf')
 plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.eps')
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 
 #%%
 
@@ -408,8 +419,8 @@ plt.savefig(figures_path + '/percent-reduction-histogram.pdf')
 plt.savefig(figures_path + '/percent-reduction-histogram.eps')
 
 
-#plt.clf()
-plt.show() 
+plt.clf()
+#plt.show() 
 #%% times smaller 
 
 reductions = (ndf["final_contract_loc"] / ndf["initial_contract_loc"] )*100
@@ -450,8 +461,8 @@ plt.savefig(figures_path + '/times-reduction-histogram.pdf')
 plt.savefig(figures_path + '/times-reduction-histogram.eps')
 
 
-#plt.clf()
-plt.show()
+plt.clf()
+#plt.show()
 #%% 
 #nn = ndf[["initial_contract_loc", "final_contract_loc"]]
 #nn["reduction"] = reductions
@@ -491,8 +502,8 @@ plt.savefig(figures_path + '/percent-reduction-pie.pdf')
 plt.savefig(figures_path + '/percent-reduction-pie.eps')
 
 
-#plt.clf()
-plt.show() 
+plt.clf()
+#plt.show() 
 #%%
 list(map(lambda x : x, range(10,100,10)))
 
@@ -501,7 +512,7 @@ list(map(lambda x : x, range(10,100,10)))
 
 # breakdown of method results 
 
-summary = "strongarm-summary-{0}.csv".format(eval_name)
+summary = "{0}strongarm-summary-{1}.csv".format(data_dir, eval_name)
 
 df = pd.read_csv(summary)
 #%%

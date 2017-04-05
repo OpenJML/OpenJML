@@ -5,21 +5,26 @@ import subprocess
 import sys 
 import pandas as pd
 
-# path to openjml 
 
-#openjml = "/Users/jls/Applications/openjml-0.8.9-20170315/openjml.jar"
+JVM_OPTS="-Xmx28G -Xms28G -XX:+UseParallelGC -XX:+AggressiveHeap"
+JAVA="java"
+#/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/bin/java 
+OPENJML = "/Users/jls/Applications/openjml-0.8.9-20170315/openjml.jar"
 
-#file = "strongarm-summary.csv"
+#eval_name = sys.argv[1]
+eval_name = "JSON-Java" 
 
-#df = pd.read_csv(file) 
+summary = "strongarm-summary-{0}.csv".format(eval_name)
 
-# get all the methods
-#methods = list(map(lambda m : m[0:(m.index('('))], df["method"]))
+df = pd.read_csv(summary) 
 
+df = df[(df["inferred"]==True) & (df["final_contract_loc"] > 0)]
 
-# check each spec.
+#%%
 
-df = pd.read_csv("strongarm-pipeline-steps-data.csv")
+# step 1 - get all the methods where inference was OK and we actually produced a contract.
+methods = list(map(lambda m : m[0:(m.index('('))], df["method"]))
 
+methods
+#%%
 
-df
