@@ -319,7 +319,7 @@ plt.clf()
 #plt.show()
 #%%
 
-ndf = inferred_df[inferred_df["initial_contract_loc"] > -1]
+ndf = inferred_df[inferred_df["final_contract_loc"] > 0]
 
 ndf
 
