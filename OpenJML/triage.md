@@ -1,6 +1,89 @@
 # Bug Triage 
 
-# Bugs 
+
+# Specs 
+
+```java
+
+//JSONWriter 
+
+/*@
+    public normal_behavior
+        requires !(this.top >= maxdepth); 
+        requires jo == null; 
+        ensures this.mode == 'a'; 
+        ensures this.top == this.top + 1; 
+        assignable _JML__tmp226[_JML__tmp227]; 
+        assignable this.mode; 
+        assignable this.top; 
+   */
+
+  private void push(@NonNull 
+  JSONObject jo) throws JSONException;
+	
+
+ /*@
+    public normal_behavior
+        requires this.myArrayList != null; 
+        ensures Pre_9 == true; 
+        ensures \fresh(\result); 
+   */
+
+
+//JSONArray
+@Pure 
+  public boolean isNull(int index);
+    /*@
+    public normal_behavior
+      {|
+        requires NULL == null;  // THIS is ok.
+        requires !(NULL == null);  // in the same clause? not ok. 
+        requires this.myArrayList != null; 
+        requires !(null == null);  // this is garbage.
+        requires null == null; 
+        ensures \result == (NULL == null); 
+      */
+
+// CDL.jml
+/*@
+    public normal_behavior
+      {|
+        requires !(null == null); 
+        requires 0 == 0; 
+          ensures \result == null; 
+      also
+        requires !(0 == 0); 
+        requires !(null == null); 
+          ensures \result == null; 
+      also
+        ensures \result == null; 
+        {|
+          requires null == null; 
+        also
+          requires !(null == null); 
+        |}
+      also
+        requires !(null == null); 
+      |}
+   */
+
+// Cookie.jml
+
+/*@
+    public normal_behavior
+        ensures Pre_2 == (string != null); 
+        ensures \forall char[] a;, int astart;, char[] b;, int bstart;, int len;; ; _JML_METHODEF__java_lang_CharSequence_equal_1965(_heap__, a, astart, b, bstart, len) == (a != null && b != null && (a != null && b != null && astart >= 0 && bstart >= 0 && len >= 0 && astart + len <= a.length && bstart + len <= b.length)); 
+        ensures \forall char[] a;, char[] b;; a != null && b != null; java_lang_CharSequence_equal_1539(_heap__, a, b) == (a == b || (a != null && b != null && a.length == b.length && java_lang_CharSequence_equal_1965(_heap__, a, 0, b, 0, a.length))); 
+        ensures \forall char[] a;, int astart;, char[] b;, int bstart;, int len;; a != null && b != null && (a != null && b != null && astart >= 0 && bstart >= 0 && len >= 0 && astart + len <= a.length && bstart + len <= b.length); java_lang_CharSequence_equal_1965(_heap__, a, astart, b, bstart, len) == ((a == b && astart == bstart) || (\forall int i; 0 <= i && i < len; a[i + astart] == b[i + bstart])); 
+        ensures \forall java.lang.String QTHIS;; QTHIS != null && QTHIS instanceof java.lang.CharSequence; java_lang_String_length_10521(_heap__, QTHIS) == QTHIS.charArray.length; 
+          ensures \fresh(\result); 
+   */
+
+
+
+```
+
+# Bugs - CLOSED
 
 ```
 at org.jmlspecs.openjml.esc.JmlAssertionAdder.visitIdent(JmlAssertionAdder.java:9040)
@@ -21,7 +104,7 @@ at org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2.visitUnary(Substitu
 # Translation Issues
 
 ```
-MissingArgumentException.jml
+org.apache.commons.cli.MissingArgumentException.getOption
 
 option_1285
 

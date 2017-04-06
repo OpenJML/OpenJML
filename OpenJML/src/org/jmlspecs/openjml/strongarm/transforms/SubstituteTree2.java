@@ -157,39 +157,39 @@ public class SubstituteTree2 extends JmlTreeScanner{
     @Override 
     public void visitIndexed(JCArrayAccess tree){
         
-        log.error("jml.internal", "Didn't handle this case!!!?!?");
+               
+        
+            
+        JCArrayAccess access = tree;
+        
+        if(access.indexed instanceof JCFieldAccess){
+            handleField((JCFieldAccess)access.indexed);
+        }
+        
+        if(access.index instanceof JCFieldAccess){
+            handleField((JCFieldAccess)access.index);
+        }
+        
+        if(access.indexed instanceof JCIdent && canReplace((JCIdent)access.indexed)){
+           
+            try {
+                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
 
+                access.indexed = with();
+            }catch(NullPointerException e){}
+        }
         
+        if(access.index instanceof JCIdent && canReplace((JCIdent)access.index)){
+
+            try {
+                log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
+
+                access.index = with();
+            }catch(NullPointerException e){}
+        }
+    
         
-//        if(tree.toString().equals(with().toString())==false){
-//        
-//            if(tree instanceof JmlBBArrayAccess){
-//                JmlBBArrayAccess access = (JmlBBArrayAccess)tree;
-//                
-//                if(access.indexed instanceof JCFieldAccess){
-//                    handleField((JCFieldAccess)access.indexed);
-//                }
-//                
-//                if(access.index instanceof JCFieldAccess){
-//                    handleField((JCFieldAccess)access.index);
-//                }
-//                
-//                if(access.indexed instanceof JCIdent && access.indexed.toString().equals(replace().toString())){
-//                    
-//                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
-//
-//                    access.indexed = with();
-//                }
-//                
-//                if(access.index instanceof JCIdent && access.index.toString().equals(replace().toString())){
-//                    
-//                    log.getWriter(WriterKind.NOTICE).println("\t\tReplacing INDEXED: " + access.indexed.toString() + " -> " + with().toString() + " in: " + tree.toString());
-//
-//                    access.index = with();
-//                }
-//            }
-//            
-//        }
+    
       super.visitIndexed(tree);
     }
     

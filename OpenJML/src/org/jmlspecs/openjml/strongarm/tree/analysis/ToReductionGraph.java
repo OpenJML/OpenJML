@@ -19,6 +19,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodClauseStoreRef;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTreeUtils;
+import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
@@ -247,7 +248,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     }
     
     
-    public static DiGraph<SpecBlockVertex> analyze(JCTree tree) {
+    public static DiGraph<SpecBlockVertex> analyze(JCTree tree) throws InferenceAbortedException {
 
         ToReductionGraph analysis = new ToReductionGraph(Strongarm._context);
         analysis.doAnalysis(tree);
@@ -257,6 +258,9 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         
         
         do {
+
+            Strongarm.dieIfNeeded();
+            
             // step 1 -- convert to a graph
             Pair<DiGraph<SpecBlockVertex>,AdjacencyMatrix<SpecBlockVertex>> pair = analysis.toDiGraph(analysis.getVertexes());
             
@@ -273,6 +277,9 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         // step 3 -- at this point, we have a disjoint forest in the initial graph, add the remaining 
         //           disjoint nodes to the residual graph
         for(SpecBlockVertex v : analysis.getVertexes()){
+
+            Strongarm.dieIfNeeded();
+            
             if(analysis.getResidualVertexes().contains(v)==false){
                 
                 // it's not in the residual graph, so add it here
@@ -298,6 +305,7 @@ public class ToReductionGraph extends JmlTreeAnalysis {
     }
     
     public static List<JmlMethodClause> processChild(ForwardNavigator<SpecBlockVertex> it , SpecBlockVertex child, List<JmlMethodClause> contract, JmlTreeUtils treeutils, JmlTree.Maker M, boolean minimizeExpressions){
+        
         
         // base case -- nothing else to look at
         if(it.next(child)==null || it.next(child).size()==0){            

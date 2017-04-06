@@ -170,15 +170,15 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         //
         // Print path
         //
-        logl("[PATH]");        
-        
-        for(BasicBlock b : path){
-            logl(b.id().toString() + ">>");
-        }
-        
-        if(p.toString().contains("b_207")){
-            System.out.println("");
-        }
+//        logl("[PATH]");        
+//        
+//        for(BasicBlock b : path){
+//            logl(b.id().toString() + ">>");
+//        }
+//        
+//        if(p.toString().contains("b_207")){
+//            System.out.println("");
+//        }
         
         String beforeFixpoint = p.toString();
         
@@ -232,11 +232,11 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         log("[SUBS] Running Substitution For Expression: " + p.toString() + ", Defined @ Block: " + def.id().toString());
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path
-        logl("[PATH]");        
-        for(BasicBlock b : path){
-            logl(b.id().toString() + ">>");
-        }
-        
+//        logl("[PATH]");        
+//        for(BasicBlock b : path){
+//            logl(b.id().toString() + ">>");
+//        }
+//        
                 // baby fixpoint
         String before;
         int iteration = 1;
@@ -370,12 +370,12 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
         
         log("[DEBUG] ADDR PROP=" + Integer.toHexString(System.identityHashCode(this)) + ", EXPR=" + Integer.toHexString(System.identityHashCode(p)));
         // print path
-        logl("[PATH]");        
-        for(BasicBlock b : path){
-            logl(b.id().toString() + ">>");
-        }
-        log("");
-        
+//        logl("[PATH]");        
+//        for(BasicBlock b : path){
+//            logl(b.id().toString() + ">>");
+//        }
+//        log("");
+//        
         // build a list of substitutions by following the mapping backwards.
         
         if(def.id().toString().equals("BL_423_else_19")){
