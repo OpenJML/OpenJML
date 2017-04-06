@@ -16,12 +16,10 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlToken;
 import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
-
+import org.jmlspecs.openjml.JmlTree.JmlBBArrayAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
@@ -33,10 +31,10 @@ import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicBlocker2.VarMap;
 import org.jmlspecs.openjml.esc.BasicBlockerParent;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.strongarm.tree.And;
 import org.jmlspecs.openjml.strongarm.tree.Or;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
-import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -987,6 +985,7 @@ public class BlockReader {
     
     public boolean skip(JCStatement stmt){
               
+                
         JmlStatementExpr jmlStmt;
         
         if(stmt instanceof JmlStatementExpr){
@@ -1032,6 +1031,10 @@ public class BlockReader {
             // we don't care about the internal JML stuff (unless it's the result!)
             if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith(Strings.resultVarString)){
                 return false;
+            }
+        
+            if(((JCIdent)((JCBinary)jmlStmt.expression).lhs).getName().toString().startsWith(Strings.prePrefix)){
+                return true;
             }
         
             

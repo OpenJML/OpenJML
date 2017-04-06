@@ -342,6 +342,19 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         .map(v -> M.JmlSpecificationCase(null, false, null, null, v))
         .collect(Collectors.toList());
         
+        // make sure we don't encounter the same cases twice.
+        Set<String> stringCases = new HashSet<String>();
+        
+        cases = cases.stream().filter( c -> {
+            if(stringCases.contains(c.toString())){
+                return false;
+            }
+            
+            stringCases.add(c.toString());
+            return true;
+        })
+        .collect(Collectors.toList());
+        
         // step 2 - convert to a list-based representation 
         List<JmlSpecificationCase> listCases = JDKListUtils.toList(cases);
         

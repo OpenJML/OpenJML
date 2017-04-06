@@ -71,6 +71,11 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
      */
     public boolean shouldRemove(JmlMethodClause clause){
         
+        if(clause.toString().contains(Strings.prePrefix)){
+            return true;
+        }
+        
+        
         if(clause instanceof JmlMethodClauseStoreRef){
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef)clause;
             
@@ -113,6 +118,19 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().equals("true == true"))){
             return true;
         }
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("null == null"))){
+            return true;
+        }
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("0 == 0"))){
+            return true;
+        }
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("java_lang_CharSequence"))){
+            return true;
+        }
+        
         
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains(Strings.tmpVarString))){
             return true;

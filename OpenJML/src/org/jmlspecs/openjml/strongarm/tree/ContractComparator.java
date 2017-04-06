@@ -12,7 +12,7 @@ public class ContractComparator implements Comparator<JmlMethodClause> {
     public int compare(JmlMethodClause o1, JmlMethodClause o2) {
         
         if(o1.token == o2.token){
-            return 0;
+            return o1.toString().compareTo(o2.toString());
         }
         
         if(o1.token == JmlTokenKind.REQUIRES && o2.token == JmlTokenKind.ENSURES){
