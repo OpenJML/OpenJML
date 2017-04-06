@@ -1,7 +1,6 @@
 #!/usr/local/bin/bash
 
-
-EVALS=( "json-java" "commons-csv" "commons-cli" "junit4" )
+source strongarm.conf
 
 RUN_NAME=""
 

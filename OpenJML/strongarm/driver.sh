@@ -11,7 +11,8 @@ mkdir -p $OUTDIR
 
 FIXPOINTS=(0 1 2 3)
 
-EVALS=( "junit4" "json-java" "commons-csv" "commons-cli"  )
+#EVALS=( "junit4" "json-java" "commons-csv" "commons-cli"  )
+source strongarm/strongarm.conf
 
 if [ $# -eq 1 ]; then
     echo "Overriding test suite with parameter: $1"

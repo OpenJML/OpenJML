@@ -5,10 +5,10 @@ rsync -avz --exclude 'run.out*' --exclude 'OpenJML/.metadata' --exclude 'OpenJML
 
 rsync -avz --exclude='.git/' --exclude='.metadata' --exclude='.gitignore' /Users/jls/Projects/Analysis/ jls@drake2:/Users/jls/Projects/Analysis --delete
 
-rsync -avz --exclude 'run.out*' --exclude 'OpenJML/.metadata' --exclude 'OpenJML/OpenJML/OpenJML/strongarm/figures/' --exclude 'OpenJML/OpenJML/OpenJML/strongarm/runs/' --exclude 'OpenJML/OpenJML/OpenJML/benchmarks/' --exclude='.git/' --exclude='.metadata/' --exclude 'OpenJML/OpenJML/OpenJMLTest/benchmarks/' --exclude='.gitignore' /Users/jls/Projects/Strongarm/ jls@crunch:/Users/jls/Projects/Strongarm --delete
+#rsync -avz --exclude 'run.out*' --exclude 'OpenJML/.metadata' --exclude 'OpenJML/OpenJML/OpenJML/strongarm/figures/' --exclude 'OpenJML/OpenJML/OpenJML/strongarm/runs/' --exclude 'OpenJML/OpenJML/OpenJML/benchmarks/' --exclude='.git/' --exclude='.metadata/' --exclude 'OpenJML/OpenJML/OpenJMLTest/benchmarks/' --exclude='.gitignore' /Users/jls/Projects/Strongarm/ jls@crunch:/Users/jls/Projects/Strongarm --delete
 
 
-rsync -avz --exclude='.git/' --exclude='.metadata' --exclude='.gitignore' /Users/jls/Projects/Analysis/ jls@crunch:/Users/jls/Projects/Analysis --delete
+#rsync -avz --exclude='.git/' --exclude='.metadata' --exclude='.gitignore' /Users/jls/Projects/Analysis/ jls@crunch:/Users/jls/Projects/Analysis --delete
 
 
 
