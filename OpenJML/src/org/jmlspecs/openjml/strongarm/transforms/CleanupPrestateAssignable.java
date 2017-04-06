@@ -135,6 +135,23 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
 
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_heap__"))){
+            return true;
+        }
+
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("java_lang_reflect"))){
+            return true;
+        }
+
+        
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_JML_iterator"))){
+            return true;
+        }
+
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\type"))){
+            return true;
+        }
+        
         
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains(Strings.tmpVarString))){
             return true;
