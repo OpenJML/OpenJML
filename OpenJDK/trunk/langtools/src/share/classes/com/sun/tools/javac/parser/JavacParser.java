@@ -3655,9 +3655,14 @@ public class JavacParser implements Parser {
                     pos = token.pos;
                     Name name = ident();
                     if (token.kind == LPAREN) {
-                        return List.of(methodDeclaratorRest(
+                        // OPENJML -- modified this case for better error recovery
+                        JCTree method = methodDeclaratorRest(
                             pos, mods, type, name, typarams,
-                            isInterface, isVoid, dc));
+                            isInterface, isVoid, dc);
+                        if (name == names.error || type instanceof JCErroneous) {  
+                            method = syntaxError(token.pos, null, "illegal.start.of.expr");
+                        } 
+                        return List.of(method);
                     } else if (!isVoid && typarams.isEmpty()) {
                         List<JCTree> defs =
                             variableDeclaratorsRest(pos, mods, type, name, isInterface, dc,

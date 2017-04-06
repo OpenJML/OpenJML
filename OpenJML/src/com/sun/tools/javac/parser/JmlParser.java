@@ -939,15 +939,14 @@ public class JmlParser extends JavacParser {
                             ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
                             attach(d, dc);
                             currentVariableDecl = d;
-
                         } else {
-                            tr = null;
+                            ttr = null;
                         }
                         //                            if (tr != null && utils.findMod(tmods, JmlTokenKind.MODEL) == null && utils.findMod(tmods, JmlTokenKind.GHOST) == null) {
                         //                                jmlerror(tr.pos, "jml.missing.ghost.model");
                         //                            }
                         dc = null;
-                        list.append(ttr);
+                        if (ttr != null) list.append(ttr);
                     }
                 } else if (t.head instanceof JmlMethodDecl) {
                     JmlMethodDecl d = (JmlMethodDecl) t.head;
