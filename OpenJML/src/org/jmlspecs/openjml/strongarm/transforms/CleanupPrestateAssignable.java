@@ -130,7 +130,11 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("java_lang_CharSequence"))){
             return true;
         }
-        
+
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("/*mising*/"))){
+            return true;
+        }
+
         
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains(Strings.tmpVarString))){
             return true;
