@@ -2,7 +2,7 @@
 
 # pull down the CSVs
 
-scp jls@crunch:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/*.csv" /Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/
+scp jls@drake2:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/*.csv" /Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/
 
 # pull down the figures
 
@@ -14,4 +14,4 @@ scp jls@crunch:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/
 #rsync -zarv  --include "*/" --exclude="*" --include="*.jml" jls@dre:/home/jls/Projects/Analysis /Users/jls/Projects/Analysis/
 
 
-rsync -zarv  --include "*/" --include="*.jml" --exclude="*" jls@crunch:/Users/jls/Projects/Analysis/ /Users/jls/Projects/Analysis/
+rsync -zarv  --include "*/" --include="*.jml" --exclude="*" jls@drake2:/Users/jls/Projects/Analysis/ /Users/jls/Projects/Analysis/
