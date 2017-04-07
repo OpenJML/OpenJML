@@ -225,9 +225,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
 
             try {
                 
-//                if(importsAdded(node)==false){
-//                    addImports(node);
-//                }
+                if(importsAdded(node)==false){
+                    addImports(node);
+                }
                 String spec = SpecPretty.write(node,  true);
                 
                 Files.write(writeTo, spec.getBytes());

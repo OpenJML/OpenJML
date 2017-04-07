@@ -1,6 +1,194 @@
 # Bug Triage 
 
+```java
+ /*@
+    public normal_behavior
+      {|
+        requires this.argName != null; 
+        requires this.description != null; 
+        requires this.longOpt != null; 
+        requires this.opt != null; 
+        requires this.values != null; 
+        ensures this.argName == builder.argName; 
+        ensures this.description == builder.description; 
+        ensures this.longOpt == builder.longOpt; 
+        ensures this.numberOfArgs == builder.numberOfArgs; 
+        ensures this.numberOfArgs_2653_2653___19 == 0; 
+        ensures this.opt == builder.opt; 
+        ensures this.optionalArg == builder.optionalArg; 
+        ensures this.required == builder.required; 
+        ensures this.type == builder.type; 
+        ensures this.type_2740_2740___21 == null; 
+        ensures this.valuesep == builder.valuesep; 
+        assignable this.argName; 
+        assignable this.description; 
+        assignable this.longOpt; 
+        assignable this.numberOfArgs; 
+        assignable this.numberOfArgs_2653_2653___19; 
+        assignable this.opt; 
+        assignable this.optionalArg; 
+        assignable this.required; 
+        assignable this.type; 
+        assignable this.type_2740_2740___21; 
+        assignable this.values; 
+        assignable this.valuesep; 
+        
+      also
+        requires !(this.values != null); 
+        requires this.argName != null; 
+        requires this.description != null; 
+        requires this.longOpt != null; 
+        requires this.opt != null; 
+        ensures this.argName == builder.argName; 
+        ensures this.description == builder.description; 
+        ensures this.longOpt == builder.longOpt; 
+        ensures this.numberOfArgs == builder.numberOfArgs; 
+        ensures this.numberOfArgs_2653_2653___19 == 0; 
+        ensures this.opt == builder.opt; 
+        ensures this.optionalArg == builder.optionalArg; 
+        ensures this.required == builder.required; 
+        ensures this.type == builder.type; 
+        ensures this.type_2740_2740___21 == null; 
+        ensures this.valuesep == builder.valuesep; 
+        assignable this.argName; 
+        assignable this.description; 
+        assignable this.longOpt; 
+        assignable this.numberOfArgs; 
+        assignable this.numberOfArgs_2653_2653___19; 
+        assignable this.opt; 
+        assignable this.optionalArg; 
+        assignable this.required; 
+        assignable this.type; 
+        assignable this.type_2740_2740___21; 
+        assignable this.values; 
+        assignable this.valuesep; 
+        
+      also
+        requires !(this.description != null); 
+        requires this.argName != null; 
+        requires this.longOpt != null; 
+        requires this.opt != null; 
+        requires this.values != null; 
+        ensures this.argName == builder.argName; 
+        ensures this.description == builder.description; 
+        ensures this.longOpt == builder.longOpt; 
+        ensures this.numberOfArgs == builder.numberOfArgs; 
+        ensures this.numberOfArgs_2653_2653___19 == 0; 
+        ensures this.opt == builder.opt; 
+        ensures this.optionalArg == builder.optionalArg; 
+        ensures this.required == builder.required; 
+        ensures this.type == builder.type; 
+        ensures this.type_2740_2740___21 == null; 
+        ensures this.valuesep == builder.valuesep; 
+        assignable this.argName; 
+        assignable this.description; 
+        assignable this.longOpt; 
+        assignable this.numberOfArgs; 
+        assignable this.numberOfArgs_2653_2653___19; 
+        assignable this.opt; 
+        assignable this.optionalArg; 
+        assignable this.required; 
+        assignable this.type; 
+        assignable this.type_2740_2740___21; 
+        assignable this.values; 
+        assignable this.valuesep; 
+        
+      also
+        requires !(this.argName != null); 
+        requires this.description != null; 
+        requires this.longOpt != null; 
+        requires this.opt != null; 
+        requires this.values != null; 
+        ensures this.argName == builder.argName; 
+        ensures this.description == builder.description; 
+        ensures this.longOpt == builder.longOpt; 
+        ensures this.numberOfArgs == builder.numberOfArgs; 
+        ensures this.numberOfArgs_2653_2653___19 == 0; 
+        ensures this.opt == builder.opt; 
+        ensures this.optionalArg == builder.optionalArg; 
+        ensures this.required == builder.required; 
+        ensures this.type == builder.type; 
+        ensures this.type_2740_2740___21 == null; 
+        ensures this.valuesep == builder.valuesep; 
+        assignable this.argName; 
+        assignable this.description; 
+        assignable this.longOpt; 
+        assignable this.numberOfArgs; 
+        assignable this.numberOfArgs_2653_2653___19; 
+        assignable this.opt; 
+        assignable this.optionalArg; 
+        assignable this.required; 
+        assignable this.type; 
+        assignable this.type_2740_2740___21; 
+        assignable this.values; 
+        assignable this.valuesep; 
+        
+      also
+        requires !(this.longOpt != null); 
+        requires this.argName != null; 
+        requires this.description != null; 
+        requires this.opt != null; 
+        requires this.values != null; 
+        ensures this.argName == builder.argName; 
+        ensures this.description == builder.description; 
+        ensures this.longOpt == builder.longOpt; 
+        ensures this.numberOfArgs == builder.numberOfArgs; 
+        ensures this.numberOfArgs_2653_2653___19 == 0; 
+        ensures this.opt == builder.opt; 
+        ensures this.optionalArg == builder.optionalArg; 
+        ensures this.required == builder.required; 
+        ensures this.type == builder.type; 
+        ensures this.type_2740_2740___21 == null; 
+        ensures this.valuesep == builder.valuesep; 
+        assignable this.argName; 
+        assignable this.description; 
+        assignable this.longOpt; 
+        assignable this.numberOfArgs; 
+        assignable this.numberOfArgs_2653_2653___19; 
+        assignable this.opt; 
+        assignable this.optionalArg; 
+        assignable this.required; 
+        assignable this.type; 
+        assignable this.type_2740_2740___21; 
+        assignable this.values; 
+        assignable this.valuesep; 
+        
+      |}
+   */
 
+  private Option(@NonNull 
+  final Builder builder);
+
+
+
+	/*@
+    public normal_behavior
+        ensures _JML___NEWARRAY_2249.length == 1; 
+   */
+
+  @Pure 
+  public List<Test> asTestList(@NonNull 
+  Description description);  -- JUnit4TestAdapterCache
+
+
+
+
+	 /*@
+	 JUnit4TestCaseFacade
+    public normal_behavior
+        ensures this.fDescription_196_196___6 == null; 
+        ensures this.fDescription == description; 
+        assignable this.fDescription_196_196___6; 
+        assignable this.fDescription; 
+   */
+
+  JUnit4TestCaseFacade(@NonNull 
+  Description description);
+    /*@
+    public normal_behavior
+        ensures \result != null; 
+   */
+```
 # Specs 
 
 ```java
