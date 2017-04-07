@@ -13,7 +13,7 @@
 <booleanAttribute key="default" value="true"/>
 <stringAttribute key="deselected_workspace_plugins" value="org.jmlspecs.OpenJMLUI,org.jmlspecs.Specs,org.jmlspecs.annotation,org.jmlspecs.openjml.OpenJDK,org.jmlspecs.openjml.OpenJML"/>
 <booleanAttribute key="includeOptional" value="true"/>
-<stringAttribute key="location" value="${workspace_loc:OpenJMLGUIWorkspace}"/>
+<stringAttribute key="location" value="${project_loc:OpenJMLGUITests}"/>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
 <mapEntry key="OPENJML_RUNTIME_LIBRARY" value="${project_name:OpenJML}/tempjars/jmlruntime.jar"/>
 </mapAttribute>

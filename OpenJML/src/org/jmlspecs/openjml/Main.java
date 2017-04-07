@@ -685,6 +685,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
+                } else if (s.isEmpty()) {
+                	res = o.defaultValue().toString();
                 }
             }
         } else if (!negate && o.hasArg()) {
@@ -851,7 +853,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
-        String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
+        String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
         if (limit == null || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {

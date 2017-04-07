@@ -1170,7 +1170,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
-            opts.add(JmlOption.MAXWARNINGS.optionName() +eq+ Options.value(Options.maxWarningsKey));
+            opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +eq+ "true");
             opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ "true");
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));

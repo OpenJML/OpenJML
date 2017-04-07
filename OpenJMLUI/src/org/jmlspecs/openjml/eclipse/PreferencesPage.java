@@ -177,7 +177,7 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.enableESCKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoESCChecking,
                 getFieldEditorParent()));
-        addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
+        addField(new ComboFieldEditor(Options.escMaxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
         		new String[][]{ 
         			{"all", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
         			{"1","1"},   //$NON-NLS-1$ //$NON-NLS-2$
