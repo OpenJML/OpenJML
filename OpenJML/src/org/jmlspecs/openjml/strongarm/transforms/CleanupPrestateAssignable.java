@@ -159,6 +159,10 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
 
+//        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("0 >= 0"))){
+//            return true;
+//        }
+
         
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\type"))){
             return true;
