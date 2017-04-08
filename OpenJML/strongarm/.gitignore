@@ -7,3 +7,4 @@ kernel*.json
 /run.out.compact.json-java
 run.out*
 *.csv
+/runs/

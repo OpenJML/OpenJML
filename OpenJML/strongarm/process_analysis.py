@@ -8,8 +8,8 @@ import os
 import subprocess
 import sys 
 
-eval_name = sys.argv[1]
-run_id = sys.argv[2]
+eval_name = "Combined" #sys.argv[1]
+run_id = "drake2-20170407" #sys.argv[2]
 
 #eval_name = "JUnit4" #sys.argv[1]
 
@@ -321,22 +321,199 @@ plt.clf()
 
 #ndf = inferred_df[(inferred_df["final_contract_loc"] > 0) & (inferred_df["final_contract_loc"] < 100)]
 
-ndf = inferred_df[inferred_df["final_contract_loc"] > 0]
+ndf = inferred_df[(inferred_df["final_contract_loc"] > 0) & (inferred_df["initial_contract_loc"] < 10000000000000)]
 
 ndf
+
+#%% 
+ndf["difference"] = ndf["initial_contract_loc"] - ndf["final_contract_loc"]
+
+
+#ndf = ndf.sort(['initial_contract_loc', 'final_contract_loc'], ascending=[1, 1])
+
+ndf = ndf.sort(['difference'], ascending=[1])
+
+initial_spec_lengths = list(ndf["initial_contract_loc"])
+final_spec_lengths = list(ndf["final_contract_loc"])
+indexes            = np.arange(len(final_spec_lengths))
+
+#initial_spec_lengths[-1]
+final_spec_lengths[-1] 
+#%% 
+
+width=.5
+
+p1 = plt.bar(indexes, initial_spec_lengths, width, color='#d62728')
+p2 = plt.bar(indexes, final_spec_lengths, width,
+              )
+
+plt.ylabel('Specification Length (LOC)')
+plt.xlabel('Specifications')
+plt.title('Initial and Final Specification Size (LOC)')
+plt.legend((p2[0], p1[0]), ( 'Initial Specification', 'Final Specification'))
+plt.yscale('log')
+
+
+
+plt.savefig(figures_path + '/stick-graph.png')
+plt.savefig(figures_path + '/stick-graph.pdf')
+plt.savefig(figures_path + '/stick-graph.eps')
+
+plt.show()
+
+#%%
+
+ndf["difference"] = ndf["initial_contract_loc"] - ndf["final_contract_loc"]
+
+
+#ndf = ndf.sort(['initial_contract_loc', 'final_contract_loc'], ascending=[1, 1])
+
+ndf = ndf.sort(['difference'], ascending=[1])
+
+initial_spec_lengths = np.array(ndf["initial_contract_loc"])
+final_spec_lengths = np.array(ndf["final_contract_loc"])
+indexes            = np.arange(len(final_spec_lengths))
+
+ndf
+#%%
+bins = np.arange(0,np.max(ndf["initial_contract_loc"]), 1)
+binplace = np.digitize(ndf["initial_contract_loc"], bins)
+
+initial_bars = np.zeros(len(bins)) 
+istd_bars    = np.zeros(len(bins))
+
+final_bars   = np.zeros(len(bins)) 
+fstd_bars    = np.zeros(len(bins))
+
+count_bars    = np.zeros(len(bins))
+
+bins
+#%%
+
+#bins
+#np.where(binplace==100)
+for bin in range(1, len(bins)):
+    #print("BIN: {0}".format(bin))
+    #print(initial_spec_lengths[np.where(binplace==bin)])
+
+    if len(np.where(binplace==bin)[0])==0:
+        initial_bars[bin-1] = np.nan
+        istd_bars[bin-1]    = np.nan
+        final_bars[bin-1]   = np.nan 
+        fstd_bars[bin-1]    = np.nan
+        count_bars[bin-1]   = np.nan
+        
+        continue 
+        
+
+
+    i = initial_spec_lengths[np.where(binplace==bin)]
+    f = final_spec_lengths[np.where(binplace==bin)]
+
+    #print(i)
+    initial_bars[bin-1] = np.mean(i)
+    istd_bars[bin-1]    = np.std(i)
+    final_bars[bin-1]   = np.mean(f) 
+    fstd_bars[bin-1]    = np.std(f)
+
+    # how much does this sample represent?
+    count_bars[bin-1]   = i.size 
+        
+
+# remove nans
+
+initial_bars = initial_bars[~np.isnan(initial_bars)]
+istd_bars    = istd_bars[~np.isnan(istd_bars)]
+final_bars   = final_bars[~np.isnan(final_bars)]
+fstd_bars    = fstd_bars[~np.isnan(fstd_bars)]
+count_bars    = count_bars[~np.isnan(count_bars)]
+
+
+#%%
+
+# norm the width 
+
+limit = np.max(count_bars)
+max_width = 100
+
+width = (count_bars/limit)*max_width
+width = .8
+#%%
+indexes            = np.arange(len(initial_bars))
+
+p1 = plt.bar(indexes, initial_bars, width, color='#d62728')
+p2 = plt.bar(indexes, final_bars, width,
+              )
+
+plt.axhline(y=80, color='r', linestyle='--')
+plt.text(0, 95, "One Full Page of Text", fontsize=11)
+
+plt.axhline(y=160, color='r', linestyle='--')
+plt.text(0, 175, "Two Full Pages of Text", fontsize=11)
+
+
+plt.ylabel('Specification Length (LOC)')
+plt.xlabel('Specifications')
+plt.title('Initial and Final Specification Size (LOC)')
+plt.legend((p1[0], p2[0]), ( 'Initial Specification', 'Final Specification'))
+plt.yscale('log')
+
+
+
+plt.savefig(figures_path + '/stick-graph-v2.png')
+plt.savefig(figures_path + '/stick-graph-v2.pdf')
+plt.savefig(figures_path + '/stick-graph-v2.eps')
+
+plt.show()
+
+#%%
+
+
+bins = np.linspace(1, np.max(ndf["initial_contract_loc"]), 100)
+
+bins
+#%%
+
+n = 50
+x = np.random.rand(n)
+y = np.random.rand(n)
+z = np.random.rand(n)
+cm = plt.cm.get_cmap('jet')
+ 
+fig, ax = plt.subplots()
+sc = ax.scatter(initial_bars,final_bars,s=count_bars*50,linewidth=0,alpha=0.5, cmap=cm, c=count_bars)
+
+#sc = ax.scatter(initial_bars,final_bars,s=count_bars*500,cmap=cm,linewidth=0,alpha=0.5)
+plt.title("Final Specification Length vs Initial Specification Length")
+plt.xlabel("Initial Specification Length (LOC)")
+plt.ylabel("Final Specification Length (LOC)")
+plt.axhline(y=80, color='r', linestyle='--')
+plt.text(165000, 95, "One Full Page of Text", fontsize=11)
+ax.grid()
+fig.colorbar(sc)
+
+plt.savefig(figures_path + '/final-loc-bubble.png')
+plt.savefig(figures_path + '/final-loc-bubble.pdf')
+plt.savefig(figures_path + '/final-loc-bubble.eps')
+ 
+plt.show()
+
+#%%
+
+final_bars
 
 
 #%%
 
 # Code length (LOC) vs Final Specification Length. 
 
-y = ndf['loc']
-x = ndf['final_contract_loc']
+x = ndf['loc']
+y = ndf['final_contract_loc']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Method Length (LOC) vs Final Specification Length (LOC)\n{0}".format(eval_name))
-plt.xlabel('Final Contract Length (LOC)')
-plt.ylabel('Method Length (LOC)')
+plt.title("Final Specification Length (LOC) vs Method Length (LOC)\n{0}".format(eval_name))
+plt.ylabel('Final Contract Length (LOC)')
+plt.xlabel('Method Length (LOC)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
@@ -392,6 +569,12 @@ plt.savefig(figures_path + '/initial-contract-size-vs-final-contract-loc.eps')
 
 plt.clf()
 #plt.show()
+
+
+#%%
+
+print("test")
+
 
 #%%
 
