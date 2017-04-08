@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/OpenJML/src/org/jmlspecs/openjml/Main.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+<listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
+<listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.jmlspecs.openjml.Main"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-no-internalSpecs -rac -classpath bin/:/Users/jls/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar:/Users/jls/Projects/Strongarm/OpenJML/JMLAnnotations/bin  -d bin src/test/java/org/apache/commons/cli/ApplicationTest.java src/test/java/org/apache/commons/cli/ArgumentIsOptionTest.java src/test/java/org/apache/commons/cli/BasicParserTest.java src/test/java/org/apache/commons/cli/bug/BugCLI133Test.java src/test/java/org/apache/commons/cli/bug/BugCLI13Test.java src/test/java/org/apache/commons/cli/bug/BugCLI148Test.java src/test/java/org/apache/commons/cli/bug/BugCLI162Test.java src/test/java/org/apache/commons/cli/bug/BugCLI18Test.java src/test/java/org/apache/commons/cli/bug/BugCLI252Test.java src/test/java/org/apache/commons/cli/bug/BugCLI71Test.java src/test/java/org/apache/commons/cli/bug/BugsTest.java src/test/java/org/apache/commons/cli/CommandLineTest.java src/test/java/org/apache/commons/cli/DefaultParserTest.java src/test/java/org/apache/commons/cli/GnuParserTest.java src/test/java/org/apache/commons/cli/HelpFormatterTest.java src/test/java/org/apache/commons/cli/OptionBuilderTest.java src/test/java/org/apache/commons/cli/OptionGroupTest.java src/test/java/org/apache/commons/cli/OptionsTest.java src/test/java/org/apache/commons/cli/OptionTest.java src/test/java/org/apache/commons/cli/ParserTestCase.java src/test/java/org/apache/commons/cli/PatternOptionBuilderTest.java src/test/java/org/apache/commons/cli/PosixParserTest.java src/test/java/org/apache/commons/cli/UtilTest.java src/test/java/org/apache/commons/cli/ValuesTest.java src/test/java/org/apache/commons/cli/ValueTest.java"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseSpecsProjectLocation=../../Specs"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="/Users/jls/Projects/Analysis-Test/commons-cli"/>
+</launchConfiguration>

@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="otherlibs/jpaul-2.5.1.jar"/>
+	<classpathentry kind="lib" path="otherlibs/javax.mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

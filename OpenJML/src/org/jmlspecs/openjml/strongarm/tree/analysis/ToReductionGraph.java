@@ -23,6 +23,7 @@ import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 import org.jmlspecs.openjml.strongarm.JDKListUtils;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
+import org.jmlspecs.openjml.strongarm.transforms.PropsInSubtree;
 import org.jmlspecs.openjml.strongarm.tree.ContractComparator;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -394,6 +395,31 @@ public class ToReductionGraph extends JmlTreeAnalysis {
         if(root.isPresent()){            
             // Convert to the contract form
             List<JmlMethodClause> newContract = processChild(it, root.get(), null, treeutils, M, minimizeExpressions);
+            
+            
+            // now that we have the contract, make sure each rooted group has postconditions. 
+            // if it doesn't eliminate it.
+            List<JmlSpecificationCase> replacedCases = null;
+
+            if(newContract !=null && newContract.head !=null && newContract.head instanceof JmlMethodClauseGroup){
+            
+                for(List<JmlSpecificationCase> cases = ((JmlMethodClauseGroup)newContract.head).cases; cases.nonEmpty(); cases = cases.tail)
+                {
+                    boolean  viable = PropsInSubtree.viable(cases.head);
+                    
+                    if(viable){
+                        if(replacedCases == null){
+                            replacedCases = List.of(cases.head);
+                        }else{
+                            replacedCases = replacedCases.append(cases.head);
+                        }
+                    }
+                }
+                
+                ((JmlMethodClauseGroup)newContract.head).cases = replacedCases;
+            }
+
+            
             
             return newContract;
         }

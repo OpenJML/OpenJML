@@ -323,6 +323,14 @@ public class Strongarm
             }
             
         }
+        
+        /**
+         * Minor detail, but I prefer if the visibility isn't specified. 
+         */
+        try {
+            methodDecl.cases.cases.head.modifiers = null;
+        }catch(NullPointerException e){}
+        
         //
         // Debugging of inference (Before Delivering PC)
         //
