@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
+import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.strongarm.SubstitutionCache;
@@ -445,6 +446,25 @@ public class SubstituteTree2 extends JmlTreeScanner{
                     
                     if(e.lhs.toString().equals(name.toString())){
                         instance.currentReplacement = sub;
+                    }
+                    
+                }else if(sub instanceof JmlBBFieldAssignment){
+                    JmlBBFieldAssignment fa = (JmlBBFieldAssignment)sub;
+                    
+                        JCExpression newField = fa.args.get(0);
+                        JCExpression oldField = fa.args.get(1);
+                        
+                        if(name.toString().equals(newField.toString())){
+                            
+                            JCExpression ass = treeutils.makeBinary(
+                                    0, 
+                                    JCTree.Tag.EQ, 
+                                    newField, 
+                                    oldField
+                                    );
+            
+                            
+                            instance.currentReplacement = ass;                        
                     }
                     
                 }
