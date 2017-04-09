@@ -1320,6 +1320,7 @@ public class DeferredAttr extends JCTree.Visitor {
             if (rec != null && rec.getTag() != null) { // OpenJML - added the second guard
                 switch (rec.getTag()) {
                     case APPLY:
+                        if (((JCMethodInvocation)rec).meth == null) return null; // OPENJML - added to handle JML constucts
                         Symbol recSym = quicklyResolveMethod(env, (JCMethodInvocation) rec);
                         if (recSym == null)
                             return null;

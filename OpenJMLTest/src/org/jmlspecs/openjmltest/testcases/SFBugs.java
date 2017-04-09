@@ -290,6 +290,16 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Test public void gitbug498() {
+    	expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test public void gitbug499() {
+    	expectedExit = 1;
+        helpTCG();
+    }
+
     // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;

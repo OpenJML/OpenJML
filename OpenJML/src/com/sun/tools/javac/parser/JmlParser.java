@@ -780,6 +780,43 @@ public class JmlParser extends JavacParser {
         return stt;
     }
     
+    /* Replicated and slightly altered from JavacParser in order to handle the case where the one statement
+     * is a JML statement.
+     */
+    JCStatement parseStatementAsBlock() {
+        int pos = token.pos;
+        List<JCStatement> stats = blockStatement();
+        JCStatement first = stats.head;
+        while (first instanceof JmlAbstractStatement) {
+            List<JCStatement> nextstats = blockStatement();
+            first = nextstats.head;
+            stats = stats.appendList(nextstats);
+        }
+        if (first == null) {
+            JCErroneous e = F.at(pos).Erroneous();
+            error(e, "illegal.start.of.stmt");
+            return F.at(pos).Exec(e);
+        } else {
+            String error = null;
+            switch (first.getTag()) {
+                case CLASSDEF:
+                    error = "class.not.allowed";
+                    break;
+                case VARDEF:
+                    error = "variable.not.allowed";
+                    break;
+            }
+            if (error != null) {
+                error(first, error);
+                List<JCBlock> blist = List.of(F.at(first.pos).Block(0, stats));
+                return toP(F.at(pos).Exec(F.at(first.pos).Erroneous(blist)));
+            }
+            if (stats.size() > 1) return F.at(first.pos).Block(0, stats);
+            return first;
+        }
+    }
+
+    
     /** Returns true if the token is a JML type token */
     public boolean isJmlTypeToken(JmlTokenKind t) {
         return t == JmlTokenKind.BSTYPEUC || t == JmlTokenKind.BSBIGINT

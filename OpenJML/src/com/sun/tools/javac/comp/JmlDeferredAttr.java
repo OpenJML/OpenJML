@@ -58,7 +58,7 @@ public class JmlDeferredAttr extends DeferredAttr {
         @Override
         public void visitApply(JCMethodInvocation tree) {
             if (tree.meth != null) super.visitApply(tree);
-            result = ArgumentExpressionKind.NO_POLY;
+            else result = ArgumentExpressionKind.NO_POLY;
             return;
         }
 
