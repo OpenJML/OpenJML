@@ -25,7 +25,7 @@ import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.file.JavacFileManager;
@@ -102,7 +102,7 @@ import com.sun.tools.javac.util.Log;
 // more so as more spec files are added, you can turn them off with the dotests
 // flag.
 
-@RunWith(Parameterized.class)
+@RunWith(ParameterizedWithNames.class)
 public class SpecsBase extends TCBase {
 
     /** Enables or disables this suite of tests */

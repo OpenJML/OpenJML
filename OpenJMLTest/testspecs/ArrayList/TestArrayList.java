@@ -2,7 +2,12 @@ import java.util.ArrayList;
 
 public class TestArrayList {
 	
-public static void main(String... args) {
+	@org.jmlspecs.annotation.SkipEsc
+	public static void main(String... args) {
+		esc(10);
+	}
+	
+	public static void esc(int i) {
 	ArrayList<Integer> a = new ArrayList<Integer>();
 	boolean b1 = a.isEmpty();
 	//@ assert b1;

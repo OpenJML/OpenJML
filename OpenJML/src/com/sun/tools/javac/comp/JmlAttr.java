@@ -793,7 +793,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Checks the JML modifiers so that only permitted combinations are present. */
     public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, TypeSpecs tspecs) {
         //System.out.println("Checking " + javaDecl.name + " in " + owner);
-        if (classSymbol.toString().endsWith("A")) Utils.stop();
         checkTypeMatch(classSymbol, tspecs.decl);
         Symbol owner = classSymbol.owner;
         JCModifiers specsModifiers = tspecs.modifiers;
@@ -2117,10 +2116,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (a != null && isStatic(tree.mods)) {
                 utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","instance","static");
             }
-            if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {
-                a = utils.findMod(tree.mods,MODEL);
-                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
-            }
+//            if (model && ((tree.mods.flags & Flags.FINAL)!=0)) {   // FIXME - WHy would model and final conflict
+//                a = utils.findMod(tree.mods,MODEL);
+//                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
+//            }
             checkForConflict(mods,NONNULL,NULLABLE);
             if (tree.specsDecl != null) log.useSource(tree.source());
         } else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters

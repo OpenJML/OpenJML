@@ -1,43 +1,21 @@
 package org.jmlspecs.openjmltest.testcases;
 
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
-import org.jmlspecs.openjmltest.RacBase;
-import org.jmlspecs.openjmltest.TCBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
+import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
-
 
 @RunWith(ParameterizedWithNames.class)
-public class SpecsRac extends RacBase {
+public class SpecsEsc extends EscBase {
 
     /** Enables or disables this suite of tests */
     static private boolean dotests = true;  // Change this to enable/disable dynamic tests
@@ -65,7 +43,8 @@ public class SpecsRac extends RacBase {
      * execute the test on a given class name.
      * @param classname the fully qualified class to test
      */
-    public SpecsRac(String classname) {
+    public SpecsEsc(String classname) {
+    	super("", "z3_4_3");  // FIXME - allow solvers
         this.classname = classname;
     }
 
@@ -75,6 +54,7 @@ public class SpecsRac extends RacBase {
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
         JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
+        JmlOption.putOption(context,JmlOption.FEASIBILITY,"exit");
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output
@@ -88,14 +68,24 @@ public class SpecsRac extends RacBase {
     public void testSpecificationFile() {
     	expectedExit = 0;
     	String subdir = "testspecs" + "/" + classname;
-    	String testname = null;
         for (File f: new File(subdir).listFiles()) {
         	if (f.getName().startsWith("Test")) {
-        		testname = f.getName().replace(".java","");
         		break;
         	}
         }
-    	helpTCF(subdir,subdir,testname);
+    	escOnFiles(subdir,subdir,"-no-minQuant","-method=esc","-checkFeasibility=exit");
+    }
+    
+    @Test
+    public void testSpecificationFileMQ() {
+    	expectedExit = 0;
+    	String subdir = "testspecs" + "/" + classname;
+        for (File f: new File(subdir).listFiles()) {
+        	if (f.getName().startsWith("Test")) {
+        		break;
+        	}
+        }
+    	escOnFiles(subdir,subdir,"-minQuant","-method=esc","-checkFeasibility=exit");//,"-show","-subexpressions");
     }
     
     static public java.util.List<File> findAllFiles() {

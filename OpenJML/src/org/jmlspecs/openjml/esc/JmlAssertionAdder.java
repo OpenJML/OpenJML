@@ -1704,6 +1704,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
+        if (assertCount == 92) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -2875,6 +2876,102 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 JCExpression e1 = treeutils.makeEqObject(p,id, treeutils.makeNullLiteral(p));
                 // assume id == null || id.isAlloc
                 addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeOr(p, e1, e2));
+            }
+
+            // assume type information
+            // e3: id == null || ( \typeof(id) <: \type(d.type) && id instanceof \erasure('d.type')))
+            JCExpression e3;
+            if (sym.type.isPrimitive() || (sym.type.getTag() == TypeTag.ARRAY && ((Type.ArrayType)sym.type).getComponentType().isPrimitive() )) {
+                e3 = treeutils.makeDynamicTypeEquality(pos,
+                        convertCopy(id), 
+                        sym.type);
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+            } else if (sym.type.getTag() == TypeTag.ARRAY ) {
+                Type compType = ((Type.ArrayType)sym.type).getComponentType();
+                if (compType.isPrimitive()) {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(id), 
+                            sym.type);
+                } else {
+                    e3 = treeutils.makeDynamicTypeInEquality(pos,
+                            convertCopy(id), 
+                            sym.type);
+                }
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+                
+                // FIXME - this should be in a recursive loop. Does it need nullness and allocation checks?
+                JCExpression typeofId = treeutils.makeTypeof(id);
+                if (compType.isPrimitive()) {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(typeofId), 
+                            compType);
+                } else {
+                    e3 = treeutils.makeDynamicTypeEquality(pos,
+                            convertCopy(typeofId), 
+                            compType);
+                }
+            } else {
+                e3 = null;
+                for (Type t: parents(sym.type.tsym.type, false)) { // OK - no enclsoing types
+                    JCExpression ee3 = treeutils.makeDynamicTypeInEquality(pos,
+                        convertCopy(id), 
+                        t);
+                    e3 = e3 == null ? ee3 : treeutils.makeAnd(ee3.pos, e3, ee3);
+                }
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,e3); 
+                addTraceableComment(s);
+            }
+        } else {
+            TypeTag tag = sym.type.getTag();
+            JCExpression lo = null,hi=null;
+            if (tag == TypeTag.INT) { 
+                lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
+                    treeutils.makeLit(p,syms.intType,Integer.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                    treeutils.makeLit(p,syms.intType,Integer.MAX_VALUE));
+            } else if (tag == TypeTag.LONG) {
+                lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.longleSymbol,
+                        treeutils.makeLit(p,syms.intType,Long.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.longleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,Long.MAX_VALUE));
+            } else if (tag == TypeTag.SHORT) {
+                lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
+                        treeutils.makeLit(p,syms.intType,(int)Short.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Short.MAX_VALUE));
+            } else if (tag == TypeTag.BYTE) {
+                lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
+                        treeutils.makeLit(p,syms.intType,(int)Byte.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Byte.MAX_VALUE));
+            } else if (tag == TypeTag.CHAR) {
+                lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
+                        treeutils.makeLit(p,syms.intType,(int)Character.MIN_VALUE),convertCopy(id));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Character.MAX_VALUE));
+            }
+            if (lo != null) {
+                JCStatement s = addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeAnd(p,lo,hi));
+                addTraceableComment(s);
+            }
+        }
+        return nnull;
+    }
+    
+    protected boolean addNullnessTypeConditionId(JCExpression id, DiagnosticPosition pos, Symbol sym, boolean isNonNull, boolean instanceBeingConstructed) {
+        int p = pos.getPreferredPosition();
+        boolean nnull = true;
+        if (!jmltypes.isJmlType(sym.type) && !sym.type.isPrimitive()) {
+
+            Symbol owner = sym.owner;
+            if (owner instanceof MethodSymbol) owner = owner.owner;
+            boolean nn = isNonNull && !instanceBeingConstructed;
+            nnull = nn;
+            if (nn) {
+                // assume id != null
+                addAssume(pos,Label.NULL_CHECK,treeutils.makeNotNull(p, convertCopy(id)));
             }
 
             // assume type information
@@ -5982,6 +6079,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (javaChecks) {
                             // Check that receiver is not null
                             JCExpression e = treeutils.makeNotNull(fa.selected.pos,newThisExpr);
+                            if (condition != null) e = treeutils.makeImplies(fa.selected.pos,  condition, e);
                             addAssert(fa,
                                     translatingJML? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE,e);
                         }
@@ -6233,7 +6331,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         MethodSymbol s = info.sym;
                         if (s != null && localVariables.isEmpty() && !treeutils.isTrueLit(info.wellDefinedExpression)) {
                             JCExpression e;
-                            if (!trArgs.isEmpty()) e = treeutils.makeMethodInvocation(that,null,s,convertCopy(trArgs));
+                            List<JCExpression> convertedArgs = convertCopy(trArgs);
+                            if (!utils.isJMLStatic(calleeMethodSym)) {
+                                convertedArgs = convertedArgs.prepend(newThisExpr);
+                            }
+                            if (!convertedArgs.isEmpty()) e = treeutils.makeMethodInvocation(that,null,s,convertedArgs);
                             else e = treeutils.makeIdent(that, s);
                             e = condition == null ? e : treeutils.makeImplies(condition.pos, condition, e);
                             if (assumingPureMethod) {
@@ -6254,7 +6356,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     log.error("jml.internal","No logical function for method " + calleeMethodSym.getQualifiedName());
                 }
 
-                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,trArgs);
+                List<JCExpression> convertedArgs = convertCopy(trArgs);
+                if (!utils.isJMLStatic(calleeMethodSym)) {
+                    convertedArgs = convertedArgs.prepend(newThisExpr);
+                }
+                JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,convertedArgs);
                 JCStatement stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
                 addStat(stat);
             }
@@ -7784,14 +7890,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 tag == TypeTag.BYTE ? "byteValue" :
                 tag == TypeTag.CHAR ? "charValue" : "";
                 ;
-        JCIdent id = M.Ident(names.fromString(methodName));
-        JCExpression mth = M.at(expr).JmlMethodInvocation(id, List.<JCExpression>of(expr));
-        mth.type = unboxed;
-        return mth;
+
+        Name id = names.fromString(methodName);
+        MethodSymbol msym = getMethod(expr.type,id);
+
+        JCFieldAccess receiver = M.at(expr).Select(expr, id);
+        receiver.type = msym.type;
+        receiver.sym = msym;
+
+        JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
+        call.setType(unboxed);
+        return convertExpr(call);
+    }
+    
+    protected MethodSymbol getMethod(Type type, Name nm) {
+        Iterator<Symbol> iter = type.tsym.members().getElementsByName(nm).iterator();
+        if (iter.hasNext()) return (MethodSymbol)iter.next();
+        return null;
     }
     
     protected JCExpression createBoxingStatsAndExpr(JCExpression expr, Type newtype) {
         TypeTag tag = expr.type.getTag();
+        newtype = boxedType(expr.type);
         String methodName =
                 tag == TypeTag.INT ? "intValue" :
                 tag == TypeTag.SHORT ? "shortValue" :
@@ -7802,17 +7922,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 tag == TypeTag.BYTE ? "byteValue" :
                 tag == TypeTag.CHAR ? "charValue" : "";
                 ;
-        JCIdent id = M.Ident(names.fromString(methodName));
-        // T id
+        Name id = names.fromString(methodName);
+        MethodSymbol msym = getMethod(newtype,id);
         JCIdent tmp = newTemp(expr.pos(), newtype); // the result - uninitialized id of type 'newtype'
         // assume id != null
-        JCExpression e = treeutils.makeNeqObject(expr.getPreferredPosition(), tmp, treeutils.nullLit);
-        addAssume(expr,Label.IMPLICIT_ASSUME,e);
+//        JCExpression e = treeutils.makeNeqObject(expr.getPreferredPosition(), tmp, treeutils.nullLit);
+//        addAssume(expr,Label.IMPLICIT_ASSUME,e);
 
-        JmlMethodInvocation call = M.at(expr).JmlMethodInvocation(id, List.<JCExpression>of(tmp));
+        addNullnessTypeConditionId(tmp, expr, tmp.sym, true, false);
+
+        JCFieldAccess receiver = M.at(expr).Select(tmp, id);
+        receiver.type = msym.type;
+        receiver.sym = msym;
+        JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
         call.setType(expr.type); // Note: no symbol set, OK since this is esc
-        e = treeutils.makeEquality(expr.pos,call,expr);
-        addAssume(expr,Label.IMPLICIT_ASSUME,e);
+        JCExpression e = treeutils.makeEquality(expr.pos,call,expr);
+        addAssume(expr,Label.IMPLICIT_ASSUME,convertExpr(e));
 
         // assume 
         addAssume(expr,Label.IMPLICIT_ASSUME,
@@ -10248,8 +10373,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression value = methodCallUtilsExpression(iter,"next",
                     treeutils.makeIdent(array.pos, decl.sym));
             value.type = that.iterDecl.type.getTypeArguments().get(0);
-            value = newTemp(value);
-            value = addImplicitConversion(array, that.var.type, value);
+            JCIdent id = newTemp(value);
+            // FIXME - fix the nullness determination in the following line
+            if (!rac) addNullnessTypeConditionId(id, that.var, id.sym, false, false);
+            value = addImplicitConversion(array, that.var.type, id);
 
             JCVariableDecl vd = ( treeutils.makeVarDef(
                     that.var.type,
@@ -11103,6 +11230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 m.setType(that.type);
                 m.label = that.label;
+                m.javaType = that.javaType;
                 m.startpos = that.startpos;
                 m.varargsElement = that.varargsElement;
                 // typeargs and meth are always null for a 

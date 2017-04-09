@@ -505,10 +505,6 @@ public class SMTTranslator extends JmlTreeScanner {
     	List<ICommand> saved = commands;
     	commands = tcommands;
         
-        for (int i=1; i<=wildcardCount; ++i) {
-            ISymbol sym = F.symbol("JMLTV_"+"WILD"+i);
-            tcommands.add(new C_declare_fun(sym,emptyList,jmlTypeSort));
-        }
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) {
                 if (ti instanceof Type.CapturedType) continue; 
@@ -697,6 +693,11 @@ public class SMTTranslator extends JmlTreeScanner {
             jmltypelist.add(e);
         }
         tcommands.add(new C_assert(F.fcn(distinctSym, jmltypelist)));
+
+        for (int i=1; i<=wildcardCount; ++i) {
+            ISymbol sym = F.symbol("JMLTV_"+"WILD"+i);
+            tcommands.add(0,new C_declare_fun(sym,emptyList,jmlTypeSort));
+        }
 
         // Add all the type definitions into the command script before all the uses
         // of the types in the various basic block translations
@@ -1485,6 +1486,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         if (that.token == JmlTokenKind.BSTYPELC) {
+            if (that.toString().equals("\\typej(short)")) Utils.stop();
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
@@ -1583,6 +1585,7 @@ public class SMTTranslator extends JmlTreeScanner {
         switch (op) {
             case EQ:
                 result = F.fcn(eqSym, args);
+                if (result.toString().equals("(= java.lang.Short_TYPE JMLT_short)")) Utils.stop();
                 break;
             case NE:
                 result = F.fcn(distinctSym, args);

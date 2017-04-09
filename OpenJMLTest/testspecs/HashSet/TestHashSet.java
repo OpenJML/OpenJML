@@ -2,7 +2,12 @@ import java.util.HashSet;
 
 public class TestHashSet {
 	
-public static void main(String... args) {
+	@org.jmlspecs.annotation.SkipEsc
+	public static void main(String... args) {
+		esc(10);
+	}
+	
+	public static void esc(int i) {
 	HashSet<Integer> a = new HashSet<Integer>();
 	boolean b1 = a.isEmpty();
 	//@ assert b1;

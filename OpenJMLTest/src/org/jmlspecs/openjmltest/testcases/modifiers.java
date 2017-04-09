@@ -259,9 +259,9 @@ public class modifiers extends TCBase {
     
     // cannot be model and final
     @Test public void testInterface4() {
-        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j;*/ }"
-                ,"/t/A.java:2: A declaration may not be both model and final",26
-                ,"/t/A.java:2: A declaration may not be both model and final",84
+        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j = 0;*/ }"
+//                ,"/t/A.java:2: A declaration may not be both model and final",26
+//                ,"/t/A.java:2: A declaration may not be both model and final",84
                 );
     }
     

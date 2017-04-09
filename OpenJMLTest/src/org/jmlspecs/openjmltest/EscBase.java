@@ -270,7 +270,6 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     protected void helpTCX(String classname, String s, Object... list) {
-    	//fail("Java8 not yet implemented"); // FIXME - Java8 - 
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);

@@ -1,9 +1,8 @@
 Proving methods in Child
 Starting proof of Child.Child(java.lang.Object) with prover !!!!
-test\escConstructor3\Parent.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method Child
-  //@ ensures o != null && o.equals(oo);
-                            ^
-Completed proof of Child.Child(java.lang.Object) with prover !!!! - with warnings
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of Child.Child(java.lang.Object) with prover !!!! - no warnings
 Completed proving methods in Child
 Proving methods in Parent
 Starting proof of Parent.Parent(java.lang.Object) with prover !!!!
@@ -11,4 +10,3 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of Parent.Parent(java.lang.Object) with prover !!!! - no warnings
 Completed proving methods in Parent
-1 warning

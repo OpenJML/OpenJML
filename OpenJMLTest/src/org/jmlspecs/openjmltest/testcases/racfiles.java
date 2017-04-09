@@ -279,6 +279,7 @@ public class racfiles extends RacBase {
     			);
     }
 
+    @Ignore // FIXME - no longer tests for absence of ghost field
     @Test // FIXME - make platform independent and remove use of -jmltesting - but also has added a stack trace
     public void racNoGhostField() {
         expectedRACExit = 0;

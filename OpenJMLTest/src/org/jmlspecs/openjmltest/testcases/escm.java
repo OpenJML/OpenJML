@@ -414,8 +414,7 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3() {
-        //main.addOptions("-no-minQuant");
-        //main.addOptions("-show","-method=m1");
+        main.addOptions("-show","-method=m1","-subexpressions");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"

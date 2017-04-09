@@ -122,6 +122,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchShort() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
