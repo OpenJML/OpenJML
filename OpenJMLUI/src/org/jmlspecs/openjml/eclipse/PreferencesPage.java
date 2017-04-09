@@ -88,7 +88,7 @@ IWorkbenchPreferencePage {
 	@Override
 	public boolean performOk() {
 		super.performOk();
-        Options.init();
+        Options.cache();
         return true;
 	}
 	
@@ -125,7 +125,6 @@ IWorkbenchPreferencePage {
 							} else {
 								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
 							}
-							Options.init();
 						} else {
 							// Assume anything else has a String value
 							getPreferenceStore().setValue(key,value);
@@ -135,6 +134,7 @@ IWorkbenchPreferencePage {
 						//Log.log("Ignoring property " + key + "=" + value);
 					}
 				}
+				Options.cache();
 				initialize();
 			}
 		};

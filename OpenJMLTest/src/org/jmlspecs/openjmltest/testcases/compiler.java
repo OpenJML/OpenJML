@@ -924,7 +924,7 @@ public class compiler {
     // Testing typechecking without org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime1() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected2";
+    	expectedFile = "releaseTests/testRuntime1/expected";
     	helper(new String[]
     			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
     			},3,0

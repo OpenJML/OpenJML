@@ -5,7 +5,11 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
+
+import com.sun.tools.javac.util.Context;
 
 /**
  * This class manages user-settable options for OpenJML - at least those
@@ -43,8 +47,18 @@ public class Options {
 	static public boolean uiverboseness = false;
 
 	/** Caches values of properties as needed, based on preference store */
-	public static void init() {
+	public static void cache() {
 		Options.uiverboseness = Options.isOption(Options.uiverbosityKey);
+	}
+	
+	public static void initialize(boolean override, Context context) {
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		for (JmlOption opt: JmlOption.values()) {
+			String key = Strings.optionPropertyPrefix + opt.optionName().substring(1); // The substring is to remove the initial hyphen
+			if (override || !store.contains(key)) {
+				store.putValue(key, opt.defaultValue().toString());
+			}
+		}
 	}
 
 
