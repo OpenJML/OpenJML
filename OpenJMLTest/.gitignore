@@ -7,3 +7,4 @@
 /openjml.properties
 /junit/
 *.bpl
+**/*actual*
