@@ -81,7 +81,7 @@ public class JDKListUtils {
                 continue;
             }
             String p = part.trim();
-            if(p.length() > 0 && !p.startsWith("/*@") && !p.startsWith("*/") && !p.startsWith("public normal_behavior")){
+            if(p.length() > 0 && !p.startsWith("/*@") && !p.startsWith("*/") && !p.startsWith("normal_behavior") && !p.startsWith("private normal_behavior") && !p.startsWith("protected normal_behavior") && !p.startsWith("public normal_behavior")){
                 count++;
             }
         }

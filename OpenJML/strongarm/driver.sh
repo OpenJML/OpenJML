@@ -1,6 +1,6 @@
 #!/usr/local/bin/bash
 
-EXPERIMENT="dre"
+EXPERIMENT="2pac"
 DATE=`date "+%F.%H%M%S.%N"`
 
 # create the output directory
@@ -30,7 +30,7 @@ do
         echo "Fixpoint $F for Eval: $E..."
 
         # run the eval
-        #./strongarm/run_eval.sh $E 
+        ./strongarm/run_eval.sh $E 
 
         # after it's done, move it's generated csv files 
         FILES=`ls strongarm/strongarm*$EVAL_NAME.csv`
@@ -42,7 +42,7 @@ do
             dest="$OUTDIR/$dest"
             #cp $file 
             echo "Moving $file to $dest"
-            cp $file $dest 
+            mv $file $dest 
         done
 
         echo -e "\e[32m[💪🏻 Fixpoint $F Done ($EVAL_NAME)] \e[0m"    

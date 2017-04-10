@@ -272,7 +272,7 @@ public class Strongarm
         methodDecl.cases.decl = methodDecl;
         methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
         
-    	methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+    	
     	methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
         
 
@@ -328,7 +328,12 @@ public class Strongarm
          * Minor detail, but I prefer if the visibility isn't specified. 
          */
         try {
-            methodDecl.cases.cases.head.modifiers = null;
+            //methodDecl.cases.cases.head.modifiers = null;
+            //methodDecl.cases.cases.head.token = null;
+            //methodDecl.getModifiers().
+            methodDecl.cases.cases.head.modifiers =  treeutils.factory.Modifiers(methodDecl.getModifiers().flags & Flags.AccessFlags);  // treeutils.factory.Modifiers(Flags.PUBLIC);
+
+
         }catch(NullPointerException e){}
         
         //
@@ -369,6 +374,12 @@ public class Strongarm
 
             }else{
                 log.getWriter(WriterKind.NOTICE).println("FINISHED INFERENCE OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl)); //$NON-NLS-1$
+            }
+            
+            if(JDKListUtils.countLOC(methodDecl.cases)==0){
+                methodDecl.cases = null;
+                methodDecl.methodSpecsCombined = null;
+
             }
             
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
@@ -503,7 +514,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
             log.getWriter(WriterKind.NOTICE).println("INITIAL CONTRACT LENGTH " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-
+ 
         }
                  
         if(reader.blocks.size() <= 10){

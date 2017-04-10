@@ -8,8 +8,11 @@ import os
 import subprocess
 import sys 
 
-eval_name = "Combined" #sys.argv[1]
-run_id = "drake2-20170407" #sys.argv[2]
+#eval_name = "Combined" #sys.argv[1]
+#run_id = "2pac-20170409" #sys.argv[2]
+
+eval_name = sys.argv[1]
+run_id = sys.argv[2]
 
 #eval_name = "JUnit4" #sys.argv[1]
 
@@ -349,7 +352,7 @@ p2 = plt.bar(indexes, final_spec_lengths, width,
 
 plt.ylabel('Specification Length (LOC)')
 plt.xlabel('Specifications')
-plt.title('Initial and Final Specification Size (LOC)')
+plt.title("Initial and Final Specification Size (LOC)\n{0}".format(eval_name))
 plt.legend((p2[0], p1[0]), ( 'Initial Specification', 'Final Specification'))
 plt.yscale('log')
 
@@ -359,7 +362,8 @@ plt.savefig(figures_path + '/stick-graph.png')
 plt.savefig(figures_path + '/stick-graph.pdf')
 plt.savefig(figures_path + '/stick-graph.eps')
 
-plt.show()
+plt.clf()
+#plt.show()
 
 #%%
 
@@ -454,7 +458,7 @@ plt.text(0, 175, "Two Full Pages of Text", fontsize=11)
 
 plt.ylabel('Specification Length (LOC)')
 plt.xlabel('Specifications')
-plt.title('Initial and Final Specification Size (LOC)')
+plt.title("Initial and Final Specification Size (LOC)\n{0}".format(eval_name))
 plt.legend((p1[0], p2[0]), ( 'Initial Specification', 'Final Specification'))
 plt.yscale('log')
 
@@ -464,7 +468,8 @@ plt.savefig(figures_path + '/stick-graph-v2.png')
 plt.savefig(figures_path + '/stick-graph-v2.pdf')
 plt.savefig(figures_path + '/stick-graph-v2.eps')
 
-plt.show()
+plt.clf()
+#plt.show()
 
 #%%
 
@@ -484,7 +489,7 @@ fig, ax = plt.subplots()
 sc = ax.scatter(initial_bars,final_bars,s=count_bars*50,linewidth=0,alpha=0.5, cmap=cm, c=count_bars)
 
 #sc = ax.scatter(initial_bars,final_bars,s=count_bars*500,cmap=cm,linewidth=0,alpha=0.5)
-plt.title("Final Specification Length vs Initial Specification Length")
+plt.title("Final Specification Length vs Initial Specification Length\n{0}".format(eval_name))
 plt.xlabel("Initial Specification Length (LOC)")
 plt.ylabel("Final Specification Length (LOC)")
 plt.axhline(y=80, color='r', linestyle='--')
@@ -496,7 +501,9 @@ plt.savefig(figures_path + '/final-loc-bubble.png')
 plt.savefig(figures_path + '/final-loc-bubble.pdf')
 plt.savefig(figures_path + '/final-loc-bubble.eps')
  
-plt.show()
+
+plt.clf()
+#plt.show()
 
 #%%
 
@@ -708,7 +715,7 @@ def fb(xx):
     return len(df[df[xx]==True])
 
 
-values = np.array([fb('inferred'), fb('skipped'), fb('refused'), fb('error'), fb('timeout')]) 
+values = np.array([fb('inferred'), fb('timeout'), fb('refused'), fb('error'), fb('skipped')]) 
 
 buckets = values
 
@@ -731,3 +738,6 @@ plt.title("Breakdown of Inference Outcomes\n{0}".format(eval_name))
 plt.savefig(figures_path + '/inference-breakdown-pie.png')
 plt.savefig(figures_path + '/inference-breakdown-pie.pdf')
 plt.savefig(figures_path + '/inference-breakdown-pie.eps')
+
+#plt.show()
+plt.clf()

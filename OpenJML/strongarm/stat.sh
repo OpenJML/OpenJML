@@ -1,7 +1,8 @@
 #!/usr/local/bin/bash
 
+source strongarm.conf 
 
-EVALS=( "junit4" "json-java" "commons-csv" "commons-cli"  )
+#EVALS=( "junit4" "json-java" "commons-csv" "commons-cli"  )
 
 BUFFER="Test Started"
 
