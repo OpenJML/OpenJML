@@ -203,6 +203,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
     
     public void visitJmlBlock(JmlBlock that) {
+        
+        if(that.type==null){
+            return;
+        }
+        
         visitBlock(that);
     }
     
