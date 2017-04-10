@@ -26,8 +26,7 @@ do
         perl -i -0777 -pe 's/private enum.*\{[^\}]*\}//gs' $file        
         perl -i -0777 -pe 's/public enum.*\{[^\}]*\}//gs' $file
         perl -i -0777 -pe 's/enum.*\{[^\}]*\}//gs' $file
-        #perl -i -0777 -pe 's/static\s+\{[^\}]*\}//gs' $file
-
+        
 
     done
 

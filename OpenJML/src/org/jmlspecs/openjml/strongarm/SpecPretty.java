@@ -36,6 +36,7 @@ public class SpecPretty extends JmlPretty {
         StringWriter sw = new StringWriter();
         JmlPretty p = new SpecPretty(sw,source);
         p.width = 2;
+        p.specOnly = true;
 
         // we don't want this
         /* tree.accept(p); */

@@ -1,5 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
+import static com.sun.tools.javac.code.Flags.ENUM;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -216,6 +218,12 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             if(lastClass==null){ return; }
             utils.progress(1,1,"[STRONGARM] Persisting contracts for methods in " + utils.classQualifiedName(lastClass.sym) ); 
 
+            if((node.mods.flags & Flags.ENUM) !=0){
+                utils.progress(1,1,"[STRONGARM] Won't wrote enum class methods in " + utils.classQualifiedName(lastClass.sym) ); 
+                return;
+            }
+            
+            
             Path writeTo = filenameForSource(source);
             
             // make the path

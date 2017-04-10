@@ -4,6 +4,9 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.code.Flags.ENUM;
+import static com.sun.tools.javac.code.Flags.INTERFACE;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -67,6 +70,7 @@ import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -76,6 +80,7 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 
 /** This class does pretty-printing of JML ASTs. */
 public class JmlPretty extends Pretty implements IJmlVisitor {
@@ -100,6 +105,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     /** If true, then wrap JML statements in JML comments */
     public boolean useJMLComments;
+    
+    /** If true, special rules for things that will only appear in specs **/
+    public boolean specOnly = false;
     
     /** Instantiates a pretty-printer for Jml nodes with default indentation
      * @param out the Write to which output is to be put
@@ -204,7 +212,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     
     public void visitJmlBlock(JmlBlock that) {
         
-        if(that.type==null){
+        if(that.type==null && specOnly){
             return;
         }
         
@@ -866,6 +874,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
         visitClassDef(that);
     }
+    
+    @Override
+    public void printEnumBody(List<JCTree> stats) throws IOException {
+        if(specOnly){
+            print("{}");
+            return;
+        }
+    }
+    
+   
     
     public void printStats(List<? extends JCTree> stats) throws IOException {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;
