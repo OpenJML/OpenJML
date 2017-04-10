@@ -81,6 +81,7 @@ public class RemoveContradictions extends JmlTreeScanner {
         Set<String> maybeUnary = new HashSet<String>();
         
         Set<String> maybeNE = new HashSet<String>();
+        Set<String> maybeEQ = new HashSet<String>();
         
         for (JmlMethodClause c : clauses) {
             
@@ -129,16 +130,17 @@ public class RemoveContradictions extends JmlTreeScanner {
                 String s = expr.toString();
                               
                 
-                if(s.contains("!=") && maybeNE.contains(s.replaceAll("!=", "=="))){
+                if(s.contains("!=") && maybeEQ.contains(s.replaceAll("!=", "=="))){
                     return false;
-                }
-                
-                if(s.contains("==")){
+                }else{
                     maybeNE.add(s);
                 }
-            
                 
-            
+                if(s.contains("==") && maybeNE.contains(s.replaceAll("==", "!="))){
+                    return false;
+                }else{
+                    maybeEQ.add(s);
+                }                
             }
         }
 

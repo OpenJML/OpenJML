@@ -1036,7 +1036,7 @@ public class Strongarm
             
             // do one final cleanup to remove false/true
 //            t = Timing.start();         
-//            //RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+//            RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
 //            
 //            if (verbose) {
 //                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
