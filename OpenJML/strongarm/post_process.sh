@@ -11,6 +11,8 @@ if [ $# -eq 1 ]; then
     EVALS=( $1 )
 fi
 
+rm /Users/jls/Projects/Analysis/junit4/src/main/java/junit/framework/Protectable.jml
+
 for E in "${EVALS[@]}"
 do
     
@@ -18,15 +20,25 @@ do
 
     source evals.conf.d/$E.conf
 
-
     for file in $JML_FILES
     do
         echo -e "Processing: \e[4m $E:$file \e[0m" 
 
-        perl -i -0777 -pe 's/private enum.*\{[^\}]*\}//gs' $file        
-        perl -i -0777 -pe 's/public enum.*\{[^\}]*\}//gs' $file
-        perl -i -0777 -pe 's/enum.*\{[^\}]*\}//gs' $file
-        
+        perl -i -0777 -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\) throws JSONException;//sg' $file  
+
+        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index, \@NonNull(.){1,7}E defaultValue\);//sg' $file
+  
+        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\);//sg' $file
+
+        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\);//sg' $file
+
+        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key, \@NonNull(.){1,7}E defaultValue\);//sg' $file
+
+        perl -i -0777 -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\) throws JSONException;//sg' $file  
+
+
+
+        perl -i -0777 -pe 's/\(E\)token/token/sg' $file
 
     done
 

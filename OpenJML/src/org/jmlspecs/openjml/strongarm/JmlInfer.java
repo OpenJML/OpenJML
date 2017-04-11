@@ -26,12 +26,15 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
@@ -236,6 +239,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 if(importsAdded(node)==false){
                     addImports(node);
                 }
+                
+                promoteFields(node);
+                
                 String spec = SpecPretty.write(node,  true);
                 
                 Files.write(writeTo, spec.getBytes());
@@ -246,6 +252,31 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             
             // flush the specs
             inferredSpecs.clear();
+        }
+        private boolean isPrivate(JmlVariableDecl var){ 
+            return (var.mods.flags & Flags.PRIVATE) == Flags.PRIVATE;
+            }
+        private void promoteFields(JmlClassDecl node){
+            
+            for(List<JCTree> defs = node.defs; defs.nonEmpty(); defs = defs.tail){
+                if(defs.head instanceof JmlVariableDecl){
+                    JmlVariableDecl var = (JmlVariableDecl) defs.head;
+                    
+                    if(isPrivate(var)){
+                        
+                        JCExpression t = M.Ident("org.jmlspecs.annotation.SpecPublic");        
+                        JCAnnotation ann = M.Annotation(t, List.<JCExpression> nil());
+            
+                        
+                        if(var.mods.annotations==null){
+                          var.mods.annotations = List.of(ann);                
+                      }else{
+                          var.mods.annotations = var.mods.annotations.append(ann);
+          
+                      }
+                    }
+                }
+            }
         }
         
         private boolean importsAdded(JmlClassDecl node){

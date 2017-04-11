@@ -172,6 +172,16 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("_switchExpression"))){
             return true;
         }
+
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("> (0 > 0)"))){
+            return true;
+        }
+
+        // weird edge case
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("result - (context.pos - context.readPos)"))){
+            return true;
+        }
+
         
         if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().startsWith("this != null"))){
             return true;

@@ -56,7 +56,7 @@ public class SpecPretty extends JmlPretty {
             JmlVariableDecl vd = (JmlVariableDecl)that;
         
             // ignore fields.
-            if (vd.sym.getKind() == ElementKind.FIELD){
+            if (vd.sym.getKind() == ElementKind.FIELD && vd.fieldSpecs==null){
                 return;
             }
         }

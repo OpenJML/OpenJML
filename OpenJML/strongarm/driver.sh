@@ -45,6 +45,8 @@ do
             mv $file $dest 
         done
 
+        (cd strongarm; ./post_process.sh)
+
         echo -e "\e[32m[💪🏻 Fixpoint $F Done ($EVAL_NAME)] \e[0m"    
 
     done
