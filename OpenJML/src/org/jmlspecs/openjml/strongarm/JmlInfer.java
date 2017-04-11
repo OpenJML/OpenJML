@@ -275,6 +275,8 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
           
                       }
                     }
+                }else if(defs.head instanceof JmlClassDecl){
+                    promoteFields((JmlClassDecl)defs.head);
                 }
             }
         }
