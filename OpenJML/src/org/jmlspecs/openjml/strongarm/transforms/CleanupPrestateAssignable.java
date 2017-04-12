@@ -181,7 +181,12 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("result - (context.pos - context.readPos)"))){
             return true;
         }
+        
+       
         if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("null[0]"))){
+            return true;
+        }
+        if(clause instanceof JmlMethodClauseExpr  && (((JmlMethodClauseExpr)clause).expression.toString().contains("colSize == this.values"))){
             return true;
         }
 
@@ -190,6 +195,15 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             return true;
         }
         
+        if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().startsWith("(E)"))){
+            return true;
+        }
+
+        if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().startsWith("result >"))){
+            return true;
+        }
+
+
         if(clause.toString().contains(Strings.newObjectVarString)){
             return true;
         }
