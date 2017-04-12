@@ -24,21 +24,21 @@ do
     do
         echo -e "Processing: \e[4m $E:$file \e[0m" 
 
-        perl -i -0777 -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\) throws JSONException;//sg' $file  
+        #perl -i -pe 's/\s+=.*;$/;/sg' $file
 
-        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index, \@NonNull(.){1,7}E defaultValue\);//sg' $file
+        perl -i -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\) throws JSONException;//sg' $file  
+
+        perl -i -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index, \@NonNull(.){1,7}E defaultValue\);//sg' $file
   
-        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\);//sg' $file
+        perl -i -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\);//sg' $file
 
-        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\);//sg' $file
+        perl -i -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key\);//sg' $file
 
-        perl -i -0777 -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key, \@NonNull(.){1,7}E defaultValue\);//sg' $file
+        perl -i -pe 's/\@Pure(.){1,7}public <E extends Enum<E>>E optEnum\(\@NonNull(.){1,7}Class<E> clazz, \@NonNull(.){1,7}String key, \@NonNull(.){1,7}E defaultValue\);//sg' $file
 
-        perl -i -0777 -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\) throws JSONException;//sg' $file  
-
-
-
-        perl -i -0777 -pe 's/\(E\)token/token/sg' $file
+        perl -i -pe 's/public <E extends Enum<E>>E getEnum\(\@NonNull(.){1,7}Class<E> clazz, int index\) throws JSONException;//sg' $file  
+        
+        perl -i -pe 's/\(E\)token/token/sg' $file
 
     done
 

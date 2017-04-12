@@ -262,7 +262,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 if(defs.head instanceof JmlVariableDecl){
                     JmlVariableDecl var = (JmlVariableDecl) defs.head;
                     
-                    if(isPrivate(var)){
+                    if(isPrivate(var) && var.toString().contains("@SpecPublic")==false){
                         
                         JCExpression t = M.Ident("org.jmlspecs.annotation.SpecPublic");        
                         JCAnnotation ann = M.Annotation(t, List.<JCExpression> nil());

@@ -23,8 +23,9 @@ data_dir     = "runs/{0}/".format(run_id)
 def get_summary(d):
     return (np.min(d), np.max(d), np.mean(d), np.std(d))
 
+#print(">>>>{0}".format(plt.rcParams['figure.figsize']))
 
-#plt.rcParams['figure.figsize'] = (15, 10)
+plt.rcParams['figure.figsize'] = (15, 10)
 
 summary = "{0}strongarm-summary-{1}.csv".format(data_dir, eval_name)
 
@@ -452,8 +453,8 @@ p2 = plt.bar(indexes, final_bars, width,
 plt.axhline(y=80, color='r', linestyle='--')
 plt.text(0, 95, "One Full Page of Text", fontsize=11)
 
-plt.axhline(y=160, color='r', linestyle='--')
-plt.text(0, 175, "Two Full Pages of Text", fontsize=11)
+plt.axhline(y=20, color='r', linestyle='--')
+plt.text(0, 30, "1/4 Page of Text", fontsize=11)
 
 
 plt.ylabel('Specification Length (LOC)')
@@ -462,11 +463,15 @@ plt.title("Initial and Final Specification Size (LOC)\n{0}".format(eval_name))
 plt.legend((p1[0], p2[0]), ( 'Initial Specification', 'Final Specification'))
 plt.yscale('log')
 
-
+fig = plt.gcf()
+fig.set_size_inches(8.5, 4)
 
 plt.savefig(figures_path + '/stick-graph-v2.png')
 plt.savefig(figures_path + '/stick-graph-v2.pdf')
 plt.savefig(figures_path + '/stick-graph-v2.eps')
+
+fig = plt.gcf()
+fig.set_size_inches(6.4, 4.8)
 
 plt.clf()
 #plt.show()

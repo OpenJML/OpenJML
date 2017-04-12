@@ -59,6 +59,8 @@ public class SpecPretty extends JmlPretty {
             if (vd.sym.getKind() == ElementKind.FIELD && vd.fieldSpecs==null){
                 return;
             }
+            
+            that.init = null;
         }
           
         
