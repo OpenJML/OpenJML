@@ -254,7 +254,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             inferredSpecs.clear();
         }
         private boolean isPrivate(JmlVariableDecl var){ 
-            return (var.mods.flags & Flags.PRIVATE) == Flags.PRIVATE;
+            return (var.mods.flags & Flags.PRIVATE) == Flags.PRIVATE || (var.mods.flags & Flags.PROTECTED) == Flags.PROTECTED;
             }
         private void promoteFields(JmlClassDecl node){
             
