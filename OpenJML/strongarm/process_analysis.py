@@ -8,8 +8,8 @@ import os
 import subprocess
 import sys 
 
-#eval_name = "Combined" #sys.argv[1]
-#run_id = "2pac-20170409" #sys.argv[2]
+#eval_name = "JSON-Java" #sys.argv[1]
+#run_id = "2pac-20170411" #sys.argv[2]
 
 eval_name = sys.argv[1]
 run_id = sys.argv[2]
@@ -714,35 +714,86 @@ df = pd.read_csv(summary)
 #%%
 # categories 
 
-labels = 'Inferred', 'Timeout', 'Refused', 'Error', 'Skipped'
+#['Error', 'Inferred', 'Skipped', 'Refused', 'Timeout']
+#['Error', 'Timeout', 'Refused', 'Skipped', 'Inferred']
 
-def fb(xx):
-    return len(df[df[xx]==True])
+gs_colors = [
+    (96/255.0,99/255.0,106/255.0),
+    (165/255.0, 172/255.0, 175/255.0),
+    (65/255.0,68/255.0,81/255.0),
+    (143/255.0,135/255.0,130/255.0),
+    (207/255.0,207/255.0,207/255.0)
 
+]
 
-values = np.array([fb('inferred'), fb('timeout'), fb('refused'), fb('error'), fb('skipped')]) 
+for i in [['Error', 'Inferred', 'Skipped', 'Refused', 'Timeout']]: #: itertools.permutations(['Inferred', 'Timeout', 'Refused', 'Error', 'Skipped']):
 
-buckets = values
+    labels = list(i) #'Inferred', 'Timeout', 'Refused', 'Error', 'Skipped'
 
-sizes = buckets
-#sizes = [15, 30, 45, 10]
+    print(labels)
 
-cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,50)))
-
-fig1, ax1 = plt.subplots()
-patches = ax1.pie(sizes, labels=labels, autopct='%1.1f%%',startangle=90, colors=cls)[0]
-
-#patches[0].set_hatch('//') 
-#patches[1].set_hatch('+') 
-#patches[2].set_hatch('o') 
-
-ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
-plt.title("Breakdown of Inference Outcomes\n{0}".format(eval_name))
+    def fb(xx):
+        return len(df[df[xx]==True])
 
 
-plt.savefig(figures_path + '/inference-breakdown-pie.png')
-plt.savefig(figures_path + '/inference-breakdown-pie.pdf')
-plt.savefig(figures_path + '/inference-breakdown-pie.eps')
+    #values = np.array([fb('inferred'), fb('timeout'), fb('refused'), fb('error'), fb('skipped')]) 
+
+    values = np.array([fb(i[0].lower()), fb(i[1].lower()), fb(i[2].lower()), fb(i[3].lower()), fb(i[4].lower())]) 
+
+    the_sum = np.sum(values)
+    zipped = zip(values, gs_colors) 
+
+    
+    zipped = list(filter(lambda x : 100.0*(float(x[0])/the_sum) >= .1, zipped))
+
+    print(zipped)
+    
+    vz = list(zip(*zipped))
+    
+    sizes = vz[0]
+    
+    fig1, ax1 = plt.subplots()
+    pie = ax1.pie(sizes, autopct='%1.1f%%',startangle=90, colors=vz[1], labeldistance=1)
+
+    # texts[0].set_fontsize(8)
+    # texts[1].set_fontsize(8)
+    # texts[2].set_fontsize(8)
+    # texts[3].set_fontsize(8)
+    # texts[4].set_fontsize(8)
+
+    #patches[0].set_hatch('//') 
+    #patches[1].set_hatch('+') 
+    #patches[2].set_hatch('o') 
+
+    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
+    plt.title("{0}".format(eval_name))
+
+    fig = plt.gcf()
+    fig.set_size_inches(2.5, 2.5)
+
+    
+    plt.savefig(figures_path + "/inference-breakdown-pie-{0}.png".format(eval_name))
+    plt.savefig(figures_path + "/inference-breakdown-pie-{0}.pdf".format(eval_name))
+    plt.savefig(figures_path + "/inference-breakdown-pie-{0}.eps".format(eval_name))
+
+
+
+    #plt.show()
+    plt.clf()
+
+    
+#%%
+colors = gs_colors # ["red", "blue", "green", "purple", "orange"]
+fig = plt.figure(figsize=(2.5, 2.5))
+patches = [
+    mpl.patches.Patch(color=color, label=label)
+    for label, color in zip(labels, colors)]
+
+fig.legend(patches, labels, loc='center', frameon=False)
+
+plt.savefig(figures_path + "/inference-breakdown-pie-legend.eps".format(eval_name))
 
 #plt.show()
 plt.clf()
+#%%
+fig.set_size_inches(6.4, 4.8)

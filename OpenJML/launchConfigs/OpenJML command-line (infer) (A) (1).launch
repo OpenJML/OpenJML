@@ -16,7 +16,7 @@
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.jmlspecs.openjml.Main"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-infer -infer-debug  -infer-default-preconditions -infer-persist -progress -verbose ${project_loc:StrongarmDemo}/src/demo/strongarm/A1.java"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-exclude demo.strongarm.A1.doStuff -infer   -infer-default-preconditions  -infer-persist ${project_loc:StrongarmDemo}/src/demo/strongarm/A1.java"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJML"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseSpecsProjectLocation=../../Specs"/>
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${project_loc:OpenJML}"/>

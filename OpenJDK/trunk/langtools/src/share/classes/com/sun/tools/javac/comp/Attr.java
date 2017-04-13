@@ -561,6 +561,7 @@ public class Attr extends JCTree.Visitor {
         Env<AttrContext> prevEnv = this.env;
         ResultInfo prevResult = this.resultInfo;
         try {
+            if(tree==null){ return null; }
             this.env = env;
             this.resultInfo = resultInfo;
             tree.accept(this);
