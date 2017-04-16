@@ -37,7 +37,7 @@ do
 
     set -x
     # next, build the summary data.
-    python.app process_analysis.py $EVAL_NAME $RUN_NAME
+    python.app process_analysis.py $EVAL_NAME $RUN_NAME &
     set +x
     echo -e "\e[32m[💪🏻 Done: $EVAL_NAME] "    
 

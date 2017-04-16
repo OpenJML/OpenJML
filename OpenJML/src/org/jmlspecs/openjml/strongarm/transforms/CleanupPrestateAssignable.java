@@ -223,7 +223,7 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
             
            
             
-            if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.ENSURES && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\result"))){
+            if(clause instanceof JmlMethodClauseExpr && clause.token == JmlTokenKind.REQUIRES && (((JmlMethodClauseExpr)clause).expression.toString().contains("\\result"))){
                 return true;
             }
             

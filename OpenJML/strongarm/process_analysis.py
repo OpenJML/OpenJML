@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import subprocess
 import sys 
+from scipy.stats import linregress
 
 #eval_name = "JSON-Java" #sys.argv[1]
 #run_id = "2pac-20170411" #sys.argv[2]
@@ -70,11 +71,24 @@ plt.scatter(x,y, marker='x', c='gray', alpha=.75)
 plt.title("Inference Time vs CFG Complexity\n{0}".format(eval_name))
 plt.xlabel('Control Flow Graph Complexity (Nodes)')
 plt.ylabel('Time (ms)')
+plt.yscale('log')
+plt.xscale('log')
 
+
+slope, intercept, r_value, p_value, std_err = linregress(np.log10(x), np.log10(y))
+plt.plot(x, x*slope+intercept, c='black', lw=.5, ls="dashed", aa=True)
 
 #plt.ylim([0,3000])
 
-plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black', lw=.5, ls="dashed", aa=True)
+#10^(Slope*X + Yintercept)
+
+p = np.polyfit(x, np.log(y), 1)
+#plt.semilogx(x, p[0] * np.log(y) + p[1], 'r-')
+
+#plt.plot(x, np.log(np.poly1d(np.polyfit(x, np.log(y), 1))(x)), c='black', lw=.5, ls="dashed", aa=True)
+
+#plt.plot(x, p(x))
+#plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black', lw=.5, ls="dashed", aa=True)
 plt.savefig(figures_path + '/time-vs-cfg-depth.png')
 plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
 plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
@@ -82,24 +96,39 @@ plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
 plt.clf()
 #plt.show()
 
+#%%
+
 #%% 
 ndf = df[(df['loc'] > 0) & (df['cfg_depth'] > 0)]
 x = ndf['loc']
 y = ndf['cfg_depth']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("CFG Complexity vs LOC\n{0}".format(eval_name))
+plt.title("{0}".format(eval_name))
 plt.xlabel('Lines of Code (LOC)')
 plt.ylabel('CFG Complexity (Nodes)')
 #plt.ylim([0,3000])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
-plt.savefig(figures_path + '/cfg-depth-vs-loc.png')
-plt.savefig(figures_path + '/cfg-depth-vs-loc.pdf')
-plt.savefig(figures_path + '/cfg-depth-vs-loc.eps')
+
+
+
+fig = plt.gcf()
+fig.set_size_inches(3.5, 2.5)
+
+
+plt.savefig(figures_path + "/cfg-depth-vs-loc-{0}.png".format(eval_name), bbox_inches='tight')
+plt.savefig(figures_path + "/cfg-depth-vs-loc-{0}.pdf".format(eval_name), bbox_inches='tight')
+plt.savefig(figures_path + "/cfg-depth-vs-loc-{0}.eps".format(eval_name), bbox_inches='tight')
 
 plt.clf()
 #plt.show()
+
+
+fig = plt.gcf()
+fig.set_size_inches(6.4, 4.8)
+#%%
+print(figures_path)
 #%% 
 
 pipeline = "{0}strongarm-pipeline-steps-{1}.csv".format(data_dir, eval_name)
@@ -300,23 +329,34 @@ df_overall
 # PLOT! FINALLY!
 
 labels = list(map(lambda x : x.replace("_LOC", "").replace("_", " "), cols))
-ind = np.arange(len(df_overall))
+labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J', 'K', 'L', 'M', 'C', 'O', 'P', 'D', 'R', 'S']
+ind = np.arange(len(df_overall)-2)
 width = 0.4
 
+between_series = df_between["mean"][::-1][:-2]
+between_sd     = df_between["std"][::-1][:-2]
+overall_series = df_overall["mean"][::-1][:-2]
+overall_sd     = df_overall["std"][::-1][:-2]
+#labels = labels[2:]
+
+#%%
+
 fig, ax = plt.subplots()
-ax.barh(ind, df_between["mean"][::-1], width, color='gray', label='Mean Reduction Between Steps', edgecolor="k", lw=.5, xerr=df_between["std"][::-1], error_kw=dict(ecolor='silver', alpha=.5, capsize=3, capthick=1))
-ax.barh(ind + width, df_overall["mean"][::-1], width, color='silver', edgecolor="k", lw=.5, label='Mean Reduction Overall', hatch="///", error_kw=dict(ecolor='gray', alpha=.5, capsize=3, capthick=1), xerr=df_overall["std"][::-1] )
+ax.barh(ind, between_series, width, color='gray', label='Mean Reduction Between Steps', edgecolor="k", lw=.5, xerr=between_sd, error_kw=dict(ecolor='silver', alpha=.5, capsize=3, capthick=1))
+ax.barh(ind + width, overall_series, width, color='silver', edgecolor="k", lw=.5, label='Mean Reduction Overall', hatch="///", error_kw=dict(ecolor='gray', alpha=.5, capsize=3, capthick=1), xerr=overall_sd )
 
 ax.set(yticks=ind + width, yticklabels=labels[::-1], xlim=[-75,23]) # ylim=[2*width - 1, len(df_overall)])
-ax.legend()
+#ax.legend(loc='top right')
+plt.legend(bbox_to_anchor=(.5, -.3), loc='center', ncol=1)
+
 plt.title("Change in Specification LOC vs Pipeline Step\n{0}".format(eval_name))
 plt.xlabel("Percent Reduction (LOC)")
 plt.ylabel("Pipeline Step")
 
 
-plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.png')
-plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf')
-plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.png', bbox_inches='tight')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.pdf', bbox_inches='tight')
+plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps', bbox_inches='tight')
 
 
 plt.clf()
@@ -324,6 +364,7 @@ plt.clf()
 #%%
 
 #ndf = inferred_df[(inferred_df["final_contract_loc"] > 0) & (inferred_df["final_contract_loc"] < 100)]
+
 
 ndf = inferred_df[(inferred_df["final_contract_loc"] > 0) & (inferred_df["initial_contract_loc"] < 10000000000000)]
 
@@ -687,19 +728,59 @@ sizes = buckets
 cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,10)))
 cls = list(map(lambda x : plt.cm.Greys(x), range(50,200,50)))
 
+
+gs_colors = [
+    (96/255.0,99/255.0,106/255.0),
+    (165/255.0, 172/255.0, 175/255.0),
+    (65/255.0,68/255.0,81/255.0),
+    (143/255.0,135/255.0,130/255.0),
+    (207/255.0,207/255.0,207/255.0)
+
+]
+
+cls = gs_colors
+
 fig1, ax1 = plt.subplots()
-ax1.pie(sizes, labels=labels, autopct='%1.1f%%',startangle=90, colors=cls)
+ax1.pie(sizes,  autopct='%1.1f%%',startangle=90, colors=cls)
 ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
-plt.title("Percent Reduction of Final Contract as Percentage of Initial\n{0}".format(eval_name))
+plt.title("{0}".format(eval_name))
+
+ttl = ax1.title
+#ttl.set_position([.5, 1.05])
+
+fig = plt.gcf()
+fig.set_size_inches(2.5, 2.5)
 
 
-plt.savefig(figures_path + '/percent-reduction-pie.png')
-plt.savefig(figures_path + '/percent-reduction-pie.pdf')
-plt.savefig(figures_path + '/percent-reduction-pie.eps')
+plt.savefig(figures_path + "/percent-reduction-pie-{0}.png".format(eval_name))
+plt.savefig(figures_path + "/percent-reduction-pie-{0}.pdf".format(eval_name))
+plt.savefig(figures_path + "/percent-reduction-pie-{0}.eps".format(eval_name))
 
 
 plt.clf()
 #plt.show() 
+
+#%%
+
+colors = gs_colors # ["red", "blue", "green", "purple", "orange"]
+fig = plt.figure(figsize=(2.5, 2.5))
+patches = [
+    mpl.patches.Patch(color=color, label=label)
+    for label, color in zip(labels, colors)]
+
+fig.legend(patches, labels, loc='center', frameon=False)
+
+plt.savefig(figures_path + "/percent-reduction-pie-legend.eps".format(eval_name))
+
+#plt.show()
+plt.clf()
+
+#%%
+fig.set_size_inches(6.4, 4.8)
+
+
+
+
 #%%
 list(map(lambda x : x, range(10,100,10)))
 

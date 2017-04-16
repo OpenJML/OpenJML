@@ -1,5 +1,7 @@
 #!/usr/local/bin/bash
 
+
+
 EXPERIMENT="2pac"
 DATE=`date "+%F.%H%M%S.%N"`
 
@@ -27,6 +29,9 @@ do
 
     for F in "${FIXPOINTS[@]}"
     do
+
+        read -n1 -r -p "Press space to run fixpoint #$F for Eval $E" key
+
         echo "Fixpoint $F for Eval: $E..."
 
         # run the eval
@@ -45,7 +50,8 @@ do
             mv $file $dest 
         done
 
-        (cd strongarm; ./post_process.sh)
+        (cd strongarm; ./post_process.sh $E)
+
 
         echo -e "\e[32m[💪🏻 Fixpoint $F Done ($EVAL_NAME)] \e[0m"    
 
