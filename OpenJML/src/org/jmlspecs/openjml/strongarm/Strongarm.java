@@ -406,7 +406,7 @@ public class Strongarm
         // First, check if there is an existing postcondition 
         //
        
-       if(TreeContains.analyze(context, methodDecl.cases).atLeastOneEnsuresClause()){
+       if(methodDecl !=null && methodDecl.methodSpecsCombined !=null && methodDecl.methodSpecsCombined.cases !=null && TreeContains.analyze(context, methodDecl.methodSpecsCombined.cases).atLeastOneEnsuresClause()){
             
             
             

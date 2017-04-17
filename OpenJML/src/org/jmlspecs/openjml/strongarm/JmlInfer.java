@@ -283,13 +283,23 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         
         private boolean importsAdded(JmlClassDecl node){
             
+            List<JCTree> defs = null;
+
+            
             for(List<JCTree> stmts = node.toplevel.defs ; stmts.nonEmpty(); stmts = stmts.tail){
                 
                 if(stmts.head instanceof JmlImport && ((JmlImport)stmts.head).qualid.toString().contains("org.jmlspecs.annotation.*")){
-                    return true;
+                    continue;
+                }
+
+                if(defs == null){
+                    defs = List.of(stmts.head);
+                }else{
+                    defs = defs.append(stmts.head);
                 }
             }
 
+            node.toplevel.defs = defs;
             return false;
         }
 

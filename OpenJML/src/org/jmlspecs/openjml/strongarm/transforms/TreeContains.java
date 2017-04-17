@@ -67,6 +67,8 @@ public class TreeContains extends JmlTreeScanner {
         return ensuresClauses > 0;
     }
 
+    
+    
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         if(tree!=null && tree.token == JmlTokenKind.ENSURES){

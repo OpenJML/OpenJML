@@ -22,17 +22,17 @@ data_dir     = "runs/{0}/".format(run_id)
 
 summary = "{0}strongarm-summary-{1}.csv".format(data_dir, eval_name)
 
-df = pd.read_csv(summary)
-
+#%% 
+d = pd.read_csv(summary)
+df = d[d["inferred"]==True]
 #%%
-
 # load the data frame; randomly sample 30% of methods. 
 num_methods = len(df)
 sample_rows = np.random.choice(num_methods, math.floor(num_methods * .30), replace=False)
  
 #%%
 for i in sample_rows:
-    if "<" in df["method"][i]:
+    if "<" in df["method"].iloc[i]:
         continue
-    chop = df["method"][i].find('(')
-    print(df["method"][i][0:chop] + ".*")
+    chop = df["method"].iloc[i].find('(')
+    print(df["method"].iloc[i][0:chop])

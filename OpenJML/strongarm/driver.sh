@@ -30,7 +30,7 @@ do
     for F in "${FIXPOINTS[@]}"
     do
 
-        read -n1 -r -p "Press space to run fixpoint #$F for Eval $E" key
+        #read -n1 -r -p "Press space to run fixpoint #$F for Eval $E" key
 
         echo "Fixpoint $F for Eval: $E..."
 

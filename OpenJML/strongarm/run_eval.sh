@@ -3,6 +3,8 @@
 TIMEOUT=300
 MAX_DEPTH=500
 JVM_OPTS="-Xmx30G -Xms10G -XX:+UseG1GC"
+#JVM_OPTS="-Xmx10G -Xms1G -XX:+UseG1GC"
+
 JAVA=java
 #/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/bin/java 
 
