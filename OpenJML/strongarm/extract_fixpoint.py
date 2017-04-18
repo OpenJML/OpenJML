@@ -10,8 +10,8 @@ import datetime
 import re
 import utils as util
 
-EVAL_NAME = "JSON-Java" #sys.argv[1]
-RUN="dre-2017-04-03.210309.N" #sys.argv[2]
+EVAL_NAME = sys.argv[1]
+RUN=sys.argv[2]
 
 base_dir = "runs/{0}/".format(RUN)
 

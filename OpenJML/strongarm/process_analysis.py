@@ -12,7 +12,7 @@ from scipy.stats import linregress
 #%%
 
 #eval_name = "JSON-Java" #sys.argv[1]
-#run_id = "2pac-20170411" #sys.argv[2]
+#run_id = "2pac-2017-04-17" #sys.argv[2]
 
 eval_name = sys.argv[1]
 run_id = sys.argv[2]
@@ -22,6 +22,10 @@ run_id = sys.argv[2]
 #eval_name = "JSON-Java" #sys.argv[1]
 figures_path = "runs/{0}/figures/{1}".format(run_id, eval_name)
 data_dir     = "runs/{0}/".format(run_id)
+
+#figures_path = "strongarm/runs/{0}/figures/{1}".format(run_id, eval_name)
+#data_dir     = "strongarm/runs/{0}/".format(run_id)
+
 
 def get_summary(d):
     return (np.min(d), np.max(d), np.mean(d), np.std(d))
@@ -70,7 +74,7 @@ x = inferred_df['cfg_depth']
 y = inferred_df['time']
 
 plt.scatter(x,y, marker='x', c='gray', alpha=.75)
-plt.title("Inference Time vs CFG Complexity\n{0}".format(eval_name))
+plt.title("Inference Time vs CFG Complexity")
 plt.xlabel('Control Flow Graph Complexity (Nodes)')
 plt.ylabel('Time (ms)')
 plt.yscale('log')
@@ -91,12 +95,21 @@ p = np.polyfit(x, np.log(y), 1)
 
 #plt.plot(x, p(x))
 #plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black', lw=.5, ls="dashed", aa=True)
-plt.savefig(figures_path + '/time-vs-cfg-depth.png')
-plt.savefig(figures_path + '/time-vs-cfg-depth.pdf')
-plt.savefig(figures_path + '/time-vs-cfg-depth.eps')
+
+
+fig = plt.gcf()
+fig.set_size_inches(3.5, 3.0)
+
+
+plt.savefig(figures_path + '/time-vs-cfg-depth.png', bbox_inches='tight')
+plt.savefig(figures_path + '/time-vs-cfg-depth.pdf', bbox_inches='tight')
+plt.savefig(figures_path + '/time-vs-cfg-depth.eps', bbox_inches='tight')
 
 plt.clf()
 #plt.show()
+
+fig.set_size_inches(6.4, 4.8)
+
 
 #%%
 
@@ -109,7 +122,7 @@ plt.scatter(x,y, marker='x', c='gray', alpha=.75)
 plt.title("{0}".format(eval_name))
 plt.xlabel('Lines of Code (LOC)')
 plt.ylabel('CFG Complexity (Nodes)')
-#plt.ylim([0,3000])
+plt.xlim([0,200])
 
 plt.plot(x, np.poly1d(np.polyfit(x, y, 1))(x), c='black')
 
@@ -141,7 +154,7 @@ pdf = pd.read_csv(pipeline)
 # filter org.json.JSONTokener.syntaxError(java.lang.String)
 
 row_count = pdf.count()["method"]
-
+pdf
 #%%
 
 loc_columns    = pdf.filter(regex=('.*_LOC$'))
@@ -184,7 +197,8 @@ def starting_loc(method):
     cols = list(loc_columns)
 
     pdfm = pdf[pdf["method"]==method]
-
+    if pdfm.empty:
+        return -1
     for c in cols:
         if pdfm[c].iloc[0] > -1:
             return pdfm[c].iloc[0]
@@ -213,10 +227,10 @@ applied_steps
 
 #%%
 
-
-
+data_methods = []
+#list(inferred_df["method"])
 data = {
-    'method' : list(inferred_df["method"])
+    'method' : []
 }
 
 cols = list(loc_columns)
@@ -232,6 +246,10 @@ for col in cols:
 for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
     row = applied_steps[applied_steps["method"] == method]
 
+    if row.empty:
+        continue 
+    data_methods.append(method)
+    #print("Found Row: {0}".format(row))
     # this is what we started with
     #print(method)
     #print(inferred_df[inferred_df["method"]==method])
@@ -240,7 +258,7 @@ for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
     
     #sprint(last_loc)
     for col in cols:
-        #print("ROW: {0}".format(row[col]))
+        #print("METHOD: {0} ROW: {1}".format(method, row[col]))
         if last_loc==0 or row[col].iloc[0] == -1 :
             data[col].append(np.nan)
             data[col + "_overall"].append(np.nan)
@@ -263,6 +281,8 @@ for method in methods:# ["org.json.JSONTokener.dehexchar(char)"]: #methods:
 #    print("Col={0}, length={1}".format(c, len(data[c])))
 
 #print("Col={0}, length={1}".format("method", len(data["method"])))
+
+data["method"] = data_methods
 
 df = pd.DataFrame(data, columns=["method"] + all_cols)
 df
@@ -332,15 +352,28 @@ df_overall
 
 labels = list(map(lambda x : x.replace("_LOC", "").replace("_", " "), cols))
 labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J', 'K', 'L', 'M', 'C', 'O', 'P', 'D', 'R', 'S']
-ind = np.arange(len(df_overall)-2)
 width = 0.4
 
-between_series = df_between["mean"][::-1][:-2]
-between_sd     = df_between["std"][::-1][:-2]
-overall_series = df_overall["mean"][::-1][:-2]
-overall_sd     = df_overall["std"][::-1][:-2]
-#labels = labels[2:]
+keeps = [2, 3, 4, 5, 6, 7,9, 11, 12, 13, 15, 16, 17, 18, 19, 20]
+labels = ["LEX", "RT", "RC", "RUC", "RDA", "PRE", "RNV", "PBP", "TIV",  "RDA", "RC",  "RPA", "RUP", "RUC", "DMP", "FAR"]
 
+ind = np.arange(len(keeps))
+
+#between_series = df_between["mean"][::-1][:-2]
+#between_sd     = df_between["std"][::-1][:-2]
+#overall_series = df_overall["mean"][::-1][:-2]
+#overall_sd     = df_overall["std"][::-1][:-2]
+
+# keeps
+
+
+between_series = np.take(list(df_between["mean"]), keeps)[::-1]
+between_sd     = np.take(list(df_between["std"]), keeps)[::-1]
+overall_series = np.take(list(df_overall["mean"]), keeps)[::-1]
+overall_sd     = np.take(list(df_overall["std"]), keeps)[::-1]
+
+#labels = labels[2:]
+between_series
 #%%
 
 fig, ax = plt.subplots()
@@ -351,9 +384,13 @@ ax.set(yticks=ind + width, yticklabels=labels[::-1], xlim=[-75,23]) # ylim=[2*wi
 #ax.legend(loc='top right')
 plt.legend(bbox_to_anchor=(.5, -.3), loc='center', ncol=1)
 
-plt.title("Change in Specification LOC vs Pipeline Step\n{0}".format(eval_name))
+plt.title("Change in Specification LOC vs Pipeline Step")
 plt.xlabel("Percent Reduction (LOC)")
 plt.ylabel("Pipeline Step")
+
+
+fig = plt.gcf()
+fig.set_size_inches(3.5, 3.0)
 
 
 plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.png', bbox_inches='tight')
@@ -362,6 +399,9 @@ plt.savefig(figures_path + '/pct-reduction-of-pipeline-steps.eps', bbox_inches='
 
 
 plt.clf()
+
+fig.set_size_inches(6.4, 4.8)
+
 #plt.show()
 #%%
 
@@ -385,7 +425,7 @@ final_spec_lengths = list(ndf["final_contract_loc"])
 indexes            = np.arange(len(final_spec_lengths))
 
 #initial_spec_lengths[-1]
-final_spec_lengths[-1] 
+#final_spec_lengths[-1] 
 #%% 
 
 width=.5
@@ -397,8 +437,8 @@ p2 = plt.bar(indexes, final_spec_lengths, width,
 plt.ylabel('Specification Length (LOC)')
 plt.xlabel('Specifications')
 plt.title("Initial and Final Specification Size (LOC)\n{0}".format(eval_name))
-plt.legend((p2[0], p1[0]), ( 'Initial Specification', 'Final Specification'))
-plt.yscale('log')
+#plt.legend((p2[0], p1[0]), ( 'Initial Specification', 'Final Specification'))
+#plt.yscale('log')
 
 
 
@@ -502,7 +542,7 @@ plt.text(0, 30, "1/4 Page of Text", fontsize=11)
 
 plt.ylabel('Specification Length (LOC)')
 plt.xlabel('Specifications')
-plt.title("Initial and Final Specification Size (LOC)\n{0}".format(eval_name))
+plt.title("Initial and Final Specification Size (LOC)")
 plt.legend((p1[0], p2[0]), ( 'Initial Specification', 'Final Specification'))
 plt.yscale('log')
 
@@ -743,8 +783,23 @@ gs_colors = [
 cls = gs_colors
 
 fig1, ax1 = plt.subplots()
-ax1.pie(sizes,  autopct='%1.1f%%',startangle=90, colors=cls)
+patches, texts, autotexts = ax1.pie(sizes, pctdistance=.7,  autopct='%1.1f%%',startangle=90, colors=cls)
 ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.#
+#texts[0].set_fontsize(1)
+
+for patch, txt in zip(patches, autotexts):
+    # the angle at which the text is located
+    ang = (patch.theta2 + patch.theta1) / 2.
+    # new coordinates of the text, 0.7 is the distance from the center 
+    x = patch.r * 0.7 * np.cos(ang*np.pi/180)
+    y = patch.r * 0.7 * np.sin(ang*np.pi/180)
+    # if patch is narrow enough, move text to new coordinates
+    if (patch.theta2 - patch.theta1) < 10.:
+        txt.set_position((x, y))
+
+
+
+
 plt.title("{0}".format(eval_name))
 
 ttl = ax1.title
@@ -836,9 +891,26 @@ for i in [['Error', 'Inferred', 'Skipped', 'Refused', 'Timeout']]: #: itertools.
     sizes = vz[0]
     
     fig1, ax1 = plt.subplots()
-    pie = ax1.pie(sizes, autopct='%1.1f%%',startangle=90, colors=vz[1], labeldistance=1)
+    patches, texts, autotexts = ax1.pie(sizes, autopct='  %1.1f%%  ',startangle=90, colors=vz[1], pctdistance=1.1, labeldistance=1)
 
-    # texts[0].set_fontsize(8)
+    #autotexts[0].set_position((-.5,1))
+
+
+    if eval_name=="Commons-Email":
+        autotexts[4].set_position((-10,1))
+
+    if eval_name=="JSON-Java":
+        autotexts[2].set_position((.5,-.1))
+
+
+    if eval_name=="JUnit4":
+        autotexts[0].set_position((-.3,.8))
+        #autotexts[2].set_position((.5,.8))
+        #autotexts[3].set_position((.5,.8))
+        #autotexts[4].set_position((.5,.8))
+
+        
+    #texts[0].set_fontsize(100)
     # texts[1].set_fontsize(8)
     # texts[2].set_fontsize(8)
     # texts[3].set_fontsize(8)

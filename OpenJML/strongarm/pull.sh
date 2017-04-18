@@ -15,3 +15,5 @@ scp jls@2pac:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/*.
 
 
 rsync -zarv  --include "*/" --include="*.jml" --exclude="*" jls@2pac:/Users/jls/Projects/Analysis/ /Users/jls/Projects/Analysis
+
+rsync -zarv  jls@2pac:/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/runs/ /Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/runs
