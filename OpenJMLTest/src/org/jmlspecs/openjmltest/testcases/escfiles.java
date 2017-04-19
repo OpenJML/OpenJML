@@ -355,7 +355,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=SimpleString","-show","-checkFeasibility=debug");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=esc.SimpleString.SimpleString(int[])","-show","-subexpressions");
     }
 
     @Test
@@ -478,6 +478,25 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSF420() {
         helpTF("sfbug420");
+    }
+    
+    @Test
+    public void testEscRawding() {
+        helpTF("escRawding","-specspath=test/escRawding","-code-math=safe");
+    }
+    
+    // The following are really just typecheck problems
+
+    @Test
+    public void testEscVisibilitySimple() {
+    	expectedExit = 1;
+        helpTF("visibilitySimple");
+    }
+
+    @Test
+    public void testVisibilityB() {
+    	expectedExit = 1;
+        helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 
 

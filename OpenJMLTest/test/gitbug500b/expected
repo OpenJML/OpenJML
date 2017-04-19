@@ -1,0 +1,5 @@
+RAC-Compiling Heap
+RAC-Compiling PriorityQueue
+RAC-Compiling Test
+Note: test\gitbug500c\Heap.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.

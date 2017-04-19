@@ -5901,7 +5901,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override   // FIXME _ why is this needed?
     public int attribArgs(int initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
-        if (trees.toString().contains("old")) Utils.stop();
         return super.attribArgs(initialKind, trees, env, argtypes);
     }
     

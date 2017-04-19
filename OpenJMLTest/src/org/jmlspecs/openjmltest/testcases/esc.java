@@ -3432,7 +3432,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testNullityAndConstructors2() {
-		main.addOptions("-nonnullByDefault");
+		main.addOptions("-nonnullByDefault","-show","-method=TestJava");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
 						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "

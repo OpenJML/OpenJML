@@ -92,7 +92,7 @@ public class SpecsEsc extends EscBase {
         File dir = new File("testspecs");
         java.util.List<File> classes = new ArrayList<>();
         for (File f: dir.listFiles()) if (f.isDirectory()) classes.add(f);
-        System.out.println(classes.size() + " system specification classes found for rac testing");
+        System.out.println(classes.size() + " system specification classes found for esc testing");
         return classes;
     }
     

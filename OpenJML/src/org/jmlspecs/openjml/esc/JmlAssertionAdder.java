@@ -2800,9 +2800,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             return;
                         }
                     }
-                    result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
-                    return;
                 }
+                result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+                return;
             }
         } finally {
             reps.remove(varsym);
@@ -6632,7 +6632,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             pushBlock();
                         }
                         JCExpression pre = convertCopy(translatingJML ? savedCondition : treeutils.trueLit);
-                        JCExpression prex = null;
+                        JCExpression prex = treeutils.trueLit;
                         boolean noModel = false;
                         JavaFileObject prev = log.useSource(cs.source());
                         try {
@@ -6642,12 +6642,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     case OLD: { 
                                         // FIXME - ignore if after all requires?
                                         // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
-//                                        JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-//                                        olddecl = convertCopy(olddecl);
-//                                        for (JCVariableDecl d: olddecl.decls) {
-//                                            d.init = treeutils.makeOld(d.init,d.init);
-//                                        }
-//                                        scan(olddecl);
+                                        insertDeclarationsForOld(prex,(JmlMethodClauseDecl)clause);
                                         break;
                                     }
                                     case FORALL: 
@@ -6657,7 +6652,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         JmlMethodClauseExpr mce = (JmlMethodClauseExpr)clause;
 //                                        JCExpression e = convertJML(mce.expression,pre,false); // Might throw an exception
 //                                        pre = pre == treeutils.trueLit ? e : treeutils.makeAnd(pre.pos, pre, e);
-                                        prex = prex == null ? mce.expression : treeutils.makeAnd(mce.expression.pos, prex, mce.expression);
+                                        prex = treeutils.makeAndSimp(mce.expression.pos, prex, mce.expression);
                                         if (mcc == null) mcc = mce;
                                         break;
                                     default:
@@ -6703,12 +6698,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // is allowed by each of the specification cases of the caller specs.
                                 try {
                                     if (clause.token == JmlTokenKind.OLD) { 
-                                        JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopyNoEmit(olddecl);
-                                        for (JCVariableDecl d: olddecl.decls) {
-                                            d.init = treeutils.makeOld(d.init.pos,d.init,preLabel);
-                                        }
-                                        scan(olddecl);
+                                        // FIXME - ignore if after all requires?
+                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+                                        insertDeclarationsForOld(null, (JmlMethodClauseDecl)clause);
+
                                     } else if (clause.token == JmlTokenKind.FORALL) { 
                                         notImplemented(clause,"forall clause in method specs",clause.source());
                                     } else if (clause.token == JmlTokenKind.ASSIGNABLE) {
@@ -6921,12 +6914,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JmlTokenKind token = clause.token;
                                 switch (token) {
                                     case OLD: { 
-                                        JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopyNoEmit(olddecl);
-                                        for (JCVariableDecl d: olddecl.decls) {
-                                            d.init = treeutils.makeOld(d.init,d.init);
-                                        }
-                                        scan(olddecl);
+                                        // FIXME - ignore if after all requires?
+                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+                                        insertDeclarationsForOld(pre,(JmlMethodClauseDecl)clause);
                                         break;
                                     }
                                     case FORALL: 
@@ -7199,6 +7189,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression pre = convertCopy(preExpressions.get(cs));
                         if (pre == treeutils.falseLit) continue; // Don't bother with postconditions if corresponding precondition is explicitly false 
                         condition = pre; // FIXME - is this right? what about the havoc statement?
+
+                        currentStatements = ensuresStats;
                         for (JmlMethodClause clause : cs.clauses) {
                             JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
                             JavaFileObject prevSource = null;
@@ -7206,25 +7198,37 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 switch (clause.token) {
                                     case OLD:
                                     { 
-                                        currentStatements = ensuresStats;
                                         JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopyNoEmit(olddecl);
-                                        for (JCVariableDecl d: olddecl.decls) {
-                                            d.init = treeutils.makeOld(d.init,d.init);
-                                        }
-                                        scan(olddecl);
-                                        currentStatements = exsuresStats;
-                                        olddecl = (JmlMethodClauseDecl)clause;
-                                        olddecl = convertCopyNoEmit(olddecl);
-                                        for (JCVariableDecl d: olddecl.decls) {
-                                            d.init = treeutils.makeOld(d.init,d.init);
-                                        }
-                                        scan(olddecl);
+                                        // FIXME - ignore if after all requires?
+                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+                                        insertDeclarationsForOld(null,olddecl);
+//                                        olddecl = convertCopyNoEmit(olddecl);
+//                                        for (JCVariableDecl d: olddecl.decls) {
+//                                            d.init = treeutils.makeOld(d.init,d.init);
+//                                        }
+//                                        scan(olddecl);
                                         break;
                                     }
                                     case FORALL: 
                                         notImplemented(clause,"forall clause in method specs",clause.source());
                                         break;
+                                    default:
+                                        break;
+                                }
+                            } catch (NoModelMethod e) {
+                                // FIXME - need to catch to skip the clause
+                            } catch (JmlNotImplementedException e) {
+                                // FIXME - should not need this anymore
+                                notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
+                            }
+                        }
+                        for (JmlMethodClause clause : cs.clauses) {
+                            JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
+                            JavaFileObject prevSource = null;
+                            try {
+                                switch (clause.token) {
+                                    case OLD: break;
+                                    case FORALL: break;
                                     case ENSURES:
                                         currentStatements = ensuresStats;
                                         LinkedList<ListBuffer<JCStatement>> temp = markBlock();
@@ -7256,9 +7260,58 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         }
                                         if (!checkBlock(temp)) Utils.print("BLOCKS DO NOT MATCH");
                                         break;
+                                    case REQUIRES: 
+                                    case ASSIGNABLE: 
+                                    case ACCESSIBLE:
+                                    case CALLABLE:
+                                        break;
+                                    default:
+                                        // FIXME - implement others
+                                        break;
+                                }
+                            } catch (NoModelMethod e) {
+                                // FIXME - need to catch to skip the clause
+                            } catch (JmlNotImplementedException e) {
+                                // FIXME - should not need this anymore
+                                notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
+                            }
+                        }
+                        currentStatements = exsuresStats;
+                        for (JmlMethodClause clause : cs.clauses) {
+                            JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
+                            JavaFileObject prevSource = null;
+                            try {
+                                switch (clause.token) {
+                                    case OLD:
+                                    { 
+                                        JmlMethodClauseDecl olddecl = (JmlMethodClauseDecl)clause;
+                                        // FIXME - ignore if after all requires?
+                                        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+                                        insertDeclarationsForOld(null,olddecl);
+                                        break;
+                                    }
+                                    case FORALL:
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } catch (NoModelMethod e) {
+                                // FIXME - need to catch to skip the clause
+                            } catch (JmlNotImplementedException e) {
+                                // FIXME - should not need this anymore
+                                notImplemented(clause.token.internedName() + " clause containing ",e, clause.source());
+                            }
+                        }
+                        for (JmlMethodClause clause : cs.clauses) {
+                            JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile() : clause.sourcefile;
+                            JavaFileObject prevSource = null;
+                            try {
+                                switch (clause.token) {
+                                    case OLD: break;
+                                    case FORALL: break;
+                                    case ENSURES: break;
                                     case SIGNALS:
                                         // FIXME - review this
-                                        currentStatements = exsuresStats;
                                         ListBuffer<JCStatement> check8 = pushBlock();
                                         try {
                                             addStat(comment(clause));
@@ -7300,7 +7353,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         break;
                                     case SIGNALS_ONLY:
                                     {
-                                        currentStatements = exsuresStats;
                                         if (exceptionDeclCall != null && exceptionSym != null) { // FIXME - why might exceptionSym be null? halndling field initializer?
                                             
                                             JCIdent exceptionId = treeutils.makeIdent(clause.pos,exceptionSym);
@@ -7506,6 +7558,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeBooleanLiteral(p,true));
         addStat( st );
 
+    }
+    
+    protected void insertDeclarationsForOld(JCExpression precondition, JmlMethodClauseDecl clause) {
+        // FIXME - ignore if after all requires?
+        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+        List<JCVariableDecl> decls = clause.decls;
+        for (JCVariableDecl d: decls) {
+            // Need a new symbol
+            int pos = d.pos;
+            Name name = names.fromString(d.name.toString() + "__OLD__");
+            JCVariableDecl newdef = treeutils.makeVarDef(d.type, name, methodDecl.sym, d.pos);
+            JCIdent id = treeutils.makeIdent(d.pos, newdef.sym);
+            paramActuals.put(d.sym, id);
+            newdef.init = convertJML(precondition == null ? d.init : treeutils.makeConditional(pos, precondition, d.init, treeutils.makeZeroEquivalentLit(pos, d.init.type)));
+            addStat(newdef);
+        }
     }
 
     protected void newAllocation(DiagnosticPosition pos, JCIdent resultId) {
@@ -9191,6 +9259,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = fa;
         } else if (translatingJML && s instanceof VarSymbol && attr.isModel(s) && !convertingAssignable && !reps.contains(s)) {
 
+            selected = trexpr;
+            boolean var = false;
+            // FIXME - why must selected be a JCIdent here and below
+            if (!utils.isJMLStatic(s) && that.selected instanceof JCIdent && !localVariables.containsKey(((JCIdent)that.selected).sym)) {
+                if (convertingAssignable && currentFresh != null && selected instanceof JCIdent && ((JCIdent)selected).sym == currentFresh.sym) {
+                    // continue
+                } else {
+                    JCExpression nonnull = treeutils.makeNotNull(that.pos, selected); 
+
+                    if (translatingJML) nonnull = treeutils.makeImplies(that.pos, condition, nonnull);
+                    if (javaChecks && localVariables.isEmpty()) {
+                        addAssert(that,
+                                translatingJML? Label.UNDEFINED_NULL_DEREFERENCE : Label.POSSIBLY_NULL_DEREFERENCE,
+                                        nonnull); // FIXME - what if the dereference happens in a spec in a different file - ,that,log.currentSourceFile());
+                    }
+                }
+                var = true;
+            }
+            
             JCExpression sel = trexpr; // FIXME - what if static; what if not a variable
             addRepresentsAxioms((ClassSymbol)that.selected.type.tsym, s, that, trexpr);
 
@@ -9364,6 +9451,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             String message = "quantifier variable inside a \\old or \\pre expression: " + that.toString();
             throw new JmlNotImplementedException(that,message);
         }
+        
+//        if (utils.rac && that.sym.owner instanceof MethodSymbol) {
+//            if (that.sym.owner != methodDecl.sym) {
+//                that.sym.owner = methodDecl.sym;
+//            }
+//        }
 
         Symbol sym = convertSymbol(that.sym);
         if (!translatingLHS) checkRW(JmlTokenKind.READABLE,that.sym,currentThisExpr,that);
@@ -11716,7 +11809,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
                 JCExpression innerexpr = determineRacBounds(that.decls,that.range,bounds);
-                if (innerexpr == null) {
+                if (innerexpr == null && rac) {
                     log.note(that,"rac.not.implemented.quantified");
                     return;
                 }

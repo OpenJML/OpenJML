@@ -300,6 +300,20 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
+    @Ignore
+    @Test public void gitbug500a() {
+        helpTCG();
+    }
+
+    @Ignore
+    @Test public void gitbug500b() {
+        helpTCG();
+    }
+
+    @Test public void gitbug500c() {
+        helpTCG("-rac");  // Just RAC compilation
+    }
+
     // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;

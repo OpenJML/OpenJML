@@ -1,0 +1,236 @@
+Proving methods in StringBuilderDriver
+Starting proof of StringBuilderDriver.StringBuilderDriver() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.StringBuilderDriver() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.main(java.lang.String[]) with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.main(java.lang.String[]) with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testConstructorVoid() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testConstructorVoid() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testConstructorInt() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testConstructorInt() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testLength() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testLength() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testCapacity() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testCapacity() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testEnsureCapacity() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testEnsureCapacity() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testTrimToSize() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - before explicit assert statement : OK
+Feasibility check #3 - at program exit : OK
+Completed proof of StringBuilderDriver.testTrimToSize() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testSetLength() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testSetLength() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testCharAt() with prover !!!!
+C:\cygwin\home\OpenJML-git-java8-B\Specs\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  \result == charArray[index];
+                                          ^
+C:\cygwin\home\OpenJML-git-java8-B\Specs\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  \result == charArray[index];
+                                          ^
+C:\cygwin\home\OpenJML-git-java8-B\Specs\java5\java\lang\CharSequence.jml:64: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method testCharAt
+      @      ensures  \result == charArray[index];
+                                          ^
+Completed proof of StringBuilderDriver.testCharAt() with prover !!!! - with warnings
+Starting proof of StringBuilderDriver.testCodePointAt() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testCodePointAt() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testCodePointBefore() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testCodePointBefore() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testCodePointCount() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testCodePointCount() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testOffsetByCodePoints() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testOffsetByCodePoints() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testGetChars() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testGetChars() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testSetCharAt() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testSetCharAt() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendObject() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendObject() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendString() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendString() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendStringBuffer() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendStringBuffer() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendCharSequence() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendCharSequence() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendCharSequenceStartEnd() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendCharSequenceStartEnd() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendCharArray() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendCharArray() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendCharArrayStartEnd() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendCharArrayStartEnd() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_boolean() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_boolean() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_char() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_char() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_int() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_int() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_long() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_long() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_float() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_float() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppend_double() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppend_double() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testDelete() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testDelete() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testAppendCodePoint() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testAppendCodePoint() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testDeleteCharAt() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testDeleteCharAt() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testReplace() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testReplace() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testSubstringStart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testSubstringStart() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testSubSequence() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testSubSequence() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testSubstringStartEnd() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testSubstringStartEnd() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsertIndexCharArray() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsertIndexCharArray() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsertObject() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsertObject() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsertString() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsertString() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsertCharArray() with prover !!!!
+test\escRawding\StringBuilderDriver.java:596: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method testInsertCharArray:  overflow in int sum
+            sb.insert(sb.length() + 1, charArray, 0, 0);
+                                  ^
+Completed proof of StringBuilderDriver.testInsertCharArray() with prover !!!! - with warnings
+Starting proof of StringBuilderDriver.testInsertCharSequence() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsertCharSequence() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsertCharSequenceStartEnd() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsertCharSequenceStartEnd() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_boolean() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_boolean() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_char() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_char() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_int() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_int() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_long() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_long() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_float() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_float() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testInsert_double() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testInsert_double() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testIndexOf() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testIndexOf() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testIndexOfStart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testIndexOfStart() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testLastIndexOf() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testLastIndexOf() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testLastIndexOfStart() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testLastIndexOfStart() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testReverse() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testReverse() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testToString() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testToString() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testConstructorCharSequence() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testConstructorCharSequence() with prover !!!! - no warnings
+Starting proof of StringBuilderDriver.testConstructorString() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of StringBuilderDriver.testConstructorString() with prover !!!! - no warnings
+Completed proving methods in StringBuilderDriver
+4 warnings
