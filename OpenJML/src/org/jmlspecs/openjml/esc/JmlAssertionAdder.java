@@ -3369,23 +3369,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!utils.visible(classDecl.sym, msym.owner, scase.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
                 if (msym != methodDecl.sym && scase.code) continue;
                 JCIdent preident = null;
-                JCExpression preexpr = null;
+                JCExpression preexpr = treeutils.trueLit;
                 for (JmlMethodClause clause : scase.clauses) {
                     switch (clause.token) {
                         case OLD:
                             for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
-                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, decl.name, decl.sym.owner, convertExpr(decl.init));
-                                newdecl.pos = decl.pos;
-                                addStat(decl);
-                                JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
-                                exprBiMap.put(id, convertExpr(id));
                                 addTraceableComment(decl,clause.toString());
+                                Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
+                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, decl.sym.owner, decl.pos);
+                                newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.init.type);
+                                JCExpression init =
+                                        convertJML(treeutils.isTrueLit(preexpr) ? decl.init : treeutils.makeConditional(pos, preexpr, decl.init, treeutils.makeZeroEquivalentLit(pos, decl.init.type)));
+
+                                addStat(initialStats, newdecl);
+                                JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
+                                paramActuals.put(decl.sym,id);
+                                preparams.put(decl.sym,newdecl);
+                                JCExpressionStatement stat = treeutils.makeAssignStat(init.pos,id,init);
+                                addStat(stat);
+                                exprBiMap.put(id, convertExpr(id));
                             }
                             break;
                         case REQUIRES:
                             JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                            if (preexpr == null) preexpr = ex;
-                            else preexpr = treeutils.makeAnd(preexpr.pos, preexpr, ex);
+                            preexpr = treeutils.makeAndSimp(preexpr.pos, preexpr, ex);
                             addTraceableComment(ex,clause.toString());
                             break;
                         default:
@@ -6627,6 +6634,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (translatingJML && cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                         if (mpsym != calleeMethodSym && cs.code) continue;
                         JCIdent preId = null;
+                        ListBuffer<JCStatement> oldStatements = currentStatements;
                         if (rac) {
                             preId = newTemp(treeutils.falseLit);
                             pushBlock();
@@ -6642,7 +6650,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     case OLD: { 
                                         // FIXME - ignore if after all requires?
                                         // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
-                                        insertDeclarationsForOld(prex,(JmlMethodClauseDecl)clause);
+                                        for (JCVariableDecl decl : ((JmlMethodClauseDecl)clause).decls) {
+                                            if (paramActuals.get(decl.sym) == null) {
+                                                addTraceableComment(decl,clause.toString());
+                                                Name name = names.fromString(decl.name.toString() + "__OLD_" + decl.pos);
+                                                JCVariableDecl newdecl = treeutils.makeVarDef(decl.type, name, methodDecl.sym, decl.pos);
+                                                newdecl.init = treeutils.makeZeroEquivalentLit(decl.init.pos, decl.init.type);
+                                                JCExpression init =
+                                                        convertJML(treeutils.isTrueLit(prex) ? decl.init : treeutils.makeConditional(decl.pos, prex, decl.init, treeutils.makeZeroEquivalentLit(decl.pos, decl.init.type)));
+
+                                                addStat(oldStatements,newdecl);
+                                                JCIdent id = treeutils.makeIdent(clause.pos, newdecl.sym);
+                                                paramActuals.put(decl.sym,id);
+                                                JCExpressionStatement stat = treeutils.makeAssignStat(init.pos,id,init);
+                                                addStat(stat);
+                                                exprBiMap.put(id, convertExpr(id));
+                                            }
+                                        }
                                         break;
                                     }
                                     case FORALL: 
@@ -7561,19 +7585,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void insertDeclarationsForOld(JCExpression precondition, JmlMethodClauseDecl clause) {
-        // FIXME - ignore if after all requires?
-        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
-        List<JCVariableDecl> decls = clause.decls;
-        for (JCVariableDecl d: decls) {
-            // Need a new symbol
-            int pos = d.pos;
-            Name name = names.fromString(d.name.toString() + "__OLD__");
-            JCVariableDecl newdef = treeutils.makeVarDef(d.type, name, methodDecl.sym, d.pos);
-            JCIdent id = treeutils.makeIdent(d.pos, newdef.sym);
-            paramActuals.put(d.sym, id);
-            newdef.init = convertJML(precondition == null ? d.init : treeutils.makeConditional(pos, precondition, d.init, treeutils.makeZeroEquivalentLit(pos, d.init.type)));
-            addStat(newdef);
-        }
+//        // FIXME - ignore if after all requires?
+//        // FIXME - needs to be in a block, but don't like to have assignments to compute the preconditions
+//        List<JCVariableDecl> decls = clause.decls;
+//        for (JCVariableDecl d: decls) {
+//            // Need a new symbol
+//            int pos = d.pos;
+//            Name name = names.fromString(d.name.toString() + "__OLD__");
+//            JCVariableDecl newdef = treeutils.makeVarDef(d.type, name, methodDecl.sym, d.pos);
+//            JCIdent id = treeutils.makeIdent(d.pos, newdef.sym);
+//            paramActuals.put(d.sym, id);
+//            newdef.init = convertJML(precondition == null ? d.init : treeutils.makeConditional(pos, precondition, d.init, treeutils.makeZeroEquivalentLit(pos, d.init.type)));
+//            addStat(newdef);
+//        }
     }
 
     protected void newAllocation(DiagnosticPosition pos, JCIdent resultId) {

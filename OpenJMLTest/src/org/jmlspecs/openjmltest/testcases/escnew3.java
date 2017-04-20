@@ -803,6 +803,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testLabels() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
@@ -840,6 +841,24 @@ public class escnew3 extends EscBase {
                 + "     //@ assert \\old(mm(),b) == 12;\n"
                 + "     //@ assert mm() == 14;\n"
                 + "    }\n"
+                + "}"
+                 );
+        
+    }
+    
+    @Test
+    public void testOldClause() {
+    	main.addOptions("-escMaxWarnings=1","-subexpressions","-show","-method=m");
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava { \n"
+                + "  static public int k = 5;\n"
+                + "  //@ old int kk = k; requires k == 5 && i > kk && i < 100 && i > -100; assignable k; ensures k == i+1; ensures kk == 5;\n"
+                + "  //@ also\n"
+                + "  //@ old int kk = k+1; requires k == 5 && i < kk && i < 100 && i > -100; assignable k; ensures k == i-1; ensures kk == 6;\n"
+                + "  static public void m(int i) {\n"
+                + "     if (i>k) k = i+1; else k = i-1;\n"
+                + "  }\n"
                 + "}"
                  );
         
@@ -924,5 +943,25 @@ public class escnew3 extends EscBase {
                       
         
     }
+
+    @Test
+    public void testOldClause2() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  static public int k = 5;\n"
+                + "  //@ old int kk = k;\n"
+                + "  //@ {| requires i < 10 && i > kk; assignable k; ensures k == i+1; \n"
+                + "  //@ also\n"
+                + "  //@    requires i > -10 && i < kk; assignable k; ensures k == i-1; \n"
+                + "  //@ |}\n"
+                + "  static public void m(int i) {\n"
+                + "     if (i>k) k = i+1; else k = i-1;\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
 
 }
