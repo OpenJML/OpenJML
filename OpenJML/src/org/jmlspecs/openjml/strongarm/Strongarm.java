@@ -88,6 +88,7 @@ public class Strongarm
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
         MM = this.M;
+        
         //
         // Cache copies of the various tree transformation utilities.
         //

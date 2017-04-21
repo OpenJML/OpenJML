@@ -12,8 +12,11 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 
+import com.sun.source.tree.Tree.Kind;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -57,12 +60,34 @@ public class CleanupPrestateAssignable extends JmlTreeScanner {
     /**
      * Locals removed if they are a formal and primative OR if they are just local. Fields stay.  
      */
+    private boolean isAnAcceptableOperator(Symbol s){
+        String str = s.toString();
+        
+        if(str.contains(">") || str.contains("<") || str.contains("==")){
+            return true;
+        }
+        
+        return false;
+        
+    }
     public boolean shouldRemove(JmlMethodClause clause){
         
         if(clause.toString().contains(Strings.prePrefix)){
             return true;
         }
         
+        if(clause instanceof JmlMethodClauseExpr){
+           
+            JmlMethodClauseExpr mExpr = (JmlMethodClauseExpr)clause;
+            
+            if(mExpr.token == JmlTokenKind.ENSURES && mExpr.expression instanceof JCBinary){
+                JCBinary b = (JCBinary)mExpr.expression;
+                
+                if(b.lhs.toString().equals("\\result") && isAnAcceptableOperator(b.operator)==false){
+                    return true;
+                }
+            }
+        }
         
         if(clause instanceof JmlMethodClauseStoreRef){
             JmlMethodClauseStoreRef mExpr = (JmlMethodClauseStoreRef)clause;

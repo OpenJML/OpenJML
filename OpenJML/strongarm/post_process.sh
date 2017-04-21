@@ -83,7 +83,10 @@ do
 
         perl -i -077 -pe 's/\@Pure(.){1,7}private static <T>List<T> asReversedList\(\@NonNull(.){1,7}final List<T> list\);//gs' $file 
 
-       perl -0777 -i -pe "s/\(E\)token/token/sg" $file
+        perl -i -077 -pe 's/requires \!\(0 < this\.newLineSequences\.length\);//gs' $file 
+        perl -i -077 -pe 's/signals_only.*?;//gs' $file 
+
+        perl -0777 -i -pe "s/\(E\)token/token/sg" $file
 
     done
 
