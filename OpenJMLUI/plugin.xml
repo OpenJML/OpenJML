@@ -633,35 +633,66 @@
  <extension
          point="org.eclipse.ui.menus">
       <!-- These declarations add items to the main toolbar --> 
-      <menuContribution
-            allPopups="true"
-            locationURI="toolbar:org.eclipse.ui.main.toolbar">
+      <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar">
           <toolbar id="org.jmlspecs.eclipse.openjml.toolbar">
              <command
                    commandId="org.jmlspecs.eclipse.commands.CheckJML"
                    icon="icons/jml-logo-16x16.png"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.CheckJML"
                    label="JML type-check"
-                   style="push"
+                   style="pulldown"
                    tooltip="Type-checks JML in selected objects">
              </command>
+           </toolbar>
+       </menuContribution>
+       </extension>
+       
+<extension point="org.eclipse.ui.menus">
+       <menuContribution locationURI="menu:org.jmlspecs.openjml.eclipse.MenuActions.CheckJML">             
+             
              <command
                    commandId="org.jmlspecs.eclipse.commands.CheckESC"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
-                   label="ESC"
+                   label="Check with ESC"
+                   icon="icons/jml-logo-16x16.png"                   
                    style="push"
                    tooltip="Performs JML static checks for selected objects">
              </command>
              <command
                    commandId="org.jmlspecs.eclipse.commands.RAC"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
-                   label="RAC"
+                   icon="icons/jml-logo-16x16.png"
+                   
+                   label="Compile for RAC"
                    style="push"
                    tooltip="Compiles JML runtime checks for selected objects">
              </command>
-
-
-           </toolbar>
+             
+             
+              <command
+                   commandId="org.jmlspecs.eclipse.commands.CheckJML"
+                   icon="icons/strongarm_infer.png"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+                   label="Infer JML Contracts (Strongarm)"
+                   style="push"
+                   tooltip="Infers JML Contracts for Selected Objects">
+             </command>
+             
+             <separator name="additions" visible="true">
+        	</separator>
+             
+             
+              
+              <command
+                   commandId="org.jmlspecs.eclipse.commands.CheckJML"
+                   icon="icons/settings.png"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+                   label="OpenJML Settings"
+                   style="push"
+                   tooltip="Opens Settings for OpenJML">
+             </command>
+            
+             
        </menuContribution>
  </extension>
  
