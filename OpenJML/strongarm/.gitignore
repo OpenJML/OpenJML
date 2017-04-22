@@ -8,3 +8,5 @@ kernel*.json
 run.out*
 *.csv
 /runs/
+/__pycache__/
+/.ipynb_checkpoints/

@@ -1,0 +1,79 @@
+---
+title: "Strongarm Experimental Analysis"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2) 
+experiments <- c("JSON-Java", "JUnit4", "Commons-CSV", "Commons-IO", "Commons-CLI", "Commons-Codec", "Commons-Email")
+runId <- "2pac-2017-04-17"
+```
+
+
+First, we will do a combined analysis on the inference breakdowns for the combined case.
+
+```{r}
+breakdown_chart <- function(experiment, runId){
+  strongarm_summary_Combined <- read_csv(sprintf("../runs/%s/strongarm-summary-%s.csv", runId, experiment), 
+       col_types = cols(`Unnamed: 0` = col_skip(), 
+           error = col_logical(), inferred = col_logical(), 
+           refused = col_logical(), skipped = col_logical(), 
+           timeout = col_logical()))
+  
+  slices <- c(
+    sum(strongarm_summary_Combined["inferred"] == TRUE),
+    sum(strongarm_summary_Combined["skipped"]  == TRUE),
+    sum(strongarm_summary_Combined["error"]    == TRUE),
+    sum(strongarm_summary_Combined["timeout"]  == TRUE),
+    sum(strongarm_summary_Combined["refused"]  == TRUE)
+  )
+  categories <- c("Inferred", "Skipped", "Error", "Timeout", "Refused")
+  colors <- gray.colors(length(lbls))
+                    
+  pct <- round(slices/sum(slices)*100, 2)
+  lbls <- paste(pct,"%",sep="") # ad % to labels 
+  
+  pie(slices,labels = lbls, col=colors,
+    	main=sprintf("Breakdown of Inference Outcomes\n%s", experiment) )
+  
+  #legend("top", legend = lbls, fill=colors, bty="n")
+  legend("right", legend = categories, fill=colors)
+}
+
+for(experiment in experiments){
+  breakdown_chart(experiment, runId)
+}
+
+
+```
+
+```{r}
+pie(rep(1, 12), col = gray.colors(12))
+
+```
+
+
+```{r}
+mpgs <- c(1,2,3,4,5)
+makes <- c("a", "b" , "c", "d", "e")
+
+df <- data.frame(mpgs, makes)
+
+#qplot(makes,mpgs, data=df, geom="bar", alpha=I(.5), 
+#$   main="Distribution of Gas Milage", xlab="Miles Per Gallon", 
+#   ylab="Density")
+
+#g <- ggplot(df, aes(makes,mpg))
+#g + geom_col() + coord_flip() + xlab("") + ylab("")
+
+#g + geom_bar(aes(fill = drv) + coord_flip() + theme(legend.position = "top")
+
+
+#dat.g <- gather(dat, type, value, -country)
+#ggplot(dat.g, aes(type, value)) + 
+#  geom_bar(aes(fill = country), stat = "identity", position = "dodge")
+
+```
+
+
+

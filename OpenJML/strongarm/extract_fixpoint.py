@@ -15,17 +15,19 @@ RUN=sys.argv[2]
 
 base_dir = "runs/{0}/".format(RUN)
 
+
 # we can use the summary files to decide which file is the authority
 dss = []
 pss = []
 for filename in os.listdir(base_dir):
-    if filename.endswith(".csv") and "strongarm-summary" in filename and EVAL_NAME in filename: 
+    if filename.endswith(".csv") and "strongarm-summary" in filename and EVAL_NAME in filename and not re.match(".*\.[0-9]\.csv", filename) == None:
+
         file = os.path.join(base_dir, filename)
         print("Loading file: {0}".format(file))
         dss.append(pd.read_csv(file))
         continue
 
-    if filename.endswith(".csv") and "strongarm-pipeline-steps" in filename and EVAL_NAME in filename: 
+    if filename.endswith(".csv") and "strongarm-pipeline-steps" in filename and EVAL_NAME in filename and not re.match(".*\.[0-9]\.csv", filename) == None: 
         file = os.path.join(base_dir, filename)
         print("Loading file: {0}".format(file))
         pss.append(pd.read_csv(file))
@@ -87,15 +89,15 @@ for method in methods:
 # by stitching them together. 
 
 # this is how we stich.
-base = dss[0] 
+base_dfa = []#dss[0] 
 
 for method in methods:
     auth = authority[method]
-    if auth == 0:
-        continue
     dd = dss[auth]
 
-    base.loc[base["method"]==method] = dd[dd["method"]==method]
+    base_dfa.append(dd[dd["method"]==method])
+
+base = pd.concat(base_dfa)
 
 # write this out
 summary = "{0}/strongarm-summary-{1}.csv".format(base_dir, EVAL_NAME)
@@ -106,16 +108,16 @@ print("Writing summary to: {0}".format(summary))
 # do the pipeline.
 
 #%%
-pbase = pss[0] 
+pbase_dfa = [] #pss[0] 
 
 for method in methods:
     auth = authority[method]
-    if auth == 0:
-        continue
     dd = pss[auth]
 
-    pbase.loc[pbase["method"]==method] = dd[dd["method"]==method]
+    pbase_dfa.append(dd[dd["method"]==method])
 
+
+pbase = pd.concat(pbase_dfa)
 
 pipeline = "{0}/strongarm-pipeline-steps-{1}.csv".format(base_dir, EVAL_NAME)
 
