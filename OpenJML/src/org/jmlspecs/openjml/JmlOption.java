@@ -64,6 +64,8 @@ public enum JmlOption implements IOption {
     // 2) Else, if -specspath is specified, specs are written to that directory (base)
     // 3) Otherwise, we write the specs to the same directory were the java class source exists
     //
+    INFER_WEAVE("-infer-weave", false, null, "STRONGARM: After inference, weave the inferred specs into the source code", null),
+    
     INFER_PERSIST("-infer-persist", false, null, "STRONGARM: Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
     INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
     INFER_MAX_DEPTH("-infer-max-depth", true, null, "STRONGARM: The largest CFG we will agree to process", null),
