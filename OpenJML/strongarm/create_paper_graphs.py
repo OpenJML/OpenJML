@@ -11,8 +11,12 @@ from lib import time_vs_cfg_depth, cfg_depth_vs_loc, pct_reduction_of_pipeline_s
 #%%
 
 # build the list of evals 
-evals  = ["JSON-Java", "Commons-CSV"] #sys.argv[2:]
-run_id = "2pac-2017-04-17"            #sys.argv[1]
+evals  = ["JSON-Java", "Commons-CSV", "Commons-CLI", "Commons-Codec", "Commons-Email", "JUnit4", "Combined"] #sys.argv[2:]
+run_id = "2pac-2017-04-21"            #sys.argv[1]
+
+#evals  = sys.argv[2:]
+#run_id = sys.argv[1]
+
 data_dir     = "runs/{0}/".format(run_id)
 
 
@@ -76,8 +80,8 @@ for eval_name in evals:
     refused.append( round((float(r)/float(the_sum))*100)) 
     skipped.append( round((float(s)/float(the_sum))*100)) 
 
-skipped = [30,20]
-error   = [10,50]
+#skipped = [30,20]
+#error   = [10,50]
 
 ind = np.arange(len(labels))  # the x locations for the groups
 width = 0.15       # the width of the bars
