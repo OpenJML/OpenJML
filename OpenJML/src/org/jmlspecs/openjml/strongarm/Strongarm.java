@@ -386,6 +386,7 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(methodDecl));
         }
         
+        infer.didInfer = true;
     }
     
     public static void dieIfNeeded() throws InferenceAbortedException  {

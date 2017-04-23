@@ -92,6 +92,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** the contracts will be weaved into the source code **/
         public boolean weaveContracts = false;
         
+        protected boolean didInfer = false;
         
         /** a container to hold the inferred specs -- this will be saved/flushed between visits to classes **/
         public ArrayList<JCMethodDecl> inferredSpecs = new ArrayList<JCMethodDecl>();
@@ -596,11 +597,12 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 return;
             }
             
-            
+            didInfer = false;
             
             inferContract(methodDecl);
                         
-            if(methodDecl.cases != null && methodDecl.methodSpecsCombined != null){
+            
+            if(methodDecl.cases != null && methodDecl.methodSpecsCombined != null && didInfer){
                 inferredSpecs.add(methodDecl);
             }
             
