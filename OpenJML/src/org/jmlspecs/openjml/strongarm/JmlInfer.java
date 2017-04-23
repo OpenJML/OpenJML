@@ -2,13 +2,18 @@ package org.jmlspecs.openjml.strongarm;
 
 import static com.sun.tools.javac.code.Flags.ENUM;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -84,6 +89,10 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** the contracts will be printed to the filesystem **/
         public boolean persistContracts = false;
         
+        /** the contracts will be weaved into the source code **/
+        public boolean weaveContracts = false;
+        
+        
         /** a container to hold the inferred specs -- this will be saved/flushed between visits to classes **/
         public ArrayList<JCMethodDecl> inferredSpecs = new ArrayList<JCMethodDecl>();
         
@@ -114,6 +123,9 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             // we will save contracts
             this.persistContracts = JmlOption.isOption(context,  JmlOption.INFER_PERSIST);
             
+            this.weaveContracts = JmlOption.isOption(context,  JmlOption.INFER_WEAVE);
+
+            
             // but to where?
             if(this.persistContracts){
                 
@@ -124,6 +136,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 }else{                                                          // failing those options, we default to wherever the class source is
                     persistPath = null;
                 }
+            
                 
             }
             
@@ -213,7 +226,113 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             }
         }
         
+        public void weaveContract(String contract, String file, int position){
+         // for each of these things, seek to the position the method begins, then write it out
+            
+            String mode = "rw";
+            
+            try {
+                File tempFile = File.createTempFile(file,".tmp");
+                tempFile.deleteOnExit();
+                
+                RandomAccessFile ra = new RandomAccessFile(file, mode);
+                RandomAccessFile temp = new RandomAccessFile(tempFile, "rw");
+                
+                long fileSize = ra.length();
+                
+                FileChannel sourceChannel = ra.getChannel();
+                FileChannel targetChannel = temp.getChannel();
+                
+                sourceChannel.transferTo(position, (fileSize - position), targetChannel);
+                sourceChannel.truncate(position);
+                
+                ra.seek(position);
+                
+                // go backwards until we get a newline character.
+                long newlinePosition = -1;
+                
+                
+                while(ra.getFilePointer() >= 2){                    
+                    ra.seek(ra.getFilePointer()-1);
+                                        
+                    int c = ra.read();
+                    
+                    if(c==10){
+                        newlinePosition = ra.getFilePointer();
+                        break;
+                    }
+                    
+                    ra.seek(ra.getFilePointer()-1);
+                    
+                }
+                
+                ra.seek(position);                
+                ra.writeBytes(contract);
+                
+                if(newlinePosition!=-1){
+                    long charsToWrite = position - newlinePosition;
+                    for(int i=0; i < charsToWrite; i++){
+                        ra.write(32);
+                    }
+                }
+                
+                long newOffset = ra.getFilePointer();
+                
+                targetChannel.position(0L);
+                sourceChannel.transferFrom(targetChannel, newOffset, (fileSize - position));
+                sourceChannel.close();
+                targetChannel.close();
+
+                
+            } catch (IOException e) {
+                log.error("jml.internal","Unable to write path " + e.getMessage());
+
+            }   
+        }
+        
+        public void weaveContracts(String source, JmlClassDecl node){
+            
+            // first, sort the inferredSpecs so that the later line numbers are FIRST.  
+            inferredSpecs.sort((m1, m2) -> new Integer(m2.pos).compareTo(m1.pos)); 
+            
+         
+            // for each of these things, seek to the position the method begins, then write it out
+            String file = node.sourcefile.getName();
+            
+            for(JCMethodDecl m : inferredSpecs){
+                if(m instanceof JmlMethodDecl){
+                    
+                    utils.progress(1,1,"[STRONGARM] Weaving Specs for: " + m.sym.toString()); 
+                    int pos = m.pos;
+                    
+                    if(m.mods != null && m.mods.pos != -1){
+                        pos = m.mods.pos;
+                    }
+                    String contract = JmlPretty.write(((JmlMethodDecl)m).cases);
+                    
+                    contract = contract.replaceAll("^\\/\\*@\n", "\\/\\*@\n  ");
+                    contract = contract.replaceAll("\\*\\/", "     @*/");
+                    
+                    weaveContract(contract, file, pos);
+                }               
+            }
+                              
+            
+        }
+        
         public void flushContracts(String source, JmlClassDecl node){
+            
+            if(this.persistContracts){
+                writeContracts(source, node);
+            }else if(this.weaveContracts){
+                weaveContracts(source, node);
+            }
+            
+            // flush the specs
+            inferredSpecs.clear();
+        }
+            
+        public void writeContracts(String source, JmlClassDecl node){
         
            
             com.sun.tools.javac.util.List JDKList;
@@ -250,8 +369,6 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 log.error("jml.internal","Unable to write path " + writeTo.toString());
             }
             
-            // flush the specs
-            inferredSpecs.clear();
         }
         private boolean isPrivate(JmlVariableDecl var){ 
             return (var.mods.flags & Flags.PRIVATE) == Flags.PRIVATE || (var.mods.flags & Flags.PROTECTED) == Flags.PROTECTED;
@@ -482,6 +599,11 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             
             
             inferContract(methodDecl);
+                        
+            if(methodDecl.cases != null && methodDecl.methodSpecsCombined != null){
+                inferredSpecs.add(methodDecl);
+            }
+            
         }
             
         /** Return true if the method is to be checked, false if it is to be skipped.

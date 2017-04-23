@@ -604,7 +604,7 @@ public class JmlCompiler extends JavaCompiler {
 
         infer.check(env.tree);
         
-        if(infer.persistContracts && env.tree instanceof JmlClassDecl){
+        if((infer.persistContracts || infer.weaveContracts) && env.tree instanceof JmlClassDecl){
             infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
         }
     }
