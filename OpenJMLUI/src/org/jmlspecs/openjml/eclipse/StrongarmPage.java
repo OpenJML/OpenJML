@@ -68,6 +68,15 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 	    Options.setValue(Options.inferTimeout, "300");
 	}
 	
+	
+	try {
+	    String d = Options.value(Options.inferMaxDepth);
+        	    
+	    Integer.parseInt(d);
+	}catch(Exception e){
+	    Options.setValue(Options.inferMaxDepth, "300");
+	}
+	
     }
 
 //    public void setValue(String out) {
@@ -85,6 +94,13 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 
 	addField(new StringFieldEditor(Options.inferTimeout, Messages.OpenJMLUI_PreferencesPage_INFER_TIMEOUT,
                 getFieldEditorParent()));
+	
+	addField(new StringFieldEditor(Options.inferMaxDepth, Messages.OpenJMLUI_PreferencesPage_INFER_MAX_DEPTH,
+                getFieldEditorParent()));
+	
+	addField(new BooleanFieldEditor(Options.inferDevTools, Messages.OpenJMLUI_PreferencesPage_INFER_DEV_TOOLS, getFieldEditorParent()));
+
+	
 	
     }
 

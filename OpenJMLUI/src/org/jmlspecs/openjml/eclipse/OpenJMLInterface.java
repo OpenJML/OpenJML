@@ -1362,6 +1362,13 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ Options.value(Options.inferTimeout));
             
+            opts.add(JmlOption.INFER_MAX_DEPTH.optionName() +eq+ Options.value(Options.inferMaxDepth));
+            
+
+            if(Options.value(Options.inferDevTools)!=null && Options.value(Options.inferDevTools).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_DEV_MODE.optionName());
+            }
+
             
         }
         

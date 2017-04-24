@@ -77,6 +77,7 @@ NAMEZ=openjml-${VERSION}.zip
 	cp -r ${ROOT}/OpenJML/bin-runtime/* temp
 	cp -r ${ANNOTATIONS}/bin/* temp
 	cp jSMTLIB.jar temp
+	cp otherlibs/jpaul-2.5.1.jar temp
 	mkdir -p temp/specs14 temp/specs15 temp/specs16 temp/specs17 temp/specs18; chmod -R u+rwx,a+rx temp
 	cp -r ${SPECS}/java4/* temp/specs14
     ( cd temp; /usr/bin/find specs14 -name '.svn' -exec rm -rf {} + )

@@ -74,9 +74,11 @@ public class Options {
 	final static public String feasibilityKey = prefix + "feasibility"; //$NON-NLS-1$
 	
 	
-	final static public String inferDebug = prefix + "inferdebug"; //$NON-NLS-1$
+	final static public String inferDebug = prefix + "inferDebug"; //$NON-NLS-1$
 	final static public String inferTimeout = prefix + "infertimeout"; //$NON-NLS-1$
-	final static public String persistSpecsTo = prefix + "persistspecs"; //$NON-NLS-1$
+	final static public String inferPersistSpecsTo = prefix + "inferPersistSpecs"; //$NON-NLS-1$
+	final static public String inferMaxDepth = prefix + "inferMaxDepth"; //$NON-NLS-1$
+	final static public String inferDevTools = prefix + "inferDevTools"; //$NON-NLS-1$
 	
 	
 //	/** The preference store key for the show trace info option. */

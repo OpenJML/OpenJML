@@ -68,7 +68,7 @@ public class Strongarm
     final protected JmlInferPostConditions infer;
 
     final protected JmlTreeUtils           treeutils;
-    
+    public static boolean                  _DEV_MODE = false;
     final protected JmlTree.Maker M;
     public static String Current;
     public static int ___CURRENT_DEPTH;
@@ -88,6 +88,7 @@ public class Strongarm
         this.treeutils = JmlTreeUtils.instance(context);
         this.M = JmlTree.Maker.instance(context);
         MM = this.M;
+        _DEV_MODE = JmlOption.isOption(context, JmlOption.INFER_DEV_MODE);
         
         //
         // Cache copies of the various tree transformation utilities.
