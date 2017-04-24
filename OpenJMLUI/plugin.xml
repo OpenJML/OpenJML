@@ -216,7 +216,25 @@
                enablesFor="+"
                id="JMLUI.showSpecsAction1">
        </action>
+       
+       
+       <action
+               class="org.jmlspecs.openjml.eclipse.PopupActions$InferSpecs"
+               icon="icons/strongarm_infer.png"
+               label="Infer JML Contracts (Strongarm)"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.inferSpecsAction1"
+               tooltip="Infers JML Contracts for Selected Objects">
+       </action>   
+       
     </objectContribution>
+    
+    
+    			          
+    
+    
+    
     <!-- These context menu items are enabled for Java projects -->
     <objectContribution
             adaptable="true"
@@ -613,6 +631,15 @@
                id="org.jmlspecs.openjml.eclipse.MenuActions.DetailedProofInformation"
                commandId="org.jmlspecs.eclipse.commands.DetailedProofInformation">
              </command>
+             <separator name="org.jmlspecs.openjml.specs" visible="true"/>
+			<command
+               commandId="org.jmlspecs.eclipse.commands.JMLInfer"
+               icon="icons/strongarm_infer.png"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+               label="Infer JML Contracts (Strongarm)"
+               style="push"
+               tooltip="Infers JML Contracts for Selected Objects">
+             </command>             
              <separator name="org.jmlspecs.openjml.specs" visible="true"/>
              <command
                label="Show Specifications"

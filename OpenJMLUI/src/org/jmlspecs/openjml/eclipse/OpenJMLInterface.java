@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
@@ -483,6 +484,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                     Log.errorlog("Failure to execute openjml: "+ss,e); 
                     Activator.utils().showMessageInUI(null,"JML Execution Failure","Failure to execute openjml: " + e + " " + ss);
                 }
+            }
+            
+            for(IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()){
+        	    try {
+			project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+		    } catch (CoreException e) {
+			e.printStackTrace();
+		    }
             }
             // Now do individual methods
             // Delete all markers first, so that subsequent proofs do not delete
