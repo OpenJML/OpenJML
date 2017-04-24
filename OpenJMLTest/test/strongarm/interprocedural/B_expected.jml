@@ -1,0 +1,34 @@
+
+import org.jmlspecs.annotation.*;
+
+public class B {
+  
+  public B();
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        ensures a == b ==> \result == true; 
+      also
+        ensures a != b ==> \result == false; 
+      |}
+   */
+
+  public boolean areEqual(int a, int b);
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        ensures \result == 0; 
+      also
+        requires (a < b); 
+        ensures \result == -1; 
+      also
+        requires !(a < b); 
+        ensures \result == 1; 
+      |}
+   */
+
+  @Pure 
+  public int cmp(int a, int b);
+}

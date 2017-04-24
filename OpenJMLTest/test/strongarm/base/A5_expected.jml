@@ -1,8 +1,10 @@
 
+import org.jmlspecs.annotation.*;
+
 public class A5 {
   
   public A5();
-  
+  int THE_FIELD;
     /*@
     public normal_behavior
       requires true; 

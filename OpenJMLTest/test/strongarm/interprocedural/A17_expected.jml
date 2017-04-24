@@ -1,8 +1,10 @@
 
+import org.jmlspecs.annotation.*;
+
 public class A17 {
   
   public A17();
-  
+  public int FIELD;
     /*@
       requires true; 
       ensures this.FIELD == 3; 

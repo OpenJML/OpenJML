@@ -1,0 +1,11 @@
+
+import org.jmlspecs.annotation.*;
+
+public class Feeeeeeilds {
+  
+  public Feeeeeeilds();
+  @SpecPublic 
+  private final int z;
+  @SpecPublic 
+  private static final int r;
+}

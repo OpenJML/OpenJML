@@ -1,4 +1,6 @@
 
+import org.jmlspecs.annotation.*;
+
 public class S1 {
   
   public S1();
@@ -6,77 +8,42 @@ public class S1 {
     public normal_behavior
       requires true; 
       {|
-        {|
-          {|
-            {|
-              {|
-                {|
-                  {|
-                    {|
-                      {|
-                        {|
-                          {|
-                            {|
-                              requires (month) == 1; 
-                              requires "January" != null; 
-                              ensures \result == "January"; 
-                            also
-                              requires (month) == 2; 
-                              requires "February" != null; 
-                              ensures \result == "February"; 
-                            |}
-                          also
-                            requires (month) == 3; 
-                            requires "March" != null; 
-                            ensures \result == "March"; 
-                          |}
-                        also
-                          requires (month) == 4; 
-                          requires "April" != null; 
-                          ensures \result == "April"; 
-                        |}
-                      also
-                        requires (month) == 5; 
-                        requires "May" != null; 
-                        ensures \result == "May"; 
-                      |}
-                    also
-                      requires (month) == 6; 
-                      requires "June" != null; 
-                      ensures \result == "June"; 
-                    |}
-                  also
-                    requires (month) == 7; 
-                    requires "July" != null; 
-                    ensures \result == "July"; 
-                  |}
-                also
-                  requires (month) == 8; 
-                  requires "August" != null; 
-                  ensures \result == "August"; 
-                |}
-              also
-                requires (month) == 9; 
-                requires "September" != null; 
-                ensures \result == "September"; 
-              |}
-            also
-              requires (month) == 10; 
-              requires "October" != null; 
-              ensures \result == "October"; 
-            |}
-          also
-            requires (month) == 11; 
-            requires "November" != null; 
-            ensures \result == "November"; 
-          |}
-        also
-          requires (month) == 12; 
-          requires "December" != null; 
-          ensures \result == "December"; 
-        |}
+        requires (month) == 1; 
+        ensures \result == "January"; 
       also
-        requires "Invalid month" != null; 
+        requires (month) == 2; 
+        ensures \result == "February"; 
+      also
+        requires (month) == 3; 
+        ensures \result == "March"; 
+      also
+        requires (month) == 4; 
+        ensures \result == "April"; 
+      also
+        requires (month) == 5; 
+        ensures \result == "May"; 
+      also
+        requires (month) == 6; 
+        ensures \result == "June"; 
+      also
+        requires (month) == 7; 
+        ensures \result == "July"; 
+      also
+        requires (month) == 8; 
+        ensures \result == "August"; 
+      also
+        requires (month) == 9; 
+        ensures \result == "September"; 
+      also
+        requires (month) == 10; 
+        ensures \result == "October"; 
+      also
+        requires (month) == 11; 
+        ensures \result == "November"; 
+      also
+        requires (month) == 12; 
+        ensures \result == "December"; 
+      also
         ensures \result == "Invalid month"; 
       |}
    */

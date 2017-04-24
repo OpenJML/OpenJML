@@ -1,8 +1,10 @@
 
+import org.jmlspecs.annotation.*;
+
 public class A16 {
   
   public A16();
-  
+  public int FIELD;
     /*@
       requires true; 
       ensures this.FIELD == 3; 
@@ -14,7 +16,7 @@ public class A16 {
     /*@
     public normal_behavior
       requires true; 
-      ensures \result == (a + b) * 100; 
+        ensures \result == (a + b) * 100; 
    */
 
   @Pure 
