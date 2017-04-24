@@ -54,6 +54,7 @@ public enum JmlOption implements IOption {
     // Options Related to Specification Inference
     INFER("-infer",true,"POSTCONDITIONS","STRONGARM: Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
     INFER_DEBUG("-infer-debug", false, null, "STRONGARM: Enable debugging of contract inference.", null),
+    
     INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "STRONGARM: If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
     INFER_NO_EXIT("-noexit",true,null,"STRONGARM: Infer contracts (suppress exiting)","-command=infer-no-exit"),
     INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "STRONGARM: Minimize expressions where possible.", null),
@@ -70,6 +71,9 @@ public enum JmlOption implements IOption {
     INFER_PERSIST_PATH("-infer-persist-path", true, null, "STRONGARM: Specify output directory of specifications (overrides -specspath)", null),
     INFER_MAX_DEPTH("-infer-max-depth", true, null, "STRONGARM: The largest CFG we will agree to process", null),
     INFER_TIMEOUT("-infer-timeout", true, null, "STRONGARM: Give up inference after this many seconds.", null),
+    
+    DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications.", null),
+    
 
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),

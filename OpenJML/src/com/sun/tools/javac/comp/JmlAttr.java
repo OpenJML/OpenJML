@@ -4630,52 +4630,55 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     v = Flags.PUBLIC;
                 }
             }
-            /*if (currentClauseType == JmlTokenKind.INVARIANT || currentClauseType == JmlTokenKind.CONSTRAINT) {
-                // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
-                // Is the symbol more visible? OK if the symbol is not a modifiable variable
-                if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
-                        && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)
-                        && (sym.flags() & Flags.FINAL)==0 ) { 
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+            
+            if(!JmlOption.isOption(context, JmlOption.DISABLE_VISIBILITY_CHECKING)){            
+                if (currentClauseType == JmlTokenKind.INVARIANT || currentClauseType == JmlTokenKind.CONSTRAINT) {
+                    // An ident used in an invariant must have the same visibility as the invariant clause - no more, no less
+                    // Is the symbol more visible? OK if the symbol is not a modifiable variable
+                    if (jmlVisibility != v && moreOrEqualVisibleThan(v,jmlVisibility) 
+                            && sym instanceof VarSymbol && !utils.isExprLocal(sym.flags()) && !special(v,sym)
+                            && (sym.flags() & Flags.FINAL)==0 ) { 
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+                    // Is the symbol less visible? not OK
+                    if (jmlVisibility != v && !moreOrEqualVisibleThan(v,jmlVisibility)
+                            && !utils.isExprLocal(sym.flags()) && !special(v,sym)) { 
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+                } else if (currentClauseType == JmlTokenKind.REPRESENTS) {
+                    //log.error(tree.pos,"jml.internal","Case not handled in JmlAttr.visitIdent: " + currentClauseType.internedName());
+                    if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+    
+                } else if (currentClauseType == JmlTokenKind.JMLDECL) {
+                    // FIXME - not sure what rules to apply to this case
+                } else if (currentClauseType == JmlTokenKind.IN) {
+                    // In    V type x; //@ in y;
+                    // identifier y must be at least as visible as x (i.e., as V)
+                    if (!moreOrEqualVisibleThan(v,jmlVisibility)) {
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+    
+                } else if (currentClauseType == JmlTokenKind.ENSURES || currentClauseType == JmlTokenKind.SIGNALS) {
+                    // An identifier mentioned in a clause must be at least as visible as the clause itself.
+                    if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+                    
+                    if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
+                        if (!sym.isStatic()) log.error(pos,  "jml.no.old.in.constructor", sym);
+                    }
+    
+                } else  {
+                    // Default case
+                    // An identifier mentioned in a clause must be at least as visible as the clause itself.
+                    if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
+                        log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
+                    }
+    
                 }
-                // Is the symbol less visible? not OK
-                if (jmlVisibility != v && !moreOrEqualVisibleThan(v,jmlVisibility)
-                        && !utils.isExprLocal(sym.flags()) && !special(v,sym)) { 
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
-                }
-            } else if (currentClauseType == JmlTokenKind.REPRESENTS) {
-                //log.error(tree.pos,"jml.internal","Case not handled in JmlAttr.visitIdent: " + currentClauseType.internedName());
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
-                }
-
-            } else if (currentClauseType == JmlTokenKind.JMLDECL) {
-                // FIXME - not sure what rules to apply to this case
-            } else if (currentClauseType == JmlTokenKind.IN) {
-                // In    V type x; //@ in y;
-                // identifier y must be at least as visible as x (i.e., as V)
-                if (!moreOrEqualVisibleThan(v,jmlVisibility)) {
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
-                }
-
-            } else if (currentClauseType == JmlTokenKind.ENSURES || currentClauseType == JmlTokenKind.SIGNALS) {
-                // An identifier mentioned in a clause must be at least as visible as the clause itself.
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
-                }
-                
-                if (currentEnvLabel != null && enclosingMethodEnv.enclMethod.sym.isConstructor()) {
-                    if (!sym.isStatic()) log.error(pos,  "jml.no.old.in.constructor", sym);
-                }
-
-            } else  {
-                // Default case
-                // An identifier mentioned in a clause must be at least as visible as the clause itself.
-                if (!moreOrEqualVisibleThan(v,jmlVisibility) && !special(v,sym)) {
-                    log.error(pos, "jml.visibility", visibility(v), visibility(jmlVisibility), currentClauseType.internedName());
-                }
-
-            }*/
+            }
         }
         
 
