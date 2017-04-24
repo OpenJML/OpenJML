@@ -674,13 +674,29 @@
                    icon="icons/jml-logo-16x16.png"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.CheckJML"
                    label="JML type-check"
-                   style="pulldown"
+                   style="push"
                    tooltip="Type-checks JML in selected objects">
              </command>
+             
+             <command
+                   commandId="org.jmlspecs.eclipse.commands.CheckESC"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
+                   label="ESC"
+                   style="push"
+                   tooltip="Performs JML static checks for selected objects">
+             </command>
+             <command
+                   commandId="org.jmlspecs.eclipse.commands.RAC"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"                   
+                   label="RAC"
+                   style="push"
+                   tooltip="Compiles JML runtime checks for selected objects">
+             </command>
+             
            </toolbar>
        </menuContribution>
        </extension>
-       
+<!--       
 <extension point="org.eclipse.ui.menus">
        <menuContribution locationURI="menu:org.jmlspecs.openjml.eclipse.MenuActions.CheckJML">             
              
@@ -729,7 +745,7 @@
              
        </menuContribution>
  </extension>
- 
+--> 
    
   <!-- This defines a new marker type -->
   <!-- The attribute is used to associate additional information with the marker (FIXME - is it used?) -->  
