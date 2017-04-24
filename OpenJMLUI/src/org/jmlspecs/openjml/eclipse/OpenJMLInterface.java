@@ -1357,10 +1357,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.INFER_DEFAULT_PRECONDITIONS.optionName());
 
             //TODO -- make these options
-            opts.add(JmlOption.INFER_DEBUG.optionName());
-            opts.add("-verbose");
-            opts.add("-progress");
-            opts.add("-infer-timeout=-1");
+            if(Options.value(Options.inferDebug)!=null && Options.value(Options.inferDebug).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_DEBUG.optionName());
+            }
+            opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ Options.value(Options.inferTimeout));
             
             
         }

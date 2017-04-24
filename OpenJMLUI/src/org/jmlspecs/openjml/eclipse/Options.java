@@ -73,6 +73,12 @@ public class Options {
 	/** The preference store key for the -checkFeasibility option. */
 	final static public String feasibilityKey = prefix + "feasibility"; //$NON-NLS-1$
 	
+	
+	final static public String inferDebug = prefix + "inferdebug"; //$NON-NLS-1$
+	final static public String inferTimeout = prefix + "infertimeout"; //$NON-NLS-1$
+	final static public String persistSpecsTo = prefix + "persistspecs"; //$NON-NLS-1$
+	
+	
 //	/** The preference store key for the show trace info option. */
 //	final static public String traceKey = prefix + "trace"; //$NON-NLS-1$
 //	/** The preference store key for the -subexpressions option. */

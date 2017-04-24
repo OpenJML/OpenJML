@@ -95,6 +95,13 @@
             category="org.jmlspecs.openjml.eclipse.SettingsPage"
             name="%openjml.ui.PreferencePage.Solvers">
       </page>
+      
+      <page
+            class="org.jmlspecs.openjml.eclipse.StrongarmPage"
+            id="org.jmlspecs.openjml.eclipse.StrongarmPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%openjml.ui.PreferencePage.Strongarm">
+      </page>
    </extension>
    
   <!-- The following set of extensions add various menu items to the
