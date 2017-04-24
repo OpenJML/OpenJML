@@ -46,7 +46,13 @@ import org.jmlspecs.openjml.eclipse.widgets.EnumDialog;
  */
 public class StrongarmPage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
-    protected String[] solvers;
+    public static final String WEAVE_INLINE = "inline";
+    public static final String WEAVE_SEPERATE = "in seperate files";
+    
+    protected static final String[] persistModes = {
+	    WEAVE_INLINE,
+	    WEAVE_SEPERATE
+    };
 
     public StrongarmPage() {
 	super(FLAT);
@@ -62,46 +68,61 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 
 	try {
 	    String d = Options.value(Options.inferTimeout);
-        	    
+
 	    Integer.parseInt(d);
-	}catch(Exception e){
+	} catch (Exception e) {
 	    Options.setValue(Options.inferTimeout, "300");
 	}
-	
-	
+
 	try {
 	    String d = Options.value(Options.inferMaxDepth);
-        	    
+
 	    Integer.parseInt(d);
-	}catch(Exception e){
+	} catch (Exception e) {
 	    Options.setValue(Options.inferMaxDepth, "300");
 	}
+
 	
+	try {
+	    String d = Options.value(Options.inferDefaultPrecondition);
+
+	    Boolean.parseBoolean(d);
+	} catch (Exception e) {
+	    Options.setValue(Options.inferDefaultPrecondition, "true");
+	}
+
     }
 
-//    public void setValue(String out) {
-//	Options.setValue(Options.solversKey, out);
-//    }
-//
-//    public String getValue() {
-//	return Options.value(Options.solversKey);
-//    }
+    // public void setValue(String out) {
+    // Options.setValue(Options.solversKey, out);
+    // }
+    //
+    // public String getValue() {
+    // return Options.value(Options.solversKey);
+    // }
 
     @Override
     protected void createFieldEditors() {
 
 	addField(new BooleanFieldEditor(Options.inferDebug, Messages.OpenJMLUI_PreferencesPage_INFER_DEBUG, getFieldEditorParent()));
 
-	addField(new StringFieldEditor(Options.inferTimeout, Messages.OpenJMLUI_PreferencesPage_INFER_TIMEOUT,
-                getFieldEditorParent()));
+	addField(new StringFieldEditor(Options.inferTimeout, Messages.OpenJMLUI_PreferencesPage_INFER_TIMEOUT, getFieldEditorParent()));
+
+	addField(new BooleanFieldEditor(Options.inferDefaultPrecondition, Messages.OpenJMLUI_PreferencesPage_INFER_DEFAULT_PRECONDITIONS, getFieldEditorParent()));
 	
-	addField(new StringFieldEditor(Options.inferMaxDepth, Messages.OpenJMLUI_PreferencesPage_INFER_MAX_DEPTH,
-                getFieldEditorParent()));
-	
+	addField(new StringFieldEditor(Options.inferMaxDepth, Messages.OpenJMLUI_PreferencesPage_INFER_MAX_DEPTH, getFieldEditorParent()));
+
 	addField(new BooleanFieldEditor(Options.inferDevTools, Messages.OpenJMLUI_PreferencesPage_INFER_DEV_TOOLS, getFieldEditorParent()));
 
-	
-	
+	String[][] choices = new String[persistModes.length][];
+	int i = 0;
+	for (String m : persistModes) {
+	    // The two strings are the label and the value
+	    choices[i++] = new String[] { m, m };
+	}
+
+	addField(new ComboFieldEditor(Options.inferPersistSpecsTo, Messages.OpenJMLUI_PreferencesPage_INFER_PERSIST_MODE, choices, getFieldEditorParent()));
+
     }
 
 }

@@ -53,7 +53,9 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_INFER_TIMEOUT;
 	public static String OpenJMLUI_PreferencesPage_INFER_MAX_DEPTH;
 	public static String OpenJMLUI_PreferencesPage_INFER_DEV_TOOLS;
-	public static String OpenJMLUI_PreferencesPage_INFER_PERSIST_MODE;	
+	public static String OpenJMLUI_PreferencesPage_INFER_PERSIST_MODE;
+	public static String OpenJMLUI_PreferencesPage_INFER_DEFAULT_PRECONDITIONS;	
+	
 	public static String OpenJMLUI_StrongarmPage_Title;
 	public static String OpenJMLUI_PreferencesPage_normal;
 	public static String OpenJMLUI_PreferencesPage_timeout;

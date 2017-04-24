@@ -1353,8 +1353,6 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
-            opts.add(JmlOption.INFER_WEAVE.optionName());
-            opts.add(JmlOption.INFER_DEFAULT_PRECONDITIONS.optionName());
 
             //TODO -- make these options
             if(Options.value(Options.inferDebug)!=null && Options.value(Options.inferDebug).equalsIgnoreCase("true")){
@@ -1368,7 +1366,17 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             if(Options.value(Options.inferDevTools)!=null && Options.value(Options.inferDevTools).equalsIgnoreCase("true")){
         	opts.add(JmlOption.INFER_DEV_MODE.optionName());
             }
+            
+            if(Options.value(Options.inferDefaultPrecondition)!=null && Options.value(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
+        	opts.add(JmlOption.INFER_DEFAULT_PRECONDITIONS.optionName());
+            }
 
+            
+            if(Options.value(Options.inferPersistSpecsTo)!=null && Options.value(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
+        	opts.add(JmlOption.INFER_PERSIST.optionName());
+            }else{
+                opts.add(JmlOption.INFER_WEAVE.optionName());
+            }
             
         }
         

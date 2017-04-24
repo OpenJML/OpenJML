@@ -79,6 +79,7 @@ public class Options {
 	final static public String inferPersistSpecsTo = prefix + "inferPersistSpecs"; //$NON-NLS-1$
 	final static public String inferMaxDepth = prefix + "inferMaxDepth"; //$NON-NLS-1$
 	final static public String inferDevTools = prefix + "inferDevTools"; //$NON-NLS-1$
+	final static public String inferDefaultPrecondition = prefix + "inferDefaultPrecondition"; //$NON-NLS-1$
 	
 	
 //	/** The preference store key for the show trace info option. */
