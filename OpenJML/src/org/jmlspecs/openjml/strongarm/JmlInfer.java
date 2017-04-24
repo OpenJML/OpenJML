@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -252,6 +253,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 // go backwards until we get a newline character.
                 long newlinePosition = -1;
                 
+                StringBuffer buff = new StringBuffer();
                 
                 while(ra.getFilePointer() >= 2){                    
                     ra.seek(ra.getFilePointer()-1);
@@ -263,18 +265,38 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                         break;
                     }
                     
+                    buff.append((char)c);
+                    
                     ra.seek(ra.getFilePointer()-1);
                     
+                }
+                
+                // first normalize the lines of the contract.
+                {
+                    StringBuffer contractBuffer = new StringBuffer();
+                    
+                    String[] parts = contract.split(System.lineSeparator());
+                    for(int i=0; i< parts.length; i++){
+                        if(i==0){
+                            contractBuffer.append(parts[i]);
+                            contractBuffer.append(System.lineSeparator());
+                            continue;
+                        }
+                        
+                        contractBuffer.append(buff.toString() + "  ");
+                        contractBuffer.append(parts[i]);
+                        contractBuffer.append(System.lineSeparator());
+                        
+                    }
+                    
+                    contract = contractBuffer.toString();
                 }
                 
                 ra.seek(position);                
                 ra.writeBytes(contract);
                 
                 if(newlinePosition!=-1){
-                    long charsToWrite = position - newlinePosition;
-                    for(int i=0; i < charsToWrite; i++){
-                        ra.write(32);
-                    }
+                    ra.writeBytes(buff.toString());
                 }
                 
                 long newOffset = ra.getFilePointer();
@@ -311,8 +333,26 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                     }
                     String contract = JmlPretty.write(((JmlMethodDecl)m).cases);
                     
-                    contract = contract.replaceAll("^\\/\\*@\n", "\\/\\*@\n  ");
-                    contract = contract.replaceAll("\\*\\/", "     @*/");
+                    try {
+                        contract = contract.replaceAll("\\*\\/", "@*/");
+                        
+                        // figure out how much in to go
+                        int sep = 0;
+                        for(sep = contract.indexOf('\n')+1; sep<contract.length(); sep++){
+                            if(contract.charAt(sep)!=' '){
+                            break;
+                            }
+                        }
+                        
+                        sep = sep - contract.indexOf('\n') - 1;
+                                            
+                        Pattern regex = Pattern.compile("^((\\s){" + sep +  "})", Pattern.MULTILINE);
+                        Matcher match = regex.matcher(contract);
+    
+                        contract = match.replaceAll("@ ");
+                        
+                        contract = contract.replaceAll(" @\\*\\/", "@*/");
+                    }catch(Exception e){}
                     
                     weaveContract(contract, file, pos);
                 }               
