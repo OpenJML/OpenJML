@@ -670,7 +670,7 @@
              
              
               <command
-                   commandId="org.jmlspecs.eclipse.commands.CheckJML"
+                   commandId="org.jmlspecs.eclipse.commands.JMLInfer"
                    icon="icons/strongarm_infer.png"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
                    label="Infer JML Contracts (Strongarm)"
@@ -1058,6 +1058,17 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
             >
       </command>
+      
+      
+      <command
+            name="%openjml.ui.command.INFER"
+            description="%openjml.ui.command.INFER.description"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.JMLInfer"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$JMLInfer"
+            >
+      </command>
+      
       <command
             name="RAC - compile selected"
             description="Compiles runtime checks on selected resources"
