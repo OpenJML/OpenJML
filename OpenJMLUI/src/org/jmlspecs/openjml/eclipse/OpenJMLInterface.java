@@ -409,7 +409,9 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             		// FIXME - record exception
             	}
             }
+            
             final int oldArgsSize = args.size();
+            
             for (Object r: things) { 
             	// an IType is adaptable to an IResource (the containing file), but we want it left as an IType
                 if (!(r instanceof IType) && r instanceof IAdaptable 
@@ -446,7 +448,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             	monitor.subTask("Starting Inference on " + jproject.getElementName());
             }
 
-        	Timer.timer.markTime();
+            Timer.timer.markTime();
+            
             if (!args.isEmpty()) {
             	if (Options.uiverboseness) {
             		Log.log(Timer.timer.getTimeString() + " Executing Inference");
@@ -1225,7 +1228,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         public boolean report(final int ticks, final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
-            d.asyncExec(new Runnable() {
+            d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
                     	monitor.subTask(message);

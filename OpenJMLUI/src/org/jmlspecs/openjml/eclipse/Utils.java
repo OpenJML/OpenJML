@@ -402,35 +402,38 @@ public class Utils {
 	
 	
 	public void inferProject(final IJavaProject jp, final List<?> ores, /*@ nullable */Shell shell, String reason) {
-		Job j = new Job(reason) {
-			public IStatus run(IProgressMonitor monitor) {
-				monitor.beginTask("Inferring specification of " + jp.getElementName(), 1);
-				boolean c = false;
-				try {
-					if (ores == null) {
-						LinkedList<Object> list = new LinkedList<Object>();
-						list.add(jp);
-						final List<Object> res = list;
-						getInterface(jp).executeInferCommand(Cmd.INFER, res,
-								monitor);
-					} else if (ores.size() != 0){
-						getInterface(jp).executeInferCommand(Cmd.INFER, ores,
-								monitor);
-					}
-				} catch (Exception e) {
-					// FIXME - this will block, preventing progress on the rest of the projects
-					Log.errorlog("Exception during Inference - " + jp.getElementName(), e);
-					showExceptionInUI(null, "Exception during Inference - " + jp.getElementName(), e);
-					c = true;
-				}
-				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+	    
+	    Job j = Job.create(reason, monitor -> {
+	        monitor.beginTask("Inferring specification of " + jp.getElementName(), 1);
+		boolean c = false;
+		try {
+			if (ores == null) {
+				LinkedList<Object> list = new LinkedList<Object>();
+				list.add(jp);
+				final List<Object> res = list;
+				getInterface(jp).executeInferCommand(Cmd.INFER, res,
+						monitor);
+			} else if (ores.size() != 0){
+				getInterface(jp).executeInferCommand(Cmd.INFER, ores,
+						monitor);
 			}
-		};
-    IResourceRuleFactory ruleFactory = 
+		} catch (Exception e) {
+			// FIXME - this will block, preventing progress on the rest of the projects
+			Log.errorlog("Exception during Inference - " + jp.getElementName(), e);
+			showExceptionInUI(null, "Exception during Inference - " + jp.getElementName(), e);
+			c = true;
+		}
+
+	        // no return value needed when using an ICoreRunnable (since Neon)
+	    });
+	    
+	    
+	    
+	    IResourceRuleFactory ruleFactory = 
             ResourcesPlugin.getWorkspace().getRuleFactory();
-		j.setRule(jp.getProject());
-		j.setUser(true); // true since the job has been initiated by an end-user
-		j.schedule();
+	    j.setRule(jp.getProject());
+	    j.setUser(true); // true since the job has been initiated by an end-user
+	    j.schedule();
 	}
 
 	static public java.util.Properties getProperties() {
