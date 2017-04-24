@@ -82,6 +82,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
         
         JmlInferPostConditions inferenceRoot = this;
         
+                
         Runnable runnable = new Runnable(){
 
             @Override
