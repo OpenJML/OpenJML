@@ -93,13 +93,7 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 
     }
 
-    // public void setValue(String out) {
-    // Options.setValue(Options.solversKey, out);
-    // }
-    //
-    // public String getValue() {
-    // return Options.value(Options.solversKey);
-    // }
+   
 
     @Override
     protected void createFieldEditors() {
