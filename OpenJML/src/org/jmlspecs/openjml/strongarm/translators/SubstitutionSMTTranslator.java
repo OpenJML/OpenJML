@@ -33,10 +33,11 @@ import com.sun.tools.javac.util.Context;
 
 public class SubstitutionSMTTranslator extends SMTTranslator {
 
-    public SubstitutionSMTTranslator(Context context) {
-        super(context);
+    public SubstitutionSMTTranslator(Context context, String source) {
+        super(context, source);
     }
 
+    
     /**
      * Write out a proof for proposition equality to reduce redundant preconditions. 
      */
