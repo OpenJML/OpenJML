@@ -1,8 +1,10 @@
 
+import org.jmlspecs.annotation.*;
+
 public class A18 {
   
   public A18();
-  
+  public int FIELD;
     /*@
       requires true; 
       ensures this.FIELD == 3; 
@@ -14,7 +16,7 @@ public class A18 {
     /*@
     public normal_behavior
       requires true; 
-      ensures \result == (a + b) * this.FIELD; 
+        ensures \result == (a + b) * this.FIELD; 
    */
 
   @Pure 

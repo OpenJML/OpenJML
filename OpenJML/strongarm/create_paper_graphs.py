@@ -11,11 +11,11 @@ from lib import time_vs_cfg_depth, cfg_depth_vs_loc, pct_reduction_of_pipeline_s
 #%%
 
 # build the list of evals 
-evals  = ["JSON-Java", "Commons-CSV", "Commons-CLI", "Commons-Codec", "Commons-Email", "JUnit4", "Combined"] #sys.argv[2:]
-run_id = "2pac-2017-04-21"            #sys.argv[1]
+#evals  = ["JSON-Java", "Commons-CSV", "Commons-CLI", "Commons-Codec", "Commons-Email", "JUnit4", "Combined"] #sys.argv[2:]
+#run_id = "2pac-2017-04-21"            #sys.argv[1]
 
-#evals  = sys.argv[2:]
-#run_id = sys.argv[1]
+evals  = sys.argv[2:]
+run_id = sys.argv[1]
 
 data_dir     = "runs/{0}/".format(run_id)
 
@@ -80,17 +80,30 @@ for eval_name in evals:
     refused.append( round((float(r)/float(the_sum))*100)) 
     skipped.append( round((float(s)/float(the_sum))*100)) 
 
-#skipped = [30,20]
-#error   = [10,50]
+#%%
+
+len(inferred)==len(skipped)==len(error)==len(timeout)==len(refused)
+
+#%%
+
+gs_colors = [
+    (96/255.0,99/255.0,106/255.0),
+    (165/255.0, 172/255.0, 175/255.0),
+    (65/255.0,68/255.0,81/255.0),
+    (143/255.0,135/255.0,130/255.0),
+    (207/255.0,207/255.0,207/255.0)
+
+]
+
 
 ind = np.arange(len(labels))  # the x locations for the groups
-width = 0.15       # the width of the bars
+width = 0.2       # the width of the bars
 
 fig, ax = plt.subplots()
-rects1 = ax.barh(ind - width, inferred, width, color="green")
-rects2 = ax.barh(ind, timeout, width, color="yellow")
-rects3 = ax.barh(ind - (2*width), error, width, color="red")
-rects4 = ax.barh(ind + width, refused, width, color=(96/255.0,99/255.0,106/255.0), hatch="//")
+rects1 = ax.barh(ind - width, inferred, width, color="k")
+rects2 = ax.barh(ind, timeout, width, color="silver")
+rects3 = ax.barh(ind - (2*width), error, width, color="grey")
+rects4 = ax.barh(ind + width, refused, width, color="none", edgecolor="silver")
 rects5 = ax.barh(ind + (2*width), skipped, width, color=(165/255.0, 172/255.0, 175/255.0))
 
 ax.set_xlabel("Percent of Methods")
@@ -99,7 +112,7 @@ ax.set_yticks(ind + width / 5)
 ax.set_yticklabels(tuple(labels))
 
 ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]), ("Inferred", "Timeout", "Error", "Refused", "Skipped"))
-plt.show()
+#plt.show()
 
 
 figures_path = "runs/{0}/figures/".format(run_id)

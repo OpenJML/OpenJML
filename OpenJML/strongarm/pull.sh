@@ -2,7 +2,7 @@
 
 # pull down the CSVs
 
-scp jls@2pac:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/*.csv" /Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/
+#scp jls@2pac:"/Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/*.csv" /Users/jls/Projects/Strongarm/OpenJML/OpenJML/OpenJML/strongarm/
 
 # pull down the figures
 
