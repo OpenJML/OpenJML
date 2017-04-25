@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -33,12 +34,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.widgets.ButtonFieldEditor;
 import org.jmlspecs.openjml.eclipse.widgets.EnumDialog;
@@ -50,23 +53,20 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 
     public static final String WEAVE_INLINE = "inline";
     public static final String WEAVE_SEPERATE = "in seperate files";
-    
-    protected static final String[] persistModes = {
-	    WEAVE_INLINE,
-	    WEAVE_SEPERATE
-    };
 
-    private static final Map<String,Object> defaults = new HashMap<String,Object>();
-    
+    protected static final String[] persistModes = { WEAVE_INLINE, WEAVE_SEPERATE };
+
+    private static final Map<String, Object> defaults = new HashMap<String, Object>();
+
     static {
 	defaults.put(Options.inferTimeout, 300);
 	defaults.put(Options.inferMaxDepth, 300);
 	defaults.put(Options.inferDefaultPrecondition, true);
 	defaults.put(Options.inferDevTools, false);
 	defaults.put(Options.inferPersistSpecsTo, WEAVE_INLINE);
-	defaults.put(Options.inferDebug, false);	
+	defaults.put(Options.inferDebug, false);
     }
-    
+
     public StrongarmPage() {
 	super(FLAT);
     }
@@ -79,72 +79,65 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 	setPreferenceStore(istore);
 	setDescription(Messages.OpenJMLUI_StrongarmPage_Title);
 
-	
 	getDefaultInt(Options.inferTimeout);
 	getDefaultInt(Options.inferMaxDepth);
 	getDefaultBoolean(Options.inferDefaultPrecondition);
-	getDefaultBoolean(Options.inferDevTools);	
+	getDefaultBoolean(Options.inferDevTools);
 	getDefaultString(Options.inferPersistSpecsTo);
-	getDefaultBoolean(Options.inferDebug);	
-	
-	
-	
-	
+	getDefaultBoolean(Options.inferDebug);
+
     }
 
-    public static String getDefaultBoolean(String preference){
-	
-	String d = new Boolean((Boolean)defaults.get(preference)).toString();
+    public static String getDefaultBoolean(String preference) {
+
+	String d = new Boolean((Boolean) defaults.get(preference)).toString();
 	try {
 	    String s = Options.value(preference);
-	    
+
 	    Boolean.parseBoolean(s);
-	    
+
 	    d = s;
-	    
+
 	} catch (Exception e) {
 	    Options.setValue(preference, d);
 	}
-	
+
 	return d;
     }
-   
-    public static String getDefaultString(String preference){
-	
-	String d = (String)defaults.get(preference);
-	
+
+    public static String getDefaultString(String preference) {
+
+	String d = (String) defaults.get(preference);
+
 	try {
 	    String s = Options.value(preference);
-	    
+
 	    d = s;
-	    
+
 	} catch (Exception e) {
 	    Options.setValue(preference, d);
 	}
-	
+
 	return d;
     }
-    
-    
-    public static String getDefaultInt(String preference){
-	
-	String d = new Integer((Integer)defaults.get(preference)).toString();
+
+    public static String getDefaultInt(String preference) {
+
+	String d = new Integer((Integer) defaults.get(preference)).toString();
 	try {
 	    String s = Options.value(preference);
-	    
+
 	    Integer.parseInt(s);
-	    
+
 	    d = s;
-	    
+
 	} catch (Exception e) {
 	    Options.setValue(preference, d);
 	}
-	
+
 	return d;
     }
-   
-    
-    
+
     @Override
     protected void createFieldEditors() {
 
@@ -153,7 +146,7 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 	addField(new StringFieldEditor(Options.inferTimeout, Messages.OpenJMLUI_PreferencesPage_INFER_TIMEOUT, getFieldEditorParent()));
 
 	addField(new BooleanFieldEditor(Options.inferDefaultPrecondition, Messages.OpenJMLUI_PreferencesPage_INFER_DEFAULT_PRECONDITIONS, getFieldEditorParent()));
-	
+
 	addField(new StringFieldEditor(Options.inferMaxDepth, Messages.OpenJMLUI_PreferencesPage_INFER_MAX_DEPTH, getFieldEditorParent()));
 
 	addField(new BooleanFieldEditor(Options.inferDevTools, Messages.OpenJMLUI_PreferencesPage_INFER_DEV_TOOLS, getFieldEditorParent()));
@@ -167,6 +160,24 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 
 	addField(new ComboFieldEditor(Options.inferPersistSpecsTo, Messages.OpenJMLUI_PreferencesPage_INFER_PERSIST_MODE, choices, getFieldEditorParent()));
 
+    }
+
+    @Override
+    public boolean performOk() {
+
+	MessageDialog dialog = new MessageDialog(null, "Restart Eclipse?", null, "Eclipse must be restarted before your changes will take effect. Restart now?", MessageDialog.QUESTION,
+		new String[] { "Yes", "No" }, 0);
+
+	int result = dialog.open();
+
+	if (result == 0) {
+	    Display.getDefault().asyncExec(new Runnable() {
+		public void run() {
+		    PlatformUI.getWorkbench().restart();		  
+		}
+	    });
+	}
+	return super.performOk();
     }
 
 }
