@@ -5,6 +5,8 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.Status;
@@ -54,6 +56,17 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 	    WEAVE_SEPERATE
     };
 
+    private static final Map<String,Object> defaults = new HashMap<String,Object>();
+    
+    static {
+	defaults.put(Options.inferTimeout, 300);
+	defaults.put(Options.inferMaxDepth, 300);
+	defaults.put(Options.inferDefaultPrecondition, true);
+	defaults.put(Options.inferDevTools, false);
+	defaults.put(Options.inferPersistSpecsTo, WEAVE_INLINE);
+	defaults.put(Options.inferDebug, false);	
+    }
+    
     public StrongarmPage() {
 	super(FLAT);
     }
@@ -66,35 +79,72 @@ public class StrongarmPage extends FieldEditorPreferencePage implements IWorkben
 	setPreferenceStore(istore);
 	setDescription(Messages.OpenJMLUI_StrongarmPage_Title);
 
-	try {
-	    String d = Options.value(Options.inferTimeout);
-
-	    Integer.parseInt(d);
-	} catch (Exception e) {
-	    Options.setValue(Options.inferTimeout, "300");
-	}
-
-	try {
-	    String d = Options.value(Options.inferMaxDepth);
-
-	    Integer.parseInt(d);
-	} catch (Exception e) {
-	    Options.setValue(Options.inferMaxDepth, "300");
-	}
-
 	
-	try {
-	    String d = Options.value(Options.inferDefaultPrecondition);
-
-	    Boolean.parseBoolean(d);
-	} catch (Exception e) {
-	    Options.setValue(Options.inferDefaultPrecondition, "true");
-	}
-
+	getDefaultInt(Options.inferTimeout);
+	getDefaultInt(Options.inferMaxDepth);
+	getDefaultBoolean(Options.inferDefaultPrecondition);
+	getDefaultBoolean(Options.inferDevTools);	
+	getDefaultString(Options.inferPersistSpecsTo);
+	getDefaultBoolean(Options.inferDebug);	
+	
+	
+	
+	
     }
 
+    public static String getDefaultBoolean(String preference){
+	
+	String d = new Boolean((Boolean)defaults.get(preference)).toString();
+	try {
+	    String s = Options.value(preference);
+	    
+	    Boolean.parseBoolean(s);
+	    
+	    d = s;
+	    
+	} catch (Exception e) {
+	    Options.setValue(preference, d);
+	}
+	
+	return d;
+    }
    
-
+    public static String getDefaultString(String preference){
+	
+	String d = (String)defaults.get(preference);
+	
+	try {
+	    String s = Options.value(preference);
+	    
+	    d = s;
+	    
+	} catch (Exception e) {
+	    Options.setValue(preference, d);
+	}
+	
+	return d;
+    }
+    
+    
+    public static String getDefaultInt(String preference){
+	
+	String d = new Integer((Integer)defaults.get(preference)).toString();
+	try {
+	    String s = Options.value(preference);
+	    
+	    Integer.parseInt(s);
+	    
+	    d = s;
+	    
+	} catch (Exception e) {
+	    Options.setValue(preference, d);
+	}
+	
+	return d;
+    }
+   
+    
+    
     @Override
     protected void createFieldEditors() {
 

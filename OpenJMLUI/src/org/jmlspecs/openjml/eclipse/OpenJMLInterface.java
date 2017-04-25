@@ -1377,24 +1377,24 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
 
             //TODO -- make these options
-            if(Options.value(Options.inferDebug)!=null && Options.value(Options.inferDebug).equalsIgnoreCase("true")){
+            if(StrongarmPage.getDefaultBoolean(Options.inferDebug).equalsIgnoreCase("true")){
         	opts.add(JmlOption.INFER_DEBUG.optionName());
             }
-            opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ Options.value(Options.inferTimeout));
+            opts.add(JmlOption.INFER_TIMEOUT.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferTimeout));
             
-            opts.add(JmlOption.INFER_MAX_DEPTH.optionName() +eq+ Options.value(Options.inferMaxDepth));
+            opts.add(JmlOption.INFER_MAX_DEPTH.optionName() +eq+ StrongarmPage.getDefaultInt(Options.inferMaxDepth));
             
 
-            if(Options.value(Options.inferDevTools)!=null && Options.value(Options.inferDevTools).equalsIgnoreCase("true")){
+            if(StrongarmPage.getDefaultBoolean(Options.inferDevTools).equalsIgnoreCase("true")){
         	opts.add(JmlOption.INFER_DEV_MODE.optionName());
             }
             
-            if(Options.value(Options.inferDefaultPrecondition)!=null && Options.value(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
+            if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
         	opts.add(JmlOption.INFER_DEFAULT_PRECONDITIONS.optionName());
             }
 
             
-            if(Options.value(Options.inferPersistSpecsTo)!=null && Options.value(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
+            if(StrongarmPage.getDefaultString(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
         	opts.add(JmlOption.INFER_PERSIST.optionName());
             }else{
                 opts.add(JmlOption.INFER_WEAVE.optionName());
