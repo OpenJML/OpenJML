@@ -1,0 +1,27 @@
+Proving methods in trace
+Skipping proof of trace.trace() (excluded by -method)
+Skipping proof of trace.mgood() (excluded by -method)
+Skipping proof of trace.m1() (excluded by -method)
+Skipping proof of trace.m2() (excluded by -method)
+Skipping proof of trace.m3() (excluded by -method)
+Starting proof of trace.m4() with prover !!!!
+test\escTraceLoops\trace.java:51: warning: The prover cannot establish an assertion (LoopDecreases) in method m4
+        //@ decreases i-j;
+            ^
+Completed proof of trace.m4() with prover !!!! - with warnings
+Skipping proof of trace.m5() (excluded by -method)
+Skipping proof of trace.m6() (excluded by -method)
+Skipping proof of trace.mwhile() (excluded by -method)
+Skipping proof of trace.mwhile1() (excluded by -method)
+Skipping proof of trace.mwhile2() (excluded by -method)
+Skipping proof of trace.mdo() (excluded by -method)
+Skipping proof of trace.mdo1() (excluded by -method)
+Skipping proof of trace.mdo2() (excluded by -method)
+Skipping proof of trace.mforeach(int[]) (excluded by -method)
+Skipping proof of trace.mforeach1(int[]) (excluded by -method)
+Skipping proof of trace.mforeach2(int[]) (excluded by -method)
+Skipping proof of trace.mforeach3(int[]) (excluded by -method)
+Skipping proof of trace.mforeach4(int[]) (excluded by -method)
+Skipping proof of trace.mforeach5(int[]) (excluded by -method)
+Completed proving methods in trace
+1 warning

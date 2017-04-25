@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/JMLAnnotations"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/OpenJDK"/>
 	<classpathentry excluding="org/jmlspecs/genericmodels/**|org/jmlspecs/models/package.html|org/jmlspecs/models/resolve/package.html|org/jmlspecs/unfinished/**" including="org/jmlspecs/**" kind="src" output="bin-runtime" path="runtime"/>
 	<classpathentry excluding="org/jmlspecs/openjml/jmldoc/**|org/jmlspecs/openjml/old/**" kind="src" path="src"/>
@@ -8,8 +8,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
-	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="C:/cygwin/home/dcok/eprojects/SMTProjects/SMT/src"/>
-	<classpathentry kind="lib" path="/JMLAnnotations/bin"/>
+	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="C:/cygwin/home/dcok/eprojects/SMTgit/jSMTLIB/SMT/src"/>
+	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="otherlibs/jpaul-2.5.1.jar"/>
 	<classpathentry kind="lib" path="otherlibs/javax.mail.jar"/>

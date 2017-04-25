@@ -1,0 +1,17 @@
+test\gitbug497\IVec.java:15: error: ')' expected
+      @                            j <= i ==> src[j] != 0); @*/
+                                                          ^
+test\gitbug497\IVec.java:30: error: illegal start of type
+      @       && (\exists int i; 0 <= i && i < right.length; 
+              ^
+test\gitbug497\IVec.java:30: error: <identifier> expected
+      @       && (\exists int i; 0 <= i && i < right.length; 
+                ^
+test\gitbug497\IVec.java:31: error: <identifier> expected
+      @                           right[i] == 0); @*/
+                                               ^
+test\gitbug497\IVec.java:31: error: illegal start of expression
+      @                           right[i] == 0); @*/
+                                                  ^
+Continuing bravely despite parsing errors
+5 errors

@@ -8,6 +8,7 @@ public class NoModelTest {
     return 0;
   }
   
+  // FIXME - this test no longer tests error messages for no model field implementation
   public static void main(String... args) {
       NoModelTest t = new NoModelTest();
       int i = t.hashCode();

@@ -54,6 +54,15 @@ public interface IProverResult {
     /** The proof was not attempted */
     static public final Kind SKIPPED = new Kind("SKIPPED");
 
+    /** The proof is in progress */
+    static public final Kind RUNNING = new Kind("RUNNING");
+
+    /** The proof was cancelled before completion */
+    static public final Kind CANCELLED = new Kind("CANCELLED");
+
+    /** The proof was cancelled before completion */
+    static public final Kind COMPLETED = new Kind("COMPLETED");
+
     /** Category of result produced by the prover */
     public Kind result();
 

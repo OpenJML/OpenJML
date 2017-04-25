@@ -61,6 +61,7 @@ public class racnonpublic extends RacBase {
         String dir = OpenJMLNonPublicDemoPath + "/src/sokoban2/src";
         expectedExit = 0;
         expectedRACExit = 1;
+        ignoreNotes = true;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
     }
 
@@ -69,6 +70,7 @@ public class racnonpublic extends RacBase {
         String dir = OpenJMLNonPublicDemoPath + "/src/sokoban3/src";
         expectedExit = 0;
         expectedRACExit = 1;
+        ignoreNotes = true;
         helpTCF(dir,dir,"Game","-cp",dir,"-progress");
     }
 

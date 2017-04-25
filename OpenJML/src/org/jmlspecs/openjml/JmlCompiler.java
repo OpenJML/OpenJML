@@ -50,6 +50,7 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
+import com.sun.tools.javac.util.PropagatedException;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -121,7 +122,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -273,7 +274,6 @@ public class JmlCompiler extends JavaCompiler {
         // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
  //       if (csymbol.toString().equals("java.lang.Object")) Utils.stop();
- //       if (csymbol.toString().equals("java.io.File")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
 
@@ -319,7 +319,7 @@ public class JmlCompiler extends JavaCompiler {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (JmlSpecs.instance(context).get(csymbol) != null) continue;
             
-//            if (csymbol.toString().contains("Throwable")) Utils.stop();
+            //if (csymbol.toString().contains("AbstractStringBuilder")) Utils.stop();
 
             // Record default specs just to show they are in process
             // If there are actual specs, they will be recorded later
@@ -376,10 +376,15 @@ public class JmlCompiler extends JavaCompiler {
 
         if (utils.check || utils.doc) {
             // Stop here
-            return results; // Empty list - do nothng more
+            return results; // Empty list - do nothing more
         } else if (utils.esc) {
+
+        		try {
             for (Env<AttrContext> env: envs)
                 esc(env);
+            } catch (PropagatedException e){            
+        		// cancelation
+        		}
             return results; // Empty list - Do nothing more
         }else if (utils.infer) {
             for (Env<AttrContext> env: envs)
@@ -391,7 +396,7 @@ public class JmlCompiler extends JavaCompiler {
                 env = rac(env);
                 if (env == null) continue; // FIXME - error? just keep oroginal env?
                 
-                if (utils.jmlverbose >= Utils.PROGRESS) 
+                if (utils.jmlverbose >= Utils.JMLVERBOSE) 
                     context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
                         (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                             t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));

@@ -82,7 +82,7 @@ public abstract class ProgramElementDocImpl
     }
     
     @Override
-    void setTreePath(TreePath treePath) { // DRC - perhaps should be public
+    void setTreePath(TreePath treePath) {
         super.setTreePath(treePath);
         this.tree = (JCTree) treePath.getLeaf();
         this.lineMap = ((JCCompilationUnit) treePath.getCompilationUnit()).lineMap;

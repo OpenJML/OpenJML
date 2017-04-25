@@ -6,3 +6,5 @@
 /test/**/actual-compile
 /openjml.properties
 /junit/
+*.bpl
+**/*actual*

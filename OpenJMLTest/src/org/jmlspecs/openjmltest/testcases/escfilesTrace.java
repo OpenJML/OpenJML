@@ -36,6 +36,7 @@ import org.junit.runners.ParameterizedWithNames;
  */
 
 @RunWith(ParameterizedWithNames.class)
+@Ignore
 public class escfilesTrace extends EscBase {
 
     boolean enableSubexpressions = false;
@@ -75,11 +76,12 @@ public class escfilesTrace extends EscBase {
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
+    String OpenJMLDemoNonPublicPath = "../../OpenJMLDemoNonPublic";
 
     @Test 
     public void testDMZCashTrace() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/nonpublic/dmz2","test/escDmz2Trace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
+        helpTCF(OpenJMLDemoNonPublicPath + "/src/dmz2","test/escDmz2Trace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
     }
 
 

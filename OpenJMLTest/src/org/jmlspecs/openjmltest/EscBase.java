@@ -34,15 +34,15 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
+    @Rule public Timeout timeout = new Timeout(15, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
     
     protected static boolean runLongTests = false;
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
  //           "z3_4_3_2", 
- //          "z3_4_4", 
- //           "cvc4",
+//          "z3_4_4", 
+//            "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 
@@ -270,7 +270,6 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     protected void helpTCX(String classname, String s, Object... list) {
-    	//fail("Java8 not yet implemented"); // FIXME - Java8 - 
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);

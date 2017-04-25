@@ -668,7 +668,7 @@ public class JavaCompiler {
         JavaFileObject prev = log.useSource(filename);
         try {
             JCTree.JCCompilationUnit t = parse(filename, readSource(filename));
-            if (log.getSource(filename).getEndPosTable() == null)
+            if (t.endPositions != null)
                 log.setEndPosTable(filename, t.endPositions);
             return t;
         } finally {
@@ -775,8 +775,8 @@ public class JavaCompiler {
         JavaFileObject prev = log.useSource(filename);
 
         try {
-            tree = parse(filename); // DRC - nchanged this so the endPositionTable is set
-//            // FIXME - can we just use parse(filename) here
+            tree = parse(filename); // DRC - changed this so the endPositionTable is set -- FIXME review this
+//            tree = parse(filename, filename.getCharContent(false));
 //        } catch (IOException e) {
 //            log.error("error.reading.file", filename, JavacFileManager.getMessage(e));
 //            tree = make.TopLevel(List.<JCTree.JCAnnotation>nil(), null, List.<JCTree>nil());

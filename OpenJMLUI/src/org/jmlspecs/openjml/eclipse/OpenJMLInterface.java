@@ -51,6 +51,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.eclipse.Utils.OpenJMLException;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.jmlspecs.openjml.proverinterface.ProverResult;
 
 import com.sun.tools.javac.code.Scope;
 import com.sun.tools.javac.code.Symbol;
@@ -646,18 +647,19 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             
             if (monitor != null) {
-            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  4*count); // 4 ticks per method being checked
+            	monitor.beginTask("Static checks in project " + jproject.getElementName(),  2*count); // ticks at begin and end of check
             	monitor.subTask("Starting ESC on " + jproject.getElementName());
             }
 
         	Timer.timer.markTime();
-            if (!args.isEmpty()) {
+            if (args.size() != oldArgsSize) {
             	if (Options.uiverboseness) {
             		Log.log(Timer.timer.getTimeString() + " Executing static checks");
             	}
                 try {
                     int ret = api.execute(null,args.toArray(new String[args.size()]));
                     if (ret == Main.Result.OK.exitCode) Log.log(Timer.timer.getTimeString() + " Completed");
+                    if (ret == Main.Result.CANCELLED.exitCode) Log.log(Timer.timer.getTimeString() + " Cancelled");
                     else if (ret == Main.Result.ERROR.exitCode) Log.log(Timer.timer.getTimeString() + " Completed with errors");
                     else if (ret >= Main.Result.CMDERR.exitCode) {
                         StringBuilder ss = new StringBuilder();
@@ -749,7 +751,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         	utils.deleteHighlights(je.getResource(), null);
         	return;
     	}
-    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
+//    	Log.log("TIMES " + je.getResource().getLocalTimeStamp() + " " +  res.timestamp().getTime() + " " + (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()));
     	if (je.getResource().getLocalTimeStamp() > res.timestamp().getTime()) {
     		utils.showMessageInUI(null, "OpenJML", "The file is newer than the counterexample information - the highlighting may be offset.");
     	}
@@ -1037,6 +1039,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	API.Finder finder = api.findMethod(tree,pos,end,text,r.getLocation().toString());
         JmlMethodDecl parentMethod = finder.parentMethod;
         JCTree node = finder.found;
+        if (parentMethod == null) return  "No containing method found";
 //      if (parentMethod.sym != mostRecentProofMethod) {
 //          return "Selected text is not within the method of the most recent proof (which is " + mostRecentProofMethod + ")";
 //      }
@@ -1044,9 +1047,10 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
       if (node instanceof JmlVariableDecl) {
           // This happens when we have selected a method parameter or the variable within a declaration
           // continue
-          out = text == null ? null : ("Found declaration: " + ((JmlVariableDecl)node).name.toString() + "\n");
-          node = ((JmlVariableDecl)node).ident;
-          if (text == null) out = "Declaration " + node.toString() + " <B>is</B> ";
+    	  String name = ((JmlVariableDecl)node).name.toString();
+          out = text == null ? null : ("Found declaration: " + name + "\n");
+          //node = ((JmlVariableDecl)node).ident;
+          if (text == null) out = "Declaration " + name + " <B>is</B> ";
       } else if (!(node instanceof JCTree.JCExpression)) {
           return text == null ? null : ("Selected text is not an expression (" + node.getClass() + "): " + text);
       } else {
@@ -1074,7 +1078,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
           else out = text == null ? null : (out + "Value is unknown (type " + node.type + ")");
           return out;
       }
-      return "No counterexample information available";
+      return null;
+      //return "No counterexample information available";
       
     }
 
@@ -1189,6 +1194,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
                         (int)startPosition, (int)endPosition, (int)line, 
                         text,
                         (int)lineStart, (int)lineEnd);
+                problem.sourceSymbol = currentMethod;
                 preq.acceptProblem(problem);
                 // Log it as well
                 if (Options.uiverboseness) {
@@ -1240,14 +1246,18 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
-                    	monitor.subTask(message);
+                    	if (level <= 1) monitor.subTask(message);
                     	monitor.worked(ticks);
                     }
-                    if (level <= 1) Log.log(message);
+                    Log.log(message);
                 }
             });
             boolean cancel = monitor != null && monitor.isCanceled();
-            if (cancel) throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
+//            if (cancel) {
+//            	cancel = true;
+//            	//throw new Main.JmlCanceledException("Operation cancelled"); //$NON-NLS-1$
+//            	//throw new PropagatedException(new Main.JmlCanceledException("Operation cancelled")); //$NON-NLS-1$
+//            }
             return cancel;
         }
         
@@ -1266,6 +1276,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     protected String keyForSym(Symbol sym) {
     	if (sym instanceof MethodSymbol) {
         	return sym.owner.getQualifiedName().toString() + Strings.dot + sym.toString();
+    	} else if (sym.name.isEmpty()) {
+    		return ((ClassSymbol)sym).flatname.toString(); // for anonymous types
     	} else {
     		return sym.getQualifiedName().toString();
     	}
@@ -1273,12 +1285,22 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     
     @Override
     public void reportProofResult(MethodSymbol msym, IProverResult result) {
+    	if (result.result() == IProverResult.RUNNING) {
+    		currentMethod = msym;
+    	}
+    	if (result.result() == IProverResult.COMPLETED) {
+    		currentMethod = null;
+    		return;
+    	}
     	String key = keyForSym(msym);
     	proofResults.put(key,result);
     	IMethod m = convertMethod(msym);
     	methodResults.put(m, key);
     	utils.refreshView(key);
     }
+    
+    static MethodSymbol currentMethod;
+    
     
     public @Nullable IProverResult getProofResult(MethodSymbol msym) {
     	return proofResults.get(keyForSym(msym));
@@ -1339,7 +1361,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             String prover = Options.value(Options.defaultProverKey);
             opts.add(JmlOption.PROVER.optionName() +eq+ prover);
             opts.add(JmlOption.PROVEREXEC.optionName() +eq+ Options.value(Options.proverPrefix + prover));
-            opts.add(JmlOption.MAXWARNINGS.optionName() +eq+ Options.value(Options.maxWarningsKey));
+            opts.add(JmlOption.ESC_MAX_WARNINGS.optionName() +eq+ Options.value(Options.escMaxWarningsKey));
             opts.add(JmlOption.TRACE.optionName() +eq+ "true");
             opts.add(JmlOption.SUBEXPRESSIONS.optionName() +eq+ "true");
             opts.add(JmlOption.FEASIBILITY.optionName() +eq+ Options.value(Options.feasibilityKey));

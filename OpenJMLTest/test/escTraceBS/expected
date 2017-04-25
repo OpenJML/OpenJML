@@ -1,16 +1,80 @@
 Proving methods in trace
-Starting proof of trace.trace() with prover z3_4_3
+Starting proof of trace.trace() with prover !!!!
 Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
-Completed proof of trace.trace() with prover z3_4_3 - no warnings
-Starting proof of trace.mnonnullelements(int[]) with prover z3_4_3
+Completed proof of trace.trace() with prover !!!! - no warnings
+Starting proof of trace.mnonnullelements(int[]) with prover !!!!
+test\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
+        //@ assert i == 0 && \nonnullelements(a);
+            ^
 
 TRACE of trace.mnonnullelements(int[])
-
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTraceBS\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTraceBS\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+test\escTraceBS\trace.java:3:  	assume ImplicitAssume a == null || \typeof(a) == \type(int[]) && <:(\typeof(a), \type(int[])) && \elemtype(\typeof(a)) == \type(int); ...
+			VALUE: a_65	 === REF!val!12
+			VALUE: null	 === ???
+			VALUE: a_65 == null	 === ???
+			VALUE: a_65 == null || \typeof(a_65) == \type(int[]) && <:(\typeof(a_65), \type(int[])) && \elemtype(\typeof(a_65)) == \type(int)	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Adding invariants for a
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for Array
+ 	//Assume Preconditions
 test\escTraceBS\trace.java:3:  	requires a != null; 
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!12
 			VALUE: null	 === NULL
 			VALUE: a != null	 === true
+ 	//try...
+ 	//Method Body
 test\escTraceBS\trace.java:4:  	int i = 0
 			VALUE: 0	 === 0
 			VALUE: i	 === 0
@@ -18,19 +82,77 @@ test\escTraceBS\trace.java:5:  	assert Assert i == 0 && \nonnullelements(a);
 			VALUE: i	 === 0
 			VALUE: 0	 === 0
 			VALUE: i == 0	 === true
-			VALUE: a	 === REF!val!2
+			VALUE: a	 === REF!val!12
 			VALUE: \nonnullelements(a)	 === false
 			VALUE: i == 0 && \nonnullelements(a)	 === false
-test\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
-        //@ assert i == 0 && \nonnullelements(a);
+test\escTraceBS\trace.java:5:  Invalid assertion (Assert)
+
+Completed proof of trace.mnonnullelements(int[]) with prover !!!! - with warnings
+Starting proof of trace.mnotmodified(int) with prover !!!!
+test\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
+        //@ assert i == 4 && \not_modified(i);
             ^
-Completed proof of trace.mnonnullelements(int[]) with prover z3_4_3 - with warnings
-Starting proof of trace.mnotmodified(int) with prover z3_4_3
 
 TRACE of trace.mnotmodified(int)
-
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTraceBS\trace.java:9:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTraceBS\trace.java:9:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTraceBS\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+test\escTraceBS\trace.java:9:  	assume ImplicitAssume -2147483648 <= i && i <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: i_200	 === 3
+			VALUE: -2147483648 <= i_200	 === ???
+			VALUE: -2147483648 <= i_200 && i_200 <= 2147483647	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+ 	//try...
+ 	//Method Body
 test\escTraceBS\trace.java:10:  	assert Assert \not_modified(i);
-			VALUE: i	 === 6
+			VALUE: i	 === 3
 			VALUE: \not_modified(i)	 === true
 test\escTraceBS\trace.java:11:  	i = 4
 			VALUE: 4	 === 4
@@ -42,9 +164,8 @@ test\escTraceBS\trace.java:12:  	assert Assert i == 4 && \not_modified(i);
 			VALUE: i	 === 4
 			VALUE: \not_modified(i)	 === false
 			VALUE: i == 4 && \not_modified(i)	 === false
-test\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
-        //@ assert i == 4 && \not_modified(i);
-            ^
-Completed proof of trace.mnotmodified(int) with prover z3_4_3 - with warnings
+test\escTraceBS\trace.java:12:  Invalid assertion (Assert)
+
+Completed proof of trace.mnotmodified(int) with prover !!!! - with warnings
 Completed proving methods in trace
 2 warnings

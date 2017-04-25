@@ -258,19 +258,22 @@ public class Utils {
         System.out.println(str);
     }
     
-    public static void reportNoSuchField(NoSuchFieldError t) {
+    public static void reportNoSuchField(NoSuchFieldError t, @Nullable String location) {
+    	t.printStackTrace();
         String msg = t.getMessage();
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled ghost or model field: " + msg;
+        if (location != null) msg = msg + " (" + location + ")";
         report(msg);
     }
     
-    public static void reportNoSuchMethod(NoSuchMethodError t) {
+    public static void reportNoSuchMethod(NoSuchMethodError t, @Nullable String location) {
         String msg = t.getMessage();
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
+        if (location != null) msg = msg + " (" + location + ")";
         report(msg);
     }
     

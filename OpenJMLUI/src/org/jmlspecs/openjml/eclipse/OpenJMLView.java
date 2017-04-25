@@ -199,107 +199,116 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	IProverResult result = results.get(key);
     	Symbol sym = result.methodSymbol();
     	
-        	PackageSymbol p = sym.packge();
-    		String pname = p.getQualifiedName().toString();
-    		if (pname.isEmpty()) pname = "<default package>";
-        	TreeItem ti = treeitems.get(pname);
-        	if (ti == null) {
-        		ti = new TreeItem(treeroot, SWT.NONE);
-        		ti.setText(pname);
-        		treeitems.put(pname, ti);
-        	}
+    	PackageSymbol p = sym.packge();
+    	String pname = p.getQualifiedName().toString();
+    	if (pname.isEmpty()) pname = "<default package>";
+    	TreeItem ti = treeitems.get(pname);
+    	if (ti == null) {
+    		ti = new TreeItem(treeroot, SWT.NONE);
+    		ti.setText(pname);
+    		treeitems.put(pname, ti);
+    	}
+
+    	Symbol classSym = sym.owner;
+    	String scname = iface.keyForSym(classSym);
+    	String cname = classSym.getSimpleName().toString();
+    	TreeItem tii = treeitems.get(scname);
+    	if (tii == null) {
+    		tii = new TreeItem(ti,SWT.NONE);
+    		tii.setText(scname); // FIXME - what about nested classes
+    		treeitems.put(scname, tii);
+    		{
+    			Info iteminfo = new Info();
+    			iteminfo.key = scname;
+    			iteminfo.proofResult = null;
+    			iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
+    			iteminfo.signature = classSym.getSimpleName().toString();
+    			tii.setData(iteminfo);
+    		}
+    	}
+
+    	String text = sym.toString();
+    	TreeItem tiii = treeitems.get(key);
+    	if (tiii == null) {
+    		tiii = new TreeItem(tii,SWT.NONE);
+    		treeitems.put(key, tiii);
+    	}
+
+    	Kind k = result == null ? null : result.result();
+    	String info = result == null ? "" : (" ["
+    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
+    			+ " " + result.prover() + "]");
+    	tiii.removeAll();
+    	String name = k == null ? "" : k.toString();
+    	String padding = "      ";
+    	padding = padding.substring(0,name.length() <= padding.length() ? padding.length()-name.length() : 0);
+    	String alltext = k == null ? text : ("[" + k.toString() + "] " + text + info);
+    	Color color = white;
+    	{
+    		Info iteminfo = new Info();
+    		iteminfo.key = key;
+    		iteminfo.proofResult = result;
+    		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
+    		iteminfo.signature = key;
+    		tiii.setData(iteminfo);
+    	}
+    	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
+    		alltext = ("[INVALID] " + text + info);
+    		color = orange;
+    		List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
+    		if (presults == null) {
+    			// Put nothing
+    		} else if (presults.size() == 1) {
+    			treece.put(tiii, result.counterexample());
+    		} else if (presults.size() == 0) {
+    			treece.put(tiii, null);
+    			// FIXME - no counterexample
+    		} else {
+    			int i = 0;
+    			for (IProverResult.Item ce : presults) {
+    				if (i == 0) treece.put(tiii, (ICounterexample)ce);
+    				if (ce instanceof IProverResult.ICounterexample) {
+    					TreeItem tiiii = new TreeItem(tiii,SWT.NONE);
+    					// FIXME - say more about the failed assertion
+    					tiiii.setText("CE#" + (++i));
+    					tiiii.setBackground(orange);
+    					treece.put(tiiii, (ICounterexample)ce);
+    				}
+    			}
+    			tiii.setExpanded(true);
+    		}
+    	} else if (k == IProverResult.UNSAT) {
+    		alltext = ("[VALID]    " + text + info);
+    		color = green;
+    	} else if (k == IProverResult.ERROR) {
+    		color = red;
+    	} else if (k == IProverResult.TIMEOUT) {
+    		tiii.setBackground(yellow);
+    	} else if (k == IProverResult.UNKNOWN) {
+    		color = red;
+    	} else if (k == IProverResult.INFEASIBLE) {
+    		color = yellow;
+    	} else if (k == IProverResult.SKIPPED) {
+    		color = blue;
+    	} else if (k == IProverResult.RUNNING) {
+    		color = white;
+    	} else if (k == IProverResult.CANCELLED) {
+    		color = red;
+    	} else if (k == IProverResult.COMPLETED) {
+    		return; // No change
+    	} else if (k == null) {
+    		alltext = text;
+    		color = white;
+    	} else {
+    		color = red;
+    	}
+    	tiii.setText(alltext);
+    	tiii.setBackground(color);
+//          treeroot.setExpanded(true);
+//    		ti.setExpanded(true);
+//    		tii.setExpanded(true);
     		
-        	Symbol classSym = sym.owner;
-        	String scname = iface.keyForSym(classSym);
-        	String cname = classSym.getSimpleName().toString();
-        	TreeItem tii = treeitems.get(scname);
-        	if (tii == null) {
-        		tii = new TreeItem(ti,SWT.NONE);
-        		tii.setText(scname); // FIXME - what about nested classes
-        		treeitems.put(scname, tii);
-            	{
-            		Info iteminfo = new Info();
-            		iteminfo.key = scname;
-            		iteminfo.proofResult = null;
-            		iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
-            		iteminfo.signature = classSym.getSimpleName().toString();
-            		tii.setData(iteminfo);
-            	}
-        	}
-    		
-        	String text = sym.toString();
-        	TreeItem tiii = treeitems.get(key);
-        	if (tiii == null) {
-    			tiii = new TreeItem(tii,SWT.NONE);
-    			treeitems.put(key, tiii);
-        	}
-        	
-        	Kind k = result == null ? null : result.result();
-        	String info = result == null ? "" : (" ["
-        			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
-        			+ " " + result.prover() + "]");
-        	tiii.removeAll();
-        	{
-        		Info iteminfo = new Info();
-        		iteminfo.key = key;
-        		iteminfo.proofResult = result;
-        		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
-        		iteminfo.signature = key;
-        		tiii.setData(iteminfo);
-        	}
-        	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
-        		tiii.setText("[INVALID] " + text + info);
-        		tiii.setBackground(orange);
-    			List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
-    			if (presults == null) {
-    			  // Put nothing
-    			} else if (presults.size() == 1) {
-    				treece.put(tiii, result.counterexample());
-        		} else if (presults.size() == 0) {
-    				treece.put(tiii, null);
-        			// FIXME - no counterexample
-        		} else {
-        			int i = 0;
-        			for (IProverResult.Item ce : presults) {
-        				if (i == 0) treece.put(tiii, (ICounterexample)ce);
-        				if (ce instanceof IProverResult.ICounterexample) {
-        					TreeItem tiiii = new TreeItem(tiii,SWT.NONE);
-        					// FIXME - say more about the failed assertion
-        					tiiii.setText("CE#" + (++i));
-        					tiiii.setBackground(orange);
-        					treece.put(tiiii, (ICounterexample)ce);
-        				}
-        			}
-        			tiii.setExpanded(true);
-        		}
-        	} else if (k == IProverResult.UNSAT) {
-        		tiii.setText("[VALID]   " + text + info);
-            	tiii.setBackground(green);
-        	} else if (k == IProverResult.ERROR) {
-        		tiii.setText("[ERROR]   " + text + info);
-            	tiii.setBackground(red);
-        	} else if (k == IProverResult.TIMEOUT) {
-        		tiii.setText("[TIMEOUT]   " + text + info);
-            	tiii.setBackground(yellow);
-        	} else if (k == IProverResult.UNKNOWN) {
-        		tiii.setText("[UNKNOWN]   " + text + info);
-            	tiii.setBackground(red);
-        	} else if (k == IProverResult.INFEASIBLE) {
-        		tiii.setText("[INFEASIBLE] " + text + info);
-            	tiii.setBackground(yellow);
-        	} else if (k == IProverResult.SKIPPED) {
-        		tiii.setText("[SKIPPED] " + text + info);
-            	tiii.setBackground(blue);
-        	} else if (k == null) {
-        		tiii.setText(text);
-            	tiii.setBackground(white);
-        	} else {
-        		tiii.setText("[?????] " + text + info);
-        		tiii.setBackground(red);
-        	}
-            treeroot.setExpanded(true);
-    		ti.setExpanded(true);
-    		tii.setExpanded(true);
+    		treeroot.getParent().showItem(tiii);
     }
     
     private boolean getCurrentFileData() {
@@ -431,12 +440,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 					Kind k = pr.result();
 					String desc = k == IProverResult.UNSAT ? "consistent" 
 							: k == IProverResult.SAT ? "inconsistent"
-									: k == IProverResult.SKIPPED ? " skipped"
-											: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
-													: k == IProverResult.INFEASIBLE ? "infeasible"
-															: k == IProverResult.UNKNOWN ? "unknown" : "???";
-					Activator.utils().setTraceViewUI(null, info.signature,"Method and its specifications are " + desc + ": " 
-							+ info.key);
+							: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
+							: k.toString().toLowerCase();
+					Activator.utils().setTraceViewUI(null, info.signature,
+							(k == IProverResult.ERROR ? "Error occurred while checking method: "
+							                         : "Method and its specifications are " + desc + ": ") 
+							      + info.key);
 				}
 			}
 		}
@@ -447,7 +456,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		widgetSelected(e);
 	}
 
-	/** Launches a Java editor for the merthod or class that was clicked */
+	/** Launches a Java editor for the method or class that was clicked */
 	@Override
 	public void mouseDoubleClick(MouseEvent e) {
 		// Presumes a selection happened as part of the double click

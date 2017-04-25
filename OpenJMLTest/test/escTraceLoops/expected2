@@ -1,0 +1,26 @@
+Proving methods in trace
+Skipping proof of trace.trace() (excluded by -method)
+Starting proof of trace.mgood() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - before explicit assert statement : OK
+Feasibility check #3 - at program exit : OK
+Completed proof of trace.mgood() with prover !!!! - no warnings
+Skipping proof of trace.m1() (excluded by -method)
+Skipping proof of trace.m2() (excluded by -method)
+Skipping proof of trace.m3() (excluded by -method)
+Skipping proof of trace.m4() (excluded by -method)
+Skipping proof of trace.m5() (excluded by -method)
+Skipping proof of trace.m6() (excluded by -method)
+Skipping proof of trace.mwhile() (excluded by -method)
+Skipping proof of trace.mwhile1() (excluded by -method)
+Skipping proof of trace.mwhile2() (excluded by -method)
+Skipping proof of trace.mdo() (excluded by -method)
+Skipping proof of trace.mdo1() (excluded by -method)
+Skipping proof of trace.mdo2() (excluded by -method)
+Skipping proof of trace.mforeach(int[]) (excluded by -method)
+Skipping proof of trace.mforeach1(int[]) (excluded by -method)
+Skipping proof of trace.mforeach2(int[]) (excluded by -method)
+Skipping proof of trace.mforeach3(int[]) (excluded by -method)
+Skipping proof of trace.mforeach4(int[]) (excluded by -method)
+Skipping proof of trace.mforeach5(int[]) (excluded by -method)
+Completed proving methods in trace

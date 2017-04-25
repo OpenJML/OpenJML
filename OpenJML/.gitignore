@@ -2,9 +2,11 @@
 /bin-runtime/
 /tempjars/
 /openjml-2015*
-/openjml.properties
+openjml.properties
 /log
 openjml-master-*
 openjml-*
 kernel*.json
 /strongarm-error.log
+/temp/
+/releases/

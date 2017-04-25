@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2014, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2016, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -156,6 +156,8 @@ public class Attr extends JCTree.Visitor {
         unknownTypeInfo = new ResultInfo(TYP, Type.noType);
         unknownTypeExprInfo = new ResultInfo(Kinds.TYP | Kinds.VAL, Type.noType);
         recoveryInfo = new RecoveryInfo(deferredAttr.emptyDeferredAttrContext);
+
+        noCheckTree = make.at(-1).Skip();
     }
 
     /** Switch: relax some constraints for retrofit mode.
@@ -247,37 +249,41 @@ public class Attr extends JCTree.Visitor {
      *  are correct.
      *
      *  @param tree     The tree whose kind and type is checked
+     *  @param found    The computed type of the tree
      *  @param ownkind  The computed kind of the tree
      *  @param resultInfo  The expected result of the tree
      */
     Type check(final JCTree tree, final Type found, final int ownkind, final ResultInfo resultInfo) {
         InferenceContext inferenceContext = resultInfo.checkContext.inferenceContext();
         Type owntype;
-        if (!found.hasTag(ERROR) && !resultInfo.pt.hasTag(METHOD) && !resultInfo.pt.hasTag(FORALL)) {
-            if ((ownkind & ~resultInfo.pkind) != 0) {
-                log.error(tree.pos(), "unexpected.type",
+        boolean shouldCheck = !found.hasTag(ERROR) &&
+                !resultInfo.pt.hasTag(METHOD) &&
+                !resultInfo.pt.hasTag(FORALL);
+        if (shouldCheck && (ownkind & ~resultInfo.pkind) != 0) {
+            log.error(tree.pos(), "unexpected.type",
                         kindNames(resultInfo.pkind),
                         kindName(ownkind));
-                owntype = types.createErrorType(found);
-            } else if (allowPoly && inferenceContext.free(found)) {
-                //delay the check if there are inference variables in the found type
-                //this means we are dealing with a partially inferred poly expression
-                owntype = resultInfo.pt;
-                inferenceContext.addFreeTypeListener(List.of(found, resultInfo.pt), new FreeTypeListener() {
+            owntype = types.createErrorType(found);
+        } else if (allowPoly && inferenceContext.free(found)) {
+            //delay the check if there are inference variables in the found type
+            //this means we are dealing with a partially inferred poly expression
+            owntype = shouldCheck ? resultInfo.pt : found;
+            inferenceContext.addFreeTypeListener(List.of(found, resultInfo.pt), new FreeTypeListener() {
                     @Override
                     public void typesInferred(InferenceContext inferenceContext) {
                         ResultInfo pendingResult =
                                 resultInfo.dup(inferenceContext.asInstType(resultInfo.pt));
                         check(tree, inferenceContext.asInstType(found), ownkind, pendingResult);
                     }
-                });
-            } else {
-                owntype = resultInfo.check(tree, found);
-            }
+            });
         } else {
-            owntype = found;
+            owntype = shouldCheck ?
+            resultInfo.check(tree, found) :
+            found;
         }
-        tree.type = owntype;
+        if (tree != noCheckTree) {
+            tree.type = owntype;
+        }
         return owntype;
     }
 
@@ -550,6 +556,10 @@ public class Attr extends JCTree.Visitor {
      */
     Type result;
 
+    /** Synthetic tree to be used during 'fake' checks.
+     */
+    JCTree noCheckTree;
+
     /** Visitor method: attribute a tree, catching any completion failure
      *  exceptions. Return the tree's type.
      *
@@ -654,8 +664,8 @@ public class Attr extends JCTree.Visitor {
 
     /** Attribute the arguments in a method call, returning the method kind.
      */
-    int attribArgs(List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
-        int kind = VAL;
+    int attribArgs(int initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
+        int kind = initialKind;
         for (JCExpression arg : trees) {
             Type argtype;
             if (allowPoly && deferredAttr.isDeferred(env, arg)) {
@@ -1732,7 +1742,7 @@ public class Attr extends JCTree.Visitor {
                 localEnv.info.isSelfCall = true;
 
                 // Attribute arguments, yielding list of argument types.
-                attribArgs(tree.args, localEnv, argtypesBuf);
+                int kind = attribArgs(MTH, tree.args, localEnv, argtypesBuf);
                 argtypes = argtypesBuf.toList();
                 typeargtypes = attribTypes(tree.typeargs, localEnv);
 
@@ -1797,7 +1807,7 @@ public class Attr extends JCTree.Visitor {
                     // ...and check that it is legal in the current context.
                     // (this will also set the tree's type)
                     Type mpt = newMethodTemplate(resultInfo.pt, argtypes, typeargtypes);
-                    checkId(tree.meth, site, sym, localEnv, new ResultInfo(MTH, mpt));
+                    checkId(tree.meth, site, sym, localEnv, new ResultInfo(kind, mpt));
                 }
                 // Otherwise, `site' is an error type and we do nothing
             }
@@ -1805,7 +1815,7 @@ public class Attr extends JCTree.Visitor {
         } else {
             // Otherwise, we are seeing a regular method call.
             // Attribute the arguments, yielding list of argument types, ...
-            int kind = attribArgs(tree.args, localEnv, argtypesBuf);
+            int kind = attribArgs(VAL, tree.args, localEnv, argtypesBuf);
             argtypes = argtypesBuf.toList();
             typeargtypes = attribAnyTypes(tree.typeargs, localEnv);
 
@@ -1987,7 +1997,7 @@ public class Attr extends JCTree.Visitor {
 
         // Attribute constructor arguments.
         ListBuffer<Type> argtypesBuf = new ListBuffer<>();
-        int pkind = attribArgs(tree.args, localEnv, argtypesBuf);
+        int pkind = attribArgs(VAL, tree.args, localEnv, argtypesBuf);
         List<Type> argtypes = argtypesBuf.toList();
         List<Type> typeargtypes = attribTypes(tree.typeargs, localEnv);
 
@@ -2045,7 +2055,7 @@ public class Attr extends JCTree.Visitor {
                     }
                 });
                 Type constructorType = tree.constructorType = types.createErrorType(clazztype);
-                constructorType = checkId(tree, site,
+                constructorType = checkId(noCheckTree, site,
                         constructor,
                         diamondEnv,
                         diamondResult);
@@ -2071,7 +2081,7 @@ public class Attr extends JCTree.Visitor {
                 tree.constructor = rs.resolveConstructor(
                     tree.pos(), rsEnv, clazztype, argtypes, typeargtypes);
                 if (cdef == null) { //do not check twice!
-                    tree.constructorType = checkId(tree,
+                    tree.constructorType = checkId(noCheckTree,
                             clazztype,
                             tree.constructor,
                             rsEnv,
@@ -2152,7 +2162,7 @@ public class Attr extends JCTree.Visitor {
                     tree.pos(), localEnv, clazztype, argtypes, typeargtypes);
                 Assert.check(sym.kind < AMBIGUOUS);
                 tree.constructor = sym;
-                tree.constructorType = checkId(tree,
+                tree.constructorType = checkId(noCheckTree,
                     clazztype,
                     tree.constructor,
                     localEnv,
@@ -2163,6 +2173,17 @@ public class Attr extends JCTree.Visitor {
                 owntype = clazztype;
         }
         result = check(tree, owntype, VAL, resultInfo);
+        InferenceContext inferenceContext = resultInfo.checkContext.inferenceContext();
+        if (tree.constructorType != null && inferenceContext.free(tree.constructorType)) {
+            //we need to wait for inference to finish and then replace inference vars in the constructor type
+            inferenceContext.addFreeTypeListener(List.of(tree.constructorType),
+                    new FreeTypeListener() {
+                        @Override
+                        public void typesInferred(InferenceContext instantiatedContext) {
+                            tree.constructorType = instantiatedContext.asInstType(tree.constructorType);
+                        }
+                    });
+        }
         chk.validate(tree.typeargs, localEnv);
     }
     //where
@@ -2390,6 +2411,7 @@ public class Attr extends JCTree.Visitor {
             preFlow(that);
             flow.analyzeLambda(env, that, make, isSpeculativeRound);
 
+            that.type = currentTarget; //avoids recovery at this stage
             checkLambdaCompatible(that, lambdaType, resultInfo.checkContext);
 
             if (!isSpeculativeRound) {
@@ -2828,7 +2850,7 @@ public class Attr extends JCTree.Visitor {
                         that.kind.isUnbound() ? argtypes.tail : argtypes, typeargtypes),
                         new FunctionalReturnContext(resultInfo.checkContext));
 
-            Type refType = checkId(that, lookupHelper.site, refSym, localEnv, checkInfo);
+            Type refType = checkId(noCheckTree, lookupHelper.site, refSym, localEnv, checkInfo);
 
             if (that.kind.isUnbound() &&
                     resultInfo.checkContext.inferenceContext().free(argtypes.head)) {
@@ -2850,6 +2872,8 @@ public class Attr extends JCTree.Visitor {
             //is a no-op (as this has been taken care during method applicability)
             boolean isSpeculativeRound =
                     resultInfo.checkContext.deferredAttrContext().mode == DeferredAttr.AttrMode.SPECULATIVE;
+
+            that.type = currentTarget; //avoids recovery at this stage
             checkReferenceCompatible(that, desc, refType, resultInfo.checkContext, isSpeculativeRound);
             if (!isSpeculativeRound) {
                 checkAccessibleTypes(that, localEnv, resultInfo.checkContext.inferenceContext(), desc, currentTarget);
@@ -3747,17 +3771,6 @@ public class Attr extends JCTree.Visitor {
                    v.name != names._class;
         }
 
-//        /** Can the given symbol be the owner of code which forms part
-//         *  if class initialization? This is the case if the symbol is
-//         *  a type or field, or if the symbol is the synthetic method.
-//         *  owning a block.
-//         */
-//        protected boolean canOwnInitializer(Symbol sym) { // DRCok - added; changed from private to protected
-//            return
-//                (sym.kind & (VAR | TYP)) != 0 ||
-//                (sym.kind == MTH && (sym.flags() & BLOCK) != 0);
-//        }
-// DRC - remove this commented out code once JmlAttr is working again for Java 8
     Warner noteWarner = new Warner();
 
     /**
@@ -3982,7 +3995,7 @@ public class Attr extends JCTree.Visitor {
                 all_multicatchTypes.append(ctype);
             }
         }
-        Type t = check(tree, types.lub(multicatchTypes.toList()), TYP, resultInfo);
+        Type t = check(noCheckTree, types.lub(multicatchTypes.toList()), TYP, resultInfo);
         if (t.hasTag(CLASS)) {
             List<Type> alternatives =
                 ((all_multicatchTypes == null) ? multicatchTypes : all_multicatchTypes).toList();

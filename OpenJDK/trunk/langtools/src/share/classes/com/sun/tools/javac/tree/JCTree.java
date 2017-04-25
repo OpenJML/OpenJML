@@ -2032,7 +2032,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         protected JCLiteral(TypeTag typetag, Object value) {
             this.typetag = typetag;
             this.value = value;
-            if (value instanceof Long) this.typetag = TypeTag.LONG;
+            if (value instanceof Long) this.typetag = TypeTag.LONG;  //FIXME -why is this needed
         }
         @Override
         public void accept(Visitor v) { v.visitLiteral(this); }

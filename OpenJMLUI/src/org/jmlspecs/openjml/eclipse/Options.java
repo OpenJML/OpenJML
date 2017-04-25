@@ -5,7 +5,11 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
+
+import com.sun.tools.javac.util.Context;
 
 /**
  * This class manages user-settable options for OpenJML - at least those
@@ -43,8 +47,18 @@ public class Options {
 	static public boolean uiverboseness = false;
 
 	/** Caches values of properties as needed, based on preference store */
-	public static void init() {
+	public static void cache() {
 		Options.uiverboseness = Options.isOption(Options.uiverbosityKey);
+	}
+	
+	public static void initialize(boolean override, Context context) {
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		for (JmlOption opt: JmlOption.values()) {
+			String key = Strings.optionPropertyPrefix + opt.optionName().substring(1); // The substring is to remove the initial hyphen
+			if (override || !store.contains(key)) {
+				store.putValue(key, opt.defaultValue().toString());
+			}
+		}
 	}
 
 
@@ -68,10 +82,12 @@ public class Options {
 	final static public String verbosityKey = prefix + "verboseness"; //$NON-NLS-1$
 	/** The preference store key for the uiverbosity option. */
 	final static public String uiverbosityKey = prefix + "uiverbosity"; //$NON-NLS-1$
+	/** The preference store key for the show-error-popups UI control. */
+	final static public String showErrorPopupsKey = prefix + "showErrorPopups"; //$NON-NLS-1$
 	/** The preference store key for the -show option. */
 	final static public String showKey = prefix + "show"; //$NON-NLS-1$
 	/** The preference store key for the -checkFeasibility option. */
-	final static public String feasibilityKey = prefix + "feasibility"; //$NON-NLS-1$
+	final static public String feasibilityKey = prefix + "checkFeasibility"; //$NON-NLS-1$
 	
 	
 	final static public String inferDebug = prefix + "inferDebug"; //$NON-NLS-1$
@@ -87,7 +103,7 @@ public class Options {
 //	/** The preference store key for the -subexpressions option. */
 //	final static public String subexpressionsKey = prefix + "subexpressions"; //$NON-NLS-1$
 	/** The preference store key for the max esc warnings option. */
-	final static public String maxWarningsKey = prefix + "maxWarnings"; //$NON-NLS-1$
+	final static public String escMaxWarningsKey = prefix + "escMaxWarnings"; //$NON-NLS-1$
 	/** The preference store key for the strict JML option. */
 	final static public String strictKey = prefix + "strictJML"; //$NON-NLS-1$
 	/** The preference store key for the check purity option. */

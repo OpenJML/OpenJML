@@ -908,9 +908,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol m, MethodSpecs spec) {
-//        if (m.owner.flatName().toString().equals("java.lang.Object")) {
-//            if (m.toString().equals("Object()")) Utils.stop();
-//        }
+        if (m.toString().equals("JMLValueSequence()")) Utils.stop();
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("            Saving method specs for " + m.enclClass() + " " + m);
         getSpecs(m.enclClass()).methods.put(m,spec);
     }
@@ -1356,9 +1354,14 @@ public class JmlSpecs {
             else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
             else if (symbol.name == names._this) return true;
             else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == JmlTokenKind.NONNULL;
-        } else if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.MethodSymbol) {
+        } else if (symbol instanceof Symbol.VarSymbol && (symbol.owner == null || symbol.owner instanceof Symbol.MethodSymbol)) {
+            attr = symbol.attribute(nullableAnnotationSymbol);
+            if (attr != null) return false;
+            attr = symbol.attribute(nonnullAnnotationSymbol);
+            if (attr != null) return true;
+
             // Method parameter or variable in body
-            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
+//            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
             // FIXME - not clear we are able to look up a particular parameter - which case do we use? don't want inherited specs?
 //            specs.cases.decl
 //            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
@@ -1366,10 +1369,6 @@ public class JmlSpecs {
             // else return defaultNullity(csymbol) == JmlToken.NONNULL;
             
             // Need to distinguish the two cases. The following is correct for variables in the body
-            attr = symbol.attribute(nullableAnnotationSymbol);
-            if (attr != null) return false;
-            attr = symbol.attribute(nonnullAnnotationSymbol);
-            if (attr != null) return true;
             return defaultNullity(csymbol) == JmlTokenKind.NONNULL;
             
         } else if (symbol instanceof Symbol.MethodSymbol) {

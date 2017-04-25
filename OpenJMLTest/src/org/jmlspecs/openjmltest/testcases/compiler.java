@@ -84,7 +84,7 @@ public class compiler {
         String expected;
         if (expectedFile != null) {
         	try {
-        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles").replace("\n",eol);
+        		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile))).replace("../testfiles","testfiles");
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
@@ -93,6 +93,9 @@ public class compiler {
             expected = output[0];
         }
         expected = expected.replace("${PROJ}",projHome).replace("$SPECS", specsHome);
+        actualOutput = actualOutput.replace("\r", "");
+        errOutput = errOutput.replace("\r", "");
+        expected = expected.replace("\r", "");
         
         if (print) System.out.println("EXPECTING: " + output[0]);
         print = true;
@@ -110,7 +113,7 @@ public class compiler {
                 fail("Output does not end with: " + expected + eol + "Instead is: " + errOutput);
             }
             if (output.length > 1) {
-                expected = output[1].replace("${PROJ}",projHome);
+                expected = output[1].replace("${PROJ}",projHome).replaceAll("\r", "");
                 int k = actualOutput.indexOf("Note:");
                 String actual = k>=0 ? actualOutput.substring(0,k) : actualOutput; 
                 if (print) System.out.println("TEST: " + name.getMethodName() + " STANDARD OUT: " + eol + actual);
@@ -197,7 +200,7 @@ public class compiler {
     public void testRecursiveCP() throws Exception {
         helper(new String[]
                           { "-classpath","test/testNoErrors"+z+"bin"+z+"$CP",
-                            "-noInternalSpecs",
+                  //          "-noInternalSpecs",
                             "test/testNoErrors/A.java",  
                           },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
                           + "1 warning" + eol);
@@ -210,11 +213,12 @@ public class compiler {
                           { "-noInternalRuntime","-noInternalSpecs",
                             "-classpath","test/testNoErrors",
                             "test/testNoErrors/A.java",  
-                          },1,0,
-                          "test/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
-                          "public class A {" +eol+
-                          "^" + eol +
-                          "1 error" + eol);
+                          },3,0,
+                          "Fatal Error: Unable to find package org.jmlspecs.lang" + eol);
+//                          "test/testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
+//                          "public class A {" +eol+
+//                          "^" + eol +
+//                          "1 error" + eol);
     }
 
     /** Test verbose with no specs used */
@@ -861,7 +865,7 @@ public class compiler {
 
     @Test
     public void release_testJmlBad_A() throws Exception {
-    	expectedFile = "releaseTests/testJmlBad/expected";
+    	expectedFile = "releaseTests/testJmlBadA/expected";
     	helper(new String[]
                 { "-verboseness"
                 },2,0
@@ -891,7 +895,7 @@ public class compiler {
 
     @Test
     public void release_testJmlBad3() throws Exception {
-    	expectedFile = "releaseTests/testJmlBad/expected";
+    	expectedFile = "releaseTests/testJmlBad3/expected";
     	helper(new String[]
                 { "-check","-java"
                 },2,0
@@ -920,10 +924,10 @@ public class compiler {
     // Testing typechecking without org.jmlspecs.annotation.*
     @Test
     public void release_testRuntime1() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected2";
+    	expectedFile = "releaseTests/testRuntime1/expected";
     	helper(new String[]
     			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "-no-purityCheck", "-no-internalRuntime"
-    			},1,0
+    			},3,0
     			,""
     			);
     }
@@ -933,7 +937,7 @@ public class compiler {
     public void release_testRuntime2() throws Exception {
     	expectedFile = "releaseTests/testRuntime2/expected";
     	helper(new String[]
-    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin;../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java", "-classpath", "../../JMLAnnotations/bin"+z+"../OpenJML/bin-runtime", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
     			);
@@ -944,7 +948,7 @@ public class compiler {
     public void release_testRuntime3() throws Exception {
     	expectedFile = "releaseTests/testRuntime3/expected";
     	helper(new String[]
-    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src;../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
+    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML/runtime", "-no-purityCheck", "-no-internalRuntime"
     			},0,0
     			,""
     			);

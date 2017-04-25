@@ -82,7 +82,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     protected final TypeAnnotations typeAnnotations; // JLS - changed from private
 
     protected final Types types; // OpenJML - changed from private to protected
-    private final JCDiagnostic.Factory diags;
+    protected final JCDiagnostic.Factory diags; // OpenJML - changed from private to protected
     private final Source source;
     private final Target target;
     protected final DeferredLintHandler deferredLintHandler; // OpenJML - changed from private to protected
@@ -159,10 +159,6 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             if (((PackageSymbol)tsym).fullname.equals(names.java_lang)) {
                 JCDiagnostic msg = diags.fragment("fatal.err.no.java.lang");
                 throw new FatalError(msg);
-//            } else if (((PackageSymbol)tsym).fullname.toString().equals("org.jmlspecs.annotation")) {
-//                throw new FatalError("Fatal Error: Could not find package org.jmlspecs.annotation");
-//            } else if (((PackageSymbol)tsym).fullname.toString().equals("org.jmlspecs.lang")) {
-//                throw new FatalError("Fatal Error: Could not find package org.jmlspecs.lang");
             } else {
                 log.error(DiagnosticFlag.RESOLVE_ERROR, pos, "doesnt.exist", tsym);
             }
@@ -526,7 +522,12 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         Lint prevLint = chk.setLint(lint);
 
         try {
-            importHelper(tree);
+            importHelper(tree);  // OPENJML -- added to be able to override
+//            // Import-on-demand java.lang.
+//            importAll(tree.pos, reader.enterPackage(names.java_lang), env);
+//
+//            // Process all import clauses.
+//            memberEnter(tree.defs, env);
         } finally {
             chk.setLint(prevLint);
             deferredLintHandler.setPos(prevLintPos);
@@ -615,6 +616,9 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
         localEnv.info.scope.leave();
         visitMethodDefHelper(tree, m, enclScope); // OPENJML - added to allow overriding some functionality
+//        if (chk.checkUnique(tree.pos(), m, enclScope)) {
+//        enclScope.enter(m);
+//        }
 
         annotateLater(tree.mods.annotations, localEnv, m, tree.pos());
         // Visit the signature of the method. Note that
@@ -666,6 +670,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
     public void visitVarDef(JCVariableDecl tree) {
         Env<AttrContext> localEnv = env;
         if (visitVarDefIsStatic(tree,env)) {  // OpenJML
+//        if ((tree.mods.flags & STATIC) != 0 ||
+//            (env.info.scope.owner.flags() & INTERFACE) != 0) {
             localEnv = env.dup(tree, env.info.dup());
             localEnv.info.staticLevel++;
         }
@@ -707,6 +713,10 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             }
         }
         visitFieldDefHelper(tree, v, enclScope); // OPENJML - added to allow overriding some functionality
+//        if (chk.checkUnique(tree.pos(), v, enclScope)) {
+//            chk.checkTransparentVar(tree.pos(), v, enclScope);
+//            enclScope.enter(v);
+//        }
         annotateLater(tree.mods.annotations, localEnv, v, tree.pos());
         typeAnnotate(tree.vartype, env, v, tree.pos());
         v.pos = tree.pos;
@@ -816,6 +826,9 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
             localEnv.info.scope.owner = tree.sym;
         }
         if (visitVarDefIsStatic(tree,localEnv)) localEnv.info.staticLevel++; // OpenJML - This mod is so that overriding classes can adjust when an initialization environment is static
+//        if ((tree.mods.flags & STATIC) != 0 ||
+//                ((env.enclClass.sym.flags() & INTERFACE) != 0 && env.enclMethod == null))
+//            localEnv.info.staticLevel++;
         return localEnv;
     }
 
@@ -883,8 +896,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 
                 @Override
                 public void run() {
- // OpenJML                   Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
-//                    if (!(s.kind == PCK || s.annotationsPendingCompletion())) return; // OpenJML
+ // OPENJML                   Assert.check(s.kind == PCK || s.annotationsPendingCompletion());
+//                    if (!(s.kind == PCK || s.annotationsPendingCompletion())) return; // OPENJML
                     JavaFileObject prev = log.useSource(localEnv.toplevel.sourcefile);
                     DiagnosticPosition prevLintPos =
                         deferPos != null
@@ -892,7 +905,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                         : deferredLintHandler.immediate();
                     Lint prevLint = deferPos != null ? null : chk.setLint(lint);
                     try {
-//                        if (s.hasAnnotations() &&   // OpenJML - allow redoing
+//                        if (s.hasAnnotations() &&   // OPENJML - allow redoing
 //                            annotations.nonEmpty())
 //                            log.error(annotations.head.pos,
 //                                      "already.annotated",
@@ -1025,8 +1038,9 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
 /* ********************************************************************
  * Source completer
  *********************************************************************/
+
     protected boolean binary = false; // OpenJML - did I add this?  Do we still need it?  Never set to true?
-    
+
     /** Complete entering a class.
      *  @param sym         The symbol of the class to be completed.
      */
@@ -1145,7 +1159,7 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
                     typeAnnotate(tp, baseEnv, sym, tree.pos());
 
                 // Add default constructor if needed.
-                if ((c.flags() & INTERFACE) == 0 && !binary && // OpenJML added for now
+                if ((c.flags() & INTERFACE) == 0 && !binary && // OPENJML added for now
                     !TreeInfo.hasConstructors(tree.defs)) {
                     List<Type> argtypes = List.nil();
                     List<Type> typarams = List.nil();
@@ -1396,7 +1410,8 @@ public class MemberEnter extends JCTree.Visitor implements Completer {
         }
     }
 
-    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // OpenJML - changed from private to protected
+
+    protected Env<AttrContext> baseEnv(JCClassDecl tree, Env<AttrContext> env) { // OPENJML - changed from private to protected
         Scope baseScope = new Scope(tree.sym);
         //import already entered local classes into base scope
         for (Scope.Entry e = env.outer.info.scope.elems ; e != null ; e = e.sibling) {

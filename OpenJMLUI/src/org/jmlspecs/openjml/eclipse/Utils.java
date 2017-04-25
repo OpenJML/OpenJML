@@ -2986,12 +2986,15 @@ public class Utils {
 	public int countMethods(IPackageFragment pf) throws Exception {
 		int count = 0;
 		for (ICompilationUnit cu: pf.getCompilationUnits()) {
-			count += countMethods(cu);
+			// getCompilationUnits() returns .jml and maybe other files as well
+			if (cu.getPath().toString().endsWith(".java")) {
+				count += countMethods(cu);
+			}
 		}
 		return count;
 	}
 	public int countMethods(ICompilationUnit cu) throws Exception {
-		int count = 0;
+		int count = 1; // For the file
 		for (IType t: cu.getTypes()) {
 			count += countMethods(t);
 		}

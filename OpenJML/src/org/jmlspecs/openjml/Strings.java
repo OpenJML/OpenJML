@@ -49,7 +49,7 @@ public class Strings {
     
     /** A string giving the fully qualified name of the special JML class.
      */
-    static public final String JMLClass = "org.jmlspecs.lang.JML"; //$NON-NLS-1$
+    static public final String JMLClass = jmlSpecsPackage + ".JML"; //$NON-NLS-1$
     
     /** A string giving the name of the package that JML annotations are in.
      */

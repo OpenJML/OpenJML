@@ -55,7 +55,7 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.Log.PrefixKind;
 import com.sun.tools.javac.util.Log.WriterKind;
-
+import com.sun.tools.javac.util.ServiceLoader;
 import static com.sun.tools.javac.main.Option.*;
 
 /** This class provides a command line interface to the javac compiler.
@@ -100,7 +100,8 @@ public class Main {
         ERROR(1),     // Completed but reported errors.
         CMDERR(2),    // Bad command-line arguments
         SYSERR(3),    // System error or resource exhaustion.
-        ABNORMAL(4);  // Compiler terminated abnormally
+        ABNORMAL(4),  // Compiler terminated abnormally
+        CANCELLED(5); // Compiler was manually cancelled
 
         Result(int exitCode) {
             this.exitCode = exitCode;
@@ -187,7 +188,7 @@ public class Main {
 
     /** Print a string that explains usage.
      */
-    protected void help() { // DRC - changed to protected from package visibility
+    protected void help() { // OPENJML - added // FIXME - why - is it used?
         log.note("msg.usage.header", ownName);
         for (Option o: recognizedOptions) {
             o.help(log,o.kind);
@@ -198,7 +199,7 @@ public class Main {
     /** Print a string that explains usage for X options.
      */
     void xhelp() {
-        // FIXME
+        // FIXME - i this used?
 //        for (int i=0; i<recognizedOptions.length; i++) {
 //            recognizedOptions[i].xhelp(out,OptionKind.STANDARD);
 //        }
@@ -415,6 +416,10 @@ public class Main {
                           List<JavaFileObject> fileObjects,
                           Iterable<? extends Processor> processors)
     {
+        // OPENJML - FIXME - perhaps not these next two lines?
+        context.put(Log.outKey, out);
+        log = Log.instance(context);
+
         if (options == null)
             options = Options.instance(context); // creates a new one
 

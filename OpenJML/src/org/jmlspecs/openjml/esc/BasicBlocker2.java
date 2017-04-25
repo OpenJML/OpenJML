@@ -28,6 +28,7 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
+import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -908,10 +909,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     // OK
     @Override
-    public void visitLabelled(JCLabeledStatement that) {
+    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         VarMap map = currentMap.copy();
         labelmaps.put(that.label,map); // if that.label is null, this is the premap
-        super.visitLabelled(that);
+        super.visitJmlLabeledStatement(that);
     }
     
     // FIXME - REVIEW
@@ -1020,11 +1021,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     JCIdent label = (JCIdent)that.args.get(1);
                     currentMap = labelmaps.get(label.name);
                     if (currentMap == null) {
+                        // When method axioms are inserted they can appear before the label,
+                        // in which case control flow comes here. SO we are counting on proper
+                        // reporting of out of scope labels earlier.
                         // This should have already been reported
-                        log.error(label.pos,"jml.unknown.label",label.name.toString());
-                        // Use premap, just to keep going, though that may
-                        // cause other errors
-                        currentMap = premap;
+                        //log.error(label.pos,"jml.unknown.label",label.name.toString());
+                        // Just use the current map
+                        currentMap = savedMap;
                     }
                     that.args.get(0).accept(this);
                     that.args = com.sun.tools.javac.util.List.<JCExpression>of(that.args.get(0));

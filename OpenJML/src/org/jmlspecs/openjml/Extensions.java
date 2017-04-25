@@ -68,14 +68,15 @@ public class Extensions {
      * extension for the given token.
      * @param pos the position of the token, for error reporting
      * @param token the extension token
+     * @param complain if true and failed to create an Extension instance, an error is issued
      * @return an instance of a ExpressionExtension object, or null if unrecoverable error
      */
-    public @Nullable ExpressionExtension find(int pos, JmlTokenKind token) {
+    public @Nullable ExpressionExtension find(int pos, JmlTokenKind token, boolean complain) {
         ExpressionExtension e = extensionInstances.get(token);
         if (e == null) {
             Class<? extends ExpressionExtension> c = extensionClasses.get(token);
             if (c == null) {
-                Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
                 return null;
             }
             try {
@@ -84,7 +85,7 @@ public class Extensions {
                 extensionInstances.put(token,instance);
                 e = instance;
             } catch (Exception ee) {
-                Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
+                if (complain) Log.instance(context).error(pos,"jml.failure.to.create.ExpressionExtension",token.internedName());
                 return null;
             }
         }
@@ -242,7 +243,7 @@ public class Extensions {
         if (foundClassNames.isEmpty()) {
         	// Last resort
         	//Log.instance(context).warning("jml.internal.notsobad","Last resort loading of extensions");
-        	String[] cn = { "Elemtype", "Erasure", "PureModifier", "ReachableStatement", "Arithmetic" };
+        	String[] cn = { "Elemtype", "Erasure", "PureModifier", "ReachableStatement", "Arithmetic", "Key" };
         	foundClassNames.addAll(Arrays.asList(cn));
         }
         

@@ -1,0 +1,993 @@
+Proving methods in trace
+Starting proof of trace.trace() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of trace.trace() with prover !!!! - no warnings
+Starting proof of trace.mm() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of trace.mm() with prover !!!! - no warnings
+Starting proof of trace.m() with prover !!!!
+test\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (Assignable) in method m:  \everything
+        mm();
+          ^
+test\escTrace6\trace.java:7: warning: Associated declaration
+    //@ requires true;
+        ^
+
+TRACE of trace.m()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:10:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:10:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:7:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+test\escTrace6\trace.java:11:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:12:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp7 || (!_JML__tmp6 || (!Pre_1 || false))
+			VALUE: _JML__tmp7	 === false
+			VALUE: _JML__tmp6	 === true
+			VALUE: !_JML__tmp6	 === false
+			VALUE: Pre_1	 === true
+			VALUE: !Pre_1	 === false
+			VALUE: false	 === ???
+			VALUE: !Pre_1 || false	 === false
+			VALUE: !_JML__tmp6 || (!Pre_1 || false)	 === false
+			VALUE: _JML__tmp7 || (!_JML__tmp6 || (!Pre_1 || false))	 === false
+test\escTrace6\trace.java:12:  Invalid assertion (Assignable)
+ Associated location
+
+test\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
+        mm();
+          ^
+test\escTrace6\trace.java:9: warning: Associated declaration
+    //@ signals (Exception e) false;
+        ^
+
+TRACE of trace.m()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:10:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:10:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:7:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+test\escTrace6\trace.java:11:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:12:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp7 || (!_JML__tmp6 || (!Pre_1 || false))
+			VALUE: _JML__tmp7	 === true
+			VALUE: _JML__tmp7 || (!_JML__tmp6 || (!Pre_1 || false))	 === true
+ 	//if...
+ 	//Assuming callee invariants by the caller trace.m() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume constraints for java.lang.Object
+ 	//Assume constraints for trace
+ 	//Assuming caller invariants upon reentering the caller trace.m() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//if...
+test\escTrace6\trace.java:12:  	Exception thrown by mm()
+			VALUE: _JML___exceptionCall	 === REF!val!23
+ 	//Assuming callee exceptional postconditions
+ 	//Assuming exceptional postconditions for trace.mm()
+ 	//if...
+ 	//Check Postconditions
+ 	//if...
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Assert constraints for java.lang.Object
+ 	//Assert constraints for trace
+ 	//Asserting exceptional postconditions for trace.m()
+test\escTrace6\trace.java:9:  	Terminated with exception
+			VALUE: _JML___exception	 === REF!val!23
+test\escTrace6\trace.java:9:  	signals (Exception e) false; 
+			VALUE: false	 === ???
+ 	//if...
+test\escTrace6\trace.java:9:  	ExceptionalPostcondition assertion: !Pre_1 || false
+			VALUE: Pre_1_0_100___4	 === true
+			VALUE: !Pre_1_0_100___4	 === false
+			VALUE: false	 === false
+			VALUE: !Pre_1_0_100___4 || false	 === false
+test\escTrace6\trace.java:12:  Invalid assertion (ExceptionalPostcondition)
+ Associated location
+
+Completed proof of trace.m() with prover !!!! - with warnings
+Starting proof of trace.m2() with prover !!!!
+test\escTrace6\trace.java:24: warning: The prover cannot establish an assertion (Assignable) in method m2:  \everything
+            mm();
+              ^
+test\escTrace6\trace.java:17: warning: Associated declaration
+    //@ requires true;
+        ^
+
+TRACE of trace.m2()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:21:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:21:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:17:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+ 	//try ...
+ 	//try...
+test\escTrace6\trace.java:23:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:24:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m2() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp12 || (!_JML__tmp11 || (!Pre_2 || false))
+			VALUE: _JML__tmp12	 === false
+			VALUE: _JML__tmp11	 === true
+			VALUE: !_JML__tmp11	 === false
+			VALUE: Pre_2	 === true
+			VALUE: !Pre_2	 === false
+			VALUE: false	 === ???
+			VALUE: !Pre_2 || false	 === false
+			VALUE: !_JML__tmp11 || (!Pre_2 || false)	 === false
+			VALUE: _JML__tmp12 || (!_JML__tmp11 || (!Pre_2 || false))	 === false
+test\escTrace6\trace.java:24:  Invalid assertion (Assignable)
+ Associated location
+
+test\escTrace6\trace.java:24: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2
+            mm();
+              ^
+test\escTrace6\trace.java:20: warning: Associated declaration
+    //@ signals (Exception e) k == 1;
+        ^
+
+TRACE of trace.m2()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:21:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:21:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:17:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+ 	//try ...
+ 	//try...
+test\escTrace6\trace.java:23:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:24:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m2() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp12 || (!_JML__tmp11 || (!Pre_2 || false))
+			VALUE: _JML__tmp12	 === true
+			VALUE: _JML__tmp12 || (!_JML__tmp11 || (!Pre_2 || false))	 === true
+ 	//if...
+ 	//Assuming callee invariants by the caller trace.m2() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume constraints for java.lang.Object
+ 	//Assume constraints for trace
+ 	//Assuming caller invariants upon reentering the caller trace.m2() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//if...
+test\escTrace6\trace.java:24:  	Exception thrown by mm()
+			VALUE: _JML___exceptionCall	 === REF!val!23
+ 	//Assuming callee exceptional postconditions
+ 	//Assuming exceptional postconditions for trace.mm()
+ 	//if...
+ 	//Check Postconditions
+ 	//if...
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Assert constraints for java.lang.Object
+ 	//Assert constraints for trace
+ 	//Asserting exceptional postconditions for trace.m2()
+test\escTrace6\trace.java:20:  	Terminated with exception
+			VALUE: _JML___exception	 === REF!val!23
+test\escTrace6\trace.java:20:  	signals (Exception e) k == 1; 
+			VALUE: k	 === ???
+			VALUE: 1	 === ???
+			VALUE: k == 1	 === ???
+ 	//if...
+test\escTrace6\trace.java:20:  	ExceptionalPostcondition assertion: !Pre_2 || trace.k == 1
+			VALUE: Pre_2_0_276___4	 === true
+			VALUE: !Pre_2_0_276___4	 === false
+			VALUE: trace.k	 === 2
+			VALUE: 1	 === 1
+			VALUE: trace.k == 1	 === false
+			VALUE: !Pre_2_0_276___4 || trace.k == 1	 === false
+test\escTrace6\trace.java:24:  Invalid assertion (ExceptionalPostcondition)
+ Associated location
+
+Completed proof of trace.m2() with prover !!!! - with warnings
+Starting proof of trace.m3() with prover !!!!
+test\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Assignable) in method m3:  \everything
+            mm();
+              ^
+test\escTrace6\trace.java:29: warning: Associated declaration
+    //@ requires true;
+        ^
+
+TRACE of trace.m3()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:29:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+ 	//try ...
+ 	//try...
+test\escTrace6\trace.java:36:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:37:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m3() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp17 || (!_JML__tmp16 || (!Pre_3 || false))
+			VALUE: _JML__tmp17	 === false
+			VALUE: _JML__tmp16	 === true
+			VALUE: !_JML__tmp16	 === false
+			VALUE: Pre_3	 === true
+			VALUE: !Pre_3	 === false
+			VALUE: false	 === false
+			VALUE: !Pre_3 || false	 === false
+			VALUE: !_JML__tmp16 || (!Pre_3 || false)	 === false
+			VALUE: _JML__tmp17 || (!_JML__tmp16 || (!Pre_3 || false))	 === false
+test\escTrace6\trace.java:37:  Invalid assertion (Assignable)
+ Associated location
+
+test\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m3
+            mm();
+              ^
+test\escTrace6\trace.java:31: warning: Associated declaration
+    //@ ensures k == 2;
+        ^
+
+TRACE of trace.m3()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: k_48	 === 0
+			VALUE: -2147483648 <= k_48	 === ???
+			VALUE: -2147483648 <= k_48 && k_48 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+test\escTrace6\trace.java:29:  	requires true; 
+			VALUE: true	 === true
+ 	//try...
+ 	//Method Body
+ 	//try ...
+ 	//try...
+test\escTrace6\trace.java:36:  	k = 1
+			VALUE: 1	 === 1
+			VALUE: k = 1	 === 1
+test\escTrace6\trace.java:37:  	mm()
+ 	//Checking caller invariants before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking callee invariants by the caller trace.m3() before calling method trace.mm()
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Checking preconditions of callee mm() by the caller
+ 	//if...
+test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp17 || (!_JML__tmp16 || (!Pre_3 || false))
+			VALUE: _JML__tmp17	 === true
+			VALUE: _JML__tmp17 || (!_JML__tmp16 || (!Pre_3 || false))	 === true
+ 	//if...
+ 	//Assuming callee invariants by the caller trace.m3() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume constraints for java.lang.Object
+ 	//Assume constraints for trace
+ 	//Assuming caller invariants upon reentering the caller trace.m3() after exiting the callee trace.mm()
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//if...
+test\escTrace6\trace.java:37:  	Exception thrown by mm()
+			VALUE: _JML___exceptionCall	 === REF!val!27
+ 	//Assuming callee exceptional postconditions
+ 	//Assuming exceptional postconditions for trace.mm()
+ 	//if...
+ 	//catch (@NonNull  Exception e) ...
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= e.objectTimesFinalized && e.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.objectTimesFinalized_10263_79___13	 === ???
+			VALUE: -2147483648 <= e_732_732___31.objectTimesFinalized_10263_79___13	 === ???
+			VALUE: -2147483648 <= e_732_732___31.objectTimesFinalized_10263_79___13 && e_732_732___31.objectTimesFinalized_10263_79___13 <= 2147483647	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.theString == null || e.theString instanceof java.lang.Object && <:(\typeof(e.theString), \type(java.lang.Object))) && (e.theString == null || e.theString instanceof java.lang.CharSequence && <:(\typeof(e.theString), \type(java.lang.CharSequence))) && (e.theString == null || e.theString instanceof java.lang.Comparable && <:(\typeof(e.theString), \type(java.lang.Comparable<java.lang.String>))) && (e.theString == null || e.theString instanceof java.io.Serializable && <:(\typeof(e.theString), \type(java.io.Serializable))) && (e.theString == null || e.theString instanceof java.lang.String && <:(\typeof(e.theString), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.theString_8073_79___20	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.theString_8073_79___20 == null	 === ???
+			VALUE: e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.io.Serializable))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.String && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -2147483648 <= e.theHashCode && e.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.theHashCode_2057_79___24	 === ???
+			VALUE: -2147483648 <= e_732_732___31.theHashCode_2057_79___24	 === ???
+			VALUE: -2147483648 <= e_732_732___31.theHashCode_2057_79___24 && e_732_732___31.theHashCode_2057_79___24 <= 2147483647	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.owner == null || e.owner instanceof java.lang.Object && <:(\typeof(e.owner), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.owner_1530_79___7	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.owner_1530_79___7 == null	 === ???
+			VALUE: e_732_732___31.owner_1530_79___7 == null || e_732_732___31.owner_1530_79___7 instanceof java.lang.Object && <:(\typeof(e_732_732___31.owner_1530_79___7), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.privateState == null || e.privateState instanceof java.lang.Object && <:(\typeof(e.privateState), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.privateState_1296_79___15	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.privateState_1296_79___15 == null	 === ???
+			VALUE: e_732_732___31.privateState_1296_79___15 == null || e_732_732___31.privateState_1296_79___15 instanceof java.lang.Object && <:(\typeof(e_732_732___31.privateState_1296_79___15), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.objectState == null || e.objectState instanceof java.lang.Object && <:(\typeof(e.objectState), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.objectState_1171_79___8	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.objectState_1171_79___8 == null	 === ???
+			VALUE: e_732_732___31.objectState_1171_79___8 == null || e_732_732___31.objectState_1171_79___8 instanceof java.lang.Object && <:(\typeof(e_732_732___31.objectState_1171_79___8), \type(java.lang.Object))	 === ???
+ 	//if...
+test\escTrace6\trace.java:39:  	assume ImplicitAssume -2147483648 <= e.objectTimesFinalized && e.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.objectTimesFinalized_10263_79___13	 === ???
+			VALUE: -2147483648 <= e_732_732___31.objectTimesFinalized_10263_79___13	 === ???
+			VALUE: -2147483648 <= e_732_732___31.objectTimesFinalized_10263_79___13 && e_732_732___31.objectTimesFinalized_10263_79___13 <= 2147483647	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.theString == null || e.theString instanceof java.lang.Object && <:(\typeof(e.theString), \type(java.lang.Object))) && (e.theString == null || e.theString instanceof java.lang.CharSequence && <:(\typeof(e.theString), \type(java.lang.CharSequence))) && (e.theString == null || e.theString instanceof java.lang.Comparable && <:(\typeof(e.theString), \type(java.lang.Comparable<java.lang.String>))) && (e.theString == null || e.theString instanceof java.io.Serializable && <:(\typeof(e.theString), \type(java.io.Serializable))) && (e.theString == null || e.theString instanceof java.lang.String && <:(\typeof(e.theString), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.theString_8073_79___20	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.theString_8073_79___20 == null	 === ???
+			VALUE: e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Object && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Object))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.CharSequence))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.io.Serializable))) && (e_732_732___31.theString_8073_79___20 == null || e_732_732___31.theString_8073_79___20 instanceof java.lang.String && <:(\typeof(e_732_732___31.theString_8073_79___20), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume -2147483648 <= e.theHashCode && e.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.theHashCode_2057_79___24	 === ???
+			VALUE: -2147483648 <= e_732_732___31.theHashCode_2057_79___24	 === ???
+			VALUE: -2147483648 <= e_732_732___31.theHashCode_2057_79___24 && e_732_732___31.theHashCode_2057_79___24 <= 2147483647	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.owner == null || e.owner instanceof java.lang.Object && <:(\typeof(e.owner), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.owner_1530_79___7	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.owner_1530_79___7 == null	 === ???
+			VALUE: e_732_732___31.owner_1530_79___7 == null || e_732_732___31.owner_1530_79___7 instanceof java.lang.Object && <:(\typeof(e_732_732___31.owner_1530_79___7), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.privateState == null || e.privateState instanceof java.lang.Object && <:(\typeof(e.privateState), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.privateState_1296_79___15	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.privateState_1296_79___15 == null	 === ???
+			VALUE: e_732_732___31.privateState_1296_79___15 == null || e_732_732___31.privateState_1296_79___15 instanceof java.lang.Object && <:(\typeof(e_732_732___31.privateState_1296_79___15), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.objectState == null || e.objectState instanceof java.lang.Object && <:(\typeof(e.objectState), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.objectState_1171_79___8	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.objectState_1171_79___8 == null	 === ???
+			VALUE: e_732_732___31.objectState_1171_79___8 == null || e_732_732___31.objectState_1171_79___8 instanceof java.lang.Object && <:(\typeof(e_732_732___31.objectState_1171_79___8), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e._stackTrace == null || <:(\typeof(e._stackTrace), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e._stackTrace)), \type(java.lang.StackTraceElement)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._stackTrace_2012_79___10	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._stackTrace_2012_79___10 == null	 === ???
+			VALUE: e_732_732___31._stackTrace_2012_79___10 == null || <:(\typeof(e_732_732___31._stackTrace_2012_79___10), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e_732_732___31._stackTrace_2012_79___10)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e._cause == null || e._cause instanceof java.lang.Object && <:(\typeof(e._cause), \type(java.lang.Object))) && (e._cause == null || e._cause instanceof java.io.Serializable && <:(\typeof(e._cause), \type(java.io.Serializable))) && (e._cause == null || e._cause instanceof java.lang.Throwable && <:(\typeof(e._cause), \type(java.lang.Throwable))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._cause_1818_79___11	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._cause_1818_79___11 == null	 === ???
+			VALUE: e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.io.Serializable))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Throwable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Throwable)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e._message == null || e._message instanceof java.lang.Object && <:(\typeof(e._message), \type(java.lang.Object))) && (e._message == null || e._message instanceof java.lang.CharSequence && <:(\typeof(e._message), \type(java.lang.CharSequence))) && (e._message == null || e._message instanceof java.lang.Comparable && <:(\typeof(e._message), \type(java.lang.Comparable<java.lang.String>))) && (e._message == null || e._message instanceof java.io.Serializable && <:(\typeof(e._message), \type(java.io.Serializable))) && (e._message == null || e._message instanceof java.lang.String && <:(\typeof(e._message), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._message_1751_79___19	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._message_1751_79___19 == null	 === ???
+			VALUE: e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.io.Serializable))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.String && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume e.EMPTY_THROWABLE_ARRAY == null || <:(\typeof(e.EMPTY_THROWABLE_ARRAY), \type(java.lang.Throwable[])) && <:(\elemtype(\typeof(e.EMPTY_THROWABLE_ARRAY)), \type(java.lang.Throwable)); ...
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY == null	 === ???
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY == null || <:(\typeof(java.lang.Throwable_EMPTY_THROWABLE_ARRAY), \type(java.lang.Throwable[])) && <:(\elemtype(\typeof(java.lang.Throwable_EMPTY_THROWABLE_ARRAY)), \type(java.lang.Throwable))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.Object))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.io.Serializable))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.String && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION == null	 === ???
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.io.Serializable))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.String && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.Object))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.CharSequence))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(e.CAUSE_CAPTION), \type(java.io.Serializable))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.String && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_CAUSE_CAPTION	 === REF!val!35
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_CAUSE_CAPTION == null	 === ???
+			VALUE: java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.io.Serializable))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.String && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.String && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE	 === REF!val!36
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null	 === ???
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.String && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.io.Serializable))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.String && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE == null	 === ???
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.io.Serializable))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.String && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.lang.Object && <:(\typeof(e.suppressedExceptions), \type(java.lang.Object))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.lang.Iterable && <:(\typeof(e.suppressedExceptions), \type(java.lang.Iterable<E>))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.util.Collection && <:(\typeof(e.suppressedExceptions), \type(java.util.Collection<E>))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.util.List && <:(\typeof(e.suppressedExceptions), \type(java.util.List<E>))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.suppressedExceptions_79___23	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.suppressedExceptions_79___23 == null	 === ???
+			VALUE: e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>)))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.Collection && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.Collection<E>)))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.Collection && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.Collection<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.List && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.List<E>)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.util.Collection<E>))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.util.List && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.util.List<E>))); ...
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL == null	 === ???
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.Collection<E>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.Collection<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.List && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.List<E>)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.stackTrace == null || <:(\typeof(e.stackTrace), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e.stackTrace)), \type(java.lang.StackTraceElement)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.stackTrace_79___18	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.stackTrace_79___18 == null	 === ???
+			VALUE: e_732_732___31.stackTrace_79___18 == null || <:(\typeof(e_732_732___31.stackTrace_79___18), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e_732_732___31.stackTrace_79___18)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.cause == null || e.cause instanceof java.lang.Object && <:(\typeof(e.cause), \type(java.lang.Object))) && (e.cause == null || e.cause instanceof java.io.Serializable && <:(\typeof(e.cause), \type(java.io.Serializable))) && (e.cause == null || e.cause instanceof java.lang.Throwable && <:(\typeof(e.cause), \type(java.lang.Throwable))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.cause_79___21	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.cause_79___21 == null	 === ???
+			VALUE: e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.io.Serializable))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Throwable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Throwable)))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume e.UNASSIGNED_STACK == null || <:(\typeof(e.UNASSIGNED_STACK), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e.UNASSIGNED_STACK)), \type(java.lang.StackTraceElement)); ...
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK	 === REF!val!40
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK == null	 === ???
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK == null || <:(\typeof(java.lang.Throwable_UNASSIGNED_STACK), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(java.lang.Throwable_UNASSIGNED_STACK)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.detailMessage == null || e.detailMessage instanceof java.lang.Object && <:(\typeof(e.detailMessage), \type(java.lang.Object))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.CharSequence && <:(\typeof(e.detailMessage), \type(java.lang.CharSequence))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.Comparable && <:(\typeof(e.detailMessage), \type(java.lang.Comparable<java.lang.String>))) && (e.detailMessage == null || e.detailMessage instanceof java.io.Serializable && <:(\typeof(e.detailMessage), \type(java.io.Serializable))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.String && <:(\typeof(e.detailMessage), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.detailMessage_79___14	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.detailMessage_79___14 == null	 === ???
+			VALUE: e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.io.Serializable))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.String && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.backtrace == null || e.backtrace instanceof java.lang.Object && <:(\typeof(e.backtrace), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.backtrace_79___12	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.backtrace_79___12 == null	 === ???
+			VALUE: e_732_732___31.backtrace_79___12 == null || e_732_732___31.backtrace_79___12 instanceof java.lang.Object && <:(\typeof(e_732_732___31.backtrace_79___12), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -9223372036854775808L <= e.serialVersionUID && e.serialVersionUID <= 9223372036854775807L; ...
+			VALUE: -9223372036854775808L	 === ???
+			VALUE: java.lang.Throwable_serialVersionUID	 === 0
+			VALUE: -9223372036854775808L <= java.lang.Throwable_serialVersionUID	 === ???
+			VALUE: -9223372036854775808L <= java.lang.Throwable_serialVersionUID && java.lang.Throwable_serialVersionUID <= 9223372036854775807L	 === ???
+ 	//if...
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e._stackTrace == null || <:(\typeof(e._stackTrace), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e._stackTrace)), \type(java.lang.StackTraceElement)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._stackTrace_2012_79___10	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._stackTrace_2012_79___10 == null	 === ???
+			VALUE: e_732_732___31._stackTrace_2012_79___10 == null || <:(\typeof(e_732_732___31._stackTrace_2012_79___10), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e_732_732___31._stackTrace_2012_79___10)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e._cause == null || e._cause instanceof java.lang.Object && <:(\typeof(e._cause), \type(java.lang.Object))) && (e._cause == null || e._cause instanceof java.io.Serializable && <:(\typeof(e._cause), \type(java.io.Serializable))) && (e._cause == null || e._cause instanceof java.lang.Throwable && <:(\typeof(e._cause), \type(java.lang.Throwable))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._cause_1818_79___11	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._cause_1818_79___11 == null	 === ???
+			VALUE: e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Object && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Object))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.io.Serializable))) && (e_732_732___31._cause_1818_79___11 == null || e_732_732___31._cause_1818_79___11 instanceof java.lang.Throwable && <:(\typeof(e_732_732___31._cause_1818_79___11), \type(java.lang.Throwable)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e._message == null || e._message instanceof java.lang.Object && <:(\typeof(e._message), \type(java.lang.Object))) && (e._message == null || e._message instanceof java.lang.CharSequence && <:(\typeof(e._message), \type(java.lang.CharSequence))) && (e._message == null || e._message instanceof java.lang.Comparable && <:(\typeof(e._message), \type(java.lang.Comparable<java.lang.String>))) && (e._message == null || e._message instanceof java.io.Serializable && <:(\typeof(e._message), \type(java.io.Serializable))) && (e._message == null || e._message instanceof java.lang.String && <:(\typeof(e._message), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31._message_1751_79___19	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31._message_1751_79___19 == null	 === ???
+			VALUE: e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Object && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Object))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.CharSequence))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.io.Serializable && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.io.Serializable))) && (e_732_732___31._message_1751_79___19 == null || e_732_732___31._message_1751_79___19 instanceof java.lang.String && <:(\typeof(e_732_732___31._message_1751_79___19), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.EMPTY_THROWABLE_ARRAY == null || <:(\typeof(e.EMPTY_THROWABLE_ARRAY), \type(java.lang.Throwable[])) && <:(\elemtype(\typeof(e.EMPTY_THROWABLE_ARRAY)), \type(java.lang.Throwable)); ...
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY == null	 === ???
+			VALUE: java.lang.Throwable_EMPTY_THROWABLE_ARRAY == null || <:(\typeof(java.lang.Throwable_EMPTY_THROWABLE_ARRAY), \type(java.lang.Throwable[])) && <:(\elemtype(\typeof(java.lang.Throwable_EMPTY_THROWABLE_ARRAY)), \type(java.lang.Throwable))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.Object))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.io.Serializable))) && (e.SUPPRESSED_CAPTION == null || e.SUPPRESSED_CAPTION instanceof java.lang.String && <:(\typeof(e.SUPPRESSED_CAPTION), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION == null	 === ???
+			VALUE: java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.io.Serializable))) && (java.lang.Throwable_SUPPRESSED_CAPTION == null || java.lang.Throwable_SUPPRESSED_CAPTION instanceof java.lang.String && <:(\typeof(java.lang.Throwable_SUPPRESSED_CAPTION), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.Object))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.CharSequence))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(e.CAUSE_CAPTION), \type(java.io.Serializable))) && (e.CAUSE_CAPTION == null || e.CAUSE_CAPTION instanceof java.lang.String && <:(\typeof(e.CAUSE_CAPTION), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_CAUSE_CAPTION	 === REF!val!35
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_CAUSE_CAPTION == null	 === ???
+			VALUE: java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Object))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.CharSequence))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.io.Serializable))) && (java.lang.Throwable_CAUSE_CAPTION == null || java.lang.Throwable_CAUSE_CAPTION instanceof java.lang.String && <:(\typeof(java.lang.Throwable_CAUSE_CAPTION), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable))) && (e.SELF_SUPPRESSION_MESSAGE == null || e.SELF_SUPPRESSION_MESSAGE instanceof java.lang.String && <:(\typeof(e.SELF_SUPPRESSION_MESSAGE), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE	 === REF!val!36
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null	 === ???
+			VALUE: java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.io.Serializable))) && (java.lang.Throwable_SELF_SUPPRESSION_MESSAGE == null || java.lang.Throwable_SELF_SUPPRESSION_MESSAGE instanceof java.lang.String && <:(\typeof(java.lang.Throwable_SELF_SUPPRESSION_MESSAGE), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.io.Serializable))) && (e.NULL_CAUSE_MESSAGE == null || e.NULL_CAUSE_MESSAGE instanceof java.lang.String && <:(\typeof(e.NULL_CAUSE_MESSAGE), \type(java.lang.String))); ...
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE == null	 === ???
+			VALUE: java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.io.Serializable)))	 === ???
+			VALUE: (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Object))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.CharSequence && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.CharSequence))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.Comparable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.Comparable<java.lang.String>))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.io.Serializable && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.io.Serializable))) && (java.lang.Throwable_NULL_CAUSE_MESSAGE == null || java.lang.Throwable_NULL_CAUSE_MESSAGE instanceof java.lang.String && <:(\typeof(java.lang.Throwable_NULL_CAUSE_MESSAGE), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.lang.Object && <:(\typeof(e.suppressedExceptions), \type(java.lang.Object))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.lang.Iterable && <:(\typeof(e.suppressedExceptions), \type(java.lang.Iterable<E>))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.util.Collection && <:(\typeof(e.suppressedExceptions), \type(java.util.Collection<E>))) && (e.suppressedExceptions == null || e.suppressedExceptions instanceof java.util.List && <:(\typeof(e.suppressedExceptions), \type(java.util.List<E>))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.suppressedExceptions_79___23	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.suppressedExceptions_79___23 == null	 === ???
+			VALUE: e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>)))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.Collection && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.Collection<E>)))	 === ???
+			VALUE: (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Object && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Object))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.lang.Iterable && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.lang.Iterable<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.Collection && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.Collection<E>))) && (e_732_732___31.suppressedExceptions_79___23 == null || e_732_732___31.suppressedExceptions_79___23 instanceof java.util.List && <:(\typeof(e_732_732___31.suppressedExceptions_79___23), \type(java.util.List<E>)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.util.Collection<E>))) && (e.SUPPRESSED_SENTINEL == null || e.SUPPRESSED_SENTINEL instanceof java.util.List && <:(\typeof(e.SUPPRESSED_SENTINEL), \type(java.util.List<E>))); ...
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL	 === NULL
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL == null	 === ???
+			VALUE: java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.Collection<E>)))	 === ???
+			VALUE: (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Object && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Object))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.lang.Iterable && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.lang.Iterable<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.Collection && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.Collection<E>))) && (java.lang.Throwable_SUPPRESSED_SENTINEL == null || java.lang.Throwable_SUPPRESSED_SENTINEL instanceof java.util.List && <:(\typeof(java.lang.Throwable_SUPPRESSED_SENTINEL), \type(java.util.List<E>)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.stackTrace == null || <:(\typeof(e.stackTrace), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e.stackTrace)), \type(java.lang.StackTraceElement)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.stackTrace_79___18	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.stackTrace_79___18 == null	 === ???
+			VALUE: e_732_732___31.stackTrace_79___18 == null || <:(\typeof(e_732_732___31.stackTrace_79___18), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e_732_732___31.stackTrace_79___18)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.cause == null || e.cause instanceof java.lang.Object && <:(\typeof(e.cause), \type(java.lang.Object))) && (e.cause == null || e.cause instanceof java.io.Serializable && <:(\typeof(e.cause), \type(java.io.Serializable))) && (e.cause == null || e.cause instanceof java.lang.Throwable && <:(\typeof(e.cause), \type(java.lang.Throwable))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.cause_79___21	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.cause_79___21 == null	 === ???
+			VALUE: e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Object && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Object))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.io.Serializable))) && (e_732_732___31.cause_79___21 == null || e_732_732___31.cause_79___21 instanceof java.lang.Throwable && <:(\typeof(e_732_732___31.cause_79___21), \type(java.lang.Throwable)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.UNASSIGNED_STACK == null || <:(\typeof(e.UNASSIGNED_STACK), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(e.UNASSIGNED_STACK)), \type(java.lang.StackTraceElement)); ...
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK	 === REF!val!40
+			VALUE: null	 === NULL
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK == null	 === ???
+			VALUE: java.lang.Throwable_UNASSIGNED_STACK == null || <:(\typeof(java.lang.Throwable_UNASSIGNED_STACK), \type(java.lang.StackTraceElement[])) && <:(\elemtype(\typeof(java.lang.Throwable_UNASSIGNED_STACK)), \type(java.lang.StackTraceElement))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume (e.detailMessage == null || e.detailMessage instanceof java.lang.Object && <:(\typeof(e.detailMessage), \type(java.lang.Object))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.CharSequence && <:(\typeof(e.detailMessage), \type(java.lang.CharSequence))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.Comparable && <:(\typeof(e.detailMessage), \type(java.lang.Comparable<java.lang.String>))) && (e.detailMessage == null || e.detailMessage instanceof java.io.Serializable && <:(\typeof(e.detailMessage), \type(java.io.Serializable))) && (e.detailMessage == null || e.detailMessage instanceof java.lang.String && <:(\typeof(e.detailMessage), \type(java.lang.String))); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.detailMessage_79___14	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.detailMessage_79___14 == null	 === ???
+			VALUE: e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.io.Serializable)))	 === ???
+			VALUE: (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Object && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Object))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.CharSequence && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.CharSequence))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.Comparable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.Comparable<java.lang.String>))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.io.Serializable && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.io.Serializable))) && (e_732_732___31.detailMessage_79___14 == null || e_732_732___31.detailMessage_79___14 instanceof java.lang.String && <:(\typeof(e_732_732___31.detailMessage_79___14), \type(java.lang.String)))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume e.backtrace == null || e.backtrace instanceof java.lang.Object && <:(\typeof(e.backtrace), \type(java.lang.Object)); ...
+			VALUE: e_732_732___31	 === REF!val!27
+			VALUE: e_732_732___31.backtrace_79___12	 === ???
+			VALUE: null	 === NULL
+			VALUE: e_732_732___31.backtrace_79___12 == null	 === ???
+			VALUE: e_732_732___31.backtrace_79___12 == null || e_732_732___31.backtrace_79___12 instanceof java.lang.Object && <:(\typeof(e_732_732___31.backtrace_79___12), \type(java.lang.Object))	 === ???
+test\escTrace6\trace.java:39:  	assume ImplicitAssume -9223372036854775808L <= e.serialVersionUID && e.serialVersionUID <= 9223372036854775807L; ...
+			VALUE: -9223372036854775808L	 === ???
+			VALUE: java.lang.Throwable_serialVersionUID	 === 0
+			VALUE: -9223372036854775808L <= java.lang.Throwable_serialVersionUID	 === ???
+			VALUE: -9223372036854775808L <= java.lang.Throwable_serialVersionUID && java.lang.Throwable_serialVersionUID <= 9223372036854775807L	 === ???
+test\escTrace6\trace.java:34:  	assume ImplicitAssume -9223372036854775808L <= e.serialVersionUID && e.serialVersionUID <= 9223372036854775807L; ...
+			VALUE: -9223372036854775808L	 === ???
+			VALUE: java.lang.Exception_serialVersionUID	 === 9223372036854775807
+			VALUE: -9223372036854775808L <= java.lang.Exception_serialVersionUID	 === ???
+			VALUE: -9223372036854775808L <= java.lang.Exception_serialVersionUID && java.lang.Exception_serialVersionUID <= 9223372036854775807L	 === ???
+ 	//if...
+test\escTrace6\trace.java:39:  	assume ImplicitAssume -9223372036854775808L <= e.serialVersionUID && e.serialVersionUID <= 9223372036854775807L; ...
+			VALUE: -9223372036854775808L	 === ???
+			VALUE: java.lang.Exception_serialVersionUID	 === 9223372036854775807
+			VALUE: -9223372036854775808L <= java.lang.Exception_serialVersionUID	 === ???
+			VALUE: -9223372036854775808L <= java.lang.Exception_serialVersionUID && java.lang.Exception_serialVersionUID <= 9223372036854775807L	 === ???
+ 	//Check Postconditions
+ 	//if...
+ 	//Assert invariants for java.lang.Object
+ 	//Assert invariants for trace
+ 	//Assert constraints for java.lang.Object
+ 	//Assert constraints for trace
+ 	//Asserting postconditions for trace.m3()
+ 	//if...
+test\escTrace6\trace.java:31:  	ensures k == 2; 
+			VALUE: trace.k	 === 3
+			VALUE: 2	 === 2
+			VALUE: trace.k == 2	 === false
+test\escTrace6\trace.java:31:  	Postcondition assertion: trace.k == 2
+			VALUE: trace.k	 === 3
+			VALUE: 2	 === 2
+			VALUE: trace.k == 2	 === false
+test\escTrace6\trace.java:37:  Invalid assertion (Postcondition)
+ Associated location
+
+Completed proof of trace.m3() with prover !!!! - with warnings
+Completed proving methods in trace
+12 warnings

@@ -328,6 +328,13 @@
                id="JMLUI.deleteMarkerAction">
        </action>
        <action
+               label="Check ESC"
+               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.checkESCAction">
+       </action>
+       <action
                label="Compile RAC"
                class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
                menubarPath="JML"

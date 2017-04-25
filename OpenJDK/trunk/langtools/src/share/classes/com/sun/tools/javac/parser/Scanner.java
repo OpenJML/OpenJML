@@ -29,8 +29,6 @@ import java.nio.*;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Position.LineMap;
 import com.sun.tools.javac.parser.JavaTokenizer.*;
 
@@ -116,7 +114,6 @@ public class Scanner implements Lexer {
         } else {
             token = tokenizer.readToken();
         }
-        //System.out.println("TOKEN " + token.ikind);
     }
 
     public Token split() {

@@ -1,0 +1,143 @@
+Proving methods in trace
+Skipping proof of trace.trace() (excluded by -method)
+Skipping proof of trace.mgood() (excluded by -method)
+Skipping proof of trace.m1() (excluded by -method)
+Starting proof of trace.m2() with prover !!!!
+test\escTraceLoops\trace.java:30: warning: The prover cannot establish an assertion (Assert) in method m2
+                //@ assert false;
+                    ^
+
+TRACE of trace.m2()
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTraceLoops\trace.java:23:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTraceLoops\trace.java:23:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Assume Preconditions
+ 	//try...
+ 	//Method Body
+test\escTraceLoops\trace.java:24:  	int k = 5
+			VALUE: 5	 === 5
+			VALUE: k	 === 5
+test\escTraceLoops\trace.java:25:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+test\escTraceLoops\trace.java:27:  	for ...
+test\escTraceLoops\trace.java:27:  	int i = 0
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+test\escTraceLoops\trace.java:26:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === ???
+			VALUE: i	 === ???
+			VALUE: j == i	 === ???
+			VALUE: j == i && 0 <= i	 === ???
+			VALUE: j == i && 0 <= i && i <= k	 === ???
+test\escTraceLoops\trace.java:26:  	LoopInvariantBeforeLoop assertion: j == i && 0 <= i && i <= k
+			VALUE: j	 === 0
+			VALUE: i	 === 0
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 0
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 0
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+ 	//while...
+ 	//1
+test\escTraceLoops\trace.java:27:  	Begin loop check
+test\escTraceLoops\trace.java:26:  	//@ loop_invariant j == i && 0 <= i && i <= k;
+			VALUE: j	 === 2
+			VALUE: i	 === 2
+			VALUE: j == i	 === true
+			VALUE: 0	 === 0
+			VALUE: i	 === 2
+			VALUE: 0 <= i	 === true
+			VALUE: j == i && 0 <= i	 === true
+			VALUE: i	 === 2
+			VALUE: k	 === 5
+			VALUE: i <= k	 === true
+			VALUE: j == i && 0 <= i && i <= k	 === true
+test\escTraceLoops\trace.java:27:  	Loop test
+			VALUE: i	 === 2
+			VALUE: k	 === 5
+			VALUE: i < k	 === true
+ 	//if...
+test\escTraceLoops\trace.java:27:  	Begin loop body
+test\escTraceLoops\trace.java:28:  	++j
+			VALUE: j	 === 3
+			VALUE: ++j	 === 3
+test\escTraceLoops\trace.java:29:  	if (j == 3) ...
+			VALUE: j	 === 3
+			VALUE: 3	 === 3
+			VALUE: j == 3	 === true
+			VALUE: (j == 3)	 === true
+				Condition = true
+ 	//if...
+test\escTraceLoops\trace.java:30:  	assert Assert false;
+			VALUE: false	 === false
+test\escTraceLoops\trace.java:30:  Invalid assertion (Assert)
+
+Completed proof of trace.m2() with prover !!!! - with warnings
+Skipping proof of trace.m3() (excluded by -method)
+Skipping proof of trace.m4() (excluded by -method)
+Skipping proof of trace.m5() (excluded by -method)
+Skipping proof of trace.m6() (excluded by -method)
+Skipping proof of trace.mwhile() (excluded by -method)
+Skipping proof of trace.mwhile1() (excluded by -method)
+Skipping proof of trace.mwhile2() (excluded by -method)
+Skipping proof of trace.mdo() (excluded by -method)
+Skipping proof of trace.mdo1() (excluded by -method)
+Skipping proof of trace.mdo2() (excluded by -method)
+Skipping proof of trace.mforeach(int[]) (excluded by -method)
+Skipping proof of trace.mforeach1(int[]) (excluded by -method)
+Skipping proof of trace.mforeach2(int[]) (excluded by -method)
+Skipping proof of trace.mforeach3(int[]) (excluded by -method)
+Skipping proof of trace.mforeach4(int[]) (excluded by -method)
+Skipping proof of trace.mforeach5(int[]) (excluded by -method)
+Completed proving methods in trace
+1 warning

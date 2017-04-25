@@ -98,8 +98,10 @@ public class api extends JmlTestCase {
         boolean cap = capture;
         endCapture();
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualErr = errorOutput();
-        String actualOut = output();
+        String actualErr = errorOutput().replace("\r","").replace('\\','/');
+        String actualOut = output().replace("\r","").replace('\\','/');
+        errOutput = errOutput == null ? null : errOutput.replace("\r","").replace('\\','/');
+        output = output == null ? null : output.replace("\r","").replace('\\','/');
         while (true) {
         	int k = actualOut.indexOf("Note:");
         	if (k < 0) break;
@@ -118,7 +120,7 @@ public class api extends JmlTestCase {
             throw ex;
         }
         if (cap && output != null) try {
-            compareStrings(output,actualOut);
+            compareStrings(output,actualOut.replace( "No such file or directory)","The system cannot find the file specified)"));
         } catch (AssertionError ex) {
             if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualOut);
             throw ex;
@@ -398,29 +400,29 @@ public class api extends JmlTestCase {
         }
     }
 
-    @Test
-    public void testAttach3() {
-        start(true);
-        try {
-            IAPI m = Factory.makeAPI("-no-purityCheck");
-            String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
-            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
-            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
-            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
-            int n = m.typecheck(ast1);
-            endCapture();
-            if (n != 0) {
-                System.out.println("Errors: " + n);
-                System.out.println(actualOut.toString());
-                System.out.println(actualErr.toString());
-                assertTrue(false);
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-            e.printStackTrace(System.out);
-            assertTrue(false);
-        }
-    }
+//    @Test
+//    public void testAttach3() {
+//        start(true);
+//        try {
+//            IAPI m = Factory.makeAPI("-no-purityCheck");
+//            String s1 = "public class A { /*@ ensures true;*/ void f() {} }";
+//            JavaFileObject f1 = m.makeJFOfromString("A.java",s1);
+//            JmlCompilationUnit ast1 = m.parseSingleFile(f1);
+//            m.attachSpecs(ast1,null);   // FIXME - this makes the source file appear to be .jml and not have a binary
+//            int n = m.typecheck(ast1);
+//            endCapture();
+//            if (n != 0) {
+//                System.out.println("Errors: " + n);
+//                System.out.println(actualOut.toString());
+//                System.out.println(actualErr.toString());
+//                assertTrue(false);
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e);
+//            e.printStackTrace(System.out);
+//            assertTrue(false);
+//        }
+//    }
     
 
     @Test

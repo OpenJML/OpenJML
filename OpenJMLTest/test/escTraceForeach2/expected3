@@ -1,0 +1,397 @@
+Proving methods in trace
+Skipping proof of trace.trace() (excluded by -method)
+Skipping proof of trace.mgood() (excluded by -method)
+Skipping proof of trace.m1() (excluded by -method)
+Skipping proof of trace.m2() (excluded by -method)
+Skipping proof of trace.m3() (excluded by -method)
+Skipping proof of trace.m4() (excluded by -method)
+Skipping proof of trace.m5() (excluded by -method)
+Skipping proof of trace.m6() (excluded by -method)
+Skipping proof of trace.mwhile() (excluded by -method)
+Skipping proof of trace.mwhile1() (excluded by -method)
+Skipping proof of trace.mwhile2() (excluded by -method)
+Skipping proof of trace.mdo() (excluded by -method)
+Skipping proof of trace.mdo1() (excluded by -method)
+Skipping proof of trace.mdo2() (excluded by -method)
+Skipping proof of trace.mforeach(int[]) (excluded by -method)
+Skipping proof of trace.mforeach1(int[]) (excluded by -method)
+Starting proof of trace.mforeach2(int[]) with prover !!!!
+test\escTraceLoops\trace.java:181: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mforeach2:  overflow in int sum
+            j = j + j + 1;
+                  ^
+
+TRACE of trace.mforeach2(int[])
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume a == null || \typeof(a) == \type(int[]) && <:(\typeof(a), \type(int[])) && \elemtype(\typeof(a)) == \type(int); ...
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === ???
+			VALUE: a_3951 == null	 === ???
+			VALUE: a_3951 == null || \typeof(a_3951) == \type(int[]) && <:(\typeof(a_3951), \type(int[])) && \elemtype(\typeof(a_3951)) == \type(int)	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Adding invariants for a
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for Array
+ 	//Assume Preconditions
+test\escTraceLoops\trace.java:177:  	requires a != null; 
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+ 	//try...
+ 	//Method Body
+test\escTraceLoops\trace.java:178:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === ???
+			VALUE: \index	 === ???
+			VALUE: j == \index	 === ???
+			VALUE: j == \index && 0 <= \index	 === ???
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === ???
+test\escTraceLoops\trace.java:179:  	UndefinedNullDeReference assertion: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null
+			VALUE: true	 === ???
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102)	 === true
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102) && a != null	 === true
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null)	 === false
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null	 === true
+test\escTraceLoops\trace.java:179:  	LoopInvariantBeforeLoop assertion: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length
+			VALUE: j	 === 0
+			VALUE: index_4060_102	 === 0
+			VALUE: j == index_4060_102	 === true
+			VALUE: 0	 === 0
+			VALUE: index_4060_102	 === 0
+			VALUE: 0 <= index_4060_102	 === true
+			VALUE: j == index_4060_102 && 0 <= index_4060_102	 === true
+			VALUE: index_4060_102	 === 0
+			VALUE: a	 === REF!val!12
+			VALUE: a.length	 === 1073741825
+			VALUE: index_4060_102 <= a.length	 === true
+			VALUE: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length	 === true
+ 	//while...
+ 	//1
+test\escTraceLoops\trace.java:180:  	Begin loop check
+test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 1073741824
+			VALUE: \index	 === 1073741824
+			VALUE: j == \index	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 1073741824
+			VALUE: 0 <= \index	 === true
+			VALUE: j == \index && 0 <= \index	 === true
+			VALUE: \index	 === 1073741824
+			VALUE: a	 === REF!val!12
+			VALUE: a.length	 === 1073741825
+			VALUE: \index <= a.length	 === true
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+test\escTraceLoops\trace.java:179:  	UndefinedNullDeReference assertion: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null
+			VALUE: true	 === ???
+			VALUE: true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8)	 === true
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a_3951 != null	 === true
+			VALUE: true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null	 === true
+			VALUE: !(true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null)	 === false
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a_3951 != null	 === true
+			VALUE: !(true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null) || a_3951 != null	 === true
+test\escTraceLoops\trace.java:180:  	Loop test
+			VALUE: \index	 === 1073741824
+			VALUE: _JML__tmp103	 === 1073741825
+			VALUE: \index < _JML__tmp103	 === true
+ 	//if...
+test\escTraceLoops\trace.java:180:  	Begin loop body
+test\escTraceLoops\trace.java:181:  	j = j + j + 1
+			VALUE: j	 === 1073741824
+			VALUE: j	 === 1073741824
+			VALUE: j + j	 === 2147483648
+			VALUE: 1	 === 1
+			VALUE: j + j + 1	 === 2147483649
+			VALUE: j = j + j + 1	 === 1073741826
+test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(0 < j && 0 < j) || j <= 2147483647 - j
+			VALUE: 0	 === 0
+			VALUE: j_3968_4089___7	 === 1073741824
+			VALUE: 0 < j_3968_4089___7	 === true
+			VALUE: 0	 === 0
+			VALUE: j_3968_4089___7	 === 1073741824
+			VALUE: 0 < j_3968_4089___7	 === true
+			VALUE: 0 < j_3968_4089___7 && 0 < j_3968_4089___7	 === true
+			VALUE: !(0 < j_3968_4089___7 && 0 < j_3968_4089___7)	 === false
+			VALUE: j_3968_4089___7	 === 1073741824
+			VALUE: 2147483647	 === 2147483647
+			VALUE: j_3968_4089___7	 === 1073741824
+			VALUE: 2147483647 - j_3968_4089___7	 === 1073741823
+			VALUE: j_3968_4089___7 <= 2147483647 - j_3968_4089___7	 === false
+			VALUE: !(0 < j_3968_4089___7 && 0 < j_3968_4089___7) || j_3968_4089___7 <= 2147483647 - j_3968_4089___7	 === false
+test\escTraceLoops\trace.java:181:  Invalid assertion (ArithmeticOperationRange)
+
+test\escTraceLoops\trace.java:179: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach2
+        //@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+            ^
+
+TRACE of trace.mforeach2(int[])
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+test\escTraceLoops\trace.java:1:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+ 	//Assume parameter type, allocation, and nullness
+test\escTraceLoops\trace.java:177:  	assume ImplicitAssume a == null || \typeof(a) == \type(int[]) && <:(\typeof(a), \type(int[])) && \elemtype(\typeof(a)) == \type(int); ...
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === ???
+			VALUE: a_3951 == null	 === ???
+			VALUE: a_3951 == null || \typeof(a_3951) == \type(int[]) && <:(\typeof(a_3951), \type(int[])) && \elemtype(\typeof(a_3951)) == \type(int)	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for trace
+ 	//Adding invariants for a
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume final field invariants for java.lang.Object
+ 	//Assume invariants for Array
+ 	//Assume Preconditions
+test\escTraceLoops\trace.java:177:  	requires a != null; 
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+ 	//try...
+ 	//Method Body
+test\escTraceLoops\trace.java:178:  	int j = 0
+			VALUE: 0	 === 0
+			VALUE: j	 === 0
+test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === ???
+			VALUE: \index	 === ???
+			VALUE: j == \index	 === ???
+			VALUE: j == \index && 0 <= \index	 === ???
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === ???
+test\escTraceLoops\trace.java:179:  	UndefinedNullDeReference assertion: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null
+			VALUE: true	 === ???
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102)	 === true
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102) && a != null	 === true
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null)	 === false
+			VALUE: a	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a != null	 === true
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null	 === true
+test\escTraceLoops\trace.java:179:  	LoopInvariantBeforeLoop assertion: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length
+			VALUE: j	 === 0
+			VALUE: index_4060_102	 === 0
+			VALUE: j == index_4060_102	 === true
+			VALUE: 0	 === 0
+			VALUE: index_4060_102	 === 0
+			VALUE: 0 <= index_4060_102	 === true
+			VALUE: j == index_4060_102 && 0 <= index_4060_102	 === true
+			VALUE: index_4060_102	 === 0
+			VALUE: a	 === REF!val!12
+			VALUE: a.length	 === 2
+			VALUE: index_4060_102 <= a.length	 === true
+			VALUE: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length	 === true
+ 	//while...
+ 	//1
+test\escTraceLoops\trace.java:180:  	Begin loop check
+test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === 1
+			VALUE: \index	 === 1
+			VALUE: j == \index	 === true
+			VALUE: 0	 === 0
+			VALUE: \index	 === 1
+			VALUE: 0 <= \index	 === true
+			VALUE: j == \index && 0 <= \index	 === true
+			VALUE: \index	 === 1
+			VALUE: a	 === REF!val!12
+			VALUE: a.length	 === 2
+			VALUE: \index <= a.length	 === true
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === true
+test\escTraceLoops\trace.java:179:  	UndefinedNullDeReference assertion: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null
+			VALUE: true	 === ???
+			VALUE: true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8)	 === true
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a_3951 != null	 === true
+			VALUE: true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null	 === true
+			VALUE: !(true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null)	 === false
+			VALUE: a_3951	 === REF!val!12
+			VALUE: null	 === NULL
+			VALUE: a_3951 != null	 === true
+			VALUE: !(true && (j_3968_4089___7 == index_4060_102_4060_4075___8 && 0 <= index_4060_102_4060_4075___8) && a_3951 != null) || a_3951 != null	 === true
+test\escTraceLoops\trace.java:180:  	Loop test
+			VALUE: \index	 === 1
+			VALUE: _JML__tmp103	 === 2
+			VALUE: \index < _JML__tmp103	 === true
+ 	//if...
+test\escTraceLoops\trace.java:180:  	Begin loop body
+test\escTraceLoops\trace.java:181:  	j = j + j + 1
+			VALUE: j	 === 1
+			VALUE: j	 === 1
+			VALUE: j + j	 === 2
+			VALUE: 1	 === 1
+			VALUE: j + j + 1	 === 3
+			VALUE: j = j + j + 1	 === 3
+test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(0 < j && 0 < j) || j <= 2147483647 - j
+			VALUE: 0	 === 0
+			VALUE: j_3968_4089___7	 === 1
+			VALUE: 0 < j_3968_4089___7	 === true
+			VALUE: 0	 === 0
+			VALUE: j_3968_4089___7	 === 1
+			VALUE: 0 < j_3968_4089___7	 === true
+			VALUE: 0 < j_3968_4089___7 && 0 < j_3968_4089___7	 === true
+			VALUE: !(0 < j_3968_4089___7 && 0 < j_3968_4089___7)	 === false
+			VALUE: j_3968_4089___7	 === 1
+			VALUE: 2147483647	 === 2147483647
+			VALUE: j_3968_4089___7	 === 1
+			VALUE: 2147483647 - j_3968_4089___7	 === 2147483646
+			VALUE: j_3968_4089___7 <= 2147483647 - j_3968_4089___7	 === true
+			VALUE: !(0 < j_3968_4089___7 && 0 < j_3968_4089___7) || j_3968_4089___7 <= 2147483647 - j_3968_4089___7	 === true
+test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(j < 0 && j < 0) || -2147483648 - j <= j
+			VALUE: j_3968_4089___7	 === 1
+			VALUE: 0	 === 0
+			VALUE: j_3968_4089___7 < 0	 === false
+			VALUE: j_3968_4089___7 < 0 && j_3968_4089___7 < 0	 === false
+			VALUE: !(j_3968_4089___7 < 0 && j_3968_4089___7 < 0)	 === true
+			VALUE: !(j_3968_4089___7 < 0 && j_3968_4089___7 < 0) || -2147483648 - j_3968_4089___7 <= j_3968_4089___7	 === true
+test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(0 < _JML__tmp105 && 0 < 1) || _JML__tmp105 <= 2147483647 - 1
+			VALUE: 0	 === 0
+			VALUE: _JML__tmp105	 === 2
+			VALUE: 0 < _JML__tmp105	 === true
+			VALUE: 0	 === 0
+			VALUE: 1	 === 1
+			VALUE: 0 < 1	 === true
+			VALUE: 0 < _JML__tmp105 && 0 < 1	 === true
+			VALUE: !(0 < _JML__tmp105 && 0 < 1)	 === false
+			VALUE: _JML__tmp105	 === 2
+			VALUE: 2147483647	 === 2147483647
+			VALUE: 1	 === 1
+			VALUE: 2147483647 - 1	 === 2147483646
+			VALUE: _JML__tmp105 <= 2147483647 - 1	 === true
+			VALUE: !(0 < _JML__tmp105 && 0 < 1) || _JML__tmp105 <= 2147483647 - 1	 === true
+test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(_JML__tmp105 < 0 && 1 < 0) || -2147483648 - 1 <= _JML__tmp105
+			VALUE: _JML__tmp105	 === 2
+			VALUE: 0	 === 0
+			VALUE: _JML__tmp105 < 0	 === false
+			VALUE: _JML__tmp105 < 0 && 1 < 0	 === false
+			VALUE: !(_JML__tmp105 < 0 && 1 < 0)	 === true
+			VALUE: !(_JML__tmp105 < 0 && 1 < 0) || -2147483648 - 1 <= _JML__tmp105	 === true
+test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \index && 0 <= \index && \index <= a.length;
+			VALUE: j	 === ???
+			VALUE: \index	 === ???
+			VALUE: j == \index	 === ???
+			VALUE: j == \index && 0 <= \index	 === ???
+			VALUE: j == \index && 0 <= \index && \index <= a.length	 === ???
+test\escTraceLoops\trace.java:179:  	UndefinedNullDeReference assertion: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null
+			VALUE: true	 === ???
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102)	 === false
+			VALUE: true && (j == index_4060_102 && 0 <= index_4060_102) && a != null	 === false
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null)	 === true
+			VALUE: !(true && (j == index_4060_102 && 0 <= index_4060_102) && a != null) || a != null	 === true
+test\escTraceLoops\trace.java:179:  	LoopInvariant assertion: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length
+			VALUE: j	 === 3
+			VALUE: index_4060_102	 === 2
+			VALUE: j == index_4060_102	 === false
+			VALUE: j == index_4060_102 && 0 <= index_4060_102	 === false
+			VALUE: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length	 === false
+test\escTraceLoops\trace.java:179:  Invalid assertion (LoopInvariant)
+
+Completed proof of trace.mforeach2(int[]) with prover !!!! - with warnings
+Skipping proof of trace.mforeach3(int[]) (excluded by -method)
+Skipping proof of trace.mforeach4(int[]) (excluded by -method)
+Skipping proof of trace.mforeach5(int[]) (excluded by -method)
+Completed proving methods in trace
+2 warnings

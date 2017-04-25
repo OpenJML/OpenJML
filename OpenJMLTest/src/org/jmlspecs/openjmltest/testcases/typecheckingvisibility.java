@@ -37,5 +37,15 @@ public class typecheckingvisibility extends TCBase {
         );
     }
 
+    @Test public void testVisibilityBehavior() {
+        helpTCF("TestJava.java","public class TestJava { private /*@ spec_public */ int i; \n/*@  public normal_behavior requires this.i == 0; */ public void m(){} }"
+        );
+    }
+
+    @Test public void testVisibilityBehavior2() {
+        helpTCF("TestJava.java","public class TestJava { private /*@ spec_public */ int i; \n/*@  public normal_behavior requires this.i == 0; */ public void m(){} }"
+        );
+    }
+
     
 }

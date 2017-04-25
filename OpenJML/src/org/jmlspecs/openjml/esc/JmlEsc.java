@@ -107,6 +107,10 @@ public class JmlEsc extends JmlTreeScanner {
         	assertionAdder.convert(tree); // get at the converted tree through the map
         	proverToUse = pickProver();
         	tree.accept(this);
+        } catch (PropagatedException e) {
+        	// Canceled
+    		Main.instance(context).canceled = true;
+    		throw e;
         } catch (Exception e) {
         	// No further error messages needed - FIXME - is this true?
             log.error("jml.internal","Should not be catching an exception in JmlEsc.check");
@@ -165,7 +169,13 @@ public class JmlEsc extends JmlTreeScanner {
             markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ 
             return;
         }
-    	res = doMethod(methodDecl);
+        try {
+    	    res = doMethod(methodDecl);
+        } catch (PropagatedException e) {
+            IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
+            if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.CANCELLED,methodDecl.sym));
+            throw e;
+        }
         Main.instance(context).popOptions();
         return;        
     }
@@ -194,7 +204,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        utils.progress(1,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(2,1,"Skipping proof of " + utils.qualifiedMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$ //$NON-NLS-2$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -223,7 +233,12 @@ public class JmlEsc extends JmlTreeScanner {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
         utils.progress(1,1,"Starting proof of " + utils.qualifiedMethodSig(methodDecl.sym) + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
-        
+        log.resetRecord();
+//        int prevErrors = log.nerrors;
+
+        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
+
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
         
@@ -246,7 +261,7 @@ public class JmlEsc extends JmlTreeScanner {
             noticeWriter.println(JmlPretty.write(methodDecl.body));
         }
         
-        IProverResult res;
+        IProverResult res = null;
         try {
             if (JmlOption.isOption(context, JmlOption.BOOGIE)) {
                 res = new MethodProverBoogie(this).prove(methodDecl);
@@ -260,19 +275,30 @@ public class JmlEsc extends JmlTreeScanner {
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
                     );
+//            if (log.nerrors != prevErrors) {
+//                res = new ProverResult(proverToUse,IProverResult.ERROR,methodDecl.sym);
+//            }
+
+        } catch (Main.JmlCanceledException | PropagatedException e) {
+            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
+           // FIXME - the following will through an exception because progress checks whether the operation is cancelled
+            utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            + " - exception"
+            );
+            throw e;
         } catch (Exception e) {
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
             log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"
                     );
-            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
             // FIXME - add a message? use a factory?
+        } finally {
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl.sym));
         }
-        
-        //proverResults.put(methodDecl.sym,res);
-        IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
         return res;
     }
         
@@ -290,11 +316,35 @@ public class JmlEsc extends JmlTreeScanner {
         }
         String fullyQualifiedSig = utils.qualifiedMethodSig(methodDecl.sym);
 
+        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
+        if (excludes != null) {
+            for (String exclude: excludes.split(";")) { //$NON-NLS-1$
+                if (fullyQualifiedName.equals(exclude) ||
+                        fullyQualifiedSig.equals(exclude) ||
+                        simpleName.equals(exclude)) {
+                    if (utils.jmlverbose > Utils.PROGRESS)
+                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                    return false;
+                }
+                try {
+                    if (Pattern.matches(exclude,fullyQualifiedName)) {
+                        if (utils.jmlverbose > Utils.PROGRESS)
+                            log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                        return false;
+                    }
+                } catch(PatternSyntaxException e) {
+                    // The methodToDo can be a regular string and does not
+                    // need to be legal Pattern expression
+                    // skip
+                }
+            }
+        }
+
         String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
         if (methodsToDo != null) {
             match: {
                 if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
-                for (String methodToDo: methodsToDo.split(",")) { //$NON-NLS-1$  //FIXME - this does not work when the methods list contains signatures containing commas
+                for (String methodToDo: methodsToDo.split(";")) { //$NON-NLS-1$ 
                     if (fullyQualifiedName.equals(methodToDo) ||
                             methodToDo.equals(simpleName) ||
                             fullyQualifiedSig.equals(methodToDo)) {
@@ -315,20 +365,6 @@ public class JmlEsc extends JmlTreeScanner {
             }
         }
         
-        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
-        if (excludes != null) {
-            for (String exclude: excludes.split(",")) { //$NON-NLS-1$
-                if (fullyQualifiedName.equals(exclude) ||
-                        fullyQualifiedSig.equals(exclude) ||
-                        simpleName.equals(exclude) ||
-                        Pattern.matches(exclude,fullyQualifiedName)) {
-                    if (utils.jmlverbose > Utils.PROGRESS)
-                        log.getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return false;
-                }
-            }
-        }
-
         return true;
     }
     

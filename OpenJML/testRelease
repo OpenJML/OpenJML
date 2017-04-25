@@ -24,5 +24,5 @@ NAME=openjml-${VERSION}.tar.gz
 
 echo Testing
 chmod ugo+x releaseTests/runTests releaseTests/releaseTestHelper 
-releaseTests/runTests  ${NAME}
+/bin/bash releaseTests/runTests  ${NAME}
 echo Testing Complete `date`

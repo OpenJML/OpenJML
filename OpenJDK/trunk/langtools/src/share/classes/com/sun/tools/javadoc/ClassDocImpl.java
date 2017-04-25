@@ -88,11 +88,12 @@ public class ClassDocImpl extends ProgramElementDocImpl implements ClassDoc {
 
     public final ClassType type;        // protected->public for debugging
     public final ClassSymbol tsym;      // DRC changed from protected to public
-    public DocEnv docenv() { return env; } // DRC added
     
     boolean isIncluded = false;         // Set in RootDocImpl
 
     private SerializedForm serializedForm;
+
+    public DocEnv docenv() { return env; } // DRC added
 
     /**
      * Constructor

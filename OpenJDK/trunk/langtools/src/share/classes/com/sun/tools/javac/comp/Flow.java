@@ -231,7 +231,6 @@ public class Flow {
             }
         }
     }
-    
 
     public List<Type> analyzeLambdaThrownTypes(final Env<AttrContext> env,
             JCLambda that, TreeMaker make) {
@@ -370,7 +369,7 @@ public class Flow {
         }
 
         /** Resolve all jumps of this statement. */
-        protected boolean resolveJump(JCTree tree,            // JLS -- Changed visibility 
+        protected boolean resolveJump(JCTree tree,            // JLS -- Changed visibility from private to protected
                         ListBuffer<P> oldPendingExits,
                         JumpKind jk) {
             boolean resolved = false;
@@ -851,8 +850,6 @@ public class Flow {
             }
         }
 
-    
- 
     /*************************************************************************
      * Visitor methods for statements and definitions
      *************************************************************************/
@@ -1082,7 +1079,7 @@ public class Flow {
                     caught = chk.incl(ct.type, caught);
                 }
             }
-            
+
             ListBuffer<FlowPendingExit> prevPendingExits = pendingExits;
             pendingExits = new ListBuffer<FlowPendingExit>();
             for (JCTree resource : tree.resources) {
@@ -1852,7 +1849,7 @@ public class Flow {
                         if (isInitialConstructor) {
                             inits.assign(exit.exit_inits);
                             for (int i = firstadr; i < nextadr; i++) {
-//                                checkInit(exit.tree.pos(), vardecls[i].sym);
+//                                checkInit(exit.tree.pos(), vardecls[i].sym);  // OPENJML - FIXME - why commented out?
                             }
                         }
                     }
@@ -2584,7 +2581,6 @@ public class Flow {
                 checkEffectivelyFinal(tree, (VarSymbol)tree.sym);
             }
         }
-        
 
         public void visitAssign(JCAssign tree) {
             JCTree lhs = TreeInfo.skipParens(tree.lhs);

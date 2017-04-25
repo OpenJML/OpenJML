@@ -1,0 +1,166 @@
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash:  my_loaded
+    my_loaded = false;
+              ^
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:44: warning: Associated declaration
+  //@ assignable amount, loaded;
+      ^
+
+TRACE of dmz2.Cash.Cash(int)
+ 	//Declare pre-state value of formals
+ 	//Assume axioms
+ 	//Assume static final constant fields
+ 	//Assume field type, allocation, and nullness
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	assume ImplicitAssume -2147483648 <= THIS.objectTimesFinalized && THIS.objectTimesFinalized <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_objectTimesFinalized_10263 && THIS.java.lang.Object_objectTimesFinalized_10263 <= 2147483647	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:15:  	assume ImplicitAssume (THIS.theString == null || THIS.theString instanceof java.lang.Object && <:(\typeof(THIS.theString), \type(java.lang.Object))) && (THIS.theString == null || THIS.theString instanceof java.lang.CharSequence && <:(\typeof(THIS.theString), \type(java.lang.CharSequence))) && (THIS.theString == null || THIS.theString instanceof java.lang.Comparable && <:(\typeof(THIS.theString), \type(java.lang.Comparable<java.lang.String>))) && (THIS.theString == null || THIS.theString instanceof java.io.Serializable && <:(\typeof(THIS.theString), \type(java.io.Serializable))) && (THIS.theString == null || THIS.theString instanceof java.lang.String && <:(\typeof(THIS.theString), \type(java.lang.String))); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theString_8073	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_theString_8073 == null	 === ???
+			VALUE: THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable)))	 === ???
+			VALUE: (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Object))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.CharSequence && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.CharSequence))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.Comparable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.Comparable<java.lang.String>))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.io.Serializable && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.io.Serializable))) && (THIS.java.lang.Object_theString_8073 == null || THIS.java.lang.Object_theString_8073 instanceof java.lang.String && <:(\typeof(THIS.java.lang.Object_theString_8073), \type(java.lang.String)))	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	assume ImplicitAssume -2147483648 <= THIS.theHashCode && THIS.theHashCode <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057	 === ???
+			VALUE: -2147483648 <= THIS.java.lang.Object_theHashCode_2057 && THIS.java.lang.Object_theHashCode_2057 <= 2147483647	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:15:  	assume ImplicitAssume THIS.owner == null || THIS.owner instanceof java.lang.Object && <:(\typeof(THIS.owner), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_owner_1530	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_owner_1530 == null	 === ???
+			VALUE: THIS.java.lang.Object_owner_1530 == null || THIS.java.lang.Object_owner_1530 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_owner_1530), \type(java.lang.Object))	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:15:  	assume ImplicitAssume THIS.privateState == null || THIS.privateState instanceof java.lang.Object && <:(\typeof(THIS.privateState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_privateState_1296	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_privateState_1296 == null	 === ???
+			VALUE: THIS.java.lang.Object_privateState_1296 == null || THIS.java.lang.Object_privateState_1296 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_privateState_1296), \type(java.lang.Object))	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:15:  	assume ImplicitAssume THIS.objectState == null || THIS.objectState instanceof java.lang.Object && <:(\typeof(THIS.objectState), \type(java.lang.Object)); ...
+			VALUE: THIS	 === THIS
+			VALUE: THIS.java.lang.Object_objectState_1171	 === ???
+			VALUE: null	 === NULL
+			VALUE: THIS.java.lang.Object_objectState_1171 == null	 === ???
+			VALUE: THIS.java.lang.Object_objectState_1171 == null || THIS.java.lang.Object_objectState_1171 instanceof java.lang.Object && <:(\typeof(THIS.java.lang.Object_objectState_1171), \type(java.lang.Object))	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:22:  	assume ImplicitAssume -2147483648 <= THIS.amount && THIS.amount <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.amount_435	 === ???
+			VALUE: -2147483648 <= THIS.amount_435	 === ???
+			VALUE: -2147483648 <= THIS.amount_435 && THIS.amount_435 <= 2147483647	 === ???
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:21:  	assume ImplicitAssume -2147483648 <= THIS.my_amount && THIS.my_amount <= 2147483647; ...
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.my_amount_385	 === ???
+			VALUE: -2147483648 <= THIS.my_amount_385	 === ???
+			VALUE: -2147483648 <= THIS.my_amount_385 && THIS.my_amount_385 <= 2147483647	 === ???
+ 	//Assume parameter type, allocation, and nullness
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	assume ImplicitAssume -2147483648 <= the_amount && the_amount <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: the_amount_1104	 === 1
+			VALUE: -2147483648 <= the_amount_1104	 === ???
+			VALUE: -2147483648 <= the_amount_1104 && the_amount_1104 <= 2147483647	 === ???
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume invariants for dmz2.Cash
+ 	//Assume Preconditions
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:41:  	requires 0 < the_amount; 
+			VALUE: 0	 === 0
+			VALUE: the_amount	 === 1
+			VALUE: 0 < the_amount	 === true
+ 	//try...
+ 	//Method Body
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	super()
+ 	//Checking preconditions of callee Object() by the caller
+ 	//if...
+ 	//Is \nothing assignable? C:\cygwin\home\OpenJML-git-java8-B\Specs\java5\java\lang\Object.jml:50: 
+ 	//Is this accessible?
+ 	//Is this.theString accessible?
+ 	//Is this.theHashCode accessible?
+ 	//Is this.owner accessible?
+ 	//Is this.privateState accessible?
+ 	//Is this.objectState accessible?
+ 	//if...
+ 	//assignable \nothing; 
+ 	//Assuming callee invariants by the caller dmz2.Cash.Cash(int) after exiting the callee java.lang.Object.Object()
+ 	//Assume invariants for java.lang.Object
+ 	//Assume constraints for java.lang.Object
+ 	//Assuming field invariants after super call: dmz2.Cash.Cash(int) after exiting the callee java.lang.Object.Object()
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume invariants for java.lang.CharSequence
+ 	//if...
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	//@ @Instance  public invariant charArray.owner == this; 
+			VALUE: charArray	 === REF!val!27
+			VALUE: charArray.owner	 === REF!val!13
+			VALUE: this	 === REF!val!13
+			VALUE: charArray.owner == this	 === true
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:45:  	UndefinedNullDeReference assertion: !(_JML__tmp1.theString.charArray != null) || _JML__tmp1.theString.charArray != null
+			VALUE: _JML__tmp1	 === THIS
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073	 === REF!val!13
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040	 === REF!val!27
+			VALUE: null	 === NULL
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040 != null	 === true
+			VALUE: !(_JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040 != null)	 === false
+			VALUE: _JML__tmp1	 === THIS
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073	 === REF!val!13
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040	 === REF!val!27
+			VALUE: null	 === NULL
+			VALUE: _JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040 != null	 === true
+			VALUE: !(_JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040 != null) || _JML__tmp1.java.lang.Object_theString_8073.java.lang.CharSequence_charArray_1040 != null	 === true
+ 	//Assume invariants for java.lang.Comparable
+ 	//Assume invariants for java.io.Serializable
+ 	//Assume invariants for java.lang.String
+ 	//if...
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//Assume invariants for java.lang.Object
+ 	//if...
+ 	//if...
+ 	//Assuming callee normal postconditions
+ 	//Assuming postconditions for java.lang.Object.Object()
+ 	//Class fields for constructor
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:46:  	my_amount = the_amount
+			VALUE: the_amount	 === 1
+			VALUE: my_amount = the_amount	 === 1
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:46:  	Assignable assertion: _JML__tmp5 || (!Pre_1 || (_JML__tmp4._alloc__ > 0 || THIS == THIS))
+			VALUE: _JML__tmp5	 === false
+			VALUE: Pre_1	 === true
+			VALUE: !Pre_1	 === false
+			VALUE: _JML__tmp4	 === THIS
+			VALUE: _JML__tmp4._alloc__	 === 0
+			VALUE: 0	 === 0
+			VALUE: _JML__tmp4._alloc__ > 0	 === false
+			VALUE: THIS	 === THIS
+			VALUE: THIS	 === THIS
+			VALUE: THIS == THIS	 === true
+			VALUE: _JML__tmp4._alloc__ > 0 || THIS == THIS	 === true
+			VALUE: !Pre_1 || (_JML__tmp4._alloc__ > 0 || THIS == THIS)	 === true
+			VALUE: _JML__tmp5 || (!Pre_1 || (_JML__tmp4._alloc__ > 0 || THIS == THIS))	 === true
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47:  	my_loaded = false
+			VALUE: false	 === false
+			VALUE: my_loaded = false	 === true
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47:  	Assignable assertion: _JML__tmp8 || (!Pre_1 || _JML__tmp7._alloc__ > 0)
+			VALUE: _JML__tmp8	 === false
+			VALUE: Pre_1	 === true
+			VALUE: !Pre_1	 === false
+			VALUE: _JML__tmp7	 === THIS
+			VALUE: _JML__tmp7._alloc__	 === 0
+			VALUE: 0	 === 0
+			VALUE: _JML__tmp7._alloc__ > 0	 === false
+			VALUE: !Pre_1 || _JML__tmp7._alloc__ > 0	 === false
+			VALUE: _JML__tmp8 || (!Pre_1 || _JML__tmp7._alloc__ > 0)	 === false
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47:  Invalid assertion (Assignable)
+ Associated location
+
+2 warnings

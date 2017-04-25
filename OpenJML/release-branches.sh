@@ -6,7 +6,7 @@ if [ $# -gt 1 ]; then
   echo 'Expected at most one argument'
   exit 1
 elif [ $# -ne 1 ]; then
-  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '"' | tr -d ' ' | tr -d '\t'`
+  REL=`cat ../OpenJMLFeature/feature.xml | grep version | grep -v xml | head -1 | sed -e  's/version=//' | tr -d '" \r\n\t'`
   echo 'Current version is' $REL
 else
   REL=$1
@@ -33,7 +33,11 @@ git checkout -B "$REL"
 cd ../OpenJML/OpenJML
 
 ## FIXME - make platform independent - Eclipse does not set path
-C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
+if [ -e ~/apps/ant ]; then
+  ~/apps/ant -f build-bash.xml release
+else
+  C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
+fi
 
 ## Starting in .../OpenJML/OpenJML
 ## Should be in the release branch
@@ -58,7 +62,7 @@ git push --set-upstream origin "$REL"
 git checkout $REFBRANCH
 git push
 
-cd ../JmlOpenJMLDemo
+cd ../OpenJMLDemo
 git add .
 git commit -a -m "$REL"
 git push --set-upstream origin "$REL"
@@ -66,9 +70,9 @@ git checkout $REFBRANCH
 git push
 
 cd ../OpenJML-UpdateSite
-git add .
-git commit -a -m "$REL"
-git push --set-upstream origin "$REL"
+#git add .
+#git commit -a -m "$REL"
+#git push --set-upstream origin "$REL"
 
 echo Push to plugin site
 chmod ugo+x web/toSF web/publish

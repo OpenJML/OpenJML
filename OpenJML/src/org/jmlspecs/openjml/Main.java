@@ -131,6 +131,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      * the most recent value of the context, and is used that way in testing. */
     protected Context context;
     
+    public boolean canceled = false;
+    
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
      */
@@ -388,8 +390,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
                     errorcode = compiler.compile(args).exitCode; // context and new options are created in here
-                    if (errorcode > Result.CMDERR.exitCode || 
-                            Utils.instance(compiler.context()).jmlverbose > Utils.PROGRESS) {
+                    if (//errorcode > Result.CMDERR.exitCode || 
+                            Utils.instance(compiler.context()).jmlverbose >= Utils.JMLVERBOSE) {
                         writer.println("ENDING with exit code " + errorcode);
                     }
                 }
@@ -550,10 +552,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
+        canceled = false;
         Main.Result exit = super.compile(args,context,fileObjects,processors);
 //        if (Options.instance(context).get(helpOption) != null) {
 //            helpJML(out);
 //        }
+        if (canceled) exit = Result.CANCELLED;
         return exit;
     }
     
@@ -681,6 +685,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
+                } else if (s.isEmpty()) {
+                	res = o.defaultValue().toString();
                 }
             }
         } else if (!negate && o.hasArg()) {
@@ -809,7 +815,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             progressDelegate.setDelegate(null);
         }
         
-        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
+        boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
+        if (b) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         
@@ -849,7 +856,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
-        String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
+        String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
         if (limit == null || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {
@@ -901,8 +908,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
 
-        if (JmlOption.isOption(context,JmlOption.SHOW_OPTIONS)) {
-            JmlOption.listOptions(context);
+        String showOptions = JmlOption.value(context,JmlOption.SHOW_OPTIONS);
+        if (!showOptions.equals("none")) {
+            JmlOption.listOptions(context, showOptions.equals("all"));
         }
         return files;
     }

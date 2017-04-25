@@ -259,9 +259,9 @@ public class modifiers extends TCBase {
     
     // cannot be model and final
     @Test public void testInterface4() {
-        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j;*/ }"
-                ,"/t/A.java:2: A declaration may not be both model and final",26
-                ,"/t/A.java:2: A declaration may not be both model and final",84
+        helpTCF("t/A.java","package t; \n interface I { /*@ final model int i; */ } public class A implements I { /*@ final model int j = 0;*/ }"
+//                ,"/t/A.java:2: A declaration may not be both model and final",26
+//                ,"/t/A.java:2: A declaration may not be both model and final",84
                 );
     }
     
@@ -1159,9 +1159,10 @@ public class modifiers extends TCBase {
     
     @Test public void testAnnotations1() {
         addMockFile("$A/A.jml","  public class A {}");
+        expectedExit = 0;
         helpTCF("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: The specification must include all the annotations that the Java declaration declares: @Pure", 8);
+                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: class A, annotation @Pure", 8);
     }
 
     // TODO - the next two could use better error messages

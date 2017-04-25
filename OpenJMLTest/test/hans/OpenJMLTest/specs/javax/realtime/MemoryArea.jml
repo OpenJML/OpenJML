@@ -1,5 +1,6 @@
 package javax.realtime;
 
+@javax.safetycritical.annotate.SCJAllowed(javax.safetycritical.annotate.Level.INFRASTRUCTURE)
 public abstract class MemoryArea extends Object {
   
   /*@ 
@@ -8,6 +9,7 @@ public abstract class MemoryArea extends Object {
       assignable \nothing;
       ensures \result >= 0;
     @*/
+  @javax.safetycritical.annotate.SCJAllowed
   public long memoryConsumed(); 
   
   /*@ 
@@ -16,6 +18,7 @@ public abstract class MemoryArea extends Object {
       assignable \nothing;
       ensures \result == size() - memoryConsumed();
     @*/
+  @javax.safetycritical.annotate.SCJAllowed
   public long memoryRemaining(); 
   
   /*@ 
@@ -24,6 +27,7 @@ public abstract class MemoryArea extends Object {
       assignable \nothing;
       ensures \result >= 0;
     @*/
+  @javax.safetycritical.annotate.SCJAllowed
   public long size();  
 
   // public static int getRemainingMemorySize(); 
@@ -36,6 +40,7 @@ public abstract class MemoryArea extends Object {
        requires object != null;  
        ensures  \result != null;  // is tested elsewhere, see javax.realtime.test.TestMemoryArea
     @*/
+  @javax.safetycritical.annotate.SCJAllowed
   public static MemoryArea getMemoryArea(Object object); 
   
 }

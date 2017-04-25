@@ -133,7 +133,7 @@ public class Check {
         complexInference = options.isSet("complexinference");
         warnOnSyntheticConflicts = options.isSet("warnOnSyntheticConflicts");
         suppressAbortOnBadClassFile = options.isSet("suppressAbortOnBadClassFile");
-        enableSunApiLintControl = options.isSet("enableSunApiLintControl");
+        enableSunApiLintControl = options.isSet("enableSunApiLintControl") || true;  // OPENJML - hard code this entry
         warnOnAccessToSensitiveMembers = options.isSet("warnOnAccessToSensitiveMembers");
 
         Target target = Target.instance(context);
@@ -566,7 +566,6 @@ public class Check {
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {  // DRC - changed from package to protected
         return checkCastable(pos, found, req, basicHandler);
     }
-    
     Type checkCastable(DiagnosticPosition pos, Type found, Type req, CheckContext checkContext) {
         if (types.isCastable(found, req, castWarner(pos, found, req))) {
             return req;
@@ -3096,11 +3095,6 @@ public class Check {
 
         // collect an inventory of the annotation elements
         Set<MethodSymbol> members = new LinkedHashSet<MethodSymbol>();
-//        (new Comparator<Symbol>() {
-//            public int compare(Symbol t, Symbol t1) {
-//                return t.name.compareTo(t1.name);
-//            }
-//        });
         for (Scope.Entry e = a.annotationType.type.tsym.members().elems;
                 e != null;
                 e = e.sibling)

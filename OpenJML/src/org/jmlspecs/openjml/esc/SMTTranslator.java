@@ -236,6 +236,9 @@ public class SMTTranslator extends JmlTreeScanner {
     /** The SMTLIB script as it is being constructed */
     protected IScript script;
     
+    /** Identification of the source material, such as the method being translated, for error messages */
+    protected String source;
+    
     /** An alias to script.commands() */
     protected List<ICommand> commands;
     
@@ -266,8 +269,9 @@ public class SMTTranslator extends JmlTreeScanner {
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     /** The constructor - create a new instance for each Basic Program to be translated */
-    public SMTTranslator(Context context) {
+    public SMTTranslator(Context context, String source) {
         this.context = context;
+        this.source = source;
         // OpenJDK tools
         log = Log.instance(context);
         syms = Symtab.instance(context);
@@ -501,10 +505,6 @@ public class SMTTranslator extends JmlTreeScanner {
     	List<ICommand> saved = commands;
     	commands = tcommands;
         
-        for (int i=1; i<=wildcardCount; ++i) {
-            ISymbol sym = F.symbol("JMLTV_"+"WILD"+i);
-            tcommands.add(new C_declare_fun(sym,emptyList,jmlTypeSort));
-        }
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) {
                 if (ti instanceof Type.CapturedType) continue; 
@@ -693,6 +693,11 @@ public class SMTTranslator extends JmlTreeScanner {
             jmltypelist.add(e);
         }
         tcommands.add(new C_assert(F.fcn(distinctSym, jmltypelist)));
+
+        for (int i=1; i<=wildcardCount; ++i) {
+            ISymbol sym = F.symbol("JMLTV_"+"WILD"+i);
+            tcommands.add(0,new C_declare_fun(sym,emptyList,jmlTypeSort));
+        }
 
         // Add all the type definitions into the command script before all the uses
         // of the types in the various basic block translations
@@ -1110,8 +1115,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.token == JmlTokenKind.ASSUME) {
-                        IExpr exx = convertExpr(s.expression);
-                        stack.push(exx);
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            JCExpression ex = s.expression;
+                            ex = ((JmlQuantifiedExpr)ex).value;
+                            JCExpression lhs = ((JCTree.JCBinary)ex).lhs;
+                            JCTree.JCMethodInvocation mcall = (JCTree.JCMethodInvocation)lhs;
+                            JCExpression nm = mcall.meth;
+                            JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
+                            addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                        } else {
+                            IExpr exx = convertExpr(s.expression);
+                            stack.push(exx);
+                        }
                     } else if (s.token == JmlTokenKind.ASSERT) {
                         IExpr exx = convertExpr(s.expression);
                         stack.push(exx);
@@ -1144,8 +1159,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (stat instanceof JmlStatementExpr) {
                     JmlStatementExpr s = (JmlStatementExpr)stat;
                     if (s.token == JmlTokenKind.ASSUME) {
-                        IExpr exx = stack.pop();
-                        tail = F.fcn(impliesSym, exx, tail);
+                        if (s.label == Label.METHOD_DEFINITION) {
+                            // skip
+                        } else {
+                            IExpr exx = stack.pop();
+                            tail = F.fcn(impliesSym, exx, tail);
+                        }
                     } else if (s.token == JmlTokenKind.ASSERT) {
                         IExpr exx = stack.pop();
                         // The first return is the classic translation; the second
@@ -1354,6 +1373,26 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
+    protected void addFunctionDefinition(String newname, List<JCExpression> args, JCExpression expr) {
+        if (fcnsDefined.add(newname)) {
+            // Was not already present
+            ISymbol n = F.symbol(newname);
+            ISort resultSort = convertSort(expr.type);
+            List<IDeclaration> argDecls = new LinkedList<IDeclaration>();
+//            // Adds an argument for the receiver, if the function is not static - TODO: do we ever use this?
+//            if (tree.meth instanceof JCFieldAccess && ((JCFieldAccess)tree.meth).selected != null && !((JCFieldAccess)tree.meth).sym.isStatic()) {
+//                argSorts.add(refSort);
+//            }
+            for (JCExpression e: args) {
+                IDeclaration d = F.declaration(F.symbol(e.toString()),convertSort(e.type));
+                argDecls.add(d);
+            }
+            C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
+            commands.add(c);
+        }
+        
+    }
+    
     // FIXME - review this
     @Override
     public void visitApply(JCMethodInvocation tree) {
@@ -1366,7 +1405,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            result = F.fcn(F.symbol(newname),newargs);
+            if (newargs.isEmpty()) result = F.symbol(newname);
+            else result = F.fcn(F.symbol(newname),newargs);
             return;
 
         } else if (m == null) {
@@ -1446,6 +1486,7 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         if (that.token == JmlTokenKind.BSTYPELC) {
+            if (that.toString().equals("\\typej(short)")) Utils.stop();
             Type t = that.args.get(0).type;
             addType(t);
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
@@ -1544,6 +1585,7 @@ public class SMTTranslator extends JmlTreeScanner {
         switch (op) {
             case EQ:
                 result = F.fcn(eqSym, args);
+                if (result.toString().equals("(= java.lang.Short_TYPE JMLT_short)")) Utils.stop();
                 break;
             case NE:
                 result = F.fcn(distinctSym, args);
@@ -1630,48 +1672,114 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.type.isPrimitive() == tree.expr.type.isPrimitive()) {
             TypeTag tagr = tree.type.getTag();
             TypeTag tage = tree.expr.type.getTag();
-            if (tage == TypeTag.UNKNOWN || tagr == TypeTag.UNKNOWN) { 
-                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr == TypeTag.UNKNOWN && ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
-                    // int to \bigint -- OK
+            if (tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) { 
+                if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                            // \bigint to \bigint -- OK
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                            // \real to \bigint
+                            result = F.fcn(F.symbol("to_int"), result);
+                        } else {
+                            // FIXME - error
+                        }
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                            // \bigint to \real
+                            result = F.fcn(F.symbol("to_real"), result);
+                        } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                            // \real to \real -- OK
+                        } else {
+                            // FIXME - error
+                        }
+                    } else {
+                        // FIXME - error
+                    }
+                    
+                } else if (treeutils.isIntegral(tage)) {
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // int to \bigint -- OK
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // int to \real
+                        result = F.fcn(F.symbol("to_real"), result);
+                    } else {
+                        // FIXME - error
+                    }
                 } else {
-                    // ????? FIXME
+                    if (((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // float/double to \bigint
+                        result = F.fcn(F.symbol("to_int"), result);
+                    } else if ( ((JmlType)tree.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // float/double to \real -- OK
+                    } else {
+                        // FIXME - error
+                    }
+                }
+            } else if (tage == TypeTag.NONE || tage == TypeTag.UNKNOWN) { 
+                if (treeutils.isIntegral(tagr)) {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // \bigint to int -- OK
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // \real to int -- FIXME
+                        result = F.fcn(F.symbol("to_int"), result);
+                    } else {
+                        // FIXME - error
+                    }
+                } else {
+                    if (((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSBIGINT) {
+                        // \bigint to float/double -- FIXME
+                        result = F.fcn(F.symbol("to_real"), result);
+                    } else if ( ((JmlType)tree.expr.type).jmlTypeTag() == JmlTokenKind.BSREAL) {
+                        // \real to float/double -- OK
+                    } else {
+                        // FIXME - error
+                    }
                 }
             } else if (!tree.type.isPrimitive()) {
-                // If this is a cast from reference type to reference type, we can ignore it
+                // This is a cast from reference type to reference type, we can ignore it
             } else if (tree.expr instanceof JCLiteral) {
+                // Cast from one primitive literal to a another primitive type
+                // Note that in SMT there is only Int and Real types (or bit-value types)
+                // any restrictions on the range of a value must already be stated using assertions 
                 Object v = ((JCLiteral)tree.expr).getValue();
                 if (tage == tagr) {
-                    // OK
+                    // OK -- no change in type
                 } else if (treeutils.isIntegral(tage) == treeutils.isIntegral(tagr)) {
-                    // Both integral or both floating point
-                    // OK
+                    // Both are integral or both are floating point
+                    // OK -- no change in SMT type
                 } else if (treeutils.isIntegral(tage)) {
+                    // integral to real literal
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
                     result = makeRealValue(val.doubleValue());
-                } else if (tage.ordinal() > TypeTag.LONG.ordinal()) {
+                } else if (!treeutils.isIntegral(tage)) {
                     // FIXME - cast from double to integral
                 } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
-                    // Cast to real
+                    // Cast to real FIXME - already done?
                     Double d = new Double(v.toString());
                     result = makeRealValue(d.doubleValue());
                 }
             } else {
-                if (tage.ordinal() <= TypeTag.LONG.ordinal() && tagr.ordinal() > TypeTag.LONG.ordinal()) {
+                // cast from primitive to primitive for an expression
+                boolean argIsInt = treeutils.isIntegral(tage);
+                boolean resultIsInt = treeutils.isIntegral(tagr);
+                if (argIsInt && !resultIsInt) {
+                    // Requires int and real logic
                     // integral to real
+                    result = F.fcn(F.symbol("to_real"), result);
+                } else if (!argIsInt && resultIsInt) {
+                    // Requires int and real logic
+                    // real to int
+                    result = F.fcn(F.symbol("to_int"), result);
                 } else {
-                    
+                    // no change in result
                 }
-            }
-            if (tree.expr instanceof JCLiteral) {
-                
-            } else {
-                result = convertExpr(tree.expr);
             }
         } else if (!tree.type.isPrimitive()) {
             // Cast from primitive to object
             log.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
             // unboxing cast from object to primitive
+            log.error(tree,"jml.internal","Do not expect casts from reference type in expressions: " + JmlPretty.write(tree));
             TypeTag tag = tree.type.getTag();
             switch (tag) {
                 case INT:
@@ -1682,6 +1790,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 case DOUBLE:
                 case FLOAT:
                 case BOOLEAN:
+                    // FIXME - should this ever happen?
                     break;
                 default:
                     log.error(tree,"jml.internal","Unknown type tag in translating an unboxing cast: " + tag + " " + JmlPretty.write(tree));

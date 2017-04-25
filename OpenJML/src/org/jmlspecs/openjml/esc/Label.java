@@ -56,6 +56,9 @@ public class Label {
     /** Used for implicit, miscellaneous JML assume statements */
     /*@ non_null*/ public final static Label IMPLICIT_ASSUME = new Label("ImplicitAssume");
     
+    /** Used for implicit, miscellaneous JML assume statements */
+    /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
+    
     /** Used for basic assume statements generated from assignments */
     /*@ non_null*/ public final static Label ASSIGNMENT = new Label("Assignment");
     
@@ -238,6 +241,9 @@ public class Label {
     
     /** Used to designate a possible exception because of a potential null reference */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_VALUE = new Label("PossiblyNullValue");
+    
+    /** Used to designate a possible exception because of a potential null reference */
+    /*@ non_null*/ public final static Label POSSIBLY_NULL_FIELD = new Label("PossiblyNullField");
     
     /** Used to designate a possible exception because of a potential null assignment to non_null */
     /*@ non_null*/ public final static Label POSSIBLY_NULL_ASSIGNMENT = new Label("PossiblyNullAssignment");

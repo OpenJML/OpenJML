@@ -85,7 +85,6 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
         super(msgs, new BasicConfiguration());
     }
 
-    // DRC added this method
     public String formatDiagnostic(JCDiagnostic d, Locale l) {
         String s = formatDiagnostic(d,l,selectFormat(d));
         if (depth == 0)
@@ -94,6 +93,7 @@ public class BasicDiagnosticFormatter extends AbstractDiagnosticFormatter {
             return s;
     }
     
+    // OPENJML - added this method
     public String formatDiagnostic(JCDiagnostic d, Locale l, String format) {
         if (l == null)
             l = messages.getCurrentLocale();

@@ -350,7 +350,7 @@ public class TreeMaker implements JCTree.Factory {
     {
         JCMethodInvocation tree = new JCMethodInvocation(typeargs, fn, args);
         tree.pos = pos;
-        tree.varargsElement = null;
+        tree.varargsElement = null;  // OPENJML added - FIXME is it needed
         return tree;
     }
 
@@ -620,6 +620,12 @@ public class TreeMaker implements JCTree.Factory {
      */
     public JCExpression This(Type t) {
         return Ident(new VarSymbol(FINAL, names._this, t, t.tsym));
+    }
+
+    /** Create a tree representing qualified `this' given its type
+     */
+    public JCExpression QualThis(Type t) {
+        return Select(Type(t), new VarSymbol(FINAL, names._this, t, t.tsym));
     }
 
     /** Create a tree representing a class literal.

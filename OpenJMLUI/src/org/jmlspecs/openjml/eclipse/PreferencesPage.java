@@ -88,7 +88,7 @@ IWorkbenchPreferencePage {
 	@Override
 	public boolean performOk() {
 		super.performOk();
-        Options.init();
+        Options.cache();
         return true;
 	}
 	
@@ -125,7 +125,6 @@ IWorkbenchPreferencePage {
 							} else {
 								Log.errorKey("openjml.ui.unknown.field.editor",null,field.getClass(),key,value);  //$NON-NLS-1$
 							}
-							Options.init();
 						} else {
 							// Assume anything else has a String value
 							getPreferenceStore().setValue(key,value);
@@ -135,6 +134,7 @@ IWorkbenchPreferencePage {
 						//Log.log("Ignoring property " + key + "=" + value);
 					}
 				}
+				Options.cache();
 				initialize();
 			}
 		};
@@ -177,9 +177,9 @@ IWorkbenchPreferencePage {
 
         addField(new BooleanFieldEditor(Options.enableESCKey, Messages.OpenJMLUI_PreferencesPage_EnableAutoESCChecking,
                 getFieldEditorParent()));
-        addField(new ComboFieldEditor(Options.maxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
+        addField(new ComboFieldEditor(Options.escMaxWarningsKey, Messages.OpenJMLUI_PreferencesPage_MaxWarnings,
         		new String[][]{ 
-        			{"All", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
+        			{"all", Integer.toString(Integer.MAX_VALUE) },  //$NON-NLS-1$
         			{"1","1"},   //$NON-NLS-1$ //$NON-NLS-2$
         			{"2","2"},   //$NON-NLS-1$ //$NON-NLS-2$
         			{"3","3"},   //$NON-NLS-1$ //$NON-NLS-2$
@@ -255,6 +255,9 @@ IWorkbenchPreferencePage {
         		    {Messages.OpenJMLUI_PreferencesPage_progress, Integer.toString(Utils.PROGRESS)}, 
         		    {Messages.OpenJMLUI_PreferencesPage_verbose, Integer.toString(Utils.VERBOSE)}, 
         		    {Messages.OpenJMLUI_PreferencesPage_debug, Integer.toString(Utils.DEBUG)}},
+                getFieldEditorParent()));
+        
+        addField(new BooleanFieldEditor(Options.showErrorPopupsKey, Messages.OpenJMLUI_PreferencesPage_ShowErrorPopups,
                 getFieldEditorParent()));
         
         addField(new BooleanFieldEditor(Options.uiverbosityKey, Messages.OpenJMLUI_PreferencesPage_UIVerbose,

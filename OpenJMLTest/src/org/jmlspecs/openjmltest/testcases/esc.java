@@ -79,14 +79,17 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectB() {
-		main.addOptions("-nonnullByDefault", "-timeout=300");
+		main.addOptions("-nonnullByDefault", "-timeout=300", "-show","-method=m","-checkFeasibility=debug");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 						+ "  public String m(java.lang.Integer i, Number b) {\n"
 						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-						+ "    boolean bb = b instanceof Double;\n" + "    Object oo = v.getClass();\n"
-						+ "    v.add(0,i);\n" + "    bb = v.elements().hasMoreElements();\n" + "    return null; \n" // FAILS
+						+ "    boolean bb = b instanceof Double;\n" 
+						+ "    Object oo = v.getClass();\n"
+						+ "    v.add(0,i);\n" 
+						+ "    bb = v.elements().hasMoreElements();\n" 
+						+ "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
 				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);
@@ -294,77 +297,71 @@ public class esc extends EscBase {
 	@Test
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		// main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=10");
-		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" + "public class TestJava { \n"
-
-				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m1() {\n"
+		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1","-show");
+		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+				+ "public class TestJava { \n"
+				+ "  //@ public normal_behavior  ensures true;\n" 
+				+ "  public void m1() {\n"
 				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
-				+ "    for (Map.Entry<String,String> k: a) {\n" + "    }\n" + "  }\n"
+				+ "    for (Map.Entry<String,String> k: a) {\n" 
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m2() {\n" // Line
-																								// 10
+				+ "  //@ public normal_behavior  ensures true;\n" 
+				+ "  public void m2() {\n" // Line 10
 				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
 				+ "    //@ assume values.content.owner == values;\n"
 				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" + "    Map.Entry<String,String> k;\n"
+				+ "    //@ assume values.content.owner == values;\n" 
+				+ "    Map.Entry<String,String> k;\n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
 				+ "    //@ loop_invariant values == v && values.content.owner == values; \n"
 				+ "    for (; it.hasNext(); values.add(k) ) {\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME
-																											// -
-																											// problems
-																											// if
-																											// we
-																											// have
-																											// erased
-																											// type
-																											// names
-				+ "    }\n" + "  }\n"
+				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+						// FIXME - problems if we have erased type names
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m2a() {\n" // Line
-																								// 26
+				+ "  //@ public normal_behavior  ensures true;\n" 
+				+ "  public void m2a() {\n" // Line 26
 				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
 				+ "    //@ assume values.content.owner == values;\n"
 				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" + "    Map.Entry<String,String> k;\n"
+				+ "    //@ assume values.content.owner == values;\n" 
+				+ "    Map.Entry<String,String> k;\n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
 				+ "    // @ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    if (it.hasNext()) {\n" + "        //@ assert values.content.owner == values;\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME
-																											// -
-																											// problems
-																											// if
-																											// we
-																											// have
-																											// erased
-																											// type
-																											// names
-				+ "        //@ assert values.content.owner == values;\n" + "        values.add(k); \n" // FIXME
-																										// -
-																										// problems
-																										// if
-																										// we
-																										// have
-																										// erased
-																										// type
-																										// names
-				+ "    }\n" + "  }\n"
+				+ "    if (it.hasNext()) {\n" 
+				+ "        //@ assert values.content.owner == values;\n"
+				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
+								// FIXME - problems if we have erased type names
+				+ "        //@ assert values.content.owner == values;\n" 
+				+ "        values.add(k); \n"
+								// FIXME - problems if we have erased type names
+				+ "    }\n" 
+				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m3() {\n" // Line
-																								// 20
+				+ "  //@ public normal_behavior  ensures true;\n" 
+				+ "  public void m3() {\n" 
 				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n" + "    Integer k = new Integer(1);\n"
-				+ "    //@ assert values.content.owner == values;\n" + "    values.add(k);\n" + "  }\n"
+				+ "    //@ assert values.content.owner == values;\n" 
+				+ "    Integer k = new Integer(1);\n"
+				+ "    //@ assert values.content.owner == values;\n" 
+				+ "    values.add(k);\n" 
+				+ "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m4() {\n"
+				+ "  //@ public normal_behavior  ensures true;\n"
+				+ "  public void m4() {\n"
 				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    Integer k = 0;\n" + "    values.add(k);\n" + "  }\n"
+				+ "    Integer k = 0;\n" 
+				+ "    values.add(k);\n" 
+				+ "  }\n"
 
 				+ "  public TestJava() {}"
 
@@ -2615,9 +2612,13 @@ public class esc extends EscBase {
 
 	@Test
 	public void testPureNoArguments() {
+	    //main.addOptions("-show","-method=m1");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ code_java_math*/ public class TestJava { \n" + "  public static int z;\n"
-				+ "  //@ ensures \\result == z+1;\n" + "  //@ pure \n" + "  public static int m() { return z+1; }\n"
+				+ "/*@ code_java_math*/ public class TestJava { \n" 
+		        + "  public static int z;\n"
+				+ "  //@ ensures \\result == z+1;\n" 
+				+ "  //@ pure \n" 
+				+ "  public static int m() { return z+1; }\n"
 				+ "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
 				+ "  public void m1a(int a, int b) { int k = z+2; /*@ assert k == m(); */ }\n"
 				+ "  public void m2(int a, int b) { int k = 2*z+2; /*@ assert k == m() + m(); */ }\n"
@@ -3431,7 +3432,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testNullityAndConstructors2() {
-		main.addOptions("-nonnullByDefault");
+		main.addOptions("-nonnullByDefault","-show","-method=TestJava");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
 						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "

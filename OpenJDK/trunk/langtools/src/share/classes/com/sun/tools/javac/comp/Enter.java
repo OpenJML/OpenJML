@@ -393,7 +393,7 @@ public class Enter extends JCTree.Visitor {
         typeEnvs.put(c, localEnv);
 
         // Fill out class fields.
-        c.completer = memberEnter;  // FIXME - OPENJML - COllection.Content has completer set to ClassReader, and we are overwriting that
+        c.completer = memberEnter;
         c.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, c, tree);
         c.sourcefile = env.toplevel.sourcefile;
         c.members_field = new Scope(c);

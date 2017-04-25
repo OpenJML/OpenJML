@@ -199,6 +199,7 @@ public class MethodProverSMT {
         boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
         this.showBBTrace = escdebug;
         log.useSource(methodDecl.sourcefile);
+        int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
         boolean printPrograms = jmlesc.verbose || JmlOption.isOption(context, JmlOption.SHOW);
@@ -333,7 +334,10 @@ public class MethodProverSMT {
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
-                if (!JmlOption.value(context,JmlOption.FEASIBILITY).equals("none")) {
+                String feasibilityString = JmlOption.value(context,JmlOption.FEASIBILITY);
+                if (!feasibilityString.equals("none")) {
+                    String[] feasibilities = feasibilityString.split(",");
+                    boolean allFeasibilities = feasibilityString.equals("all");
                     if (usePushPop) {
                         solver.pop(1); // Pop off previous check_sat
                     } else {
@@ -344,8 +348,18 @@ public class MethodProverSMT {
                     int k = 0;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         ++k;
-//                        if (k < 98) continue;
+//                        if (k < 290) continue;
 //                        if (k > 100) break;
+                        if (prevErrors != log.nerrors) break;
+                        if (!allFeasibilities) {
+                            outer: {
+                                for (String f: feasibilities) {
+                                    if (stat.description.contains(f)) break outer;
+                                }
+                                continue;
+                            }
+                        }
+                            
                         if (!usePushPop) {
                             ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
                             if (JmlAssertionAdder.useAssertCount) {
@@ -398,11 +412,15 @@ public class MethodProverSMT {
                             solverResponse = solver.check_sat();
                         }
                         String description = stat.description; // + " " + stat;
-                        String loc = utils.locationString(stat.pos,stat.source());
+                        String loc = utils.qualifiedName(methodDecl.sym);
+                        // FIXME - get rid of the next line some time when we can change the test results
                         if (Utils.testingMode) loc = ""; else loc = loc + " ";
-                        utils.progress(1,1,loc + "Feasibility check #" + k + " - " + description + " : " +
-                                (solverResponse.equals(unsatResponse) ? "infeasible": "OK"));
-                        if (solverResponse.equals(unsatResponse)) {
+                        String msg =  (utils.jmlverbose >= Utils.PROGRESS) ? 
+                                ("Feasibility check #" + k + " - " + description + " : ")
+                                :("Feasibility check - " + description + " : ");
+                        boolean infeasible = solverResponse.equals(unsatResponse);
+                        utils.progress(0,1,loc + msg + (infeasible ? "infeasible": "OK"));
+                        if (infeasible) {
                             if (Strings.preconditionAssumeCheckDescription.equals(description)) {
                                 log.warning(stat.pos(), "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
@@ -426,7 +444,7 @@ public class MethodProverSMT {
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
-                while (true) {
+                while (prevErrors == log.nerrors) {
 
                     if (solverResponse.isError()) {
                         solver.exit();
@@ -551,6 +569,7 @@ public class MethodProverSMT {
         smt.smtConfig.logfile = null;
 //        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
+        if (prevErrors != log.nerrors) return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
         return proofResult;
         
     }
@@ -756,8 +775,10 @@ public class MethodProverSMT {
                         if (toTrace != null && showSubexpressions) tracer.trace(s.init);
                         if (toTrace != null && showSubexpressions) tracer.trace(s.ident);
                         break ifstat;
-//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlToken.ASSUME) {
-//                        toTrace = ((JmlStatementExpr)stat).expression;
+//                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.COMMENT && ((JmlStatementExpr)stat).expression.toString().contains("ImplicitAssume")) {
+//                        break ifstat;
+                    } else if (stat instanceof JmlStatementExpr && ((JmlStatementExpr)stat).token == JmlTokenKind.ASSUME) {
+                        toTrace = ((JmlStatementExpr)stat).expression;
 //                    } else if (comment.startsWith("AssumeCheck assertion")) {
 //                    	break ifstat;
                     } else {
@@ -845,7 +866,7 @@ public class MethodProverSMT {
                     }
                     String associatedLocation = Strings.empty;
                     if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
-                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos); 
+                        associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
                     JCExpression optional = assertStat.optionalExpression;

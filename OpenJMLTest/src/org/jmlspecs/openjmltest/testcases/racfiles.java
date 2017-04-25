@@ -172,14 +172,14 @@ public class racfiles extends RacBase {
     public void racAddng() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddng;test/racaddng/jmlunitng.jar");
+        helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting");
     }
 
     @Test
     public void racAddngall() {
         rac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/racaddng/jmlunitng.jar",null};
         expectedExit = 0;
-        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime;test/racaddngall;test/racaddng;test/racaddng/jmlunitng.jar");
+        helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting");
     }
 
     @Test
@@ -279,16 +279,37 @@ public class racfiles extends RacBase {
     			);
     }
 
-    @Test
+    @Ignore // FIXME - no longer tests for absence of ghost field
+    @Test // FIXME - make platform independent and remove use of -jmltesting - but also has added a stack trace
     public void racNoGhostField() {
         expectedRACExit = 0;
-        helpTCF("test/racNoGhostField","test/racNoGhostField","Magic");
+        helpTCF("test/racNoGhostField","test/racNoGhostField","Magic","-jmltesting");
     }
 
     @Test
     public void sfbug413() {
         expectedRACExit = 0;
         helpTCF("test/sfbug413","test/sfbug413","Main");
+    }
+
+    @Test
+    public void sfbug402() {
+        expectedRACExit = 0;
+        runrac = false;
+        helpTCF("test/sfbug402","test/sfbug402","Main");
+    }
+
+    @Test
+    public void sfbug420() {
+        expectedRACExit = 0;
+        helpTCF("test/sfbug420","test/sfbug420","stack.StackImpl");
+    }
+
+    @Test
+    public void sfbug396() {
+        expectedRACExit = 0;
+        runrac = false;
+        helpTCF("test/sfbug396","test/sfbug396","Main");
     }
 
 

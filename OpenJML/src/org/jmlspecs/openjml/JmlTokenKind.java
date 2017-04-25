@@ -150,6 +150,7 @@ public enum JmlTokenKind implements ITokenKind {
     BSFRESH("\\fresh"),
     BSINVARIANTFOR("\\invariant_for"),
     BSISINITIALIZED("\\is_initialized"),
+    BSKEY("\\key"),
     BSLBLANY("\\lbl"),
     BSLBLNEG("\\lblneg"),
     BSLBLPOS("\\lblpos"),

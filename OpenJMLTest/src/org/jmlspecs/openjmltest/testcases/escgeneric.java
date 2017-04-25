@@ -272,10 +272,8 @@ public class escgeneric extends EscBase {
                 );
     }
     
-    // FIXME - this is an issue of instantiating the value of the callee's type parameters for nested types
     @Test
     public void testTypeParameter2() {
-    	//main.addOptions("-show","-method=mc");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -285,7 +283,7 @@ public class escgeneric extends EscBase {
                 +"  public void mb(/*@ non_null*/TestG<Object>.TestH i, Object j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void mc(/*@ non_null*/TestG<String>.TestH i, String j) {\n  //@ assume \\typeof(i) == \\type(TestG<String>.TestH); \n"
+                +"  public void mc(/*@ non_null*/TestG<String>.TestH i, String j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"
@@ -296,7 +294,7 @@ public class escgeneric extends EscBase {
                 +"  }\n"
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:12: warning: Associated declaration",9
+                ,"/tt/TestJava.java:15: warning: Associated declaration",9
                 );
     }
  

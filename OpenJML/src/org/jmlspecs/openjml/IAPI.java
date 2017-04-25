@@ -351,14 +351,12 @@ public interface IAPI {
      * be identical to the first, in which case the JML annotations directly in
      * Java source AST are used as the specifications for the Java class. If the
      * second argument is different, annotations in the Java AST are ignored and
-     * those in the specified specsSource AST are used instead. If the second argument
-     * is null, no annotations are used at all.
+     * those in the specified specsSource AST are used instead. 
      * @param javaSource the Java source
-     * @param specsSource the specifications AST to attach to the Java source. If this value
-     * is null, the result is that the JML specifications in the Java file itself are used.
+     * @param specsSource the specifications AST to attach to the Java source. 
      */ // TODO: instead of or in addition to any existing specs?
     public void attachSpecs(JmlCompilationUnit javaSource, @Nullable JmlCompilationUnit specsSource);
-
+    
     /** Creates a JavaFileObject instance from a pseudo filename and given content
      * @param name the name to give the 'file'
      * @param content the content to give the file

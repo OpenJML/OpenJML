@@ -1,0 +1,74 @@
+Proving methods in stack.StackImpl
+Starting proof of stack.StackImpl.StackImpl() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of stack.StackImpl.StackImpl() with prover !!!! - no warnings
+Starting proof of stack.StackImpl.count() with prover !!!!
+test\sfbug420\StackImpl.java:19: warning: The prover cannot establish an assertion (Postcondition) in method count
+		return stackCounter;
+		^
+test\sfbug420\Stack.java:11: warning: Associated declaration
+	//-RAC@ ensures \result == count;
+	        ^
+Completed proof of stack.StackImpl.count() with prover !!!! - with warnings
+Starting proof of stack.StackImpl.itemAt(int) with prover !!!!
+test\sfbug420\StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method itemAt
+		return internalStack[i-1];
+		                    ^
+test\sfbug420\StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method itemAt
+		return internalStack[i-1];
+		                    ^
+Completed proof of stack.StackImpl.itemAt(int) with prover !!!! - with warnings
+Starting proof of stack.StackImpl.isEmpty() with prover !!!!
+test\sfbug420\StackImpl.java:29: warning: The prover cannot establish an assertion (Postcondition) in method isEmpty
+		return internalStack.length == 0;
+		^
+test\sfbug420\Stack.java:20: warning: Associated declaration
+	//@ ensures \result==(count()==0);
+	    ^
+Completed proof of stack.StackImpl.isEmpty() with prover !!!! - with warnings
+Starting proof of stack.StackImpl.push(int) with prover !!!!
+test\sfbug420\StackImpl.java:34: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method push
+		internalStack[stackCounter] = item;
+		             ^
+test\sfbug420\StackImpl.java:33: warning: The prover cannot establish an assertion (Postcondition) in method push
+		if(stackCounter + 1 > maxSize) return false;
+		                               ^
+test\sfbug420\Stack.java:27: warning: Associated declaration
+	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
+	    ^
+Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings
+Starting proof of stack.StackImpl.top() with prover !!!!
+test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
+		return internalStack[stackCounter-1];
+		                    ^
+test\sfbug420\StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
+		return internalStack[stackCounter-1];
+		                    ^
+Completed proof of stack.StackImpl.top() with prover !!!! - with warnings
+Starting proof of stack.StackImpl.remove() with prover !!!!
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of stack.StackImpl.remove() with prover !!!! - no warnings
+Starting proof of stack.StackImpl.main(java.lang.String[]) with prover !!!!
+test\sfbug420\StackImpl.java:54: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(1));
+		                           ^
+test\sfbug420\Stack.java:16: warning: Associated declaration
+	//@ requires i>=1 && i<=count();
+	    ^
+test\sfbug420\StackImpl.java:55: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(2));
+		                           ^
+test\sfbug420\Stack.java:16: warning: Associated declaration
+	//@ requires i>=1 && i<=count();
+	    ^
+test\sfbug420\StackImpl.java:56: warning: The prover cannot establish an assertion (Precondition) in method main
+		System.out.println(s.itemAt(3));
+		                           ^
+test\sfbug420\Stack.java:16: warning: Associated declaration
+	//@ requires i>=1 && i<=count();
+	    ^
+Completed proof of stack.StackImpl.main(java.lang.String[]) with prover !!!! - with warnings
+Completed proving methods in stack.StackImpl
+17 warnings
