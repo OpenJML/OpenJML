@@ -71,8 +71,8 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
     
     /** Allows other extending classes to implement a different type of proof **/
     @Override
-    public SMTTranslator getTranslator(Context context){
-        return new SMTTranslator(context);
+    public SMTTranslator getTranslator(Context context, String def){
+        return new SMTTranslator(context, def);
     }
     
     public boolean checkImplies(Set<JmlMethodClauseExpr> filters,  JmlMethodClauseExpr p, JmlMethodDecl method){
@@ -183,7 +183,7 @@ public class SubstitutionEQProverSMT extends MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = getTranslator(context); 
+        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString()); 
         
         ISolver solver = null;
         
