@@ -22,7 +22,8 @@ public interface Stack{
 	boolean isEmpty ( );
 
 	//-RAC@ assignable count;
-	//@ ensures \result ==> count() == \old(count()) + 1;
+	//@ ensures !\result ==> count() == \old(count);
+	//@ ensures \result ==> count() == \old(count) + 1;
 	//@ ensures \result ==> item==(top());
 	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
 	boolean push(int item);
