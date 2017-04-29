@@ -4,11 +4,14 @@ public class StackImpl implements Stack {
 		
 	/*@ spec_public */ private int maxSize = 50;
 	/*@ spec_public */ private int[] internalStack;
-	/*@ spec_public */ private int stackCounter;
+	/*@ spec_public */ private int stackCounter; //@ in count;
 	//@ public represents count = stackCounter;
 	//@ public invariant stackCounter <= internalStack.length;
 	//@ public invariant internalStack.length >= maxSize;
 	
+	//@ ensures count == 0;
+	//@ ensures stackCounter == 0;
+	//@ ensures count() == 0;
 	@SuppressWarnings("unchecked")
 	public StackImpl() {
 		internalStack = new int[maxSize];
@@ -53,13 +56,14 @@ public class StackImpl implements Stack {
 	
 	public static void main(String[] args) {
 		Stack s = new StackImpl();
-		boolean b1 = s.push(2);
-		boolean b2 = s.push(2);
-		boolean b3 = s.push(2);
-		if (!(b1 && b2 && b3)) return;
-		System.out.println(s.itemAt(1));
-		System.out.println(s.itemAt(2));
-		System.out.println(s.itemAt(3));
+		//@ assert s.count == 0;
+//		boolean b1 = s.push(2);
+//		boolean b2 = s.push(2);
+//		boolean b3 = s.push(2);
+//		if (!(b1 && b2 && b3)) return;
+//		System.out.println(s.itemAt(1));
+//		System.out.println(s.itemAt(2));
+//		System.out.println(s.itemAt(3));
 	}
 
 }
