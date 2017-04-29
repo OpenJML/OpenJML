@@ -99,7 +99,7 @@ public class escm extends EscBase {
     /** This test checks that the specs of nested, local and anonymous classes are used */
     @Test
     public void testNestedClassSpecs() {
-        main.addOptions("-checkFeasibility=preconditions");
+        main.addOptions("-checkFeasibility=precondition");
         //main.addOptions("-progress");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
@@ -142,9 +142,9 @@ public class escm extends EscBase {
                 ,"/tt/TestJava.java:14: warning: Associated declaration",29
                 ,"/tt/TestJava.java:14: warning: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
                 
-                //,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (InvariantExit) in method <init>",22 // Inherited E
-                //,"/tt/TestJava.java:14: warning: Associated declaration",29
+                ,"/tt/TestJava.java:15: warning: There is no feasible path to program point at program exit in method tt.TestJava.2.()",22
                 ,"/tt/TestJava.java:15: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.2.mm()",30
+                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",15
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
                 ,"/tt/TestJava.java:18: warning: Associated declaration",17
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18

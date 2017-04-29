@@ -315,11 +315,11 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug502() {
-        helpTCG("-show","-method=main","-checkFeasibility=reachable,exit","-progress");
+        helpTCG();
     }
 
     @Test public void gitbug503() {
-        helpTCG();
+        helpTCG("-logic=AUFNIA");
     }
 
     // Check everything in apache commons library!

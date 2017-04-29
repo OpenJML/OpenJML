@@ -868,20 +868,14 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (check == null) {
-            options.put(JmlOption.FEASIBILITY.optionName(),"all");
-            check="all";
+        if (check == null || check.equals(Strings.feas_default)) {
+            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
+        } else if (check.equals(Strings.feas_all)) {
+            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
         }
-        if (check.equals("all") || 
-                check.equals("preconditions") || 
-                check.equals("exit") || 
-                check.equals("postconditions") || 
-                check.equals("reachable") || 
-                check.equals("debug") || 
-                check.equals("none")) {
-            // continue
-        } else {
-            Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + check);
+        String badString = Strings.isOK(check);
+        if (badString != null) {
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + badString);
         }
         Extensions.register(context);
         return true;

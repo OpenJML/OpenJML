@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +55,7 @@ public class SpecsEsc extends EscBase {
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
         JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
-        JmlOption.putOption(context,JmlOption.FEASIBILITY,"exit");
+        JmlOption.putOption(context,JmlOption.FEASIBILITY,Strings.feas_exit);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output
