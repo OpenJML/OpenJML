@@ -16,6 +16,7 @@ public class ConsoleFactory implements IConsoleFactory {
 	public void openConsole() {
 		/*@ non_null */ IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
 		/*@ non_null */ MessageConsole console = getJMLConsole(true);
+		
 	}
 	
 	/** Returns the JML Console, creating it if necessary; 'show's it if the argument is true. */
@@ -34,6 +35,9 @@ public class ConsoleFactory implements IConsoleFactory {
 			consoleManager.addConsoles(new IConsole[]{console});
 		}
 		if (show) consoleManager.showConsoleView( console );
+		
+		// cap it at 10M
+		console.setWaterMarks(10000, 10000000);
 		return console;
 	}
 }

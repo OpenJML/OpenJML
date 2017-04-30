@@ -1,0 +1,23 @@
+
+import org.jmlspecs.annotation.*;
+
+public class A5 {
+  
+  public A5();
+  int THE_FIELD;
+    /*@
+    public normal_behavior
+      requires true; 
+      {|
+        requires (this.THE_FIELD > -1); 
+        ensures \result == 0; 
+      also
+        requires !(this.THE_FIELD > -1); 
+        ensures this.THE_FIELD == 100; 
+        ensures \result == -1; 
+        assignable this.THE_FIELD; 
+      |}
+   */
+
+  public int localTest(int a, int b);
+}

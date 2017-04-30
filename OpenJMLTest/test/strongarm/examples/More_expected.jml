@@ -1,0 +1,42 @@
+
+import java.io.Reader;
+import org.jmlspecs.annotation.*;
+
+public class More {
+  
+  public More();
+  @SpecPublic 
+  private long character;
+  @SpecPublic 
+  private boolean eof;
+  @SpecPublic 
+  private long index;
+  @SpecPublic 
+  private long line;
+  @SpecPublic 
+  private char previous;
+  @SpecPublic @NonNull 
+  private Reader reader;
+  @SpecPublic 
+  private boolean usePrevious;
+    /*@
+      requires true; 
+      ensures \result == (eof && !usePrevious); 
+   */
+
+  public boolean end();
+    /*@
+    public normal_behavior
+      requires this.reader != null; 
+      {|
+        requires ((this.eof && !this.usePrevious)); 
+        ensures \result == false; 
+      also
+        requires !((this.eof && !this.usePrevious)); 
+        ensures \result == true; 
+      |}
+   */
+
+  @Pure 
+  public boolean more() throws Exception;
+}

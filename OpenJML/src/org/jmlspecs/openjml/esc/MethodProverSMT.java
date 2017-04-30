@@ -253,7 +253,7 @@ public class MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = new SMTTranslator(context, methodDecl.sym.toString());
+        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString());
 
         ISolver solver;
         IResponse solverResponse = null;
@@ -1345,7 +1345,7 @@ public class MethodProverSMT {
         org.smtlib.IPrinter printer;
         com.sun.tools.javac.util.Log log;
         
-        SMTListener(Log log, org.smtlib.IPrinter printer) {
+        public SMTListener(Log log, org.smtlib.IPrinter printer) {
             this.log = log;
             this.printer = printer;
         }
@@ -1444,6 +1444,11 @@ public class MethodProverSMT {
         public List<IProverResult.Span> getPath() {
             return path;
         }
+    }
+    
+    /** Allows other extending classes to implement a different type of proof **/
+    public SMTTranslator getTranslator(Context context, String def){
+        return new SMTTranslator(context, def);
     }
 }
 

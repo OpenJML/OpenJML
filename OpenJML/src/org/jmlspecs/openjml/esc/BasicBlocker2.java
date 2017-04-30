@@ -266,7 +266,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** A mapping from BasicBlock to the sym->incarnation map giving the map that
      * corresponds to the state at the exit of the BasicBlock.
      */
-    @NonNull final protected Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
+    @NonNull final public Map<BasicBlock,VarMap> blockmaps = new HashMap<BasicBlock,VarMap>();
     
     /** A mapping from labels to the sym->incarnation map operative at the position
      * of the label.
@@ -280,7 +280,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // (so they do not need initialization)
     
     /** The map from symbol to incarnation number in current use */
-    @NonNull protected VarMap currentMap;
+    @NonNull public VarMap currentMap;
     
     /** The map immediately after declaration of method parameters; this is
         the mapping of variables to incarnations to use when in the scope of 

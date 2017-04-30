@@ -1,0 +1,19 @@
+
+import org.jmlspecs.annotation.*;
+
+public class StrangeResult {
+  
+  public StrangeResult();
+    /*@
+    public normal_behavior
+      {|
+        ensures \result == 14747 * (14747 * (14747 + this.theHashCode) + this.theHashCode) + this.theHashCode; 
+        
+      also
+        ensures \result == 14747 * (14747 * (14747 + this.theHashCode) + this.theHashCode) + this.theHashCode; 
+      |}
+   */
+
+  @Pure 
+  public int h();
+}

@@ -1,0 +1,24 @@
+
+import org.jmlspecs.annotation.*;
+
+public class A11 {
+  
+  public A11();
+  @SpecPublic 
+  int THE_FIELD;
+    /*@
+    public normal_behavior
+      requires true; 
+        ensures this.THE_FIELD == 999; 
+        assignable this.THE_FIELD; 
+        {|
+          requires (a > -1); 
+          ensures \result == 0; 
+        also
+          requires !(a > -1); 
+          ensures \result == -1; 
+        |}
+   */
+
+  public int localTest(int a, int b);
+}

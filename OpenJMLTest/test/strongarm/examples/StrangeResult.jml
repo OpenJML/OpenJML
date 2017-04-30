@@ -1,0 +1,9 @@
+
+import org.jmlspecs.annotation.*;
+
+public class StrangeResult {
+  
+  public StrangeResult();
+  
+  public int h();
+}

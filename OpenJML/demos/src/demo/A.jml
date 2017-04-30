@@ -1,0 +1,28 @@
+
+public class A {
+  
+  public A();
+    /*@
+    public normal_behavior
+      requires Pre_1_0_53___9; 
+      {|
+        requires Pre_1_0_53___9; 
+        requires (_JML__tmp6); 
+        ensures _JML___result_142_194___11 == -1; 
+      also
+        {|
+          requires Pre_1_0_53___9; 
+          requires !(_JML__tmp6); 
+          requires (_JML__tmp7); 
+          ensures _JML___result_142_276___14 == 1; 
+        also
+          requires Pre_1_0_53___9; 
+          requires !(_JML__tmp6); 
+          requires !(_JML__tmp7); 
+          ensures _JML___result_142_328___17 == 0; 
+        |}
+      |}
+   */
+
+  public int cmp(int a, int b);
+}

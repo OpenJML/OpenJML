@@ -1,7 +1,7 @@
 
-PDF="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/pdflatex.exe"
-BIB="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/bibtex.exe"
-HTL="C:/Program Files (x86)/MiKTeX 2.9/miktex/bin/htlatex.exe"
+PDF="/Library/TeX/texbin/pdflatex"
+BIB="/Library/TeX/texbin/bibtex"
+HTL="/Library/TeX/texbin/htlatex"
 ARGS="macro.hva"
 
 R=OpenJMLUserGuide

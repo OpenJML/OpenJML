@@ -89,6 +89,15 @@ public class Options {
 	/** The preference store key for the -checkFeasibility option. */
 	final static public String feasibilityKey = prefix + "checkFeasibility"; //$NON-NLS-1$
 	
+	
+	final static public String inferDebug = prefix + "inferDebug"; //$NON-NLS-1$
+	final static public String inferTimeout = prefix + "infertimeout"; //$NON-NLS-1$
+	final static public String inferPersistSpecsTo = prefix + "inferPersistSpecs"; //$NON-NLS-1$
+	final static public String inferMaxDepth = prefix + "inferMaxDepth"; //$NON-NLS-1$
+	final static public String inferDevTools = prefix + "inferDevTools"; //$NON-NLS-1$
+	final static public String inferDefaultPrecondition = prefix + "inferDefaultPrecondition"; //$NON-NLS-1$
+	
+	
 //	/** The preference store key for the show trace info option. */
 //	final static public String traceKey = prefix + "trace"; //$NON-NLS-1$
 //	/** The preference store key for the -subexpressions option. */

@@ -95,6 +95,13 @@
             category="org.jmlspecs.openjml.eclipse.SettingsPage"
             name="%openjml.ui.PreferencePage.Solvers">
       </page>
+      
+      <page
+            class="org.jmlspecs.openjml.eclipse.StrongarmPage"
+            id="org.jmlspecs.openjml.eclipse.StrongarmPage"
+            category="org.jmlspecs.openjml.eclipse.SettingsPage"
+            name="%openjml.ui.PreferencePage.Strongarm">
+      </page>
    </extension>
    
   <!-- The following set of extensions add various menu items to the
@@ -216,7 +223,25 @@
                enablesFor="+"
                id="JMLUI.showSpecsAction1">
        </action>
+       
+       
+       <action
+               class="org.jmlspecs.openjml.eclipse.PopupActions$InferSpecs"
+               icon="icons/strongarm_infer.png"
+               label="Infer JML Contracts (Strongarm)"
+               menubarPath="JML"
+               enablesFor="+"
+               id="JMLUI.inferSpecsAction1"
+               tooltip="Infers JML Contracts for Selected Objects">
+       </action>   
+       
     </objectContribution>
+    
+    
+    			          
+    
+    
+    
     <!-- These context menu items are enabled for Java projects -->
     <objectContribution
             adaptable="true"
@@ -621,6 +646,15 @@
                commandId="org.jmlspecs.eclipse.commands.DetailedProofInformation">
              </command>
              <separator name="org.jmlspecs.openjml.specs" visible="true"/>
+			<command
+               commandId="org.jmlspecs.eclipse.commands.JMLInfer"
+               icon="icons/strongarm_infer.png"
+               id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+               label="Infer JML Contracts (Strongarm)"
+               style="push"
+               tooltip="Infers JML Contracts for Selected Objects">
+             </command>             
+             <separator name="org.jmlspecs.openjml.specs" visible="true"/>
              <command
                label="Show Specifications"
                tooltip="Shows the specifications of the selected object"
@@ -640,9 +674,7 @@
  <extension
          point="org.eclipse.ui.menus">
       <!-- These declarations add items to the main toolbar --> 
-      <menuContribution
-            allPopups="true"
-            locationURI="toolbar:org.eclipse.ui.main.toolbar">
+      <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar">
           <toolbar id="org.jmlspecs.eclipse.openjml.toolbar">
              <command
                    commandId="org.jmlspecs.eclipse.commands.CheckJML"
@@ -652,6 +684,7 @@
                    style="push"
                    tooltip="Type-checks JML in selected objects">
              </command>
+             
              <command
                    commandId="org.jmlspecs.eclipse.commands.CheckESC"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
@@ -661,17 +694,65 @@
              </command>
              <command
                    commandId="org.jmlspecs.eclipse.commands.RAC"
-                   id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"                   
                    label="RAC"
                    style="push"
                    tooltip="Compiles JML runtime checks for selected objects">
              </command>
-
-
+             
            </toolbar>
        </menuContribution>
+       </extension>
+<!--       
+<extension point="org.eclipse.ui.menus">
+       <menuContribution locationURI="menu:org.jmlspecs.openjml.eclipse.MenuActions.CheckJML">             
+             
+             <command
+                   commandId="org.jmlspecs.eclipse.commands.CheckESC"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
+                   label="Check with ESC"
+                   icon="icons/jml-logo-16x16.png"                   
+                   style="push"
+                   tooltip="Performs JML static checks for selected objects">
+             </command>
+             <command
+                   commandId="org.jmlspecs.eclipse.commands.RAC"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
+                   icon="icons/jml-logo-16x16.png"
+                   
+                   label="Compile for RAC"
+                   style="push"
+                   tooltip="Compiles JML runtime checks for selected objects">
+             </command>
+             
+             
+              <command
+                   commandId="org.jmlspecs.eclipse.commands.JMLInfer"
+                   icon="icons/strongarm_infer.png"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+                   label="Infer JML Contracts (Strongarm)"
+                   style="push"
+                   tooltip="Infers JML Contracts for Selected Objects">
+             </command>
+             
+             <separator name="additions" visible="true">
+        	</separator>
+             
+             
+              
+              <command
+                   commandId="org.jmlspecs.eclipse.commands.CheckJML"
+                   icon="icons/settings.png"
+                   id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
+                   label="OpenJML Settings"
+                   style="push"
+                   tooltip="Opens Settings for OpenJML">
+             </command>
+            
+             
+       </menuContribution>
  </extension>
- 
+--> 
    
   <!-- This defines a new marker type -->
   <!-- The attribute is used to associate additional information with the marker (FIXME - is it used?) -->  
@@ -790,6 +871,46 @@
     </type>
   </extension>
 
+ <!-- extensions for strongarm -->
+ <!--<extension
+       id="mymarker"
+       name="My Problem"
+       point="org.eclipse.core.resources.markers">
+    <super
+          type="org.eclipse.jdt.core.problem">
+    </super>
+    <super
+          type="org.eclipse.core.resources.problemmarker">
+    </super>
+    <super
+          type="org.eclipse.core.resources.textmarker">
+    </super>
+    <persistent
+          value="true">
+    </persistent>
+ </extension>-->
+
+
+<!-- <extension
+ id="StrongarmMarker"
+ point="org.eclipse.core.resources.markers"
+ name="StrongarmMarker">
+ <super type="org.eclipse.core.resources.textmarker" />
+ <persistent value="false" />
+</extension>
+ 
+<extension point="org.eclipse.ui.editors.annotationTypes">
+ <type
+ super="org.eclipse.ui.workbench.texteditor.warning"
+ markerType="org.jmlspecs.openjml.StrongarmMarker"
+ name="org.jmlspecs.openjml.StrongarmMarkerAnnotation"/>
+</extension>-->
+ 
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+ <specification
+ annotationType="org.jmlspecs.openjml.StrongarmMarkerAnnotation"
+ icon="icons/strongarm_infer.png" />
+</extension>
 
   <!-- Provides the image for the annotations  -->
   <!-- NOTE: the annotationType must match the name, not the id, of the
@@ -994,6 +1115,17 @@
             defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$CheckESC"
             >
       </command>
+      
+      
+      <command
+            name="%openjml.ui.command.INFER"
+            description="%openjml.ui.command.INFER.description"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.jmlspecs.eclipse.commands.JMLInfer"
+            defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$JMLInfer"
+            >
+      </command>
+      
       <command
             name="RAC - compile selected"
             description="Compiles runtime checks on selected resources"

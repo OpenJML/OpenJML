@@ -1,0 +1,18 @@
+
+import org.jmlspecs.annotation.*;
+
+public class C1 {
+  
+  public C1();
+    /*@
+    public normal_behavior
+      requires ar != null; 
+        ensures -1 < 0 && 0 <= ar.length; 
+        requires !(0 < ar.length); 
+        ensures \result == 0; 
+   */
+
+  @Pure 
+  public static int sum(@NonNull 
+  int[] ar);
+}

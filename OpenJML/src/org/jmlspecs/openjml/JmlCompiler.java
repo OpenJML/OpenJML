@@ -19,6 +19,9 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.strongarm.InferenceType;
+import org.jmlspecs.openjml.strongarm.JmlInfer;
+import org.jmlspecs.openjml.strongarm.JmlInferPostConditions;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -375,13 +378,18 @@ public class JmlCompiler extends JavaCompiler {
             // Stop here
             return results; // Empty list - do nothing more
         } else if (utils.esc) {
-        	try {
-        	for (Env<AttrContext> env: envs)
-        		esc(env);
-        	} catch (PropagatedException e) {
+
+        		try {
+            for (Env<AttrContext> env: envs)
+                esc(env);
+            } catch (PropagatedException e){            
         		// cancelation
-        	}
-    		return results; // Empty list - Do nothing more
+        		}
+            return results; // Empty list - Do nothing more
+        }else if (utils.infer) {
+            for (Env<AttrContext> env: envs)
+                infer(env);
+            return results;
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
@@ -583,6 +591,29 @@ public class JmlCompiler extends JavaCompiler {
 
         return;
     }
+    
+    
+    protected void infer(Env<AttrContext> env) {
+        if (((JmlCompilationUnit)env.toplevel).mode != JmlCompilationUnit.JAVA_SOURCE_FULL) return;
+
+        JmlInfer infer;        
+        String currentFile = env.toplevel.sourcefile.getName();
+        
+        if(InferenceType.valueOf(JmlOption.value(context, JmlOption.INFER))==InferenceType.POSTCONDITIONS){
+            infer = JmlInferPostConditions.instance(context);
+        }else{
+            // NOT DONE YET!
+            log.error("jml.internal","Precondition inference is not available yet.");
+            return;
+        }
+
+        infer.check(env.tree);
+        
+        if((infer.persistContracts || infer.weaveContracts) && env.tree instanceof JmlClassDecl){
+            infer.flushContracts(currentFile, (JmlClassDecl)env.tree);
+        }
+    }
+
 
     // FIXME - we are overriding to only allow SIMPLE compile policy
     protected void compile2(CompilePolicy compPolicy) {

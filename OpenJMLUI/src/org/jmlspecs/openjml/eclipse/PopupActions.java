@@ -335,7 +335,21 @@ abstract public class PopupActions implements IObjectActionDelegate {
             }
         }
     }
-
+    
+    
+    public static class InferSpecs extends PopupActions {
+	@Override
+	public void run(IAction action) {
+	    try {
+		if (Options.uiverboseness) {
+		    Log.log("Infer context action initiated"); //$NON-NLS-1$
+		}
+		utils.inferSelection(selection, null, shell);
+	    } catch (Exception e) {
+		utils.topLevelException(shell, "PopupActions.InferJML", e); //$NON-NLS-1$
+	    }
+	}
+    }
 
     /** This class implements the action of popping up a dialog to
 	 * show specifications of a Java element.
