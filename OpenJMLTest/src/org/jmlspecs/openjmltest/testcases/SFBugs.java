@@ -314,6 +314,14 @@ public class SFBugs extends EscBase {
         helpTCG("-rac");  // Just RAC compilation
     }
 
+    @Test public void gitbug502() {
+        helpTCG();
+    }
+
+    @Test public void gitbug503() {
+        helpTCG("-logic=AUFNIA");
+    }
+
     // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;

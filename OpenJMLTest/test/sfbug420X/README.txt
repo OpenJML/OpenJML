@@ -1,0 +1,1 @@
+This is a fully working version of sfbug420, with spec_public everywhere

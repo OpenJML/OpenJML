@@ -50,6 +50,12 @@ TRACE of tt.TestJava.m1(int)
 			VALUE: THIS.k_71	 === ???
 			VALUE: -2147483648 <= THIS.k_71	 === ???
 			VALUE: -2147483648 <= THIS.k_71 && THIS.k_71 <= 2147483647	 === ???
+/tt/TestJava.java:4:  	assume ImplicitAssume -2147483648 <= THIS.k && THIS.k <= 2147483647;
+			VALUE: -2147483648	 === ???
+			VALUE: THIS	 === THIS
+			VALUE: THIS.k_71	 === ???
+			VALUE: -2147483648 <= THIS.k_71	 === ???
+			VALUE: -2147483648 <= THIS.k_71 && THIS.k_71 <= 2147483647	 === ???
  	//Assume parameter type, allocation, and nullness
 /tt/TestJava.java:4:  	assume ImplicitAssume -2147483648 <= i && i <= 2147483647;
 			VALUE: -2147483648	 === ???

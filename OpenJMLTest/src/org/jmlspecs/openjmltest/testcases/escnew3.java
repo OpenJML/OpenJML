@@ -964,4 +964,23 @@ public class escnew3 extends EscBase {
     }
     
 
+    // Problem from Michael Coblenz - git issue #504
+    @Test
+    public void testSimpleClone() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava {\n"
+                + "  public String y = \"\";\n"
+                + " \n"
+                + "  public int[] foo() {\n"
+                + "     int[] result1 = new int[]{1};\n"
+                + "     int[] result2 = result1.clone();\n"
+                + "     return result2;\n"
+                + "  }\n"
+                + "}"
+                 );
+        
+    }
+    
+
 }
