@@ -528,7 +528,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public boolean skipExplicit(JmlClassDecl decl) {
             if (decl.mods != null) {
                 for (JCTree.JCAnnotation a : decl.mods.annotations) {
-                    if (a != null && a.type.toString().equals("org.jmlspecs.openjml.strongarm.SkipInfer")) { // FIXME - do this without converting to string
+                    if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipInfer")) { // FIXME - do this without converting to string
                         return true;
                     }
                 }
@@ -539,7 +539,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         public boolean skipExplicit(JmlMethodDecl methodDecl) {
             if (methodDecl.mods != null) {
                 for (JCTree.JCAnnotation a : methodDecl.mods.annotations) {
-                    if (a != null && a.type.toString().equals("org.jmlspecs.openjml.strongarm.SkipInfer")) { // FIXME - do this without converting to string
+                    if (a != null && a.type.toString().equals("org.jmlspecs.annotation.SkipInfer")) { // FIXME - do this without converting to string
                         return true;
                     }
                 }

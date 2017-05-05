@@ -1041,6 +1041,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             JCBlock newMainBody = popBlock(0,methodDecl.body == null ? methodDecl: methodDecl.body,check);
 
+            String v = JmlOption.value(context,JmlOption.FEASIBILITY);
+            if (esc && (
+                    Strings.feasibilityContains(Strings.feas_exit,context) ||
+                    Strings.feasibilityContains(Strings.feas_all,context) ||
+                    Strings.feasibilityContains(Strings.feas_debug,context)
+                    )) {
+                addAssumeCheck(methodDecl,outerFinalizeStats,Strings.atExitAssumeCheckDescription);
+            }
             
             // The outerTryStatement just has a finally clause in which the
             // postconditions and exceptional postconditions are checked.
@@ -1048,13 +1056,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 outerFinalizeStats.add( comment(methodDecl,"Check Postconditions",null));
                 addPostConditions(outerFinalizeStats);
                 axiomBlock = null;
-            }
-            
-
-            String v = JmlOption.value(context,JmlOption.FEASIBILITY);
-            if (esc && (v.equals("all") ||
-                    v.equals("exit") || v.equals("debug"))) {
-                addAssumeCheck(methodDecl,outerFinalizeStats,Strings.atExitAssumeCheckDescription);
             }
             
             JCCatch c;
@@ -1707,7 +1708,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             @Nullable JCExpression info,
             Object ... args) {
         
-        if (label != Label.ASSUME_CHECK && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); }
+        if (label != Label.ASSUME_CHECK && Strings.feasibilityContains(Strings.feas_debug,context)) { 
+            addAssumeCheck(translatedExpr,currentStatements,"Extra-Assert"); 
+        }
         boolean isTrue = treeutils.isTrueLit(translatedExpr); 
         boolean isFalse = treeutils.isFalseLit(translatedExpr);
         if (isTrue) return null; // Literally true - don't even add the statement
@@ -1942,7 +1945,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if(esc || infer) {
             if (translatedExpr.toString().equals("e.cause != null")) Utils.stop();
             if (label != Label.ASSUME_CHECK && currentStatements != null 
-                    && JmlOption.value(context,JmlOption.FEASIBILITY).equals("debug")) { 
+                    && Strings.feasibilityContains(Strings.feas_debug,context)) { 
                 addAssumeCheck(translatedExpr,currentStatements,"Extra-Assume");  
             }
             JmlStatementExpr st = treeutils.makeAssume(pos,label,translatedExpr);
@@ -2887,7 +2890,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(pos,Label.IMPLICIT_ASSUME,e2);
             } else {
                 JCExpression e1 = treeutils.makeEqObject(p,id, treeutils.makeNullLiteral(p));
-                // assume id == null || id.isAlloc
+                // assume id == null || id._alloc__ <= 0
+                //addTraceableComment(e2);
                 addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeOr(p, e1, e2));
             }
 
@@ -3508,34 +3512,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // For Java fields
             x: for (Symbol sy: csym.members().getElements()) {
                 if (!(sy instanceof VarSymbol)) continue;
-                // Find the field declaration for the given symbol
-                Env<AttrContext> e = Enter.instance(context).getEnv(csym);
-                if (e != null && e.tree instanceof JmlClassDecl) {
-                    JmlClassDecl cdecl = (JmlClassDecl)e.tree;
-                    for (JCTree def : cdecl.defs) {
-                        if (def instanceof JmlVariableDecl) {
-                            if (((JmlVariableDecl) def).name.toString().equals("cause")) Utils.stop();
-                            if (((JmlVariableDecl)def).sym == sy) {
-                                addNullnessAllocationTypeCondition2((JmlVariableDecl)def, sy, beingConstructed && !utils.isJMLStatic(sy));
-                                continue x;
-                            }
-                        }
-                    }
-                }
-                // FIXME - should have a DiagnosticPosition for the actual declaration
+                if (!sy.isStatic() && currentThisExpr == null) continue; // FIXME - JML static?
+                addNullnessAndTypeConditionsForField(csym, (VarSymbol)sy, beingConstructed);
+                // FIXME - why both of these?
                 addNullnessAllocationTypeCondition(methodDecl, sy, beingConstructed && !utils.isJMLStatic(sy));
             }
-//            // For JML fields
-//            for (JCTree dd: classDecl.typeSpecs.clauses) {
-//                if (!(dd instanceof JmlTypeClauseDecl)) continue;
-//                JCTree t = ((JmlTypeClauseDecl)dd).decl;
-//                if (!(t instanceof JCVariableDecl)) continue;
-//                JCVariableDecl d = (JCVariableDecl)t;
-//                if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
-//                if (isConstructor && !utils.isJMLStatic(d.sym)) continue;
-//                addNullnessAllocationTypeCondition(d,isConstructor && !utils.isJMLStatic(d.sym));
-//            }
 
+    }
+
+    protected void addNullnessAndTypeConditionsForField(TypeSymbol csym, VarSymbol sy, boolean beingConstructed) {
+        // For Java fields
+        Env<AttrContext> e = Enter.instance(context).getEnv(csym);
+        if (e != null && e.tree instanceof JmlClassDecl) {
+            JmlClassDecl cdecl = (JmlClassDecl)e.tree;
+            for (JCTree def : cdecl.defs) {
+                if (def instanceof JmlVariableDecl) {
+                    if (((JmlVariableDecl) def).name.toString().equals("cause")) Utils.stop();
+                    if (((JmlVariableDecl)def).sym == sy) {
+                        addNullnessAllocationTypeCondition2((JmlVariableDecl)def, sy, beingConstructed && !utils.isJMLStatic(sy));
+                        return;
+                    }
+                }
+            }
+        }
+        // FIXME - should have a DiagnosticPosition for the actual declaration
+        // FIXME - when is this actually called
+//      // For JML fields
+//      for (JCTree dd: classDecl.typeSpecs.clauses) {
+//          if (!(dd instanceof JmlTypeClauseDecl)) continue;
+//          JCTree t = ((JmlTypeClauseDecl)dd).decl;
+//          if (!(t instanceof JCVariableDecl)) continue;
+//          JCVariableDecl d = (JCVariableDecl)t;
+//          if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
+//          if (isConstructor && !utils.isJMLStatic(d.sym)) continue;
+//          addNullnessAllocationTypeCondition(d,isConstructor && !utils.isJMLStatic(d.sym));
+//      }
     }
     
     protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
@@ -5990,6 +6001,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected JCIdent currentFresh = null;
     
+    protected JCExpression allocCounterLE(DiagnosticPosition pos, JCExpression expr, int counter) {
+        JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
+        JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.LE, treeutils.intleSymbol, fa, treeutils.makeIntLiteral(pos, counter));
+        return treeutils.makeOr(pos.getPreferredPosition(), treeutils.makeEqNull(pos.getPreferredPosition(), expr),e);
+    }
+    
+    protected JCExpression allocCounterEQ(DiagnosticPosition pos, JCExpression expr, int counter) {
+        JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
+        JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.EQ, treeutils.inteqSymbol, fa, treeutils.makeIntLiteral(pos, counter));
+        return treeutils.makeOr(pos.getPreferredPosition(), treeutils.makeEqNull(pos.getPreferredPosition(), expr),e);
+    }
+    
+    protected JCExpression allocCounterGT(DiagnosticPosition pos, JCExpression expr, int counter) {
+        JCFieldAccess fa = treeutils.makeSelect(pos.getPreferredPosition(), expr, allocSym);
+        JCExpression e = treeutils.makeBinary(pos, JCTree.Tag.GT, treeutils.intgtSymbol, fa, treeutils.makeIntLiteral(pos, counter));
+        return treeutils.makeOr(pos.getPreferredPosition(), treeutils.makeEqNull(pos.getPreferredPosition(), expr),e);
+    }
+    
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
         
@@ -6307,7 +6336,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (esc && !doTranslations) {
                     result = eresult = trExpr; // FIXME - for now skip all the checking of preconditions etc - we are in the middle of a quantified expression
                     return;
-                } else if (rac) {
+                } 
+                // The following line is used by spec inference to know what the newly declared variable is the
+                // result of. The : in the comment is essential and used to delineate the descriptive text from the text of the expression
+                addStat(comment(that,"Declaration for return value: " + that.toString(), methodDecl.source()));
+                if (rac) {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
@@ -6425,9 +6458,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeEqObject(that.pos, typeof, stype));
                 
                 if (resultExpr != null && !resultExpr.type.isPrimitive()) {
-                    newAllocation1(that,resultExpr); // FIXME - should have an JCIdent?
-                    JCFieldAccess fa = treeutils.makeSelect(that.pos, resultExpr, allocSym);
-                    JCBinary e = treeutils.makeEquality(that.pos, fa, treeutils.makeIntLiteral(that.pos, ++allocCounter));
+                    newAllocation2(that,resultExpr); // FIXME - should have an JCIdent?
+                    JCExpression e = allocCounterEQ(that, resultExpr, ++allocCounter);
                     addAssume(that,Label.IMPLICIT_ASSUME,e);
                 }
             }
@@ -6973,6 +7005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                         useDefault = false;
                                         addStat(comment(clause));
                                         ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+                                        boolean containsEverything = false;
                                         List<JCExpression> storerefs = expandStoreRefList(((JmlMethodClauseStoreRef)clause).list,calleeMethodSym);
                                         for (JCExpression location: storerefs) {
                                             location = convertAssignable(location,newThisId,true);
@@ -7018,10 +7051,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 }
                                             } else {
                                                 newlist.add(location);
+                                                if (location instanceof JmlStoreRefKeyword && ((JmlStoreRefKeyword)location).token == JmlTokenKind.BSEVERYTHING) {
+                                                    containsEverything = true;
+                                                }
                                             }
                                         }
                                         JCStatement havoc = M.at(clause.pos).JmlHavocStatement(newlist.toList());
                                         addStat(havoc);
+                                        if (containsEverything) {
+                                            addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false);
+                                        }
                                         }
                                         break;
                                     default:
@@ -7034,7 +7073,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                         if (useDefault && !translatingJML) {
                             if (isThisCall) {
-                                // default for this call is all local fields
+                                // default for a 'this' call is all local fields
                                 ListBuffer<JCExpression> fields = new ListBuffer<>();
                                 for (JCTree d: classDecl.defs) {
                                     if (!(d instanceof JCVariableDecl)) continue;
@@ -7044,9 +7083,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(fields.toList());
                                 addStat(havoc);
                             } else if (newclass == null) {
-                                // default for non- constructor call is \everything
+                                // default for non-constructor call is \everything
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
                                 addStat(havoc);
+                                addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, false);
                             } else {
                                 // default for constructor call is \nothing -- should it be \everything for binary classes
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING)));
@@ -7125,6 +7165,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCExpression nn = treeutils.makeEqObject(that.pos, resultId, treeutils.nullLit);
                         nn = treeutils.makeOr(that.pos, nn, isAllocated(that,resultId));
                         addAssume(that,Label.IMPLICIT_ASSUME,nn);
+                        
+                        addAssume(that,Label.IMPLICIT_ASSUME, allocCounterLE(that.pos(), resultId, ++allocCounter));
                         
                         nn = treeutils.makeDynamicTypeInEquality(that, resultId, retType);
                         addAssume(that, Label.IMPLICIT_ASSUME, nn);
@@ -7597,12 +7639,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(p, fa));
     }
 
-    protected void newAllocation2(DiagnosticPosition pos, JCIdent resultId) {
+    protected void newAllocation2(DiagnosticPosition pos, JCExpression resultExpr) {
         int p = pos.getPreferredPosition();
 //        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), allocSym);
 //        JCExpressionStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeIntLiteral(p, ++allocCounter));
 //        addStat( st );
-        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultId), isAllocSym);
+        JCFieldAccess fa = treeutils.makeSelect(p, convertCopy(resultExpr), isAllocSym);
         JCStatement st = treeutils.makeAssignStat(p, fa, treeutils.makeBooleanLiteral(p,true));
         addStat( st );
 
@@ -7798,8 +7840,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addAssume(p,Label.IMPLICIT_ASSUME,e3);
 
         if (true) {
-            JCFieldAccess fa = treeutils.makeSelect(pos, convertCopy(array), allocSym);
-            JCExpression e = treeutils.makeEquality(pos,  fa,  treeutils.makeIntLiteral(pos, ++allocCounter) );
+            JCExpression e = allocCounterEQ(p, convertCopy(array), ++allocCounter);
             addAssume(p,Label.IMPLICIT_ASSUME,e);
 
             if (dims.first() instanceof JCLiteral) {
@@ -11640,11 +11681,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression e = treeutils.makeNeqObject(that.pos, arg, treeutils.nullLit);
                     ee = e; //treeutils.makeAnd(that.pos, e, ee);
                     
-                    fa = treeutils.makeSelect(p, convertCopy(arg), allocSym);
+                    JCExpression exprCopy = convertCopy(arg);
                     if (assumingPostConditions) {
-                        e = treeutils.makeEquality(p,  fa,  treeutils.makeIntLiteral(p, ++allocCounter) );
+                        // allocCounter is already bumped up earlier when it was declared that the result was allocated
+                        e = allocCounterEQ(that, exprCopy, allocCounter);
                     } else {
-                        e = treeutils.makeBinary(p, JCTree.Tag.GT, treeutils.intgtSymbol, fa,  treeutils.makeIntLiteral(p, 0) );
+                        // FIXME - explain why this is different than the above - this would be the postcondition for the method
+                        e = allocCounterGT(that, exprCopy, 0);
                     }
                     result = eresult = treeutils.makeAnd(that.pos, e, ee);
                 }

@@ -646,11 +646,14 @@ public class esc extends EscBase {
 	@Test
 	public void testFresh() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		// main.addOptions("-method=m4","-show");
+		//main.addOptions("-method=m7c","-show", "-subexpressions");
 		helpTCX("tt.TestJava", "package tt; \n" + "abstract public class TestJava { \n"
 
-				+ "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
-				+ "  public void m1(Object p) {\n" + "    Object pp = c1(p);\n" + "    //@ assert pp != p;\n" // OK
+				+ "  //@ requires p != null && p != this;\n" 
+				+ "  //@ modifies \\everything;\n"
+				+ "  public void m1(Object p) {\n" 
+				+ "    Object pp = c1(p);\n"   // result is fresh
+				+ "    //@ assert pp != p;\n" // OK
 				+ "    //@ assert pp != this;\n" // OK
 				+ "  }\n"
 
@@ -670,9 +673,11 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != q;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n" // Line
-																								// 30
-				+ "  public void m5(Object p) {\n" + "    Object pp = c2(p);\n" + "    Object q = new Object();\n"
+				+ "  //@ requires p != null && p != this;\n" 
+				+ "  //@ modifies \\everything;\n" // Line 30																								// 30
+				+ "  public void m5(Object p) {\n" 
+				+ "    Object pp = c2(p);\n" 
+				+ "    Object q = new Object();\n"
 				+ "    //@ assert pp != q;\n" // OK
 				+ "  }\n"
 
@@ -688,10 +693,15 @@ public class esc extends EscBase {
 				+ "  //@ ensures \\result == p || \\result == this;\n" // BAD
 				+ "  public Object m6b(Object p) {\n" + "    return new Object();\n" + "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
-				+ "  public Object m6c(Object p) {\n" + "    return new Object();\n" + "  }\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
+				+ "  public Object m6c(Object p) {\n" 
+				+ "    return new Object();\n" 
+				+ "  }\n"
 
-				+ "  Object o;\n" + "  //@ ghost Object oo;\n" + "  static Object so;\n"
+				+ "  Object o;\n" 
+				+ "  //@ ghost Object oo;\n" 
+				+ "  static Object so;\n"
 				+ "  //@ static ghost Object soo;\n"
 
 				+ "  //@ modifies \\nothing;\n" + "  public void m7(Object p) {\n" + "    Object pp = c1(p);\n"
@@ -702,52 +712,57 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != o;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m7b(Object p) {\n" + "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m7b(Object p) {\n" 
+				+ "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != oo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m7c(Object p) {\n" + "    Object pp = c1e(p);\n"
-				+ "    //@ assert pp != oo;\n" // BAD
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m7c(Object p) {\n" 
+				+ "    Object pp = c1e(p);\n"  // fresh result
+				+ "    //@ assert pp != oo;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m7d(Object p) {\n" + "    Object pp = c1e(p);\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m7d(Object p) {\n" 
+				+ "    Object pp = c2e(p);\n"  // not-necessarily fresh result
 				+ "    //@ assert pp != o;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m8(Object p) {\n" + "    Object pp = c1(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m8(Object p) {\n" 
+				+ "    Object pp = c1(p);\n"
 				+ "    //@ assert pp != so && pp != soo;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m8a(Object p) {\n" + "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m8a(Object p) {\n" 
+				+ "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != so;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m8b(Object p) {\n" + "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m8b(Object p) {\n"
+				+ "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != soo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m8c(Object p) {\n" + "    Object pp = c1e(p);\n"
-				+ "    //@ assert pp != soo;\n" // BAD
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m8c(Object p) {\n" 
+				+ "    Object pp = c1e(p);\n" // fresh result
+				+ "    //@ assert pp != soo;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" + "  public void m8d(Object p) {\n" + "    Object pp = c1e(p);\n"
-				+ "    //@ assert pp != so;\n" // BAD
+				+ "  //@ modifies \\everything;\n" 
+				+ "  public void m8d(Object p) {\n" 
+				+ "    Object pp = c1e(p);\n" // fresh result
+				+ "    //@ assert pp != so;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  public void m9a(Object p) {\n" + "    Object pp = c1n(p);\n" // if
-																													// pp
-																													// is
-																													// allowed
-																													// to
-																													// be
-																													// null,
-																													// then
-																													// it
-																													// might
-																													// equal
-																													// o
-																													// or
-																													// oo
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  public void m9a(Object p) {\n" 
+				+ "    Object pp = c1n(p);\n" // if pp is allowed to be null, then it might equal o or oo
 				+ "    //@ assert pp != o && pp != oo;\n" // BAD
 				+ "  }\n"
 
@@ -755,18 +770,24 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != so && pp != soo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" + "  //@ ensures \\fresh(\\result);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  //@ ensures \\fresh(\\result);\n"
 				+ "  abstract public Object c1(Object o); \n"
 
-				+ "  //@ modifies \\nothing;\n" + "  //@ ensures \\result == null || \\fresh(\\result);\n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  //@ ensures \\result == null || \\fresh(\\result);\n"
 				+ "  abstract public Object c1n(Object o); \n"
 
-				+ "  //@ modifies \\nothing;\n" + "  //@ ensures true;\n" + "  abstract public Object c2(Object o); \n"
+				+ "  //@ modifies \\nothing;\n" 
+				+ "  //@ ensures true;\n" 
+				+ "  abstract public Object c2(Object o); \n"
 
-				+ "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  //@ ensures \\result != null && \\fresh(\\result);\n"
 				+ "  abstract public Object c1e(Object o); \n"
 
-				+ "  //@ modifies \\everything;\n" + "  //@ ensures true;\n"
+				+ "  //@ modifies \\everything;\n" 
+				+ "  //@ ensures true;\n"
 				+ "  abstract public Object c2e(Object o); \n"
 
 				+ "  public TestJava() {}\n" + "}",
@@ -780,12 +801,9 @@ public class esc extends EscBase {
 				5, "/tt/TestJava.java:54: warning: Associated declaration", 7,
 				"/tt/TestJava.java:70: warning: The prover cannot establish an assertion (Assert) in method m7a", 9,
 				"/tt/TestJava.java:75: warning: The prover cannot establish an assertion (Assert) in method m7b", 9,
-				"/tt/TestJava.java:80: warning: The prover cannot establish an assertion (Assert) in method m7c", 9,
 				"/tt/TestJava.java:85: warning: The prover cannot establish an assertion (Assert) in method m7d", 9,
 				"/tt/TestJava.java:95: warning: The prover cannot establish an assertion (Assert) in method m8a", 9,
 				"/tt/TestJava.java:100: warning: The prover cannot establish an assertion (Assert) in method m8b", 9,
-				"/tt/TestJava.java:105: warning: The prover cannot establish an assertion (Assert) in method m8c", 9,
-				"/tt/TestJava.java:110: warning: The prover cannot establish an assertion (Assert) in method m8d", 9,
 				"/tt/TestJava.java:115: warning: The prover cannot establish an assertion (Assert) in method m9a", 9,
 				"/tt/TestJava.java:120: warning: The prover cannot establish an assertion (Assert) in method m9b", 9);
 	}

@@ -1366,6 +1366,7 @@ public class escall3 extends EscBase {
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
     //	main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
+    	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1414,6 +1415,7 @@ public class escall3 extends EscBase {
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
     	//main.addOptions("-show","-progress","-method=mmm","-checkFeasibility=debug");
+    	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
@@ -1460,6 +1462,7 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
+    	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

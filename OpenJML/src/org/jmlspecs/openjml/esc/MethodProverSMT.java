@@ -334,10 +334,8 @@ public class MethodProverSMT {
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
                 
-                String feasibilityString = JmlOption.value(context,JmlOption.FEASIBILITY);
-                if (!feasibilityString.equals("none")) {
-                    String[] feasibilities = feasibilityString.split(",");
-                    boolean allFeasibilities = feasibilityString.equals("all");
+                if (!Strings.feasibilityContains(Strings.feas_none,context)) {
+                    boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
                         solver.pop(1); // Pop off previous check_sat
                     } else {
@@ -351,14 +349,9 @@ public class MethodProverSMT {
 //                        if (k < 290) continue;
 //                        if (k > 100) break;
                         if (prevErrors != log.nerrors) break;
-                        if (!allFeasibilities) {
-                            outer: {
-                                for (String f: feasibilities) {
-                                    if (stat.description.contains(f)) break outer;
-                                }
-                                continue;
-                            }
-                        }
+                        
+                        // Only do the feasibility check if called for by the feasibility option
+                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)) continue;
                             
                         if (!usePushPop) {
                             ISolver solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);

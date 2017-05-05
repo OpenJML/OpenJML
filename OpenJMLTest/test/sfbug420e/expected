@@ -1,0 +1,21 @@
+Proving methods in stack.StackImpl
+Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
+Skipping proof of stack.StackImpl.count() (excluded by -method)
+Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
+Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
+Starting proof of stack.StackImpl.push(int) with prover !!!!
+test\sfbug420e\StackImpl.java:34: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method push
+		internalStack[stackCounter] = item;
+		             ^
+test\sfbug420e\StackImpl.java:33: warning: The prover cannot establish an assertion (Postcondition) in method push
+		if(stackCounter + 1 > maxSize) return false;
+		                               ^
+test\sfbug420e\Stack.java:27: warning: Associated declaration
+	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
+	    ^
+Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings
+Skipping proof of stack.StackImpl.top() (excluded by -method)
+Skipping proof of stack.StackImpl.remove() (excluded by -method)
+Skipping proof of stack.StackImpl.main(java.lang.String[]) (excluded by -method)
+Completed proving methods in stack.StackImpl
+3 warnings

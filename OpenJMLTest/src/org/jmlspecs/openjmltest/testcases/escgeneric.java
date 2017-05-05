@@ -62,6 +62,7 @@ public class escgeneric extends EscBase {
     /** Tests that we can reason about the result of \\typeof */
     @Test
     public void testTypeOf() {
+    	main.addOptions("-checkFeasibility=all");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -168,6 +169,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic() {
+    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

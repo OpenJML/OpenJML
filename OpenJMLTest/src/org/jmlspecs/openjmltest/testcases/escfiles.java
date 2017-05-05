@@ -61,10 +61,11 @@ public class escfiles extends EscBase {
     
     public void helpTF(String testDirname, String ... opts) {
         String d = "test/" + testDirname;
-        String[] newopts = new String[opts.length+2];
+        String[] newopts = new String[opts.length+3];
         newopts[0] = "-classpath";
         newopts[1] = d;
-        System.arraycopy(opts,0,newopts,2,opts.length);
+        newopts[2] = "-checkFeasibility=precondition,assert,reachable,exit";
+        System.arraycopy(opts,0,newopts,3,opts.length);
         helpTCF(d,d,newopts);
     }
 
@@ -78,6 +79,10 @@ public class escfiles extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
+    	List<String> list = Arrays.asList(opts);
+    	list = new ArrayList<String>(list);
+    	list.add("-checkFeasibility=precondition,exit,reachable");
+    	opts = list.toArray(opts);
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
@@ -475,10 +480,48 @@ public class escfiles extends EscBase {
         helpTF("escDup");
     }
 
+    // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
     @Test
     public void testEscSF420() {
-        helpTF("sfbug420");
+        helpTF("sfbug420","-exclude=count;itemAt;main;isEmpty;push;top");
     }
+    
+    @Test
+    public void testEscSF420a() {
+        helpTF("sfbug420a","-method=count");
+    }
+    
+    @Test
+    public void testEscSF420b() {
+        helpTF("sfbug420b","-method=itemAt");
+    }
+    
+    @Test
+    public void testEscSF420c() {
+        helpTF("sfbug420c","-method=main");
+    }
+    
+    @Test
+    public void testEscSF420d() {
+        helpTF("sfbug420d","-method=isEmpty");
+    }
+    
+    @Test
+    public void testEscSF420e() {
+        helpTF("sfbug420e","-method=push");
+    }
+    
+    @Test
+    public void testEscSF420f() {
+        helpTF("sfbug420f","-method=top");
+    }
+    
+    @Test
+    public void testEscSF42X() {
+        helpTF("sfbug420X");
+    }
+    
+
     
     @Test
     public void testEscRawding() {
