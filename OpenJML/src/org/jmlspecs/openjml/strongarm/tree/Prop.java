@@ -274,7 +274,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             // replacements only need to happen on the RHS of an expression if 
             // it's an assignment 
             if(label == Label.ASSIGNMENT){
-                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, b.rhs); 
+                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, b.rhs, false); 
                 
                 if(tmpE!=null){
                    b.rhs = (T) tmpE;
@@ -291,7 +291,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
                    }
                 }
             }else{
-                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);  
+                tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p, false);  
                 
                 if(tmpE!=null){
                     p = (T) tmpE;
@@ -299,7 +299,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             }
             
         }else{
-             tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p);
+             tmpE = SubstituteTree2.replace(BlockReader._substitutionCache, path, p, false);
              
              if(tmpE!=null){
                  p = (T) tmpE;
