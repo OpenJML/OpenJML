@@ -1,7 +1,9 @@
 package org.jmlspecs.openjml.strongarm;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
@@ -41,6 +43,7 @@ import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree;
 import org.jmlspecs.openjml.strongarm.transforms.SubstituteTree2;
 import org.jmlspecs.openjml.strongarm.transforms.TreeContains;
 import org.jmlspecs.openjml.strongarm.tree.Prop;
+import org.jmlspecs.openjml.strongarm.tree.analysis.FindOldsAnalysis;
 import org.jmlspecs.openjml.strongarm.tree.analysis.SpecBlockVertex;
 import org.jmlspecs.openjml.strongarm.tree.analysis.ToReductionGraph;
 
@@ -78,6 +81,10 @@ public class Strongarm
     public static JmlTree.Maker MM;
     public static Context _context;
     private final int maxDepth;
+
+    public static Set<String> identCache = new HashSet<String>();
+    public static Set<JCTree> oldCache = new HashSet<JCTree>();
+
     
     public Strongarm(JmlInferPostConditions infer) {
         this.infer = infer;
@@ -502,6 +509,7 @@ public class Strongarm
     
     public void cleanupContract(JmlMethodDecl methodDecl, JCTree contract, BlockReader reader, JmlMethodClause precondition) throws InferenceAbortedException{
         
+        identCache.clear();
         
         dieIfNeeded();
         
@@ -704,7 +712,7 @@ public class Strongarm
         //
         {
             freezer = reader.postcondition.freeze(new HashMap<Prop,String>());
-            
+            identCache = FindOldsAnalysis.analyze(contract, context);
             reader.initPremaCache();
             
             if (verbose) {

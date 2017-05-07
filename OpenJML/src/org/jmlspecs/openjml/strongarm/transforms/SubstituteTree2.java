@@ -15,6 +15,7 @@ import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlBBFieldAssignment;
 import org.jmlspecs.openjml.JmlTree.JmlStatementExpr;
 import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
+import org.jmlspecs.openjml.strongarm.Strongarm;
 import org.jmlspecs.openjml.strongarm.SubstitutionCache;
 import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -267,6 +268,10 @@ public class SubstituteTree2 extends JmlTreeScanner{
                 if (verbose) {
                     log.getWriter(WriterKind.NOTICE).println("\t\tReplacing TARGET: " + replace().toString() + " -> " + with().toString() + " in: " + access.toString());
                 }
+                
+                if(Strongarm.identCache.contains(access.toString())){
+                    Strongarm.oldCache.add(access);
+                }
     
                 if(with() instanceof JCIdent){
                     JCIdent with = (JCIdent)with();
@@ -486,6 +491,17 @@ public class SubstituteTree2 extends JmlTreeScanner{
                 }
             }
             
+            if(removeVersions==false){
+                
+                // if it's the case we are replacing 
+                // a version of a variable only, don't do it.
+                if(replace()!=null && with()!=null){
+                    if(replace().toString().startsWith(with().toString())){
+                        return false;
+                    }
+                }
+                
+            }
             
             return true;
         }
@@ -497,10 +513,15 @@ public class SubstituteTree2 extends JmlTreeScanner{
     
     private SubstitutionCache substitutionCache;
     private ArrayList<BasicBlock> path;
+    private boolean removeVersions;
 
     public static JCExpression replace(SubstitutionCache substitutionCache, ArrayList<BasicBlock> path, JCTree in){
+        return replace(substitutionCache, path, in, true);
+    }
+    public static JCExpression replace(SubstitutionCache substitutionCache, ArrayList<BasicBlock> path, JCTree in, boolean removeVersions){
 
         instance.substitutionCache = substitutionCache;
+        instance.removeVersions    = removeVersions;
         instance.path              = path;
         /**
          * If "in" is a JCIdent, we probably have to directly

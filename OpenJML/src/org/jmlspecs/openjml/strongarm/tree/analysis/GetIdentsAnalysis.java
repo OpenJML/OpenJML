@@ -7,8 +7,10 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.strongarm.Strongarm;
 
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -32,6 +34,27 @@ public class GetIdentsAnalysis extends JmlTreeAnalysis {
     public void visitIdent(JCIdent tree){
         if(tree==null) return;
         idents.add(tree);
+    }
+    
+    @Override
+    public void visitSelect(JCFieldAccess tree) {
+        
+        handleField(tree);
+        
+        scan(tree.selected);
+    }
+    
+    
+    private void handleField(JCFieldAccess access){
+
+        if(access.selected instanceof JCIdent){
+            JCIdent selected = (JCIdent)access.selected;
+            
+        }
+        
+        if(access.selected instanceof JCFieldAccess){
+            handleField((JCFieldAccess)access.selected);
+        }
     }
     
     public static Set<JCIdent> analyze(List<JCExpression> list){

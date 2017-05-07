@@ -9,11 +9,14 @@ import org.jmlspecs.openjml.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.strongarm.Strongarm;
 
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
@@ -21,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Log.WriterKind;
 
 
 
@@ -61,6 +65,67 @@ public class CleanupVariableNames extends JmlTreeScanner {
         }
     }
     
+    
+    private JCIdent handleField(JCFieldAccess access){
+        if(Strongarm.oldCache.contains(access)){
+            return treeutils.makeIdent(0, "\\old(" + access.toString() + ")", syms.objectType);
+        }
+        
+        return null;
+    }
+    @Override
+    public void visitSelect(JCFieldAccess tree) {
+        
+        
+        
+        super.visitSelect(tree);
+    }
+    
+    
+    
+    @Override
+    public void visitBinary(JCBinary tree) {
+        if(tree.lhs instanceof JCFieldAccess){
+            JCIdent i = handleField((JCFieldAccess)tree.lhs);
+            if(i!=null){
+                tree.lhs = i;
+            }
+        }
+        if(tree.rhs instanceof JCFieldAccess){
+            JCIdent i = handleField((JCFieldAccess)tree.rhs);            
+            if(i!=null){
+                tree.rhs = i;
+            }              
+        }
+
+        super.visitBinary(tree);        
+    }
+    
+    @Override 
+    public void visitIndexed(JCArrayAccess tree){
+            
+        JCArrayAccess access = tree;
+        
+        if(access.indexed instanceof JCFieldAccess){
+            JCIdent i = handleField((JCFieldAccess)access.indexed);
+            
+            if(i!=null){
+                access.indexed = i;
+            }
+            
+        }
+        
+        if(access.index instanceof JCFieldAccess){
+            JCIdent i = handleField((JCFieldAccess)access.index);
+            
+            if(i!=null){
+                access.index = i;
+            }
+        }
+
+        super.visitIndexed(tree);
+    }
+    
     @Override
     public void visitIdent(JCIdent tree){
         //if (tree != null) System.out.println(">>IDENT: " + tree.toString() + " LIO: " + tree.getName().toString().lastIndexOf('_'));
@@ -72,7 +137,7 @@ public class CleanupVariableNames extends JmlTreeScanner {
             tree.name = treeutils.makeIdent(0, "this", syms.objectType).name;
         }
         
-        if(tree.getName().toString().startsWith(Strings.formalPrefix)){
+        if(tree.getName().toString().startsWith(Strings.formalPrefix) || Strongarm.oldCache.contains(tree)){
 
             String n = tree.getName().toString().substring(Strings.formalPrefix.length());
             
