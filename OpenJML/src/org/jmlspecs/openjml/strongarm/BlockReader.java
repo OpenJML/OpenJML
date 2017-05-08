@@ -214,7 +214,7 @@ public class BlockReader {
         
         if(precondition==null){
             
-            if(JmlOption.isOption(context, JmlOption.INFER_DEFAULT_PRECONDITIONS)){
+            if(Boolean.parseBoolean(JmlOption.value(context, JmlOption.INFER_PRECONDITIONS))){
                 if (verbose) {
                     log.getWriter(WriterKind.NOTICE).println("Couldn't locate the precondition in any of the basic blocks. Will assume true for the precondition.");
                 }

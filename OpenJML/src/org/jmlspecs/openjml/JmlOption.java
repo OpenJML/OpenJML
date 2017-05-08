@@ -54,7 +54,7 @@ public enum JmlOption implements IOption {
     // Options Related to Specification Inference
     INFER("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
     INFER_DEBUG("-infer-debug", false, null, "Enable debugging of contract inference.", null),    
-    INFER_DEFAULT_PRECONDITIONS("-infer-default-preconditions", false, null, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
+    INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
     INFER_NO_EXIT("-noexit",true,null,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
     INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "Minimize expressions where possible.", null),
     
@@ -64,13 +64,12 @@ public enum JmlOption implements IOption {
     // 2) Else, if -specspath is specified, specs are written to that directory (base)
     // 3) Otherwise, we write the specs to the same directory were the java class source exists
     //
-    INFER_WEAVE("-infer-weave", false, null, "After inference, weave the inferred specs into the source code", null),    
-    INFER_PERSIST("-infer-persist", false, null, "Persist inferred specs (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
+    INFER_PERSIST("-infer-persist", true, "jml", "Persist inferred specs. If \"java\" specs are written to the source files. If \"jml\" (default) they are written to seperate .jml files (defaults to location of class source and can be overridden with -infer-persist-path and -specspath)", null),
     INFER_PERSIST_PATH("-infer-persist-path", true, null, "Specify output directory of specifications (overrides -specspath)", null),
-    INFER_MAX_DEPTH("-infer-max-depth", true, null, "The largest CFG we will agree to process", null),
-    INFER_TIMEOUT("-infer-timeout", true, null, "Give up inference after this many seconds.", null),
+    INFER_MAX_DEPTH("-infer-max-depth", true, 300, "The largest CFG we will agree to process", null),
+    INFER_TIMEOUT("-infer-timeout", true, 300, "Give up inference after this many seconds. A value of -1 will wait indefinitely", null),
     INFER_DEV_MODE("-infer-dev-mode", false, null, "Special features for developers.", null),    
-    DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications.", null),
+    DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications", null),
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
