@@ -93,6 +93,11 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
         /** the contracts will be weaved into the source code **/
         public boolean weaveContracts = false;
         
+        /** the contracts will have a INFERRED key **/
+        public boolean printKey       = true;
+        
+        private static final String inferenceKey = "INFERRED";
+        
         protected boolean didInfer = false;
         
         /** a container to hold the inferred specs -- this will be saved/flushed between visits to classes **/
@@ -145,6 +150,7 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
             }
                 
             
+            this.printKey = Boolean.parseBoolean(JmlOption.value(context, JmlOption.INFER_TAG));
             
 
         }
@@ -334,7 +340,13 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                     if(m.mods != null && m.mods.pos != -1){
                         pos = m.mods.pos;
                     }
-                    String contract = JmlPretty.write(((JmlMethodDecl)m).cases);
+                    String contract = null;
+                    
+                    if(printKey){
+                        contract = SpecPretty.write(((JmlMethodDecl)m).cases, true, true, this.inferenceKey);
+                    }else{
+                        contract = SpecPretty.write(((JmlMethodDecl)m).cases, true);                        
+                    }
                     
                     try {
                         contract = contract.replaceAll("\\*\\/", "@*/");
@@ -405,7 +417,13 @@ public abstract class JmlInfer<T extends JmlInfer<?>> extends JmlTreeScanner {
                 
                 promoteFields(node);
                 
-                String spec = SpecPretty.write(node,  true);
+                String spec = null;
+                
+                if(printKey){
+                    spec = SpecPretty.write(node,  true, true, inferenceKey);
+                }else{
+                    spec = SpecPretty.write(node,  true);                    
+                }
                 
                 Files.write(writeTo, spec.getBytes());
                                 
