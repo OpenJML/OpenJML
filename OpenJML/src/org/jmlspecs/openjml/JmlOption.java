@@ -53,7 +53,8 @@ public enum JmlOption implements IOption {
     
     // Options Related to Specification Inference
     INFER("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer"),
-    INFER_DEBUG("-infer-debug", false, null, "Enable debugging of contract inference.", null),    
+    INFER_DEBUG("-infer-debug", false, null, "Enable debugging of contract inference", null),    
+    INFER_TAG("-infer-tag", true, true, "If true, inferred specifications are tagged with the key INFERRED", null),        
     INFER_PRECONDITIONS("-infer-preconditions", true, true, "If not specified, the precondition of methods lacking preconditions will be set to true (otherwise inference is skipped).", null),
     INFER_NO_EXIT("-noexit",true,null,"Infer contracts (suppress exiting)","-command=infer-no-exit"),
     INFER_MINIMIZE_EXPRS("-infer-minimize-expressions", false, null, "Minimize expressions where possible.", null),
