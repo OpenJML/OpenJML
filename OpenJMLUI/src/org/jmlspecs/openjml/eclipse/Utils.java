@@ -2035,13 +2035,13 @@ public class Utils {
 	}
 	
 	/** Returns the ProofView, if it exists, null otherwise */
-	public OpenJMLView findView() {
+	static public OpenJMLView findView() {
 		IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(OpenJMLView.ID);
 		return ((OpenJMLView)view);
 	}
 	
 	/** Creates (if needed) and returns the Proof View */
-	public OpenJMLView showView() {
+	static public OpenJMLView showView() {
 		try {
 			IWorkbench w = PlatformUI.getWorkbench();
 			IWorkbenchWindow ww = w.getActiveWorkbenchWindow();

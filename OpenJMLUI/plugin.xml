@@ -454,6 +454,12 @@
                > 
          </command>
          <command
+               label="Export Results"
+               id="org.openjml.proofview.ExportProofResults"
+               commandId="org.openjml.commands.ExportProofResults"
+               > 
+         </command>
+         <command
                label="Clear All Results"
                id="org.openjml.proofview.ClearAllProofResults"
                commandId="org.openjml.commands.ClearAllProofResults"
@@ -1163,6 +1169,14 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.openjml.commands.ClearAllProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearAllProofResults"
+            >
+      </command>
+      <command
+            name="Export Proof Results"
+            description="Exports proof results to a file"
+            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+            id="org.openjml.commands.ExportProofResults"
+            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ExportProofResults"
             >
       </command>
       <command

@@ -5,6 +5,8 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Arrays;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -107,6 +109,22 @@ abstract public class Commands extends AbstractHandler {
 				}
 	    		getInfo(event);
 	            utils.findView().clearSelectedProofResults();
+	        } catch (Exception e) {
+	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
+			}
+			return null;
+		}
+	}
+	
+	static public class ExportProofResults extends Commands {
+	    @Override
+		public Object execute(ExecutionEvent event) {
+			try (FileWriter fw = new FileWriter(new File(System.getProperty("user.home") + "/resultsOutput"))) {
+				if (Options.uiverboseness) {
+					Log.log(this.getClass().getSimpleName() + " command initiated"); //$NON-NLS-1$
+				}
+	    		getInfo(event);
+		    	OpenJMLView.exportProofResults(fw);
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}

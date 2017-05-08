@@ -960,6 +960,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             long line = diagnostic.getLineNumber(); // 1-based
             long startPos = diagnostic.getStartPosition();  //0-based, from beginning of file
             long endPos = diagnostic.getEndPosition();
+            if (endPos == -1) endPos = startPos; // This is defensive - sometimes there is no end position set
 
             int ENOPOS = -1; // Eclipse value for not having position information
 
@@ -1052,7 +1053,8 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         public boolean report(final int ticks, final int level, final String message) {
             Display d = shell == null ? Display.getDefault() : shell.getDisplay();
-            d.asyncExec(new Runnable() {
+            // Singleton reported that with asynExec, this would hang
+            d.syncExec(new Runnable() {
                 public void run() {
                     if (monitor != null) {
                     	if (level <= 1) monitor.subTask(message);

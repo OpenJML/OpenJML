@@ -370,6 +370,15 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
         ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
+        
+        if (envs.isEmpty()) {
+        	if (utils.esc) context.get(Main.IProgressListener.class).report(0,1,"Operation not performed because of parse or type errors");
+//        	try {
+//				Thread.sleep(10000);
+//			} catch (InterruptedException e) {
+//			}
+        	return results;
+        }
 
         if (utils.check || utils.doc) {
             // Stop here

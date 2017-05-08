@@ -862,7 +862,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             resultExpr = resultSym == null ? null : treeutils.makeIdent(methodDecl.pos,resultSym);
             
             if (esc && heapSym == null) {
-                JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType,heapVarName,null,
+                JCVariableDecl d = treeutils.makeStaticVarDef(syms.intType,heapVarName,classDecl.sym,
                     treeutils.makeIntLiteral(0, 0));
                 heapSym = d.sym;
                 initialStatements.add(d);
@@ -1707,7 +1707,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 92) Utils.stop();
+        if (assertCount == 167) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -6817,7 +6817,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
 
                                 } else {
-                                    if (isPure(calleeMethodSym)) {
+                                    if (isPure(mpsym)) {
                                         checkAgainstCallerSpecs(JmlTokenKind.ASSIGNABLE, that, M.at(cs).JmlStoreRefKeyword(JmlTokenKind.BSNOTHING),pre, savedThisId, newThisId, cs.source());
                                     } else {
                                     // the default is \\everything
@@ -7061,7 +7061,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 }
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(fields.toList());
                                 addStat(havoc);
-                            } else if (newclass == null) {
+                            } else if (newclass == null && !isPure) {
                                 // default for non-constructor call is \everything
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(List.<JCExpression>of(M.at(cs.pos).JmlStoreRefKeyword(JmlTokenKind.BSEVERYTHING)));
                                 addStat(havoc);
@@ -9558,7 +9558,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             if (attr.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
 
-                addRepresentsAxioms(currentThisExpr.type.tsym, sym, that, currentThisExpr);
+            	// currentThisExpr is null if the symbol is static
+            	TypeSymbol tsym = currentThisExpr != null ? currentThisExpr.type.tsym : (TypeSymbol)sym.owner; // FIXME - perhaps can always be sym.owner
+                addRepresentsAxioms(tsym, sym, that, currentThisExpr);
                 //         if (checkAccessEnabled) checkAccess(JmlTokenKind.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym, (VarSymbol)currentThisId.sym);
                 // FIXME - should we check accessibility for model fields
                 return;

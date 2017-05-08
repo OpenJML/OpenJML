@@ -1,8 +1,11 @@
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -57,6 +60,7 @@ import org.w3c.dom.Document;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
+import com.sun.tools.javac.util.Context;
 
 public class OpenJMLView extends ViewPart implements SelectionListener, MouseListener {
 
@@ -349,6 +353,31 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	treeroot.removeAll();
     	refresh();
     	selected = null;
+    }
+    
+    static public void exportProofResults(FileWriter output) {
+    	try {
+    		String spaces = "                                        ";
+    		final OpenJMLView view = Utils.findView();
+    		Map<String,Integer> counts = new HashMap<String,Integer>();
+    		OpenJMLInterface iface = Activator.utils().getInterface(view.currentProject);
+    		Map<String,IProverResult> proofResults = iface.getProofResults();
+    		TreeSet<String> t = new TreeSet<String>(proofResults.keySet());
+    		for (String s: t) {
+    			String result = proofResults.get(s).result().toString();
+    			output.append(result + spaces.substring(0,12-result.length()) + s + Strings.eol);
+    			Integer i = counts.get(result);
+    			if (i == null) i = 1; else i = i + 1;
+    			counts.put(result, i);
+    		}
+    		output.append(Strings.eol);
+    		for (String result: new TreeSet<>(counts.keySet())) {
+    			String number = counts.get(result).toString();
+    			output.append(number + spaces.substring(0,6-number.length()) + result + Strings.eol);
+    		}
+    	} catch (IOException e) {
+    		
+    	}
     }
     
     public void clearSelectedProofResults() {

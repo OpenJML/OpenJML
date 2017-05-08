@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -720,8 +721,11 @@ public class Main extends com.sun.tools.javac.main.Main {
             while (!todo.isEmpty()) {
                 File file = todo.remove(0);
                 if (file.isDirectory()) {
-                    for (File ff: file.listFiles()) {
-                        todo.add(ff);
+                    File[] fileArray = file.listFiles();
+                    // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
+                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return -f.getPath().compareTo(ff.getPath()); }});
+                    for (File ff: fileArray) {
+                        todo.add(0,ff);
                     }
                 } else if (file.isFile()) {
                     String ss = file.toString();

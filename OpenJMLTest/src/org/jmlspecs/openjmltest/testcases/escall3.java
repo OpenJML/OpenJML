@@ -674,6 +674,51 @@ public class escall3 extends EscBase {
 
 
     @Test
+    public void testHavocB() {
+    	main.addOptions("-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                +"  /*@ non_null */ public TestJava ooo;\n"
+                +"  /*@ non_null */ public static TestJava sooo;\n"
+                
+                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
+                +"    ooo = o; sooo = o;\n"
+                +"    if (b) meverything();\n"
+                +"    //@ assert ooo != null;\n"
+                +"    //@ assert ooo instanceof TestJava;\n"
+                +"  }\n"
+                
+                +"  public void meverything() {\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+        }
+
+    @Test
+    public void testHavoc() {
+    	main.addOptions("-method=m1","-show");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"/*@ nullable_by_default*/ public class TestJava { \n"
+                +"  /*@ non_null */ public TestJava ooo;\n"
+                +"  /*@ non_null */ public static TestJava sooo;\n"
+                
+                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
+                +"    ooo = o; sooo = o;\n"
+                +"    if (b) meverything();\n"
+                +"    //@ assert ooo != null;\n"
+                +"    //@ assert ooo instanceof TestJava;\n"
+                +"  }\n"
+                
+                +"  //@ assignable ooo;\n"
+                +"  public void meverything() {\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+        }
+
+    @Test
     public void testAssignment() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

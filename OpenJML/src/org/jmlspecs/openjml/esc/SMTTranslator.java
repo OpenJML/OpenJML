@@ -1345,7 +1345,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Issues an error message that a particular AST node should not be being used in the input basic block program */
     public void shouldNotBeCalled(JCTree tree) {
-        log.error("jml.internal","This node should not be present in converting BasicPrograms to SMTLIB: " + tree.getClass());
+        log.error("jml.internal","This node should not be present in converting BasicPrograms to SMTLIB: " + tree.getClass() + " " + tree.toString());
     }
     
     /** A set to hold the names of implicit functions that have been defined so far
