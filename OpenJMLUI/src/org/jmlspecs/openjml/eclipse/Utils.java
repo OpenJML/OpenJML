@@ -330,7 +330,7 @@ public class Utils {
         	final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
         	deleteMarkers(res, shell); 
         	for (final IJavaProject jp : sorted.keySet()) {
-        	    inferProject(jp, sorted.get(jp), shell, "Infer JML Contracts (Strongarm)");
+        	    inferProject(jp, sorted.get(jp), shell, "Infer JML Contracts");
         	}
         }
 	

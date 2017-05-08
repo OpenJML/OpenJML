@@ -228,7 +228,7 @@
        <action
                class="org.jmlspecs.openjml.eclipse.PopupActions$InferSpecs"
                icon="icons/strongarm_infer.png"
-               label="Infer JML Contracts (Strongarm)"
+               label="Infer JML Contracts"
                menubarPath="JML"
                enablesFor="+"
                id="JMLUI.inferSpecsAction1"
@@ -650,7 +650,7 @@
                commandId="org.jmlspecs.eclipse.commands.JMLInfer"
                icon="icons/strongarm_infer.png"
                id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
-               label="Infer JML Contracts (Strongarm)"
+               label="Infer JML Contracts"
                style="push"
                tooltip="Infers JML Contracts for Selected Objects">
              </command>             
@@ -730,7 +730,7 @@
                    commandId="org.jmlspecs.eclipse.commands.JMLInfer"
                    icon="icons/strongarm_infer.png"
                    id="org.jmlspecs.openjml.eclipse.MenuActions.JMLInfer"
-                   label="Infer JML Contracts (Strongarm)"
+                   label="Infer JML Contracts"
                    style="push"
                    tooltip="Infers JML Contracts for Selected Objects">
              </command>
