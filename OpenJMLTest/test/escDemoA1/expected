@@ -16,4 +16,5 @@
 ..\..\OpenJMLDemo\src\openjml\clock\TickTockClockA1.java:17: error: An identifier with public visibility may not be used in a invariant clause with protected visibility
 	//@ protected invariant 0 <= second && second <= 59;
 	                                       ^
+Operation not performed because of parse or type errors
 6 errors

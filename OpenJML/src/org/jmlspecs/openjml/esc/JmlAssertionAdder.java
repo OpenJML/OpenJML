@@ -1707,7 +1707,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 167) Utils.stop();
+        if (assertCount == 1230) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -2710,10 +2710,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         reps.add(0,varsym);
         boolean pv = checkAccessEnabled;
         checkAccessEnabled = false; // Do not check access in JML clauses
+        Type basetype = clsym.type;
+        // We use classDecl.type here in case we are in a derived class with a represents clause;
+        // clsym is the static class of the receiver, which may not have derived represents clauses
+        if (classDecl != null) {
+            if (classDecl.type.tsym.isSubClass(clsym,types)) basetype = classDecl.type;
+        }
         try {
             if (rac) {
                 Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
-                java.util.List<Type> p = parents(clsym.type, true);
+                java.util.List<Type> p = parents(basetype, true);
                 ListIterator<Type> iter = p.listIterator(p.size());
                 while (iter.hasPrevious()) {
                     JmlSpecs.TypeSpecs tyspecs = specs.getSpecs((ClassSymbol)iter.previous().tsym);
@@ -2761,7 +2767,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             if (esc) {
-                java.util.List<Type> p = parents(clsym.type, true);
+                java.util.List<Type> p = parents(basetype, true);
                 ListIterator<Type> iter = p.listIterator(p.size());
                 while (iter.hasPrevious()) {
                     TypeSymbol ty = iter.previous().tsym;

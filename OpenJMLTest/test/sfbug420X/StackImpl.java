@@ -57,13 +57,25 @@ public class StackImpl implements Stack {
 	public static void main(String[] args) {
 		Stack s = new StackImpl();
 		//@ assert s.count == 0;
-//		boolean b1 = s.push(2);
-//		boolean b2 = s.push(2);
-//		boolean b3 = s.push(2);
-//		if (!(b1 && b2 && b3)) return;
-//		System.out.println(s.itemAt(1));
-//		System.out.println(s.itemAt(2));
-//		System.out.println(s.itemAt(3));
+		boolean b1 = s.push(2);
+		boolean b2 = s.push(2);
+		boolean b3 = s.push(2);
+		if (!(b1 && b2 && b3)) return;
+		System.out.println(s.itemAt(1));
+		System.out.println(s.itemAt(2));
+		System.out.println(s.itemAt(3));
+	}
+
+	public static void main1(String[] args) {
+		StackImpl s = new StackImpl();
+		//@ assert s.count == 0;
+		boolean b1 = s.push(2);
+		boolean b2 = s.push(2);
+		boolean b3 = s.push(2);
+		if (!(b1 && b2 && b3)) return;
+		System.out.println(s.itemAt(1));
+		System.out.println(s.itemAt(2));
+		System.out.println(s.itemAt(3));
 	}
 
 }

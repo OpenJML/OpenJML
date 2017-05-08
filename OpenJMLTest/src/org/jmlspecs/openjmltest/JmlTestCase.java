@@ -431,9 +431,14 @@ public abstract class JmlTestCase {
                 if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
                 else sexp = sexp.replace("$SPECS", env);
                 if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                    diff += ("Lines differ at " + line + eol)
+                	int k = sexp.indexOf('(');
+                	if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
+                		// OK
+                	} else {         
+                        diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
+                	}
                 }
             }
         } catch (FileNotFoundException e) {
@@ -531,9 +536,14 @@ public abstract class JmlTestCase {
                 } else if (sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
                     // OK
                 } else {
-                    diff += ("Lines differ at " + line + eol)
+                	int k = sexp.indexOf('(');
+                	if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
+                		// OK
+                	} else {         
+                        diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
+                	}
                 }
             }
         } catch (FileNotFoundException e) {

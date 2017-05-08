@@ -517,7 +517,7 @@ public class escfiles extends EscBase {
     }
     
     @Test
-    public void testEscSF42X() {
+    public void testEscSF420X() {
         helpTF("sfbug420X");
     }
     

@@ -8,13 +8,13 @@ java.lang.ArithmeticException: BigInteger divide by zero
 	at java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1179)
 	at java.math.BigInteger.divideKnuth(BigInteger.java:2065)
 	at java.math.BigInteger.divide(BigInteger.java:2046)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:620)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:623)
 	at bigint.main(bigint.java:35)
 java.lang.ArithmeticException: BigInteger divide by zero
 	at java.math.MutableBigInteger.divideKnuth(MutableBigInteger.java:1179)
 	at java.math.BigInteger.divideKnuth(BigInteger.java:2065)
 	at java.math.BigInteger.divide(BigInteger.java:2046)
-	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:620)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:623)
 	at bigint.main(bigint.java:40)
 LABEL BBB = -417
 LABEL TRUE = true
