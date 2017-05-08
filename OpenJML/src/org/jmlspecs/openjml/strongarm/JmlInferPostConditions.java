@@ -40,11 +40,7 @@ public class JmlInferPostConditions extends JmlInfer<JmlInferPostConditions> {
     public JmlInferPostConditions(Context context) {
         super(context);
         
-        if(JmlOption.isOption(context, JmlOption.INFER_TIMEOUT)){  
-            timeout = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_TIMEOUT));
-        }else{
-            timeout = -1;
-        }
+        timeout = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_TIMEOUT));
     }
 
     public static JmlInferPostConditions instance(Context context){

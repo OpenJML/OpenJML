@@ -122,12 +122,8 @@ public class Strongarm
             PruneUselessClauses.cache(context);
 
             
-            if(JmlOption.isOption(context, JmlOption.INFER_MAX_DEPTH)){  
-                maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
-            }else{
-                maxDepth = -1;
-            }
-
+            maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
+            
         }
     }
     
