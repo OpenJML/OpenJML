@@ -119,6 +119,11 @@ public class strongarm extends StrongarmBase {
 	helpSA("test/strongarm/base/A14.java", "test/strongarm/base/");
     }
         
+    @Test
+    public void testA16b() {
+	//expectedExit = 1;
+	helpSA("test/strongarm/base/A16.java", "test/strongarm/base/");
+    }
    
     @Test
     public void testD() {
