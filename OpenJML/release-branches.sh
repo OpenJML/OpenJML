@@ -35,6 +35,8 @@ cd ../OpenJML/OpenJML
 ## FIXME - make platform independent - Eclipse does not set path
 if [ -e ~/apps/ant ]; then
   ~/apps/ant -f build-bash.xml release
+elif [ -e /opt/local/bin/ant ]; then
+  ant -f build-bash.xml release
 else
   C:/cygwin/home/dcok/mybin/ant -f build-bash.xml release
 fi
