@@ -1390,14 +1390,14 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             }
             
             if(StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition).equalsIgnoreCase("true")){
-        	opts.add(JmlOption.INFER_DEFAULT_PRECONDITIONS.optionName());
+        	opts.add(JmlOption.INFER_PRECONDITIONS.optionName() +eq+ StrongarmPage.getDefaultBoolean(Options.inferDefaultPrecondition));
             }
 
             
             if(StrongarmPage.getDefaultString(Options.inferPersistSpecsTo).equalsIgnoreCase(StrongarmPage.WEAVE_SEPERATE)){
-        	opts.add(JmlOption.INFER_PERSIST.optionName());
+        	opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "jml");
             }else{
-                opts.add(JmlOption.INFER_WEAVE.optionName());
+                opts.add(JmlOption.INFER_PERSIST.optionName() + eq+ "java");
             }
             
         }
