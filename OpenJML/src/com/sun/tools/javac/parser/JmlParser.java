@@ -3264,27 +3264,33 @@ public class JmlParser extends JavacParser {
     // FIXME - not sure this is really robust
     protected int prec(ITokenKind token) {
         if (token instanceof JmlTokenKind) {
-            switch ((JmlTokenKind)token) {
-                // FIXME - check all these precedences
-                case EQUIVALENCE: case INEQUIVALENCE: case IMPLIES: case REVERSE_IMPLIES:
-                    return -1;
-                case SUBTYPE_OF: case JSUBTYPE_OF: case LOCK_LT: case LOCK_LE:
-                    return TreeInfo.ordPrec;
-                case DOT_DOT: case ENDJMLCOMMENT:
-                    return -1000;
-                default:
-                    return 1000;
-            }
-//            if (token != JmlTokenKind.SUBTYPE_OF
-//                    && token != JmlTokenKind.JSUBTYPE_OF
-//                    && token != JmlTokenKind.LOCK_LT
-//                    && token != JmlTokenKind.LOCK_LE) return -1; // For
-//                                                                    // inequivalence
-//                                                                    // and
-//                                                                    // reverse/implies
-//            return TreeInfo.ordPrec; // All the JML operators are comparisons
+            return jmlPrecedence((JmlTokenKind)token);
         }
         return super.prec(token);
+    }
+    
+    public static int jmlPrecedence(JmlTokenKind tkind) {
+        switch (tkind) {
+            // FIXME - check all these precedences
+            case EQUIVALENCE: case INEQUIVALENCE:
+                return -2; // TreeInfo.orPrec;  // Between conditional and or
+            case IMPLIES: case REVERSE_IMPLIES:
+                return -2; // TreeInfo.orPrec;  // FBetween conditional and or
+            case SUBTYPE_OF: case JSUBTYPE_OF: case LOCK_LT: case LOCK_LE:
+                return TreeInfo.ordPrec;
+            case DOT_DOT: case ENDJMLCOMMENT:
+                return -1000;
+            default:
+                return 1000;
+        }
+//        if (token != JmlTokenKind.SUBTYPE_OF
+//                && token != JmlTokenKind.JSUBTYPE_OF
+//                && token != JmlTokenKind.LOCK_LT
+//                && token != JmlTokenKind.LOCK_LE) return -1; // For
+//                                                                // inequivalence
+//                                                                // and
+//                                                                // reverse/implies
+//        return TreeInfo.ordPrec; // All the JML operators are comparisons
     }
     
     // MAINTENANCE ISSUE - (Almost) Duplicated from JavacParser.java in order to track

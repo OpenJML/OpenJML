@@ -44,6 +44,7 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
@@ -417,12 +418,52 @@ public class JmlCompiler extends JavaCompiler {
     // FIXME - why might it return null, and should we stop if it does?
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
+        boolean rerunForTesting = false;
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         while (!envs.isEmpty()) {
+            if (rerunForTesting) Log.noWrite = true;
             Env<AttrContext> env = attribute(envs.remove());
+            if (rerunForTesting) Log.noWrite = false;
+                
             if (env != null) results.append(env);
         }
         ((JmlAttr)attr).completeTodo();
+        
+        if (rerunForTesting)  {
+            if (results != null) {
+                ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
+                ListBuffer<Env<AttrContext>> list2 = new ListBuffer<Env<AttrContext>>();
+
+                for (Env<AttrContext> env: results.toList()) {
+                    if (env.tree instanceof JmlClassDecl) {
+                        JmlClassDecl d = (JmlClassDecl)env.tree;
+                        if (d.name.toString().contains("TestG")) Utils.stop();
+                        if (d.sym != null && d.sym.flatname.toString().startsWith("java.")) continue;
+                    }
+                    if (!list.contains(env.toplevel)) {
+                        list.add(env.toplevel);
+                        list2.add(env);
+                    }
+                }
+                JmlClearTypes.clear(context, list2.toList());
+                com.sun.tools.javac.processing.JavacProcessingEnvironment.cleanTrees(list.toList());
+                JavaCompiler delegateCompiler =
+                        processAnnotations(
+                            enterTreesIfNeeded(list.toList()),
+                            List.<String>nil());
+
+                    //delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
+                    ListBuffer<Env<AttrContext>> results2 = new ListBuffer<>();
+                    while (!envs.isEmpty()) {
+                        Env<AttrContext> env = attribute(envs.remove());
+                            
+                        if (env != null) results2.append(env);
+                    }
+                    ((JmlAttr)attr).completeTodo();
+
+            }
+        }
+
         return stopIfError(CompileState.ATTR, results);
     }
 
@@ -594,7 +635,7 @@ public class JmlCompiler extends JavaCompiler {
     }
 
     // FIXME - we are overriding to only allow SIMPLE compile policy
-    protected void compile2(CompilePolicy compPolicy) {
+    public void compile2(CompilePolicy compPolicy) {
         //super.compile2(CompilePolicy.BY_TODO);
         super.compile2(CompilePolicy.SIMPLE);
     }
