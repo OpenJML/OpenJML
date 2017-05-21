@@ -155,28 +155,34 @@ public class api extends JmlTestCase {
             "public class A {" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
-            "}" + eol +
-            "// Specifications: test/testNoErrors/A.java" + eol +
-            "// Specification file: test/testNoErrors/A.java" + eol +
-            "" + eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}" + eol;
+            "}"
+//            + eol 
+//            +
+//            "// Specifications: test/testNoErrors/A.java" + eol +
+//            "// Specification file: test/testNoErrors/A.java" + eol +
+//            "" + eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}" + eol
+            ;
         
     String prettyprint2a =
             eol + 
             "public class A {" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
-            "}" + eol +
-            "// Specifications: /A.java" + eol +
-            "// Specification file: /A.java" + eol +
-            "" + eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}" + eol;
+            "}"
+//            + eol 
+//            +
+//            "// Specifications: /A.java" + eol +
+//            "// Specification file: /A.java" + eol +
+//            "" + eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}" + eol
+            ;
         
     String prettyprint2 =
             eol + 
@@ -192,21 +198,28 @@ public class api extends JmlTestCase {
             "public class A {" + eol +
             "  @Ghost " + eol +
             "  int i = 0;" + eol +
-            "}" + eol + 
-            "// Specifications: /a/b/A.java" + eol +
-            "// Specification file: /a/b/A.java" + eol +
-            "package a.b;" + eol +
-            eol +
-            "public class A {" + eol +
-            "  @Ghost " + eol +
-            "  int i = 0;" + eol +
-            "}"  + eol; 
+            "}"
+//            + eol
+//            + 
+//            "// Specifications: /a/b/A.java" + eol +
+//            "// Specification file: /a/b/A.java" + eol +
+//            "package a.b;" + eol +
+//            eol +
+//            "public class A {" + eol +
+//            "  @Ghost " + eol +
+//            "  int i = 0;" + eol +
+//            "}"  + eol
+            ; 
 
     
-    String prettyprint4 = prettyprint +
-    		"NEXT AST" + eol +
-    		"// Specifications: test/testNoErrors/B.java" + eol +
-    		"// Specification file: test/testNoErrors/B.java" + eol + eol;
+    String prettyprint4 = prettyprint
+    		+
+    		"NEXT AST"
+//    		+ eol
+//    		+
+//    		"// Specifications: test/testNoErrors/B.java" + eol +
+//    		"// Specification file: test/testNoErrors/B.java" + eol + eol
+    		;
         
     String parseAndPrettyPrintFromJavaFileObject() throws Exception {
         java.io.File f = new java.io.File("test/testNoErrors/A.java");
@@ -452,7 +465,6 @@ public class api extends JmlTestCase {
         }
     }
 
-
     String parseAndPrettyPrintString() throws Exception {
         String prog = "public class A { //@ ghost int i=0;\n }";
         IAPI m = Factory.makeAPI();
@@ -463,6 +475,16 @@ public class api extends JmlTestCase {
         String prog = "package a.b; public class A { //@ ghost int i=0;\n }";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseString("a/b/A.java",prog));
+    }
+    
+    String parseAndPrettyPrintString3(String prog) throws Exception {
+        IAPI m = Factory.makeAPI();
+        return m.prettyPrint(m.parseString("A.java",prog));
+    }
+    
+    String parseString(String prog) throws Exception {
+        IAPI m = Factory.makeAPI("-jml","-strictJML");
+        return m.parseString("A.java",prog).toString();
     }
     
     /** Tests that a String parses and pretty prints */
@@ -492,6 +514,24 @@ public class api extends JmlTestCase {
             check("","");
             s = s.replace('\\','/');
             compareStrings(prettyprint3,s);
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace(System.out);
+            assertTrue(false);
+        }
+    }
+    
+    @Test
+    public void testParseAndPrettyPrint8() {
+        start(true);
+        try {
+            String prog = "\npublic class A {//@ ensures \\forall int i; i > 0; i < 0;\n void m(){}}";
+            String result = "\npublic class A {\n    /*@\n      ensures \\forall int i; i > 0; i < 0; \n   */\n\n  void m() {\n  }\n}";
+            String s = parseAndPrettyPrintString3(prog);
+            check("","");
+            compareStrings(result,s);
+            String ss = parseString(prog).toString();
+            compareStrings(result,ss);
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace(System.out);

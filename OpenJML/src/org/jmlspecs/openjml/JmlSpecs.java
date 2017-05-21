@@ -902,6 +902,10 @@ public class JmlSpecs {
         if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Saving class specs for " + type.flatname + (spec.decl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
+    public void removeSpecs(ClassSymbol type) {
+        specsmap.remove(type);
+    }
+    
     /** Adds the specs for a given method to the database, overwriting anything
      * already there.  There must already be a specs entry for the owning class
      * @param m the MethodSymbol of the method whose specs are provided

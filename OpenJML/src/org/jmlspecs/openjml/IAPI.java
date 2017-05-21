@@ -151,6 +151,14 @@ public interface IAPI {
      * NOT CURRENTLY IMPLEMENTED and the API may change. */
     public int jmldoc(@NonNull String... args);
     
+    /** Does not change the ASTs except to delete all type and name resolution information,
+     * so that typecheck() can be run again. This operation might be appropriate if an AST has 
+     * been modified, but without complete type information, so that typechecking has to be
+     * performed again. Ordinarily, the typecheck() operation does not re-typecheck subtrees
+     * that already have a type defined.
+     */
+    public void clearTypes(Collection<? extends JCCompilationUnit> trees);
+    
     /** Returns true if the class has been type-checked */
     public boolean isTypechecked(ClassSymbol csym);
     

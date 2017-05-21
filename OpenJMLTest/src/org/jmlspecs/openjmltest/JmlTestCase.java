@@ -537,7 +537,7 @@ public abstract class JmlTestCase {
                     // OK
                 } else {
                 	int k = sexp.indexOf('(');
-                	if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
+                	if (k != -1 && sexp.contains("at ") && sexp.substring(0,k).equals(sact.substring(0,k))) {
                 		// OK
                 	} else {         
                         diff += ("Lines differ at " + line + eol)

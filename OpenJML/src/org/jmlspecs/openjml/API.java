@@ -242,6 +242,12 @@ public class API implements IAPI {
         if (csym == null) return false;
         return isTypechecked(csym);
     }
+    
+    @Override
+    public void clearTypes(Collection<? extends JCCompilationUnit> trees) {
+        //for (JCCompilationUnit t: trees) new JmlClearTypes(context).scan(t);
+    }
+
 
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#enterAndCheck(org.jmlspecs.openjml.JmlTree.JmlCompilationUnit[])
@@ -789,6 +795,8 @@ public class API implements IAPI {
         	public IProofResultListener chained;
         	public IProverResult result; 
         	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+                if (result.result() == IProverResult.COMPLETED) return;
+                if (result.result() == IProverResult.RUNNING) return;
         		this.result = result; 
         		if (chained != null) chained.reportProofResult(msym, result);
         	}
@@ -798,15 +806,15 @@ public class API implements IAPI {
         setProofResultListener(l);
 //        L l;
 //        if (!(p instanceof L)) {
-//        	main().proofResultListener = l = new L(p);
-//        	main().context().put(IAPI.IProofResultListener.class, l);
+        	main().proofResultListener = l = new L(p);
+        	main().context().put(IAPI.IProofResultListener.class, l);
 //        } else {
 //        	l = (L)p;
 //        }
         esc.check(decl);
         setProofResultListener(p);
-//        main().context().put(IAPI.IProofResultListener.class, p);
-//        main().proofResultListener = p;
+        main().context().put(IAPI.IProofResultListener.class, p);
+        main().proofResultListener = p;
         return l.result; 
     }
     

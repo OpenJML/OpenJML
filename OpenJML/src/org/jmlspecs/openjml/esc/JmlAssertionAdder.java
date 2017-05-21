@@ -11221,6 +11221,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (targ instanceof JCTree.JCWildcard) {
             return methodCallUtilsExpression(targ,"makeTYPEQ");
             // FIXME - need to handle more subtypes differently, I'm sure
+        } else if (targ instanceof JCArrayTypeTree) {
+            // FIXME - this not handled
+            JCTree.JCFieldAccess f = M.Select(targ,names._class);
+            f.type = syms.classType;
+            f.sym = f.type.tsym;
+            return methodCallUtilsExpression(targ,"makeTYPE0",f);
         } else { // JCPrimitiveTypeTree, JCFieldAccess, JCIdent, JCArrayTypeTree
             JCTree.JCFieldAccess f = M.Select(targ,names._class);
             f.type = syms.classType;
@@ -12054,7 +12060,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                                 bl = popBlock(0L,that); // loop block
 
-                                st = M.at(that.pos).ForeachLoop(indexdef,bound.lo,bl);
+                                st = M.at(that.pos).ForeachLoop(indexdef,convertExpr(bound.lo),bl);
                                 if (brStat != null) brStat.target = st;
                                 st = M.at(that.pos).JmlLabeledStatement(label,null,st);
                                 addStat(st);

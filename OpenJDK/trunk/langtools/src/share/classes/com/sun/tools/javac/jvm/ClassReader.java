@@ -2629,8 +2629,12 @@ public class ClassReader {
         return c;
     }
     
-    public ClassSymbol classExists(Name flatname) { // OpenJML -- added
+    public ClassSymbol classExists(Name flatname) { // OPENJML -- added
         return classes.get(flatname);
+    }
+    
+    public void removeClass(Name flatname) { // OPENJML --- added
+        classes.remove(flatname);
     }
 
 /************************************************************************
