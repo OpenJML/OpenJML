@@ -17,11 +17,11 @@ public class JmlTreeAnalysis extends JmlTreeScanner{
     public JCTree                          currentReplacement;
     public static SubstituteTree           instance;
     
-    final protected Log                    log;
-    final protected Utils                  utils;
-    final protected JmlTreeUtils           treeutils;
-    final protected JmlTree.Maker          M;
-    final protected Context                context;
+    final public Log                    log;
+    final public Utils                  utils;
+    final public JmlTreeUtils           treeutils;
+    final public JmlTree.Maker          M;
+    final public Context                context;
     final Symtab                           syms;
     public static boolean                  inferdebug; 
     public static boolean                  verbose; 
