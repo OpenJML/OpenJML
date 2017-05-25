@@ -10,3 +10,4 @@ run.out*
 /runs/
 /__pycache__/
 /.ipynb_checkpoints/
+/bin/

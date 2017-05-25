@@ -110,7 +110,7 @@ public class Pretty extends JCTree.Visitor {
 
     /** The enclosing class name.
      */
-    Name enclClassName;
+    protected Name enclClassName; // JLS - changed to protected
 
     /** A table mapping trees to their documentation comments
      *  (can be null)
