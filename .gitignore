@@ -3,3 +3,7 @@
 .RData
 .Ruserdata
 /.DS_Store
+**/.DS_Store
+/OpenJML/tmp
+/OpenJML/strongarm/r-analysis/notebook.nb.html
+/OpenJML/strongarm/r-analysis/notebook.Rmd
