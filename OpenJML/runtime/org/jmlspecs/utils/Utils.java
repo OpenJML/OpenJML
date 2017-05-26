@@ -450,7 +450,11 @@ public class Utils {
         return t.erasure().isArray();
     }
     
-    public static IJMLTYPE getComponentType(IJMLTYPE t) {
+    public static Class<?> getJavaComponentType(Class<?> t) {
+        return (t.getComponentType());
+    }
+    
+    public static IJMLTYPE getJMLComponentType(IJMLTYPE t) {
         return makeTYPE0(t.erasure().getComponentType());
     }
     
@@ -563,6 +567,12 @@ public class Utils {
         @Override
         public boolean isSubtypeOf(IJMLTYPE t) {
             return t.erasure().isAssignableFrom(this.base);
+        }
+        
+        @Override  // FIXME - does not work for arrays of JML types with type arguments.
+        public IJMLTYPE getComponentType() {
+            if (!base.isArray()) return null;
+            return Utils.getJMLComponentType(this);
         }
 
     }

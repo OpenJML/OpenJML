@@ -25,7 +25,7 @@ public class Heap extends PriorityQueue {
     }
 
     /*@
-    public model pure non_null JMLObjectBag computeQueue() {
+    public model helper pure non_null JMLObjectBag computeQueue() {
 	JMLObjectBag bag = new JMLObjectBag();
 	for (int i= 0; i < numElems; i++)
 	    bag = bag.insert(elems[i]);

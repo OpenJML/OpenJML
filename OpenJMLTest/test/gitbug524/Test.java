@@ -5,9 +5,10 @@ public class Test {
 	BufferedReader reader = 
 	    new BufferedReader(new InputStreamReader(System.in));
 	PriorityQueue pq = new Heap();
-	while (true) {
-	    System.out.print("<number> or r: ");
-	    String input = reader.readLine();
+	String[] inputs = { "5", "2x", "30", "r", "r", "r" };
+	for (String s : inputs) {
+	    System.out.println("read: " + s);
+	    String input = s;
 	    switch (input.charAt(0)) {
 		case '0':
 		case '1':

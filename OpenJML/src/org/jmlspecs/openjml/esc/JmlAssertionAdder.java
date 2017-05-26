@@ -1784,6 +1784,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         treeutils.makeNot(codepos == null ? Position.NOPOS : codepos.getPreferredPosition(), treeutils.makeIdent(translatedExpr.pos,assertDecl.sym)), 
                         st, null);
             }
+            if (label.toString().equals("NullField")) Utils.stop();
             addStat(comment(translatedExpr,label + " assertion: " + translatedExpr.toString(),associatedSource));
             currentStatements.add(assertDecl);
             currentStatements.add(st);
@@ -3687,7 +3688,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Invariants for fields
         savedThis = currentThisExpr;
         currentStatements = ensuresStats; // FIXME - also exsuresStatements?
-        for (JCTree dd: classDecl.defs) {
+        if (!isHelper(methodDecl.sym)) for (JCTree dd: classDecl.defs) {  // FIXME - review isHelper here
             if (!(dd instanceof JCVariableDecl)) continue;
             JCVariableDecl d = (JCVariableDecl)dd;
             if (d.sym.type.isPrimitive()) continue;
@@ -11319,22 +11320,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // OK for Java types, but not complete for JML types - FIXME
         JCExpression arg = tree.args.head;
         arg = convertExpr(arg);
-        if (tree.type == JmlTypes.instance(context).TYPE) {
-            arg = methodCallUtilsExpression(tree,"erasure",arg);
+        JCExpression c;
+        if (arg.type.tsym.toString().equals("java.lang.Class")) { // FIXME - do this better?
+            c = methodCallUtilsExpression(tree,"getJavaComponentType",arg);
+        } else {
+            c = methodCallUtilsExpression(tree,"getJMLComponentType",arg);
         }
-        Name n = names.fromString("getComponentType");
-        Scope.Entry e = syms.classType.tsym.members().lookup(n);
-        Symbol ms = e.sym;
-        JCFieldAccess m = M.Select(arg,n);
-        m.sym = ms;
-        m.type = m.sym.type;
-
-        JCExpression c = M.Apply(null,m,List.<JCExpression>nil());
-        c.setType(syms.classType);
         result = eresult = c;
-        if (tree.type == JmlTypes.instance(context).TYPE) {
-            result = eresult = methodCallUtilsExpression(tree,"makeTYPE0",c);
-        }
     }
 
     protected Utils.DoubleMap<Name,Symbol,JCVariableDecl> oldarrays = new Utils.DoubleMap<Name,Symbol,JCVariableDecl>();
@@ -11372,7 +11364,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // These are special JML fcn-like calls (e.g. \old, \nonnullelements, ...)
     @Override
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-        if (pureCopy && !rac) {
+        if (pureCopy ) {
             if (that.token == JmlTokenKind.BSOLD || that.token == JmlTokenKind.BSPAST|| that.token == JmlTokenKind.BSPRE) {
                 boolean savedInOldEnv = inOldEnv;
                 inOldEnv = true;

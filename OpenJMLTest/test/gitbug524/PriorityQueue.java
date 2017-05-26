@@ -4,6 +4,7 @@ public abstract class PriorityQueue {
     
     //@ public instance model JMLObjectBag queue; 
 	//@ public represents queue = computeQueue();
+	//@ helper pure
 	public abstract JMLObjectBag computeQueue();
 
     /*@ public normal_behavior
