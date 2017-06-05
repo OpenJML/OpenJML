@@ -86,6 +86,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2c() {
+    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
@@ -117,6 +118,50 @@ public class escenums extends EscBase {
                 +"       //@ assert ee == null || ee == Z.AA || ee == Z.BB || ee == Z.CC; \n"
                 +"    }\n"
                 +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2f() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       //@ assume ee != Z.AA ; \n"
+                +"       //@ assume ee != Z.CC ; \n"
+                +"       //@ assert ee == Z.BB ; \n"
+                +"    }\n"
+                +"}"
+                );
+    }
+    
+    @Test
+    public void testUseEnum2g() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       //@ assume ee != Z.AA ; \n"
+                +"       //@ assume ee != Z.CC ; \n"
+                +"       //@ assert ee != Z.BB ; \n" // ERROR
+                +"    }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                );
+    }
+    
+    @Test
+    public void testUseEnum2h() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" enum Z { AA, BB, CC } \n"
+                +" public class TestJava {\n"
+                +"    public void m(/* non_null */ Z ee) {\n"
+                +"       Object o = ee;\n"
+                +"       //@ assert o instanceof Z ; \n" 
+                +"       //@ assert o instanceof Integer ; \n" // ERROR
+                +"    }\n"
+                +"}"
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     

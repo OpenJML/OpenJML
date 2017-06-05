@@ -417,31 +417,37 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
+        int savedPrec = prec;
+        prec = TreeInfo.noPrec;
         try { 
             // FIXME - it appears that the enclosing parentheses are parsed as a Parens
             // expression - is this really right?
             print(that.op.internedName());
-            print(" ");
+            print(" "); //$NON-NLS-1$
             boolean first = true;
             for (JCTree.JCVariableDecl n: that.decls) {
-                if (!first) print(", ");
+                if (!first) print(", "); //$NON-NLS-1$
                 else first = false;
                 n.accept(this);
             }
-            print("; ");
+            print("; "); //$NON-NLS-1$
             if (that.range != null) printExpr(that.range);
 
-            print("; ");
+            print("; "); //$NON-NLS-1$
             if (that.value != null) printExpr(that.value);
-            else print("????:");
-        } catch (IOException e) { perr(that,e); }
+            else print("????:"); //$NON-NLS-1$
+        } catch (IOException e) { 
+        	perr(that,e); 
+        } finally {
+        	prec = savedPrec;
+        }
     }
 
     public void visitJmlSetComprehension(JmlSetComprehension that) {
         int oldprec = prec;
         prec = 0;
         try { 
-                print("new ");
+                print("new "); //$NON-NLS-1$
                 that.newtype.accept(this);
                 print(" { ");
                 that.variable.accept(this);
@@ -522,7 +528,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print("//@ ");
             print(that.token.internedName());
             print(" ");
-            that.expression.accept(this);
+            printExpr(that.expression); // noPrecÍP
             print(";");
         } catch (IOException e) { perr(that,e); }
     }
