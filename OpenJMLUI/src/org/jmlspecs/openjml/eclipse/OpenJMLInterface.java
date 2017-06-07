@@ -919,7 +919,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         public EclipseDiagnosticListener(@NonNull IProblemRequestor p) {
             preq = p;
         }
-
+        
         /** This is the method that is called whenever a diagnostic is issued;
          * it will convert and pass it on to the problem requestor.  If the 
          * diagnostic cannot be converted to an Eclipse IProblem, then it is
@@ -930,7 +930,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
         @Override
         @SuppressWarnings("restriction")
         public void report(@NonNull Diagnostic<? extends JavaFileObject> diagnostic) {
-            JavaFileObject javaFileObject = diagnostic.getSource();
+        	JavaFileObject javaFileObject = diagnostic.getSource();
             String message = diagnostic.getMessage(null); // uses default locale
             int id = 0; // TODO - we are not providing numerical ids for problems
             Diagnostic.Kind kind = diagnostic.getKind();
@@ -1102,6 +1102,13 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	if (result.result() == IProverResult.COMPLETED) {
     		currentMethod = null;
     		return;
+    	}
+    	if (result.result() == IProverResult.ERROR) {
+    		if (result.otherInfo() == null) {
+    			List<String> messages = Log.collect(true);
+    			String text = String.join(Strings.eol, messages);
+    			result.setOtherInfo(text);
+    		}
     	}
     	String key = keyForSym(msym);
     	proofResults.put(key,result);

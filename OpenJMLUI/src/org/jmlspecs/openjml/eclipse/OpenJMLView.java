@@ -357,7 +357,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     
     static public void exportProofResults(FileWriter output) {
     	try {
-    		String spaces = "                                        ";
+    		String spaces = "                                        "; //$NON-NLS-1$
     		final OpenJMLView view = Utils.findView();
     		Map<String,Integer> counts = new HashMap<String,Integer>();
     		OpenJMLInterface iface = Activator.utils().getInterface(view.currentProject);
@@ -365,7 +365,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		TreeSet<String> t = new TreeSet<String>(proofResults.keySet());
     		for (String s: t) {
     			String result = proofResults.get(s).result().toString();
-    			output.append(result + spaces.substring(0,12-result.length()) + s + Strings.eol);
+    			output.append(result + spaces.substring(0,16-result.length()) + s + Strings.eol);
     			Integer i = counts.get(result);
     			if (i == null) i = 1; else i = i + 1;
     			counts.put(result, i);
@@ -373,8 +373,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		output.append(Strings.eol);
     		for (String result: new TreeSet<>(counts.keySet())) {
     			String number = counts.get(result).toString();
-    			output.append(number + spaces.substring(0,6-number.length()) + result + Strings.eol);
+    			output.append(number + spaces.substring(0,5-number.length()) + Strings.space + result + Strings.eol);
     		}
+    		output.append(counts.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + " TOTAL" + Strings.eol); //$NON-NLS-1$
     	} catch (IOException e) {
     		
     	}
@@ -471,10 +472,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 							: k == IProverResult.SAT ? "inconsistent"
 							: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
 							: k.toString().toLowerCase();
-					Activator.utils().setTraceViewUI(null, info.signature,
-							(k == IProverResult.ERROR ? "Error occurred while checking method: "
-							                         : "Method and its specifications are " + desc + ": ") 
-							      + info.key);
+					String text = (k == IProverResult.ERROR ? "Error occurred while checking method: "
+	                         : "Method and its specifications are " + desc + ": ") 
+								+ info.key;
+					Object extra = pr.otherInfo();
+					if (extra != null) text = text + Strings.eol + extra.toString();
+					Activator.utils().setTraceViewUI(null, info.signature, text);
 				}
 			}
 		}
