@@ -1707,7 +1707,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     associatedPos.getPreferredPosition(), label.toString())) return null;
         }
         String assertID = Strings.assertPrefix + (++assertCount);
-        if (assertCount == 1230) Utils.stop();
+//        if (assertCount == 1230) Utils.stop();
         
         Name assertname = names.fromString(assertID);
         JavaFileObject dsource = log.currentSourceFile();
@@ -3859,18 +3859,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             case DIVERGES:
                             {
                                 // FIXME _ implement
-                                currentStatements = ensuresStats; axiomBlock = ensuresAxiomBlock;
-                                pushBlock();
-                                try {
-                                    JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
-                                    addTraceableComment(ex,clause.toString());
-                                    ex = convertJML(ex,preident,true);
-                                    ex = treeutils.makeImplies(clause.pos, preident, ex);
-                                    //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
-                                } finally {
-                                    popBlock(0,clause);
+                                JCExpression ex = ((JmlMethodClauseExpr)clause).expression;
+                                if (!treeutils.isTrueLit(ex)) { // Avoid complaints or any implementation if the expression is 'true'
+                                    currentStatements = ensuresStats; 
+                                    axiomBlock = ensuresAxiomBlock;
+                                    pushBlock();
+                                    try {
+                                        addTraceableComment(ex,clause.toString());
+                                        ex = convertJML(ex,preident,true);
+                                        ex = treeutils.makeImplies(clause.pos, preident, ex);
+                                        //addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
+                                    } finally {
+                                        popBlock(0,clause);
+                                    }
+                                    notImplemented(clause,clause.token.internedName() + " clause", clause.source());
                                 }
-                                notImplemented(clause,clause.token.internedName() + " clause", clause.source());
                                 break;
                             }
 
@@ -6408,7 +6411,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     convertedArgs = convertedArgs.prepend(newThisExpr);
                 }
                 JCExpression methCall = treeutils.makeMethodInvocation(that,null,newCalleeSym,convertedArgs);
-                JCStatement stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
+                JCStatement stat;
+                if (resultExpr == null) stat = M.at(that.pos).Exec(methCall);  // FIXME - but if it is a function, why no return value?
+                else stat = treeutils.makeAssignStat(that.pos, resultExpr, methCall);
                 addStat(stat);
             }
 
@@ -6588,6 +6593,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // method itself last
             { // FIXME - what do we do with calls in quantifications
                 boolean combinedNoModel = false;
+                if (calleeMethodSym.toString().equals("ToString()")) Utils.stop();
                 addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller",null));
                 for (Pair<MethodSymbol,Type> pair: overridden) {
                     MethodSymbol mpsym = pair.first;
@@ -7066,6 +7072,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCExpression e = treeutils.makeIdent(d.pos,((JCVariableDecl)d).sym);
                                     fields.add(e);
                                 }
+                                JCStatement havoc = M.at(cs.pos).JmlHavocStatement(fields.toList());
+                                addStat(havoc);
+                            } else if (isSuperCall) {
+                                // default for a 'super' call is all superclass local fields
+                                ListBuffer<JCExpression> fields = new ListBuffer<>();
+                                Type sup = classDecl.sym.getSuperclass();
+                                Scope s = ((ClassSymbol)sup.tsym).members();
+                                for (Symbol sy: s.getElements()) {
+                                    if (!(sy instanceof VarSymbol)) continue;
+                                    JCExpression e = treeutils.makeIdent(that.pos,sy); // FIXME - not a good position
+                                    fields.add(e);
+                                } // FIXME - does this include inherited fields?
                                 JCStatement havoc = M.at(cs.pos).JmlHavocStatement(fields.toList());
                                 addStat(havoc);
                             } else if (newclass == null && !isPure) {
@@ -8603,8 +8621,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             rhs = M.at(rhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
                         }
                     }
-                    JCExpression meth = M.at(that).Select(lhs,s);
+                    JCExpression llhs = treeutils.makeStringLiteral(that.pos,"");
+                    JCExpression meth = M.at(that).Select(llhs,s);
+                    call = M.at(that).Apply(null, meth, List.<JCExpression>of(lhs)).setType(that.type);
+                    meth = M.at(that).Select(call,s);
                     call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
+                    // FIXME  - the complexity above is because lhs might possibly be null. We could simplify this, especially with a sequence of concat operations, maybe also just have a static concat method that allows null parameters.
                     visitApply(call);
                 }
                 return;

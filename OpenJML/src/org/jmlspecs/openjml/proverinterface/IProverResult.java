@@ -102,7 +102,8 @@ public interface IProverResult {
 
     public Object otherInfo();
 
-    public void setOtherInfo(Object s);
+    //@ ensures \result == this;
+    public IProverResult setOtherInfo(Object s);
 
     /** Returns the set of core ids, or null if no such information is available 
      * @return an item holding the core id information

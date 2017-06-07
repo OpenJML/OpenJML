@@ -925,6 +925,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     boolean implementationAllowed = false;
     
     @Override
+    protected boolean okAsEnum(Type clazztype) {
+    	return !(isInJmlDeclaration && (clazztype.tsym.flags_field&Flags.ENUM) != 0);
+    }
+
+    @Override
     public void visitNewClass(JCNewClass tree) {
         boolean prev = implementationAllowed;
         boolean prevJml = isInJmlDeclaration;
@@ -2022,7 +2027,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         //      and are subject to definite assignment checking.
         if ((env.info.enclVar == v || v.pos > tree.pos) &&
                 v.owner.kind == TYP &&
-                enclosingInitEnv(env) != null &&  // FIXME - this line used to be a check for canOwnInitializer, which was only used here and defined in Attr.java
+                (env.tree.getTag() != null && enclosingInitEnv(env) != null) &&  // FIXME - this line used to be a check for canOwnInitializer, which was only used here and defined in Attr.java
                 v.owner == env.info.scope.owner.enclClass() &&
                 ((v.flags() & STATIC) != 0) == Resolve.isStatic(env) &&
                 (!env.tree.hasTag(ASSIGN) ||

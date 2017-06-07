@@ -28,6 +28,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
@@ -151,8 +152,10 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res = null;
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         if (!(decl instanceof JmlMethodDecl)) {
-            log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
-            res = new ProverResult(proverToUse,ProverResult.ERROR,decl.sym);
+            JCDiagnostic d = (log.factory().warning(log.currentSource(), decl.pos(), "jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)));
+            log.report(d);
+            //log.warning(decl.pos(),"jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.qualifiedMethodSig(decl.sym)); //$NON-NLS-2$
+            res = new ProverResult(proverToUse,ProverResult.ERROR,decl.sym).setOtherInfo(d);
             return;
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
@@ -288,8 +291,11 @@ public class JmlEsc extends JmlTreeScanner {
             );
             throw e;
         } catch (Exception e) {
-            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym);
-            log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
+            JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.internal","Prover aborted with exception: " + e.getMessage());
+            log.report(d);
+
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
+            //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"

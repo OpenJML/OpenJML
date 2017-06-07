@@ -70,6 +70,7 @@ import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.tree.JCTree.JCSynchronized;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
@@ -218,8 +219,10 @@ public class MethodProverSMT {
         }
         JCBlock newblock = translatedMethod.getBody();
         if (newblock == null) {
-        	log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
+            JCDiagnostic d = log.factory().error(log.currentSource(), null, "esc.no.typechecking",methodDecl.name.toString());
+            log.report(d);
+        	//log.error("esc.no.typechecking",methodDecl.name.toString()); //$NON-NLS-1$
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
         if (printPrograms) {
             log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -232,8 +235,10 @@ public class MethodProverSMT {
         // determine the executable
         String exec = pickProverExec(proverToUse);
         if (exec == null || exec.trim().isEmpty()) {
-            log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
-            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null);
+            //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
+            JCDiagnostic d = log.factory().error(log.currentSource(), null, "esc.no.exec",proverToUse);
+            log.report(d);
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
         
         // create an SMT object, adding any options
@@ -291,16 +296,20 @@ public class MethodProverSMT {
                     }
                 }
             } catch (Exception e) {
-                log.error("jml.internal", "Failed to convert to SMT: " + e);
-                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
+                //log.error("jml.internal", "Failed to convert to SMT: " + e);
+                JCDiagnostic d = log.factory().warning(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
+                log.report(d);
+                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
             // Starts the solver (and it waits for input)
             start = new Date();
             setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
             if (solver == null) { 
-            	log.error("jml.solver.failed.to.start",exec);
-        		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+            	//log.error("jml.solver.failed.to.start",exec);
+                JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.solver.failed.to.start",exec);
+                log.report(d);
+        		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             } else {
             	// Try the prover
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
@@ -308,8 +317,10 @@ public class MethodProverSMT {
             		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
             		// Not sure there is anything to worry about, but just in case
-            		log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-            		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+            		//log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+                    JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                    log.report(d);
+            		return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             	}
             }
 
@@ -327,8 +338,10 @@ public class MethodProverSMT {
             IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
             if (solverResponse.isError()) {
                 solver.exit();
-                log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                log.report(d);
+                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
             if (solverResponse.equals(unsatResponse)) {
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
@@ -390,8 +403,10 @@ public class MethodProverSMT {
                                 solver2.exit();
                             } catch (Exception e) {
                                 // Not sure there is anything to worry about, but just in case
-                                log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
-                                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                                //log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
+                                JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
+                                log.report(d);
+                                return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                             }
                            
                         }
@@ -425,8 +440,10 @@ public class MethodProverSMT {
                             }
                         } else if (solverResponse.isError()) {
                             if (usePushPop) solver.exit();
-                            log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                            //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                            JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                            log.report(d);
+                            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                         }
 
                     }
@@ -441,8 +458,10 @@ public class MethodProverSMT {
 
                     if (solverResponse.isError()) {
                         solver.exit();
-                        log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                        //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                        JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                        log.report(d);
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                     }
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
                         IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
@@ -549,8 +568,10 @@ public class MethodProverSMT {
                     solverResponse = solver.check_sat();
 
                     if (solverResponse.isError()) {
-                        log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
-                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+                        //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
+                        JCDiagnostic d = log.factory().error(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
+                        log.report(d);
+                        return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                     }
                     if (solverResponse.equals(unsatResponse)) break;
                     // TODO -  checking each assertion separately
@@ -562,7 +583,10 @@ public class MethodProverSMT {
         smt.smtConfig.logfile = null;
 //        saveBenchmark(proverToUse,methodDecl.name.toString());
 //        jmlesc.mostRecentProgram = program;
-        if (prevErrors != log.nerrors) return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+        if (prevErrors != log.nerrors) {
+            // FIXME - include information about the errors - now just in UI
+            return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
+        }
         return proofResult;
         
     }

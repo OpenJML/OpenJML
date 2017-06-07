@@ -2011,6 +2011,7 @@ public class Attr extends JCTree.Visitor {
                 log.error(tree.pos(), "enum.cant.be.instantiated");
             // Check that class is not abstract
             if (cdef == null &&
+            		okAsEnum(clazztype) && // OPENJML - added - may not be the best implementation (because of using TimeUnit)
                 (clazztype.tsym.flags() & (ABSTRACT | INTERFACE)) != 0) {
                 log.error(tree.pos(), "abstract.cant.be.instantiated",
                           clazztype.tsym);
@@ -2211,6 +2212,8 @@ public class Attr extends JCTree.Visitor {
                 ta.arguments = prevTypeargs;
             }
         }
+        
+        protected boolean okAsEnum(Type c) { return true; } // OPENJML _ added to allow overwriting
 
             private void checkLambdaCandidate(JCNewClass tree, ClassSymbol csym, Type clazztype) {
                 if (allowLambda &&
