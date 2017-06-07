@@ -813,7 +813,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         newdefs.add(ms);
                 
         // We can't use the annotations on the symbol because the annotations are not 
-        // necessarily completed. We could force it, but in the interst of least disruption
+        // necessarily completed. We could force it, but in the interest of least disruption
         // of the OpenJDK processing, we just use the AST instead.
         JmlAttr attr = JmlAttr.instance(context);
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
