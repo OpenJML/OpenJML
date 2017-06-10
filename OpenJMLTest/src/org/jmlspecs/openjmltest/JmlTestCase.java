@@ -402,16 +402,13 @@ public abstract class JmlTestCase {
             while (true) {
                 line++;
                 String sexp = exp.readLine();
-                if (sexp != null) sexp = sexp.replace("\r\n", "\n");
                 String sact = act.readLine();
-                if (sact != null) sact = sact.replace("\r\n", "\n");
                 while (ignoreNotes && sact != null && sact.startsWith("Note: ")) {
                 	sact = act.readLine();
                 }
                 if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
             	while (ignoreNotes && sexp != null && sexp.startsWith("Note: ")) {
             		sexp = exp.readLine();
-                    if (sexp != null) sexp = sexp.replace("\r\n", "\n");
             	}
                 if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                 if (sexp != null && sact == null) {
@@ -431,14 +428,9 @@ public abstract class JmlTestCase {
                 if (env == null) System.out.println("The SPECSDIR environment variable is required to be set for testing");
                 else sexp = sexp.replace("$SPECS", env);
                 if (!sexp.equals(sact) && !sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
-                	int k = sexp.indexOf('(');
-                	if (k != -1 && sexp.contains("at java.") && sexp.substring(0,k).equals(sact.substring(0,k))) {
-                		// OK
-                	} else {         
-                        diff += ("Lines differ at " + line + eol)
+                    diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
-                	}
                 }
             }
         } catch (FileNotFoundException e) {
@@ -455,10 +447,11 @@ public abstract class JmlTestCase {
     }
     
     public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
+        String outputdir = "test/escTrace";
         String diffs = "";
         for (String f: new File(dir).list()) {
             if (!f.contains(root)) continue;
-            diffs = compareFiles(dir + "/" + f, actualFile);
+            diffs = compareFiles(outputdir + "/" + f, actualFile);
             if (diffs == null) break;
         }
         if (diffs != null) {
@@ -536,14 +529,9 @@ public abstract class JmlTestCase {
                 } else if (sexp.replace('\\','/').equals(sact.replace('\\','/'))) {
                     // OK
                 } else {
-                	int k = sexp.indexOf('(');
-                	if (k != -1 && sexp.contains("at ") && sexp.substring(0,k).equals(sact.substring(0,k))) {
-                		// OK
-                	} else {         
-                        diff += ("Lines differ at " + line + eol)
+                    diff += ("Lines differ at " + line + eol)
                             + ("EXP: " + sexp + eol)
                             + ("ACT: " + sact + eol);
-                	}
                 }
             }
         } catch (FileNotFoundException e) {

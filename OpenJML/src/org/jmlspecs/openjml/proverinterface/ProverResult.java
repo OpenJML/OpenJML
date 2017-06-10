@@ -92,9 +92,8 @@ public class ProverResult implements IProverResult {
     /** Sets the associated information object. */
     //@ assignable otherInfo;
     //@ ensures o == otherInfo();
-    public ProverResult setOtherInfo(@Nullable Object o) {
+    public void setOtherInfo(@Nullable Object o) {
         otherInfo = o;
-        return this;
     }
     
     /** Sets the result category

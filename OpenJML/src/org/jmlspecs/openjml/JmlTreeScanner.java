@@ -8,11 +8,8 @@ import java.util.Iterator;
 
 import org.jmlspecs.openjml.JmlTree.*;
 
-import com.sun.source.tree.LabeledStatementTree;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
-import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 /**
  * This class is used to construct visitors that walk a Java/JML parse tree. The
@@ -128,11 +125,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 
     public void visitJmlImport(JmlImport that) {
         visitImport(that);
-    }
-    
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//        scan(that.extraStatements.toList());
-        scan(that.body);
     }
     
     public void visitJmlLblExpression(JmlLblExpression that) {

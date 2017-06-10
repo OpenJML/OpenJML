@@ -1,0 +1,23 @@
+OUT:
+test\racbigint\bigint.java:25: JML assertion is false
+        //@ assert b == zero;
+            ^
+LABEL BBB = -420
+LABEL XX = 1234567890123456789012345678900
+java.lang.ArithmeticException: BigInteger divide by zero
+	at java.math.MutableBigInteger.divide(Unknown Source)
+	at java.math.BigInteger.divide(Unknown Source)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:620)
+	at bigint.main(bigint.java:35)
+java.lang.ArithmeticException: BigInteger divide by zero
+	at java.math.MutableBigInteger.divide(Unknown Source)
+	at java.math.BigInteger.divide(Unknown Source)
+	at org.jmlspecs.utils.Utils.bigint_div(Utils.java:620)
+	at bigint.main(bigint.java:40)
+LABEL BBB = -417
+LABEL TRUE = true
+LABEL TRUE = true
+LABEL TRUE = true
+LABEL TRUE = true
+
+ERR:

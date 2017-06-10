@@ -1,7 +1,0 @@
-Proving methods in TestObject
-Skipping proof of TestObject.TestObject() (excluded by -method)
-Skipping proof of TestObject.main(java.lang.String...) (excluded by skipesc)
-Starting proof of TestObject.esc() with prover !!!!
-Feasibility check #12 - at program exit : OK
-Completed proof of TestObject.esc() with prover !!!! - no warnings
-Completed proving methods in TestObject

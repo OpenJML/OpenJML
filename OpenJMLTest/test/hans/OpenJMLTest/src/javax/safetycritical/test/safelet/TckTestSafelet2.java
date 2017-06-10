@@ -385,8 +385,7 @@ class TestSafelet2 extends TestCase
 	  
 	  public TestSafelet2 (TestResult result,int testCount)
 	  {
-          //super (result, testCount);
-          super ();
+		  super (result, testCount);
 	  } 
 		  
 	  public void test (int i) 

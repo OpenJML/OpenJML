@@ -258,22 +258,19 @@ public class Utils {
         System.out.println(str);
     }
     
-    public static void reportNoSuchField(NoSuchFieldError t, @Nullable String location) {
-    	t.printStackTrace();
+    public static void reportNoSuchField(NoSuchFieldError t) {
         String msg = t.getMessage();
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled ghost or model field: " + msg;
-        if (location != null) msg = msg + " (" + location + ")";
         report(msg);
     }
     
-    public static void reportNoSuchMethod(NoSuchMethodError t, @Nullable String location) {
+    public static void reportNoSuchMethod(NoSuchMethodError t) {
         String msg = t.getMessage();
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
         msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
-        if (location != null) msg = msg + " (" + location + ")";
         report(msg);
     }
     
@@ -450,11 +447,7 @@ public class Utils {
         return t.erasure().isArray();
     }
     
-    public static Class<?> getJavaComponentType(Class<?> t) {
-        return (t.getComponentType());
-    }
-    
-    public static IJMLTYPE getJMLComponentType(IJMLTYPE t) {
+    public static IJMLTYPE getComponentType(IJMLTYPE t) {
         return makeTYPE0(t.erasure().getComponentType());
     }
     
@@ -567,12 +560,6 @@ public class Utils {
         @Override
         public boolean isSubtypeOf(IJMLTYPE t) {
             return t.erasure().isAssignableFrom(this.base);
-        }
-        
-        @Override  // FIXME - does not work for arrays of JML types with type arguments.
-        public IJMLTYPE getComponentType() {
-            if (!base.isArray()) return null;
-            return Utils.getJMLComponentType(this);
         }
 
     }

@@ -1,11 +1,8 @@
 package org.jmlspecs.openjml.eclipse;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -60,7 +57,6 @@ import org.w3c.dom.Document;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.util.Context;
 
 public class OpenJMLView extends ViewPart implements SelectionListener, MouseListener {
 
@@ -203,116 +199,107 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	IProverResult result = results.get(key);
     	Symbol sym = result.methodSymbol();
     	
-    	PackageSymbol p = sym.packge();
-    	String pname = p.getQualifiedName().toString();
-    	if (pname.isEmpty()) pname = "<default package>";
-    	TreeItem ti = treeitems.get(pname);
-    	if (ti == null) {
-    		ti = new TreeItem(treeroot, SWT.NONE);
-    		ti.setText(pname);
-    		treeitems.put(pname, ti);
-    	}
-
-    	Symbol classSym = sym.owner;
-    	String scname = iface.keyForSym(classSym);
-    	String cname = classSym.getSimpleName().toString();
-    	TreeItem tii = treeitems.get(scname);
-    	if (tii == null) {
-    		tii = new TreeItem(ti,SWT.NONE);
-    		tii.setText(scname); // FIXME - what about nested classes
-    		treeitems.put(scname, tii);
-    		{
-    			Info iteminfo = new Info();
-    			iteminfo.key = scname;
-    			iteminfo.proofResult = null;
-    			iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
-    			iteminfo.signature = classSym.getSimpleName().toString();
-    			tii.setData(iteminfo);
-    		}
-    	}
-
-    	String text = sym.toString();
-    	TreeItem tiii = treeitems.get(key);
-    	if (tiii == null) {
-    		tiii = new TreeItem(tii,SWT.NONE);
-    		treeitems.put(key, tiii);
-    	}
-
-    	Kind k = result == null ? null : result.result();
-    	String info = result == null ? "" : (" ["
-    			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
-    			+ " " + result.prover() + "]");
-    	tiii.removeAll();
-    	String name = k == null ? "" : k.toString();
-    	String padding = "      ";
-    	padding = padding.substring(0,name.length() <= padding.length() ? padding.length()-name.length() : 0);
-    	String alltext = k == null ? text : ("[" + k.toString() + "] " + text + info);
-    	Color color = white;
-    	{
-    		Info iteminfo = new Info();
-    		iteminfo.key = key;
-    		iteminfo.proofResult = result;
-    		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
-    		iteminfo.signature = key;
-    		tiii.setData(iteminfo);
-    	}
-    	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
-    		alltext = ("[INVALID] " + text + info);
-    		color = orange;
-    		List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
-    		if (presults == null) {
-    			// Put nothing
-    		} else if (presults.size() == 1) {
-    			treece.put(tiii, result.counterexample());
-    		} else if (presults.size() == 0) {
-    			treece.put(tiii, null);
-    			// FIXME - no counterexample
-    		} else {
-    			int i = 0;
-    			for (IProverResult.Item ce : presults) {
-    				if (i == 0) treece.put(tiii, (ICounterexample)ce);
-    				if (ce instanceof IProverResult.ICounterexample) {
-    					TreeItem tiiii = new TreeItem(tiii,SWT.NONE);
-    					// FIXME - say more about the failed assertion
-    					tiiii.setText("CE#" + (++i));
-    					tiiii.setBackground(orange);
-    					treece.put(tiiii, (ICounterexample)ce);
-    				}
-    			}
-    			tiii.setExpanded(true);
-    		}
-    	} else if (k == IProverResult.UNSAT) {
-    		alltext = ("[VALID]    " + text + info);
-    		color = green;
-    	} else if (k == IProverResult.ERROR) {
-    		color = red;
-    	} else if (k == IProverResult.TIMEOUT) {
-    		tiii.setBackground(yellow);
-    	} else if (k == IProverResult.UNKNOWN) {
-    		color = red;
-    	} else if (k == IProverResult.INFEASIBLE) {
-    		color = yellow;
-    	} else if (k == IProverResult.SKIPPED) {
-    		color = blue;
-    	} else if (k == IProverResult.RUNNING) {
-    		color = white;
-    	} else if (k == IProverResult.CANCELLED) {
-    		color = red;
-    	} else if (k == IProverResult.COMPLETED) {
-    		return; // No change
-    	} else if (k == null) {
-    		alltext = text;
-    		color = white;
-    	} else {
-    		color = red;
-    	}
-    	tiii.setText(alltext);
-    	tiii.setBackground(color);
-//          treeroot.setExpanded(true);
-//    		ti.setExpanded(true);
-//    		tii.setExpanded(true);
+        	PackageSymbol p = sym.packge();
+    		String pname = p.getQualifiedName().toString();
+    		if (pname.isEmpty()) pname = "<default package>";
+        	TreeItem ti = treeitems.get(pname);
+        	if (ti == null) {
+        		ti = new TreeItem(treeroot, SWT.NONE);
+        		ti.setText(pname);
+        		treeitems.put(pname, ti);
+        	}
     		
-    		treeroot.getParent().showItem(tiii);
+        	Symbol classSym = sym.owner;
+        	String scname = iface.keyForSym(classSym);
+        	String cname = classSym.getSimpleName().toString();
+        	TreeItem tii = treeitems.get(scname);
+        	if (tii == null) {
+        		tii = new TreeItem(ti,SWT.NONE);
+        		tii.setText(scname); // FIXME - what about nested classes
+        		treeitems.put(scname, tii);
+            	{
+            		Info iteminfo = new Info();
+            		iteminfo.key = scname;
+            		iteminfo.proofResult = null;
+            		iteminfo.javaElement = iface.convertType((Symbol.ClassSymbol)classSym);
+            		iteminfo.signature = classSym.getSimpleName().toString();
+            		tii.setData(iteminfo);
+            	}
+        	}
+    		
+        	String text = sym.toString();
+        	TreeItem tiii = treeitems.get(key);
+        	if (tiii == null) {
+    			tiii = new TreeItem(tii,SWT.NONE);
+    			treeitems.put(key, tiii);
+        	}
+        	
+        	Kind k = result == null ? null : result.result();
+        	String info = result == null ? "" : (" ["
+        			+ (org.jmlspecs.openjml.Utils.testingMode ? "TIME" : result.duration()) 
+        			+ " " + result.prover() + "]");
+        	tiii.removeAll();
+        	{
+        		Info iteminfo = new Info();
+        		iteminfo.key = key;
+        		iteminfo.proofResult = result;
+        		iteminfo.javaElement = iface.convertMethod((MethodSymbol)sym);
+        		iteminfo.signature = key;
+        		tiii.setData(iteminfo);
+        	}
+        	if (k == IProverResult.SAT || k == IProverResult.POSSIBLY_SAT) {
+        		tiii.setText("[INVALID] " + text + info);
+        		tiii.setBackground(orange);
+    			List<IProverResult.Item> presults = ((org.jmlspecs.openjml.proverinterface.ProverResult)result).details();
+    			if (presults == null) {
+    			  // Put nothing
+    			} else if (presults.size() == 1) {
+    				treece.put(tiii, result.counterexample());
+        		} else if (presults.size() == 0) {
+    				treece.put(tiii, null);
+        			// FIXME - no counterexample
+        		} else {
+        			int i = 0;
+        			for (IProverResult.Item ce : presults) {
+        				if (i == 0) treece.put(tiii, (ICounterexample)ce);
+        				if (ce instanceof IProverResult.ICounterexample) {
+        					TreeItem tiiii = new TreeItem(tiii,SWT.NONE);
+        					// FIXME - say more about the failed assertion
+        					tiiii.setText("CE#" + (++i));
+        					tiiii.setBackground(orange);
+        					treece.put(tiiii, (ICounterexample)ce);
+        				}
+        			}
+        			tiii.setExpanded(true);
+        		}
+        	} else if (k == IProverResult.UNSAT) {
+        		tiii.setText("[VALID]   " + text + info);
+            	tiii.setBackground(green);
+        	} else if (k == IProverResult.ERROR) {
+        		tiii.setText("[ERROR]   " + text + info);
+            	tiii.setBackground(red);
+        	} else if (k == IProverResult.TIMEOUT) {
+        		tiii.setText("[TIMEOUT]   " + text + info);
+            	tiii.setBackground(yellow);
+        	} else if (k == IProverResult.UNKNOWN) {
+        		tiii.setText("[UNKNOWN]   " + text + info);
+            	tiii.setBackground(red);
+        	} else if (k == IProverResult.INFEASIBLE) {
+        		tiii.setText("[INFEASIBLE] " + text + info);
+            	tiii.setBackground(yellow);
+        	} else if (k == IProverResult.SKIPPED) {
+        		tiii.setText("[SKIPPED] " + text + info);
+            	tiii.setBackground(blue);
+        	} else if (k == null) {
+        		tiii.setText(text);
+            	tiii.setBackground(white);
+        	} else {
+        		tiii.setText("[?????] " + text + info);
+        		tiii.setBackground(red);
+        	}
+            treeroot.setExpanded(true);
+    		ti.setExpanded(true);
+    		tii.setExpanded(true);
     }
     
     private boolean getCurrentFileData() {
@@ -353,32 +340,6 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	treeroot.removeAll();
     	refresh();
     	selected = null;
-    }
-    
-    static public void exportProofResults(FileWriter output) {
-    	try {
-    		String spaces = "                                        "; //$NON-NLS-1$
-    		final OpenJMLView view = Utils.findView();
-    		Map<String,Integer> counts = new HashMap<String,Integer>();
-    		OpenJMLInterface iface = Activator.utils().getInterface(view.currentProject);
-    		Map<String,IProverResult> proofResults = iface.getProofResults();
-    		TreeSet<String> t = new TreeSet<String>(proofResults.keySet());
-    		for (String s: t) {
-    			String result = proofResults.get(s).result().toString();
-    			output.append(result + spaces.substring(0,16-result.length()) + s + Strings.eol);
-    			Integer i = counts.get(result);
-    			if (i == null) i = 1; else i = i + 1;
-    			counts.put(result, i);
-    		}
-    		output.append(Strings.eol);
-    		for (String result: new TreeSet<>(counts.keySet())) {
-    			String number = counts.get(result).toString();
-    			output.append(number + spaces.substring(0,5-number.length()) + Strings.space + result + Strings.eol);
-    		}
-    		output.append(counts.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + " TOTAL" + Strings.eol); //$NON-NLS-1$
-    	} catch (IOException e) {
-    		
-    	}
     }
     
     public void clearSelectedProofResults() {
@@ -470,14 +431,12 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 					Kind k = pr.result();
 					String desc = k == IProverResult.UNSAT ? "consistent" 
 							: k == IProverResult.SAT ? "inconsistent"
-							: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
-							: k.toString().toLowerCase();
-					String text = (k == IProverResult.ERROR ? "Error occurred while checking method: "
-	                         : "Method and its specifications are " + desc + ": ") 
-								+ info.key;
-					Object extra = pr.otherInfo();
-					if (extra != null) text = text + Strings.eol + extra.toString();
-					Activator.utils().setTraceViewUI(null, info.signature, text);
+									: k == IProverResult.SKIPPED ? " skipped"
+											: k == IProverResult.POSSIBLY_SAT ? "probably inconsistent"
+													: k == IProverResult.INFEASIBLE ? "infeasible"
+															: k == IProverResult.UNKNOWN ? "unknown" : "???";
+					Activator.utils().setTraceViewUI(null, info.signature,"Method and its specifications are " + desc + ": " 
+							+ info.key);
 				}
 			}
 		}
@@ -488,7 +447,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 		widgetSelected(e);
 	}
 
-	/** Launches a Java editor for the method or class that was clicked */
+	/** Launches a Java editor for the merthod or class that was clicked */
 	@Override
 	public void mouseDoubleClick(MouseEvent e) {
 		// Presumes a selection happened as part of the double click

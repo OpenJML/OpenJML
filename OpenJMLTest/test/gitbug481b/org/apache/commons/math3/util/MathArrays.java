@@ -1472,8 +1472,6 @@ public class MathArrays {
      * @return a new array
      * @since 3.2
      */
-    //@ ensures \fresh(\result);
-    //@ pure
     public static <T> T[] buildArray(final Field<T> field, final int length) {
         @SuppressWarnings("unchecked") // OK because field must be correct class
         T[] array = (T[]) Array.newInstance(field.getRuntimeClass(), length);

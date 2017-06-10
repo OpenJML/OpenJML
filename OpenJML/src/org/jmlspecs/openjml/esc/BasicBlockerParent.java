@@ -24,7 +24,6 @@ import org.jmlspecs.openjml.JmlTree.JmlEnhancedForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlForLoop;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlImport;
-import org.jmlspecs.openjml.JmlTree.JmlLabeledStatement;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseCallable;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseConditional;
@@ -65,10 +64,8 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.JmlTree.JmlWhileLoop;
 import org.jmlspecs.openjml.esc.BasicProgramParent.BlockParent;
 
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
-import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -119,11 +116,9 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCWildcard;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
-import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.tree.JCTree.TypeBoundKind;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -669,14 +664,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         return st;
     }
     
-    ListBuffer<JCStatement> temp = new ListBuffer<>();
-    protected void addAssumeCheck(java.util.List<JCStatement> statements, String bbname) {
-        JmlEsc.instance(context).assertionAdder.addAssumeCheck(treeutils.trueLit, temp, "BB-Assume" );
-        statements.add(temp.first());
-        temp.clear();
-    }
-
-    
     /** Adds a new assume statement to the end of the given statements list; the assume statement is
      * given the declaration pos, endpos and label from the arguments; it is presumed the input expression is
      * translated, as is the produced assume statement.
@@ -953,7 +940,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(noexceptionBlock,finallyBlock);
         blocks.add(noexceptionBlock);
         
-        // Now create the paths for each catch 
+        // Now create the paths for each case statement
         List<JCStatement> assumptions = new LinkedList<JCStatement>();
         addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),assumptions);
         for (JCCatch catcher: that.catchers) {
@@ -963,15 +950,13 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             T catchBlock = newBlock(CATCH,catcher.pos);
             follows(targetBlock,catchBlock);
             follows(catchBlock,finallyBlock);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
             catchBlock.statements.addAll(assumptions);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
-            addAssumeCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
-            JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
+            JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, null);
                 d.pos = catcher.param.pos;
-            catchBlock.statements.add(d);
+                d.init = ex;
+                catchBlock.statements.add(d);
             JCIdent nex = treeutils.makeIdent(catcher.pos, exceptionSym);
             catchBlock.statements.add(treeutils.makeAssignStat(catcher.pos,nex,treeutils.nullLit)); // FIXME - seems to duplicate an item in catcher.body.stats
             JCIdent term = treeutils.makeIdent(catcher.pos, terminationSym);
@@ -987,26 +972,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         follows(noCatchBlock,finallyBlock);
         blocks.add(noCatchBlock);
     
-        // Need to save the current global exception and termination value
-        Symbol owner = methodDecl != null ? methodDecl.sym : null; // FIXME ? classDecl.sym;
-        JCVariableDecl savedException = treeutils.makeVarDef(syms.exceptionType, names.fromString("__JMLsavedException_" + that.pos), owner, that.pos); // FIXME - may need to have a non-null owner
-        JCAssign saveAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, savedException.sym), treeutils.makeIdent(that.pos,exceptionSym));
-        finallyBlock.statements.add(M.at(that.pos).Exec(saveAssignment));
-        
-        JCVariableDecl savedTermination = treeutils.makeVarDef(syms.intType, names.fromString("__JMLsavedTermination_" + that.pos), owner, that.pos); // FIXME - may need to have a non-null owner
-        saveAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, savedTermination.sym), treeutils.makeIdent(that.pos,terminationSym));
-        finallyBlock.statements.add(M.at(that.pos).Exec(saveAssignment));
-        
-        
         JCBlock finallyStat = that.getFinallyBlock();
         if (finallyStat != null) finallyBlock.statements.addAll(finallyStat.getStatements()); // it gets the statements of the finally statement
-        
-        // Restore the global exception
-        JCAssign restoreAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, exceptionSym), treeutils.makeIdent(that.pos,savedException.sym));
-        finallyBlock.statements.add(M.at(that.pos).Exec(restoreAssignment));
-        restoreAssignment = treeutils.makeAssign(that.pos, treeutils.makeIdent(that.pos, terminationSym), treeutils.makeIdent(that.pos,savedTermination.sym));
-        finallyBlock.statements.add(M.at(that.pos).Exec(restoreAssignment));
-        
         
         // And lastly, the blocks for out-of-band exits from the finally block
         // The normal ending block is for when there is no pending exception or return;
@@ -1162,17 +1129,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // outer try-finally block
     public void visitReturn(JCReturn that) {
         if (!remainingStatements.isEmpty()) {
-            JCStatement stat = remainingStatements.get(0);
-            if (stat.toString().contains("JMLsaved")) remainingStatements.remove(0);
-            if (remainingStatements.get(0).toString().contains("JMLsaved")) remainingStatements.remove(0);
-            if (!remainingStatements.isEmpty()) {
-                // Not fatal, but does indicate a problem with the original
-                // program, which the compiler may have already identified
-                log.warning(remainingStatements.get(0).pos,
-                        "esc.internal.error", //$NON-NLS-1$
-                        "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
-                remainingStatements.clear();
-            }
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error", //$NON-NLS-1$
+                    "Unexpected statements following a return statement are ignored"); //$NON-NLS-1$
+            remainingStatements.clear();
         }
         
         // There are no remaining statements, so this new block is empty.
@@ -1203,17 +1165,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     public void visitThrow(JCThrow that) { 
         
         if (!remainingStatements.isEmpty()) {
-            JCStatement stat = remainingStatements.get(0);
-            if (stat.toString().contains("JMLsaved")) remainingStatements.remove(0);
-            if (remainingStatements.get(0).toString().contains("JMLsaved")) remainingStatements.remove(0);
-            if (!remainingStatements.isEmpty()) {
-                // Not fatal, but does indicate a problem with the original
-                // program, which the compiler may have already identified
-                log.warning(remainingStatements.get(0).pos,
-                        "esc.internal.error",
-                        "Unexpected statements following a throw statement");
-                remainingStatements.clear();
-            }
+            // Not fatal, but does indicate a problem with the original
+            // program, which the compiler may have already identified
+            log.warning(remainingStatements.get(0).pos,
+                    "esc.internal.error",
+                    "Unexpected statements following a throw statement");
+            remainingStatements.clear();
         }
         
         // There are no remaining statements, so this new block is empty.
@@ -1535,11 +1492,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // OK
     @Override
     public void visitLabelled(JCLabeledStatement that) {
-        shouldNotBeCalled(that);
-    }
-    
-    @Override 
-    public void visitJmlLabeledStatement(JmlLabeledStatement that) {
         T nextBlock = newBlockWithRest(AFTERLABEL,that.pos);
         follows(currentBlock,nextBlock);
         breakBlocks.put(that.label, nextBlock);

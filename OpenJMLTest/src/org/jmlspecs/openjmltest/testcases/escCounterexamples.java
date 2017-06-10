@@ -300,7 +300,7 @@ public class escCounterexamples extends EscBase {
     /** Tests called method return */
     @Test
     public void testCE10() {
-        main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName() + "=1");
+        main.addOptions(JmlOption.MAXWARNINGS.optionName() + "=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -436,7 +436,7 @@ public class escCounterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
-        main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName()+"=1");
+        main.addOptions(JmlOption.MAXWARNINGS.optionName()+"=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

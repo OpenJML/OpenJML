@@ -73,12 +73,12 @@ public enum JmlOption implements IOption {
     PROGRESS("-progress",false,null,"Shows progress through compilation phases","-verboseness="+Utils.PROGRESS),
     JMLVERBOSE("-jmlverbose",false,null,"Like -verbose, but only jml information and not as much","-verboseness="+Utils.JMLVERBOSE),
     JMLDEBUG("-jmldebug",false,null,"When on, the program emits lots of output (includes -progress)","-verboseness="+Utils.JMLDEBUG),
-    SHOW_OPTIONS("-showOptions",true, "none","When enabled, the values of options and properties are printed, for debugging",null),
+    SHOW_OPTIONS("-showOptions",false, false,"When enabled, the values of options and properties are printed, for debugging",null),
     
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
-    ESC_MAX_WARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
+    MAXWARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
     MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
     CE("-ce",false,null,"ESC: Enables output of complete, raw counterexample","-counterexample"),
@@ -207,8 +207,7 @@ public enum JmlOption implements IOption {
      * @return true if the option is enabled, false otherwise
      */
     public static boolean isOption(Context context, JmlOption option) {
-        String val = Options.instance(context).get(option.name);
-        return val != null && !"false".equals(val);
+        return Options.instance(context).get(option.name) != null;
     }
     
     /** Return whether an option is enabled in the given context
@@ -333,14 +332,11 @@ public enum JmlOption implements IOption {
         
     }
     
-    public static void listOptions(Context context, boolean all) {
+    public static void listOptions(Context context) {
         Options options = JmlOptions.instance(context);
-        
         PrintWriter noticeWriter = Log.instance(context).getWriter(WriterKind.NOTICE);
         for (String key: new java.util.TreeSet<String>(options.keySet())) {
-            if (all || key.startsWith("-") || key.startsWith("openjml") || key.startsWith("org.jmlspecs.openjml")) {
-                noticeWriter.println(key + " = " + JmlOption.value(context,key));
-            }
+            noticeWriter.println(key + " = " + JmlOption.value(context,key));
         }
     }
 }

@@ -51,7 +51,7 @@ public class Activator extends AbstractUIPlugin {
 		Log.log.setListener(new ConsoleLogger());
 		
 		utils = new Utils();
-		Options.cache();
+		Options.init();
 		
 		if (Options.uiverboseness) {
 			Log.log("JML UI plugin started"); //$NON-NLS-1$

@@ -37,7 +37,6 @@ import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
-import com.sun.tools.javac.tree.JCTree.JCConditional;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -736,13 +735,6 @@ public class JmlTreeUtils {
         JmlBinary e = factory.at(pos).JmlBinary(op,lhs,rhs);
         e.type = syms.booleanType;
         copyEndPosition(e,rhs);
-        return e;
-    }
-
-    public JCConditional makeConditional(int pos, JCExpression cond, JCExpression trueexpr, JCExpression falseexpr) {
-        JCConditional e = factory.at(pos).Conditional(cond,trueexpr,falseexpr);
-        e.type = trueexpr.type;
-        copyEndPosition(e,falseexpr);
         return e;
     }
 

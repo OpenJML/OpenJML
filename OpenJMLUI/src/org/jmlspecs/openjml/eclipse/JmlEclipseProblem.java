@@ -21,8 +21,6 @@ import org.eclipse.jdt.internal.compiler.problem.DefaultProblem;
 import org.eclipse.jdt.internal.compiler.problem.ProblemSeverities;
 import org.jmlspecs.annotation.Nullable;
 
-import com.sun.tools.javac.code.Symbol;
-
 // FIXME - perhaps should be using DefaultProblem.errorReportSource
 // instead of carting the lineStart and end positions around
 // FIXME - should we inherit from CategorizedProblem directly? but then we need to copy errorReportSource
@@ -44,8 +42,6 @@ public class JmlEclipseProblem extends DefaultProblem {
 	 */
 	public @Nullable String sourceText;
 
-	/** Holds the symbol, such as a MethodSymbol, to which the problem relates */
-	public @Nullable Symbol sourceSymbol;
 	/**
 	 * Holds the 1-based character position of the beginning of the line indicated
 	 * by the line argument (and on which startPosition resides); the
@@ -123,34 +119,34 @@ public class JmlEclipseProblem extends DefaultProblem {
 		return JML_CAT;
 	}
 
-//	/**
-//	 * A utility method to obtain a reference to the source text for
-//	 * an ICompilationUnit, or null if it could not be obtained.
-//	 * @param icu The ICompilationUnit
-//	 * @return The source text for the ICompilationUnit
-//	 */
-//	private static /*@Nullable*/ String getSource(ICompilationUnit icu) {
-//		if (icu == null) return null;
-//		try {
-//			return icu.getSource();
-//		} catch (Exception e) {
-//			return null;
-//		}
-//	}
+	/**
+	 * A utility method to obtain a reference to the source text for
+	 * an ICompilationUnit, or null if it could not be obtained.
+	 * @param icu The ICompilationUnit
+	 * @return The source text for the ICompilationUnit
+	 */
+	private static /*@Nullable*/ String getSource(ICompilationUnit icu) {
+		if (icu == null) return null;
+		try {
+			return icu.getSource();
+		} catch (Exception e) {
+			return null;
+		}
+	}
 
-//	/**
-//	 * Converts the given IProblem into an instance of JmlEclipseProblem,
-//	 * using additional information from the given ICompilationUnit.
-//	 * The line start and end information is not available.
-//	 * @param p  The base problem
-//	 * @param icu The ICompilationUnit from which to get position information
-//	 */
-//	public JmlEclipseProblem(IProblem p, ICompilationUnit icu) {
-//		this((IFile)icu.getResource(), p.getMessage(), p.getID(), 
-//				p.isError() ? ProblemSeverities.Error : p.isWarning() ? ProblemSeverities.Warning : -1,
-//				p.getSourceStart(), p.getSourceEnd(), p.getSourceLineNumber(),
-//				getSource(icu), -1, -1);
-//	}
+	/**
+	 * Converts the given IProblem into an instance of JmlEclipseProblem,
+	 * using additional information from the given ICompilationUnit.
+	 * The line start and end information is not available.
+	 * @param p  The base problem
+	 * @param icu The ICompilationUnit from which to get position information
+	 */
+	public JmlEclipseProblem(IProblem p, ICompilationUnit icu) {
+		this((IFile)icu.getResource(), p.getMessage(), p.getID(), 
+				p.isError() ? ProblemSeverities.Error : p.isWarning() ? ProblemSeverities.Warning : -1,
+				p.getSourceStart(), p.getSourceEnd(), p.getSourceLineNumber(),
+				getSource(icu), -1, -1);
+	}
 
 	/**
 	 * A utility method that prints the given problem on the given PrintStream

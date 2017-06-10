@@ -152,12 +152,6 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
-            scan(that.body);
-        }
-
-        @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
             scan(that.expression);
         }
@@ -519,12 +513,6 @@ public class JmlFlow extends Flow  {
         public void visitJmlSingleton(JmlSingleton that) {
             // nothing to do
         }
-
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
-            scan(that.body);
-        }
-        
 
         @Override
         public void visitJmlLblExpression(JmlLblExpression that) {
@@ -893,12 +881,6 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlSingleton(JmlSingleton that) {
             // nothing to do
-        }
-
-        @Override
-        public void visitJmlLabeledStatement(JmlLabeledStatement that) {
-//            scan(that.extraStatements.toList());
-            scan(that.body);
         }
 
         @Override

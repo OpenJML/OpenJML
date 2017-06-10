@@ -21,5 +21,4 @@ public interface IJMLTYPE {
     //public IJMLTYPE arg(int i);
     public IJMLTYPE[] typeargs();
     public boolean isArray();
-    public IJMLTYPE getComponentType();
 }

@@ -49,7 +49,7 @@ public class Strings {
     
     /** A string giving the fully qualified name of the special JML class.
      */
-    static public final String JMLClass = jmlSpecsPackage + ".JML"; //$NON-NLS-1$
+    static public final String JMLClass = "org.jmlspecs.lang.JML"; //$NON-NLS-1$
     
     /** A string giving the name of the package that JML annotations are in.
      */
@@ -249,7 +249,7 @@ public class Strings {
     
     /** Text used to describe the program position at the end of the preconditions */
     static final public String preconditionAssumeCheckDescription = "end of preconditions";
-    /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
+    /** Text used to describe the program position at the end of the program and the postcondition checks */ // FIXME - check this
     static final public String atExitAssumeCheckDescription = "at program exit";
     /** Text used to describe the program position just prior to an explicit JML assert */
     static final public String beforeAssertAssumeCheckDescription = "before explicit assert statement";
@@ -257,49 +257,5 @@ public class Strings {
     static final public String afterAssumeAssumeCheckDescription = "after explicit assume statement";
     /** Text used to descrxibe the program position at an explicit JML reachable statement */
     static final public String atReachableStatementAssumeCheckDescription = "at reachable statement";
-    
-    // Feasibility options - note that the following words are used in the -checkFeasibility option, by the user.
-    // They must be contained in the strings that describe the feasibility point, given above.
-    static final public String feas_pre = "precondition";
-    static final public String feas_exit = "exit";
-    static final public String feas_assumes = "assume";
-    static final public String feas_asserts = "assert";
-    static final public String feas_reachable = "reachable";
-    
-    static final public String feas_all = "all";
-    static final public String feas_debug = "debug";
-    static final public String feas_default = "default";
-    static final public String feas_none = "none";
-    static final public String feas_defaults = "precondition,exit,reachable";
-    static final public String feas_alls = "precondition,exit,reachable,assume,assert";
-    
-    static final public String[] feasibilities_alone = new String[]{ feas_none};
-    static final public String[] feasibilities = new String[]{feas_pre, feas_exit, feas_reachable, feas_assumes, feas_asserts, feas_all, feas_debug};
 
-    // Returns null if OK, returns bad string if one is not allowed
-    static final public /*@ nullable */ String isOK(String commaSep) {
-        String[] list = commaSep.split(",");
-        for (String i: feasibilities_alone) {
-            if (i.equals(commaSep)) return null;
-        }
-        outer: for (String item: list) {
-            for (String i: feasibilities) {
-                if (i.equals(item)) continue outer;
-            }
-            return item; // bad string
-        }
-        return null;
-    }
-    
-    static final public boolean feasibilityContains(String i, com.sun.tools.javac.util.Context context) {
-        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (i.equals(values)) return true;
-        if (i.equals("none")) return false;
-        if (values.equals("debug") || values.equals("all")) return true;
-        String[] allowed = values.split(",");
-        for (String k: allowed) {
-            if (i.contains(k)) return true;
-        }
-        return false;
-    }
 }

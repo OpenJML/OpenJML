@@ -1,0 +1,606 @@
+temp-release/C.java:1: error: package org.jmlspecs.lang does not exist
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+^
+temp-release/C.java:1: error: package org.jmlspecs.annotation does not exist
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+                              ^
+temp-release/C.java:1: error: cannot find symbol
+import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }
+                                                       ^
+  symbol:   class Pure
+  location: class C
+temp-release/C.java:2: error: package org.jmlspecs.lang does not exist
+temp-release/C.java:2: error: package org.jmlspecs.lang does not exist
+$SPECS/java5/java/lang/Object.jml:19: error: package org.jmlspecs.lang does not exist
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+                                                        ^
+$SPECS/java5/java/lang/Object.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+              ^
+$SPECS/java4/java/io/Serializable.jml:3: error: package org.jmlspecs.lang does not exist
+package java.io;
+^
+$SPECS/java5/java/lang/Object.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Object.spec 2246 2006-12-18 03:03:10Z chalin $
+                                              ^
+$SPECS/java8/java/lang/Class.jml:27: error: package org.jmlspecs.annotation does not exist
+//@ pure nullable_by_default
+         ^
+$SPECS/java4/java/lang/CloneNotSupportedException.jml:3: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/Object.jml:24: error: package org.jmlspecs.lang does not exist
+/** JML's specification of java.lang.Object.
+                                    ^
+$SPECS/java5/java/lang/Object.jml:45: error: package org.jmlspecs.lang does not exist
+        // NB It is inconvenient to include owner in objectState,
+                                                 ^
+$SPECS/java5/java/lang/Object.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+ ^
+$SPECS/java5/java/lang/Object.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Object.spec 2246 2006-12-18 03:03:10Z chalin $
+^
+$SPECS/java5/java/lang/Object.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+      ^
+$SPECS/java4/java/lang/Cloneable.jml:3: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/io/IOException.jml:3: error: package org.jmlspecs.lang does not exist
+package java.io;
+^
+$SPECS/java5/java/lang/CharSequence.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/Object.jml:22: error: package org.jmlspecs.lang does not exist
+import java.lang.reflect.Array;
+ ^
+$SPECS/java4/java/lang/InterruptedException.jml:3: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/lang/ClassNotFoundException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java8/java/lang/Class.jml:1: error: package org.jmlspecs.lang does not exist
+// Copyright (C) 1998, 1999 Iowa State University
+^
+$SPECS/java4/java/lang/InstantiationException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/lang/IllegalAccessException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/Package.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/reflect/Field.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+$SPECS/java4/java/lang/SecurityException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java8/java/lang/Class.jml:26: error: package org.jmlspecs.lang does not exist
+//OPENJML@ immutable
+ ^
+$SPECS/java5/java/lang/reflect/Method.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+$SPECS/java4/java/lang/NoSuchFieldException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/lang/NoSuchMethodException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/lang/StackTraceElement.jml:22: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java7/java/lang/Throwable.jml:18: error: package org.jmlspecs.lang does not exist
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+                               ^
+$SPECS/java5/java/io/PrintStream.jml:21: error: package org.jmlspecs.lang does not exist
+package java.io;
+^
+$SPECS/java7/java/lang/Throwable.jml:18: error: package org.jmlspecs.lang does not exist
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+                             ^
+$SPECS/java7/java/lang/Throwable.jml:5: error: package org.jmlspecs.lang does not exist
+// This file is part of the runtime library of the Java Modeling Language.
+           ^
+$SPECS/java7/java/lang/Throwable.jml:18: error: package org.jmlspecs.lang does not exist
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+                                ^
+$SPECS/java7/java/lang/Throwable.jml:18: error: package org.jmlspecs.lang does not exist
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+                            ^
+$SPECS/java4/java/lang/Number.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java7/java/lang/Throwable.jml:18: error: package org.jmlspecs.lang does not exist
+// along with JML; see the file LesserGPL.txt.  If not, write to the Free
+               ^
+$SPECS/java4/java/io/PrintWriter.jml:2: error: package org.jmlspecs.lang does not exist
+package java.io;
+^
+$SPECS/java7/java/lang/Throwable.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Throwable.jml,v 1.13 2007/12/30 05:24:15 chalin Exp $
+         ^
+$SPECS/java4/java/lang/IndexOutOfBoundsException.jml:3: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/CharSequence.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: CharSequence.spec 2022 2006-08-13 02:36:42Z chalin $
+                                              ^
+$SPECS/java4/java/lang/NullPointerException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/String.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: String.spec 2412 2007-04-19 16:53:31Z mikolas $
+^
+$SPECS/java4/java/lang/StringIndexOutOfBoundsException.jml:3: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/String.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: String.spec 2412 2007-04-19 16:53:31Z mikolas $
+                                              ^
+$SPECS/java5/java/lang/StringBuffer.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/String.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+    ^
+$SPECS/java4/java/lang/IllegalArgumentException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/reflect/InvocationTargetException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang.reflect;
+^
+$SPECS/java5/java/io/InputStream.jml:35: error: cannot find symbol
+    //@ public model JMLDataGroup streamState; in objectState;
+                     ^
+  symbol:   class JMLDataGroup
+  location: class InputStream
+$SPECS/java5/java/io/OutputStream.jml:36: error: cannot find symbol
+    //-RAC@ public model JMLDataGroup output; in objectState;
+                         ^
+  symbol:   class JMLDataGroup
+  location: class OutputStream
+$SPECS/java6/java/util/MissingResourceException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.util;
+^
+$SPECS/java5/java/util/Locale.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Locale.jml 2226 2006-12-13 01:57:30Z chalin $
+^
+$SPECS/java5/java/lang/Object.jml:35: error: package org.jmlspecs.annotation does not exist
+    //@ public non_null model Object objectState;
+               ^
+$SPECS/java5/java/lang/Object.jml:35: error: package org.jmlspecs.annotation does not exist
+    //@ public non_null model Object objectState;
+                        ^
+$SPECS/java5/java/lang/Object.jml:44: error: package org.jmlspecs.annotation does not exist
+    //@ ghost public nullable Object owner;
+        ^
+$SPECS/java5/java/lang/Object.jml:44: error: package org.jmlspecs.annotation does not exist
+    //@ ghost public nullable Object owner;
+                     ^
+$SPECS/java7/java/lang/Throwable.jml:57: error: package org.jmlspecs.annotation does not exist
+        public pure helper model boolean standardThrowable();
+                    ^
+$SPECS/java5/java/lang/CharSequence.jml:29: error: package org.jmlspecs.annotation does not exist
+    //@ public instance model non_null char[] charArray;
+               ^
+$SPECS/java4/java/lang/Number.jml:55: error: package org.jmlspecs.annotation does not exist
+    @   model public function static boolean parseable( String s, int r, int bits );
+                     ^
+$SPECS/java4/java/lang/System.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/Object.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+     ^
+$SPECS/java5/java/lang/Object.jml:17: error: package org.jmlspecs.lang does not exist
+// You should have received a copy of the GNU General Public License
+                       ^
+$SPECS/java5/java/lang/Object.jml:5: error: package org.jmlspecs.lang does not exist
+// This file is part of JML
+  ^
+$SPECS/java5/java/lang/Object.jml:19: error: package org.jmlspecs.lang does not exist
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+                    ^
+$SPECS/java4/java/lang/ArrayIndexOutOfBoundsException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/reflect/Array.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Array.refines-spec,v 1.4 2006/08/08 17:18:50 perryjames Exp $
+^
+$SPECS/java4/java/lang/NegativeArraySizeException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
+    public static void setIn(InputStream i);
+                                         ^
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
+    public static void setIn(InputStream i);
+                                         ^
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
+    public static void setIn(InputStream i);
+                                         ^
+$SPECS/java4/java/lang/System.jml:73: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter i, annotation @NonNull
+    public static void setIn(InputStream i);
+                                         ^
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    public static void setOut(PrintStream o);
+                                          ^
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    public static void setOut(PrintStream o);
+                                          ^
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    public static void setOut(PrintStream o);
+                                          ^
+$SPECS/java4/java/lang/System.jml:78: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    public static void setOut(PrintStream o);
+                                          ^
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
+    public static void setErr(PrintStream e);
+                                          ^
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
+    public static void setErr(PrintStream e);
+                                          ^
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
+    public static void setErr(PrintStream e);
+                                          ^
+$SPECS/java4/java/lang/System.jml:83: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter e, annotation @NonNull
+    public static void setErr(PrintStream e);
+                                          ^
+$SPECS/java4/java/lang/Runnable.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/SecurityManager.jml:21: error: package org.jmlspecs.lang does not exist
+import java.awt.AWTPermission;
+                             ^
+$SPECS/java5/java/util/Hashtable.jml:23: error: package org.jmlspecs.lang does not exist
+ * @author Katie Becker
+   ^
+$SPECS/java5/java/util/Hashtable.jml:26: error: package org.jmlspecs.lang does not exist
+public class Hashtable<K,V> extends Dictionary<K,V>
+  ^
+$SPECS/java5/java/util/Hashtable.jml:24: error: package org.jmlspecs.lang does not exist
+ * @author Gary T. Leavens
+                 ^
+$SPECS/java5/java/util/Hashtable.jml:26: error: package org.jmlspecs.annotation does not exist
+public class Hashtable<K,V> extends Dictionary<K,V>
+             ^
+$SPECS/java5/java/util/Hashtable.jml:24: error: package org.jmlspecs.lang does not exist
+ * @author Gary T. Leavens
+^
+$SPECS/java5/java/util/Hashtable.jml:23: error: package org.jmlspecs.lang does not exist
+ * @author Katie Becker
+      ^
+$SPECS/java5/java/util/Hashtable.jml:1: error: package org.jmlspecs.lang does not exist
+// Copyright (C) 2003 Iowa State University
+^
+$SPECS/java5/java/util/Hashtable.jml:23: error: package org.jmlspecs.lang does not exist
+ * @author Katie Becker
+               ^
+$SPECS/java5/java/util/Collection.jml:36: error: cannot find symbol
+    //@ public model instance JMLDataGroup localState; in objectState;
+                              ^
+  symbol:   class JMLDataGroup
+  location: interface Collection<E>
+  where E is a type-variable:
+    E extends Object declared in interface Collection
+$SPECS/java4/java/lang/ArrayStoreException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/util/Collection.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Collection.spec 2383 2007-04-16 17:02:07Z mikolas $
+^
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
+    public static void setProperties(Properties props);
+                                                ^
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
+    public static void setProperties(Properties props);
+                                                ^
+$SPECS/java6/java/util/Properties.jml:15: error: package org.jmlspecs.annotation does not exist
+    //@ spec_public
+        ^
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
+    public static void setProperties(Properties props);
+                                                ^
+$SPECS/java4/java/lang/System.jml:325: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter props, annotation @NonNull
+    public static void setProperties(Properties props);
+                                                ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                           ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                           ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                                     ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                                     ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                           ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                           ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                                     ^
+$SPECS/java5/java/util/Map.jml:31: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter oo, annotation @NonNull
+      @ static public model pure boolean nullequals(Object o, Object oo);
+                                                                     ^
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
+                                            ^
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
+                                            ^
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
+                                            ^
+$SPECS/java5/java/util/Map.jml:174: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ boolean containsKey(Object key) throws RuntimeException;
+                                            ^
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    /*@ pure @*/ boolean containsValue(Object value);
+                                              ^
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    /*@ pure @*/ boolean containsValue(Object value);
+                                              ^
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    /*@ pure @*/ boolean containsValue(Object value);
+                                              ^
+$SPECS/java5/java/util/Map.jml:188: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    /*@ pure @*/ boolean containsValue(Object value);
+                                              ^
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ V get(Object key);
+                              ^
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ V get(Object key);
+                              ^
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ V get(Object key);
+                              ^
+$SPECS/java5/java/util/Map.jml:202: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    /*@ pure @*/ V get(Object key);
+                              ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V put(K key, V value);
+            ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V put(K key, V value);
+            ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    V put(K key, V value);
+                   ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    V put(K key, V value);
+                   ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V put(K key, V value);
+            ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V put(K key, V value);
+            ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    V put(K key, V value);
+                   ^
+$SPECS/java5/java/util/Map.jml:248: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    V put(K key, V value);
+                   ^
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V remove(Object key);
+                    ^
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V remove(Object key);
+                    ^
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V remove(Object key);
+                    ^
+$SPECS/java5/java/util/Map.jml:271: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    V remove(Object key);
+                    ^
+$SPECS/java4/java/lang/ClassCastException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/util/Map.jml:1: error: package org.jmlspecs.lang does not exist
+// Copyright (C) 2002 Iowa State University
+^
+$SPECS/java4/java/lang/UnsupportedOperationException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    void putAll(Map<? extends K, ? extends V> t);
+                                              ^
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    void putAll(Map<? extends K, ? extends V> t);
+                                              ^
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    void putAll(Map<? extends K, ? extends V> t);
+                                              ^
+$SPECS/java5/java/util/Map.jml:300: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    void putAll(Map<? extends K, ? extends V> t);
+                                              ^
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure @*/ boolean equals(Object o);
+                                       ^
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure @*/ boolean equals(Object o);
+                                       ^
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure @*/ boolean equals(Object o);
+                                       ^
+$SPECS/java5/java/util/Map.jml:336: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure @*/ boolean equals(Object o);
+                                       ^
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public Hashtable(Map<? extends K,? extends V> t);
+                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public Hashtable(Map<? extends K,? extends V> t);
+                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public Hashtable(Map<? extends K,? extends V> t);
+                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:80: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public Hashtable(Map<? extends K,? extends V> t);
+                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public /*@ pure @*/ synchronized boolean contains(Object value); 
+                                                             ^
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public /*@ pure @*/ synchronized boolean contains(Object value); 
+                                                             ^
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public /*@ pure @*/ synchronized boolean contains(Object value); 
+                                                             ^
+$SPECS/java5/java/util/Hashtable.jml:95: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public /*@ pure @*/ synchronized boolean contains(Object value); 
+                                                             ^
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized boolean containsKey(Object key) throws RuntimeException;
+                                                   ^
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized boolean containsKey(Object key) throws RuntimeException;
+                                                   ^
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized boolean containsKey(Object key) throws RuntimeException;
+                                                   ^
+$SPECS/java5/java/util/Hashtable.jml:102: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized boolean containsKey(Object key) throws RuntimeException;
+                                                   ^
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public /*@ pure */ synchronized V get(Object key);
+                                                 ^
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public /*@ pure */ synchronized V get(Object key);
+                                                 ^
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public /*@ pure */ synchronized V get(Object key);
+                                                 ^
+$SPECS/java5/java/util/Hashtable.jml:108: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public /*@ pure */ synchronized V get(Object key);
+                                                 ^
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public boolean containsValue(Object value) throws NullPointerException;
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public boolean containsValue(Object value) throws NullPointerException;
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public boolean containsValue(Object value) throws NullPointerException;
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:128: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public boolean containsValue(Object value) throws NullPointerException;
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                       ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                       ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                       ^
+$SPECS/java5/java/util/Hashtable.jml:141: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter value, annotation @NonNull
+    public synchronized V put(K key, V value);
+                                       ^
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V remove(Object key);
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V remove(Object key);
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V remove(Object key);
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:148: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter key, annotation @NonNull
+    public synchronized V remove(Object key);
+                                        ^
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public synchronized void putAll(Map<? extends K, ? extends V> t);
+                                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public synchronized void putAll(Map<? extends K, ? extends V> t);
+                                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public synchronized void putAll(Map<? extends K, ? extends V> t);
+                                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:151: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter t, annotation @NonNull
+    public synchronized void putAll(Map<? extends K, ? extends V> t);
+                                                                  ^
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure */ public synchronized boolean equals(Object o);
+                                                          ^
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure */ public synchronized boolean equals(Object o);
+                                                          ^
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure */ public synchronized boolean equals(Object o);
+                                                          ^
+$SPECS/java5/java/util/Hashtable.jml:179: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter o, annotation @NonNull
+    /*@ pure */ public synchronized boolean equals(Object o);
+                                                          ^
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
+      @ public pure model boolean initialProperties(Properties p);
+                                                               ^
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
+      @ public pure model boolean initialProperties(Properties p);
+                                                               ^
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
+      @ public pure model boolean initialProperties(Properties p);
+                                                               ^
+$SPECS/java6/java/util/Properties.jml:12: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: parameter p, annotation @NonNull
+      @ public pure model boolean initialProperties(Properties p);
+                                                               ^
+$SPECS/java5/java/util/Arrays.jml:21: error: package org.jmlspecs.lang does not exist
+package java.util;
+^
+$SPECS/java5/java/util/Collection.jml:21: error: package org.jmlspecs.lang does not exist
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+                                 ^
+$SPECS/java4/java/util/NoSuchElementException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.util;
+^
+$SPECS/java5/java/util/Iterator.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Iterator.spec 1957 2006-06-08 17:45:06Z chalin $
+^
+$SPECS/java4/java/lang/IllegalStateException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/util/Arrays.jml:19: error: package org.jmlspecs.lang does not exist
+// the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+                                                                  ^
+$SPECS/java4/java/lang/NumberFormatException.jml:1: error: package org.jmlspecs.lang does not exist
+package java.lang;
+^
+$SPECS/java5/java/lang/Double.jml:1: error: package org.jmlspecs.lang does not exist
+// @(#)$Id: Double.jml 2022 2006-08-13 02:36:42Z chalin $
+^
+$SPECS/java4/java/lang/Number.jml:21: error: package org.jmlspecs.lang does not exist
+package java.lang;
+         ^
+$SPECS/java5/java/lang/Double.jml:20: error: package org.jmlspecs.lang does not exist
+$SPECS/java5/java/lang/String.jml:25: error: package org.jmlspecs.lang does not exist
+import java.util.regex.Pattern;
+     ^
+100 errors
+100 warnings

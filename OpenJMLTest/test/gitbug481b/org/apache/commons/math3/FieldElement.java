@@ -83,6 +83,5 @@ public interface FieldElement<T> {
     /** Get the {@link Field} to which the instance belongs.
      * @return {@link Field} to which the instance belongs
      */
-    //@ pure
     Field<T> getField();
 }

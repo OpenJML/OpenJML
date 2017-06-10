@@ -34,15 +34,15 @@ public abstract class EscBase extends JmlTestCase {
 	public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 	
     @Rule public TestName testname = new TestName();
-    @Rule public Timeout timeout = new Timeout(15, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
+    @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // 10 minutes per test
     
     protected static boolean runLongTests = false;
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
  //           "z3_4_3_2", 
-//          "z3_4_4", 
-//            "cvc4",
+ //          "z3_4_4", 
+ //           "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 
@@ -236,7 +236,6 @@ public abstract class EscBase extends JmlTestCase {
         args.add("-progress");
         args.add("-timeout=300");
         args.add("-code-math=java");
-        args.add("-checkFeasibility=all");
         if (new File(sourceDirname).isDirectory()) args.add("-dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);
@@ -271,6 +270,7 @@ public abstract class EscBase extends JmlTestCase {
     }
 
     protected void helpTCX(String classname, String s, Object... list) {
+    	//fail("Java8 not yet implemented"); // FIXME - Java8 - 
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,s);
@@ -286,7 +286,6 @@ public abstract class EscBase extends JmlTestCase {
         try {
             for (JavaFileObject f: mockFiles) files = files.append(f);
             
-    		main.addOptions("-checkFeasibility=all");
             int ex = main.compile(args, null, context, files, null).exitCode;
             if (captureOutput) collectOutput(false);
             

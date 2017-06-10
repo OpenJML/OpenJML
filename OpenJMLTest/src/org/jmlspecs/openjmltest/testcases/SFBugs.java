@@ -96,7 +96,7 @@ public class SFBugs extends EscBase {
     	expectedExit = 0;
         helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "-esc","-progress","-logic=AUFNIRA","-escMaxWarnings=5");
     }
-    @Ignore // Can be very long running because it uses floating point
+    @Ignore // Can be very long running
     @Test public void gitbug257() {
     	expectedExit = 0;
         helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "-esc", "-progress", "-logic=AUFNIRA");
@@ -128,16 +128,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug454","test/gitbug454", "-cp", "test/gitbug454", "-esc");
     }
     
-    @Test public void gitbug457() {
-    	expectedExit = 0;
-        helpTCG("-nullableByDefault");
-    }
-    
-    @Test public void gitbug457a() {
-    	expectedExit = 0;
-        helpTCG("-nonnullByDefault");
-    }
-    
     @Test public void gitbug458() {
     	expectedExit = 0;
         helpTCF("test/gitbug458","test/gitbug458", "-cp", "test/gitbug458", "-esc");
@@ -156,12 +146,6 @@ public class SFBugs extends EscBase {
     @Test public void gitbug459() {
     	expectedExit = 0;
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "-esc");
-    }
-    
-    @Ignore // FIXME - needs all the model classes - and they need cleaning up
-    @Test public void gitbug461() {
-    	expectedExit = 0;
-        helpTCG("-show","-method=makeSequence");
     }
     
     @Test public void gitbug462() {
@@ -205,14 +189,10 @@ public class SFBugs extends EscBase {
         helpTCF("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "-esc");
     }
     
+    // FIXME - generics
     @Test public void gitbug445() {
     	expectedExit = 1;
-        helpTCG();
-    }
-    
-    @Ignore // FIXME - model specs
-    @Test public void gitbug445a() {
-        helpTCG();
+        helpTCF("test/gitbug445","test/gitbug445", "-cp", "test/gitbug445");
     }
     
     @Test public void gitbug463() {
@@ -227,7 +207,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug444() {
     	expectedExit = 0;
-        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444");
+        helpTCF("test/gitbug444","test/gitbug444", "-cp", "test/gitbug444"); //,"-show","-method=isRelaxedPrefix");
     }
     
     @Test public void gitbug444a() {
@@ -260,11 +240,6 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug474() {
-    	expectedExit = 0;
-        helpTCG();
-    }
-
     @Test public void gitbug476() {
     	expectedExit = 0;
         helpTCG();
@@ -280,48 +255,6 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug480() {
-    	expectedExit = 0;
-        helpTCG();
-    }
-
-    @Test public void gitbug497() {
-    	expectedExit = 1;
-        helpTCG();
-    }
-
-    @Test public void gitbug498() {
-    	expectedExit = 0;
-        helpTCG();
-    }
-
-    @Test public void gitbug499() {
-    	expectedExit = 1;
-        helpTCG();
-    }
-
-    @Ignore
-    @Test public void gitbug500a() {
-        helpTCG();
-    }
-
-    @Ignore
-    @Test public void gitbug500b() {
-        helpTCG();
-    }
-
-    @Test public void gitbug500c() {
-        helpTCG("-rac");  // Just RAC compilation
-    }
-
-    @Test public void gitbug502() {
-        helpTCG();
-    }
-
-    @Test public void gitbug503() {
-        helpTCG("-logic=AUFNIA");
-    }
-
     // Check everything in apache commons library!
     @Test @Ignore public void gitbug481() {
     	expectedExit = 0;
@@ -329,83 +262,21 @@ public class SFBugs extends EscBase {
     }
 
     // Just one method, but parse and typecheck all files first
-    @Ignore 
-    @Test public void gitbug481c() {
+    @Test @Ignore public void gitbug481c() {
     	expectedExit = 0;
         helpTCF("test/gitbug481b","test/gitbug481c", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
     // Just one method in one file
-    @Ignore // FIXME - timeout
     @Test public void gitbug481b() {
     	expectedExit = 0;
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","-method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
-    static String p = "org.apache.commons.math3.linear.ArrayFieldVector.";
-    static String m1 = p + "ArrayFieldVector(org.apache.commons.math3.Field<T>)";
-    static String m2 = p + "ArrayFieldVector(org.apache.commons.math3.Field<T>,int)";
-    static String m3 = p + "ArrayFieldVector(int,T)";
-    static String m4 = p + "ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean)";
-    static String m5 = p + "ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>)";
-    static String m6 = p + "ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>)";
-    static String m7 = p + "ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,T[])";
-    static String m8 = p + "ArrayFieldVector(T[],org.apache.commons.math3.linear.ArrayFieldVector<T>)";
-    static String m9 = p + "ArrayFieldVector(T[],org.apache.commons.math3.linear.FieldVector<T>)";
-    static String m10 = p + "ArrayFieldVector(T[],T[])";
-    
-    static String all = m1+";"+m2+";"+m3+";"+m4+";"+m5+";"+m6+";"+m7+";"+m8+";"+m9+";"+m10;
-    
-    @Test public void gitbug481a1() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","-method="+m1);
-    }
-
-    @Test public void gitbug481a2() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a2", "-cp", "test/gitbug481b","-method="+m2);
-    }
-
-    @Test public void gitbug481a3() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","-method="+m3);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a4() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","-method="+m4);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a5() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","-method="+m5);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a6() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","-method="+m6);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a7() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","-method="+m7);
-    }
-
-    @Test public void gitbug481a8() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","-method="+m8);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a9() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","-method="+m9);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481a10() {
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","-method="+m10);
-    }
-
-    @Ignore // FIXME - timeout
-    @Test public void gitbug481arest() {
+    // Just one file
+    @Test public void gitbug481a() {
     	expectedExit = 1;
-        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","-exclude="+all);
+        helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b");
     }
 
     @Test public void gitbug482() {

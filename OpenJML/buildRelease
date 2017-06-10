@@ -11,6 +11,9 @@
 
 umask 022
 
+echo $PATH
+which jar
+
 ## If these variables are not set, we set them to what they will be in 
 ## a standard Eclipse project setup for OpenJML.
 
@@ -52,8 +55,7 @@ NAMEZ=openjml-${VERSION}.zip
 	cp -r ${ANNOTATIONS}/bin/* temp2
 	touch temp2/JMLRUNTIME_MARKER
 	## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
-	## If Java is incorrectly setup, the jar command fails - so we check it this first time
-	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) || exit 1
+	(cd temp2; jar -cf ../${TEMPJAR}/jmlruntime.jar . ) 
     cp ${TEMPJAR}/jmlruntime.jar ${UI}
 	rm -rf temp2
 	echo "   " jmlruntime.jar created
@@ -93,9 +95,9 @@ NAMEZ=openjml-${VERSION}.zip
 	echo "   " Creating jmlspecs.jar
 	## The jmlspecs.jar contains the composite Java 1.8 specs files
 	## The openjml.jar file contains the OpenJDK and OpenJML class files, and the specs directories, combined for each Java version
-	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . ) || exit 1
+	(cd temp/specs18; jar -cf ../../${TEMPJAR}/jmlspecs.jar . )
 	
-	(cd temp; jar xf ../jsmtlib.jar ) || exit 1
+	(cd temp; jar xf ../jsmtlib.jar ; )
 	cp -r bin-runtime/* temp
     cp -r ${ANNOTATIONS}/bin/* temp
     touch temp/JMLRUNTIME_MARKER
@@ -104,7 +106,7 @@ NAMEZ=openjml-${VERSION}.zip
 	echo "   " Creating openjml.jar
 	echo "Manifest-Version: 1.0" > temp2/manifest
 	echo "Main-Class: org.jmlspecs.openjml.Main" >> temp2/manifest
-	(cd temp; jar -cfm ../${TEMPJAR}/openjml.jar ../temp2/manifest . ) || exit 1
+	(cd temp; jar -cfm ../${TEMPJAR}/openjml.jar ../temp2/manifest . )
 	##cp ${TEMPJAR}/openjml.jar ../OpenJMLUI
 	echo "   " jmlspecs.jar openjml.jar created
 	
@@ -112,7 +114,7 @@ NAMEZ=openjml-${VERSION}.zip
     
 ##### Collect other files for the tar file
     cp legal/* ${TEMPJAR}
-        ##(echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
+        (echo Building user manual; cd documentation/OpenJMLUserGuide; rm -f *.pdf; make all > build.log )
     if [ -e documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ]; then
         cp documentation/OpenJMLUserGuide/OpenJMLUserGuide.pdf ${TEMPJAR} && echo Manual built and copied
     else
