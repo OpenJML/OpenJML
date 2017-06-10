@@ -305,8 +305,8 @@ public class racnew2 extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c=100;  \n" +
                 "  int d = a < 10 ? b + 3 : c-40; \n" +
-                "  System.out.println(d); \n" +
-                "  //@ assert (c > 4? a + 3 : b + 3) == 9; \n" +   // ERROR
+                "  System.out.println(d); \n" +  // ERROR
+                "  //@ assert (c > 4? a + 3 : b + 3) == 9; \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
@@ -383,27 +383,6 @@ public class racnew2 extends RacBase {
                 ,"5ABCZ"
                 ,"END"
         );        
-    }
-    
-    @Test public void testSimpleBreak() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                                "  m(0);  m(2);  \n" +
-                                "  System.out.println(\"END\"); \n" +
-                                "  } \n" + 
-                                "  static void m(int i) { \n" +
-                                "       in: { \n" +
-                                "            System.out.print(i + \"A\");\n" +
-                                // Unlabelled breaks are not allowed for blocks
-                                "            if (i == 2) break in;\n" +
-                                "            System.out.print(\"B\");\n" +
-                                "           }\n" +
-                                "            System.out.println(\"C\");\n" +
-                                "        }\n" +
-                                "}"
-                                ,"0ABC"
-                                ,"2AC"
-                                ,"END"
-                        );        
     }
 
     /** Tests switch statement */

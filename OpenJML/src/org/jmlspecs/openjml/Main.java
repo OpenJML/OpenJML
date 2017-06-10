@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -131,8 +130,6 @@ public class Main extends com.sun.tools.javac.main.Main {
      * (for the programmatic API); for the command-line API it is simply 
      * the most recent value of the context, and is used that way in testing. */
     protected Context context;
-    
-    public boolean canceled = false;
     
     /** The diagListener provided when an instance of Main is constructed.
      * The listener will be notified when any diagnostic is generated.
@@ -391,8 +388,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                     savedOptions = Options.instance(compiler.context());
                     // The following line does an end-to-end compile, in a fresh context
                     errorcode = compiler.compile(args).exitCode; // context and new options are created in here
-                    if (//errorcode > Result.CMDERR.exitCode || 
-                            Utils.instance(compiler.context()).jmlverbose >= Utils.JMLVERBOSE) {
+                    if (errorcode > Result.CMDERR.exitCode || 
+                            Utils.instance(compiler.context()).jmlverbose > Utils.PROGRESS) {
                         writer.println("ENDING with exit code " + errorcode);
                     }
                 }
@@ -553,12 +550,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Note that the Java option processing happens in compile method call below.
         // Those options are not read at the time of the register call,
         // but the register call has to happen before compile is called.
-        canceled = false;
         Main.Result exit = super.compile(args,context,fileObjects,processors);
 //        if (Options.instance(context).get(helpOption) != null) {
 //            helpJML(out);
 //        }
-        if (canceled) exit = Result.CANCELLED;
         return exit;
     }
     
@@ -686,8 +681,6 @@ public class Main extends com.sun.tools.javac.main.Main {
                         res = "";
                         Log.instance(context).warning("jml.ignoring.parameter",s);
                     }
-                } else if (s.isEmpty()) {
-                	res = o.defaultValue().toString();
                 }
             }
         } else if (!negate && o.hasArg()) {
@@ -721,11 +714,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             while (!todo.isEmpty()) {
                 File file = todo.remove(0);
                 if (file.isDirectory()) {
-                    File[] fileArray = file.listFiles();
-                    // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
-                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return -f.getPath().compareTo(ff.getPath()); }});
-                    for (File ff: fileArray) {
-                        todo.add(0,ff);
+                    for (File ff: file.listFiles()) {
+                        todo.add(ff);
                     }
                 } else if (file.isFile()) {
                     String ss = file.toString();
@@ -819,8 +809,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             progressDelegate.setDelegate(null);
         }
         
-        boolean b = JmlOption.isOption(context,JmlOption.USEJAVACOMPILER);
-        if (b) {
+        if (options.get(JmlOption.USEJAVACOMPILER.optionName()) != null) {
             Log.instance(context).getWriter(WriterKind.NOTICE).println("The -java option is ignored unless it is the first command-line argument"); // FIXME - change to a warning
         }
         
@@ -857,7 +846,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (JmlOption.isOption(context,JmlOption.INTERNALRUNTIME)) appendRuntime(context);
         
-        String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
+        String limit = JmlOption.value(context,JmlOption.MAXWARNINGS);
         if (limit == null || limit.equals("all")) {
             utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
         } else {
@@ -872,14 +861,20 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        if (check == null || check.equals(Strings.feas_default)) {
-            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_defaults);
-        } else if (check.equals(Strings.feas_all)) {
-            options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
+        if (check == null) {
+            options.put(JmlOption.FEASIBILITY.optionName(),"all");
+            check="all";
         }
-        String badString = Strings.isOK(check);
-        if (badString != null) {
-            Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + badString);
+        if (check.equals("all") || 
+                check.equals("preconditions") || 
+                check.equals("exit") || 
+                check.equals("postconditions") || 
+                check.equals("reachable") || 
+                check.equals("debug") || 
+                check.equals("none")) {
+            // continue
+        } else {
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("Unexpected value as argument for -checkFeasibility: " + check);
         }
         Extensions.register(context);
         return true;
@@ -903,9 +898,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         //args.addAll(computeDependencyClosure(files));
         if (!setupOptions()) return null;
 
-        String showOptions = JmlOption.value(context,JmlOption.SHOW_OPTIONS);
-        if (!showOptions.equals("none")) {
-            JmlOption.listOptions(context, showOptions.equals("all"));
+        if (JmlOption.isOption(context,JmlOption.SHOW_OPTIONS)) {
+            JmlOption.listOptions(context);
         }
         return files;
     }

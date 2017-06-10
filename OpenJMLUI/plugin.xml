@@ -303,13 +303,6 @@
                id="JMLUI.deleteMarkerAction">
        </action>
        <action
-               label="Check ESC"
-               class="org.jmlspecs.openjml.eclipse.PopupActions$CheckESC"
-               menubarPath="JML"
-               enablesFor="+"
-               id="JMLUI.checkESCAction">
-       </action>
-       <action
                label="Compile RAC"
                class="org.jmlspecs.openjml.eclipse.PopupActions$RAC"
                menubarPath="JML"
@@ -451,12 +444,6 @@
                label="Rerun Selected Checks"
                id="org.openjml.proofview.RerunStaticCheck"
                commandId="org.openjml.commands.RerunStaticCheck"
-               > 
-         </command>
-         <command
-               label="Export Results"
-               id="org.openjml.proofview.ExportProofResults"
-               commandId="org.openjml.commands.ExportProofResults"
                > 
          </command>
          <command
@@ -1169,14 +1156,6 @@
             categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
             id="org.openjml.commands.ClearAllProofResults"
             defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ClearAllProofResults"
-            >
-      </command>
-      <command
-            name="Export Proof Results"
-            description="Exports proof results to a file"
-            categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-            id="org.openjml.commands.ExportProofResults"
-            defaultHandler="org.jmlspecs.openjml.eclipse.Commands$ExportProofResults"
             >
       </command>
       <command

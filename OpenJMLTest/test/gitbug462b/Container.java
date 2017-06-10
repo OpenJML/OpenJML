@@ -36,7 +36,8 @@ public class Container {
 
         /*@ public normal_behavior
           @   assignable \nothing;
-          @   //ensures Container.allocate() instanceof Container;
+          @   // uncommenting the below lets test() pass, but why is it necessary?
+          @   //ensures \result.c instanceof Container; 
           @   ensures \result.c.equals(Container.allocate());
           @   // edit: turning this around into "Container.allocate().equals(\result.c)" does
           @   // establish that \result.c is an instance of Container, but the type system and

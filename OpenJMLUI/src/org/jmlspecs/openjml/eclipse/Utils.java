@@ -2035,13 +2035,13 @@ public class Utils {
 	}
 	
 	/** Returns the ProofView, if it exists, null otherwise */
-	static public OpenJMLView findView() {
+	public OpenJMLView findView() {
 		IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(OpenJMLView.ID);
 		return ((OpenJMLView)view);
 	}
 	
 	/** Creates (if needed) and returns the Proof View */
-	static public OpenJMLView showView() {
+	public OpenJMLView showView() {
 		try {
 			IWorkbench w = PlatformUI.getWorkbench();
 			IWorkbenchWindow ww = w.getActiveWorkbenchWindow();
@@ -2918,15 +2918,12 @@ public class Utils {
 	public int countMethods(IPackageFragment pf) throws Exception {
 		int count = 0;
 		for (ICompilationUnit cu: pf.getCompilationUnits()) {
-			// getCompilationUnits() returns .jml and maybe other files as well
-			if (cu.getPath().toString().endsWith(".java")) {
-				count += countMethods(cu);
-			}
+			count += countMethods(cu);
 		}
 		return count;
 	}
 	public int countMethods(ICompilationUnit cu) throws Exception {
-		int count = 1; // For the file
+		int count = 0;
 		for (IType t: cu.getTypes()) {
 			count += countMethods(t);
 		}

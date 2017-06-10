@@ -41,7 +41,7 @@ package org.jmlspecs.models;
 // FIXME: adapt this file to non-null-by-default and remove the following modifier.
 /*@ nullable_by_default @*/ 
 public /*@ pure @*/ class JMLObjectBag
-    implements JMLCollection, Iterable
+    implements JMLCollection
 {
 
     /** The list representing the contents of this bag.  Each element

@@ -23,7 +23,7 @@
 
 /*
  * @test
- * @bug 7068902 8139751
+ * @bug 7068902
  * @summary verify that string folding can be enabled or disabled
  */
 
@@ -85,14 +85,11 @@ public class StringFoldingTest {
 
         if (disableStringFolding) {
             if (text.contains("FOLDED")) {
-                throw new AssertionError("Expected no string folding");
-            }
-            if (!text.contains("\"F\"")) {
-                throw new AssertionError("Expected content not found");
+                throw new AssertionError("Expected string folding");
             }
         } else {
             if (!text.contains("FOLDED")) {
-                throw new AssertionError("Expected string folding");
+                throw new AssertionError("Expected no string folding");
             }
         }
     }

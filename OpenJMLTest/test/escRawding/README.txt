@@ -1,1 +1,0 @@
-This test was a bug in retrieving represents clauses from superinterfaces.

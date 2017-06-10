@@ -9,7 +9,6 @@ import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.Label;
 
 import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symtab;

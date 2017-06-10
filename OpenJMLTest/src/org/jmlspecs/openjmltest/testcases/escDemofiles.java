@@ -121,7 +121,7 @@ public class escDemofiles extends EscBase {
     @Test
     public void testEscTest() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting","-method=zero_matrix","-show");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");//,"-subexpressions","-method=zero_matrix","-show");
     }
 
 

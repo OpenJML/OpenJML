@@ -121,8 +121,6 @@ public abstract class RacBase extends JmlTestCase {
         super.tearDown();
         specs = null;
     }
-    
-    public static String macstring = "Exception in thread \"main\" ";
 
     
     /** This method does the running of a RAC test for tests that supply with body
@@ -138,7 +136,6 @@ public abstract class RacBase extends JmlTestCase {
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
         StreamGobbler out=null,err=null;
-        boolean isMac = System.getProperty("os.name").contains("Mac");
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
@@ -161,9 +158,7 @@ public abstract class RacBase extends JmlTestCase {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }
-                String s = noSource(collector.getDiagnostics().get(i));
-                if (s.startsWith(macstring) && isMac) s = s.substring(macstring.length());
-                assertEquals("Message " + i, list[k].toString(), s);
+                assertEquals("Message " + i, list[k].toString(), noSource(collector.getDiagnostics().get(i)));
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
@@ -210,11 +205,9 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (isMac && !line.equals(list[i]) && line.startsWith(macstring)) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
-                if (isMac && i < list.length && list[i].equals(macstring)) i++;
             }
 
             if (i != list.length && !print) { // if print, then we already printed
@@ -280,10 +273,10 @@ public abstract class RacBase extends JmlTestCase {
      * the number of expected diagnostics is set by 'expectedErrors'.
      * @param dirname The directory containing the test sources, a relative path
      * from the project folder
-     * @param mainClassname The fully-qualified classname for the test class (where main is)
+     * @param classname The fully-qualified classname for the test class (where main is)
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
+    public void helpTCF(String dirname, String outputdir, String classname, String ... opts) {
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
@@ -335,7 +328,7 @@ public abstract class RacBase extends JmlTestCase {
 
             if (runrac) {
                 if (rac == null) rac = defrac;
-                rac[rac.length-1] = mainClassname;
+                rac[rac.length-1] = classname;
                 Process p = Runtime.getRuntime().exec(rac);
 
                 out = new StreamGobbler(p.getInputStream());
@@ -345,9 +338,8 @@ public abstract class RacBase extends JmlTestCase {
                 if (timeout(p,10000)) { // 10 second timeout
                     fail("Process did not complete within the timeout period");
                 }
-                String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
-                output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
+                String output = "OUT:" + eol + out.input() + eol + "ERR:" + eol + err.input();
                 if (print) System.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {

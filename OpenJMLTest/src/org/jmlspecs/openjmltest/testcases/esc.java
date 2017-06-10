@@ -79,17 +79,14 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectB() {
-		main.addOptions("-nonnullByDefault", "-timeout=300", "-show","-method=m","-checkFeasibility=debug");
+		main.addOptions("-nonnullByDefault", "-timeout=300");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
 						+ "  public String m(java.lang.Integer i, Number b) {\n"
 						+ "    java.util.Vector<Integer> v = new java.util.Vector<Integer>();\n"
-						+ "    boolean bb = b instanceof Double;\n" 
-						+ "    Object oo = v.getClass();\n"
-						+ "    v.add(0,i);\n" 
-						+ "    bb = v.elements().hasMoreElements();\n" 
-						+ "    return null; \n" // FAILS
+						+ "    boolean bb = b instanceof Double;\n" + "    Object oo = v.getClass();\n"
+						+ "    v.add(0,i);\n" + "    bb = v.elements().hasMoreElements();\n" + "    return null; \n" // FAILS
 						+ "  }\n" + "}\n",
 				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m", 5,
 				"/tt/TestJava.java:3: warning: Associated declaration", 17);
@@ -297,71 +294,77 @@ public class esc extends EscBase {
 	@Test
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1","-show");
-		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-				+ "public class TestJava { \n"
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m1() {\n"
-				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
-				+ "    for (Map.Entry<String,String> k: a) {\n" 
-				+ "    }\n" 
-				+ "  }\n"
+		// main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=10");
+		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" + "public class TestJava { \n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2() {\n" // Line 10
+				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m1() {\n"
+				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>();\n"
+				+ "    for (Map.Entry<String,String> k: a) {\n" + "    }\n" + "  }\n"
+
+				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m2() {\n" // Line
+																								// 10
 				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
 				+ "    //@ assume values.content.owner == values;\n"
 				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k;\n"
+				+ "    //@ assume values.content.owner == values;\n" + "    Map.Entry<String,String> k;\n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
 				+ "    //@ loop_invariant values == v && values.content.owner == values; \n"
 				+ "    for (; it.hasNext(); values.add(k) ) {\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-						// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
+				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME
+																											// -
+																											// problems
+																											// if
+																											// we
+																											// have
+																											// erased
+																											// type
+																											// names
+				+ "    }\n" + "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m2a() {\n" // Line 26
+				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m2a() {\n" // Line
+																								// 26
 				+ "    List<Map.Entry<String,String>> values = new LinkedList<Map.Entry<String,String>>(); //@ assume values != null; set values.containsNull = true; \n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    Set<Map.Entry<String,String>> a = new HashSet<Map.Entry<String,String>>(); //@ assume a != null; \n"
 				+ "    //@ assume values.content.owner == values;\n"
 				+ "    Iterator<Map.Entry<String,String>> it = a.iterator(); //@ assume it != null; \n"
-				+ "    //@ assume values.content.owner == values;\n" 
-				+ "    Map.Entry<String,String> k;\n"
+				+ "    //@ assume values.content.owner == values;\n" + "    Map.Entry<String,String> k;\n"
 				+ "    //@ assert values.content.owner == values;\n"
 				+ "    //@ ghost List<Map.Entry<String,String>> v = values;\n"
 				+ "    // @ loop_invariant values == v && values.content.owner == values; \n"
-				+ "    if (it.hasNext()) {\n" 
-				+ "        //@ assert values.content.owner == values;\n"
-				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" 
-								// FIXME - problems if we have erased type names
-				+ "        //@ assert values.content.owner == values;\n" 
-				+ "        values.add(k); \n"
-								// FIXME - problems if we have erased type names
-				+ "    }\n" 
-				+ "  }\n"
+				+ "    if (it.hasNext()) {\n" + "        //@ assert values.content.owner == values;\n"
+				+ "        k = it.next();  //@ assume \\typeof(k) <: \\type(Map.Entry<String,String>); \n" // FIXME
+																											// -
+																											// problems
+																											// if
+																											// we
+																											// have
+																											// erased
+																											// type
+																											// names
+				+ "        //@ assert values.content.owner == values;\n" + "        values.add(k); \n" // FIXME
+																										// -
+																										// problems
+																										// if
+																										// we
+																										// have
+																										// erased
+																										// type
+																										// names
+				+ "    }\n" + "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n" 
-				+ "  public void m3() {\n" 
+				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m3() {\n" // Line
+																								// 20
 				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    Integer k = new Integer(1);\n"
-				+ "    //@ assert values.content.owner == values;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
+				+ "    //@ assert values.content.owner == values;\n" + "    Integer k = new Integer(1);\n"
+				+ "    //@ assert values.content.owner == values;\n" + "    values.add(k);\n" + "  }\n"
 
-				+ "  //@ public normal_behavior  ensures true;\n"
-				+ "  public void m4() {\n"
+				+ "  //@ public normal_behavior  ensures true;\n" + "  public void m4() {\n"
 				+ "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-				+ "    Integer k = 0;\n" 
-				+ "    values.add(k);\n" 
-				+ "  }\n"
+				+ "    Integer k = 0;\n" + "    values.add(k);\n" + "  }\n"
 
 				+ "  public TestJava() {}"
 
@@ -646,14 +649,11 @@ public class esc extends EscBase {
 	@Test
 	public void testFresh() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		//main.addOptions("-method=m7c","-show", "-subexpressions");
+		// main.addOptions("-method=m4","-show");
 		helpTCX("tt.TestJava", "package tt; \n" + "abstract public class TestJava { \n"
 
-				+ "  //@ requires p != null && p != this;\n" 
-				+ "  //@ modifies \\everything;\n"
-				+ "  public void m1(Object p) {\n" 
-				+ "    Object pp = c1(p);\n"   // result is fresh
-				+ "    //@ assert pp != p;\n" // OK
+				+ "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n"
+				+ "  public void m1(Object p) {\n" + "    Object pp = c1(p);\n" + "    //@ assert pp != p;\n" // OK
 				+ "    //@ assert pp != this;\n" // OK
 				+ "  }\n"
 
@@ -673,11 +673,9 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != q;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ requires p != null && p != this;\n" 
-				+ "  //@ modifies \\everything;\n" // Line 30																								// 30
-				+ "  public void m5(Object p) {\n" 
-				+ "    Object pp = c2(p);\n" 
-				+ "    Object q = new Object();\n"
+				+ "  //@ requires p != null && p != this;\n" + "  //@ modifies \\everything;\n" // Line
+																								// 30
+				+ "  public void m5(Object p) {\n" + "    Object pp = c2(p);\n" + "    Object q = new Object();\n"
 				+ "    //@ assert pp != q;\n" // OK
 				+ "  }\n"
 
@@ -693,15 +691,10 @@ public class esc extends EscBase {
 				+ "  //@ ensures \\result == p || \\result == this;\n" // BAD
 				+ "  public Object m6b(Object p) {\n" + "    return new Object();\n" + "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
-				+ "  public Object m6c(Object p) {\n" 
-				+ "    return new Object();\n" 
-				+ "  }\n"
+				+ "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && !\\fresh(\\result);\n" // BAD
+				+ "  public Object m6c(Object p) {\n" + "    return new Object();\n" + "  }\n"
 
-				+ "  Object o;\n" 
-				+ "  //@ ghost Object oo;\n" 
-				+ "  static Object so;\n"
+				+ "  Object o;\n" + "  //@ ghost Object oo;\n" + "  static Object so;\n"
 				+ "  //@ static ghost Object soo;\n"
 
 				+ "  //@ modifies \\nothing;\n" + "  public void m7(Object p) {\n" + "    Object pp = c1(p);\n"
@@ -712,57 +705,52 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != o;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  public void m7b(Object p) {\n" 
-				+ "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" + "  public void m7b(Object p) {\n" + "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != oo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m7c(Object p) {\n" 
-				+ "    Object pp = c1e(p);\n"  // fresh result
-				+ "    //@ assert pp != oo;\n" // OK
+				+ "  //@ modifies \\everything;\n" + "  public void m7c(Object p) {\n" + "    Object pp = c1e(p);\n"
+				+ "    //@ assert pp != oo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m7d(Object p) {\n" 
-				+ "    Object pp = c2e(p);\n"  // not-necessarily fresh result
+				+ "  //@ modifies \\everything;\n" + "  public void m7d(Object p) {\n" + "    Object pp = c1e(p);\n"
 				+ "    //@ assert pp != o;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  public void m8(Object p) {\n" 
-				+ "    Object pp = c1(p);\n"
+				+ "  //@ modifies \\nothing;\n" + "  public void m8(Object p) {\n" + "    Object pp = c1(p);\n"
 				+ "    //@ assert pp != so && pp != soo;\n" // OK
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  public void m8a(Object p) {\n" 
-				+ "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" + "  public void m8a(Object p) {\n" + "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != so;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  public void m8b(Object p) {\n"
-				+ "    Object pp = c2(p);\n"
+				+ "  //@ modifies \\nothing;\n" + "  public void m8b(Object p) {\n" + "    Object pp = c2(p);\n"
 				+ "    //@ assert pp != soo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m8c(Object p) {\n" 
-				+ "    Object pp = c1e(p);\n" // fresh result
-				+ "    //@ assert pp != soo;\n" // OK
+				+ "  //@ modifies \\everything;\n" + "  public void m8c(Object p) {\n" + "    Object pp = c1e(p);\n"
+				+ "    //@ assert pp != soo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m8d(Object p) {\n" 
-				+ "    Object pp = c1e(p);\n" // fresh result
-				+ "    //@ assert pp != so;\n" // OK
+				+ "  //@ modifies \\everything;\n" + "  public void m8d(Object p) {\n" + "    Object pp = c1e(p);\n"
+				+ "    //@ assert pp != so;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  public void m9a(Object p) {\n" 
-				+ "    Object pp = c1n(p);\n" // if pp is allowed to be null, then it might equal o or oo
+				+ "  //@ modifies \\nothing;\n" + "  public void m9a(Object p) {\n" + "    Object pp = c1n(p);\n" // if
+																													// pp
+																													// is
+																													// allowed
+																													// to
+																													// be
+																													// null,
+																													// then
+																													// it
+																													// might
+																													// equal
+																													// o
+																													// or
+																													// oo
 				+ "    //@ assert pp != o && pp != oo;\n" // BAD
 				+ "  }\n"
 
@@ -770,24 +758,18 @@ public class esc extends EscBase {
 				+ "    //@ assert pp != so && pp != soo;\n" // BAD
 				+ "  }\n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  //@ ensures \\fresh(\\result);\n"
+				+ "  //@ modifies \\nothing;\n" + "  //@ ensures \\fresh(\\result);\n"
 				+ "  abstract public Object c1(Object o); \n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  //@ ensures \\result == null || \\fresh(\\result);\n"
+				+ "  //@ modifies \\nothing;\n" + "  //@ ensures \\result == null || \\fresh(\\result);\n"
 				+ "  abstract public Object c1n(Object o); \n"
 
-				+ "  //@ modifies \\nothing;\n" 
-				+ "  //@ ensures true;\n" 
-				+ "  abstract public Object c2(Object o); \n"
+				+ "  //@ modifies \\nothing;\n" + "  //@ ensures true;\n" + "  abstract public Object c2(Object o); \n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  //@ ensures \\result != null && \\fresh(\\result);\n"
+				+ "  //@ modifies \\everything;\n" + "  //@ ensures \\result != null && \\fresh(\\result);\n"
 				+ "  abstract public Object c1e(Object o); \n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  //@ ensures true;\n"
+				+ "  //@ modifies \\everything;\n" + "  //@ ensures true;\n"
 				+ "  abstract public Object c2e(Object o); \n"
 
 				+ "  public TestJava() {}\n" + "}",
@@ -801,9 +783,12 @@ public class esc extends EscBase {
 				5, "/tt/TestJava.java:54: warning: Associated declaration", 7,
 				"/tt/TestJava.java:70: warning: The prover cannot establish an assertion (Assert) in method m7a", 9,
 				"/tt/TestJava.java:75: warning: The prover cannot establish an assertion (Assert) in method m7b", 9,
+				"/tt/TestJava.java:80: warning: The prover cannot establish an assertion (Assert) in method m7c", 9,
 				"/tt/TestJava.java:85: warning: The prover cannot establish an assertion (Assert) in method m7d", 9,
 				"/tt/TestJava.java:95: warning: The prover cannot establish an assertion (Assert) in method m8a", 9,
 				"/tt/TestJava.java:100: warning: The prover cannot establish an assertion (Assert) in method m8b", 9,
+				"/tt/TestJava.java:105: warning: The prover cannot establish an assertion (Assert) in method m8c", 9,
+				"/tt/TestJava.java:110: warning: The prover cannot establish an assertion (Assert) in method m8d", 9,
 				"/tt/TestJava.java:115: warning: The prover cannot establish an assertion (Assert) in method m9a", 9,
 				"/tt/TestJava.java:120: warning: The prover cannot establish an assertion (Assert) in method m9b", 9);
 	}
@@ -2630,13 +2615,9 @@ public class esc extends EscBase {
 
 	@Test
 	public void testPureNoArguments() {
-	    //main.addOptions("-show","-method=m1");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ code_java_math*/ public class TestJava { \n" 
-		        + "  public static int z;\n"
-				+ "  //@ ensures \\result == z+1;\n" 
-				+ "  //@ pure \n" 
-				+ "  public static int m() { return z+1; }\n"
+				+ "/*@ code_java_math*/ public class TestJava { \n" + "  public static int z;\n"
+				+ "  //@ ensures \\result == z+1;\n" + "  //@ pure \n" + "  public static int m() { return z+1; }\n"
 				+ "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
 				+ "  public void m1a(int a, int b) { int k = z+2; /*@ assert k == m(); */ }\n"
 				+ "  public void m2(int a, int b) { int k = 2*z+2; /*@ assert k == m() + m(); */ }\n"
@@ -3450,7 +3431,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testNullityAndConstructors2() {
-		main.addOptions("-nonnullByDefault","-show","-method=TestJava");
+		main.addOptions("-nonnullByDefault");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
 						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "

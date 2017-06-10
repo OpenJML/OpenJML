@@ -15,13 +15,9 @@ Feasibility check #1 - end of preconditions : OK
 Feasibility check #2 - at program exit : OK
 Completed proof of RecursiveInvariant.m() with prover !!!! - no warnings
 Starting proof of RecursiveInvariant.t() with prover !!!!
-test\escRecursiveInvariant\RecursiveInvariant.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method t
-    public void t() {}
-                ^
-test\escRecursiveInvariant\RecursiveInvariant.java:4: warning: Associated declaration
-    //@ public invariant m();
-               ^
-Completed proof of RecursiveInvariant.t() with prover !!!! - with warnings
+Feasibility check #1 - end of preconditions : OK
+Feasibility check #2 - at program exit : OK
+Completed proof of RecursiveInvariant.t() with prover !!!! - no warnings
 Completed proving methods in RecursiveInvariant
 1 error
-4 warnings
+2 warnings

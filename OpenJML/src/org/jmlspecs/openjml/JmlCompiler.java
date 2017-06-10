@@ -44,11 +44,9 @@ import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
-import com.sun.tools.javac.util.PropagatedException;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -120,7 +118,7 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public JCCompilationUnit parse(JavaFileObject fileobject, CharSequence content) {
         // TODO: Use a TaskEvent and a TaskListener here?
-        if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
+        if (utils.jmlverbose >= Utils.PROGRESS) context.get(Main.IProgressListener.class).report(0,2,"parsing " + fileobject.toUri() );
         JCCompilationUnit cu = super.parse(fileobject,content);
         if (inSequence) {
             return cu;
@@ -272,6 +270,7 @@ public class JmlCompiler extends JavaCompiler {
         // Don't load specs over again
         if (JmlSpecs.instance(context).get(csymbol) != null) return;
  //       if (csymbol.toString().equals("java.lang.Object")) Utils.stop();
+ //       if (csymbol.toString().equals("java.io.File")) Utils.stop();
         
         // FIXME - need to figure out what the environment should be
 
@@ -317,7 +316,7 @@ public class JmlCompiler extends JavaCompiler {
             ClassSymbol csymbol = binaryEnterTodo.remove();
             if (JmlSpecs.instance(context).get(csymbol) != null) continue;
             
-            //if (csymbol.toString().contains("AbstractStringBuilder")) Utils.stop();
+//            if (csymbol.toString().contains("Throwable")) Utils.stop();
 
             // Record default specs just to show they are in process
             // If there are actual specs, they will be recorded later
@@ -371,34 +370,21 @@ public class JmlCompiler extends JavaCompiler {
     @Override
     public Queue<Pair<Env<AttrContext>, JCClassDecl>> desugar(Queue<Env<AttrContext>> envs) {
         ListBuffer<Pair<Env<AttrContext>, JCClassDecl>> results = new ListBuffer<>();
-        
-        if (envs.isEmpty()) {
-        	if (utils.esc) context.get(Main.IProgressListener.class).report(0,1,"Operation not performed because of parse or type errors");
-//        	try {
-//				Thread.sleep(10000);
-//			} catch (InterruptedException e) {
-//			}
-        	return results;
-        }
 
         if (utils.check || utils.doc) {
             // Stop here
-            return results; // Empty list - do nothing more
+            return results; // Empty list - do nothng more
         } else if (utils.esc) {
-        	try {
-        	for (Env<AttrContext> env: envs)
-        		esc(env);
-        	} catch (PropagatedException e) {
-        		// cancelation
-        	}
-    		return results; // Empty list - Do nothing more
+            for (Env<AttrContext> env: envs)
+                esc(env);
+            return results; // Empty list - Do nothing more
         } else if (utils.rac) {
             for (Env<AttrContext> env: envs) {
                 JCTree t = env.tree;
                 env = rac(env);
                 if (env == null) continue; // FIXME - error? just keep oroginal env?
                 
-                if (utils.jmlverbose >= Utils.JMLVERBOSE) 
+                if (utils.jmlverbose >= Utils.PROGRESS) 
                     context.get(Main.IProgressListener.class).report(0,2,"desugar " + todo.size() + " " + 
                         (t instanceof JCTree.JCCompilationUnit ? ((JCTree.JCCompilationUnit)t).sourcefile:
                             t instanceof JCTree.JCClassDecl ? ((JCTree.JCClassDecl)t).name : t.getClass()));
@@ -418,52 +404,12 @@ public class JmlCompiler extends JavaCompiler {
     // FIXME - why might it return null, and should we stop if it does?
     @Override
     public Queue<Env<AttrContext>> attribute(Queue<Env<AttrContext>> envs) {
-        boolean rerunForTesting = false;
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         while (!envs.isEmpty()) {
-            if (rerunForTesting) Log.noWrite = true;
             Env<AttrContext> env = attribute(envs.remove());
-            if (rerunForTesting) Log.noWrite = false;
-                
             if (env != null) results.append(env);
         }
         ((JmlAttr)attr).completeTodo();
-        
-        if (rerunForTesting)  {
-            if (results != null) {
-                ListBuffer<JCCompilationUnit> list = new ListBuffer<JCCompilationUnit>();
-                ListBuffer<Env<AttrContext>> list2 = new ListBuffer<Env<AttrContext>>();
-
-                for (Env<AttrContext> env: results.toList()) {
-                    if (env.tree instanceof JmlClassDecl) {
-                        JmlClassDecl d = (JmlClassDecl)env.tree;
-                        if (d.name.toString().contains("TestG")) Utils.stop();
-                        if (d.sym != null && d.sym.flatname.toString().startsWith("java.")) continue;
-                    }
-                    if (!list.contains(env.toplevel)) {
-                        list.add(env.toplevel);
-                        list2.add(env);
-                    }
-                }
-                JmlClearTypes.clear(context, list2.toList());
-                com.sun.tools.javac.processing.JavacProcessingEnvironment.cleanTrees(list.toList());
-                JavaCompiler delegateCompiler =
-                        processAnnotations(
-                            enterTreesIfNeeded(list.toList()),
-                            List.<String>nil());
-
-                    //delegateCompiler.compile2(compilePolicy);  // DRC - passed in the argument, to make it more convenient to use in derived classes
-                    ListBuffer<Env<AttrContext>> results2 = new ListBuffer<>();
-                    while (!envs.isEmpty()) {
-                        Env<AttrContext> env = attribute(envs.remove());
-                            
-                        if (env != null) results2.append(env);
-                    }
-                    ((JmlAttr)attr).completeTodo();
-
-            }
-        }
-
         return stopIfError(CompileState.ATTR, results);
     }
 
@@ -635,7 +581,7 @@ public class JmlCompiler extends JavaCompiler {
     }
 
     // FIXME - we are overriding to only allow SIMPLE compile policy
-    public void compile2(CompilePolicy compPolicy) {
+    protected void compile2(CompilePolicy compPolicy) {
         //super.compile2(CompilePolicy.BY_TODO);
         super.compile2(CompilePolicy.SIMPLE);
     }

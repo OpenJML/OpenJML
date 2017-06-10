@@ -1,0 +1,4 @@
+$SPECS\java5\java\lang\Object.jml:66: warning: A clause is skipped because it contains a model field without representation: 
+      @     ensures \result == theHashCode;
+            ^
+1 warning

@@ -21,11 +21,10 @@ import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjmltest.TCBase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.ParameterizedWithNames;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.file.JavacFileManager;
@@ -102,7 +101,7 @@ import com.sun.tools.javac.util.Log;
 // more so as more spec files are added, you can turn them off with the dotests
 // flag.
 
-@RunWith(ParameterizedWithNames.class)
+@RunWith(Parameterized.class)
 public class SpecsBase extends TCBase {
 
     /** Enables or disables this suite of tests */
@@ -190,17 +189,28 @@ public class SpecsBase extends TCBase {
     @Test
     public void testSpecificationFile() {
         foundErrors = false;
-        int n = counts.get(classname);
-        if (verbose) System.out.println("JUnit SpecsBase: " + classname + " " + n);
-        if (n < typeargs.length) checkClass(classname, n);
-        else {
-            assertTrue("Not implemented for " + n + " + generic arguments: " + classname,false);
-        }
-
+        checkClass(classname);
         assertTrue("Errors found",!foundErrors);
     }
     
-    /** Finds all classes that have library specification files.
+    // This runs all classes as one test.
+    /** The test to run - finds all system specs and runs tests on them in order
+     * to at least be sure that the specifications parse and typecheck.
+     */
+    public void testSpecificationFiles() {
+        if (!dotests) {
+            System.out.println("System spec tests (test.SpecBase) are being skipped " + System.getProperty("java.version"));
+            return;
+        }
+        foundErrors = false;
+        helpTCF("AJDK.java","public class AJDK {  }");  // smoke test
+        SortedSet<String> classes = findAllFiles(specs); 
+        checkClasses(classes);
+        assertTrue("Errors found",!foundErrors);
+    }
+    
+    /** The test to run - finds all system specs and runs tests on them that
+     * at least are sure that the specifications parse and typecheck.
      */
     static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
         System.out.println("JRE version " + System.getProperty("java.version"));
@@ -237,9 +247,6 @@ public class SpecsBase extends TCBase {
         donttest.add("java.lang.StringCoding"); // (FIXME) Turn this off because it is not public 
     }
     
-    static java.util.HashMap<String,Integer> counts = new java.util.HashMap<>();
-    
-    
     /** Creates a list of all the files (of any suffix), interpreted as fully-qualified Java class 
      * names when the root prefix is removed,
      * recursively found underneath the given directory
@@ -261,49 +268,64 @@ public class SpecsBase extends TCBase {
                 int p = ss.lastIndexOf('.');
                 ss = ss.substring(0,p).replace(File.separatorChar,'.');
                 list.add(ss);
-                try {
-                	// This is a imprecise method to count the number of type arguments, but so for I have not
-                	// found any .jml files for which it fails. If the number is wrong and non-zero, the test will fail,
-                	// but if wrong and 0 it may not.
-                	java.util.List<String> lines = java.nio.file.Files.readAllLines(f.toPath(), java.nio.charset.Charset.defaultCharset());
-                	StringBuffer sb = new StringBuffer();
-                	for (String line: lines) sb.append(line);
-                	String all = sb.toString();
-                	int k = ss.lastIndexOf('.');
-                	String tail = ss.substring(k+1);
-                	k = all.indexOf(tail + "<");
-                	int n = 0;
-                	if (k >= 0) {
-                		n = 1;
-                		k += (tail + "<").length();
-                		while (all.charAt(k) != '>') {
-                			if (all.charAt(k) == ',') n++;
-                			k++;
-                		}
-                	}
-                	Integer nn = counts.get(ss);
-                	if (nn == null || n > nn) counts.put(ss, n);
-                } catch (Exception e) {
-                	assertTrue("Failed to find number of generic type arguments", false);
-                }
             }
         }
         return list;
     }
-    
-    String[] typeargs = { "", "<?>", "<?,?>" };
+
+    /** Does a test on each class in the given set of fully qualified,
+     * dot-separated class names
+     * 
+     * @param classNames set of classes to test
+     */
+    //@ modifies foundErrors;
+    public void checkClasses(Set<String> classNames) {
+        for (String qname: classNames) {
+            int n = isGeneric(qname);
+            if (n == 1) checkClassGeneric(qname);
+            else if (n == 0) checkClass(qname);
+            else {
+                assertTrue("Not implemented for " + n + " + generic arguments",false);
+            }
+        }
+    }
 
     /** Does a test on the given fully qualified,
-     * dot-separated class name with n generic type arguments
+     * dot-separated class name
      * 
      * @param className the name of the class to test
      */
     //@ modifies foundErrors;
-    public void checkClass(String className, int n) {
-        String program = "public class AJDK { "+ className + typeargs[n] +" o; }";
+    public void checkClass(String className) {
+        String program = "public class AJDK { "+ className +" o; }";
+        if (verbose) System.out.println("JUnit SpecsBase: " + className);
         helpTCFile("AJDK.java",program,className);
     }
-        
+    
+    /** Does a test on the given fully qualified,
+     * dot-separated class name
+     * 
+     * @param className the name of the class to test
+     */
+    //@ modifies foundErrors;
+    public void checkClassGeneric(String className) {
+        String program = "public class AJDK { "+ className +"<?> o; }";
+        if (verbose) System.out.println("JUnit SpecsBase: " + className);
+        helpTCFile("AJDK.java",program,className);
+    }
+    
+    /** Returns the number of generic type arguments
+     * @param className the class in question
+     * @return the number of generic type arguments
+     */
+    public int isGeneric(String className) {
+        if ("java.util.LinkedList".equals(className)) return 1;
+        if ("java.util.AbstractQueue".equals(className)) return 1;
+        if ("java.util.ArrayDeque".equals(className)) return 1;
+        if ("java.util.Deque".equals(className)) return 1;
+        return 0;
+    }
+    
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
@@ -312,7 +334,7 @@ public class SpecsBase extends TCBase {
     
     // @Test
     public void testFileTemp() {
-        checkClass("java.util.LinkedList", 1);
+        checkClassGeneric("java.util.LinkedList");
     }
 
 }

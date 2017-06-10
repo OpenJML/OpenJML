@@ -4,13 +4,12 @@
  */
 package org.jmlspecs.openjml;
 
-import java.io.IOException;
-
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.openjml.JmlTree.*;
 
 import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Context;
@@ -214,14 +213,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         // already done: copy.type = that.type;
         return copy;
     }
-
-    @Override
-    public JCTree visitJmlLabeledStatement(JmlLabeledStatement that, Void p) {
-        return M.at(that.pos).JmlLabeledStatement(
-                that.label,
-                copy(that.extraStatements,p),
-                (JCBlock)copy(that.body,p));
-     }
 
     @Override
     public JCTree visitJmlLblExpression(JmlLblExpression that, Void p) {

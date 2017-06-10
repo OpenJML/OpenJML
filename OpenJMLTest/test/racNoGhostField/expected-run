@@ -3,12 +3,9 @@ Skipping a specification clause because it contains an uncompiled ghost or model
 test\racNoGhostField\Magic.java:10: JML postcondition is false
 	public static long magic() {
 	                   ^
-test\racNoGhostField\Magic.java:8: Associated declaration
+test\racNoGhostField\Magic.java:8: Associated declaration: test\racNoGhostField\Magic.java:10: 
 	  @ ensures \result == 42;
 	    ^
 0
 
 ERR:
-java.lang.NoSuchFieldError: time
-	at Magic.magic(Magic.java:13)
-	at Magic.main(Magic.java:4)

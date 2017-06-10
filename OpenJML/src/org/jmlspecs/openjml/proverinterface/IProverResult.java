@@ -54,15 +54,6 @@ public interface IProverResult {
     /** The proof was not attempted */
     static public final Kind SKIPPED = new Kind("SKIPPED");
 
-    /** The proof is in progress */
-    static public final Kind RUNNING = new Kind("RUNNING");
-
-    /** The proof was cancelled before completion */
-    static public final Kind CANCELLED = new Kind("CANCELLED");
-
-    /** The proof was cancelled before completion */
-    static public final Kind COMPLETED = new Kind("COMPLETED");
-
     /** Category of result produced by the prover */
     public Kind result();
 
@@ -102,8 +93,7 @@ public interface IProverResult {
 
     public Object otherInfo();
 
-    //@ ensures \result == this;
-    public IProverResult setOtherInfo(Object s);
+    public void setOtherInfo(Object s);
 
     /** Returns the set of core ids, or null if no such information is available 
      * @return an item holding the core id information

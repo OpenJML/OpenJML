@@ -1,6 +1,0 @@
-Proving methods in TestArrayList
-Skipping proof of TestArrayList.TestArrayList() (excluded by -method)
-Skipping proof of TestArrayList.main(java.lang.String...) (excluded by -method)
-Completed proving methods in TestArrayList
-Note: testspecs/ArrayList/TestArrayList.java uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.

@@ -2341,7 +2341,7 @@ public class racnew extends RacBase {
                 +"int mb() { return 0; }\n"
                 +"}"
                 //,"/tt/A.java:2: Note: Not implemented for runtime assertion checking: axiom clause",5
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
                 ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:9: Note: Not implemented for runtime assertion checking: hence_by statement",9
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
@@ -3068,44 +3068,5 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:5: JML assertion is false"
                 );
     }
-    
-    
-    @Test
-    public void testOldClause() {
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(6); } \n"
-                + "  static public int k = 5;\n"
-                + "  //@ old int kk = k; requires i > kk; assignable k; ensures k == i+1; ensures kk == 5;\n"
-                + "  //@ also\n"
-                + "  //@ old int kk = k+1; requires i < kk; assignable k; ensures k == i-1; ensures kk == 7;\n"
-                + "  static public void m(int i) {\n"
-                + "     if (i>k) k = i+1; else k = i-1;\n"
-                + "  }\n"
-                + "}"
-                 );
-        
-    }
-    
-    @Test
-    public void testOldClause2() {
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { public static void main(String[] args) { m(6); k = 6; m(4); } \n"
-                + "  static public int k = 5;\n"
-                + "  //@ old int kk = k;\n"
-                + "  //@ {| requires i > kk; assignable k; ensures k == i+1; ensures kk == 5;\n"
-                + "  //@ also\n"
-                + "  //@    requires i < kk; assignable k; ensures k == i-1; ensures kk == 6;\n"
-                + "  //@ |}\n"
-                + "  static public void m(int i) {\n"
-                + "     if (i>k) k = i+1; else k = i-1;\n"
-                + "  }\n"
-                + "}"
-                 );
-        
-    }
-    
-
 
 }

@@ -66,7 +66,7 @@ public class escoption extends EscBase {
     @Test
     public void testOption2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"-progress\",\"-checkFeasibility=none\"}) "
+                +"  @Options(\"-progress\") "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -84,7 +84,7 @@ public class escoption extends EscBase {
                 ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method bassert3",77
         );
         String out = output();
-        org.junit.Assert.assertEquals(
+        org.junit.Assert.assertEquals(out,
                 "Proving methods in tt.TestJava" + eol +
         		"Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
         		"Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
@@ -93,14 +93,14 @@ public class escoption extends EscBase {
                 "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
                 "Completed proving methods in tt.TestJava" + eol 
-        		,out) ;
+        		) ;
 
     }
     
     @Test
     public void testOption3() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"-progress\",\"-checkFeasibility=none\"}) "
+                +"  @Options(\"-progress\") "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"

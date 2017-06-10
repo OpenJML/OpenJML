@@ -470,8 +470,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 
@@ -485,8 +485,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:5: warning: Associated declaration",10
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+                ,"/tt/TestJava.java:5: warning: Associated declaration",10
                 );
     }
 
@@ -500,8 +500,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 
@@ -515,8 +515,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",22
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",22
                 );
     }
 
@@ -530,8 +530,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
                 );
     }
 
@@ -800,187 +800,5 @@ public class escnew3 extends EscBase {
                 );
     
     }
-    
-    @Test
-    public void testLabels() {
-    	main.addOptions("-show","-method=m");
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { \n"
-                + "  //@ requires i == 10;\n"
-                + "  public void m(int i) {\n"
-                + "     a:{};\n"
-                + "     i = 12;\n"
-                + "     b:{};\n"
-                + "     i = 14;\n"
-                + "     //@ assert \\old(i) == 10;\n"
-                + "     //@ assert \\old(i,a) == 10;\n"
-                + "     //@ assert \\old(i,b) == 12;\n"
-                + "     //@ assert i == 14;\n"
-                + "    }\n"
-                + "}"
-                 );
-        
-    }
-
-    @Test
-    public void testLabels2() {
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { \n"
-                + "  public int k;\n"
-                + "  /*@ ensures \\result == k; */ public int mm() { return k; }\n"
-                + "  //@ requires k == 10;\n"
-                + "  public void m() {\n"
-                + "     a:{}\n"
-                + "     k = 12;\n"
-                + "     b:{}\n"
-                + "     k = 14;\n"
-                + "     //@ assert \\old(mm()) == 10;\n"
-                + "     //@ assert \\old(mm(),a) == 10;\n"
-                + "     //@ assert \\old(mm(),b) == 12;\n"
-                + "     //@ assert mm() == 14;\n"
-                + "    }\n"
-                + "}"
-                 );
-        
-    }
-    
-    @Test
-    public void testOldClause() {
-    	main.addOptions("-escMaxWarnings=1","-subexpressions","-show","-method=m");
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava { \n"
-                + "  static public int k = 5;\n"
-                + "  //@ old int kk = k; requires k == 5 && i > kk && i < 100 && i > -100; assignable k; ensures k == i+1; ensures kk == 5;\n"
-                + "  //@ also\n"
-                + "  //@ old int kk = k+1; requires k == 5 && i < kk && i < 100 && i > -100; assignable k; ensures k == i-1; ensures kk == 6;\n"
-                + "  static public void m(int i) {\n"
-                + "     if (i>k) k = i+1; else k = i-1;\n"
-                + "  }\n"
-                + "}"
-                 );
-        
-    }
-    
-    @Ignore // FIXME - fix up label scoping
-    @Test
-    public void testBadLabel() {
-        helpTCX("tt.TestJava",
-                                "package tt; \n"
-                              + "public class TestJava { \n"
-                              + "  public int k;\n"
-                              + "  public void m() {\n"
-                              + "     //@ assert \\old(k,a) == 10;\n"
-                              + "     a:{}\n"
-                              + "     k = 12;\n"
-                              + "     while(k > 10) {  a:{} k--; }\n"
-                              + "     while(k > 6) {  b:{ b:{} } k--; }\n"
-                              + "     while(k > 5) {  b:{} b:{} k--; }\n"
-                              + "     while(k > 0) {  c:{} k--;}\n"
-                              + "     k = 14;\n"
-                              + "     //@ assert \\old(k,c) == 12;\n"
-                              + "    }\n"
-                              + "}"
-                               );
-                      
-        
-    }
-
-    @Test
-    public void testIfNoBrace() {
-        helpTCX("tt.TestJava",
-                                "package tt; \n"
-                              + "public class TestJava { \n"
-                              + "  //@ requires i > -10 && i < 10;\n"
-                              + "  public void m(int i) {\n"
-                              + "     if (i < 0) \n"
-                              + "        //@ assert i < 0;\n" // OK
-                              + "        i = -i; \n"
-                              + "     //@ assert i >= 0;\n" // OK
-                              + "    }\n"
-                              + "}"
-                               );
-                      
-        
-    }
-
-    @Test @Ignore
-    public void testIfNoBrace2() {
-        helpTCX("tt.TestJava",
-                                "package tt; \n"
-                              + "public class TestJava { \n"
-                              + "  //@ requires i > -10 && i < 10;\n"
-                              + "  public void m(int i) {\n"
-                              + "     if (i < 0) \n"
-                              + "        i = -i; \n"
-                              + "        //@ assert i < 0;\n"  // false, since not in if
-                              + "     //@ assert i >= 0;\n"
-                              + "    }\n"
-                              + "}"
-                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
-                               );
-                      
-        
-    }
-
-    @Test
-    public void testIfNoBrace3() {
-        helpTCX("tt.TestJava",
-                                "package tt; \n"
-                              + "public class TestJava { \n"
-                              + "  //@ requires i > -10 && i < 10;\n"
-                              + "  public void m(int i) {\n"
-                              + "     if (i < 0) \n"
-                              + "        i = -i; \n"
-                              + "        //@ assert i > 0;\n"  // false, since not in if
-                              + "     //@ assert i >= 0;\n"
-                              + "    }\n"
-                              + "}"
-                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
-                               );
-                      
-        
-    }
-
-    @Test
-    public void testOldClause2() {
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava {\n"
-                + "  static public int k = 5;\n"
-                + "  //@ old int kk = k;\n"
-                + "  //@ {| requires i < 10 && i > kk; assignable k; ensures k == i+1; \n"
-                + "  //@ also\n"
-                + "  //@    requires i > -10 && i < kk; assignable k; ensures k == i-1; \n"
-                + "  //@ |}\n"
-                + "  static public void m(int i) {\n"
-                + "     if (i>k) k = i+1; else k = i-1;\n"
-                + "  }\n"
-                + "}"
-                 );
-        
-    }
-    
-
-    // Problem from Michael Coblenz - git issue #504
-    @Test
-    public void testSimpleClone() {
-        helpTCX("tt.TestJava",
-                  "package tt; \n"
-                + "public class TestJava {\n"
-                + "  public String y = \"\";\n"
-                + " \n"
-                + "  public int[] foo() {\n"
-                + "     int[] result1 = new int[]{1};\n"
-                + "     int[] result2 = result1.clone();\n"
-                + "     return result2;\n"
-                + "  }\n"
-                + "}"
-                 );
-        
-    }
-    
 
 }

@@ -12,20 +12,25 @@ Passed: constructor Add(2147483647, 0)
 Skipped: constructor Add(-2147483648, 2147483647)
 Passed: constructor Add(0, 2147483647)
 Skipped: constructor Add(2147483647, 2147483647)
-Passed: <<Add@########>>.sum(-2147483648)
-Passed: <<Add@########>>.sum(-2147483648)
-Passed: <<Add@########>>.sum(0)
-Passed: <<Add@########>>.sum(0)
-Passed: <<Add@########>>.sum(2147483647)
-Passed: <<Add@########>>.sum(2147483647)
-Passed: <<Add@########>>.x()
-Passed: <<Add@########>>.x()
-Passed: <<Add@########>>.y()
-Passed: <<Add@########>>.y()
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipped: sum()
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipped: x()
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipping a specification clause because it contains an uncompiled ghost or model field: containsNull
+Skipped: y()
 
 ===============================================
 Command line suite
-Total tests run: 20, Failures: 0, Skips: 7
+Total tests run: 13, Failures: 0, Skips: 10
 ===============================================
 
 

@@ -18,18 +18,14 @@ public abstract class ManagedMemory extends MemoryArea {
 //      signals (IllegalStateException) true;
 //    
 //    @*/
-@javax.safetycritical.annotate.SCJAllowed
   public static void enterPrivateMemory(int size, Runnable logic) throws IllegalStateException; 
   
  
-@javax.safetycritical.annotate.SCJAllowed
   public static void executeInAreaOf(Object obj, Runnable logic);  
 
  
-@javax.safetycritical.annotate.SCJAllowed
   public static void executeInOuterArea(Runnable logic);  
   
-@javax.safetycritical.annotate.SCJAllowed
   public long getRemainingBackingStore(); 
   
   //@ pure helper

@@ -61,11 +61,10 @@ public class escfiles extends EscBase {
     
     public void helpTF(String testDirname, String ... opts) {
         String d = "test/" + testDirname;
-        String[] newopts = new String[opts.length+3];
+        String[] newopts = new String[opts.length+2];
         newopts[0] = "-classpath";
         newopts[1] = d;
-        newopts[2] = "-checkFeasibility=precondition,assert,reachable,exit";
-        System.arraycopy(opts,0,newopts,3,opts.length);
+        System.arraycopy(opts,0,newopts,2,opts.length);
         helpTCF(d,d,newopts);
     }
 
@@ -79,10 +78,6 @@ public class escfiles extends EscBase {
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-    	List<String> list = Arrays.asList(opts);
-    	list = new ArrayList<String>(list);
-    	list.add("-checkFeasibility=precondition,exit,reachable");
-    	opts = list.toArray(opts);
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
@@ -114,7 +109,7 @@ public class escfiles extends EscBase {
     @Test
     public void testDemoB() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");//,"-method=tick","-show","-escMaxWarnings=1","-checkFeasibility=debug");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/clock/TickTockClockB.java","test/escDemoB");//,"-method=tick","-show","-escMaxWarnings=1");
     }
 
     @Test
@@ -360,7 +355,7 @@ public class escfiles extends EscBase {
     @Test
     public void testEscSimpleString() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
-        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=esc.SimpleString.SimpleString(int[])","-show","-subexpressions");
+        helpTF("escSimpleString","-nonnullByDefault","-timeout=240");//,"-method=SimpleString","-show","-checkFeasibility=debug");
     }
 
     @Test
@@ -478,68 +473,6 @@ public class escfiles extends EscBase {
     @Test
     public void testEscJmlDup() {
         helpTF("escDup");
-    }
-
-    // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
-    @Test
-    public void testEscSF420() {
-        helpTF("sfbug420","-exclude=count;itemAt;main;isEmpty;push;top");
-    }
-    
-    @Test
-    public void testEscSF420a() {
-        helpTF("sfbug420a","-method=count");
-    }
-    
-    @Test
-    public void testEscSF420b() {
-        helpTF("sfbug420b","-method=itemAt");
-    }
-    
-    @Test
-    public void testEscSF420c() {
-        helpTF("sfbug420c","-method=main");
-    }
-    
-    @Test
-    public void testEscSF420d() {
-        helpTF("sfbug420d","-method=isEmpty");
-    }
-    
-    @Test
-    public void testEscSF420e() {
-        helpTF("sfbug420e","-method=push");
-    }
-    
-    @Test
-    public void testEscSF420f() {
-        helpTF("sfbug420f","-method=top");
-    }
-    
-    @Test
-    public void testEscSF420X() {
-        helpTF("sfbug420X");
-    }
-    
-
-    
-    @Test
-    public void testEscRawding() {
-        helpTF("escRawding","-specspath=test/escRawding","-code-math=safe");
-    }
-    
-    // The following are really just typecheck problems
-
-    @Test
-    public void testEscVisibilitySimple() {
-    	expectedExit = 1;
-        helpTF("visibilitySimple");
-    }
-
-    @Test
-    public void testVisibilityB() {
-    	expectedExit = 1;
-        helpTCF("test/visibilityB/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityB");
     }
 
 

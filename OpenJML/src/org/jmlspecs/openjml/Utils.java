@@ -4,7 +4,6 @@
  */
 package org.jmlspecs.openjml;
 
-import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 
 import java.io.File;
@@ -151,19 +150,17 @@ public class Utils {
     public Set<String> commentKeys = new HashSet<String>();
 
     /** A bit that indicates that a declaration was declared within a JML annotation (so that it should not be visible to Java) */
-    final public static long JMLBIT = 1L << 60; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBIT = 1L << 50; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a declaration was declared somewhere within a JML annotation, but not nested within a class or method body that is also in the JML annotation */
-    final public static long JMLBITTOP = 1L << 59; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLBITTOP = 1L << 53; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that JML instrumentation has been added .... FIXME */
-    final public static long JMLINSTRUMENTED = 1L << 61; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLINSTRUMENTED = 1L << 51; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
     /** A bit that indicates that a variable is local to an expression */
-    final public static long JMLEXPRLOCAL = 1L << 62; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
+    final public static long JMLEXPRLOCAL = 1L << 52; // Any bit that does not conflict with bits in com.sun.tools.javac.code.Flags.
 
-    // FIXME - describe  - used to be the DEFAULT flag
-    final public static long JMLADDED = 1L << 58;
 
     /** Tests whether the JML flag is set in the given modifiers object
      * @param mods the instance of JCModifiers to test
@@ -280,14 +277,10 @@ public class Utils {
         // If the owner of the field is an interface, it
         // is by default static. However, it might be a
         // JML field marked as instance.
-        if (sym.owner == null) {
-            if ((sym.flags() & STATIC) == 0) return false;
-        } else {
-            if (!sym.isStatic()) return false;
-        }
+        if (!sym.isStatic()) return false;
         if (isJML(sym.flags())) {
             Symbol csym = sym.owner;
-            if (csym != null && (csym.flags() & Flags.INTERFACE) != 0) {
+            if ((csym.flags() & Flags.INTERFACE) != 0) {
                 // TODO - should cleanup this reference to JmlAttr from Utils
                 if (JmlAttr.instance(context).hasAnnotation(sym,JmlTokenKind.INSTANCE)) return false;
             } 
@@ -722,7 +715,6 @@ public class Utils {
         if (base == parent) return true; // Everything is visible in its own class
         if (base.isEnclosedBy((ClassSymbol)parent)) return true; // Everything is visible to inner classes
         if ((flags & Flags.PUBLIC) != 0) return true; // public things are always visible
-        if (parent.isInterface()) return true; // everything in an interface is public and hence visible
         if ((flags & Flags.PRIVATE) != 0) return false; // Private things are never visible outside their own class
         if (base.packge().equals(parent.packge())) return true; // Protected and default things are visible if in the same package
         return (flags & Flags.PROTECTED) != 0 && base.isSubClass(parent, Types.instance(context)); // Protected things are visible in subclasses

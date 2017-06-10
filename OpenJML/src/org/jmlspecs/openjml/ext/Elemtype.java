@@ -8,7 +8,6 @@ import org.jmlspecs.openjml.JmlTokenKind;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 
 import com.sun.tools.javac.code.JmlTypes;
-import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;

@@ -35,8 +35,9 @@ public class JmlOptions extends Options {
         //System.out.println("SETTING DEFAULTS");
         for (JmlOption opt : JmlOption.values()) {
             Object d = opt.defaultValue();
-            String s = d == null ? null : d.toString();
-            put(opt.optionName(),s);
+            if (d == null) continue;
+            if (d instanceof Boolean && !(Boolean)d) continue;
+            put(opt.optionName(),d.toString());
         }
     }
     
