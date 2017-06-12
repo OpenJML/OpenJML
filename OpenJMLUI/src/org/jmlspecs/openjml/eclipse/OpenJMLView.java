@@ -371,11 +371,18 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     			counts.put(result, i);
     		}
     		output.append(Strings.eol);
+    		int total = 0;
     		for (String result: new TreeSet<>(counts.keySet())) {
-    			String number = counts.get(result).toString();
+    			Integer k = counts.get(result);
+    			total += k;
+    			String number = k.toString();
     			output.append(number + spaces.substring(0,5-number.length()) + Strings.space + result + Strings.eol);
     		}
-    		output.append(counts.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + " TOTAL" + Strings.eol); //$NON-NLS-1$
+    		if (t.size() != total) {
+    			int diff = t.size()-total;
+    			output.append(diff + "    ?????" + Strings.eol);
+    		}
+    		output.append(t.size() + spaces.substring(0,5-Integer.toString(counts.size()).length()) + "  TOTAL" + Strings.eol); //$NON-NLS-1$
     	} catch (IOException e) {
     		
     	}
