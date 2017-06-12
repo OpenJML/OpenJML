@@ -960,7 +960,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
             long line = diagnostic.getLineNumber(); // 1-based
             long startPos = diagnostic.getStartPosition();  //0-based, from beginning of file
             long endPos = diagnostic.getEndPosition();
-            if (endPos == -1) endPos = startPos; // This is defensive - sometimes there is no end position set
+            if (endPos <= 0) endPos = startPos; // This is defensive - sometimes there is no end position set
 
             int ENOPOS = -1; // Eclipse value for not having position information
 
