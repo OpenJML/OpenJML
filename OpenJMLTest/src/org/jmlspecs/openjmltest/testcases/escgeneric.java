@@ -169,7 +169,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic() {
-    	main.addOptions("-show");
+    	//main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 

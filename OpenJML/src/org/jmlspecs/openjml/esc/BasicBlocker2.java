@@ -1062,6 +1062,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             if (that.meth != null) that.meth = result;
             scanList(that.args);
             result = that;
+        } else if (that.token == JmlTokenKind.BSCONCAT) {
+            scan(that.typeargs);
+            scanList(that.args);
+            result = that;
         } else if (that.token == JmlTokenKind.BSSAME) {
             // In this context, BSSAME is a noop
             scanList(that.args);

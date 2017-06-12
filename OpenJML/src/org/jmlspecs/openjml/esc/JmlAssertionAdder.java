@@ -6010,6 +6010,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
+        if (that.toString().contains("valueOf")) Utils.stop();
         
         // We need to save the context of many variables because in the case of
         // new object creation there may be nested methods that are converted
@@ -6361,7 +6362,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             
             
-            if (!translatingJML && calleeIsFunction) {
+            if (!translatingJML && calleeIsFunction && !rac) {
                 // FIXME - replicated from above
                 JCBlock bl = addMethodAxioms(that,calleeMethodSym,overridden);
                 if (true) { // FIXME - document this details check - if it is false, the axioms are dropped
@@ -8606,9 +8607,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         lhs = addImplicitConversion(that.getLeftOperand(),boxedType(lhs.type),lhs);
                         if (lhs.type.tsym != syms.stringType.tsym) {
                             Symbol tostring = utils.findMember(lhs.type.tsym,"toString");
-                            if (tostring == null) log.error(that,"jml.internal","Could not find the concat method");
+                            if (tostring == null) log.error(that,"jml.internal","Could not find the toString method");
                             JCExpression meth = M.at(that).Select(lhs,tostring);
-                            lhs = M.at(lhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
+                            JCMethodInvocation calllhs = M.at(lhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
+                            visitApply(calllhs);
+                            lhs = eresult;
                         }
                     }
                     rhs = convertExpr(rhs);
@@ -8616,18 +8619,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         rhs = addImplicitConversion(that.getRightOperand(),boxedType(rhs.type),rhs);
                         if (rhs.type.tsym != syms.stringType.tsym) {
                             Symbol tostring = utils.findMember(rhs.type.tsym,"toString");
-                            if (tostring == null) log.error(that,"jml.internal","Could not find the concat method");
+                            if (tostring == null) log.error(that,"jml.internal","Could not find the toString method");
                             JCExpression meth = M.at(that).Select(rhs,tostring);
-                            rhs = M.at(rhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
+                            JCMethodInvocation callrhs = M.at(rhs).Apply(null, meth, List.<JCExpression>nil()).setType(syms.stringType);
+                            visitApply(callrhs);
+                            rhs = eresult;
                         }
                     }
-                    JCExpression llhs = treeutils.makeStringLiteral(that.pos,"");
-                    JCExpression meth = M.at(that).Select(llhs,s);
-                    call = M.at(that).Apply(null, meth, List.<JCExpression>of(lhs)).setType(that.type);
-                    meth = M.at(that).Select(call,s);
-                    call = M.at(that).Apply(null, meth, List.<JCExpression>of(rhs)).setType(that.type);
-                    // FIXME  - the complexity above is because lhs might possibly be null. We could simplify this, especially with a sequence of concat operations, maybe also just have a static concat method that allows null parameters.
-                    visitApply(call);
+                    result = eresult = M.at(that).JmlMethodInvocation(JmlTokenKind.BSCONCAT,lhs,rhs).setType(that.type);
+                    if (!translatingJML) result = eresult = newTemp(eresult); // FIXME - use splitExpressions?
                 }
                 return;
             } else { // rac

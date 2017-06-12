@@ -143,6 +143,7 @@ public enum JmlTokenKind implements ITokenKind {
     BSSAME("\\same"),
     BSNOTSPECIFIED("\\not_specified"),
 
+    BSCONCAT("\\concat"),
     BSDISTINCT("\\distinct"),
     BSDURATION("\\duration"),
     BSELEMTYPE("\\elemtype"),

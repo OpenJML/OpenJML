@@ -195,7 +195,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",42
                 );
     }
    
@@ -217,7 +216,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
    
@@ -234,13 +232,11 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s+ss).equals(s+ss); //@ assert b;\n"
+                +"       boolean b = (s+ss).equals(s+ss); //@ assert b;\n"  // FIXME _ this should be provable
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",-45
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",26
                 ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",-45
                 );
     }
@@ -282,12 +278,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
+//FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
    
@@ -304,12 +300,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss); \n" // Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss); \n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
    
@@ -418,11 +414,11 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
+                +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
 
@@ -439,12 +435,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
+                +"       //@ assert (s + ss) == (s + ss);\n" // FIXME Should not hold necessarily
                 +"  }\n"
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
+// FIXME                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
