@@ -105,7 +105,7 @@ public class Vector {
    *         vector at position <code>index</code> or later in the vector;
    *         returns <code>-1</code> if the object is not found.
    * @see java.lang.Object#equals(java.lang.Object)
-   * @since JDK1.0
+   * @since JDK1.0   
    */
   public final synchronized int indexOf(final Object the_elem, final int the_index) {
     //@ loop_invariant the_index == i || (the_index <= i && i <= my_element_count);
