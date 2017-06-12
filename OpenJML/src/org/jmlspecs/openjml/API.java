@@ -813,7 +813,7 @@ public class API implements IAPI {
 //        }
         esc.check(decl);
         setProofResultListener(p);
-        main().context().put(IAPI.IProofResultListener.class, p);
+//        main().context().put(IAPI.IProofResultListener.class, p);  // FIXME - causes a duplicate context call.
         main().proofResultListener = p;
         return l.result; 
     }
