@@ -114,7 +114,7 @@ public class JmlEsc extends JmlTreeScanner {
     		throw e;
         } catch (Exception e) {
         	// No further error messages needed - FIXME - is this true?
-            log.error("jml.internal","Should not be catching an exception in JmlEsc.check");
+            log.error("jml.internal","Should not be catching an exception in JmlEsc.check: "+ e.toString());
         }
     }
     
