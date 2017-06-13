@@ -31,8 +31,10 @@ import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
 import org.jmlspecs.annotation.Pure;
 import org.jmlspecs.openjml.esc.JmlEsc;
+import org.jmlspecs.openjml.proverinterface.IProverResult;
 
 import com.sun.tools.javac.code.JmlTypes;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlCheck;
 import com.sun.tools.javac.comp.JmlDeferredAttr;
@@ -458,12 +460,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         return errorcode;
     }
     
-    // FIXME - this is a hack to communicate a parameter to where it can be used
-    public IAPI.IProofResultListener proofResultListener;
-
+    private IAPI.IProofResultListener prl;
+    
     public int executeNS(@NonNull PrintWriter writer, @Nullable DiagnosticListener<? extends JavaFileObject> diagListener, IAPI.IProofResultListener prListener, @Nullable Options options, @NonNull String[] args) {
         int errorcode = com.sun.tools.javac.main.Main.Result.ERROR.exitCode; // 1
-        this.proofResultListener = prListener;
         try {
             if (args == null) {
                 uninitializedLog().error("jml.main.null.args","org.jmlspecs.openjml.Main.main");
@@ -478,6 +478,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 // apply them in the compile() call below.
                 savedOptions = Options.instance(context());
                 initialize(writer, diagListener, options, emptyArgs);
+                setProofResultListener(prListener);  // FIXME - this is wiped away in the compile() below, along with the initialization just above???
+                prl = prListener;                    // FIXME - necessitating this end run with prl
                 
                 // The following lines do an end-to-end compile, in a fresh context
                 errorcode = compile(args).exitCode; // context and new options are created in here
@@ -542,7 +544,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         this.context = context;
         register(context);
-        context.put(IAPI.IProofResultListener.class, proofResultListener);
+        setProofResultListener(prl);
         initializeOptions(savedOptions);
         if (args.length == 0
                 && (processors == null || !processors.iterator().hasNext())
@@ -904,7 +906,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (!setupOptions()) return null;
 
         String showOptions = JmlOption.value(context,JmlOption.SHOW_OPTIONS);
-        if (!showOptions.equals("none")) {
+        if (showOptions != null && !showOptions.equals("none")) {  // FIXME - review and explain this
             JmlOption.listOptions(context, showOptions.equals("all"));
         }
         return files;
@@ -924,8 +926,24 @@ public class Main extends com.sun.tools.javac.main.Main {
         context.put(IProgressListener.class,progressDelegate);
         context.put(key, this);
         registerTools(context,out,diagListener);
+        // Since we can only set a context value once, we create this listener that just delegates to 
+        // another listener, and then change the delegate when we need to, using setProofResultListener().
+        context.put(IAPI.IProofResultListener.class, 
+                new IAPI.IProofResultListener() {
+                    IAPI.IProofResultListener delegate = null;
+                    @Override
+                    public void reportProofResult(MethodSymbol sym, IProverResult res) { if (delegate != null) delegate.reportProofResult(sym,res); }
+                    @Override
+                    public IAPI.IProofResultListener setListener(IAPI.IProofResultListener listener) { 
+                        IAPI.IProofResultListener d = delegate; delegate = listener; return d; 
+                    }
+        });
     }
     
+    public void setProofResultListener(IAPI.IProofResultListener listener) {
+        context.get(IAPI.IProofResultListener.class).setListener(listener);
+    }
+
     public static Context.Key<Main> key = new Context.Key<Main>();
     
     public static Main instance(Context context) {

@@ -77,7 +77,7 @@ public interface IAPI {
     public static interface IProofResultListener {
         
         void reportProofResult(MethodSymbol msym, IProverResult result);
-        
+        default IProofResultListener setListener(IProofResultListener listener) { return null; }
     }
 
     /** Sets a progress listener that hears any progress reports (e.g. names of
@@ -88,10 +88,11 @@ public interface IAPI {
     public void setProgressListener(@Nullable Main.IProgressListener p);
     
     /** Sets a listener for ESC proof results as they are generated. Any previous
-     * listener is forgotten (there is just one listener at a time).
+     * listener is returned and forgotten (there is just one listener at a time, 
+     * unless they are explicitly chained).
      * @param p the listener
      */
-    public void setProofResultListener(@Nullable IProofResultListener p);
+    public IProofResultListener setProofResultListener(@Nullable IProofResultListener p);
 
     /** This method initializes the Options instance of the current compilation
      * context. If the options argument is not null, its content is used

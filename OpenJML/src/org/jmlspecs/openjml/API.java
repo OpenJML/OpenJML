@@ -96,8 +96,8 @@ public class API implements IAPI {
     /** The listener for diagnostic messages */
     protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
     
-    /** The listener for proof results */
-    protected IProofResultListener proofResultListener;
+//    /** The listener for proof results */
+//    protected IProofResultListener proofResultListener;
     
 
     /** Creates a new compilation context, initialized with given command-line options;
@@ -159,9 +159,12 @@ public class API implements IAPI {
         }
     }
     
+    IProofResultListener prl;
+    
     @Override 
-    public void setProofResultListener(@Nullable IProofResultListener p) {
-    	proofResultListener = p;
+    public IProofResultListener setProofResultListener(@Nullable IProofResultListener p) {
+    	prl = p;
+    	return context().get(IProofResultListener.class).setListener(p);
     }
     
     /** Returns the string describing the version of OpenJML that is this
@@ -209,7 +212,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(main.out(), diagListener, proofResultListener, options, args);
+        int ret = main.executeNS(main.out(), diagListener, prl, options, args);
         return ret;
     }
     
@@ -218,7 +221,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(@NonNull PrintWriter writer, @Nullable DiagnosticListener<JavaFileObject> diagListener, @Nullable Options options, @NonNull String ... args) {
-        int ret = main.executeNS(writer,diagListener, proofResultListener, options,args);
+        int ret = main.executeNS(writer,diagListener, options,args);
         return ret;
     }
     
@@ -801,20 +804,12 @@ public class API implements IAPI {
         		if (chained != null) chained.reportProofResult(msym, result);
         	}
         };
-        IProofResultListener p = proofResultListener;
+        
+        IProofResultListener p = setProofResultListener(null);
         L l = new L(p);
         setProofResultListener(l);
-//        L l;
-//        if (!(p instanceof L)) {
-        	main().proofResultListener = l = new L(p);
-        	main().context().put(IAPI.IProofResultListener.class, l);
-//        } else {
-//        	l = (L)p;
-//        }
         esc.check(decl);
         setProofResultListener(p);
-//        main().context().put(IAPI.IProofResultListener.class, p);  // FIXME - causes a duplicate context call.
-        main().proofResultListener = p;
         return l.result; 
     }
     
@@ -827,7 +822,6 @@ public class API implements IAPI {
 //        mostRecentProofMethod = null;
 //        mostRecentProgram = null;
         JmlClassDecl decl = getClassDecl(csym);
-        main().proofResultListener = proofResultListener;
         JmlEsc.instance(context()).check(decl);
     }
     

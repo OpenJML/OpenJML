@@ -79,7 +79,10 @@ import com.sun.tools.javac.util.PropagatedException;
  */
 public class OpenJMLInterface implements IAPI.IProofResultListener {
 	
-    /** The API object corresponding to this Interface class. */
+    /** The API object corresponding to this Interface class. The api object changes 
+     * for each invocation of OpenJML, with a new context, and possibly new input files, etc. 
+     * The same API object can be used if all the input files are unchanged and only 
+     * new proof attempts are being attempted. */
     @NonNull
     protected IAPI api;
     
@@ -126,7 +129,6 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
        try { 
     	   api = Factory.makeAPI(w,new EclipseDiagnosticListener(preq), null, opts.toArray(new String[0])); 
     	   api.setProofResultListener(this);
-           api.main().proofResultListener = this;
        } catch (Exception e) {
     	   Log.errorlog("Failed to create an interface to OpenJML",e); //$NON-NLS-1$
        }

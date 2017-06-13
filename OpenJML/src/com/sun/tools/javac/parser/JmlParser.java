@@ -1799,6 +1799,7 @@ public class JmlParser extends JavacParser {
             stat = block();
             spc = toP(jmlF.at(pos).JmlSpecificationCase(mods, code,
                     MODEL_PROGRAM, also, stat));
+            spc.clauses = List.<JmlMethodClause>nil();
         } finally {
             inJmlDeclaration = false;
             inModelProgram = false;
