@@ -1,14 +1,14 @@
 package org.jmlspecs.openjmltest.testcases;
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.ParameterizedWithNames;
 
+//FIXME _ need to test when inline body is in separate file
+//FIXME _ need to test when inline body is in separate file that is not parsed on the command-line
+// FIXME - need to test when inline is in .jml
+// FIXME - need to test when inline is in .jml for a binary class
 
 @RunWith(ParameterizedWithNames.class)
 public class escinline extends EscBase {
@@ -26,7 +26,7 @@ public class escinline extends EscBase {
         //print = true;
     }
     
-    @Test
+    @Test // basic test of inlining, checking assignable and ensures and return value
     public void testInline1() {
     	//main.addOptions("-show","-method=m3");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
@@ -63,7 +63,36 @@ public class escinline extends EscBase {
                 );
     }
     
-    @Test
+    @Test // basic test of inlining, checking assignable and ensures, with no return
+    public void testInline1a() {
+    	//main.addOptions("-show","-method=m3");
+        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+                +"public class TestJava { \n"
+                
+                +"  public int j;\n"
+                +"  //+OPENJML@ inline\n"
+                +"  public final void minline(int i) {\n"
+                +"    j = j + i;\n"
+                +"  }\n"
+                
+                +"  //@ ensures j ==  \\old(j) + ii;\n"
+                +"  //@ assignable j;\n"
+                +"  public void m1(int ii) {\n"
+                +"    minline(ii);\n"
+                +"  }\n"
+                                
+                +"  //@ assignable \\nothing;\n" // ERROR
+                +"  public void m3(int ii) {\n"
+                +"    minline(ii);\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3:  j", 7
+                ,"/tt/TestJava.java:13: warning: Associated declaration", 7
+                );
+    }
+    
+    @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
     	//main.addOptions("-show","-method=m3");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
@@ -105,7 +134,7 @@ public class escinline extends EscBase {
                 );
     }
     
-    @Test
+    @Test // inline is an extension and should be final
     public void testInline3() {
     	main.addOptions("-strictJML");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
@@ -119,6 +148,21 @@ public class escinline extends EscBase {
                 +"}\n"
                 ,"/tt/TestJava.java:4: warning: The inline construct is an OpenJML extension to JML and not allowed under -strictJML", 15
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
+                );
+    }
+                
+    @Test // inline not allowed on constructor
+    public void testInline4() {
+    	expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+                +" class M { \n"
+                +"  public int j;\n"
+                +"  //+OPENJML@ inline\n"
+                +"  public M(int i) {\n"
+                +"    j = i + 1;\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:4: This JML modifier is not allowed for a constructor declaration", 15
                 );
     }
                 

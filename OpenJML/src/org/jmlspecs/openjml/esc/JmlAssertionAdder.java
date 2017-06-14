@@ -6190,8 +6190,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
-            
-            boolean inliningCall = attr.findMod(specs.getDenestedSpecs(calleeMethodSym).decl.mods,JmlTokenKind.INLINE) != null;
+            JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
+            boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
             // Collect all the methods overridden by the method being called
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);

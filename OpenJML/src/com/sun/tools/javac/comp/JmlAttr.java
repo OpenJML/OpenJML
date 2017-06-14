@@ -1130,6 +1130,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean model = isModel(mods);
             boolean synthetic = mods != null && (mods.flags & Flags.SYNTHETIC) != 0;
             boolean anon = javaMethodTree.sym.owner.isAnonymous();
+            boolean isConstructor = javaMethodTree.getReturnType() == null;
             if (classIsModel && model && !synthetic) {
                 log.useSource(javaMethodTree.sourcefile);
                 log.error(javaMethodTree.pos,"jml.no.nested.model.type");
@@ -1147,7 +1148,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (mods == null) mods = javaMethodTree.mods; // FIXME - this can happen for JML synthesized methods, such as are added for RAC - perhaps we should properly initialize the modifiers, but for now we just say they are OK
 
             // Check that any annotations are allowed and no conflicting pairs occur
-            if (javaMethodTree.getReturnType() != null) {
+            if (!isConstructor) {
                 if (javaMethodTree.sym.enclClass().isInterface()) {
                     if (model) {
                         allAllowed(mods.annotations,allowedInterfaceModelMethodAnnotations,"interface model method declaration");
@@ -1197,7 +1198,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             
             if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
-                    ((mods.flags & Flags.FINAL) == 0)  
+                    ((mods.flags & Flags.FINAL) == 0)  &&
+                    !isConstructor
                     ) {
                 log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
                 log.warning(a.pos,"jml.inline.should.be.final",javaMethodTree.name.toString());
