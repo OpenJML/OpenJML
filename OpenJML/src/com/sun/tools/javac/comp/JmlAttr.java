@@ -1068,7 +1068,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY, SKIP_ESC, SKIP_RAC // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC, SKIP_RAC, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1086,7 +1086,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, NONNULL, NULLABLE, OPTIONS, HELPER, EXTRACT, QUERY, SECRET, FUNCTION,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        PEER, REP, READONLY, SKIP_ESC // FIXME - allowing these until the rules are really implemented
+        PEER, REP, READONLY, SKIP_ESC, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1113,7 +1113,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         new JmlTokenKind[] {
         MODEL, PURE, HELPER, EXTRACT ,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
-        OPTIONS, PEER, REP, READONLY // FIXME - allowing these until the rules are really implemented
+        OPTIONS, PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
     };
     
@@ -1194,6 +1194,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (!model) {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
+            }
+            
+            if ( (a=utils.findMod(mods,tokenToAnnotationSymbol.get(INLINE))) != null  &&
+                    ((mods.flags & Flags.FINAL) == 0)  
+                    ) {
+                log.useSource(((JmlTree.JmlAnnotation)a).sourcefile);
+                log.warning(a.pos,"jml.inline.should.be.final",javaMethodTree.name.toString());
             }
         } finally {
             log.useSource(prev);

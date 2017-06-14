@@ -360,7 +360,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected Name resultName;
     
     /** The symbol for the variable that holds the result of a method */
-    protected Symbol resultSym = null;
+    protected VarSymbol resultSym = null;
     
     /** An expression to be used for \result when translating postconditions;
      * the expression should always be copied afresh for each instantiation */
@@ -573,6 +573,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     {
         oldHeapMethods.put(null, new HashMap<Symbol,MethodSymbol>());
     }
+    
+    public JCIdent inlinedReturn = null;
     
     public boolean useNamesForHeap = true; // if false, use arguments for heap
     
@@ -788,7 +790,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Symbol savedExceptionSym = this.exceptionSym;
         Symbol savedEnclosingMethod = this.enclosingMethod;
         Symbol savedEnclosingClass = this.enclosingClass;
-        Symbol savedResultSym = this.resultSym;
+        VarSymbol savedResultSym = this.resultSym;
         Symbol savedTerminationSym = this.terminationSym;
         IArithmeticMode savedArithmeticMode = this.currentArithmeticMode;
         ListBuffer<JCStatement> prevStats = initialStatements;
@@ -4946,6 +4948,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 retValue = treeutils.makeIdent(p,resultSym);
             }
             
+            if (inlinedReturn != null) return;
+            
             // Record the value of the termination location
             JCIdent id = treeutils.makeIdent(p,terminationSym);
             JCLiteral intlit = treeutils.makeIntLiteral(p,that.pos);
@@ -6019,7 +6023,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         
         LinkedList<ListBuffer<JCStatement>> check0 = markBlock();
         JCExpression savedCondition = condition; // This is the logical context in which this method is called - only used for JML expressions
-        /*@ nullable */ Symbol savedResultSym = resultSym; // This is the symbol of the JCIdent representing the result of the method call, null if the method is void
+        /*@ nullable */ VarSymbol savedResultSym = resultSym; // This is the symbol of the JCIdent representing the result of the method call, null if the method is void
         /*@ nullable */ JCExpression savedResultExpr = resultExpr;
         /*@ nullable */ Symbol savedExceptionSym = exceptionSym; // The symbol that holds the actifve exception (or null) // FIXME - doesnot get changed so why save it?
         /*@ nullable */ JCIdent savedThisId = currentThisId; // The JCIdent holding what 'this' means in the current context (already translated)
@@ -6044,7 +6048,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Set to true later if the callee is a this(...) call 
         boolean isThisCall = false;
         
-
         
         /*@ nullable */ 
         JCVariableDecl exceptionDeclCall = 
@@ -6186,6 +6189,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 error(that,"Unknown alternative in interpreting method call");
                 return;
             }
+            
+            
+            boolean inliningCall = attr.findMod(specs.getDenestedSpecs(calleeMethodSym).decl.mods,JmlTokenKind.INLINE) != null;
             
             // Collect all the methods overridden by the method being called
             java.util.List<Pair<MethodSymbol,Type>> overridden = parents(calleeMethodSym,receiverType);
@@ -6334,14 +6340,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
-                    resultSym = resultType.tsym;
+                    //resultSym = resultType.tsym;
                     resultId = currentFresh = newTempNull(that,resultType); // initialized to null
+                    resultSym = (VarSymbol) resultId.sym;
                 } else if (newclass == null) {
                     if (resultType instanceof Type.CapturedType) {
                         resultType = ((Type.CapturedType)resultType).getUpperBound();
                     }
-                    resultSym = resultType.tsym;
+                    //resultSym = resultType.tsym;
                     resultId = newTemp(that,resultType);
+                    resultSym = (VarSymbol) resultId.sym;
                 } else {
                     Type t = that.type;
                     if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
@@ -6571,7 +6579,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     break;
                 }
             }
-            if (!anyFound) {
+            if (!anyFound && !inliningCall) {
                 // No specs - set default
 
                 JmlSpecs.MethodSpecs s = specs.getSpecs(calleeMethodSym);
@@ -6853,6 +6861,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
                         }
                     }
+                    
+                    if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                        inlinedReturn = resultId;
+                        try {
+
+                            ListBuffer<JCStatement> checkInline = pushBlock();
+                            addStat(comment(that, "Inlining method " + calleeMethodSym.toString(),log.currentSourceFile()));
+// Don't need these assignments because the values of actuals are stored in actualParams
+// Besides, using the actual names might conflict with other declarations
+//                            // Make assignments for parameters
+//                            for (VarSymbol n: calleeMethodSym.params()) {
+//                                JCExpression e = paramActuals.get(n);
+//                                addStat(treeutils.makeVariableDecl(n, e));
+//                            }
+                            // Find definition of method to be inlined
+                            JmlSpecs.MethodSpecs m = JmlSpecs.instance(context).getSpecs(calleeMethodSym);
+                            JmlMethodDecl mdecl = m.cases.decl;
+                            JCBlock methodBody = mdecl.body;
+                            visitBlock(methodBody);
+
+                            JCBlock b = popBlock(0L,that,checkInline);
+                            addStat(b);
+                        } catch (Exception e) {
+                            error(that, "Unexpected exception while inlining body of method " + calleeMethodSym + ": " + e.toString());
+                        } finally {
+                            inlinedReturn = null;
+                        }
+                    }
+
                     paramActuals = null;
                 }
                 if (clauseToReference != null) {
@@ -6876,6 +6913,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             null));
                 }
             }
+            
 
             ListBuffer<JCStatement> ensuresStatsOuter = new ListBuffer<JCStatement>();
             ListBuffer<JCStatement> exsuresStatsOuter = new ListBuffer<JCStatement>();

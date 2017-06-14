@@ -68,8 +68,10 @@ public enum JmlTokenKind implements ITokenKind {
     SPEC_PUBLIC("spec_public",org.jmlspecs.annotation.SpecPublic.class),
     SPEC_PROTECTED("spec_protected",org.jmlspecs.annotation.SpecProtected.class),
     CODE_BIGINT_MATH("code_bigint_math",org.jmlspecs.annotation.CodeBigintMath.class), // Keep this one the last of the standard modifiers (see the modifiers Map below)
+        // Anything between CODE_BIGINT_MATH and LAST is automatically considered an OpenJML extension
     QUERY("query",org.jmlspecs.annotation.Query.class),  // FIXME - this is an extension - comment
     SECRET("secret",org.jmlspecs.annotation.Secret.class),  // FIXME - this is an extension - comment
+    INLINE("inline",org.jmlspecs.annotation.Inline.class), // FIXME - This is an extension
     LAST("_",null), // This is a fake entry that is the end of the standard+extension modifiers list
     
     // These are class/interface clause types
