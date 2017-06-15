@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.eclipse;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,6 +198,27 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	}
     }
     
+    public int where(TreeItem parent, String name) {
+    	// FIXME - could use a binary search. This is mosre robust if the list is not sorted for some reason
+    	int i = 0;
+    	for (TreeItem t: parent.getItems()) {
+    		if (t.getText().compareToIgnoreCase(name) >= 0) return i;
+    		i++;
+    	}
+    	return parent.getItemCount();
+    }
+    
+    public int where2(TreeItem parent, String name) {
+    	// FIXME - could use a binary search. This is mosre robust if the list is not sorted for some reason
+    	int i = 0;
+    	for (TreeItem t: parent.getItems()) {
+    		String s = ((Info)t.getData()).signature;
+    		if (s.compareToIgnoreCase(name) >= 0) return i;
+    		i++;
+    	}
+    	return parent.getItemCount();
+    }
+    
     public void refresh(String key) {
     	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
     	Map<String,IProverResult> results = iface.getProofResults();
@@ -208,7 +230,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	if (pname.isEmpty()) pname = "<default package>";
     	TreeItem ti = treeitems.get(pname);
     	if (ti == null) {
-    		ti = new TreeItem(treeroot, SWT.NONE);
+    		int index = where(treeroot,pname);
+    		ti = new TreeItem(treeroot, SWT.NONE, index);
     		ti.setText(pname);
     		treeitems.put(pname, ti);
     	}
@@ -218,7 +241,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	String cname = classSym.getSimpleName().toString();
     	TreeItem tii = treeitems.get(scname);
     	if (tii == null) {
-    		tii = new TreeItem(ti,SWT.NONE);
+    		int index = where(ti,scname);
+    		tii = new TreeItem(ti,SWT.NONE,index);
     		tii.setText(scname); // FIXME - what about nested classes
     		treeitems.put(scname, tii);
     		{
@@ -234,7 +258,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	String text = sym.toString();
     	TreeItem tiii = treeitems.get(key);
     	if (tiii == null) {
-    		tiii = new TreeItem(tii,SWT.NONE);
+    		int index = where2(tii,key);
+    		tiii = new TreeItem(tii,SWT.NONE,index);
     		treeitems.put(key, tiii);
     	}
 
