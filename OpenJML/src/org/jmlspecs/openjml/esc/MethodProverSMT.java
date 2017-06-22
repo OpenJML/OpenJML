@@ -32,6 +32,7 @@ import org.jmlspecs.openjml.esc.BasicProgram.BasicBlock;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.smtlib.IAttributeValue;
 import org.smtlib.ICommand;
 import org.smtlib.IExpr;
 import org.smtlib.IPrinter;
@@ -376,9 +377,10 @@ public class MethodProverSMT {
                                     commands.remove(commands.size()-1);
                                     commands.remove(commands.size()-1);
                                 }
+                                JCExpression lit = treeutils.makeIntLiteral(Position.NOPOS, k);
                                 JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                         treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.assumeCheckSym),
-                                        treeutils.makeIntLiteral(Position.NOPOS, k));
+                                        lit);
                                 commands.add(new C_assert(smttrans.convertExpr(bin)));
                                 commands.add(new C_check_sat());
                             } else {
@@ -469,7 +471,7 @@ public class MethodProverSMT {
                             // continue
                         } else if (unknownReason instanceof IResponse.IAttributeList) {
                             IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
-                            IExpr.IAttributeValue value = attrList.attributes().get(0).attrValue();
+                            IAttributeValue value = attrList.attributes().get(0).attrValue();
                             if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
                                 // continue on
                             } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
@@ -1257,7 +1259,8 @@ public class MethodProverSMT {
     
     public void setBenchmark(String solverName, String methodname, SMT.Configuration config) {
         String benchmarkDir = JmlOption.value(context,JmlOption.BENCHMARKS);
-        if (benchmarkDir == null) benchmarkDir = "benchmarks";
+//        if (benchmarkDir == null) benchmarkDir = "benchmarks";
+//      config.logfile = "solver.out";
         if (benchmarkDir == null) return;
         new java.io.File(benchmarkDir).mkdirs();
         String n;
@@ -1277,7 +1280,7 @@ public class MethodProverSMT {
             n = String.format("%s/bench-%05d.smt2",benchmarkDir,benchmarkCount);
         }
 //        try {
-            config.logfile = n;
+        config.logfile = n;
 //            Path p = FileSystems.getDefault().getPath(n);
 //            java.nio.file.Files.deleteIfExists(p);
 //            java.nio.file.Files.move(FileSystems.getDefault().getPath("solver.out.z3"),p);

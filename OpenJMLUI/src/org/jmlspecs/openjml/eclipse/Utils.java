@@ -2018,13 +2018,13 @@ public class Utils {
 		});
 	}
 	
-	public void refreshView(final String symname) {
+	public void refreshView(IJavaProject jproject, final String symname) {
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
 				try {
 					IViewPart view = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(OpenJMLView.ID);
-					((OpenJMLView)view).refresh(symname);
+					((OpenJMLView)view).refresh(jproject,symname);
 				} catch (PartInitException e) {
 					// FIXME - report error?
 				} catch (RuntimeException e) {

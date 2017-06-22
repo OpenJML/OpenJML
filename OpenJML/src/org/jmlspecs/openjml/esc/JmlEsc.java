@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.esc;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -31,6 +32,7 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.PropagatedException;
 
@@ -137,7 +139,24 @@ public class JmlEsc extends JmlTreeScanner {
             // TODO: not so - could check that specs are consistent
         // The super class takes care of visiting all the methods
         utils.progress(1,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
-        super.visitClassDef(node);
+        boolean doDefsInSortedOrder = true;
+        if (doDefsInSortedOrder && !Utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
+            scan(node.mods);
+            scan(node.typarams);
+            scan(node.extending);
+            scan(node.implementing);
+            JCTree[] arr = node.defs.toArray(new JCTree[node.defs.size()]);
+            Arrays.sort(arr, new java.util.Comparator<JCTree>() { public int compare(JCTree o, JCTree oo) { 
+                Name n = o instanceof JCClassDecl ? ((JCClassDecl)o).name : o instanceof JCMethodDecl ? ((JCMethodDecl)o).getName() : null;
+                Name nn = oo instanceof JCClassDecl ? ((JCClassDecl)oo).name : oo instanceof JCMethodDecl ? ((JCMethodDecl)oo).getName() : null;
+                return n == nn ? 0 : n == null ? -1 : nn == null ? 1 : n.toString().compareToIgnoreCase(nn.toString());
+            	} });
+            for (JCTree d: arr) {
+            	scan(d);
+            }
+        } else {
+            super.visitClassDef(node);
+        }
         utils.progress(1,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         Main.instance(context).popOptions();
     }

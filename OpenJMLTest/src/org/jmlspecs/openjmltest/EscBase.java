@@ -40,6 +40,7 @@ public abstract class EscBase extends JmlTestCase {
     
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
             "z3_4_3", 
+ //           "z3_4_5", 
  //           "z3_4_3_2", 
 //          "z3_4_4", 
 //            "cvc4",
@@ -173,7 +174,7 @@ public abstract class EscBase extends JmlTestCase {
         main.addOptions("-specspath",   testspecpath);
         main.addOptions("-command","esc");
         main.addOptions("-no-purityCheck");
-        main.addOptions("-timeout=300"); // seconds
+//        main.addOptions("-timeout=300"); // seconds
         main.addOptions("-jmltesting");
         main.addUncheckedOption("openjml.defaultProver=z3_4_4");
         addOptions(options);

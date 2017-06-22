@@ -1116,7 +1116,7 @@ public class OpenJMLInterface implements IAPI.IProofResultListener {
     	proofResults.put(key,result);
     	IMethod m = convertMethod(msym);
     	methodResults.put(m, key);
-    	utils.refreshView(key);
+    	utils.refreshView(jproject,key);
     }
     
     static MethodSymbol currentMethod;

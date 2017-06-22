@@ -266,7 +266,6 @@ import com.sun.tools.javac.util.Log.WriterKind;
 
 public class JmlAssertionAdder extends JmlTreeScanner {
 
-    
     // Parameters of this instance of JmlAssertionAdder 
     
     /** If true then every part of every AST is copied; if false then items
@@ -437,6 +436,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** A counter that ensures unique variable names (within a method body). */
     protected int count = 0;
+    
+    protected boolean useBV;
     
     /** A map from formal parameter to actual argument, used when translating
      * methods called within a method body; also used to map formals in inherited
@@ -609,7 +610,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         this.reader.init(syms);
         this.utilsClass = reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
         this.preLabel = treeutils.makeIdent(Position.NOPOS,Strings.empty,syms.intType); // Type does not matter
-        this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
+
         initialize();
     }
     
@@ -636,6 +637,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assumptionChecks.clear();
         assumptionCheckStats.clear();
         this.useMethodAxioms = !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
+        this.useBV = JmlOption.isOption(context,JmlOption.ESC_BV);
+        this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
     }
     
     public void initialize2(long flags) {
@@ -3690,40 +3693,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Invariants for fields
         savedThis = currentThisExpr;
         currentStatements = ensuresStats; // FIXME - also exsuresStatements?
-        if (!isHelper(methodDecl.sym)) for (JCTree dd: classDecl.defs) {  // FIXME - review isHelper here
-            if (!(dd instanceof JCVariableDecl)) continue;
-            JCVariableDecl d = (JCVariableDecl)dd;
-            if (d.sym.type.isPrimitive()) continue;
-            if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
-            if (specs.isNonNull((JmlVariableDecl)d)) {
-                JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-                addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+        for (int kk= 0; kk<1; kk++) {  // FIXME - extend to 2 for checking in exsures but need additional changes
+            currentStatements = kk == 0 ? ensuresStats : exsuresStats;
+            // FIXME - we repeat the computatinos in the normal and exceptinoal branches - can we avoid that
+            if (!isHelper(methodDecl.sym)) for (JCTree dd: classDecl.defs) {  // FIXME - review isHelper here
+                if (!(dd instanceof JCVariableDecl)) continue;
+                JCVariableDecl d = (JCVariableDecl)dd;
+                if (d.sym.type.isPrimitive()) continue;
+                if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
+                if (specs.isNonNull((JmlVariableDecl)d)) {
+                    JCExpression id = treeutils.makeIdent(d.pos, d.sym);
+                    addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+                }
+                if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
+
+                boolean pv = checkAccessEnabled;
+                checkAccessEnabled = false;
+                try {
+                    JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
+                    addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
+                    addRecInvariants(false,d,fa);
+                } finally {
+                    checkAccessEnabled = pv;
+                }
             }
-            if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
-            
-            boolean pv = checkAccessEnabled;
-            checkAccessEnabled = false;
-            try {
+            currentThisExpr = savedThis;
+            for (JmlTypeClauseDecl dd: specs.get(classDecl.sym).decls) {
+                JCTree tt = dd.decl;
+                if (!(tt instanceof JCVariableDecl)) continue;
+                JCVariableDecl d = (JCVariableDecl)tt;
+                if (d.sym.type.isPrimitive()) continue;
+                if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
+
                 JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
                 addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
                 addRecInvariants(false,d,fa);
-            } finally {
-                checkAccessEnabled = pv;
             }
+            currentThisExpr = savedThis;
         }
-        currentThisExpr = savedThis;
-        for (JmlTypeClauseDecl dd: specs.get(classDecl.sym).decls) {
-            JCTree tt = dd.decl;
-            if (!(tt instanceof JCVariableDecl)) continue;
-            JCVariableDecl d = (JCVariableDecl)tt;
-            if (d.sym.type.isPrimitive()) continue;
-            if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
-            
-            JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
-            addStat(comment(dd,"Adding exit invariants for " + d.sym,null));
-            addRecInvariants(false,d,fa);
-        }
-        currentThisExpr = savedThis;
 
         JCBlock ensuresAxiomBlock = M.Block(0L,List.<JCStatement>nil());
         ensuresStats.add(ensuresAxiomBlock);
@@ -8728,9 +8735,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 condition = prev;
             }
         } else if (arith) {
-            result = eresult = currentArithmeticMode.rewriteBinary(this, that);
+            if (useBV) {
+                JCExpression lhs = convertExpr(that.getLeftOperand());
+                JCExpression rhs = convertExpr(that.getRightOperand());
+                result = eresult = makeBin(that,that.getTag(),that.getOperator(),lhs,rhs,that.type);
+            } else {
+                result = eresult = currentArithmeticMode.rewriteBinary(this, that);
+            }
             if (splitExpressions) result = eresult = newTemp(eresult);
-
                 
         } else if (translatingJML) {
             Type maxJmlType = that.getLeftOperand().type;
@@ -8744,6 +8756,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression rhs = that.getRightOperand();
             // FIXME - check that all the checks in makeBinaryCHecks are here - or somehow reuse that method here
             // same for unary checks
+            // FIXME - I don't think DIV and MOD ever get here - they are in the if (arith) above
             if (tag == JCTree.Tag.DIV || tag == JCTree.Tag.MOD) {
                 lhs = addImplicitConversion(lhs,that.type,lhs);
                 rhs = convertExpr(rhs);

@@ -725,7 +725,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 if (file.isDirectory()) {
                     File[] fileArray = file.listFiles();
                     // Comparator is intentionally reversed, so we push items on the front of the queue in reverse order
-                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return -f.getPath().compareTo(ff.getPath()); }});
+                    Arrays.sort(fileArray, new java.util.Comparator<File>(){ public int compare(File f, File ff) { return (f.isFile() && ff.isDirectory()) ? 1 : (ff.isFile() && f.isDirectory()) ? -1 : -f.getPath().compareToIgnoreCase(ff.getPath()); }});
                     for (File ff: fileArray) {
                         todo.add(0,ff);
                     }

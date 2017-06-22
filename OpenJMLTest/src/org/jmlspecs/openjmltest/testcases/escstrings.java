@@ -589,6 +589,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength1() {
+    	main.addOptions("-show","-method=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

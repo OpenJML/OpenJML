@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.Main.Cmd;
 
@@ -143,42 +144,43 @@ abstract public class Commands extends AbstractHandler {
 	    		getInfo(event);
 	    		if (!utils.checkForDirtyEditors()) return null;
 	    		final OpenJMLView view = utils.findView();
-	    		TreeItem ti = view.selected;
-	    		OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
-	    		utils.findView().clearSelectedProofResults();
-	    		if (info == null) return null;
-	    		final String key = info.key;
-	    		final IJavaElement je = info.javaElement;
-	    		if (je == null) return null; // FIXME - this can happen if a default constuctor is selected - but we should still run on the file
-	    		final IJavaProject jp = je.getJavaProject();
-	    		final String filepath = je.getResource().getLocation().toOSString();
-	    		final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
+	    		if (view == null || view.selectedList.isEmpty()) return null;
+	    		
 				utils.showView(); // Must be called from a UI thread
-	    		Job j = new Job("Rerunning compilation unit " + je.getResource().getName()) {
-	    			public IStatus run(IProgressMonitor monitor) {
-	    				monitor.beginTask("Static checking of " + jp.getElementName(), 1);
-	    				boolean c = false;
-	    				try {
-	    					java.util.List<String> args = iface.getOptions(iface.jproject,Cmd.ESC);
-	    					args.add("-esc");
-	    					args.add(filepath);
-	    					iface.api.execute(null,args.toArray(new String[args.size()]));
-	    					utils.setTraceView(key,jp);
-	    				} catch (Exception e) {
-	    					// FIXME - this will block, preventing progress on the rest of the projects
-	    					Log.errorlog("Exception during Static Checking - " + je.getElementName(), e);
-	    					utils.showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
-	    					c = true;
-	    				}
-	    				return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
-	    			}
-	    		};
-//	            IResourceRuleFactory ruleFactory = 
-//	                    ResourcesPlugin.getWorkspace().getRuleFactory();
-	    		j.setRule(jp.getProject());
+				final OpenJMLInterface iface = utils.getInterface(utils.findView().currentProject);
+				IJavaProject jp = iface.jproject;
+				final java.util.List<IJavaElement> args = new java.util.LinkedList<>();
+
+				for (TreeItem ti : view.selectedList) {
+					OpenJMLView.Info info = (OpenJMLView.Info)ti.getData();
+					if (info == null) continue;
+					String key = info.key;
+					IJavaElement je = info.javaElement;
+					if (je == null) continue; // FIXME - this can happen if a default constructor is selected - but we should still run on the file
+					String filepath = je.getResource().getLocation().toOSString();
+					args.add(je);
+				}
+				String title = "Rerunning selected items from project " + jp.getResource().getName();
+				Job j = new Job(title) {
+					public IStatus run(IProgressMonitor monitor) {
+						monitor.beginTask(title, 1);
+						monitor.subTask("Detailed progress will be shown only if the verbosity preference is at least 'progress'");
+						boolean c = false;
+						try {
+							iface.executeESCCommand(Main.Cmd.ESC, args, monitor);
+							//iface.api.execute(null,args.toArray(new String[args.size()]));
+						} catch (Exception e) {
+							// FIXME - this will block, preventing progress on the rest of the projects
+							Log.errorlog("Exception during Static Checking - " + jp.getElementName(), e);
+							utils.showExceptionInUI(null, "Exception during Static Checking - " + jp.getElementName(), e);
+							c = true;
+						}
+						return c ? Status.CANCEL_STATUS : Status.OK_STATUS;
+					}
+				};
+	    		j.setRule(jp.getProject()); // FIXME - this locks teh whole project - is that what we want?
 	    		j.setUser(true); // true since the job has been initiated by an end-user
 	    		j.schedule();
-	    			// FIXME - update trace and highlighting also?
 	        } catch (Exception e) {
 	            utils.topLevelException(shell,this.getClass().getSimpleName(),e);
 			}

@@ -34,7 +34,7 @@ public class escArithmeticModes extends EscBase {
     }
  
     
-    @Test
+    @Test @Ignore // Hangs with z3 4.5
     public void testNeg() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

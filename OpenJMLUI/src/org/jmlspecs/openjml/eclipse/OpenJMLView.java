@@ -98,7 +98,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 ////    	viewer.setLabelProvider(new ViewLabelProvider());
 //    	viewer.setInput(getViewSite());
 
-        tree = new Tree(sc, SWT.NONE);
+        tree = new Tree(sc, SWT.MULTI);
         sc.setContent(tree);
 //    	tree = (Tree)viewer.getControl();
         treeroot = new TreeItem(tree, SWT.NONE);
@@ -110,9 +110,9 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
             @Override
             public void partActivated(IWorkbenchPart part) {
                 if(part instanceof IEditorInput){
-                    if(getCurrentFileData()) {
+//                    if(getCurrentFileData()) {
                         refresh();
-                    }
+//                    }
                 }
             }
 
@@ -179,7 +179,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     // FIXME: do TreeItem objects need to be disposed? YES
     public void refresh() {
     	
-    	getCurrentFileData();
+//    	getCurrentFileData();
     	if (currentProject == null) {
     		this.setPartName("OpenJML Checks");
     		treeroot.setText("<No project set>");
@@ -192,7 +192,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
             
             // FIXME - would like to sort these; remember the tree is built incrementally
             for (String key : results.keySet()) {
-            	refresh(key);
+            	refresh(currentProject,key);
             }
             treeroot.setExpanded(true);
     	}
@@ -219,8 +219,11 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	return parent.getItemCount();
     }
     
-    public void refresh(String key) {
-    	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
+    public void refresh(IJavaProject jproject, String key) {
+    	OpenJMLInterface iface = Activator.utils().getInterface(jproject);
+    	if (currentProject != jproject) {
+    		setProject(jproject);
+    	}
     	Map<String,IProverResult> results = iface.getProofResults();
     	IProverResult result = results.get(key);
     	Symbol sym = result.methodSymbol();
@@ -361,8 +364,8 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
 
     		// Get project name
 
-    		IProject p = input.getFile().getProject();
-    		currentProject = p.hasNature(JavaCore.NATURE_ID) ? JavaCore.create(p) : null;
+//    		IProject p = input.getFile().getProject();
+//    		currentProject = p.hasNature(JavaCore.NATURE_ID) ? JavaCore.create(p) : null;
 
     		return true;
     	} catch (Exception e) {
@@ -371,13 +374,22 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     }
 
     public void clearProofResults() {
-    	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-    	iface.clearProofResults(currentProject);
+    	if (currentProject != null) {
+    		OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
+        	if (iface != null) iface.clearProofResults(currentProject);
+    	}
+    	setProject(null);
+    }
+    
+    public void setProject(IJavaProject jproject) {
+    	if (currentProject == jproject && jproject != null) return;
+    	currentProject = jproject;
     	treeitems.clear();
     	treece.clear();
     	treeroot.removeAll();
     	refresh();
     	selected = null;
+    	selectedList.clear();
     }
     
     static public void exportProofResults(FileWriter output) {
@@ -414,14 +426,15 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     }
     
     public void clearSelectedProofResults() {
-    	if (selected == null) return;
-    	OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
-    	clearResults(iface,selected);
-    	treeroot.removeAll();
-    	treeitems.clear();
-    	treece.clear();
-    	refresh();
-    	selected = null;
+		OpenJMLInterface iface = Activator.utils().getInterface(currentProject);
+    	for (TreeItem ti: selectedList) {
+    		clearResults(iface,ti);
+    	}
+		treeroot.removeAll();
+		treeitems.clear();
+		treece.clear();
+		refresh();
+    	//selectedList.clear();
     }
     
     private void clearResults(OpenJMLInterface iface, TreeItem ti) {
@@ -471,11 +484,15 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
                   .removePartListener(aListener);
     }
     
-    TreeItem selected;
+    TreeItem selected; 
+    java.util.List<TreeItem> selectedList = new java.util.ArrayList<>(10);
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		TreeItem ti = selected = (TreeItem)e.item;
+		boolean multi = (e.stateMask & SWT.MOD1) != 0;
+		if (!multi) selectedList.clear();
+		selectedList.add(ti);
 		if (ti == null) return;
 		Info info = (Info)ti.getData();
 		TreeItem pi = ti;

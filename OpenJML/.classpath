@@ -8,7 +8,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
-	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="C:/cygwin/home/dcok/eprojects/SMTgit/jSMTLIB/SMT/src"/>
+	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="/Users/davidcok/cok/projects/jSMTLIB/SMT/src"/>
 	<classpathentry exported="true" kind="lib" path="/JMLAnnotations/bin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
