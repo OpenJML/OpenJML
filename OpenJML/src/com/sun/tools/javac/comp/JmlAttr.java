@@ -3043,17 +3043,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 jmlVisibility = tree.modifiers == null ? 0 : (tree.modifiers.flags & Flags.AccessFlags);
             }
             
-            if (tree.clauses == null) {
-                // model program
-                boolean oldPure = pureEnvironment;
-                pureEnvironment = false;
-                try {
-                    tree.block.accept(this);
-                } finally {
-                    pureEnvironment = oldPure;
-                }
-                
-            } else {
+            if (tree.clauses != null) {
                 toRemove = null;
                 for (JmlMethodClause c: tree.clauses) {
                     currentClauseType = c.token;
@@ -3066,6 +3056,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     toRemove = null;
                 }
             }
+            if (tree.block != null) {
+                // model program
+                boolean oldPure = pureEnvironment;
+                pureEnvironment = false;
+                try {
+                    tree.block.accept(this);
+                } finally {
+                    pureEnvironment = oldPure;
+                }
+                
+            } 
             
         } finally {
             env = prevEnv;

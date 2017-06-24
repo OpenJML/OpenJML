@@ -2615,6 +2615,7 @@ public class JmlTree implements IJmlTree {
             this.also = old.also;
             this.sourcefile = old.sourcefile;
             this.clauses = clauses;
+            this.block = old.block;
         }
         
         @Override

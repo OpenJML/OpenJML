@@ -6867,6 +6867,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             JCBlock bl = popBlock(0,cs,check2); // Ending the assignable tests block
                             if (!bl.stats.isEmpty()) addStat( M.at(cs).If(pre, bl, null) );
                         }
+                        
+                        if (cs.block != null)  { // Note: inlining for RAC, also -- FIXME - need to check this
+                            inlinedReturn = resultId;
+                            ListBuffer<JCStatement> checkInline = pushBlock();
+                            addStat(comment(cs.block, "Inlining model program ",log.currentSourceFile()));
+                            try {
+
+    // Don't need these assignments because the values of actuals are stored in actualParams
+    // Besides, using the actual names might conflict with other declarations
+//                                // Make assignments for parameters
+//                                for (VarSymbol n: calleeMethodSym.params()) {
+//                                    JCExpression e = paramActuals.get(n);
+//                                    addStat(treeutils.makeVariableDecl(n, e));
+//                                }
+                                visitBlock(cs.block);
+
+                            } catch (Exception e) {
+                                error(that, "Unexpected exception while inlining model program: " + e.toString());
+                            } finally {
+                                inlinedReturn = null;
+                            }
+                            JCBlock b = popBlock(0L,that,checkInline);
+                            addStat(b);
+                        }
                     }
                     
                     if (inliningCall)  { // Note: inlining for RAC, also -- FIXME - need to check this

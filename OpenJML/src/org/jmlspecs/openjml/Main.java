@@ -1085,7 +1085,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * means.
      */
     protected void coreDefaultOptions(Options opts) {
-        opts.put(JmlOption.LOGIC.optionName(), "AUFLIA");
+        opts.put(JmlOption.LOGIC.optionName(), "ALL");
         opts.put(JmlOption.PURITYCHECK.optionName(), null);
     }
     

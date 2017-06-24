@@ -27,9 +27,8 @@ public class escbitvector extends EscBase {
     }
     
     @Test 
-    //@ code_java_math spec_java_math
-    public void testBV1() {
-    	main.addOptions("-show","-method=m1","-escBV");
+    public void testBV2() {
+        main.addOptions("-escBV","-logic=ALL");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -38,11 +37,33 @@ public class escbitvector extends EscBase {
                 +"  //@ ensures \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure;\n"
+                +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
                                 
                 +"}"
+                );
+    }
+    
+    @Test 
+    public void testBV1() {
+        main.addOptions("-escBV","-logic=ALL");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ ensures n <= \\result;\n"
+                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures (\\result&15) == 0;\n"
+                +"  //@ pure;\n"
+                +"//@ code_java_math spec_java_math\n"
+                +"  public int m1(int n) {\n"
+                +"    return n + ((-n) & 0x0f);\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 );
     }
     

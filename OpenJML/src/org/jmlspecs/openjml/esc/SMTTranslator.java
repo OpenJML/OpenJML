@@ -771,7 +771,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // set the logic
         String s = JmlOption.value(context, JmlOption.LOGIC);
-        if (useBV) s = "QF_AUFBV";
+        if (useBV && !s.equals("ALL")) s = "QF_AUFBV";
         c = new C_set_logic(F.symbol(s));
         commands.add(c);
         
