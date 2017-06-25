@@ -1113,6 +1113,10 @@ public class JmlTreeUtils {
 
     }
     
+    public JCExpression makeTypeCast(DiagnosticPosition pos, Type type, JCExpression expr) {
+        return factory.at(pos).TypeCast(type, expr);
+    }
+    
     public JCTree.JCInstanceOf makeInstanceOf(int pos, JCExpression expr, JCExpression clazz) {
         if (clazz.toString().equals("\\bigint")) Utils.stop();
         JCTree.JCInstanceOf t = factory.at(pos).TypeTest(expr, clazz);

@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml.esc;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,12 +8,15 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTreeScanner;
 
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -48,7 +52,7 @@ class ClassCollector extends JmlTreeScanner {
     
     // FIXME - what about generic type variables
     protected void save(Type tt) {
-        if (tt != null && tt.getTag() != TypeTag.VOID && tt.getTag() != TypeTag.BOT && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol) {
+        if (tt != null && tt.getTag() != TypeTag.VOID && tt.getTag() != TypeTag.BOT && !tt.isPrimitive() && tt.tsym instanceof ClassSymbol && !(tt instanceof MethodType)) {
             ClassSymbol c = (ClassSymbol)tt.tsym;
             classes.add(c);
         }
@@ -61,15 +65,34 @@ class ClassCollector extends JmlTreeScanner {
     // Note - we do not include parent classes and interfaces
     @Override
     public void visitClassDef(JCClassDecl tree) {
-        classes.add(tree.sym);
+        save(tree.sym);
         super.visitClassDef(tree);
+//        scan(tree.mods);
+//        scan(tree.typarams);
+//        scan(tree.extending);
+//        scan(tree.implementing);
+//        if (doMethods) scan(tree.defs);
     }
+    
+    public void visitAnnotation(JCAnnotation tree) {
+        // Don't record the annotation or things it depends on, since we do not reason about them
+    }
+
     
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
         if (!doMethods) return;
         super.visitMethodDef(tree);
     }
+    
+    @Override
+    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    	if (!doMethods) return;
+    	JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+    	scan(ms.mods);
+        visitMethodDef(that);
+    }
+
     
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl tree) {

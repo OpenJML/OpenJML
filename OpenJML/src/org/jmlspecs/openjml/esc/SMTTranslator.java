@@ -290,8 +290,8 @@ public class SMTTranslator extends JmlTreeScanner {
         jmltypes = JmlTypes.instance(context);
         
         // Options
-        useBV = JmlOption.isOption(context,JmlOption.ESC_BV);
-        quantOK = !useBV;
+        useBV = "java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV);
+        //quantOK = !useBV;
         
         // SMT factory and commonly used objects
         F = new org.smtlib.impl.Factory();
@@ -436,7 +436,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                                     F.fcn(selectSym,F.symbol("arrays"),F.symbol("a")),
                                                     F.symbol("i"))))));
             commands.add(c);
-        } else if (!useBV) {
+        } else {
             // (declare_fcn nonnullelements ((a REF)(arrays (Array REF (Array Int REF)))) Bool)
             // (assert (forall ((a REF)(arrays (Array REF (Array Int REF)))) (= (nonnullelements a arrays)
             //                             (forall ((i Int)) (=> (and (<= 0 i) (< i (length a))) (distinct NULL (select (select arrays a) i)))))
@@ -444,7 +444,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     Arrays.asList(new ISort[]{refSort,
                             F.createSortExpression(arraySym,
                                     refSort,
-                                    F.createSortExpression(arraySym,intSort,refSort))}), 
+                                    F.createSortExpression(arraySym, useBV ? bv32Sort : intSort, refSort))}), 
                     boolSort);
             commands.add(c);
             c = new C_assert(
@@ -452,15 +452,15 @@ public class SMTTranslator extends JmlTreeScanner {
                                            F.declaration(F.symbol("arrays"),
                                                    F.createSortExpression(arraySym,
                                                            refSort,
-                                                           F.createSortExpression(arraySym,intSort,refSort)))
+                                                           F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,refSort)))
                                            ),
                             F.fcn(eqSym,
                                     F.fcn(F.symbol(nonnullelements), F.symbol("a"), F.symbol("arrays")),
-                                    F.forall(Arrays.asList(F.declaration(F.symbol("i"),intSort)),
+                                    F.forall(Arrays.asList(F.declaration(F.symbol("i"),useBV ? bv32Sort : intSort)),
                                             F.fcn(impliesSym,
                                                     F.fcn(F.symbol("and"),
-                                                            F.fcn(F.symbol("<="),F.numeral("0"),F.symbol("i")),
-                                                            F.fcn(F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
+                                                            F.fcn(useBV ? F.symbol("bvsle"): F.symbol("<="),useBV ? F.hex("00000000") : F.numeral("0"),F.symbol("i")),
+                                                            F.fcn(useBV ? F.symbol("bvslt"): F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
                                                             ),
                                                     F.fcn(distinctSym,
                                                             F.symbol(NULL),
@@ -789,23 +789,26 @@ public class SMTTranslator extends JmlTreeScanner {
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(refSort,refSort), refSort);
         commands.add(c);
-        if (!useBV) {
+        {
         	// define stringLength: (declare-fun stringLength (REF) Int)
-        	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), intSort); // FIXME - not sure this =is used
+        	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(refSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
         	commands.add(c);
         }
         // THIS != NULL: (assert (distinct THIS NULL))
         c = new C_assert(F.fcn(distinctSym, thisSym, nullSym)); // SMT defined name
         commands.add(c);
         // (assert __JMLlength () (Array REF Int))
-        if (!useBV) {
+        {
         	c = new C_declare_fun(lengthSym,
         			emptyList, 
-        			F.createSortExpression(arraySym,refSort,intSort)
+        			F.createSortExpression(arraySym,refSort,useBV ? bv32Sort : intSort)
         			);
         	commands.add(c);  // FIXME - is this a duplicate ?
             // array lengths are always non-negative
-        	if (quantOK) addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
+        	if (quantOK) {
+        	    if (useBV) addCommand(smt,"(assert (forall ((o "+REF+")) (bvsge (select "+arrayLength+" o) #x00000000)))");
+        	    else addCommand(smt,"(assert (forall ((o "+REF+")) (>= (select "+arrayLength+" o) 0)))");
+        	}
         }
 
             // result of string concatenation is always non-null
@@ -815,7 +818,7 @@ public class SMTTranslator extends JmlTreeScanner {
         // The strings here are arbitrary except that they must not conflict with 
         // identifiers from the Java program as mapped into SMT identifiers
         List<ISort> args = Arrays.asList(refSort); // List of one element 
-        if (!useBV) {
+        {
         	c = new C_declare_fun(F.symbol("asIntArray"),args, F.createSortExpression(arraySym,intSort,intSort));
         	commands.add(c);
             c = new C_declare_fun(F.symbol("asREFArray"),args, F.createSortExpression(arraySym,intSort,refSort));
@@ -869,7 +872,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     } else if (nm.startsWith(arrays_)) {
                         // FIXME - review modeling of arrays
                         sort = convertSort(((Type.ArrayType)id.type).getComponentType());
-                        sort = F.createSortExpression(arraySym,intSort,sort); // The type of the index is Int
+                        sort = F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,sort); // The type of the index is Int
                         sort = F.createSortExpression(arraySym,refSort,sort);
                     }
                     ISymbol sym = F.symbol(nm);
@@ -1728,6 +1731,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case SL:
             	if (useBV) {
+            	    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
+            	    args.set(1, nrhs);
             		result = F.fcn(F.symbol("bvshl"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
@@ -1735,14 +1740,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case SR:
             	if (useBV) {
-            		result = F.fcn(F.symbol("bvshr"), args);
+                    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
+                    args.set(1, nrhs);
+            		result = F.fcn(F.symbol("bvashr"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
             	}
                 break;
             case USR:
             	if (useBV) {
-            		result = F.fcn(F.symbol("bvlshl"), args);
+                    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
+                    args.set(1, nrhs);
+            		result = F.fcn(F.symbol("bvlshr"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
             	}
@@ -1831,8 +1840,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 Object v = ((JCLiteral)tree.expr).getValue();
                 if (tage == tagr) {
                     // OK -- no change in type
-                } else if (treeutils.isIntegral(tage) == treeutils.isIntegral(tagr)) {
-                    // Both are integral or both are floating point
+                } else if (treeutils.isIntegral(tage) && treeutils.isIntegral(tagr)) {
+                    // Both are integral
+                	if (useBV && tage != tagr) {
+                	    result = castBV(tagr, tage, result);
+                   	}
+                } else if (!treeutils.isIntegral(tage) && !treeutils.isIntegral(tagr)) {
+                    // Both are floating point
                     // OK -- no change in SMT type
                 } else if (treeutils.isIntegral(tage)) {
                     // integral to real literal
@@ -1857,6 +1871,22 @@ public class SMTTranslator extends JmlTreeScanner {
                     // Requires int and real logic
                     // real to int
                     result = F.fcn(F.symbol("to_int"), result);
+                } else if (argIsInt && resultIsInt) {
+                	if (useBV && tage != tagr) {
+                		int be = bits(tage);
+                	    int br = bits(tagr);
+                	    if (be > br) {
+                	    	List<INumeral> args = new LinkedList<>();
+                	    	args.add(F.numeral(br-1));
+                	    	args.add(F.numeral(0));
+                	    	result = F.fcn(F.id(F.symbol("extract"),args),result);
+                	    } else {
+                	    	List<INumeral> args = new LinkedList<>();
+                	    	args.add(F.numeral(br-be));
+                	    	result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
+                	    }
+                	}
+
                 } else {
                     // no change in result
                 }
@@ -1884,6 +1914,35 @@ public class SMTTranslator extends JmlTreeScanner {
                     
             }
         }
+    }
+    
+    public IExpr castBV(TypeTag resulttag, TypeTag exprtag, IExpr expr) {
+        int be = bits(exprtag);
+        int br = bits(resulttag);
+        if (be > br) {
+            List<INumeral> args = new LinkedList<>();
+            args.add(F.numeral(br-1));
+            args.add(F.numeral(0));
+            return F.fcn(F.id(F.symbol("extract"),args),result);
+        } else if (be < br) {
+            List<INumeral> args = new LinkedList<>();
+            args.add(F.numeral(br-be));
+            return F.fcn(F.id(F.symbol("sign_extend"),args),result);
+        } else {
+            return expr;
+        }
+    }
+    
+    public int bits(TypeTag tag) {
+    	switch (tag) {
+    	case BYTE: return 8;
+    	case INT: return 32;
+    	case SHORT: return 16;
+    	case LONG: return 64;
+    	case FLOAT: return 32;
+    	case DOUBLE: return 64;
+    	default: return 0;
+    	}
     }
 
     @Override

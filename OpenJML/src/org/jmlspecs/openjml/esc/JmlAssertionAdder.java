@@ -637,7 +637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assumptionChecks.clear();
         assumptionCheckStats.clear();
         this.useMethodAxioms = !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
-        this.useBV = JmlOption.isOption(context,JmlOption.ESC_BV);
+        this.useBV = "java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV);
         this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
     }
     
@@ -2949,23 +2949,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     treeutils.makeLit(p,syms.intType,Integer.MAX_VALUE));
             } else if (tag == TypeTag.LONG) {
                 lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.longleSymbol,
-                        treeutils.makeLit(p,syms.intType,Long.MIN_VALUE),convertCopy(id));
+                        treeutils.makeLit(p,syms.longType,Long.MIN_VALUE),convertCopy(id));
                 hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.longleSymbol,convertCopy(id),
-                        treeutils.makeLit(p,syms.intType,Long.MAX_VALUE));
+                        treeutils.makeLit(p,syms.longType,Long.MAX_VALUE));
             } else if (tag == TypeTag.SHORT) {
                 lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Short.MIN_VALUE),convertCopy(id));
-                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Short.MIN_VALUE),treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)),
                         treeutils.makeLit(p,syms.intType,(int)Short.MAX_VALUE));
             } else if (tag == TypeTag.BYTE) {
                 lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Byte.MIN_VALUE),convertCopy(id));
-                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Byte.MIN_VALUE),treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)),
                         treeutils.makeLit(p,syms.intType,(int)Byte.MAX_VALUE));
             } else if (tag == TypeTag.CHAR) {
                 lo = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,
-                        treeutils.makeLit(p,syms.intType,(int)Character.MIN_VALUE),convertCopy(id));
-                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,convertCopy(id),
+                        treeutils.makeLit(p,syms.intType,(int)Character.MIN_VALUE),treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)));
+                hi = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,treeutils.makeTypeCast(pos, syms.intType,convertCopy(id)),
                         treeutils.makeLit(p,syms.intType,(int)Character.MAX_VALUE));
             }
             if (lo != null) {
@@ -9119,7 +9119,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (clazz.type.isPrimitive()) {
             if (origType.isPrimitive()) {
                 // Java primitive to Java primitive - must be a numeric cast
-                if (changePrecision == 1) {
+                if (useBV) {
+                    // skip
+                } else if (changePrecision == 1) {
                     // change precision == 1 means that a higher precision value is being cast to a lower precision
                     // so we check the range of the argument
                     switch (origType.getTag()) {
