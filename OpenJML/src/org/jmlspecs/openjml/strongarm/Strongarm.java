@@ -97,7 +97,7 @@ public class Strongarm
         this.M = JmlTree.Maker.instance(context);
         MM = this.M;
         _DEV_MODE = JmlOption.isOption(context, JmlOption.INFER_DEV_MODE);
-        
+        AnalysisTypes.context = context;
         //
         // Cache copies of the various tree transformation utilities.
         //
@@ -525,33 +525,37 @@ public class Strongarm
  
         }
                  
-        if(reader.blocks.size() <= 10){
+        if(reader.blocks.size() <= 100){
             
-            t = Timing.start();
-            
-            //RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
-                       
-            if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
-            }            
-            
-           if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
+                t = Timing.start();
+                
+                RemoveDuplicatePreconditionsSMT.simplify(contract, methodDecl);
+                           
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(BlockReader._substitutionCache.toString());
+                }            
+                
+               if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE PRECONDITIONS (VIA SMT) " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                    log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+                }
             }
             
-            t = Timing.start();         
-            RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
-            
-            if (verbose) {
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            if(AnalysisTypes.enabled(context, AnalysisType.UNSAT)){
+                t = Timing.start();         
+                RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
+                
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                    log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+                }
             }
         }
         
@@ -633,72 +637,78 @@ public class Strongarm
         //
         // Perform logical simplification
         //
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        RemoveTautologies.simplify(contract);
-
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        if(AnalysisTypes.enabled(context, AnalysisType.TAUTOLOGIES)){
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+            RemoveTautologies.simplify(contract);
+    
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING TAUTOLOGIES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
         }
         
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        RemoveContradictions.simplify(contract);
-
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        if(AnalysisTypes.enabled(context, AnalysisType.UNSAT)){
+    
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+            RemoveContradictions.simplify(contract);
+    
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
         }
-
         //
         // These last two tend to tear up contracts a bit so we do an intermediate cleanup here
         // to simplify the next few 
         //
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        PruneUselessClauses.simplify(contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
+    
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+            PruneUselessClauses.simplify(contract);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+    
+            
+            
+           
+            //
+            // Remove dead assignments 
+            //
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+           RemoveDeadAssignments.simplify(reader.getBlockerMappings(), contract);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DEAD ASSIGNMENTS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
         }
-
-        
-        
-       
-        //
-        // Remove dead assignments 
-        //
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-       RemoveDeadAssignments.simplify(reader.getBlockerMappings(), contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DEAD ASSIGNMENTS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
-       
         dieIfNeeded();
         
         
@@ -852,22 +862,23 @@ public class Strongarm
         //
         // Remove duplicate assignments 
         //
-        dieIfNeeded();
+        if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+           RemoveDuplicateAssignments.simplify(contract);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE ASSIGNMENTS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+           
         
-        t = Timing.start();
-        
-       RemoveDuplicateAssignments.simplify(contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING DUPLICATE ASSIGNMENTS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
-       
-        
-        
         //
         // Fix up results... 
         //
@@ -887,23 +898,24 @@ public class Strongarm
             log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
         
+        if(AnalysisTypes.enabled(context, AnalysisType.UNSAT)){
+    
+            dieIfNeeded();
+            
+            
+            t = Timing.start();
+            
+            RemoveContradictions.simplify(contract);
+    
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
         
-        dieIfNeeded();
-        
-        
-        t = Timing.start();
-        
-        RemoveContradictions.simplify(contract);
-
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING CONTRADICTIONS II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
         }
-        
-        
         //
         // Clean up assignables
         //
@@ -929,134 +941,93 @@ public class Strongarm
         //
         // Clean up clauses lacking useful postconditions
         //
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        RemoveUselessPostconditions.simplify(contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
-        
-        
-       // we do this one last time to clean up
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-       PruneUselessClauses.simplify(contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
+        if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
 
-        //
-        // PURITY
-        //
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        Purifier.simplify(contract, methodDecl);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER ADDING PURITY " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-        }
-        
-        
-        // EDA Cleanup
-        //EDAConverter map = new EDAConverter();
-        
-        //String eda = reader.postcondition.toPyEDA(map);
-        
-//        if (verbose) {
-//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//            log.getWriter(WriterKind.NOTICE).println("EDA OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-//            log.getWriter(WriterKind.NOTICE).println(eda);
-//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-//
-//        }
-        
-        
-        //Set<JCTree> expressions = CollectExpressionsAnalysis.analyze(contract);
-
-        
-       //FactorExpressionsAnalysis.analyze(contract);
-
-//
-//        if (verbose) {
-//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-//            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//            log.getWriter(WriterKind.NOTICE).println("AFTER FACTOR EXPRESSIONS ANALYSIS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-//            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-//            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-//        }
-//        
-        
-        
-        //DiGraph<SpecBlockVertex> G = ToDiGraphAnalysis.analyze(contract);
-        dieIfNeeded();
-        
-        t = Timing.start();
-        
-        
-        DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
-        
-        
-        // swap it out
-        
-        newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
-        
-        if(newContract!=null){
-            cases = M.JmlSpecificationCase(null, false, null, null, newContract);
-    
-            methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
-            methodDecl.cases.decl = methodDecl;
-            methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+            dieIfNeeded();
             
-            methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
-            methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+            t = Timing.start();
             
-            // SWAP
-            contract = cases;
+            RemoveUselessPostconditions.simplify(contract);
             
             if (verbose) {
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                 log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
                 log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-                log.getWriter(WriterKind.NOTICE).println("AFTER REDUCTION ANALYSIS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING USELESS POSTCONDITIONS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
                 log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
             }
             
-            // do one final cleanup to remove false/true
-//            t = Timing.start();         
-//            RemoveImpossibleSpecificationCases.simplify(contract, methodDecl);
-//            
-//            if (verbose) {
-//                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-//                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-//                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING IMPOSSIBLE SPECIFICATION CASES (VIA SMT) " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-//                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
-//            }
             
+           // we do this one last time to clean up
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+           PruneUselessClauses.simplify(contract);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER PRUNING USELESS CLAUSES II OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+        }
+        //
+        // PURITY
+        //
+        if(AnalysisTypes.enabled(context, AnalysisType.PURITY)){
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+            Purifier.simplify(contract, methodDecl);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER ADDING PURITY " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
+        }
+
+        if(AnalysisTypes.enabled(context, AnalysisType.REDUNDANT)){
+
+            dieIfNeeded();
+            
+            t = Timing.start();
+            
+            
+            DiGraph<SpecBlockVertex> G = ToReductionGraph.analyze(contract);
+            
+            
+            // swap it out
+            
+            newContract = ToReductionGraph.toContract(methodDecl, contract, G, treeutils, M, JmlOption.isOption(context, JmlOption.INFER_MINIMIZE_EXPRS));
+            
+            if(newContract!=null){
+                cases = M.JmlSpecificationCase(null, false, null, null, newContract);
+        
+                methodDecl.cases = M.JmlMethodSpecs(JDKList.of(cases));
+                methodDecl.cases.decl = methodDecl;
+                methodDecl.methodSpecsCombined = new MethodSpecs(null, methodDecl.cases);
+                
+                methodDecl.cases.cases.head.modifiers = treeutils.factory.Modifiers(Flags.PUBLIC);
+                methodDecl.cases.cases.head.token = JmlTokenKind.NORMAL_BEHAVIOR;
+                
+                // SWAP
+                contract = cases;
+                
+                if (verbose) {
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                    log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                    log.getWriter(WriterKind.NOTICE).println("AFTER REDUCTION ANALYSIS " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                    log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+                    log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                }
+            }
         }        
     }
 }

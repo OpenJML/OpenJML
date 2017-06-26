@@ -1,6 +1,7 @@
 package org.jmlspecs.openjml.strongarm;
 
 import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 
 import com.sun.tools.javac.util.Context;
 
@@ -11,12 +12,15 @@ public class AnalysisTypes {
         UNSAT, 
         TAUTOLOGIES, 
         FRAMES, 
-        PURTY, 
+        PURITY, 
         VISIBILITY,
         ALL;
     }
+    public static Context context;
     
     public static boolean enabled(Context context, AnalysisType type){
+    
+        AnalysisTypes.context = context;
         
         if(JmlOption.isOption(context, JmlOption.INFER_ANALYSIS_TYPES)==false){
             return true;
@@ -42,5 +46,9 @@ public class AnalysisTypes {
         }
 
         return false;
+    }
+
+    public static boolean enabled(AnalysisType type) {
+        return AnalysisTypes.enabled(context, type);
     }
 }

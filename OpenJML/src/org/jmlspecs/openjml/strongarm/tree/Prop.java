@@ -21,6 +21,8 @@ import org.jmlspecs.openjml.JmlTree.JmlBBArrayAccess;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClause;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 import org.jmlspecs.openjml.JmlTreeCopier;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.BlockReader;
 import org.jmlspecs.openjml.strongarm.InferenceAbortedException;
 import org.jmlspecs.openjml.strongarm.Strongarm;
@@ -506,7 +508,7 @@ public class Prop<T extends JCExpression> implements Cloneable, IPropElement {
             );
 
             // did we modify something? if so, let's add that badboy right here.
-            if(label==null && p instanceof JCBinary){
+            if(label==null && p instanceof JCBinary && AnalysisTypes.enabled(AnalysisType.FRAMES)){
                 
                 JCBinary jmlBinary = (JCBinary)p;
                 
