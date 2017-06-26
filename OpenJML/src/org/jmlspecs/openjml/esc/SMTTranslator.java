@@ -1330,7 +1330,7 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (tag == TypeTag.SHORT) { 
                 return useBV ? bv16Sort : intSort;
             } else if (tag == TypeTag.CHAR) { 
-                return intSort;
+                return useBV ? bv16Sort : intSort;
             } else if (tag == TypeTag.BYTE) { 
                 return useBV ? bv8Sort : intSort;
             } else if (tag == TypeTag.LONG) { 
@@ -1622,6 +1622,19 @@ public class SMTTranslator extends JmlTreeScanner {
         if (op == JCTree.Tag.EQ && tree.lhs.toString().equals("(double)0")) Utils.stop();
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
+        if (useBV) {
+            if (op == JCTree.Tag.MUL) Utils.stop();
+            if (tree.type.getTag() == TypeTag.BOOLEAN) {
+                TypeTag tlhs = tree.lhs.type.getTag();
+                TypeTag trhs = tree.rhs.type.getTag();
+                TypeTag max = bits(tlhs) > bits(trhs) ? tlhs : trhs;
+                lhs = castBV(max,tree.lhs.type.getTag(),lhs);
+                rhs = castBV(max,tree.rhs.type.getTag(),rhs);
+            } else {
+                lhs = castBV(tree.type.getTag(),tree.lhs.type.getTag(),lhs);
+                rhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
+            }
+        }
         LinkedList<IExpr> args = new LinkedList<IExpr>();
         args.add(lhs);
         args.add(rhs);
@@ -1880,7 +1893,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 	    	args.add(F.numeral(br-1));
                 	    	args.add(F.numeral(0));
                 	    	result = F.fcn(F.id(F.symbol("extract"),args),result);
-                	    } else {
+                	    } else if (br > be) {
                 	    	List<INumeral> args = new LinkedList<>();
                 	    	args.add(F.numeral(br-be));
                 	    	result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
@@ -1920,14 +1933,15 @@ public class SMTTranslator extends JmlTreeScanner {
         int be = bits(exprtag);
         int br = bits(resulttag);
         if (be > br) {
+            if (br == 0) Utils.stop();
             List<INumeral> args = new LinkedList<>();
             args.add(F.numeral(br-1));
             args.add(F.numeral(0));
-            return F.fcn(F.id(F.symbol("extract"),args),result);
+            return F.fcn(F.id(F.symbol("extract"),args),expr);
         } else if (be < br) {
             List<INumeral> args = new LinkedList<>();
             args.add(F.numeral(br-be));
-            return F.fcn(F.id(F.symbol("sign_extend"),args),result);
+            return F.fcn(F.id(F.symbol("sign_extend"),args),expr);
         } else {
             return expr;
         }
@@ -1937,7 +1951,8 @@ public class SMTTranslator extends JmlTreeScanner {
     	switch (tag) {
     	case BYTE: return 8;
     	case INT: return 32;
-    	case SHORT: return 16;
+        case SHORT: return 16;
+        case CHAR: return 16;
     	case LONG: return 64;
     	case FLOAT: return 32;
     	case DOUBLE: return 64;
@@ -2038,11 +2053,12 @@ public class SMTTranslator extends JmlTreeScanner {
         Object v = tree.getValue();
         if (tree.typetag == TypeTag.BOOLEAN) {
            result = F.symbol(((Boolean)v) ?"true":"false"); 
-        } else if (tree.typetag == TypeTag.INT || tree.typetag == TypeTag.LONG || tree.typetag == TypeTag.SHORT || tree.typetag == TypeTag.BYTE) {
+        } else if (tree.typetag == TypeTag.INT || tree.typetag == TypeTag.LONG || tree.typetag == TypeTag.SHORT || tree.typetag == TypeTag.CHAR || tree.typetag == TypeTag.BYTE) {
         	long k = Long.parseLong(v.toString());
             if (useBV) {
             	int bits = tree.typetag == TypeTag.INT ? 32 :
-     	                   tree.typetag == TypeTag.SHORT? 16 :
+                           tree.typetag == TypeTag.SHORT? 16 :
+                           tree.typetag == TypeTag.CHAR? 16 :
         	               tree.typetag == TypeTag.BYTE? 8 :
             	           tree.typetag == TypeTag.LONG? 64 :
             	        	0;
