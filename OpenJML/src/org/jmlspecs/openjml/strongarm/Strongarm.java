@@ -21,6 +21,7 @@ import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
+import org.jmlspecs.openjml.strongarm.AnalysisTypes.AnalysisType;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebugger;
 import org.jmlspecs.openjml.strongarm.gui.BasicBlockExecutionDebuggerConfigurationUtil;
 import org.jmlspecs.openjml.strongarm.transforms.CleanupPrestateAssignable;
@@ -123,7 +124,7 @@ public class Strongarm
 
             
             maxDepth = Integer.parseInt(JmlOption.value(context,  JmlOption.INFER_MAX_DEPTH));
-            
+                        
         }
     }
     
@@ -757,19 +758,22 @@ public class Strongarm
         //
         // Remove local variables
         //
-        dieIfNeeded();
-        
-        t = Timing.start();
-                
-       RemoveLocals.simplify(methodDecl, contract);
-        
-        if (verbose) {
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
-            log.getWriter(WriterKind.NOTICE).println(Strings.empty);
-            log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
-            log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+        if(AnalysisTypes.enabled(context, AnalysisType.VISIBILITY)){
+            dieIfNeeded();
+            
+            t = Timing.start();
+                    
+           RemoveLocals.simplify(methodDecl, contract);
+            
+            if (verbose) {
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("--------------------------------------"); 
+                log.getWriter(WriterKind.NOTICE).println(Strings.empty);
+                log.getWriter(WriterKind.NOTICE).println("AFTER REMOVING LOCALS OF " + utils.qualifiedMethodSigWithContractLOC(methodDecl) + t.tell()); 
+                log.getWriter(WriterKind.NOTICE).println(JmlPretty.write(contract));
+            }
         }
+        
         
         dieIfNeeded();
         

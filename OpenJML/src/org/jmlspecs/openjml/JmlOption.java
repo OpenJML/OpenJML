@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Log.WriterKind;
+import com.sun.tools.javac.util.Options;
 
 /**
  * This is an Enum that contains information about command-line options for JML
@@ -71,6 +71,11 @@ public enum JmlOption implements IOption {
     INFER_TIMEOUT("-infer-timeout", true, 300, "Give up inference after this many seconds. A value of -1 will wait indefinitely", null),
     INFER_DEV_MODE("-infer-dev-mode", false, null, "Special features for developers.", null),    
     DISABLE_VISIBILITY_CHECKING("-all-public", false, null, "Do not check visibility of fields used in specifications", null),
+    
+    //
+    // Options for turning on and off various inference techniques 
+    //
+    INFER_ANALYSIS_TYPES("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURTY, and VISIBILITY", null),
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),
