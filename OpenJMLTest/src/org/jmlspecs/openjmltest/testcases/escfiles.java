@@ -173,7 +173,7 @@ public class escfiles extends EscBase {
     public void testDemoTime() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime","-logic=AUFNIA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/escDemoTime");
     }
 
 
@@ -192,21 +192,21 @@ public class escfiles extends EscBase {
     @Test @Ignore // FIXME - hangs up sometimes with some solvers; takes a while with others - comment out while we are doing repeated testing
     public void testLoopExercises() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","-logic=AUFNIA");
+        helpTCF("test/loopExercises","test/loopExercises");
     }
 
     @Test @Ignore  // FIXME - CVC4 crashes
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-logic=AUFNIA","-timeout=15");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","-timeout=15");
     }
 
     @Test @Ignore // FIXME - CVC4 crashes
     public void testPurseCardMod() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purseMod","test/purseMod","-classpath",OpenJMLDemoPath + "/src/openjml/purseMod","-logic=AUFNIA","-timeout=15");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/purseMod","test/purseMod","-classpath",OpenJMLDemoPath + "/src/openjml/purseMod","-timeout=15");
     }
 
     @Test
@@ -226,7 +226,7 @@ public class escfiles extends EscBase {
     @Test @Ignore // FIXME - stuck or just long?
     public void testECU() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo","-logic=AUFNIA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecuesc","-classpath",OpenJMLDemoPath + "/src/openjml/ecudemo");
     }
 
     @Test
@@ -250,7 +250,7 @@ public class escfiles extends EscBase {
     public void testCashAmount() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1","-logic=AUFNIA");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmount.java","test/escCashAmount","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-escMaxWarnings=1");
     }
 
     @Test
@@ -275,7 +275,7 @@ public class escfiles extends EscBase {
     public void testSettableClock() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpDemo("settableClock","escSettableClock","-logic=AUFNIA");
+        helpDemo("settableClock","escSettableClock");
     }
 
     @Test
@@ -287,7 +287,7 @@ public class escfiles extends EscBase {
     @Test @Ignore // FIXME - make this work by carrying information about variables into the first cycle of a loop
     public void testDMZLoop() {
         expectedExit = 0;
-        helpTF("escDMZLoop","-method=findMax","-show");
+        helpTF("escDMZLoop","-method=findMax");
     }
 
     @Test
@@ -337,7 +337,7 @@ public class escfiles extends EscBase {
     public void testCashAmountPrivate2() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-logic=AUFNIA");
+        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase");
     }
 
     @Test
@@ -376,13 +376,13 @@ public class escfiles extends EscBase {
 
     @Test @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges() {
-        helpTF("escDiverges","-nonnullByDefault","-logic=AUFNIRA");
+        helpTF("escDiverges","-nonnullByDefault");  // Needs at least AUFNIRA
     }
 
 
     @Test @Ignore // FIXME - long running, probably because of the logic
     public void testEscDiverges2() {
-        helpTF("escDiverges2","-nonnullByDefault","-logic=AUFNIRA");
+        helpTF("escDiverges2","-nonnullByDefault");  // Needs at least AUFNIRA
     }
     
     @Test

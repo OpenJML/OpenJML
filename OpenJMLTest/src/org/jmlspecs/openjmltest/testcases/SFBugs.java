@@ -319,7 +319,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug503() {
-        helpTCG("-logic=AUFNIA");
+        helpTCG();
     }
 
     // Check everything in apache commons library!

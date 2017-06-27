@@ -818,7 +818,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlAttr attr = JmlAttr.instance(context);
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
         Symbol modelSym = attr.tokenToAnnotationSymbol.get(JmlTokenKind.MODEL);
-        for (JCTree decl: specstree.defs) {
+        if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
             if (!(decl instanceof JmlVariableDecl)) continue;
             JmlVariableDecl vdecl = (JmlVariableDecl)decl;
             JCAnnotation annotation = utils.findMod(vdecl.mods, modelSym);

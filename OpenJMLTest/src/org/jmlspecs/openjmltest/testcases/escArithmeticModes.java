@@ -180,7 +180,7 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testDivSafe() {
-        main.addOptions("-logic=AUFNIA");
+        //main.addOptions("-logic=AUFNIA");
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"@CodeSafeMath public class TestJava { \n"
                 +"  public int m(int i, int j) {\n"

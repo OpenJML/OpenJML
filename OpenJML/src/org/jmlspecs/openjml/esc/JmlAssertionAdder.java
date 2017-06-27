@@ -637,7 +637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assumptionChecks.clear();
         assumptionCheckStats.clear();
         this.useMethodAxioms = !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
-        this.useBV = "java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV);
+        this.useBV = !rac && ("java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV));
         this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
     }
     
@@ -6021,7 +6021,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     /** Helper method to do the work of visitApply and visitNewObject */
     protected void applyHelper(JCExpression that) {
-        if (that.toString().contains("valueOf")) Utils.stop();
         
         // We need to save the context of many variables because in the case of
         // new object creation there may be nested methods that are converted

@@ -257,7 +257,7 @@ public class racfiles extends RacBase {
     	helpTCF("test/hans/OpenJMLTest/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
     			"test/hans",
     			null,
-    			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/bin",
+    			"-cp","test/hans/OpenJMLTest/src"+z+"test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
     			"-rac",
     			"-specspath","test/hans/OpenJMLTest/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"
@@ -266,13 +266,13 @@ public class racfiles extends RacBase {
 
     @Test
     public void racHans2() {
-        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/hans/OpenJMLTest/bin;test/hans/icecapSDK/bin",null};
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testdata"+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
 
     	runrac = true;
     	helpTCF("test/racHans2/account",
     			"test/racHans2",
     			"account.AllTests",
-    			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/bin"+z+"test/racHans2",
+    			"-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
     			//"-rac",
     			"-specspath","test/racHans2/specs",
     			"-racCheckAssumptions","-racJavaChecks","-showNotImplemented","-noInternalSpecs","-nullableByDefault"

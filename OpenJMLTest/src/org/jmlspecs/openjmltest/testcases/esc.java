@@ -79,7 +79,7 @@ public class esc extends EscBase {
 
 	@Test
 	public void testCollectB() {
-		main.addOptions("-nonnullByDefault", "-timeout=300", "-show","-method=m","-checkFeasibility=debug");
+		main.addOptions("-nonnullByDefault", "-timeout=300"); //, "-show","-method=m","-checkFeasibility=debug");
 		helpTCX("tt.TestJava",
 				"package tt; \n"
 						+ "public class TestJava extends java.io.InputStream implements Comparable<TestJava> { \n"
@@ -297,7 +297,7 @@ public class esc extends EscBase {
 	@Test
 	public void testForEach2a() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1","-show");
+		main.addOptions("-method=m4","-checkFeasibility=all","escMaxWarnings=1");
 		helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
 				+ "public class TestJava { \n"
 				+ "  //@ public normal_behavior  ensures true;\n" 
@@ -461,34 +461,53 @@ public class esc extends EscBase {
 				);
 	}
 
-	@Test
-	public void testNonNullElements2() {
-//		Assume.assumeTrue(runLongTests);
-		helpTCX("tt.TestJava", "package tt; \n" 
-				+ "public class TestJava { \n"
+    @Test
+    public void testNonNullElements2a() {
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m1a(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length > 1;\n" 
-				+ "    //@ assert a[0] != null;\n" // BAD
-				+ "  }\n"
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m1a(Object[] a) {\n"
+                + "    //@ assume a != null && a.length > 1;\n" 
+                + "    //@ assert a[0] != null;\n" // BAD
+                + "  }\n"
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m2(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 0;\n" 
-				+ "    //@ assert \\nonnullelements(a);\n" // OK
-				+ "  }\n"
+                + "}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1a", 9
+                );
+    }
 
-				+ "  //@ modifies \\everything;\n" 
-				+ "  public void m22(Object[] a) {\n"
-				+ "    //@ assume a != null && a.length == 0;\n"
-				+ "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
-				+ "  }\n"
+    @Test
+    public void testNonNullElements2b() {
+//      Assume.assumeTrue(runLongTests);
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
 
-				+ "}"
-				,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1a", 9
-				);
-	}
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m2(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 0;\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "}"
+                );
+    }
+
+    @Test
+    public void testNonNullElements2c() {
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m22(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 0;\n"
+                + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
+                + "  }\n"
+
+                + "}"
+                );
+    }
 
 	@Test
 	public void testNonNullElements3() {
@@ -2871,7 +2890,7 @@ public class esc extends EscBase {
 	 */
 	@Test
 	public void testUndefinedInJava2() {
-		main.addOptions("-logic=AUFNIA");
+		//main.addOptions("-logic=AUFNIA");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "/*@ nullable_by_default */ /*@ code_java_math*/ public class TestJava { \n"
 						+ "  int j;\n" + "  public static void m(TestJava o) { \n" + "    int i = o.j; \n" + "  }\n  "
@@ -2936,7 +2955,7 @@ public class esc extends EscBase {
 		// assignment
 	@Test
 	public void testUndefinedInSpec2() {
-		main.addOptions("-logic=AUFNIA");
+		//main.addOptions("-logic=AUFNIA");
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "/*@ nullable_by_default */ public class TestJava { \n" + "  int j;\n"
 						+ "  public static void m(TestJava o) { \n" + "    //@ assume o.j == 1; \n" + "  }\n  "
@@ -3432,33 +3451,61 @@ public class esc extends EscBase {
 						+ "  //@ model public boolean m(int i);\n"
 
 						+ "  //@ pure\n" + "  public void mm() {\n"
-						+ "  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n" + "  }\n" + "}",
-				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7);
+						+ "  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n" + "  }\n" + "}"
+			//	,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mm", 7
+						);
 	}
 
 	@Test 
 	public void testNullityAndConstructors() {
 		main.addOptions("-nonnullByDefault");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
-						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "
+				"package tt; \n" 
+		                + "public class TestJava  { \n" 
+				        + "  private /*@ spec_public */ char[] o; \n"
+				        + "  \n" 
+						+ "  //@ assignable \\everything;\n "
 						+ "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
-						+ "      o = new char[the_array.length]; \n" + "  }\n" + "}"
-				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (NullField) in method TestJava", 36
+						+ "      o = new char[the_array.length]; \n" 
+						+ "  }\n" 
+						+ "}"
 				);
 	}
 
 	@Test
 	public void testNullityAndConstructors2() {
-		main.addOptions("-nonnullByDefault","-show","-method=TestJava");
+		main.addOptions("-nonnullByDefault");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "public class TestJava  { \n" + "  private /*@ spec_public */ char[] o; \n"
-						+ "  private /*@ spec_public */ int[] oo; \n" + "  \n" + "  //@ assignable \\everything;\n "
+				"package tt; \n" 
+				        + "public class TestJava  { \n" 
+				        + "  private /*@ spec_public */ char[] o; \n"
+				        + "  \n" 
+						+ "  //@ assignable \\everything;\n "
 						+ "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
 						+ "      o = new char[the_array.length]; \n"
-						+ "      System.arraycopy(the_array, 0, o, 0, the_array.length); \n" + "  }\n" + "}"
-				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (NullField) in method TestJava",36
+						+ "      System.arraycopy(the_array, 0, o, 0, the_array.length); \n" 
+						+ "  }\n" 
+						+ "}"
 				);
 	}
+
+	   @Test 
+	    public void testNullityAndConstructors3() {
+	        main.addOptions("-nonnullByDefault");
+	        helpTCX("tt.TestJava",
+	                "package tt; \n" 
+	                        + "public class TestJava  { \n" 
+	                        + "  private /*@ spec_public */ char[] o; \n"
+	                        + "  private /*@ spec_public */ int[] oo; \n" 
+	                        + "  \n" 
+	                        + "  //@ assignable \\everything;\n "
+	                        + "  public TestJava(final /*@ non_null */ char[] the_array) {\n"
+	                        + "      o = the_array; \n" 
+	                        + "  }\n" 
+	                        + "}"
+	                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (NullField) in method TestJava", 36
+	                );
+	    }
+
 
 }

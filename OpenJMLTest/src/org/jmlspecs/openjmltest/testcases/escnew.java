@@ -992,9 +992,67 @@ public class escnew extends EscBase {
     }
 
     @Test
+    public void testConditional2() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-code-math=safe");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  public int m1bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                );
+    }
+
+    @Test
     public void testConditional() {
         main.addOptions("-escMaxWarnings=1");
         main.addOptions("-code-math=java");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result == i;\n"
+                +"  public int m1bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires i < 100000;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m1ok(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"
+                +"  }\n"
+                
+                +"  //@ requires true;\n"
+                +"  //@ ensures \\result >= i;\n"
+                +"  public int m2bad(boolean b, int i) {\n"
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"  // Error: silent overflow
+                +"  }\n"
+                
+                +"}"
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                ,"/tt/TestJava.java:14: warning: Associated declaration",7
+                );
+    }
+
+    @Test
+    public void testConditional3() {
+        main.addOptions("-escMaxWarnings=1");
+        main.addOptions("-code-math=math");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
