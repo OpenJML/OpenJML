@@ -161,6 +161,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     
     public final static Color white = new Color(null,255,255,255);
     public final static Color red = new Color(null,255,0,0);
+    public final static Color pink = new Color(null,255,128,128);
     public final static Color green = new Color(null,0,255,0);
     public final static Color orange = new Color(null,255,128,0);
     public final static Color yellow = new Color(null,255,255,0);
@@ -314,10 +315,10 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     		color = green;
     	} else if (k == IProverResult.ERROR) {
     		color = red;
-    	} else if (k == IProverResult.TIMEOUT) {
-    		tiii.setBackground(yellow);
+        } else if (k == IProverResult.TIMEOUT) {
+            color = pink;
     	} else if (k == IProverResult.UNKNOWN) {
-    		color = red;
+    		color = pink;
     	} else if (k == IProverResult.INFEASIBLE) {
     		color = yellow;
     	} else if (k == IProverResult.SKIPPED) {
@@ -325,7 +326,7 @@ public class OpenJMLView extends ViewPart implements SelectionListener, MouseLis
     	} else if (k == IProverResult.RUNNING) {
     		color = white;
     	} else if (k == IProverResult.CANCELLED) {
-    		color = red;
+    		color = blue;
     	} else if (k == IProverResult.COMPLETED) {
     		return; // No change
     	} else if (k == null) {
