@@ -592,12 +592,29 @@ public class JmlTreeUtils {
         return e;
     }
 
-    /** Returns the 'larger' of the two types as numeric types are compared;
-     * not appropriate for Boolean types; floats test larger than long */
+    /** Returns the larger type of two numeric types;
+     * not appropriate for Boolean types */
     public Type maxType(Type lhs, Type rhs) {
-        Type t = lhs.getTag().ordinal() >= rhs.getTag().ordinal() || rhs.getTag() == TypeTag.BOT ? lhs : rhs;
-        if (TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
-        return t;
+        // Note: getTag().ordinal() is not relaible
+        TypeTag ltag = lhs.getTag();
+        TypeTag rtag = rhs.getTag();
+        if (ltag == TypeTag.DOUBLE) return lhs;
+        if (rtag == TypeTag.DOUBLE) return rhs;
+        if (ltag == TypeTag.FLOAT && rtag == TypeTag.LONG) return syms.doubleType;
+        if (ltag == TypeTag.LONG && rtag == TypeTag.FLOAT) return syms.doubleType;
+        if (ltag == TypeTag.FLOAT) return lhs;
+        if (rtag == TypeTag.FLOAT) return rhs;
+        if (ltag == TypeTag.LONG) return lhs;
+        if (rtag == TypeTag.LONG) return rhs;
+        if (ltag == TypeTag.INT) return lhs;
+        if (rtag == TypeTag.INT) return rhs;
+        if (ltag == TypeTag.SHORT) return lhs;
+        if (rtag == TypeTag.SHORT) return rhs;
+        if (ltag == TypeTag.CHAR) return lhs;
+        if (rtag == TypeTag.CHAR) return rhs;
+        if (ltag == TypeTag.BYTE) return lhs;
+        if (rtag == TypeTag.BYTE) return rhs;
+        return lhs; // Only if non-numeric types, such as boolean
     }
     
     public boolean isIntegral(TypeTag tag) {
@@ -1184,6 +1201,7 @@ public class JmlTreeUtils {
             JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSTYPELC,makeType(p,compType));
             JCExpression e = makeTypeof(id);
             e = factory.at(p).JmlMethodInvocation(JmlTokenKind.BSELEMTYPE,e);
+            e.type = ct.type = types.TYPE;
             e = makeEqObject(p, e, ct);
             expr = makeAnd(p,expr,e);
         }

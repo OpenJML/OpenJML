@@ -2490,6 +2490,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
     
     protected void addInvariants(boolean assume, JCVariableDecl d, ClassSymbol csym, JCExpression currentThis) {
+        if (csym.toString().contains("UnixTime")) Utils.stop();
         JCExpression saved = currentThisExpr;
         currentThisExpr = currentThis;
         pushBlock();
@@ -3290,6 +3291,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             checkAccessEnabled = false;
             try {
                 JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
+//                if (d.sym.toString().equals("dateFormat")) Utils.stop();
                 addStat(comment(dd,"Adding invariants for " + d.sym,null));
                 addRecInvariants(true,d,fa);
             } finally {
@@ -3305,6 +3307,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
             
             JCExpression fa = convertJML(treeutils.makeIdent(d.pos, d.sym));
+//            if (d.sym.toString().equals("dateFormat")) Utils.stop();
             addStat(comment(dd,"Adding invariants for " + d.sym,null));
             addRecInvariants(true,d,fa);
         }
@@ -5921,7 +5924,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if ((a instanceof JCIdent) && ((JCIdent)a).name.toString().startsWith(Strings.tmpVarString)) {
             } else if ((a instanceof JCIdent) && localVariables.containsKey(((JCIdent)a).sym)) {
             } else if (!localVariables.isEmpty()) {
-            } else {
+            } else if (splitExpressions) {  // FIXME - at least we need to prevent temporaries when formulating Method axioms
                 // This check is a hack and a bit expensive. It makes sure that
                 // every argument is represented by a temporary variable. 
                 // Without this an argument that is just an Ident or a Literal
@@ -8772,8 +8775,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean lhsIsPrim = that.getLeftOperand().type.isPrimitive() && that.getLeftOperand().type.getTag() != TypeTag.BOT;
             boolean rhsIsPrim = that.getRightOperand().type.isPrimitive() && that.getRightOperand().type.getTag() != TypeTag.BOT;
             if (jmltypes.isJmlType(that.getRightOperand().type)) maxJmlType = that.getRightOperand().type;
-            if (lhsIsPrim && rhsIsPrim
-                    && that.getLeftOperand().type.getTag().ordinal() < that.getRightOperand().type.getTag().ordinal()) maxJmlType = that.getRightOperand().type;
+            // The following is only valid for numeric types
+            if (lhsIsPrim && rhsIsPrim) maxJmlType = treeutils.maxType(that.getLeftOperand().type, that.getRightOperand().type);
 
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = that.getRightOperand();
@@ -8853,20 +8856,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         Type tlhs = unboxedType(that.getLeftOperand().type);
                         Type trhs = unboxedType(that.getRightOperand().type);
-                        t = tlhs;
-                        if (tlhs.getTag() == TypeTag.BOT || (tlhs.getTag().ordinal() < trhs.getTag().ordinal() && trhs.getTag() != TypeTag.BOT)) t = trhs;
+                        t = tlhs; 
+                        if (tlhs.getTag() == TypeTag.BOT) t = trhs;
+                        else t = treeutils.maxType(tlhs, trhs);
                     }
                 }
                 // FIXME - this is incorrect, but handles Jml primitive types at least
 //                if (jmltypes.isJmlType(t)){ 
                 if (equality && t == null) {} // OK
-                else if (comp) lhs = addImplicitConversion(lhs,t,lhs); // FIXME - what final type
+                else if (comp) {
+                    if (that.toString().contains("max") && that.toString().contains("VALID") && that.toString().contains("0")) Utils.stop();
+                    lhs = addImplicitConversion(lhs,t,lhs); // FIXME - what final type
+                }
                 else if (shift) lhs = addImplicitConversion(lhs,unboxedType(that.type),lhs); // FIXME - what final type
                 else lhs = addImplicitConversion(lhs,that.type,lhs);
                 
                 rhs = convertExpr(rhs);
                 if (equality && t == null) {} // OK 
-                else if (comp) rhs = addImplicitConversion(rhs,t,rhs); // FIXME - what final type
+                else if (comp) {
+                    rhs = addImplicitConversion(rhs,t,rhs); // FIXME - what final type
+                }
                 else if (shift) {
                     Type tt = unboxedType(that.rhs.type);
                     if (!tt.equals(syms.longType)) tt = syms.intType; 
@@ -8885,8 +8894,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean lhsIsPrim = that.getLeftOperand().type.isPrimitive() && that.getLeftOperand().type.getTag() != TypeTag.BOT;
             boolean rhsIsPrim = that.getRightOperand().type.isPrimitive() && that.getRightOperand().type.getTag() != TypeTag.BOT;
             if (jmltypes.isJmlType(that.getRightOperand().type)) maxJmlType = that.getRightOperand().type;
-            if (lhsIsPrim && rhsIsPrim
-                    && that.getLeftOperand().type.getTag().ordinal() < that.getRightOperand().type.getTag().ordinal()) maxJmlType = that.getRightOperand().type;
+            if (lhsIsPrim && rhsIsPrim) maxJmlType = treeutils.maxType(that.getLeftOperand().type, that.getRightOperand().type);
                     
             Type t = that.type;
             if (t.getTag() == TypeTag.BOOLEAN) {
@@ -8901,7 +8909,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     Type tlhs = unboxedType(that.getLeftOperand().type);
                     Type trhs = unboxedType(that.getRightOperand().type);
                     t = tlhs;
-                    if (tlhs.getTag() == TypeTag.BOT || (tlhs.getTag().ordinal() < trhs.getTag().ordinal() && trhs.getTag() != TypeTag.BOT)) t = trhs;
+                    if (tlhs.getTag() == TypeTag.BOT) t = trhs;
+                    else t = treeutils.maxType(tlhs, trhs);
                 }
             }
             JCExpression lhs = convertExpr(that.getLeftOperand());
@@ -11215,21 +11224,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlMethodDecl(JmlMethodDecl that) {
-        // If we visit this method by visiting its containing class, classDecl will be set
-        // but if we call this visit method directly, e.g., from the api,
-        // it will not be, and we need to find the class
+        // Checks whether there is a Skip annotation
         if (esc && JmlEsc.skip(that)) return;
         if (rac && (JmlEsc.skipRac(that) || utils.hasAny(that.mods, Flags.ABSTRACT))) {
             if (classDefs != null) classDefs.add(that); // FIXME - should make a fresh copy of the declaration
             return;
         }
         
+        // Simple name of method
         String nm = that.name.toString();
-//        if (attr.isModel(that.sym) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-////            if (classDefs != null) classDefs.add(that);
-//            return;
-//        }
 
+        // If we visit this method by visiting its containing class, classDecl will be set
+        // but if we call this visit method directly, e.g., from the api,
+        // it will not be, and we need to find the class
         if (classDecl == null) classDecl = utils.getOwner(that);
         log.useSource(that.source());
         boolean saved = translatingJML;
@@ -13595,8 +13602,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression savedResultExpr = resultExpr;
         JCIdent savedCurrentThisId = currentThisId;
         JCExpression savedCurrentThisExpr = currentThisExpr;
+        boolean savedSplitExpressions = splitExpressions;
         Map<Object,JCExpression> savedParamActuals = paramActuals;
 
+        splitExpressions = false;
         pushBlock();
         ListBuffer<JCStatement> saved = currentStatements;
         if (depth == 0) savedForAxioms = saved;
@@ -13706,7 +13715,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssume(dpos,Label.IMPLICIT_ASSUME,e,dpos,clauseSource);
 
             }
-            
+
+//            if (msym.toString().contains("validateUnixTime")) Utils.stop();
+
             // Now go through each spec case for each overridden method and construct axioms for each ensures clause
             for (Pair<MethodSymbol,Type> pair: overridden) {
                 MethodSymbol mpsym = pair.first;
@@ -13748,7 +13759,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 for (JmlSpecificationCase cs : calleeSpecs.cases) {
                     // FIXME - jml visible?
                     if (!utils.visible(classDecl.sym, mpsym.owner, cs.modifiers.flags/*, methodDecl.mods.flags*/)) continue;
-
+                    if (cs.token == JmlTokenKind.EXCEPTIONAL_BEHAVIOR) continue;
                     // FIXME - will need to add OLD and FORALL clauses in here
                     
                     JCExpression pre = qthisnn != null ? qthisnn : treeutils.trueLit;
@@ -13877,6 +13888,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             currentThisId = savedCurrentThisId;
             currentThisExpr = savedCurrentThisExpr;
             paramActuals = savedParamActuals;
+            splitExpressions = savedSplitExpressions;
             currentStatements = saved;
             depth--;
             if (depth == 0) savedForAxioms = null;

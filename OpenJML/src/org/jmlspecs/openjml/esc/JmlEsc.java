@@ -107,8 +107,10 @@ public class JmlEsc extends JmlTreeScanner {
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
+            // We convert the whole tree first
         	assertionAdder.convert(tree); // get at the converted tree through the map
-        	proverToUse = pickProver();
+        	proverToUse = pickProver(); // FIXME - this should be picked at the time of proving because options can change
+        	// And then we walk the tree to see which items are to be proved
         	tree.accept(this);
         } catch (PropagatedException e) {
         	// Canceled
@@ -183,14 +185,16 @@ public class JmlEsc extends JmlTreeScanner {
             markMethodSkipped(methodDecl," (excluded by skipesc)"); //$NON-NLS-1$
             return;
         }
+
+        if (!filter(methodDecl)) {
+            markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
+            return;
+        }
+
         // Do any nested classes and methods first (which will recursively call
         // this method)
         super.visitMethodDef(methodDecl);
 
-        if (!filter(methodDecl)) {
-            markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ 
-            return;
-        }
         try {
     	    res = doMethod(methodDecl);
         } catch (PropagatedException e) {
@@ -303,7 +307,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
-           // FIXME - the following will through an exception because progress checks whether the operation is cancelled
+           // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
             utils.progress(1,1,"Proof ABORTED of " + utils.qualifiedMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"

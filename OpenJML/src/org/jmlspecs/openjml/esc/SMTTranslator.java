@@ -1619,11 +1619,10 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitBinary(JCBinary tree) {
         JCTree.Tag op = tree.getTag();
-        if (op == JCTree.Tag.EQ && tree.lhs.toString().equals("(double)0")) Utils.stop();
         IExpr lhs = convertExpr(tree.lhs);
         IExpr rhs = convertExpr(tree.rhs);
         if (useBV) {
-            if (op == JCTree.Tag.MUL) Utils.stop();
+            if (op == JCTree.Tag.GT) Utils.stop();
             if (tree.type.getTag() == TypeTag.BOOLEAN) {
                 TypeTag tlhs = tree.lhs.type.getTag();
                 TypeTag trhs = tree.rhs.type.getTag();
@@ -1704,13 +1703,16 @@ public class SMTTranslator extends JmlTreeScanner {
                 else if (tree.type.getTag() == TypeTag.DOUBLE)
                     result = F.fcn(F.symbol("/"), args);
                 else if (useBV)
-                	result = F.fcn(F.symbol("bvdiv"), args);
+                    // FIXME - check whether JML definitions match SMT definitions
+                	result = F.fcn(F.symbol("bvsdiv"), args);
                 else
+                    // FIXME - check whether JML definitions match SMT definitions
                     result = F.fcn(F.symbol("div"), args);
                 break;
             case MOD:
+                // FIXME - check whether JML definitions match SMT definitions
                 if (useBV)
-                    result = F.fcn(F.symbol("bvurem"), args);
+                    result = F.fcn(F.symbol("bvsrem"), args);
                 else
                     result = F.fcn(F.symbol("mod"), args);
                 break;
@@ -1744,8 +1746,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case SL:
             	if (useBV) {
-            	    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
-            	    args.set(1, nrhs);
             		result = F.fcn(F.symbol("bvshl"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
@@ -1753,8 +1753,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case SR:
             	if (useBV) {
-                    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
-                    args.set(1, nrhs);
             		result = F.fcn(F.symbol("bvashr"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
@@ -1762,8 +1760,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 break;
             case USR:
             	if (useBV) {
-                    IExpr nrhs = castBV(tree.type.getTag(),tree.rhs.type.getTag(),rhs);
-                    args.set(1, nrhs);
             		result = F.fcn(F.symbol("bvlshr"), args);
             	} else {
             		notImpl(tree, "Bit-operation " + op);
