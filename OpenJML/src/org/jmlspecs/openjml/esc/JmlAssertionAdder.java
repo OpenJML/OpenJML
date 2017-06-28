@@ -637,7 +637,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         assumptionChecks.clear();
         assumptionCheckStats.clear();
         this.useMethodAxioms = !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
-        this.useBV = !rac && ("java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV));
         this.checkAccessEnabled = JmlOption.isOption(context,JmlOption.CHECK_ACCESSIBLE);
     }
     
@@ -804,6 +803,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
         boolean isModel = isModel(pmethodDecl.sym);
+        useBV = !rac && ("java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV));
         currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym,false);
         if (!isModel) addAxioms(-1,null);
         assumingPostConditions = true;

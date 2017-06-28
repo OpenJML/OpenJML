@@ -48,7 +48,7 @@ public enum JmlOption implements IOption {
     EXCLUDE("-exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null),
     PROVER("-prover",true,null,"The prover to use to check verification conditions",null),
     PROVEREXEC("-exec",true,null,"The prover executable to use",null),
-    LOGIC("-logic",true,null,"The SMT logic to use",null),
+    LOGIC("-logic",true,null,"The SMT logic to use (default ALL)",null),
     
     NONNULLBYDEFAULT("-nonnullByDefault",false,false,"Makes references non_null by default","-nullableByDefault=false"),
     NULLABLEBYDEFAULT("-nullableByDefault",false,false,"Makes references nullable by default",null),

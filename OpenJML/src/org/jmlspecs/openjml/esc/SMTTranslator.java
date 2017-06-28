@@ -1187,7 +1187,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     break;
                 }
             } catch (RuntimeException ee) {
-                // skip - error already issued // FIXME - better recovery
+                // There is no recovery from this
+                log.error("jml.internal", "Exception while translating block: " + e);
                 break;
             }
         }
@@ -2049,7 +2050,7 @@ public class SMTTranslator extends JmlTreeScanner {
         Object v = tree.getValue();
         if (tree.typetag == TypeTag.BOOLEAN) {
            result = F.symbol(((Boolean)v) ?"true":"false"); 
-        } else if (tree.typetag == TypeTag.INT || tree.typetag == TypeTag.LONG || tree.typetag == TypeTag.SHORT || tree.typetag == TypeTag.CHAR || tree.typetag == TypeTag.BYTE) {
+        } else if (tree.typetag == TypeTag.INT || tree.typetag == TypeTag.LONG || tree.typetag == TypeTag.SHORT || tree.typetag == TypeTag.BYTE) {
         	long k = Long.parseLong(v.toString());
             if (useBV) {
             	int bits = tree.typetag == TypeTag.INT ? 32 :
@@ -2069,8 +2070,20 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = k >= 0 ? F.numeral(k) : -k >= 0 ? F.fcn(F.symbol("-"), F.numeral(-k)) : F.fcn(F.symbol("-"), F.numeral(v.toString().substring(1)));
             }
         } else if (tree.typetag == TypeTag.CHAR) {
-            long k = (v instanceof Character) ? (long) ((Character)v).charValue() : Long.parseLong(v.toString());
-            result = F.numeral(k);
+            if (useBV) {
+                int k = Character.getNumericValue((Character)v);
+                int bits = 16 ; // A CHAR is 16 bits
+                int digits = bits/4;
+                String format = "%0" + digits + "x";
+                String s = String.format(format, k); // Since k is a int, negative numbers are padded out with f's to a int length
+                if (s.length() != digits) {
+                    s = s.substring(s.length()-digits);
+                }
+                result = F.hex(s); // The string should not have leading 0x
+            } else {
+                long k = (v instanceof Character) ? (long) ((Character)v).charValue() : Long.parseLong(v.toString());
+                result = F.numeral(k);
+            }
         } else if (tree.typetag == TypeTag.BOT) {
             result = nullSym;
         } else if (tree.typetag == TypeTag.CLASS) {

@@ -767,8 +767,8 @@ public class Main extends com.sun.tools.javac.main.Main {
         return i;
     }
     
-    /** This method is called after options are read, but before tools are 
-     * registered and before compilation actually begins; 
+    /** This method is called after options are read, but before  compilation actually begins; 
+     * requires tools to be registered, at least Log and Options
      * here any additional option checking or
      * processing can be performed.
      */
@@ -1124,6 +1124,10 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     protected Name optionName;
 
+    /** Pushes the current options on the option stack (cf. JmlOption), retaining a copy;
+     * then adds to the current options using the Options annotation.
+     * @param mods
+     */
     public void pushOptions(JCModifiers mods) {
         if (optionName == null) optionName = Names.instance(context).fromString("org.jmlspecs.annotation.Options");
 
@@ -1135,17 +1139,18 @@ public class Main extends com.sun.tools.javac.main.Main {
             String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.toString().split(",")
                           : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
                           : null;
-//                System.out.println(opts);
             addOptions(opts);
             setupOptions();
         }
-        int v = Utils.instance(context).jmlverbose;
     }
     
+    // FIXME - the options popped and pushed should not be ones that have modifier/annotation equivalents
+    // So no nonnullbydefault/nullablebydefault and code-math and spec-math
+    
+    /** Pops a set of options off the options stack, making the popped set the current options. */
     public void popOptions() {
         ((JmlOptions)JmlOptions.instance(context)).popOptions();
         setupOptions();
-        int v = Utils.instance(context).jmlverbose;
     }
 
     
