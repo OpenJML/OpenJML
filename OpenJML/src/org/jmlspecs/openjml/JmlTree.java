@@ -1120,6 +1120,8 @@ public class JmlTree implements IJmlTree {
         public VarSymbol _this = null; // The Symbol for 'this' inside the method, if not static;
                                         // valid after attribution
         
+        public boolean usedBitVectors = false;
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public
                 List<JCTypeParameter> typarams, JCVariableDecl recvparam, List<JCVariableDecl> params,

@@ -16,6 +16,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -32,6 +33,7 @@ class ClassCollector extends JmlTreeScanner {
     /** Static method that is the entry point to the functionality the collector */
     public static /*@ non_null pure */ ClassCollector collect(/*@ non_null */JmlClassDecl cd, /*@ nullable */JmlMethodDecl md) {
         ClassCollector collector = new ClassCollector();
+        collector.useBV = false;
         collector.doMethods = false;
         collector.scan(cd);
         if (md != null) {
@@ -43,6 +45,7 @@ class ClassCollector extends JmlTreeScanner {
     // FIXME - change to collecting TypeSymbol
     
     boolean doMethods;
+    boolean useBV = false;
     public final Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
     
     public ClassCollector() {
@@ -104,6 +107,14 @@ class ClassCollector extends JmlTreeScanner {
     public void visitIdent(JCIdent tree) {
         save(tree.type);
         super.visitIdent(tree);
+    }
+    
+    @Override
+    public void visitBinary(JCTree.JCBinary tree) {
+        JCTree.Tag op = tree.getTag();
+        if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG || op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG  
+                ) useBV = true;  // FIXME - shaft operators also?
+        super.visitBinary(tree);
     }
     
     @Override

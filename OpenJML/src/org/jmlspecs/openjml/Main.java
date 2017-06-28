@@ -844,6 +844,13 @@ public class Main extends com.sun.tools.javac.main.Main {
             return false;
         }
         if (!picked) utils.check = true;
+        
+        val = options.get(JmlOption.ESC_BV.optionName());
+        if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {}
+        else {
+            Log.instance(context).getWriter(WriterKind.NOTICE).println("Command-line argument error: Expected 'auto', 'true' or 'false' for -escBV: " + val);
+            options.put(JmlOption.ESC_BV.optionName(),"auto");
+        }
 
         String keysString = options.get(JmlOption.KEYS.optionName());
         utils.commentKeys = new HashSet<String>();

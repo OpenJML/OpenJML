@@ -803,7 +803,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
         Name savedOldLabel = defaultOldLabel;
         boolean isModel = isModel(pmethodDecl.sym);
-        useBV = !rac && ("java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV));
+        
+        // Collect all classes that are mentioned in the method
+        ClassCollector collector = ClassCollector.collect(pclassDecl,pmethodDecl);
+
+        {
+            String bv = JmlOption.value(context,JmlOption.ESC_BV);
+            useBV = !rac && ( (collector.useBV && "auto".equals(bv)) || "true".equals(bv));
+            pmethodDecl.usedBitVectors = useBV;
+        }
         currentArithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym,false);
         if (!isModel) addAxioms(-1,null);
         assumingPostConditions = true;
@@ -935,7 +943,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 JCBlock bl = popBlock(0,methodDecl);
                 
-                if (!pureCopy) addPreConditions(initialStatements);
+                if (!pureCopy) addPreConditions(initialStatements,collector);
                 // FIXME - need to fix RAC So it can check preconditions etc.
                 pushBlock();
                 JCBlock newMainBody = null;
@@ -991,7 +999,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
             //if (pclassDecl.name.toString().equals("ArrayFieldVector") && pmethodDecl.name.toString().equals("hashCode")) Utils.stop();
             if (!pureCopy) {
-                addPreConditions(initialStatements);
+                addPreConditions(initialStatements,collector);
                 pushBlock();
                 addAssumeCheck(methodDecl,currentStatements,Strings.preconditionAssumeCheckDescription); // FIXME - use a smaller highlight range than the whole method - perhaps the specs?
                 JCStatement preconditionAssumeCheck = popBlock(0,methodDecl);
@@ -3197,7 +3205,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     /** Computes and adds checks for all the pre and postcondition clauses. */
     // FIXME - review this
-    protected void addPreConditions(ListBuffer<JCStatement> initialStats) {
+    protected void addPreConditions(ListBuffer<JCStatement> initialStats, ClassCollector collector) {
         
         JCMethodDecl methodDecl = this.methodDecl;
         int pos = methodDecl.pos;
@@ -3233,8 +3241,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        // Collect all classes that are mentioned in the method
-        ClassCollector collector = ClassCollector.collect(this.classDecl,this.methodDecl);
         // Assume all axioms of classes mentioned in the target method
         if (esc) {
             addStat(comment(methodDecl,"Assume axioms",null));

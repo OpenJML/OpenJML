@@ -282,7 +282,7 @@ public class MethodProverSMT {
 
             // convert the basic block form to SMT
             try {
-                script = smttrans.convert(program,smt);
+                script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
                 if (printPrograms) {
                     try {
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
@@ -384,7 +384,7 @@ public class MethodProverSMT {
                                 commands.add(new C_assert(smttrans.convertExpr(bin)));
                                 commands.add(new C_check_sat());
                             } else {
-                                script = smttrans.convert(program,smt);
+                                script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
 
                             }
 //                            if (printPrograms) {

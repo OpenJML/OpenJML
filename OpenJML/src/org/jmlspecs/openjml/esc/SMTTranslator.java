@@ -289,10 +289,6 @@ public class SMTTranslator extends JmlTreeScanner {
         treeutils = JmlTreeUtils.instance(context);
         jmltypes = JmlTypes.instance(context);
         
-        // Options
-        useBV = "java".equals(JmlOption.value(context,JmlOption.CODE_MATH)) || JmlOption.isOption(context,JmlOption.ESC_BV);
-        //quantOK = !useBV;
-        
         // SMT factory and commonly used objects
         F = new org.smtlib.impl.Factory();
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
@@ -759,8 +755,9 @@ public class SMTTranslator extends JmlTreeScanner {
     //  - might want the option to produce many individual programs, i.e.
     //  one for each assertion, or a form that accommodates push/pop/coreids etc.
     
-    public ICommand.IScript convert(BasicProgram program, SMT smt) {
+    public ICommand.IScript convert(BasicProgram program, SMT smt, boolean useBV) {
         script = new Script();
+        this.useBV = useBV;
         ICommand c;
         commands = script.commands();
         
@@ -1188,7 +1185,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             } catch (RuntimeException ee) {
                 // There is no recovery from this
-                log.error("jml.internal", "Exception while translating block: " + e);
+                log.error("jml.internal", "Exception while translating block: " + ee);
                 break;
             }
         }

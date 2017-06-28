@@ -78,7 +78,7 @@ public enum JmlOption implements IOption {
     JMLTESTING("-jmltesting",false,false,"Only used to generate tracing information during testing",null),
     TRACE("-trace",false,false,"ESC: Enables tracing of counterexamples",null),
     SHOW("-show",false,false,"Show intermediate programs",null),
-    ESC_BV("-escBV",false,false,"ESC: If true, use bit-vector arithmetic",null),
+    ESC_BV("-escBV",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null),
     ESC_MAX_WARNINGS("-escMaxWarnings",true,"all","ESC: Maximum number of warnings to find per method",null),
     MAXWARNINGSPATH("-escMaxWarningsPath",false,false,"ESC: If true, find all counterexample paths to each invalid assert",null),
     COUNTEREXAMPLE("-counterexample",false,false,"ESC: Enables output of complete, raw counterexample",null),
