@@ -113,7 +113,7 @@ class ClassCollector extends JmlTreeScanner {
     public void visitBinary(JCTree.JCBinary tree) {
         JCTree.Tag op = tree.getTag();
         if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG || op == JCTree.Tag.BITOR || op == JCTree.Tag.BITOR_ASG || op == JCTree.Tag.BITXOR || op == JCTree.Tag.BITXOR_ASG  
-                ) useBV = true;  // FIXME - shaft operators also?
+            || op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) useBV = true;  // FIXME - shaft operators also?
         super.visitBinary(tree);
     }
     
