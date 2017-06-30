@@ -9133,7 +9133,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (clazz.type.isPrimitive()) {
             if (origType.isPrimitive()) {
                 // Java primitive to Java primitive - must be a numeric cast
-                if (useBV) {
+                // FIXME - should be able to check for overflow in BV modes -- also move all this into th Arithmetic mode classes
+                if (useBV || currentArithmeticMode instanceof Arithmetic.Java) {
                     // skip
                 } else if (changePrecision == 1) {
                     // change precision == 1 means that a higher precision value is being cast to a lower precision
