@@ -172,6 +172,21 @@ public class escall3 extends EscBase {
     }
    
     @Test
+    public void testArrayLength() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public void m1(int[] c) {\n"
+                +"    //@ assert c != null;\n"
+                +"    //@ assert c.length >= 0; \n"
+                +"  }\n"
+                
+                +"}"
+                );
+    }
+   
+    @Test
     public void testArrayAssign() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"import org.jmlspecs.annotation.*; \n"

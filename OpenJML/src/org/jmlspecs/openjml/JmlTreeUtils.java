@@ -598,6 +598,16 @@ public class JmlTreeUtils {
         // Note: getTag().ordinal() is not relaible
         TypeTag ltag = lhs.getTag();
         TypeTag rtag = rhs.getTag();
+        if (ltag == TypeTag.NONE && lhs == types.REAL) return lhs;
+        if (rtag == TypeTag.NONE && rhs == types.REAL) return rhs;
+        if (ltag == TypeTag.NONE && lhs == types.BIGINT) {
+            if (rtag == TypeTag.DOUBLE || rtag == TypeTag.FLOAT) return types.REAL;
+            return lhs;
+        }
+        if (rtag == TypeTag.NONE && rhs == types.BIGINT) {
+            if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return types.REAL;
+            return rhs;
+        }
         if (ltag == TypeTag.DOUBLE) return lhs;
         if (rtag == TypeTag.DOUBLE) return rhs;
         if (ltag == TypeTag.FLOAT && rtag == TypeTag.LONG) return syms.doubleType;

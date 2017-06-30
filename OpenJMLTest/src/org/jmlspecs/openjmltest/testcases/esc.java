@@ -480,6 +480,7 @@ public class esc extends EscBase {
     @Test
     public void testNonNullElements2b() {
 //      Assume.assumeTrue(runLongTests);
+        main.addOptions("-show","-method=m2");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
@@ -497,7 +498,6 @@ public class esc extends EscBase {
     public void testNonNullElements2c() {
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
-
 
                 + "  //@ modifies \\everything;\n" 
                 + "  public void m22(Object[] a) {\n"

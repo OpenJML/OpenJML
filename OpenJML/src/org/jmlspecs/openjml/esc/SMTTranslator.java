@@ -230,7 +230,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String JMLTYPESORT = "JMLTypeSort";
     public static final String JAVASUBTYPE = "javaSubType";
     public static final String JMLSUBTYPE = "jmlSubType";
-    public static final String arrayLength = "__JMLlength"; // array length
+    public static final String arrayLength = "__JMLlength"; // array length -- this is the encoded name produced in BasicBlocker2
     public static final String arrays_ = BasicBlocker2.ARRAY_BASE_NAME; // Must match BasicBlocker2
     public static final String concat = "stringConcat";
     public static final String nonnullelements = "nonnullelements";
@@ -436,23 +436,44 @@ public class SMTTranslator extends JmlTreeScanner {
             // (declare_fcn nonnullelements ((a REF)(arrays (Array REF (Array Int REF)))) Bool)
             // (assert (forall ((a REF)(arrays (Array REF (Array Int REF)))) (= (nonnullelements a arrays)
             //                             (forall ((i Int)) (=> (and (<= 0 i) (< i (length a))) (distinct NULL (select (select arrays a) i)))))
-            c = new C_declare_fun(F.symbol(nonnullelements),
-                    Arrays.asList(new ISort[]{refSort,
-                            F.createSortExpression(arraySym,
+//            c = new C_declare_fun(F.symbol(nonnullelements),
+//                    Arrays.asList(new ISort[]{refSort,
+//                            F.createSortExpression(arraySym,
+//                                    refSort,
+//                                    F.createSortExpression(arraySym, useBV ? bv32Sort : intSort, refSort))}), 
+//                    boolSort);
+//            commands.add(c);
+//            c = new C_assert(
+//                    F.forall(Arrays.asList(F.declaration(F.symbol("a"),refSort),
+//                                           F.declaration(F.symbol("arrays"),
+//                                                   F.createSortExpression(arraySym,
+//                                                           refSort,
+//                                                           F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,refSort)))
+//                                           ),
+//                            F.fcn(eqSym,
+//                                    F.fcn(F.symbol(nonnullelements), F.symbol("a"), F.symbol("arrays")),
+//                                    F.forall(Arrays.asList(F.declaration(F.symbol("i"),useBV ? bv32Sort : intSort)),
+//                                            F.fcn(impliesSym,
+//                                                    F.fcn(F.symbol("and"),
+//                                                            F.fcn(useBV ? F.symbol("bvsle"): F.symbol("<="),useBV ? F.hex("00000000") : F.numeral("0"),F.symbol("i")),
+//                                                            F.fcn(useBV ? F.symbol("bvslt"): F.symbol("<"), F.symbol("i"), F.fcn(selectSym,lengthSym,F.symbol("a")))
+//                                                            ),
+//                                                    F.fcn(distinctSym,
+//                                                            F.symbol(NULL),
+//                                                            F.fcn(selectSym,F.fcn(selectSym,F.symbol("arrays"),F.symbol("a")),F.symbol("i"))
+//                                                            )
+//                                                    )
+//                                             )
+//                                    )));
+//            commands.add(c);
+            
+            c = new C_define_fun(F.symbol(nonnullelements),
+                    Arrays.asList(new IDeclaration[]{F.declaration(F.symbol("a"),refSort),
+                            F.declaration(F.symbol("arrays"), F.createSortExpression(arraySym,
                                     refSort,
-                                    F.createSortExpression(arraySym, useBV ? bv32Sort : intSort, refSort))}), 
-                    boolSort);
-            commands.add(c);
-            c = new C_assert(
-                    F.forall(Arrays.asList(F.declaration(F.symbol("a"),refSort),
-                                           F.declaration(F.symbol("arrays"),
-                                                   F.createSortExpression(arraySym,
-                                                           refSort,
-                                                           F.createSortExpression(arraySym,useBV ? bv32Sort : intSort,refSort)))
-                                           ),
-                            F.fcn(eqSym,
-                                    F.fcn(F.symbol(nonnullelements), F.symbol("a"), F.symbol("arrays")),
-                                    F.forall(Arrays.asList(F.declaration(F.symbol("i"),useBV ? bv32Sort : intSort)),
+                                    F.createSortExpression(arraySym, useBV ? bv32Sort : intSort, refSort)))}), 
+                    boolSort,
+                    F.fcn(F.symbol("and"), F.fcn(distinctSym,  F.symbol("a"), F.symbol(NULL)), F.forall(Arrays.asList(F.declaration(F.symbol("i"),useBV ? bv32Sort : intSort)),
                                             F.fcn(impliesSym,
                                                     F.fcn(F.symbol("and"),
                                                             F.fcn(useBV ? F.symbol("bvsle"): F.symbol("<="),useBV ? F.hex("00000000") : F.numeral("0"),F.symbol("i")),
@@ -464,8 +485,9 @@ public class SMTTranslator extends JmlTreeScanner {
                                                             )
                                                     )
                                              )
-                                    )));
+                                    ));
             commands.add(c);
+
         }
 
         if (quants && quantOK) {

@@ -8662,6 +8662,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitBinary(JCBinary that) {
         // FIXME - check on numeric promotion, particularly shift operators
         JCTree.Tag tag = that.getTag();
+        if (tag == JCTree.Tag.GT) Utils.stop();
         boolean equality = tag == JCTree.Tag.EQ || tag == JCTree.Tag.NE;
         boolean comp = equality || tag == JCTree.Tag.GE || tag == JCTree.Tag.LE || tag == JCTree.Tag.LT || tag == JCTree.Tag.GT;
         boolean shift = tag == JCTree.Tag.SL || tag == JCTree.Tag.SR || tag == JCTree.Tag.USR;
@@ -11662,11 +11663,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCExpression conj = null;
                     for (JCExpression arg : that.args) {
                         JCExpression e = convertExpr(arg);
-                        e = rac ? methodCallUtilsExpression(arg,"nonnullElementCheck",e)
-                                : treeutils.makeAnd(that.pos, 
-                                        treeutils.makeNeqObject(that.pos, e, treeutils.nullLit),
-                                        treeutils.makeJmlMethodInvocation(arg,
-                                                that.token,that.type,e));
+                        if (rac) {
+                            e = methodCallUtilsExpression(arg,"nonnullElementCheck",e);
+                        } else {
+                            // We leave this as \nonnullelements because the SMTTranslator
+                            // translates this into an appropriate quantified expression directly
+                            e = treeutils.makeJmlMethodInvocation(arg,
+                                                that.token,that.type,e);
+                        }
                         conj = conj == null? e :
                             treeutils.makeAnd(arg.pos, conj, e);
                     }

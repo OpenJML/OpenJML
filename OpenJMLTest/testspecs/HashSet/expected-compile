@@ -1,2 +1,23 @@
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:109: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:117: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result) && \result != this; // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:124: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:131: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:138: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:145: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
+/Users/davidcok/cok/projects/OpenJMLB/Specs/java5/java/lang/Object.jml:152: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+      @   ensures \fresh(\result); // Assuming this is true for arrays
+                        ^
 Note: testspecs\HashSet\TestHashSet.java uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.

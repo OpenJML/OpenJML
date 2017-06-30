@@ -1400,6 +1400,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
+        if (that.toString().endsWith("length")) Utils.stop();
         Name n;
         if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
             n = labelmaps.get(null).getCurrentName(vsym);
@@ -1865,6 +1866,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@NonNull*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
+            if (vsym == syms.lengthVar) return vsym.name;
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
                 // all existing maps, with an incarnation number of 0.
