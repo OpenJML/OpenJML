@@ -219,25 +219,25 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // They are either initialized in the constructor or initialized on first use
     
     /** General utilities */
-    @NonNull final protected Utils utils;
+    final protected @NonNull Utils utils;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker factory;
+    final protected JmlTree.@NonNull Maker factory;
 
     // Caution - the following are handy, but they are shared, so they won't
     // have proper position information - which is OK for esc at this point
     
     /** Holds an AST node for a boolean true literal, initialized in the constructor */
-    @NonNull final protected JCLiteral trueLiteral;
+    final protected @NonNull JCLiteral trueLiteral;
     
     /** Holds an AST node for a boolean false literal, initialized in the constructor */
-    @NonNull final protected JCLiteral falseLiteral;
+    final protected @NonNull JCLiteral falseLiteral;
     
     /** Identifier of a synthesized object field holding the length of an array object, initialized in the constructor */
-    @NonNull final protected JCIdent lengthIdent;
+    final protected @NonNull JCIdent lengthIdent;
 
     /** Symbol of a synthesized object field holding the length of an array object, initialized in the constructor */
-    @NonNull final protected VarSymbol lengthSym;
+    final protected @NonNull VarSymbol lengthSym;
     
     // THE FOLLOWING FIELDS ARE USED IN THE COURSE OF DOING THE WORK OF CONVERTING
     // TO BASIC BLOCKS.  They are fields of the class because they need to be

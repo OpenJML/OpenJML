@@ -255,6 +255,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testCast() {
+        main.addOptions("-code-math=safe","-spec-math=safe");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

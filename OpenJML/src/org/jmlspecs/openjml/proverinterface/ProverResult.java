@@ -125,7 +125,7 @@ public class ProverResult implements IProverResult {
      * 
      * @param item the detail item to add
      */
-    public void add(@NonNull IProverResult.Item item) {
+    public void add(IProverResult.@NonNull Item item) {
         if (details == null) details = new LinkedList<IProverResult.Item>();
         details.add(item);
     }

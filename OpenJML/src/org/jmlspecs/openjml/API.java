@@ -152,7 +152,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#setProgressReporter(org.jmlspecs.openjml.Main.IProgressReporter)
      */
     @Override
-    public void setProgressListener(@Nullable Main.IProgressListener p) {
+    public void setProgressListener(/*@ nullable */ Main.IProgressListener p) {
         if (main.progressDelegate != null) {
             p.setContext(context());
             main.progressDelegate.setDelegate(p);
@@ -319,7 +319,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull File... files) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         Log log = Log.instance(context());
         c.inSequence = false;
@@ -336,7 +336,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(String[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames) {
         File[] files = new File[filenames.length];
         for (int i=0; i<filenames.length; i++) {
             files[i] = new File(filenames[i]);
@@ -348,7 +348,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(javax.tools.JavaFileObject[])
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -361,7 +361,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#parseFiles(java.util.Collection)
      */
     @Override
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs) {
         JmlCompiler c = (JmlCompiler)JmlCompiler.instance(context());
         c.inSequence = false;
         ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -913,7 +913,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#getSpecs(com.sun.tools.javac.code.Symbol.MethodSymbol)
      */
     @Override
-    public @NonNull JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
+    public /*@ non_null */ JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym) {
         return JmlSpecs.instance(context()).getSpecs(sym);
     }
     
@@ -958,7 +958,7 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public @NonNull JmlTree.Maker nodeFactory() {
+    public /*@ non_null */ JmlTree.Maker nodeFactory() {
         JmlAttr.instance(context());  // Avoids circular tool registration problems
         return JmlTree.Maker.instance(context());
     }
@@ -994,7 +994,7 @@ public class API implements IAPI {
     //@ requires isOpen;
     //@ ensures isOpen;
     @Override
-    public @NonNull String prettyPrint(@NonNull java.util.List<? extends JCTree> astlist, @NonNull String sep) throws java.io.IOException {
+    public @NonNull String prettyPrint(/*@ non_null */ java.util.List<? extends JCTree> astlist, @NonNull String sep) throws java.io.IOException {
         StringWriter s = new StringWriter();
         boolean isFirst = true;
         for (JCTree ast: astlist) {

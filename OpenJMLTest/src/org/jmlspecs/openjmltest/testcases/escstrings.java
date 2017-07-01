@@ -326,7 +326,6 @@ public class escstrings extends EscBase {
                 
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
@@ -349,7 +348,6 @@ public class escstrings extends EscBase {
                 +" public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 

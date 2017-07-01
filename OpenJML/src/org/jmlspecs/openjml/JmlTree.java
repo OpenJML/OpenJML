@@ -88,6 +88,7 @@ public class JmlTree implements IJmlTree {
      */
     public interface JmlFactory extends JCTree.Factory {
         JmlAnnotation Annotation(JCTree type, List<JCExpression> args);
+        JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args);
         JmlBinary JmlBinary(JmlTokenKind t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChoose JmlChoose(JmlTokenKind token, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
@@ -247,11 +248,21 @@ public class JmlTree implements IJmlTree {
             return t;
         }
         
+        @Override
         public JmlAnnotation Annotation(JCTree type, List<JCExpression> args) {
             JmlAnnotation a = new JmlAnnotation(JCTree.Tag.ANNOTATION,type,args);
             a.pos = pos;
             return a;
         }
+        
+        @Override
+        public JmlAnnotation TypeAnnotation(JCTree annotationType, List<JCExpression> args) {
+            JmlAnnotation tree = new JmlAnnotation(Tag.TYPE_ANNOTATION, annotationType, args);
+            tree.pos = pos;
+            return tree;
+        }
+
+
 
         
         /** Convenience method to create a JCIdent from a string

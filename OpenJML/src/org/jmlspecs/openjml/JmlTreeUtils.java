@@ -127,7 +127,7 @@ public class JmlTreeUtils {
 //    @NonNull protected Env<AttrContext> attrEnv;
         
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final public JmlTree.Maker factory;
+    final public /*@ non_null */ JmlTree.Maker factory;
 
     // Cached values of all of these symbols
     final public ClassSymbol utilsClass;

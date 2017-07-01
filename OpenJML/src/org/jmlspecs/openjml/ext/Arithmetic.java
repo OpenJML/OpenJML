@@ -68,6 +68,8 @@ abstract public class Arithmetic extends ExpressionExtension {
         codeBigintMath = classReader.enterClass(names.fromString(Strings.jmlAnnotationPackage + ".CodeBigintMath"));
     }
     
+    public static boolean rac;
+    
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         initModeSymbols();
         if (!jml) {
@@ -85,12 +87,12 @@ abstract public class Arithmetic extends ExpressionExtension {
             if (sym.attribute(specSafeMath) != null) return Safe.instance(context);
             if (sym.attribute(specJavaMath) != null) return Java.instance(context);
             sym = sym.owner;
+            Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
             String v = JmlOption.value(context,JmlOption.SPEC_MATH);
-//            if ("java".equals(v)) return Java.instance(context);
-//            if ("safe".equals(v)) return Safe.instance(context);
-//            return Math.instance(context);
-            return Java.instance(context);
+            if (rac || "java".equals(v)) return Java.instance(context);
+            if ("safe".equals(v)) return Safe.instance(context);
+            return Math.instance(context);
         }
     }
     
@@ -98,7 +100,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         if (lhs.getTag() == TypeTag.CLASS) lhs = Types.instance(context).unboxedType(lhs); 
         if (rhs.getTag() == TypeTag.CLASS) rhs = Types.instance(context).unboxedType(rhs); 
         TypeTag lt = lhs.getTag();
-        TypeTag rt = rhs.getTag();
+        TypeTag rt = rhs.getTag(); // FIOXME - is the typetag UNKNOWN or NONE
         if (lt == TypeTag.UNKNOWN && lhs == jmltypes.REAL) return lhs;
         if (rt == TypeTag.UNKNOWN && rhs == jmltypes.REAL) return rhs;
         if (lt == TypeTag.UNKNOWN && lhs == jmltypes.BIGINT) {
@@ -145,7 +147,14 @@ abstract public class Arithmetic extends ExpressionExtension {
         }
         return t;
     }
-    
+    /** Makes a negation expression appropriate to the given newtype and whether the translation
+     *  is for rac or esc
+     * @param rewriter the JmlAssertionAdder instance
+     * @param that the original expression
+     * @param arg the already translated argument
+     * @param newtype the type in which to do the operation
+     * @return
+     */
     public JCExpression makeNeg(JmlAssertionAdder rewriter, JCUnary that, JCExpression arg, Type newtype) {
         JCExpression eresult = null;
         Tag tag = that.getTag();
@@ -171,6 +180,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         return eresult;
     }
     
+    /** This implements the bigint (which is also real) mathematical mode */
     public static class Math extends Arithmetic implements IArithmeticMode {
         
         public Math(Context context) {
@@ -184,14 +194,19 @@ abstract public class Arithmetic extends ExpressionExtension {
         @Override
         public Mode mode() { return Mode.MATH; }
         
+        /** Returns the appropriate mathematical type (\bigint or \real) given the input type */
         Type mathType(JmlAssertionAdder rewriter, Type t) {
             TypeTag tag = t.getTag();
             if (rewriter.jmltypes.isJmlType(t)) return t;
-            if (tag.ordinal() <= TypeTag.LONG.ordinal()) return rewriter.jmltypes.BIGINT;
-            if (tag.ordinal() == TypeTag.DOUBLE.ordinal() || tag == TypeTag.FLOAT) return rewriter.jmltypes.REAL;
+            if (rewriter.jmltypes.isIntegral(t)) return rewriter.jmltypes.BIGINT;
+            if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.jmltypes.REAL;
             return t;
         }
         
+        /** Rewrites unary operations; for NEG, the expression is
+         *  promoted to the math type and negated; for PLUS and COMPL the
+         *  expression is unchanged. 
+         */
         @Override
         public JCExpression rewriteUnary(JmlAssertionAdder rewriter, JCUnary that) {
             JCTree.Tag tag = that.getTag();

@@ -262,6 +262,13 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
+    // OPENJML - added this factory method for the type that was added in Java 8
+    public JCMemberReference Reference(JCMemberReference.ReferenceMode mode, JCExpression expr, Name name, List<JCExpression> typeargs) {
+        JCMemberReference tree = new JCMemberReference(mode,name,expr,typeargs);
+        tree.pos = pos;
+        return tree;
+    }
+
     public JCCase Case(JCExpression pat, List<JCStatement> stats) {
         JCCase tree = new JCCase(pat, stats);
         tree.pos = pos;

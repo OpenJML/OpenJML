@@ -29,17 +29,40 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable1() {
+        //main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
-                +"  public static class M {\n"
+                +"  public static class MMM {\n"
                 +"    public int i ;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 
-                +"  public void m1(Iterable<M> a) {\n"
-                +"    a.forEach(M::bump);\n"
+                +"  public void m1(Iterable<MMM> a) {\n"
+                +"    a.forEach(MMM::bump);\n"
+                +"  }\n"
+                                
+                +"}"
+                // FIXME - the column location is wrong - it is not clear that the possible null value is an element of the iterable, with the element being the receiver of the bump call in the foreach loop
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",0
+                );
+    }
+    
+    @Test
+    public void testIterable1b() {
+        //main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  \n"
+                +"  public static class MMM {\n"
+                +"    public int i ;\n"
+                +"    public void bump() { i++; }\n"
+                +"  }\n"
+                
+                +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
+                +"    a.forEach(MMM::bump);\n"
                 +"  }\n"
                                 
                 +"}"
@@ -52,18 +75,64 @@ public class esclambdas extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  \n"
-                +"  public static class M {\n"
+                +"  public static class MMM {\n"
                 +"    public int i ;\n"
                 +"    public void bump() { i++; }\n"
                 +"  }\n"
                 
-                +"  public void m1(Iterable<M> a) {\n"
+                +"  public void m1(/*@ non_null*/ Iterable<MMM> a) {\n"  // We do not know that each element returned by the iterable is non-null
+                +"    a.forEach(m->m.bump());\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
+                );
+    }
+    
+    @Test
+    public void testIterable2b() {
+        main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  \n"
+                +"  public static class MMM {\n"
+                +"    public int i ;\n"
+                +"    public void bump() { i++; }\n"
+                +"  }\n"
+                
+                +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
                                 
                 +"}"
                 );
     }
+    
+    @Test
+    public void testIterable3() {
+        main.addOptions("-code-math=java","-spec-math=java");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public int j;\n"
+                +"  public int k() { return 7; };\n"
+                +"  public static class MMM {\n"
+                +"    public int i ;\n"
+                +"  }\n"
+                
+                +"  public void bump(MMM m1, MMM m2) {"
+                +"     m1.i += (j + m2.i + k());\n"
+                +"  }\n"
+                
+                +"  public void m1(/*@ non_null*/ Iterable<MMM> a) {\n"
+                +"    a.forEach(m->bump(m,m));\n"
+                +"  }\n"
+                                
+                +"}"
+                );
+    }
+    
     
     @Test @Ignore // FIXME - not working yet
     public void testIdentity() {
@@ -159,8 +228,29 @@ public class esclambdas extends EscBase {
                                 );
                     }
 
-//         public static Integer m1(Integer i) {
-//             Function<Integer,Integer> f = Function.<Integer>identity();
-//             return f.apply(i);
-//         }
+    @Test
+    public void testIterable4() {
+        //main.addOptions("-show","-method=m1");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  \n"
+                +"  public static class MMM {\n"
+                +"    public boolean i = false;\n"
+                +"    //@ public normal_behavior assignable i; ensures i == !\\old(i) ;\n"
+                +"    public void bump() { i = !i; }\n"
+                +"  }\n"
+                
+                +"  //@ requires a != null;\n"
+                +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
+                +"    a.forEach(MMM::bump);\n"
+                +"  }\n"
+                                
+                +"}"
+                // FIXME - we would like the NonNull annotation to tell JML that each iterate is non null.
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",11
+                );
+    }
+    
+
 }

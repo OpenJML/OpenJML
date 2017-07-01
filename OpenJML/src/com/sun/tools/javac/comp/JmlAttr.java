@@ -198,7 +198,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @NonNull final protected ClassReader classReader;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker factory;
+    /*@ non_null */ final protected JmlTree.Maker factory;
     
     /** A JmlCompiler instance */
     @NonNull final protected JmlCompiler jmlcompiler;

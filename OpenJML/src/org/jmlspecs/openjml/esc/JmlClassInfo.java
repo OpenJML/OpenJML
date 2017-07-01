@@ -26,17 +26,17 @@ public class JmlClassInfo {
     /** The type specifications from the specs database */
     JmlSpecs.TypeSpecs typeSpecs = null; // Non-null once initialized
     /** The instance constraint clauses from typeSpecs */
-    @NonNull public java.util.List<JmlTypeClauseConstraint> constraints = new LinkedList<JmlTypeClauseConstraint>();
+    public java.util.@NonNull List<JmlTypeClauseConstraint> constraints = new LinkedList<JmlTypeClauseConstraint>();
     /** The static constraint clauses from typeSpecs */
-    @NonNull public java.util.List<JmlTypeClauseConstraint> staticconstraints = new LinkedList<JmlTypeClauseConstraint>();
+    public java.util.@NonNull List<JmlTypeClauseConstraint> staticconstraints = new LinkedList<JmlTypeClauseConstraint>();
     /** The initially clauses from typeSpecs */
-    @NonNull public java.util.List<JmlTypeClauseExpr> initiallys = new LinkedList<JmlTypeClauseExpr>();
+    public java.util.@NonNull List<JmlTypeClauseExpr> initiallys = new LinkedList<JmlTypeClauseExpr>();
     /** The instance invariant clauses from typeSpecs */
     @NonNull public java.util.List<JmlTypeClauseExpr> invariants = new LinkedList<JmlTypeClauseExpr>();
     /** The static invariant clauses from typeSpecs */
-    @NonNull public java.util.List<JmlTypeClauseExpr> staticinvariants = new LinkedList<JmlTypeClauseExpr>();
+    public java.util.@NonNull List<JmlTypeClauseExpr> staticinvariants = new LinkedList<JmlTypeClauseExpr>();
     /** The axiom clauses from typeSpecs */
-    @NonNull public java.util.List<JmlTypeClauseExpr> axioms = new LinkedList<JmlTypeClauseExpr>();
+    public java.util.@NonNull List<JmlTypeClauseExpr> axioms = new LinkedList<JmlTypeClauseExpr>();
 
     JmlClassInfo superclassInfo;
     

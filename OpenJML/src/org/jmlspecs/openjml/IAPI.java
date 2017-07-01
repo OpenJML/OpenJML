@@ -85,7 +85,7 @@ public interface IAPI {
      * just one listener at a time).
      * @param p The listener
      */
-    public void setProgressListener(@Nullable Main.IProgressListener p);
+    public void setProgressListener(/*@ nullable */ Main.IProgressListener p);
     
     /** Sets a listener for ESC proof results as they are generated. Any previous
      * listener is returned and forgotten (there is just one listener at a time, 
@@ -221,7 +221,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull 
+    public /*@ non_null */ 
     java.util.List<JmlCompilationUnit> parseFiles(@NonNull String... filenames);
 
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
@@ -234,7 +234,7 @@ public interface IAPI {
      * @param inputs a collection of JavaFileObject objects representing inputs
      * @return a list of corresponding ASTs
      */
-    public @NonNull 
+    public /*@ non_null */ 
     java.util.List<JmlCompilationUnit> parseFiles(@NonNull Collection<? extends JavaFileObject> inputs);
     
     /** Parses each java file and its specs returning a list of the ASTs for corresponding
@@ -252,7 +252,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures files.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull
+    public /*@ non_null */
     java.util.List<JmlCompilationUnit> parseFiles(
             @NonNull File... files);
 
@@ -271,7 +271,7 @@ public interface IAPI {
     //@ ensures isOpen;
     //@ ensures inputs.length == \result.size();
     //@ ensures (* output elements are non-null *);
-    public @NonNull java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs);
+    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(@NonNull JavaFileObject... inputs);
     
     /** Produces a parse tree for a single file without any specifications; the
      * file may be either a .java or a .jml file.  The trees are not
@@ -570,7 +570,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
+    public /*@ non_null */
     JmlSpecs.MethodSpecs getSpecs(@NonNull MethodSymbol sym);
 
     /** Returns the specs for a given method, including specs of all overridden
@@ -611,7 +611,7 @@ public interface IAPI {
      */
     //@ requires isOpen;
     //@ ensures isOpen;
-    public @NonNull
+    public /*@ non_null */
     JmlTree.Maker nodeFactory();
 
     /** Prints out a given parse tree (or subtree).
@@ -652,7 +652,7 @@ public interface IAPI {
     //@ ensures isOpen;
     public @NonNull
     String prettyPrint(
-            @NonNull java.util.List<? extends JCTree> astlist,
+            /*@ non_null */ java.util.List<? extends JCTree> astlist,
             @NonNull String sep) throws java.io.IOException;
 
     /** Closes this instance of the compiler, releasing internal memory;

@@ -273,7 +273,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @NonNull final protected JmlTreeUtils treeutils;
     
     /** The factory used to create AST nodes, initialized in the constructor */
-    @NonNull final protected JmlTree.Maker M;
+    final protected JmlTree.@NonNull Maker M;
 
     // The following fields depend on the method being converted but
     // are otherwise fixed for the life of the object

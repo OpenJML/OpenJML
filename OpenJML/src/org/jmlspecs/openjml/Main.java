@@ -651,7 +651,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     //@ requires (* elements of remainingArgs are non-null *);
     //@ requires 0<= i && i< args.length;
     //@ ensures \result > i;
-    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, @NonNull java.util.List<String> remainingArgs, @NonNull java.util.List<String> files ) {
+    int processJmlArg(@NonNull String[] args, int i, @NonNull Options options, /*@ non_null */ java.util.List<String> remainingArgs, /*@ non_null */ java.util.List<String> files ) {
         String res = "";
         String s = args[i++];
         if (s == null || s.isEmpty()) return i; // For convenience, allow but ignore null or empty arguments
