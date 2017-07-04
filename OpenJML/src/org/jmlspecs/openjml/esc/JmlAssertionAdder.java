@@ -445,6 +445,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected Map<Object,JCExpression> paramActuals;
     
+    protected Map<Symbol, Type> typeActuals = new HashMap<>();
+    
     /** A map from formals to a declaration of a variable that holds the formal's
      * value at method body entrance (for use by postconditions).
      */
@@ -1488,6 +1490,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     protected <T extends Symbol> void putSymbol(T sym, T newsym) {
         mapSymbols.put(sym, newsym);
+    }
+    
+    protected Type convertType(Type origtype) {
+        // FIXME - need to walk the type to create a new, substituted type
+        if (origtype instanceof Type.TypeVar) {
+            Type ntype = typeActuals.get(origtype.tsym);
+            if (ntype != null) return ntype;
+        }
+        return origtype;
     }
     
 
@@ -3299,6 +3310,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
             if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
             
+            if (dd.type.isParameterized()) {
+                List<Type> argtypes = dd.type.getTypeArguments();
+                List<Type> formals = dd.type.tsym.type.getTypeArguments();
+                
+                for (Type t: formals) {
+                    Type target = argtypes.head;
+                    // map t to target
+                    typeActuals.put(t.tsym, target);
+                    argtypes = argtypes.tail;
+                }
+            }
             boolean pv = checkAccessEnabled;
             checkAccessEnabled = false;
             try {
@@ -6296,6 +6318,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return;
             }
             
+            if (that.toString().contains("get()")) Utils.stop();
+            
             JmlMethodSpecs mspecs = specs.getDenestedSpecs(calleeMethodSym);
             boolean inliningCall = mspecs != null && mspecs.decl != null && mspecs.decl.mods != null && attr.findMod(mspecs.decl.mods,JmlTokenKind.INLINE) != null;
             
@@ -6323,10 +6347,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (!doTranslations && that instanceof JCNewClass) doTranslations = true; // FIXME - work this out in more detail. At least there should not be anonymous classes in JML expressions
             boolean calleeIsFunction = attr.isFunction(calleeMethodSym);
             if (calleeIsFunction && translatingJML) doTranslations = false;
+            boolean hasTypeArgs = calleeMethodSym.getReturnType() instanceof Type.TypeVar;  // FIXME - should iterate through the whole type, I think
 
-            if (!doTranslations) {
+            if (!doTranslations && !hasTypeArgs) {
                 List<JCExpression> ntrArgs = trArgs;
-                if (useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction) {
+                if ((useMethodAxioms || !localVariables.isEmpty() || calleeIsFunction)) {
 
                     boolean details = true
                             && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass)
@@ -6412,6 +6437,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (utils.isJMLStatic(calleeMethodSym) || trArgs.isEmpty()) {
                         result = eresult = trExpr;
                     } else {
+                        // FIXME - this does not rename the call and leaves the receiver outside the arg list ???
                         result = eresult = treeutils.makeMethodInvocation(that,newThisExpr,calleeMethodSym,trArgs);
                     }
                 }
@@ -6425,9 +6451,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // expressions - at least if the method returns a value and the
             // method call is a subexpression of a larger expression
             
-            Type resultType = null;
-            if (meth != null) resultType = meth.type.getReturnType();
-            if (newclass != null) resultType = newclass.clazz.type;
+            // Note: that.type will have type variables resolved for this call site, 
+            // courtesy of the type attribution phase, whereas meth.type will
+            // still contain type variables
+            Type resultType = that.type;
+            //if (meth != null) resultType = meth.type.getReturnType();
+            //if (newclass != null) resultType = newclass.clazz.type;
             
             boolean isVoid = resultType.getTag() == TypeTag.VOID;
             
@@ -6435,10 +6464,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // everything else is within a block.
             JCIdent resultId = null;
             if (!isVoid) {
-                if (esc && !doTranslations) {
-                    result = eresult = trExpr; // FIXME - for now skip all the checking of preconditions etc - we are in the middle of a quantified expression
-                    return;
-                } 
+//                if (esc && !doTranslations) {
+//                    result = eresult = trExpr; // FIXME - for now skip all the checking of preconditions etc - we are in the middle of a quantified expression
+//                    return;
+//                } 
                 // The following line is used by spec inference to know what the newly declared variable is the
                 // result of. The : in the comment is essential and used to delineate the descriptive text from the text of the expression
                 addStat(comment(that,"Declaration for return value: " + that.toString(), methodDecl.source()));
@@ -8098,9 +8127,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // FIXME - this needs work per the complicated Java conversion rules
     
     /** Adds any checks and conversions that Java implicitly applies to convert
-     * the given expression to the given type.
+     * the given expression to the given type; the 'expr' argument is already converted.
      */
     public JCExpression addImplicitConversion(DiagnosticPosition pos, Type newtype, JCExpression expr) {
+        Type origtype = convertType(expr.type); // Subsitutes type variables
         if (pureCopy) return expr;
         if (paramActuals != null && newtype instanceof Type.TypeVar) {
             JCExpression e = paramActuals.get(newtype.toString());
@@ -8109,8 +8139,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        boolean isPrim = expr.type.isPrimitive() && expr.type.getTag() != TypeTag.BOT;
-        boolean newIsPrim = newtype.isPrimitive() && expr.type.getTag() != TypeTag.BOT;
+        boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
+        boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
         
         // If we are converting from a non-primitive to primitive type (unboxing),
         // check that the expression is not null
@@ -8125,7 +8155,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 addAssert(pos, Label.POSSIBLY_NULL_UNBOX, e);
             }
         }
-        if (rac && expr.type.tsym == jmltypes.repSym(jmltypes.BIGINT) && newIsPrim) {
+        if (rac && origtype.tsym == jmltypes.repSym(jmltypes.BIGINT) && newIsPrim) {
             // For checking reductions of \bigint to regular int in MATH mode
             if (newtype != jmltypes.BIGINT) {
                 int p = pos.getPreferredPosition();
@@ -8988,6 +9018,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (tlhs.getTag() == TypeTag.BOT) t = trhs;
                         else t = treeutils.maxType(tlhs, trhs);
                     }
+                    t = convertType(t);
                 }
                 // FIXME - this is incorrect, but handles Jml primitive types at least
 //                if (jmltypes.isJmlType(t)){ 
@@ -9211,6 +9242,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     public void visitTypeCast(JCTypeCast that) {
         // Note - casting a null produces a null value
         Type origType = that.getExpression().type;
+        origType = convertType(origType);
         if (origType.toString().contains("capture")) Utils.stop();
         JCExpression arg = convertExpr(that.getExpression());
         Type argType = arg.type;
