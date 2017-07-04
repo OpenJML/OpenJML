@@ -91,7 +91,7 @@ public class escinline extends EscBase {
                 );
     }
     
-    // This test is OK with bigint math, but not with java math.
+    // This test is OK with bigint math (cf. testInline2a), but not with java math.
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"

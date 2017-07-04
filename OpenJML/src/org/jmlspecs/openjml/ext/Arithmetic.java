@@ -344,20 +344,22 @@ abstract public class Arithmetic extends ExpressionExtension {
                 }
             } else if (optag == JCTree.Tag.DIV) {
                 // a/b overflows only if  a == min && b == -1
-                if (newtype.getTag() == TypeTag.INT) {
-                    JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
-                    JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(that.pos, -1);
-                    JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
-                    JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
-                    JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
-                    rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in int divide");
-                } else if (newtype.getTag() == TypeTag.LONG) {
-                    JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
-                    JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(that.pos, -1L);
-                    JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
-                    JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
-                    JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
-                    rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in long divide");
+                {
+                    if (newtype.getTag() == TypeTag.INT) {
+                        JCExpression minlit = rewriter.treeutils.makeIntLiteral(that.pos, Integer.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeIntLiteral(that.pos, -1);
+                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
+                        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in int divide");
+                    } else if (newtype.getTag() == TypeTag.LONG) {
+                        JCExpression minlit = rewriter.treeutils.makeLongLiteral(that.pos, Long.MIN_VALUE);
+                        JCExpression minusonelit = rewriter.treeutils.makeLongLiteral(that.pos, -1L);
+                        JCExpression a = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, lhs, minlit);
+                        JCExpression b = rewriter.treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rewriter.treeutils.longeqSymbol, rhs, minusonelit);
+                        JCExpression x = rewriter.treeutils.makeNot(that.pos, rewriter.treeutils.makeAnd(that.pos, a, b));
+                        rewriter.addAssert(that, Label.ARITHMETIC_OP_RANGE, x, "overflow in long divide");
+                    }
                 }
             } else if (optag == JCTree.Tag.MOD){
                 // a%b is always OK
@@ -370,7 +372,7 @@ abstract public class Arithmetic extends ExpressionExtension {
         
         // Implement the operation, correcting for overflow if needed
         
-        boolean isBigint = rewriter.jmltypes.isJmlType(newtype);
+        boolean isBigint = rewriter.jmltypes.isJmlTypeOrRepType(newtype);
         JCExpression bin;
         if (rewriter.rac && rewriter.jmltypes.isJmlType(newtype)) {
             bin = rewriter.makeBin(that,optag,that.getOperator(),lhs,rhs,newtype);
@@ -546,7 +548,8 @@ abstract public class Arithmetic extends ExpressionExtension {
 //            return bin;
             
             // Don't actually need to promote mod operations, but doing it for consistency
-            Type newtype = mathType(rewriter,that.type);
+            Type newtype = that.type;
+            if (rewriter.rac) newtype = mathType(rewriter,that.type);
             
             return makeBinaryOp(rewriter, that, newtype, false, false);
 

@@ -522,6 +522,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     @Nullable protected JCIdent oldenv;
     
+    protected JCBlock oldBlock;
+    
     /** The \old label to use for the pre-state */
     protected JCIdent preLabel;
     
@@ -2021,7 +2023,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     protected JCVariableDecl newTempDecl(DiagnosticPosition pos, Type t) {
         if (t.toString().contains("captured")) Utils.stop();
         Name n = M.Name(Strings.tmpVarString + (++count));
-        if (count == 19) Utils.stop();
         JCVariableDecl d = treeutils.makeVarDef(t, n, esc ? null : methodDecl.sym , esc ? Position.NOPOS : pos.getPreferredPosition()); // FIXME - see note below
         return d;
     }
@@ -3325,6 +3326,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         currentThisExpr = savedThis;
 
+        // Add a block into which we can later insert declarations and assumptions about old variables
+        JCStatement c = comment(methodDecl,"Assumptions regarding \\old expressions",log.currentSourceFile());
+        oldBlock = M.Block(0L, List.<JCStatement>of(c));
+        addStat(oldBlock);
 
         // We collect the precondition evaluation in a separate list so that
         // we can wrap the evaluations in a try-catch block, in case there are
@@ -9557,6 +9562,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
+        if (that.toString().equals("m.j") && oldenv != null) Utils.stop();
         JCExpression selected;
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
@@ -9742,7 +9748,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             fa.type = that.type; // in rac the type can be changed to a representation type
             result = eresult = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
             if (oldenv != null) {
-                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv);
+                result = eresult = treeutils.makeOld(that.pos,eresult,oldenv); // FIXME - will make overly nested \old expressions
+                if (oldenv.name == names.empty) { // FIXME - should do this for all labels; also don't want to repeat if already present
+                    JCExpression savedThisExpression = currentThisExpr;
+                    try {
+                        currentThisExpr = selected;
+                        pushBlock();
+                        addNullnessAllocationTypeCondition(that, that.sym, false);
+                        JCBlock bl = popBlock(0L,that);
+                        // append to oldblock list
+                        oldBlock.stats = oldBlock.stats.appendList(bl.stats);
+                    } finally {
+                        currentThisExpr = savedThisExpression;
+                    }
+                }
             }
         }
         treeutils.copyEndPosition(result, that);
@@ -11836,23 +11855,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 // Having the SMT solver implement a definition for \nonnullelementes causes it
                                 // at least Z3 to  timeout. So we insert the definition directly.
                                 int p = arg.pos;
-                                // replace \nonnullelements(arg) with arg != null && (\forall int temp; 0 <= temp && temp < arg.length; arg[temp] != null);
+                                // replace \nonnullelements(arg) with (\let temp0 = arg; temp0 != null && (\forall int temp; 0 <= temp && temp < temp0.length; temp0[temp] != null);
+                                Name nm0 = names.fromString("__JMLtemp" + (++count));
+                                JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
+                                JCExpression id0 = treeutils.makeIdent(p,  vd0.sym);
                                 Name nm = names.fromString("__JMLtemp" + (++count));
                                 JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
                                 JCExpression z = treeutils.makeIntLiteral(p,  0);
                                 JCExpression id1 = treeutils.makeIdent(p,  vd.sym);
                                 JCExpression id2 = treeutils.makeIdent(p,  vd.sym);
-                                JCExpression al = treeutils.makeArrayLength(p, arg);
+                                JCExpression al = treeutils.makeArrayLength(p, id0);
                                 JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
                                 JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, al);
-                                JCExpression element = treeutils.makeArrayElement(p, arg, treeutils.makeIdent(p,  vd.sym));
+                                JCExpression element = treeutils.makeArrayElement(p, id0, treeutils.makeIdent(p,  vd.sym));
                                 JCExpression nnull = treeutils.makeNotNull(p, element);
                                 JCExpression ex = M.JmlQuantifiedExpr(JmlTokenKind.BSFORALL, List.<JCVariableDecl>of(vd), 
                                         treeutils.makeAnd(p, a,b), nnull);
                                 ex.pos = p;
                                 ex.type = syms.booleanType;
                                 ex = treeutils.makeAnd(p,  treeutils.makeNotNull(p,  arg), ex);
-                                e= convert(ex);
+                                JCExpression let = M.LetExpr(vd0, ex);
+                                let.pos = p;
+                                let.type  = ex.type;
+                                e = convert(let);
                             }
                         }
                         conj = conj == null? e :
