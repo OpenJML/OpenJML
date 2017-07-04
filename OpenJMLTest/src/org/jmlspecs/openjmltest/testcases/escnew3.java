@@ -804,7 +804,6 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testLabels() {
-    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
@@ -849,7 +848,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testOldClause() {
-    	main.addOptions("-escMaxWarnings=1","-subexpressions","-show","-method=m");
+    	main.addOptions("-escMaxWarnings=1");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"

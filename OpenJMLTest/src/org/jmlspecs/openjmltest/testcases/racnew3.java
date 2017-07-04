@@ -110,6 +110,7 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testCast() {
+        main.addOptions("-code-math=safe","-spec-math=safe","-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -543,7 +544,6 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-    	main.addOptions("-show");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"

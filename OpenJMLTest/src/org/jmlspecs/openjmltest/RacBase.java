@@ -210,7 +210,7 @@ public abstract class RacBase extends JmlTestCase {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String line: lines) {
-                	if (isMac && !line.equals(list[i]) && line.startsWith(macstring)) line = line.substring(macstring.length());
+                	if (isMac && line.startsWith(macstring) && i < list.length && !line.equals(list[i])) line = line.substring(macstring.length());
                     if (i < list.length) assertEquals("Output line " + i, list[i], line);
                     i++;
                 }
@@ -299,6 +299,7 @@ public abstract class RacBase extends JmlTestCase {
             args.add("-rac");
             args.add("-no-purityCheck");
             args.add("-code-math=java");
+            args.add("-spec-math=java");
             if (new File(dirname).isDirectory()) args.add("-dir");
             args.add(dirname);
             args.addAll(Arrays.asList(opts));

@@ -19,11 +19,7 @@ public class escstrings extends EscBase {
     
     @Parameters
     static public Collection<String[]> parameters() {
-        java.util.List<String> ss = new java.util.LinkedList<String>();
-        ss.addAll(solvers);
-        ss.remove("cvc4"); // FIXME - hangs up on CVC4 - fix the long proof times
-        ss.remove("yices2"); // FIXME - yices2 does not support quantifiers and so works poorly with strings
-        return optionsAndSolvers(minQuantOptions,ss);
+        return minQuantAndSolvers(solvers);
     }
     
 

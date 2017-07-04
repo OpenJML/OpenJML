@@ -633,8 +633,8 @@ public class Utils {
         return a.divide(b);
     }
 
-    public static BigInteger bigint_mod(BigInteger a, BigInteger b) {
-        return a.mod(b);
+    public static BigInteger bigint_remainder(BigInteger a, BigInteger b) {
+        return a.remainder(b);
     }
 
     public static BigInteger bigint_neg(BigInteger a) {
@@ -685,6 +685,10 @@ public class Utils {
         return a.intValue();
     }
 
+    public static char bigint_tochar(BigInteger a) {
+        return (char)a.shortValue();
+    }
+
     public static short bigint_toshort(BigInteger a) {
         return a.shortValue();
     }
@@ -698,7 +702,11 @@ public class Utils {
     }
 
     public static BigInteger bigint_valueOf(long i) {
-        return new BigInteger(Long.toString(i));
+        return BigInteger.valueOf(i);
+    }
+
+    public static BigInteger bigint_valueOfNumber(Number i) {
+        return BigInteger.valueOf(i.longValue());
     }
 
     public static Real real_add(Real a, Real b) {

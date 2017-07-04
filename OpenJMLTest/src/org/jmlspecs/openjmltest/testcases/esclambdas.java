@@ -91,7 +91,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2b() {
-        main.addOptions("-show","-method=m1");
+        //main.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -136,7 +136,7 @@ public class esclambdas extends EscBase {
     
     @Test @Ignore // FIXME - not working yet
     public void testIdentity() {
-        main.addOptions("-show","-method=m1");
+        //.addOptions("-show","-method=m1");
         helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 

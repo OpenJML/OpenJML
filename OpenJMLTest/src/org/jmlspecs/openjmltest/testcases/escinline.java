@@ -28,7 +28,6 @@ public class escinline extends EscBase {
     
     @Test // basic test of inlining, checking assignable and ensures and return value
     public void testInline1() {
-    	//main.addOptions("-show","-method=m3");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 
@@ -92,9 +91,9 @@ public class escinline extends EscBase {
                 );
     }
     
+    // This test is OK with bigint math, but not with java math.
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
-    	//main.addOptions("-show","-method=m3");
         helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
@@ -110,11 +109,52 @@ public class escinline extends EscBase {
                 
                 +"  public int j;\n"
                 
-                +"  //@ ensures m.j + 1 ==  \\old(m.j);\n"
+                +"  //@ ensures m.j + 1 ==  \\old(m.j);\n"   // Line 13
                 +"  //@ ensures  \\result == ii + 1;\n"
                 +"  //@ assignable m.j;\n"
                 +"  public int m1(M m, int ii) {\n"
+                +"    return m.minline(ii);\n"    // Line 17
+                +"  }\n"
+                                
+                +"  //@ assignable m.j;\n"
+                +"  public int m2(M m, int ii) {\n"
                 +"    return m.minline(ii);\n"
+                +"  }\n"
+                
+                +"  //@ assignable \\nothing;\n" // ERROR
+                +"  public int m3(M m, int ii) {\n"
+                +"    return m.minline(ii);\n"
+                +"  }\n"
+                                
+                +"}"
+                ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3:  j", 7
+                ,"/tt/TestJava.java:23: warning: Associated declaration", 7
+                );
+    }
+    
+    @Test  // inlining from a different class (with a different 'this')
+    public void testInline2a() {
+        helpTCX("tt.TestJava","package tt; //@ code_bigint_math spec_bigint_math \n"
+                +" class M { \n"
+                +"  public int j;\n"
+                +"  //+OPENJML@ inline\n"
+                +"  public int minline(int i) {\n"
+                +"    j = j -1;\n"
+                +"    return i + 1;\n"
+                +"  }\n"
+                +"}\n"
+                
+                +"//@ code_bigint_math spec_bigint_math \n"
+                +"public class TestJava { \n"
+                
+                +"  public int j;\n"
+                
+                +"  //@ ensures m.j + 1 ==  \\old(m.j);\n"   // Line 13
+                +"  //@ ensures  \\result == ii + 1;\n"
+                +"  //@ assignable m.j;\n"
+                +"  public int m1(M m, int ii) {\n"
+                +"    return m.minline(ii);\n"    // Line 17
                 +"  }\n"
                                 
                 +"  //@ assignable m.j;\n"

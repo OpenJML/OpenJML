@@ -86,7 +86,6 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2c() {
-    	main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"

@@ -339,6 +339,7 @@ public class escCounterexamples extends EscBase {
     /** Tests method calls in expressions */
     @Test
     public void testCE11() {
+        main.addOptions("-code-math=math");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

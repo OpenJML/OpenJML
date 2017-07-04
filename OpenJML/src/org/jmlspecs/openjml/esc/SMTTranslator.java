@@ -1707,18 +1707,27 @@ public class SMTTranslator extends JmlTreeScanner {
                 else if (tree.type.getTag() == TypeTag.DOUBLE)
                     result = F.fcn(F.symbol("/"), args);
                 else if (useBV)
-                    // FIXME - check whether JML definitions match SMT definitions
+                    // bvsdiv truncates towards zero
                 	result = F.fcn(F.symbol("bvsdiv"), args);
                 else
-                    // FIXME - check whether JML definitions match SMT definitions
-                    result = F.fcn(F.symbol("div"), args);
+                    // div truncates towards minus infinity
+                    result = F.fcn(F.symbol("ite"), 
+                            F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                            F.fcn(F.symbol("div"), args),
+                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
+                            );
                 break;
             case MOD:
-                // FIXME - check whether JML definitions match SMT definitions
+                // bvsrem from the BitBVector theory is what matches Java behavior
+                // mod in the Ints theory does not - it produces modulo (always positive) not remainders
                 if (useBV)
                     result = F.fcn(F.symbol("bvsrem"), args);
                 else
-                    result = F.fcn(F.symbol("mod"), args);
+                    result = F.fcn(F.symbol("ite"), 
+                                    F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
+                                    F.fcn(F.symbol("mod"), args),
+                                    F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1))))
+                                    );
                 break;
                 // FIXME - implement bit operations
             case BITAND:

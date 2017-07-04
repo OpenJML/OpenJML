@@ -24,6 +24,7 @@ public class racnewLoops extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        main.addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint sermsantics
         //main.addOptions("-verboseness=4");
         expectedNotes = 0;
     }

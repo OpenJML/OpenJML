@@ -4,6 +4,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -40,13 +41,20 @@ public class SFBugs extends EscBase {
     
 	public void helpTCF(String sourceDirname, String outDir, String ... opts) {
     	//Assert.fail(); // FIXME - Java8 - long running
-		escOnFiles(sourceDirname,outDir,opts);
+	    ArrayList<String> list = new ArrayList<String>();
+	    list.addAll(Arrays.asList(opts));
+	    list.add("-code-math=bigint");
+	    list.add("-spec-math=bigint");
+		escOnFiles(sourceDirname,outDir,list.toArray(opts));
 	}
 
 	public void helpTCG(String ... opts) {
 		String dir = "test/" + getMethodName(1);
 		List<String> a = new LinkedList<>();
-		a.add(0,"-cp"); a.add(1,dir);
+		a.add(0,"-cp"); 
+		a.add(1,dir);
+        a.add("-code-math=bigint");
+        a.add("-spec-math=bigint");
 		a.addAll(Arrays.asList(opts));
 		escOnFiles(dir, dir, a.toArray(new String[a.size()]));
 	}
@@ -161,7 +169,6 @@ public class SFBugs extends EscBase {
     @Ignore // FIXME - needs all the model classes - and they need cleaning up
     @Test public void gitbug461() {
     	expectedExit = 0;
-        helpTCG("-show","-method=makeSequence");
     }
     
     @Test public void gitbug462() {

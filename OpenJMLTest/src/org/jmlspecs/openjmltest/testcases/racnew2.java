@@ -25,6 +25,7 @@ public class racnew2 extends RacBase {
         jdkrac = false;
         //noCollectDiagnostics = true; print = true;
         super.setUp();
+        main.addOptions("-code-math=java","-spec-math=java");;
         //main.addOptions("-verboseness",   "4");
         expectedNotes = 0;
     }
@@ -655,7 +656,7 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:4: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"/tt/TestJava.java:4: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
                 ,"  Integer ii = (Integer)o;"
                 ,"               ^"
                 ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
@@ -711,7 +712,7 @@ public class racnew2 extends RacBase {
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
                 "}"
-                ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"/tt/TestJava.java:7: JML A cast is invalid - from @org.jmlspecs.annotation.NonNull java.lang.Object to java.lang.Integer"
                 ,"Exception in thread \"main\" java.lang.ClassCastException: java.lang.Boolean cannot be cast to java.lang.Integer"
                 ,"\tat tt.TestJava.main(TestJava.java:7)"
         );        
@@ -737,6 +738,7 @@ public class racnew2 extends RacBase {
 
     /** Tests the JML lbl lblpos and lblneg expressions */
     @Test public void testLbl() {
+        main.addOptions("-spec-math=math");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
@@ -952,7 +954,7 @@ public class racnew2 extends RacBase {
     }
     
     /** Checks generic method. */
-    @Test public void testGenMethod2() {
+    @Test public void testGenMethod2() {  // FIXME - this needs more investigation -- the type int seems to be used (e.g. in addImplicitCOnversion) in an expression i != null where I would expect it to have been converted to T
         helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " System.out.println(\"END\"); } \n" +
@@ -1293,7 +1295,47 @@ public class racnew2 extends RacBase {
                 );
     }       
 
-    @Test public void testBoxingOnAssignment() {
+    @Test public void testBoxingOnAssignment() {  // In Java mode
+        main.addOptions("-code-math=java");
+        helpTCX("tt.A","package tt; public class A { \n"
+                +"public static void main(String[] args) {  \n"
+                +"{ Integer i; int k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Boolean i; boolean k; i = true;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Short i; short k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Long i; long k; i = 6L;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Byte i; byte k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Double i; double k; i = 6.0;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Float i; float k; i = 6.0f;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+                +"{ Character i; char k; i = 6;\n"
+                +" k = i;\n"
+                +"//@ assert k == i;\n}\n"
+
+                    +"{ Integer i = 6;\n"
+                    +"int k = i;\n"
+                    +"//@ assert k == i+1;\n}\n"
+                    +"System.out.println(\"END\"); \n"
+                    +"}}"
+                    ,"/tt/A.java:37: JML assertion is false"
+                    ,"END"
+                );
+    }
+
+    @Test public void testBoxingOnAssignmentMathMode() {
+        main.addOptions("-code-math=math");
         helpTCX("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"{ Integer i; int k; i = 6;\n"

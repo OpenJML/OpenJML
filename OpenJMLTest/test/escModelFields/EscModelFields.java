@@ -1,4 +1,4 @@
-/*@ code_java_math */
+
 public class EscModelFields {
 
     private int rep; //@ in value;

@@ -109,7 +109,7 @@ public class escDemofiles extends EscBase {
     @Test
     public void testMaxByElimination() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/verifythis/MaxByElimination.java","test/demoMaxByElimination","-progress","-code-math=bigint");
     }
 
     @Test // FIXME: Cannot reason about \sum
@@ -121,7 +121,7 @@ public class escDemofiles extends EscBase {
     @Test
     public void testEscTest() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting","-method=zero_matrix","-show");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/misc1/EscTest.java","test/demoEscTest","-progress","-jmltesting");//,"-method=zero_matrix","-show");
     }
 
 

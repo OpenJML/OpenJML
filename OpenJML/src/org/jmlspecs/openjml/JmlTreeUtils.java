@@ -144,6 +144,7 @@ public class JmlTreeUtils {
     final public Symbol boolneSymbol;
     final public Symbol intminusSymbol;
     final public Symbol intplusSymbol;
+    final public Symbol intdivideSymbol;
     final public Symbol inteqSymbol;
     final public Symbol intneqSymbol;
     final public Symbol intgtSymbol;
@@ -154,6 +155,7 @@ public class JmlTreeUtils {
     final public Symbol longltSymbol;
     final public Symbol longminusSymbol;
     final public Symbol longplusSymbol;
+    final public Symbol longdivideSymbol;
     final public JCLiteral trueLit;
     final public JCLiteral falseLit;
     final public JCLiteral zero;
@@ -204,6 +206,7 @@ public class JmlTreeUtils {
         boolneSymbol = findOpSymbol(JCTree.Tag.NE,syms.booleanType);
         intminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.intType);
         intplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.intType);
+        intdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.intType);
         inteqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.intType);
         intneqSymbol = findOpSymbol(JCTree.Tag.NE,syms.intType);
         intgtSymbol = findOpSymbol(JCTree.Tag.GT,syms.intType);
@@ -214,6 +217,7 @@ public class JmlTreeUtils {
         longeqSymbol = findOpSymbol(JCTree.Tag.EQ,syms.longType);
         longminusSymbol = findOpSymbol(JCTree.Tag.MINUS,syms.longType);
         longplusSymbol = findOpSymbol(JCTree.Tag.PLUS,syms.longType);
+        longdivideSymbol = findOpSymbol(JCTree.Tag.DIV,syms.longType);
         trueLit = makeLit(0,syms.booleanType,1);
         falseLit = makeLit(0,syms.booleanType,0);
         zero = makeLit(0,syms.intType,0);
@@ -340,7 +344,7 @@ public class JmlTreeUtils {
     public JCLiteral makeLit(int pos, Type type, Object value) {
         return factory.at(pos).Literal(type.getTag(), value).setType(type.constType(value));
     }
-
+    
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isTrueLit(JCTree tree) {
         if (tree == trueLit) return true;
@@ -685,6 +689,7 @@ public class JmlTreeUtils {
         JCUnary e = factory.at(pos).Unary(optag,expr);
         e.operator = opsymbol;
         e.type = e.operator.type.getReturnType();
+        if (expr.type.getTag() == TypeTag.NONE) e.type = expr.type; // For \bigint and \real operations
         copyEndPosition(e,expr);
         return e;
     }
@@ -746,7 +751,7 @@ public class JmlTreeUtils {
     public JCBinary makeEquality(int pos, JCExpression lhs, JCExpression rhs) {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
-        if (t.isPrimitive() && TypeTag.INT.ordinal() > t.getTag().ordinal()) t = syms.intType;
+        if (t.isPrimitive() && TypeTag.SHORT.ordinal() >= t.getTag().ordinal()) t = syms.intType;   // Perhaps should just presume the types are the same
         tree.operator = findOpSymbol(JCTree.Tag.EQ, t);
         tree.type = syms.booleanType;
         return tree;
@@ -1349,6 +1354,20 @@ public class JmlTreeUtils {
         return result;
     }
 
+    public JCFieldAccess makeArrayLength(int pos, JCExpression array) {
+        JCFieldAccess fa = (JCFieldAccess)factory.Select(array, syms.lengthVar);
+        fa.pos = pos;
+        fa.type = syms.intType;
+        return fa;
+    }
+    
+    public JCExpression makeArrayElement(int pos, JCExpression array, JCExpression index) {
+        JCExpression e = factory.Indexed(array,  index);
+        e.pos = pos;
+        e.type = ((Type.ArrayType)array.type).elemtype;
+        return e;
+    }
+    
     // FIXME - review & document - translates a type into ESC logic
     public JCExpression trType(int pos, Type type) {
         JCTree tree = factory.at(pos).Type(type);

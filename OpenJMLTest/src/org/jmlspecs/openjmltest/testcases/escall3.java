@@ -712,7 +712,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavoc() {
-    	main.addOptions("-method=m1","-show");
+    	main.addOptions("-exclude=TestJava");
         helpTCX("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 +"  /*@ non_null */ public TestJava ooo;\n"

@@ -61,11 +61,15 @@ public class escfiles extends EscBase {
     
     public void helpTF(String testDirname, String ... opts) {
         String d = "test/" + testDirname;
-        String[] newopts = new String[opts.length+3];
+        int extraOpts = 5;
+        String[] newopts = new String[opts.length+extraOpts];
+        // Fill in exactly 'extraOpts' initial elements
         newopts[0] = "-classpath";
         newopts[1] = d;
         newopts[2] = "-checkFeasibility=precondition,assert,reachable,exit";
-        System.arraycopy(opts,0,newopts,3,opts.length);
+        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
+        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
+        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
         helpTCF(d,d,newopts);
     }
 
@@ -220,7 +224,7 @@ public class escfiles extends EscBase {
     public void testBeanCan() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/BeanCan.java","test/demoBeancan","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint");
     }
 
     @Test @Ignore // FIXME - stuck or just long?
@@ -262,7 +266,7 @@ public class escfiles extends EscBase {
     @Test
     public void testCashAmountMutable() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/CashAmountMutable.java","test/escCashAmountMutable","-classpath",OpenJMLDemoPath + "/src/openjml/demo","-code-math=bigint","-spec-math=bigint");
     }
 
     @Test
@@ -293,13 +297,13 @@ public class escfiles extends EscBase {
     @Test
     public void testDMZLoopA() {
         expectedExit = 0;
-        helpTF("escDMZLoopA","-method=findMax");
+        helpTF("escDMZLoopA","-method=findMax","-code-math=bigint","-spec-math=bigint");
     }
 
     @Test
     public void testDMZLoopB() {
         expectedExit = 0;
-        helpTF("escDMZLoopB","-method=findMax");
+        helpTF("escDMZLoopB","-method=findMax","-code-math=bigint","-spec-math=bigint");
     }
 
     @Test

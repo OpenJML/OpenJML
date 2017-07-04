@@ -469,7 +469,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testSwitch() {
-        main.addOptions("-code-math=java");
+        main.addOptions("-code-math=math"); // To avoid warnings because of overflow
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -1038,7 +1038,7 @@ public class escnew extends EscBase {
                 +"  //@ requires true;\n"
                 +"  //@ ensures \\result >= i;\n"
                 +"  public int m2bad(boolean b, int i) {\n"
-                +"    return (b && (i == 1)) ? i : i + 1 ;\n"  // Error: silent overflow
+                +"    return (b && (i == 1)) ? i : i + 1 ;\n"  // Error: silent overflow - result may be less than i
                 +"  }\n"
                 
                 +"}"

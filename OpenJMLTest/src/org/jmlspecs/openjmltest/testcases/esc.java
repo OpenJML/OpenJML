@@ -39,6 +39,7 @@ public class esc extends EscBase {
 		super.setUp();
 		main.addOptions("-nullableByDefault"); // Because the tests were written
 												// this way
+		main.addOptions("-code-math=bigint","-spec-math=bigint");
 		// main.addOptions("-trace");
 		// JmlEsc.escdebug = true;
 		// org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -480,7 +481,7 @@ public class esc extends EscBase {
     @Test
     public void testNonNullElements2b() {
 //      Assume.assumeTrue(runLongTests);
-        main.addOptions("-show","-method=m2");
+//        main.addOptions("-show","-method=m2");
         helpTCX("tt.TestJava", "package tt; \n" 
                 + "public class TestJava { \n"
 
@@ -1388,7 +1389,7 @@ public class esc extends EscBase {
 		// main.addOptions("-show","-method=m3");
 		// main.addOptions("-progress");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "/*@ code_java_math*/  public class TestJava { \n" + "  public static int k;\n"
+				"package tt; \n" + "/*@ code_bigint_math*/  public class TestJava { \n" + "  public static int k;\n"
 						+ "  //@ requires i >= 0;\n" + "  //@ modifies k;\n" + "  //@ ensures k == 10;\n"
 						+ "  //@ signals (Exception e) k<0; signals_only Exception;\n"
 						+ "  public void m1(int i) throws RuntimeException {\n" + "    m(i);\n" + "    k = 10;\n"
@@ -1439,10 +1440,16 @@ public class esc extends EscBase {
 	public void testStrings() {
 		Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "public class TestJava { \n" + "  String s;\n" + "  String ss = \"abcde\";\n"
-						+ "  public boolean m(String sss) {\n" + "    return sss == (\"abcde\");\n" + "  }\n"
-						+ "  public boolean m1(/*@ non_null*/ String sss) {\n" + "    return sss.equals(\"abcde\");\n"
-						+ "  }\n" + "}");
+				"package tt; //@ code_bigint_math \n" + "public class TestJava { \n" 
+		                + "  String s;\n" 
+				        + "  String ss = \"abcde\";\n"
+						+ "  public boolean m(String sss) {\n" 
+				        + "    return sss == (\"abcde\");\n" 
+						+ "  }\n"
+						+ "  public boolean m1(/*@ non_null*/ String sss) {\n" 
+				        + "    return sss.equals(\"abcde\");\n"
+						+ "  }\n" 
+				        + "}");
 	}
 
 	@Test
@@ -1702,7 +1709,7 @@ public class esc extends EscBase {
 	}
 
 	@Test
-	public void testOld() {
+	public void testOldJava() {
 		helpTCX("tt.TestJava",
 				"package tt; \n" + "/*@ code_java_math*/ public class TestJava { \n" + "  static public  int i;\n"
 						+ "  //@ static public constraint i > \\old(i);\n" + "  //@ modifies i;\n"
@@ -1713,16 +1720,27 @@ public class esc extends EscBase {
 				"/tt/TestJava.java:4: warning: Associated declaration", 21);
 	}
 
-	@Test
-	public void testOld2() {
-		helpTCX("tt.TestJava",
-				"package tt; \n" + "/*@ code_java_math*/ public class TestJava { \n" + "  static public int i;\n"
-						+ "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-						+ "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
-						+ "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
-				"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
-				22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
-	}
+    @Test
+    public void testOld2Math() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
+                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
+                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
+                22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
+    }
+
+    @Test
+    public void testOld2() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" + "  static public int i;\n"
+                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
+                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method bbad",
+                22, "/tt/TestJava.java:8: warning: Associated declaration", 7);
+    }
 
 	@Test
 	public void testReturn() {
@@ -1980,7 +1998,7 @@ public class esc extends EscBase {
 	@Test
 	public void testMethodCallRet() {
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
+				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_bigint_math*/ public class TestJava { \n"
 						+ "  static public int j;\n" + "  //@ requires i>0;\n" + "  //@ modifies j;\n"
 						+ "  //@ ensures j == i+1 && \\result == j;\n"
 						+ "  static public int m(int i) { j = i+1; return j; }\n" + "  //@ requires i>1; \n"
@@ -2111,42 +2129,57 @@ public class esc extends EscBase {
 		);
 	}
 
-	@Test
-	public void testDoWhileSpecs() {
-		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
-						+ "  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
-						+ "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
-						+ "  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
-						+ "}",
-				anyorder(
-						seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
-								61),
-						seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",
-								61),
-						seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",
-								61)));
-	}
+    @Test
+    public void testDoWhileSpecs() {
+        helpTCX("tt.TestJava",
+                "package tt; import org.jmlspecs.annotation.*; \n" + " public class TestJava { \n"
+                        + "  public void inst() { int i = 5; /*@ loop_invariant i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ reachable; */ }\n"
+                        + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
+                        + "  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
+                        + "}",
+                anyorder(
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
+                                61),
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",
+                                61),
+                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",
+                                61)));
+    }
+
+    @Test
+    public void testDoWhileSpecsJava() {
+        //main.addOptions("-show","-method=inst","-subexpressions");
+        helpTCX("tt.TestJava",
+                "package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math */ public class TestJava { \n"
+                        + "  public void inst() { int i = 5; /*@ loop_invariant  i>0; decreases i; */ do { i = i-1; } while (i>0); /*@ assert i == 0; */ }\n"
+                        + "  /*@ code_bigint_math */public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ do  i = i+1;  while (i>0); /*@ assert i == 0; */ }\n"
+                        + "  /*@ code_bigint_math */public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
+                        + "}",
+                anyorder(
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
+                                61),
+                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",
+                                61),
+                        seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",
+                                61)));
+    }
 
 	@Test
 	public void testWhileSpecs() {
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
-						+ "  public void insta() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-						+ "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-						+ "  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
-						+ "  public void instd() { int i = 5; /*@ loop_invariant i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
-						+ "}",
-				"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
-				61// 91
-				// ,"/tt/TestJava.java:4: warning: Associated declaration",61
-				,
-				"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",
-				61// 100
-				// ,"/tt/TestJava.java:5: warning: Associated declaration",61
-				,
-				"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",
-				40// 99
+				"package tt; import org.jmlspecs.annotation.*; \n" 
+		                + "/*@ code_bigint_math*/ public class TestJava { \n"
+						+ "  public void insta() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+						+ "  public void instb() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+						+ "  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }\n"
+						+ "  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }\n"
+						+ "}"
+				,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69// 91
+				// ,"/tt/TestJava.java:4: warning: Associated declaration",69
+				,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",69// 100
+				// ,"/tt/TestJava.java:5: warning: Associated declaration",69
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariant) in method instc",40
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method instd",40// 99
 		// ,"/tt/TestJava.java:6: warning: Associated declaration",40
 		// FIXME - adjust to have the location + associated declaration
 		);
@@ -2600,7 +2633,7 @@ public class esc extends EscBase {
 	@Test
 	public void testPureMethodStatic() {
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ code_java_math*/ public class TestJava { \n" + "  //@ ensures \\result == i+1;\n"
+				+ "/*@ code_bigint_math*/ public class TestJava { \n" + "  //@ ensures \\result == i+1;\n"
 				+ "  //@ pure \n" + "  public static int m(int i) { return i+1; }\n"
 				+ "  public static void m1(int a, int b) { int k = a+1; /*@ assert k == m(a); */ }\n"
 				+ "  public static void m1a(int a, int b) { int k = a+2; /*@ assert k == m(a); */ }\n"
@@ -2616,7 +2649,7 @@ public class esc extends EscBase {
 	@Test
 	public void testPureMethod() {
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
+				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_bigint_math*/ public class TestJava { \n"
 						+ "  //@ ensures \\result == i+1;\n" + "  //@ pure \n"
 						+ "  public int m(int i) { return i+1; }\n"
 						+ "  public void m1(int a, int b) { int k = a+1; /*@ assert k == m(a); */ }\n"
@@ -2633,7 +2666,7 @@ public class esc extends EscBase {
 	@Test
 	public void testPureNonFunction() {
 		helpTCX("tt.TestJava",
-				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_java_math*/ public class TestJava { \n"
+				"package tt; import org.jmlspecs.annotation.*; \n" + "/*@ code_bigint_math*/ public class TestJava { \n"
 						+ "  public int z;\n" + "  //@ ensures \\result == z+1;\n" + "  //@ pure \n"
 						+ "  public int m() { return z+1; }\n"
 						+ "  public void m1(int a, int b) { int k = z+1; /*@ assert k == m(); */ }\n"
@@ -2651,7 +2684,7 @@ public class esc extends EscBase {
 	public void testPureNoArguments() {
 	    //main.addOptions("-show","-method=m1");
 		helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n"
-				+ "/*@ code_java_math*/ public class TestJava { \n" 
+				+ "/*@ code_bigint_math*/ public class TestJava { \n" 
 		        + "  public static int z;\n"
 				+ "  //@ ensures \\result == z+1;\n" 
 				+ "  //@ pure \n" 
@@ -2670,7 +2703,7 @@ public class esc extends EscBase {
 				+ "  \n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n" + "}\n"
 				+ "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n" + "  //@ ensures \\result > ii;\n"
 				+ "  abstract public int m(int ii);\n" + "}\n"
-				+ "/*@ code_java_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
+				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
 				+ "  //@ ensures \\result == i+1;\n" + "  //@ pure\n" + "  public int m(int i) { return i+1; }\n"
 				+ "  //@ ensures \\result == a+1;\n" + "  public int n1(int a) { return m(a); }\n"
 				+ "  public int n1a(int a) { return m(-1); }\n" + "}",
@@ -2686,7 +2719,7 @@ public class esc extends EscBase {
 				+ "  //@ requires iii > 0;\n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n"
 				+ "}\n" + "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n"
 				+ "  //@ ensures \\result > ii;\n" + "  abstract public int m(int ii);\n" + "}\n"
-				+ "/*@ code_java_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
+				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
 				+ "  //@ ensures \\result == i+1;\n" + "  //@ pure\n" + "  public int m(int i) { return i+1; }\n"
 				+ "  //@ ensures \\result == a+1;\n" + "  public int n1(int a) { return m(a); }\n"
 				+ "  public int n1a(int a) { return m(-1); }\n" + "}");
@@ -2698,7 +2731,7 @@ public class esc extends EscBase {
 				+ "  //@ requires iii > 0;\n" + "  //@ ensures \\result > 0;\n" + "  abstract public int m(int iii);\n"
 				+ "}\n" + "abstract class TestJavaB extends TestJavaA { \n" + "  //@ also\n"
 				+ "  //@ requires ii > 0;\n" + "  //@ ensures \\result > ii;\n" + "  abstract public int m(int ii);\n"
-				+ "}\n" + "/*@ code_java_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
+				+ "}\n" + "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
 				+ "  //@ requires i > 0;\n" + "  //@ ensures \\result == i+1;\n" + "  //@ pure\n"
 				+ "  public int m(int i) { return i+1; }\n" + "}");
 	}
@@ -2710,7 +2743,7 @@ public class esc extends EscBase {
 				+ "  abstract public int m(int iii);\n" + "}\n" + "abstract class TestJavaB extends TestJavaA { \n"
 				+ "  //@ also\n" + "  //@ requires ii == 2;\n" + "  //@ ensures \\result == ii;\n"
 				+ "  abstract public int m(int ii);\n" + "}\n"
-				+ "/*@ code_java_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
+				+ "/*@ code_bigint_math*/ public class TestJava extends TestJavaB { \n" + "  //@ also\n"
 				+ "  //@ requires i == 3;\n" + "  //@ ensures \\result == i;\n" + "  //@ pure\n"
 				+ "  public int m(int i) { return i; }\n" // OK
 				+ "  //@ requires a >= 1 && a <= 3;\n" + "  //@ ensures \\result == a;\n"
@@ -2892,19 +2925,39 @@ public class esc extends EscBase {
 	public void testUndefinedInJava2() {
 		//main.addOptions("-logic=AUFNIA");
 		helpTCX("tt.TestJava",
-				"package tt; \n" + "/*@ nullable_by_default */ /*@ code_java_math*/ public class TestJava { \n"
-						+ "  int j;\n" + "  public static void m(TestJava o) { \n" + "    int i = o.j; \n" + "  }\n  "
-						+ "  public static void m1(int[] a) { \n" + "    int i = a[0]; \n" + "  }\n"
-						+ "  //@ requires a != null;\n" + "  public static void m2(int[] a) { \n"
-						+ "    int i = a[-1]; \n" + "  }\n" + "  //@ requires a != null;\n"
-						+ "  public static void m3(int[] a) { \n" + "    //@ assume a.length == 1; \n"
-						+ "    int i = a[1]; \n" + "  }\n" + "  public static void m4(int i, int j) { \n"
-						+ "    int k = i/j; \n" + "  }\n" + "  public static void m5(int i, int j) { \n"
-						+ "    int k = i%j; \n" + "  }\n" + "  public static void m6( RuntimeException r) { \n"
-						+ "    Throwable t = r;\n" + "    Exception rr = ((Exception)t); \n" + "  }\n"
-						+ "  public static void m6a(Exception r) { \n" + "    Throwable t = r;\n"
-						+ "    RuntimeException rr = ((RuntimeException)t) ; \n" + "  }\n"
-						+ "  public static void m7(/*@ non_null*/ RuntimeException r) { \n" + "    Throwable t = r;\n"
+				"package tt; \n" + "/*@ nullable_by_default */ /*@ code_java_math spec_java_math*/ public class TestJava { \n"
+						+ "  int j;\n" 
+				        + "  public static void m(TestJava o) { \n" 
+						+ "    int i = o.j; \n" 
+				        + "  }\n  "
+						+ "  public static void m1(int[] a) { \n" 
+				        + "    int i = a[0]; \n" 
+						+ "  }\n"
+						+ "  //@ requires a != null;\n" 
+				        + "  public static void m2(int[] a) { \n"
+						+ "    int i = a[-1]; \n" 
+				        + "  }\n" 
+				        + "  //@ requires a != null;\n"
+						+ "  public static void m3(int[] a) { \n" 
+				        + "    //@ assume a.length == 1; \n"
+						+ "    int i = a[1]; \n" 
+				        + "  }\n" 
+						+ "  public static void m4(int i, int j) { \n"
+						+ "    int k = i/j; \n" 
+						+ "  }\n" 
+						+ "  public static void m5(int i, int j) { \n"
+						+ "    int k = i%j; \n" 
+						+ "  }\n" 
+						+ "  public static void m6( RuntimeException r) { \n"
+						+ "    Throwable t = r;\n" 
+						+ "    Exception rr = ((Exception)t); \n" 
+						+ "  }\n"
+						+ "  public static void m6a(Exception r) { \n" 
+						+ "    Throwable t = r;\n"
+						+ "    RuntimeException rr = ((RuntimeException)t) ; \n" 
+						+ "  }\n"
+						+ "  public static void m7(/*@ non_null*/ RuntimeException r) { \n" 
+						+ "    Throwable t = r;\n"
 						+ "    Exception rr = ((Exception)t); \n" + "  }\n"
 						+ "  public static void m7a(/*@ non_null*/Exception r) { \n" + "    Throwable t = r;\n"
 						+ "    RuntimeException rr = ((RuntimeException)t) ; \n" + "  }\n" + "}",
@@ -2923,9 +2976,9 @@ public class esc extends EscBase {
 						14,
 						"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
 						14,
-						"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+						"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m6a:  a (@org.jmlspecs.annotation.Nullable :: java.lang.Throwable) cannot be proved to be a java.lang.RuntimeException",
 						28,
-						"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+						"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyBadCast) in method m7a:  a (@org.jmlspecs.annotation.Nullable :: java.lang.Throwable) cannot be proved to be a java.lang.RuntimeException",
 						28));
 	}
 
@@ -2988,9 +3041,9 @@ public class esc extends EscBase {
 				17,
 				"/tt/TestJava.java:23: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method m5",
 				17,
-				"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+				"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m6a:  a (@org.jmlspecs.annotation.Nullable :: java.lang.Throwable) cannot be proved to be a java.lang.RuntimeException",
 				17,
-				"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a java.lang.Throwable cannot be proved to be a java.lang.RuntimeException",
+				"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (UndefinedBadCast) in method m7a:  a (@org.jmlspecs.annotation.Nullable :: java.lang.Throwable) cannot be proved to be a java.lang.RuntimeException",
 				17);
 	}
 

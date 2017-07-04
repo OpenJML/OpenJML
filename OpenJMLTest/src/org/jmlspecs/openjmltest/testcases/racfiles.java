@@ -123,7 +123,7 @@ public class racfiles extends RacBase {
     @Test
     public void testbigint() {
         expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
+        helpTCF("test/racbigint","test/racbigint","bigint","-show");
     }
 
     @Test

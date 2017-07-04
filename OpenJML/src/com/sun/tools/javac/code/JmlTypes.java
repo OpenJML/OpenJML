@@ -127,6 +127,13 @@ public class JmlTypes extends Types {
         return super.isSameType(t, s);
     }
     
+    public boolean isSameTypeOrRep(Type t, Type s) {
+        if (t == s) return true;
+        if (t instanceof JmlType && repSym(((JmlType)t)) == s.tsym) return true;
+        if (t instanceof JmlType || s instanceof JmlType) return false;
+        return super.isSameType(t, s);
+    }
+    
     /** Overrides Types.disjointType with functionality for JML primitive types. */
     @Override
     public boolean disjointType(Type t, Type s) {
@@ -309,14 +316,24 @@ public class JmlTypes extends Types {
         return t.repSym;
     }
     
-    /** Returns true if the given type is a JML primitive type. */
+    /** Returns true if the given type is any JML primitive type. */
     public boolean isJmlType(Type t) {
         return t.getTag() == TypeTag.NONE || t.getTag() == TypeTag.UNKNOWN;  // FIXME - needs review
     }
     
-    /** Returns true if the given type is a JML primitive type. */
+    /** Returns true if the given type is the representation of any JML primitive type. */
     public boolean isJmlRepType(Type t) {
         return t.tsym == BIGINT.repSym || t.tsym == REAL.repSym || t.tsym == TYPE.repSym; // TODO - avoid having to list JML types
+    }
+    
+    /** Returns true if the given type is any JML primitive type or its representation. */
+    public boolean isJmlTypeOrRepType(Type t) {
+        return isJmlType(t) || isJmlRepType(t);
+    }
+    
+    /** Returns true if the given type is equal to target or its representation. */
+    public boolean isJmlTypeOrRep(Type t, JmlType target) {
+        return t == target || t.tsym == repSym(target);
     }
     
     /** Returns true if the given token is the token for a JML primitive type. */
