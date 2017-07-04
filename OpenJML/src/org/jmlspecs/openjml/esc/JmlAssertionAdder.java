@@ -8998,6 +8998,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 else if (shift) lhs = addImplicitConversion(lhs,unboxedType(that.type),lhs); // FIXME - what final type
                 else lhs = addImplicitConversion(lhs,that.type,lhs);
                 
+                if (rhs.toString().contains("get")) Utils.stop();
+                rhs = convertExpr(rhs);
                 if (equality && t == null) {} // OK 
                 else if (comp) {
                     rhs = addImplicitConversion(rhs,t,rhs); // FIXME - what final type
