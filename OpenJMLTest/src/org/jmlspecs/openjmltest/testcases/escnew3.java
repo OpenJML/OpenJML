@@ -825,6 +825,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testLabels2() {
+        main.addOptions("-show","-method=m");
         helpTCX("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
@@ -835,7 +836,7 @@ public class escnew3 extends EscBase {
                 + "     a:{}\n"
                 + "     k = 12;\n"
                 + "     b:{}\n"
-                + "     k = 14;\n"
+                + "     k = 14;\n"    // Line 10
                 + "     //@ assert \\old(mm()) == 10;\n"
                 + "     //@ assert \\old(mm(),a) == 10;\n"
                 + "     //@ assert \\old(mm(),b) == 12;\n"

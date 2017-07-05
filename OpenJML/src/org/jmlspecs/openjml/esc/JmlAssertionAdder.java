@@ -4497,6 +4497,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     Map<Name,ListBuffer<JCStatement>> labelOldLists = new HashMap<Name,ListBuffer<JCStatement>>();
     protected
     Map<Name,JmlLabeledStatement> labelStatements = new HashMap<Name,JmlLabeledStatement>();
+    protected
+    Map<Name,Integer> labelHeapCounts = new HashMap<Name,Integer>();
 
     //OK
     @Override
@@ -4511,6 +4513,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         treeMap.put(that, stat); // we store the mapping from old to new so that we can appropriately translate the targets of break and continue statements
         labelActiveOldLists.put(that.label, currentStatements);
         labelStatements.put(that.label, stat);
+        labelHeapCounts.put(that.label, heapCount);
         JCBlock block;
         try {
             block = convertIntoBlock(that,that.body);
@@ -6493,7 +6496,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     Type t = that.type;
                     if (t instanceof Type.TypeVar) t = paramActuals.get(t.toString()).type; 
-                    JCVariableDecl decl = treeutils.makeVarDef(t,names.fromString(Strings.newObjectVarString + that.pos), null, that.pos);
+                    JCVariableDecl decl = treeutils.makeVarDef(t,names.fromString(Strings.newObjectVarString + that.pos+ "_" + (++count)), null, that.pos);
                     addStat(decl);
                     resultSym = decl.sym;
                     resultId = treeutils.makeIdent(that.pos, decl.sym);
@@ -9781,7 +9784,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             result = eresult = (translatingJML || !var || convertingAssignable) ? fa : newTemp(fa);
             if (oldenv != null) {
                 result = eresult = treeutils.makeOld(that.pos,eresult,oldenv); // FIXME - will make overly nested \old expressions
-                if (oldenv.name == names.empty) { // FIXME - should do this for all labels; also don't want to repeat if already present
+                if (oldenv == preLabel && inOldEnv) { // FIXME - should do this for all labels; also don't want to repeat if already present
                     JCExpression savedThisExpression = currentThisExpr;
                     try {
                         currentThisExpr = selected;
@@ -11834,11 +11837,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             // The second argument is a label, held as a JCIdent
                             oldenv = (JCIdent)that.args.get(1);
                         }
-                        JCExpression m = convertExpr(that.meth);
+                        if (false && oldenv == preLabel && that.args.get(0) instanceof JCMethodInvocation) {
+                        pushBlock();
+                        inOldEnv = false;
+                        oldenv = null;
+                        JCExpression m = convertExpr(that.meth); // FIXME _ is that.meth ever not null?
                         JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
                         // We have to wrap this in an old (even though it sometimes wraps twice) 
                         // in order to get arrays properly resolved
-                        arg = treeutils.makeOld(that.pos, arg, oldenv);
+//                        arg = treeutils.makeOld(that.pos, arg, oldenv);
                         //                        JmlMethodInvocation meth;
 //                        if (that.args.size() == 1) {
 //                            meth = M.at(that).JmlMethodInvocation(that.token,arg);
@@ -11854,7 +11861,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                        meth.label = that.label;
 //                        meth.typeargs = that.typeargs; // FIXME - do these need translating?
 //                        eresult = meth;
-                        eresult = arg;
+                        JCIdent id = newTemp(arg);
+                        JCBlock b = popBlock(0L,null);
+                        oldBlock.stats = oldBlock.stats.appendList(b.stats);
+                        eresult = id;
+                        } else {
+                            // FIXME - need to set the above scenario up for all labels
+                            JCExpression m = convertExpr(that.meth); // FIXME _ is that.meth ever not null?
+                            JCExpression arg = convertExpr(that.args.get(0)); // convert is affected by oldenv
+                            // We have to wrap this in an old (even though it sometimes wraps twice) 
+                            // in order to get arrays properly resolved
+                            arg = treeutils.makeOld(that.pos, arg, oldenv);
+                            //                        JmlMethodInvocation meth;
+//                            if (that.args.size() == 1) {
+//                                meth = M.at(that).JmlMethodInvocation(that.token,arg);
+//                            } else {
+//                                // The second argument is a label, held as a JCIdent
+//                                meth = M.JmlMethodInvocation(that.token,arg,that.args.get(1));
+//                            }
+//                            meth.setType(that.type);
+//                            meth.pos = that.pos;
+//                            meth.startpos = that.startpos;
+//                            meth.varargsElement = that.varargsElement;
+//                            meth.meth = m;
+//                            meth.label = that.label;
+//                            meth.typeargs = that.typeargs; // FIXME - do these need translating?
+//                            eresult = meth;
+                            eresult = arg;
+                       }
                     }
                 } finally {
                     oldenv = savedEnv;
@@ -11891,6 +11925,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 Name nm0 = names.fromString("__JMLtemp" + (++count));
                                 JCVariableDecl vd0 = treeutils.makeVariableDecl(nm0, arg.type, arg, p);
                                 JCExpression id0 = treeutils.makeIdent(p,  vd0.sym);
+                                
+                                // FIXME _ for now don't use a let: there are problems translating it
+                                id0 = arg;
+                                
                                 Name nm = names.fromString("__JMLtemp" + (++count));
                                 JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
                                 JCExpression z = treeutils.makeIntLiteral(p,  0);
@@ -11906,10 +11944,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                 ex.pos = p;
                                 ex.type = syms.booleanType;
                                 ex = treeutils.makeAnd(p,  treeutils.makeNotNull(p,  arg), ex);
-                                JCExpression let = M.LetExpr(vd0, ex);
-                                let.pos = p;
-                                let.type  = ex.type;
-                                e = convert(let);
+//                                JCExpression let = M.LetExpr(vd0, ex);
+//                                let.pos = p;
+//                                let.type  = ex.type;
+//                                ex = let;
+                                e = convert(ex);
                             }
                         }
                         conj = conj == null? e :
@@ -13376,12 +13415,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     currentStatements.addAll(bl.stats);
                     if (nn != null) addAssert(that,Label.POSSIBLY_NULL_INITIALIZATION,nn,that.name);
                     stat.init = init;
-                    addStat(stat);
-                    if (esc && !that.type.isPrimitive()) {
-                        addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
-                                treeutils.makeIdent(that.pos, that.sym), 
-                                that.type));
-                    }
+                    //if (splitExpressions) {
+                        addStat(stat);
+                        if (esc && !that.type.isPrimitive()) {
+                            addAssume(that,Label.IMPLICIT_ASSUME,treeutils.makeDynamicTypeInEquality(that, 
+                                    treeutils.makeIdent(that.pos, that.sym), 
+                                    that.type));
+                        }
+                    //}
                 }
                 result = stat;
             }

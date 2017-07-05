@@ -1400,7 +1400,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     public void visitSelect(JCFieldAccess that) {
         if (!(that.sym instanceof Symbol.VarSymbol)) { result = that; return; } // This is a qualified type name 
         VarSymbol vsym = (Symbol.VarSymbol)that.sym;
-        if (that.toString().endsWith("length")) Utils.stop();
         Name n;
         if (isFinal(that.sym) && (!methodDecl.sym.isConstructor() || utils.isJMLStatic(that.sym))) {
             n = labelmaps.get(null).getCurrentName(vsym);
