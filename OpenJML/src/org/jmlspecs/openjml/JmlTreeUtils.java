@@ -346,10 +346,18 @@ public class JmlTreeUtils {
     }
     
     /** Returns true if the argument is a boolean Literal with value true */
+    public boolean isNullLit(JCTree tree) {
+        if (tree == nullLit) return true;
+        if (!(tree instanceof JCLiteral)) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOT) return false;
+        return true;
+    }
+    
+    /** Returns true if the argument is a boolean Literal with value true */
     public boolean isTrueLit(JCTree tree) {
         if (tree == trueLit) return true;
         if (!(tree instanceof JCLiteral)) return false;
-        if (tree.type.getTag() != TypeTag.BOOLEAN) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return (Boolean)((JCLiteral)tree).getValue();
     }
     
@@ -357,7 +365,7 @@ public class JmlTreeUtils {
     public boolean isFalseLit(JCTree tree) {
         if (tree == falseLit) return true;
         if (!(tree instanceof JCLiteral)) return false;
-        if (tree.type.getTag() != TypeTag.BOOLEAN) return false;
+        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return !(Boolean)((JCLiteral)tree).getValue();
     }
     
